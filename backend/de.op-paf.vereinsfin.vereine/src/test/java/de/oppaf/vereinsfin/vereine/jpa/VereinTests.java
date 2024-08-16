@@ -6,13 +6,16 @@ import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.RollbackException;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.not;
@@ -30,7 +33,17 @@ class VereinTests {
     VereinRepository vereinRepository;
 
     @Inject
+    MitgliedRespository mitgliedRespository;
+
+    @Inject
     Validator validator;
+
+    @BeforeEach
+    @Transactional
+    void setUp() {
+        vereinRepository.deleteAll();
+        mitgliedRespository.deleteAll();
+    }
 
     @Test
     @DisplayName("should persist a verein")
@@ -40,6 +53,7 @@ class VereinTests {
         // given
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
+        verein.setMitglieder(Collections.emptySet());
 
         // when
         vereinRepository.persist(verein);
@@ -59,6 +73,7 @@ class VereinTests {
         // given
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
+        verein.setMitglieder(Collections.emptySet());
 
         // when
         vereinRepository.persist(verein);
@@ -77,6 +92,7 @@ class VereinTests {
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
         verein.setName("");
+        verein.setMitglieder(Collections.emptySet());
 
         // when
         Set<ConstraintViolation<Verein>> validations = validator.validate(verein);
@@ -97,6 +113,7 @@ class VereinTests {
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
         verein.setName("");
+        verein.setMitglieder(Collections.emptySet());
 
         // when
         QuarkusTransaction.begin();
@@ -110,5 +127,30 @@ class VereinTests {
             assertThat(e.getCause().getCause(), instanceOf(ConstraintViolationException.class));
             // yes, this is quite a complicated cascade
         }
+    }
+
+    @Test
+    @DisplayName("should be able to have members")
+    void shouldBeAbleToHaveMembers() {
+
+        // given
+        Verein kegelclub = new Verein();
+        kegelclub.setName("Kegelklub 777");
+        kegelclub.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
+
+        Mitglied kevin = new Mitglied();
+        kevin.setFirstName("Kevin");
+        kevin.setLastName("Kegelkönig");
+        kevin.setEmail("pinking777@gmail.com");
+
+        // when
+        kegelclub.getMitglieder().add(kevin);
+
+        QuarkusTransaction.begin();
+        vereinRepository.persist(kegelclub);
+        QuarkusTransaction.commit();
+
+        // then
+        assertThat(mitgliedRespository.listAll(), hasSize(1));
     }
 }
