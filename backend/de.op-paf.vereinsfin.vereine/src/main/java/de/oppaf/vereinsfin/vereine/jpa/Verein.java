@@ -3,13 +3,18 @@ package de.oppaf.vereinsfin.vereine.jpa;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.net.URL;
 
 @Entity
 public class Verein extends PanacheEntity {
 
+    @NotBlank
     private String name;
+
+    @NotNull
     private TYPE type;
 
     @Embedded
