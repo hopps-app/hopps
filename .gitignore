@@ -189,3 +189,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,vim,visualstudiocode,intellij+all
+/.idea/codeStyles/codeStyleConfig.xml
