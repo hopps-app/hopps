@@ -1,12 +1,16 @@
 package de.oppaf.vereinsfin.vereine.jpa;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Verein extends PanacheEntity {
@@ -20,22 +24,11 @@ public class Verein extends PanacheEntity {
     @Embedded
     private Address address;
 
+    @ManyToMany(mappedBy = "vereine", cascade = CascadeType.PERSIST)
+    private Set<Mitglied> mitglieder = new HashSet<>();
+
     private URL website;
     private URL profilePicture;
-
-    public enum TYPE {
-
-        EINGETRAGENER_VEREIN {
-            @Override
-            public String getDisplayString() {
-                return "e.V.";
-            }
-        };
-
-        // for now, we will only support e.V.
-
-        public abstract String getDisplayString();
-    }
 
     public Verein() {
 
@@ -88,5 +81,27 @@ public class Verein extends PanacheEntity {
 
     public void setProfilePicture(URL profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    public Set<Mitglied> getMitglieder() {
+        return mitglieder;
+    }
+
+    public void setMitglieder(Set<Mitglied> mitglieder) {
+        this.mitglieder = mitglieder;
+    }
+
+    public enum TYPE {
+
+        EINGETRAGENER_VEREIN {
+            @Override
+            public String getDisplayString() {
+                return "e.V.";
+            }
+        };
+
+        // for now, we will only support e.V.
+
+        public abstract String getDisplayString();
     }
 }
