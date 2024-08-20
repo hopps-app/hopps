@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.net.URL;
 import java.util.HashSet;
@@ -17,6 +18,10 @@ public class Verein extends PanacheEntity {
 
     @NotBlank
     private String name;
+
+    @NotBlank
+    @Pattern(regexp = "^[a-z0-9][a-z0-9-]*[a-z0-9]$")
+    private String slug;
 
     @NotNull
     private TYPE type;
@@ -49,6 +54,14 @@ public class Verein extends PanacheEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public TYPE getType() {

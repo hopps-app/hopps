@@ -10,6 +10,8 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import org.hamcrest.collection.IsEmptyCollection;
+import org.hamcrest.core.Is;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +23,8 @@ import java.util.Set;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.text.IsEmptyString.emptyOrNullString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +57,7 @@ class VereinTests {
         // given
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
+        verein.setSlug("i-am-a-valid-slug");
         verein.setMitglieder(Collections.emptySet());
 
         // when
@@ -74,6 +79,7 @@ class VereinTests {
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
         verein.setMitglieder(Collections.emptySet());
+        verein.setSlug("i-am-a-valid-slug");
 
         // when
         vereinRepository.persist(verein);
@@ -92,6 +98,7 @@ class VereinTests {
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
         verein.setName("");
+        verein.setSlug("foobar");
         verein.setMitglieder(Collections.emptySet());
 
         // when
@@ -137,6 +144,7 @@ class VereinTests {
         Verein kegelclub = new Verein();
         kegelclub.setName("Kegelklub 777");
         kegelclub.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setSlug("kegelklub-999");
 
         Mitglied kevin = new Mitglied();
         kevin.setFirstName("Kevin");
@@ -152,5 +160,40 @@ class VereinTests {
 
         // then
         assertThat(mitgliedRespository.listAll(), hasSize(1));
+    }
+
+    @Test
+    @DisplayName("should only accept valid URL conform slugs")
+    void shouldOnlyAcceptValidSlugs()
+    {
+        // given
+        Verein kegelclub = new Verein();
+        kegelclub.setName("Kegelklub 777");
+        kegelclub.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
+
+        // when then
+        kegelclub.setSlug("kegelklub-777");
+        assertThat(validator.validate(kegelclub), is(empty()));
+
+        kegelclub.setSlug("kegelklub777");
+        assertThat(validator.validate(kegelclub), is(empty()));
+
+        kegelclub.setSlug("777kegelklub");
+        assertThat(validator.validate(kegelclub), is(empty()));
+
+        kegelclub.setSlug("777");
+        assertThat(validator.validate(kegelclub), is(empty()));
+
+        kegelclub.setSlug("77kegel7");
+        assertThat(validator.validate(kegelclub), is(empty()));
+
+        kegelclub.setSlug("kegelklub-");
+        assertThat(validator.validate(kegelclub), hasSize(1));
+
+        kegelclub.setSlug("kegelklub#");
+        assertThat(validator.validate(kegelclub), hasSize(1));
+
+        kegelclub.setSlug("-777");
+        assertThat(validator.validate(kegelclub), hasSize(1));
     }
 }
