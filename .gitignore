@@ -86,9 +86,6 @@ fabric.properties
 
 .idea/*
 
-!.idea/codeStyles
-!.idea/runConfigurations
-
 ### macOS ###
 # General
 .DS_Store
@@ -190,3 +187,6 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,vim,visualstudiocode,intellij+all
 /.idea/codeStyles/codeStyleConfig.xml
+
+# Quarkus
+.quarkus
