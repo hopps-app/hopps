@@ -4,14 +4,42 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.op-paf.vereinsfin</groupId>
-    <artifactId>vereinsfin</artifactId>
+    <groupId>app.hopps</groupId>
+    <artifactId>hopps</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Vereinsfin</name>
+    <name>Hopps</name>
+    <description>Hopps wird eine cloudbasierte Open Source Buchhaltungssoftware mit AI, damit Vereine mehr Zeit für ihre
+        wesentlichen Ziele und Angebote haben und frustrierte Situationen mit der Buchhaltung der Vergangenheit
+        angehören.
+    </description>
+
+    <organization>
+        <name>Open Project e.V.</name>
+        <url>https://op-paf.de</url>
+    </organization>
+
+    <scm>
+        <url>https://github.com/hopps-app/hopps</url>
+        <connection>git@github.com:hopps-app/hopps.git</connection>
+        <developerConnection>git@github.com:hopps-app/hopps.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/hopps-app/hopps/issues</url>
+        <system>GitHub</system>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <modules>
-        <module>de.op-paf.vereinsfin.vereine</module>
+        <module>app.hopps.vereine</module>
     </modules>
 </project>
