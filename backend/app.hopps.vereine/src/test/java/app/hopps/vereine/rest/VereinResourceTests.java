@@ -21,6 +21,7 @@ class VereinResourceTests {
 
         // given
         Verein verein = Instancio.create(Verein.class);
+        verein.setSlug("foobar");
         verein.setId(null);
 
         RestAssured.given()
@@ -38,6 +39,7 @@ class VereinResourceTests {
 
         // given
         Verein verein = Instancio.create(Verein.class);
+        verein.setSlug("foobar");
         verein.setId(null);
         verein.setName("");
 
