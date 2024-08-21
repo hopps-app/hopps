@@ -29,6 +29,7 @@ class RestValidationTests {
         // given
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
+        verein.setSlug("foobar");
 
         // when
         ValidationResult validationResult = RestValidator.forCandidate(verein)
@@ -47,6 +48,7 @@ class RestValidationTests {
         Verein verein = Instancio.create(Verein.class);
         verein.setId(null);
         verein.setName("");
+        verein.setSlug("foobar");
 
         // when
         ValidationResult validationResult = RestValidator.forCandidate(verein)
