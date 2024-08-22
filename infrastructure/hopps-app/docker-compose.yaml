@@ -1,0 +1,6 @@
+services:
+  hopps-backend:
+    image: ghcr.io/hopps-app/hopps/vereine:backend-ci-cd
+    container_name: hopps-backend
+    ports:
+      - 8080:8080
