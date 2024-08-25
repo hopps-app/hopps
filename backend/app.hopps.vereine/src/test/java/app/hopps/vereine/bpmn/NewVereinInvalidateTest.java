@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.kie.kogito.Model;
+import org.kie.kogito.internal.process.runtime.KogitoProcessInstance;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessConfig;
 import org.kie.kogito.process.ProcessInstance;
@@ -25,14 +26,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-public class NewVereinTests {
+public class NewVereinInvalidateTest {
 
     @Inject
     @Named("NewVerein")
     Process<? extends Model> newVereinProcess;
-
-    @InjectMock
-    CreationValidationDelegate creationValidationDelegate;
 
     @Inject
     ProcessConfig processConfig;
@@ -45,14 +43,14 @@ public class NewVereinTests {
     }
 
     @Test
-    @DisplayName("should validate valid verein and owner")
-    public void shouldValidate() throws Exception {
+    @DisplayName("should terminate if data is invalid")
+    void shouldTerminateIfDataIsInvalid() throws Exception {
 
         //given
         Verein kegelclub = new Verein();
         kegelclub.setName("Kegelklub 777");
         kegelclub.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
-        kegelclub.setSlug("kegelklub-999");
+        kegelclub.setSlug(""); // invalid
 
         Mitglied kevin = new Mitglied();
         kevin.setFirstName("Kevin");
@@ -70,7 +68,7 @@ public class NewVereinTests {
         instance.start();
 
         // then
-        verify(creationValidationDelegate, times(1)).validateWithValidator(any(Verein.class), any(Mitglied.class));
-        verify(creationValidationDelegate, times(1)).validateUniqueness(any(Verein.class), any(Mitglied.class));
+        assertEquals(KogitoProcessInstance.STATE_ERROR, instance.status());
+        assertNotNull(testProcessEventListener.getProcessCompletedEvent());
     }
 }

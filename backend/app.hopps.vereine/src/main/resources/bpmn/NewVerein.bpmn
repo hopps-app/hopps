@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" xmlns:xsi="xsi" id="_PV3nkEUpED2qy6BV1IxDgA" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" xmlns:xsi="xsi" id="_tpy7QEU4ED2qy6BV1IxDgA" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
   <bpmn2:itemDefinition id="_vereinItem" structureRef="app.hopps.vereine.jpa.Verein"/>
   <bpmn2:itemDefinition id="_ownerItem" structureRef="app.hopps.vereine.jpa.Mitglied"/>
   <bpmn2:itemDefinition id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_InMessageType" structureRef=""/>
@@ -66,8 +66,10 @@
       <bpmn2:outMessageRef>_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_OutMessage</bpmn2:outMessageRef>
     </bpmn2:operation>
   </bpmn2:interface>
-  <bpmn2:collaboration id="_690595F8-BA70-41EE-B7A6-2F3937E56F1C" name="Default Collaboration">
-    <bpmn2:participant id="_E8AC679A-9DB8-4481-938B-D1E12D688939" name="Pool Participant" processRef="NewVerein"/>
+  <bpmn2:error id="ConstraintsNotMet" errorCode="ConstraintsNotMet"/>
+  <bpmn2:error id="ConstraintsNotMet" errorCode="ConstraintsNotMet"/>
+  <bpmn2:collaboration id="_4AC09BEA-BAE1-43C4-A675-4C31616A50D0" name="Default Collaboration">
+    <bpmn2:participant id="_4D1DC25C-F6CC-4EAA-9A32-171E7DC66A57" name="Pool Participant" processRef="NewVerein"/>
   </bpmn2:collaboration>
   <bpmn2:process id="NewVerein" drools:packageName="app.hopps.vereine" drools:version="1.0" drools:adHoc="false" name="NewVerein" isExecutable="true" processType="Public">
     <bpmn2:extensionElements>
@@ -89,6 +91,7 @@
         </drools:metaData>
       </bpmn2:extensionElements>
     </bpmn2:property>
+    <bpmn2:sequenceFlow id="_6F754163-7484-4233-AAF3-C3430ED98A00" sourceRef="_B3877E16-D274-4BB0-B9D2-B0A16E191999" targetRef="_46C5B451-7009-4274-8DAA-82CBDC7A2E1A"/>
     <bpmn2:sequenceFlow id="_BAA6CB4D-FC5B-4453-94B8-64B9F6CE25AE" sourceRef="_B65D0829-BC5D-47A3-8708-D1F096BFEFB8" targetRef="_F78451E1-2919-4FF8-8439-026929CD8EA4"/>
     <bpmn2:sequenceFlow id="_C66E29BE-E4FC-45F9-BC66-DDA7B964D0C2" sourceRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E" targetRef="_B65D0829-BC5D-47A3-8708-D1F096BFEFB8"/>
     <bpmn2:sequenceFlow id="_23D16123-FADC-4946-8230-180645C7FA16" sourceRef="_74549AA2-3408-4AA2-9036-93ACF44E8392" targetRef="_B65D0829-BC5D-47A3-8708-D1F096BFEFB8"/>
@@ -105,6 +108,15 @@
     <bpmn2:sequenceFlow id="_B71B0E35-1727-4E64-B3BC-4CC2F3EA19D4" sourceRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0" targetRef="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5"/>
     <bpmn2:sequenceFlow id="_D5CF1FD8-A964-4C91-8E25-EA9B40F43069" sourceRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E" targetRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0"/>
     <bpmn2:sequenceFlow id="_C208651A-A205-4106-9C62-5BD663671B72" sourceRef="_9485C8B1-CC61-46FB-A44C-F0829F620F01" targetRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E"/>
+    <bpmn2:endEvent id="_46C5B451-7009-4274-8DAA-82CBDC7A2E1A" name="Constraints not met">
+      <bpmn2:extensionElements>
+        <drools:metaData name="elementname">
+          <drools:metaValue><![CDATA[Constraints not met]]></drools:metaValue>
+        </drools:metaData>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>_6F754163-7484-4233-AAF3-C3430ED98A00</bpmn2:incoming>
+      <bpmn2:errorEventDefinition drools:erefname="ConstraintsNotMet" errorRef="ConstraintsNotMet"/>
+    </bpmn2:endEvent>
     <bpmn2:serviceTask id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.vereine.delegates.CreationValidationDelegate" drools:serviceoperation="validateUniqueness" name="Validate Uniqueness" implementation="Java" operationRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
@@ -217,6 +229,10 @@
       </bpmn2:extensionElements>
       <bpmn2:outgoing>_C208651A-A205-4106-9C62-5BD663671B72</bpmn2:outgoing>
     </bpmn2:startEvent>
+    <bpmn2:boundaryEvent id="_B3877E16-D274-4BB0-B9D2-B0A16E191999" drools:dockerinfo="114.12307692307695^74|" drools:boundaryca="true" attachedToRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E">
+      <bpmn2:outgoing>_6F754163-7484-4233-AAF3-C3430ED98A00</bpmn2:outgoing>
+      <bpmn2:errorEventDefinition drools:erefname="ConstraintsNotMet" errorRef="ConstraintsNotMet"/>
+    </bpmn2:boundaryEvent>
   </bpmn2:process>
   <bpmndi:BPMNDiagram>
     <bpmndi:BPMNPlane bpmnElement="NewVerein">
@@ -249,6 +265,12 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__DB0D419F-AB1A-46FD-8093-CD25A927EAA0" bpmnElement="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0">
         <dc:Bounds height="102" width="154" x="881" y="194"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape__B3877E16-D274-4BB0-B9D2-B0A16E191999" bpmnElement="_B3877E16-D274-4BB0-B9D2-B0A16E191999">
+        <dc:Bounds height="56" width="56" x="766.123076923077" y="268"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="shape__46C5B451-7009-4274-8DAA-82CBDC7A2E1A" bpmnElement="_46C5B451-7009-4274-8DAA-82CBDC7A2E1A">
+        <dc:Bounds height="56" width="56" x="891.123076923077" y="373"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="edge_shape__9485C8B1-CC61-46FB-A44C-F0829F620F01_to_shape__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E" bpmnElement="_C208651A-A205-4106-9C62-5BD663671B72">
         <di:waypoint x="549" y="245"/>
@@ -291,6 +313,11 @@
       <bpmndi:BPMNEdge id="edge_shape__B65D0829-BC5D-47A3-8708-D1F096BFEFB8_to_shape__F78451E1-2919-4FF8-8439-026929CD8EA4" bpmnElement="_BAA6CB4D-FC5B-4453-94B8-64B9F6CE25AE">
         <di:waypoint x="2016" y="245"/>
         <di:waypoint x="2096" y="245"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="edge_shape__B3877E16-D274-4BB0-B9D2-B0A16E191999_to_shape__46C5B451-7009-4274-8DAA-82CBDC7A2E1A" bpmnElement="_6F754163-7484-4233-AAF3-C3430ED98A00">
+        <di:waypoint x="794.123076923077" y="296"/>
+        <di:waypoint x="794.1251902291441" y="401.0000000000012"/>
+        <di:waypoint x="919.123076923077" y="401"/>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
@@ -429,7 +456,7 @@
         </bpsim:Scenario>
       </bpsim:BPSimData>
     </bpmn2:extensionElements>
-    <bpmn2:source>_PV3nkEUpED2qy6BV1IxDgA</bpmn2:source>
-    <bpmn2:target>_PV3nkEUpED2qy6BV1IxDgA</bpmn2:target>
+    <bpmn2:source>_tpy7QEU4ED2qy6BV1IxDgA</bpmn2:source>
+    <bpmn2:target>_tpy7QEU4ED2qy6BV1IxDgA</bpmn2:target>
   </bpmn2:relationship>
 </bpmn2:definitions>
