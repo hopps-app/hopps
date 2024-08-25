@@ -37,7 +37,12 @@ public class CreationValidationDelegate {
         }
     }
 
-    public void validateUniqueness(Verein verein, Mitglied owner) throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException {
+    /**
+     * @param verein The verein to be validated if the slug is already taken
+     * @param owner The owner to be validated if the email is already registered
+     * @throws Exception if validation fails. It is intentionally java.lang.Exception, as Kogito cannot handle anything else
+     */
+    public void validateUniqueness(Verein verein, Mitglied owner) throws Exception {
 
         // Not having a proper Jakarta Validator is intentional, as a Hibernate Proxy might be valid, although its content
         // is already in the database, ergo not unique

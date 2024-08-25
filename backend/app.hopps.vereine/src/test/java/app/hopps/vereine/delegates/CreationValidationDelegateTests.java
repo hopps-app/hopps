@@ -88,7 +88,7 @@ public class CreationValidationDelegateTests {
 
     @Test
     @DisplayName("should validate valid data")
-    void shouldValidateUniqueness() throws NonUniqueConstraintViolationException {
+    void shouldValidateUniqueness() throws Exception {
 
         // given empty database
         Verein verein = new Verein();
