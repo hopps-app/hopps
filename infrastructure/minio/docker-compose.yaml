@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  minio:
+    image: minio/minio
+    container_name: minio_local
+    restart: always
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - minio_data:/mnt/data
+    env_file:
+      - ./stack.env
+    command: server --console-address ":9001" /mnt/data
+    
+volumes:
+  minio_data:
