@@ -13,4 +13,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
-    - portainer_data
+    portainer_data:
