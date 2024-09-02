@@ -20,7 +20,7 @@
         <quarkus.platform.version>3.13.3</quarkus.platform.version>
         <version.org.kie.kogito>999-SNAPSHOT</version.org.kie.kogito>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.4.0</surefire-plugin.version>
+        <surefire-plugin.version>3.5.0</surefire-plugin.version>
     </properties>
 
     <dependencyManagement>
