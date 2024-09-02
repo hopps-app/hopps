@@ -14,6 +14,10 @@ env:
   # prefix which needs to be in front of version tags
   VERSION_TAG_PREFIX: 'verein-'
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-code-and-container:
     runs-on: ubuntu-latest
