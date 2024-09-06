@@ -14,9 +14,19 @@ env:
   # prefix which needs to be in front of version tags
   VERSION_TAG_PREFIX: 'org-'
 
+# FIXME: This builds and pushes every backend service anytime a change is made
+# inside 'backend/**'
 
 jobs:
   build-code-and-container:
+    strategy:
+      matrix:
+        service:
+          - label: vereine
+            directory: app.hopps.vereine
+          - label: invoices
+            directory: app.hopps.invoices
+
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,14 +37,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # only build relevant service
       - name: mvn package
-        run: mvn -B package --file backend/pom.xml
+        run: mvn -B package --file backend/${{ matrix.service.directory }}/pom.xml
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.BASE_IMAGE_NAME }}
+          images: ${{ format('{0}{1}', env.BASE_IMAGE_NAME, matrix.service.label) }}
           tags: |
             # increasing run number tag on main
             type=raw,value=${{ github.run_number }},enable={{is_default_branch}}
@@ -56,8 +67,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: backend/app.hopps.org
-          file: backend/app.hopps.org/src/main/docker/Dockerfile.jvm
+          context: backend/${{ matrix.service.directory }}
+          file: backend/${{ matrix.service.directory }}/src/main/docker/Dockerfile.jvm
           # don't push dependabot branches
           push: ${{ !startsWith(github.ref, 'refs/heads/dependabot/maven/backend') }}
           tags: ${{ steps.meta.outputs.tags }} # tags from the docker/metadata-action

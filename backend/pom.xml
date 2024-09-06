@@ -40,5 +40,6 @@
 
     <modules>
         <module>app.hopps.org</module>
+        <module>app.hopps.invoices</module>
     </modules>
 </project>
