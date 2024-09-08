@@ -10,9 +10,8 @@
     <packaging>pom</packaging>
 
     <name>Hopps</name>
-    <description>Hopps wird eine cloudbasierte Open Source Buchhaltungssoftware mit AI, damit Vereine mehr Zeit für ihre
-        wesentlichen Ziele und Angebote haben und frustrierte Situationen mit der Buchhaltung der Vergangenheit
-        angehören.
+    <description>Hopps will be a cloud-based open-source accounting software with AI, so that clubs have more time for
+        their essential goals and offerings, and frustrating situations with accounting are a thing of the past.
     </description>
 
     <organization>
@@ -40,6 +39,6 @@
     </licenses>
 
     <modules>
-        <module>app.hopps.vereine</module>
+        <module>app.hopps.org</module>
     </modules>
 </project>
