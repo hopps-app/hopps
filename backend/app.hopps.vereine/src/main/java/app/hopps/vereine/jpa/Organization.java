@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-public class Verein extends PanacheEntity {
+public class Organization extends PanacheEntity {
 
     @NotBlank
     private String name;
@@ -29,14 +29,13 @@ public class Verein extends PanacheEntity {
     @Embedded
     private Address address;
 
-    @ManyToMany(mappedBy = "vereine", cascade = CascadeType.PERSIST)
-    private Set<Mitglied> mitglieder = new HashSet<>();
+    @ManyToMany(mappedBy = "organizations", cascade = CascadeType.PERSIST)
+    private Set<Member> members = new HashSet<>();
 
     private URL website;
     private URL profilePicture;
 
-    public Verein() {
-
+    public Organization() {
         // no args constructor
     }
 
@@ -96,12 +95,12 @@ public class Verein extends PanacheEntity {
         this.profilePicture = profilePicture;
     }
 
-    public Set<Mitglied> getMitglieder() {
-        return mitglieder;
+    public Set<Member> getMembers() {
+        return members;
     }
 
-    public void setMitglieder(Set<Mitglied> mitglieder) {
-        this.mitglieder = mitglieder;
+    public void setMembers(Set<Member> members) {
+        this.members = members;
     }
 
     public enum TYPE {

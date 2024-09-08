@@ -1,6 +1,6 @@
 package app.hopps.vereine.rest;
 
-import app.hopps.vereine.jpa.Mitglied;
+import app.hopps.vereine.jpa.Member;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -11,15 +11,15 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 @QuarkusTest
-@TestHTTPEndpoint(MitgliedResource.class)
-class MitgliedResourceTests {
+@TestHTTPEndpoint(MemberResource.class)
+class MemberResourceTests {
 
     @Test
     @DisplayName("should validate valid Mitglied")
     void shouldValidateValidMitglied() {
 
         // given
-        Mitglied ferdi = new Mitglied();
+        Member ferdi = new Member();
         ferdi.setFirstName("Ferdi");
         ferdi.setLastName("Fußballer");
         ferdi.setEmail("ferdi@example.com");
@@ -38,7 +38,7 @@ class MitgliedResourceTests {
     void shouldInvalidateMitgliedWithInvalidEmail() {
 
         // given
-        Mitglied ferdi = new Mitglied();
+        Member ferdi = new Member();
         ferdi.setFirstName("Ferdi");
         ferdi.setLastName("Fußballer");
         ferdi.setEmail("ferdi-at-example.com");

@@ -1,6 +1,6 @@
 package app.hopps.vereine.rest;
 
-import app.hopps.vereine.jpa.Verein;
+import app.hopps.vereine.jpa.Organization;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -12,21 +12,21 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 @QuarkusTest
-@TestHTTPEndpoint(VereinResource.class)
-class VereinResourceTests {
+@TestHTTPEndpoint(OrganizationResource.class)
+class OrganizationResourceTests {
 
     @Test
     @DisplayName("should validate valid verein")
     void shouldValidateValidVerein() {
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setSlug("foobar");
-        verein.setId(null);
+        Organization organization = Instancio.create(Organization.class);
+        organization.setSlug("foobar");
+        organization.setId(null);
 
         RestAssured.given()
                 .contentType("application/json")
-                .body(verein)
+                .body(organization)
                 .when()
                 .post("/validate")
                 .then()
@@ -38,14 +38,14 @@ class VereinResourceTests {
     void shouldInvalidateVereinWithoutName() {
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setSlug("foobar");
-        verein.setId(null);
-        verein.setName("");
+        Organization organization = Instancio.create(Organization.class);
+        organization.setSlug("foobar");
+        organization.setId(null);
+        organization.setName("");
 
         RestAssured.given()
                 .contentType("application/json")
-                .body(verein)
+                .body(organization)
                 .when()
                 .post("/validate")
                 .then()

@@ -1,6 +1,6 @@
 package app.hopps.vereine.rest;
 
-import app.hopps.vereine.jpa.Verein;
+import app.hopps.vereine.jpa.Organization;
 import app.hopps.vereine.rest.RestValidator.ValidationResult;
 import app.hopps.vereine.rest.RestValidator.Violation;
 import io.quarkus.test.junit.QuarkusTest;
@@ -27,12 +27,12 @@ class RestValidationTests {
     void shouldValidate() {
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setId(null);
-        verein.setSlug("foobar");
+        Organization organization = Instancio.create(Organization.class);
+        organization.setId(null);
+        organization.setSlug("foobar");
 
         // when
-        ValidationResult validationResult = RestValidator.forCandidate(verein)
+        ValidationResult validationResult = RestValidator.forCandidate(organization)
                 .with(validator)
                 .build();
 
@@ -45,13 +45,13 @@ class RestValidationTests {
     void shouldInvalidate() {
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setId(null);
-        verein.setName("");
-        verein.setSlug("foobar");
+        Organization organization = Instancio.create(Organization.class);
+        organization.setId(null);
+        organization.setName("");
+        organization.setSlug("foobar");
 
         // when
-        ValidationResult validationResult = RestValidator.forCandidate(verein)
+        ValidationResult validationResult = RestValidator.forCandidate(organization)
                 .with(validator)
                 .build();
 

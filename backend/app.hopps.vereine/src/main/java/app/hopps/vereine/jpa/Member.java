@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
-public class Mitglied extends PanacheEntity {
+public class Member extends PanacheEntity {
 
     @NotBlank
     private String firstName;
@@ -22,16 +22,16 @@ public class Mitglied extends PanacheEntity {
     private String email;
 
     @ManyToMany
-    @JoinTable(name = "Mitglied_verein",
-            joinColumns = @JoinColumn(name = "mitglied_id"))
-    private Collection<Verein> vereine = new ArrayList<>();
+    @JoinTable(name = "member_verein",
+            joinColumns = @JoinColumn(name = "member_id"))
+    private Collection<Organization> organizations = new ArrayList<>();
 
-    public Collection<Verein> getVereine() {
-        return vereine;
+    public Collection<Organization> getOrganizations() {
+        return organizations;
     }
 
-    public void setVereine(Collection<Verein> vereine) {
-        this.vereine = vereine;
+    public void setOrganizations(Collection<Organization> vereine) {
+        this.organizations = vereine;
     }
 
     public void setFirstName(String firstName) {

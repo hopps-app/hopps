@@ -3,6 +3,6 @@ package app.hopps.vereine.rest;
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 
 @QuarkusIntegrationTest
-class VereinResourceTestsIT extends VereinResourceTests {
+class MemberResourceTestsIT extends MemberResourceTests {
     // marker subclass only
 }

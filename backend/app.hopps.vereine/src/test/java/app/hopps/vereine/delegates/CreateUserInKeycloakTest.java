@@ -1,6 +1,6 @@
 package app.hopps.vereine.delegates;
 
-import app.hopps.vereine.jpa.Mitglied;
+import app.hopps.vereine.jpa.Member;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -36,7 +36,7 @@ class CreateUserInKeycloakTest {
     void createUserInKeycloak() {
         UsersResource usersResource = keycloak.realm(realmName).users();
 
-        Mitglied newUser = new Mitglied();
+        Member newUser = new Member();
         newUser.setFirstName("Foo");
         newUser.setLastName("Bar");
         newUser.setEmail("foo@bar.com");
@@ -71,7 +71,7 @@ class CreateUserInKeycloakTest {
         removeTestUser(usersResource, newUser);
     }
 
-    private static void removeTestUser(UsersResource usersResource, Mitglied newUser) {
+    private static void removeTestUser(UsersResource usersResource, Member newUser) {
         List<UserRepresentation> testusers = usersResource.searchByEmail(newUser.getEmail(), true);
         for (UserRepresentation user : testusers) {
             Response deleteResponse = usersResource.delete(user.getId());

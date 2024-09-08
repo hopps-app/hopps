@@ -1,6 +1,6 @@
 package app.hopps.vereine.delegates;
 
-import app.hopps.vereine.jpa.Mitglied;
+import app.hopps.vereine.jpa.Member;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -51,7 +51,7 @@ public class CreateUserInKeycloak {
         return ownerRole;
     }
 
-    public void createUserInKeycloak(Mitglied user) {
+    public void createUserInKeycloak(Member user) {
         UserRepresentation userRepresentation = new UserRepresentation();
 
         userRepresentation.setEnabled(true);

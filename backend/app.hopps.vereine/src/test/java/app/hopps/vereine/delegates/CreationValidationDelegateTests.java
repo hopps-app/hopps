@@ -1,9 +1,9 @@
 package app.hopps.vereine.delegates;
 
-import app.hopps.vereine.jpa.Mitglied;
-import app.hopps.vereine.jpa.MitgliedRespository;
-import app.hopps.vereine.jpa.Verein;
-import app.hopps.vereine.jpa.VereinRepository;
+import app.hopps.vereine.jpa.Member;
+import app.hopps.vereine.jpa.MemberRespository;
+import app.hopps.vereine.jpa.Organization;
+import app.hopps.vereine.jpa.OrganizationRepository;
 import app.hopps.vereine.validation.NonUniqueConstraintViolation;
 import app.hopps.vereine.validation.NonUniqueConstraintViolation.NonUniqueConstraintViolationException;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -29,17 +29,16 @@ public class CreationValidationDelegateTests {
     CreationValidationDelegate delegate;
 
     @Inject
-    VereinRepository vereinRepository;
+    OrganizationRepository organizationRepository;
 
     @Inject
-    MitgliedRespository mitgliedRespository;
+    MemberRespository memberRespository;
 
     @BeforeEach
     @Transactional
     void setUp() {
-
-        vereinRepository.deleteAll();
-        mitgliedRespository.deleteAll();
+        organizationRepository.deleteAll();
+        memberRespository.deleteAll();
     }
 
     @Test
@@ -47,20 +46,20 @@ public class CreationValidationDelegateTests {
     void shouldValidateWithJakartaValidator() {
 
         // given
-        Verein verein = new Verein();
-        verein.setName("Kegelclub 777");
-        verein.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
-        verein.setSlug("kegelclub-777");
+        Organization organization = new Organization();
+        organization.setName("Kegelclub 777");
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setSlug("kegelclub-777");
 
-        Mitglied owner = new Mitglied();
+        Member owner = new Member();
         owner.setFirstName("Kevin");
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
 
-        verein.getMitglieder().add(owner);
+        organization.getMembers().add(owner);
 
         // when
-        delegate.validateWithValidator(verein, owner);
+        delegate.validateWithValidator(organization, owner);
 
         // then no exception
     }
@@ -70,20 +69,20 @@ public class CreationValidationDelegateTests {
     void shouldInvalidateWithJakartaValidator() {
 
         // given
-        Verein verein = new Verein();
-        verein.setName("Kegelclub 777");
-        verein.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
-        verein.setSlug("kegelclub-777-");
+        Organization organization = new Organization();
+        organization.setName("Kegelclub 777");
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setSlug("kegelclub-777-");
 
-        Mitglied owner = new Mitglied();
+        Member owner = new Member();
         owner.setFirstName("Kevin");
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
 
-        verein.getMitglieder().add(owner);
+        organization.getMembers().add(owner);
 
         // when
-        assertThrows(ConstraintViolationException.class, () -> delegate.validateWithValidator(verein, owner));
+        assertThrows(ConstraintViolationException.class, () -> delegate.validateWithValidator(organization, owner));
     }
 
     @Test
@@ -91,20 +90,20 @@ public class CreationValidationDelegateTests {
     void shouldValidateUniqueness() throws Exception {
 
         // given empty database
-        Verein verein = new Verein();
-        verein.setName("Kegelclub 777");
-        verein.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
-        verein.setSlug("kegelclub-777");
+        Organization organization = new Organization();
+        organization.setName("Kegelclub 777");
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setSlug("kegelclub-777");
 
-        Mitglied owner = new Mitglied();
+        Member owner = new Member();
         owner.setFirstName("Kevin");
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
 
-        verein.getMitglieder().add(owner);
+        organization.getMembers().add(owner);
 
         // when
-        delegate.validateUniqueness(verein, owner);
+        delegate.validateUniqueness(organization, owner);
 
         // then no exception
     }
@@ -114,36 +113,36 @@ public class CreationValidationDelegateTests {
     void shouldInvalidateUniqueness() throws NonUniqueConstraintViolationException {
 
         // given
-        Verein existingVerein = new Verein();
-        existingVerein.setName("Kegelclub 777");
-        existingVerein.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
-        existingVerein.setSlug("kegelclub-777");
+        Organization existingOrganization = new Organization();
+        existingOrganization.setName("Kegelclub 777");
+        existingOrganization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        existingOrganization.setSlug("kegelclub-777");
 
         QuarkusTransaction.begin();
-        vereinRepository.persist(existingVerein);
+        organizationRepository.persist(existingOrganization);
         QuarkusTransaction.commit();
 
         // when
-        Verein verein = new Verein();
-        verein.setName("Kegelclub 777");
-        verein.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
-        verein.setSlug("kegelclub-777");
+        Organization organization = new Organization();
+        organization.setName("Kegelclub 777");
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setSlug("kegelclub-777");
 
-        Mitglied owner = new Mitglied();
+        Member owner = new Member();
         owner.setFirstName("Kevin");
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
 
-        verein.getMitglieder().add(owner);
+        organization.getMembers().add(owner);
 
 
         // then
-        NonUniqueConstraintViolationException exception = assertThrows(NonUniqueConstraintViolationException.class, () -> delegate.validateUniqueness(verein, owner));
+        NonUniqueConstraintViolationException exception = assertThrows(NonUniqueConstraintViolationException.class, () -> delegate.validateUniqueness(organization, owner));
         assertThat(exception.getViolations(), hasSize(1));
 
         NonUniqueConstraintViolation onlyViolation = exception.getViolations().stream().findFirst().orElseThrow();
         assertEquals("slug", onlyViolation.field());
         assertThat(onlyViolation.getMessage(), is("must be unique"));
-        assertThat(onlyViolation.root(), IsInstanceOf.instanceOf(Verein.class));
+        assertThat(onlyViolation.root(), IsInstanceOf.instanceOf(Organization.class));
     }
 }
