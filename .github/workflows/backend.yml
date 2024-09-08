@@ -9,10 +9,10 @@ on:
     tags: [ 'verein-*.*.*' ]
 
 env:
-  BASE_IMAGE_NAME: ghcr.io/hopps-app/hopps/vereine
+  BASE_IMAGE_NAME: ghcr.io/hopps-app/hopps/org
 
   # prefix which needs to be in front of version tags
-  VERSION_TAG_PREFIX: 'verein-'
+  VERSION_TAG_PREFIX: 'org-'
 
 # permissions:
 #   contents: read
@@ -60,6 +60,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: backend/app.hopps.vereine
-          file: backend/app.hopps.vereine/src/main/docker/Dockerfile.jvm
+          file: backend/app.hopps.org/src/main/docker/Dockerfile.jvm
           push: true
           tags: ${{ steps.meta.outputs.tags }} # tags from the docker/metadata-action
