@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 /**
- * Use this if you need to bind a delegate to a service task in BPMN
+ * Use this if you need to bind an arbitrary delegate to a service task in BPMN
  */
 @ApplicationScoped
 public class NoopDelegate {

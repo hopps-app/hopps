@@ -14,7 +14,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
-class MitgliedTest {
+class MemberTest {
 
     @Inject
     Validator validator;
@@ -24,18 +24,18 @@ class MitgliedTest {
     void mustHaveValidEmail() {
 
         // given
-        Mitglied datenschutzalman = new Mitglied();
+        Member datenschutzalman = new Member();
         datenschutzalman.setFirstName("Lala");
         datenschutzalman.setLastName("Bubu");
         datenschutzalman.setEmail("darfstdunichtwissen");
 
         // when
-        Set<ConstraintViolation<Mitglied>> violations = validator.validate(datenschutzalman);
+        Set<ConstraintViolation<Member>> violations = validator.validate(datenschutzalman);
 
         // then
         assertThat(violations, hasSize(1));
 
-        ConstraintViolation<Mitglied> onlyViolation = violations.stream().findFirst().orElseThrow();
+        ConstraintViolation<Member> onlyViolation = violations.stream().findFirst().orElseThrow();
         assertEquals("email", onlyViolation.getPropertyPath().toString());
         assertEquals("must be a well-formed email address", onlyViolation.getMessage());
     }

@@ -10,8 +10,6 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
-import org.hamcrest.collection.IsEmptyCollection;
-import org.hamcrest.core.Is;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,13 +29,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
-class VereinTests {
+class OrganizationTests {
 
     @Inject
-    VereinRepository vereinRepository;
+    OrganizationRepository organizationRepository;
 
     @Inject
-    MitgliedRespository mitgliedRespository;
+    MemberRespository memberRespository;
 
     @Inject
     Validator validator;
@@ -45,8 +43,8 @@ class VereinTests {
     @BeforeEach
     @Transactional
     void setUp() {
-        vereinRepository.deleteAll();
-        mitgliedRespository.deleteAll();
+        organizationRepository.deleteAll();
+        memberRespository.deleteAll();
     }
 
     @Test
@@ -55,17 +53,17 @@ class VereinTests {
     void shouldPersistVerein() {
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setId(null);
-        verein.setSlug("i-am-a-valid-slug");
-        verein.setMitglieder(Collections.emptySet());
+        Organization organization = Instancio.create(Organization.class);
+        organization.setId(null);
+        organization.setSlug("i-am-a-valid-slug");
+        organization.setMembers(Collections.emptySet());
 
         // when
-        vereinRepository.persist(verein);
+        organizationRepository.persist(organization);
 
         // then
-        assertThat(vereinRepository.listAll(), hasSize(1));
-        assertNotNull(vereinRepository.listAll().getFirst().getName());
+        assertThat(organizationRepository.listAll(), hasSize(1));
+        assertNotNull(organizationRepository.listAll().getFirst().getName());
     }
 
     @Test
@@ -76,16 +74,16 @@ class VereinTests {
         // Caveat: @TestTransaction will not trigger the Hibernate Validation
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setId(null);
-        verein.setMitglieder(Collections.emptySet());
-        verein.setSlug("i-am-a-valid-slug");
+        Organization organization = Instancio.create(Organization.class);
+        organization.setId(null);
+        organization.setMembers(Collections.emptySet());
+        organization.setSlug("i-am-a-valid-slug");
 
         // when
-        vereinRepository.persist(verein);
+        organizationRepository.persist(organization);
 
         // then
-        Address address = vereinRepository.listAll().getFirst().getAddress();
+        Address address = organizationRepository.listAll().getFirst().getAddress();
         assertThat(address.getStreet(), not(emptyOrNullString()));
         assertThat(address.getNumber(), not(emptyOrNullString()));
     }
@@ -95,19 +93,19 @@ class VereinTests {
     void mustEnforceANonBlankName() {
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setId(null);
-        verein.setName("");
-        verein.setSlug("foobar");
-        verein.setMitglieder(Collections.emptySet());
+        Organization organization = Instancio.create(Organization.class);
+        organization.setId(null);
+        organization.setName("");
+        organization.setSlug("foobar");
+        organization.setMembers(Collections.emptySet());
 
         // when
-        Set<ConstraintViolation<Verein>> validations = validator.validate(verein);
+        Set<ConstraintViolation<Organization>> validations = validator.validate(organization);
 
         // then
         assertThat(validations, hasSize(1));
 
-        ConstraintViolation<Verein> validation = validations.stream().findFirst().orElseThrow();
+        ConstraintViolation<Organization> validation = validations.stream().findFirst().orElseThrow();
         assertEquals("name", validation.getPropertyPath().toString());
         assertEquals("must not be blank", validation.getMessage());
     }
@@ -117,14 +115,14 @@ class VereinTests {
     void mustNotPersistWithABlankName() {
 
         // given
-        Verein verein = Instancio.create(Verein.class);
-        verein.setId(null);
-        verein.setName("");
-        verein.setMitglieder(Collections.emptySet());
+        Organization organization = Instancio.create(Organization.class);
+        organization.setId(null);
+        organization.setName("");
+        organization.setMembers(Collections.emptySet());
 
         // when
         QuarkusTransaction.begin();
-        vereinRepository.persist(verein);
+        organizationRepository.persist(organization);
         try {
             QuarkusTransaction.commit();
         } catch (Exception e) {
@@ -141,25 +139,25 @@ class VereinTests {
     void shouldBeAbleToHaveMembers() {
 
         // given
-        Verein kegelclub = new Verein();
+        Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
-        kegelclub.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
         kegelclub.setSlug("kegelklub-999");
 
-        Mitglied kevin = new Mitglied();
+        Member kevin = new Member();
         kevin.setFirstName("Kevin");
         kevin.setLastName("Kegelkönig");
         kevin.setEmail("pinking777@gmail.com");
 
         // when
-        kegelclub.getMitglieder().add(kevin);
+        kegelclub.getMembers().add(kevin);
 
         QuarkusTransaction.begin();
-        vereinRepository.persist(kegelclub);
+        organizationRepository.persist(kegelclub);
         QuarkusTransaction.commit();
 
         // then
-        assertThat(mitgliedRespository.listAll(), hasSize(1));
+        assertThat(memberRespository.listAll(), hasSize(1));
     }
 
     @Test
@@ -167,9 +165,9 @@ class VereinTests {
     void shouldOnlyAcceptValidSlugs()
     {
         // given
-        Verein kegelclub = new Verein();
+        Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
-        kegelclub.setType(Verein.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
 
         // when then
         kegelclub.setSlug("kegelklub-777");

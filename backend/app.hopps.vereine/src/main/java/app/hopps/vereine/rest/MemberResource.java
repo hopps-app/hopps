@@ -1,6 +1,6 @@
 package app.hopps.vereine.rest;
 
-import app.hopps.vereine.jpa.Mitglied;
+import app.hopps.vereine.jpa.Member;
 import app.hopps.vereine.rest.RestValidator.ValidationResult;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,10 +11,10 @@ import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/mitglieder")
-public class MitgliedResource {
+@Path("/member")
+public class MemberResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MitgliedResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MemberResource.class);
 
     @Inject
     Validator validator;
@@ -23,13 +23,13 @@ public class MitgliedResource {
     @Path(("/validate"))
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ValidationResult validate(Mitglied mitglied) {
+    public ValidationResult validate(Member member) {
 
-        ValidationResult result = RestValidator.forCandidate(mitglied)
+        ValidationResult result = RestValidator.forCandidate(member)
                 .with(validator)
                 .build();
 
-        LOG.info("Validating verein {} {}", mitglied.getFirstName(), mitglied.getLastName());
+        LOG.info("Validating Member {} {}", member.getFirstName(), member.getLastName());
 
         if (result.isValid() == ValidationResult.Validity.INVALID) {
             Response response = Response.status(HttpServletResponse.SC_BAD_REQUEST)
