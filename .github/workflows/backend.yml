@@ -14,9 +14,6 @@ env:
   # prefix which needs to be in front of version tags
   VERSION_TAG_PREFIX: 'org-'
 
-# permissions:
-#   contents: read
-#   packages: write
 
 jobs:
   build-code-and-container:
@@ -61,5 +58,6 @@ jobs:
         with:
           context: backend/app.hopps.org
           file: backend/app.hopps.org/src/main/docker/Dockerfile.jvm
-          push: true
+          # don't push dependabot branches
+          push: ${{ !startsWith(github.ref, '/refs/heads/dependabot/maven/backend') }}
           tags: ${{ steps.meta.outputs.tags }} # tags from the docker/metadata-action
