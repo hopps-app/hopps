@@ -1,8 +1,9 @@
-# invoices
+# az-document-ai
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+## Azure endpoint/key config
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+Create a file called [.env](./.env) in this directory, and put your config variables there (format: `ENV_VAR=value`).
+This file is in the .gitignore, meaning you will not accidentally commit a secret key.
 
 ## Running the application in dev mode
 

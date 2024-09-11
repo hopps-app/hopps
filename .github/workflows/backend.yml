@@ -24,8 +24,8 @@ jobs:
         service:
           - label: vereine
             directory: app.hopps.vereine
-          - label: invoices
-            directory: app.hopps.invoices
+          - label: az-document-ai
+            directory: app.hopps.az-document-ai
 
     runs-on: ubuntu-latest
     steps:

@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>app.hopps</groupId>
-    <artifactId>invoices</artifactId>
+    <artifactId>az-document-ai</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>Invoices</name>
-    <description>Microservice which uses OCR/AI to extract data from invoices.</description>
+    <name>Azure Document AI</name>
+    <description>Microservice which uses OCR/AI to extract data from documents (invoices/receipts).</description>
 
     <properties>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
@@ -34,6 +34,11 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-ai-documentintelligence</artifactId>
+            <version>1.0.0-beta.4</version>
+        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-messaging-kafka</artifactId>
