@@ -40,6 +40,6 @@
 
     <modules>
         <module>app.hopps.org</module>
-        <module>app.hopps.invoices</module>
+        <module>app.hopps.az-document-ai</module>
     </modules>
 </project>
