@@ -20,7 +20,7 @@ import java.util.List;
 
 @ApplicationScoped
 public class AzureAiService {
-    private Logger LOGGER = LoggerFactory.getLogger(AzureAiService.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(AzureAiService.class);
 
     @ConfigProperty(name = "app.hopps.az-document-ai.azure.invoiceModelId")
     String invoiceModelId;
@@ -28,7 +28,7 @@ public class AzureAiService {
     @ConfigProperty(name = "app.hopps.az-document-ai.azure.receiptModelId")
     String receiptModelId;
 
-    private DocumentIntelligenceClient azureClient;
+    private final DocumentIntelligenceClient azureClient;
 
     public AzureAiService(
             @ConfigProperty(name = "app.hopps.az-document-ai.azure.endpoint")
@@ -53,10 +53,13 @@ public class AzureAiService {
         Document document = scanDocument(invoiceModelId, imageUrl);
         if (document == null) return null;
 
+        LOGGER.info("Scanned document: {}", document.getFields());
+
         return InvoiceData.fromDocument(document);
     }
 
     private Document scanDocument(String modelId, URL imageUrl) {
+        LOGGER.info("(model={}) Starting scan of document: '{}'", modelId, imageUrl);
         SyncPoller<AnalyzeResultOperation, AnalyzeResult> analyzeLayoutPoller
                 = azureClient.beginAnalyzeDocument(modelId,
                         null,
@@ -77,6 +80,9 @@ public class AzureAiService {
         } else if (documents.size() > 1) {
             LOGGER.warn("Document analysis found {} documents, using first one", documents.size());
         }
+
+        LOGGER.info("(model={}) Scan successfully completed for: '{}'", modelId, imageUrl);
+
         return documents.getFirst();
     }
 }
