@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DocumentKafkaConnector {
-    private Logger LOGGER = LoggerFactory.getLogger(DocumentKafkaConnector.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(DocumentKafkaConnector.class);
 
     @Inject
     @Channel("invoices-out")

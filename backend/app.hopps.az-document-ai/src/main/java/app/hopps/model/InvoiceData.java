@@ -9,7 +9,7 @@ import java.util.Map;
 
 public record InvoiceData(
     String customerName,
-    String billingAddress,
+    Address billingAddress,
     String purchaseOrderNumber,
     String invoiceId,
     LocalDate invoiceDate,
@@ -24,7 +24,7 @@ public record InvoiceData(
 
         return new InvoiceData(
             fields.get("CustomerName").getValueString(),
-            fields.get("BillingAddress").getValueAddress().toString(),
+            Address.fromAzure(fields.get("BillingAddress").getValueAddress()),
             fields.get("PurchaseOrder").getValueString(),
             fields.get("InvoiceId").getValueString(),
             fields.get("InvoiceDate").getValueDate(),
