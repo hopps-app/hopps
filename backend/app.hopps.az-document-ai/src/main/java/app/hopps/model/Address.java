@@ -8,8 +8,7 @@ public record Address(
     String state,
     String city,
     String road,
-    String houseNumber,
-    String streetAddress
+    String houseNumber
 ) {
     public static Address fromAzure(AddressValue value) {
         return new Address(
@@ -18,8 +17,7 @@ public record Address(
                 value.getState(),
                 value.getCity(),
                 value.getRoad(),
-                value.getHouseNumber(),
-                value.getStreetAddress()
+                value.getHouseNumber()
         );
     }
 }
