@@ -11,6 +11,7 @@ import com.azure.ai.documentintelligence.models.Document;
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.core.util.polling.SyncPoller;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,19 +29,8 @@ public class AzureAiService {
     @ConfigProperty(name = "app.hopps.az-document-ai.azure.receiptModelId")
     String receiptModelId;
 
-    private final DocumentIntelligenceClient azureClient;
-
-    public AzureAiService(
-            @ConfigProperty(name = "app.hopps.az-document-ai.azure.endpoint")
-            String endpoint,
-            @ConfigProperty(name = "app.hopps.az-document-ai.azure.key")
-            String key
-    ) {
-        azureClient = new DocumentIntelligenceClientBuilder()
-                .credential(new AzureKeyCredential(key))
-                .endpoint(endpoint)
-                .buildClient();
-    }
+    @Inject
+    AzureDocumentConnector azureDocumentConnector;
 
     public ReceiptData scanReceipt(URL imageUrl) {
         Document document = scanDocument(receiptModelId, imageUrl);
@@ -60,18 +50,8 @@ public class AzureAiService {
 
     private Document scanDocument(String modelId, URL imageUrl) {
         LOGGER.info("(model={}) Starting scan of document: '{}'", modelId, imageUrl);
-        SyncPoller<AnalyzeResultOperation, AnalyzeResult> analyzeLayoutPoller
-                = azureClient.beginAnalyzeDocument(modelId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        new AnalyzeDocumentRequest().setUrlSource(imageUrl.toString()));
 
-        AnalyzeResult analyzeLayoutResult = analyzeLayoutPoller.getFinalResult();
+        AnalyzeResult analyzeLayoutResult = azureDocumentConnector.getAnalyzeResult(modelId, imageUrl);
         List<Document> documents = analyzeLayoutResult.getDocuments();
 
         if (documents.isEmpty()) {
