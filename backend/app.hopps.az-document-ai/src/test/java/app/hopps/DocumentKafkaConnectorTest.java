@@ -15,6 +15,9 @@ class DocumentKafkaConnectorTest {
     @Inject
     DocumentKafkaConnector application;
 
-    // TODO: Test the application
+    @Test
+    public void test() {
+
+    }
 
 }

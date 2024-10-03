@@ -3,14 +3,13 @@ package app.hopps.model;
 import com.azure.ai.documentintelligence.models.AddressValue;
 
 public record Address(
-    String region,
+    String countryOrRegion,
     String postalCode,
     String state,
     String city,
     String road,
     String houseNumber,
-    String streetAddress,
-    String floor
+    String streetAddress
 ) {
     public static Address fromAzure(AddressValue value) {
         return new Address(
@@ -20,8 +19,7 @@ public record Address(
                 value.getCity(),
                 value.getRoad(),
                 value.getHouseNumber(),
-                value.getStreetAddress(),
-                value.getLevel()
+                value.getStreetAddress()
         );
     }
 }
