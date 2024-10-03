@@ -1,5 +1,6 @@
 package app.hopps.model;
 
+import com.azure.ai.documentintelligence.models.CurrencyValue;
 import com.azure.ai.documentintelligence.models.Document;
 import com.azure.ai.documentintelligence.models.DocumentField;
 
@@ -9,8 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public record ReceiptData(
-    Optional<Double> subTotal,
     double total,
+    Optional<Double> subTotal,
     Optional<String> storeName,
     Optional<Address> storeAddress,
     Optional<LocalDateTime> transactionTime
@@ -25,12 +26,17 @@ public record ReceiptData(
                 : LocalTime.parse(transactionTime.getValueTime());
 
         return new ReceiptData(
-            Optional.ofNullable(fields.get("Subtotal")).map(t -> t.getValueCurrency().getAmount()),
             fields.get("Total").getValueCurrency().getAmount(),
-            fields.get("MerchantName").getValueString(),
-            Address.fromAzure(fields.get("MerchantAddress").getValueAddress()),
-            fields.get("TransactionDate").getValueDate()
-                .atTime(time)
+            Optional.ofNullable(fields.get("Subtotal"))
+                    .map(DocumentField::getValueCurrency)
+                    .map(CurrencyValue::getAmount),
+            Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),
+            Optional.ofNullable(fields.get("MerchantAddress"))
+                    .map(DocumentField::getValueAddress)
+                    .map(Address::fromAzure),
+            Optional.ofNullable(fields.get("TransactionDate"))
+                    .map(DocumentField::getValueDate)
+                    .map(t -> t.atTime(time))
         );
     }
 }
