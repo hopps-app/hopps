@@ -68,7 +68,7 @@ class DocumentKafkaConnectorTest {
     private static InvoiceData fakeInvoiceData() {
         return new InvoiceData(
                 Optional.of("Test customer"),
-                fakeAddress(),
+                Optional.of(fakeAddress()),
                 Optional.empty(),
                 Optional.empty(),
                 LocalDate.now(),
