@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public record InvoiceData(
     Optional<String> customerName,
-    Address billingAddress,
+    Optional<Address> billingAddress,
     Optional<String> purchaseOrderNumber,
     Optional<String> invoiceId,
     LocalDate invoiceDate,
@@ -27,7 +27,9 @@ public record InvoiceData(
         return new InvoiceData(
             Optional.ofNullable(fields.get("CustomerName"))
                     .map(DocumentField::getValueString),
-            Address.fromAzure(fields.get("BillingAddress").getValueAddress()),
+            Optional.ofNullable(fields.get("BillingAddress"))
+                    .map(DocumentField::getValueAddress)
+                    .map(Address::fromAzure),
             Optional.ofNullable(fields.get("PurchaseOrder"))
                     .map(DocumentField::getValueString),
             Optional.ofNullable(fields.get("InvoiceId"))
@@ -42,7 +44,9 @@ public record InvoiceData(
             Optional.ofNullable(fields.get("AmountDue"))
                     .map(DocumentField::getValueCurrency)
                     .map(CurrencyValue::getAmount),
-            fields.get("CurrencyCode").getValueString()
+            Optional.ofNullable(fields.get("CurrencyCode"))
+                    .map(DocumentField::getValueString)
+                    .orElse("EUR")
         );
     }
 }
