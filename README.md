@@ -6,7 +6,7 @@ Implementiert wird das Projekt von einer Gruppe engagierter EntwicklerInnen
 des [Open Project e.V. Pfaffenhofen an der Ilm](https://op-paf.de).
 
 Das Projekt wird gefördert von
-der [Dt. Stiftung für Engagegemnt und Ehrenamt](https://www.deutsche-stiftung-engagement-und-ehrenamt.de/).
+der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-engagement-und-ehrenamt.de/).
 
 ## Caveats
 
