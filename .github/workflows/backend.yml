@@ -30,6 +30,23 @@ jobs:
       - name: mvn package
         run: mvn -B package --file backend/pom.xml
 
+      - name: Cache SonarQube packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            --file backend/pom.xml \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=hopps-app \
+            -Dsonar.projectKey=hopps-app_hopps
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
