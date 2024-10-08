@@ -113,6 +113,7 @@
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
+                    <excludedGroups>azure</excludedGroups>
                 </configuration>
             </plugin>
             <plugin>
