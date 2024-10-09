@@ -2,7 +2,7 @@
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1d2hcmz" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.20.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.20.0">
   <bpmn:collaboration id="Collaboration_07hvkew">
     <bpmn:participant id="Participant_15vfnb0" name="Mitglied" processRef="Process_0q6khvq" />
-    <bpmn:participant id="Participant_1v88u4i" name="Hoppe" processRef="Process_06syxgd" />
+    <bpmn:participant id="Participant_1v88u4i" name="Hopps" processRef="Process_06syxgd" />
     <bpmn:messageFlow id="Flow_09pieru" name="Kassenbon" sourceRef="Activity_1tiamej" targetRef="Event_1i7hv4k" />
     <bpmn:messageFlow id="Flow_1lsyxfa" name="Nachricht über erfolgreiche Erstattung" sourceRef="Activity_18fxet6" targetRef="Participant_15vfnb0" />
     <bpmn:messageFlow id="Flow_03lvf2g" name="Kontodaten  Benachrichtigung" sourceRef="Activity_1cbmp46" targetRef="Event_18taagq" />
@@ -95,7 +95,7 @@
   </bpmn:process>
   <bpmn:process id="Process_06syxgd" isExecutable="false">
     <bpmn:laneSet id="LaneSet_02csynd">
-      <bpmn:lane id="Lane_0n1a8el" name="Kssierer">
+      <bpmn:lane id="Lane_0n1a8el" name="Kassier">
         <bpmn:flowNodeRef>Event_1i7hv4k</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_1z00coj</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1h5ohu6</bpmn:flowNodeRef>
@@ -457,11 +457,11 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_09pieru_di" bpmnElement="Flow_09pieru">
         <di:waypoint x="-100" y="340" />
-        <di:waypoint x="-100" y="440" />
-        <di:waypoint x="-1020" y="440" />
+        <di:waypoint x="-100" y="480" />
+        <di:waypoint x="-1020" y="480" />
         <di:waypoint x="-1020" y="812" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="-588" y="422" width="56" height="14" />
+          <dc:Bounds x="-588" y="462" width="56" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1lsyxfa_di" bpmnElement="Flow_1lsyxfa">
