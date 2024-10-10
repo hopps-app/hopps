@@ -35,7 +35,7 @@
       <bpmn:outgoing>Flow_0vb47nv</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_0vb47nv" sourceRef="Activity_0mgvc6o" targetRef="Activity_0buqtf6" />
-    <bpmn:userTask id="Activity_0buqtf6" name="Kasenbon anzeigen lassen">
+    <bpmn:userTask id="Activity_0buqtf6" name="Kassenbon anzeigen lassen">
       <bpmn:incoming>Flow_0vb47nv</bpmn:incoming>
       <bpmn:outgoing>Flow_0hvplwm</bpmn:outgoing>
     </bpmn:userTask>
@@ -52,7 +52,7 @@
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_03twvkx" sourceRef="Activity_1n9gkrm" targetRef="Gateway_1oyfykc" />
     <bpmn:sequenceFlow id="Flow_10p9yq8" sourceRef="Gateway_0l402j4" targetRef="Activity_1tiamej" />
-    <bpmn:sendTask id="Activity_1tiamej" name="Kassenbon zum Kassierer senden">
+    <bpmn:sendTask id="Activity_1tiamej" name="Kassenbon zum Kassier senden">
       <bpmn:incoming>Flow_10p9yq8</bpmn:incoming>
       <bpmn:outgoing>Flow_1tynah3</bpmn:outgoing>
     </bpmn:sendTask>
@@ -75,7 +75,7 @@
       <bpmn:outgoing>Flow_0it03q1</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0it03q1" sourceRef="Activity_1dpby4z" targetRef="Activity_0hvnn31" />
-    <bpmn:sendTask id="Activity_0hvnn31" name="Kassierer informieren">
+    <bpmn:sendTask id="Activity_0hvnn31" name="Kassier informieren">
       <bpmn:incoming>Flow_0it03q1</bpmn:incoming>
       <bpmn:outgoing>Flow_16frjem</bpmn:outgoing>
     </bpmn:sendTask>
@@ -208,6 +208,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1iien4m_di" bpmnElement="Activity_0buqtf6">
         <dc:Bounds x="-500" y="210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0l402j4_di" bpmnElement="Gateway_0l402j4" isMarkerVisible="true">
         <dc:Bounds x="-325" y="225" width="50" height="50" />
@@ -220,6 +221,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0r44opf_di" bpmnElement="Activity_1tiamej">
         <dc:Bounds x="-150" y="260" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_12e7v93_di" bpmnElement="Gateway_19rirp5">
         <dc:Bounds x="25" y="275" width="50" height="50" />
@@ -232,6 +234,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0yz8na0_di" bpmnElement="Activity_0hvnn31">
         <dc:Bounds x="550" y="170" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0aruag1_di" bpmnElement="Event_0aruag1">
         <dc:Bounds x="192" y="352" width="36" height="36" />
