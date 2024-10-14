@@ -1,4 +1,21 @@
 {
   "projectName": "hopps",
-  "projectOwner": "hopps-app"
+  "projectOwner": "hopps-app",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "schitcrafter",
+      "name": "Emilia Jaser",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58911293?v=4",
+      "profile": "https://github.com/schitcrafter",
+      "contributions": [
+        "tool"
+      ]
+    }
+  ]
 }
