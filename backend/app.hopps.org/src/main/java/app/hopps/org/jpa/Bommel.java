@@ -8,6 +8,28 @@ import java.util.Set;
 
 @Entity
 @Table(indexes = @Index(columnList = "parent_id"))
+
+@NamedQueries({
+        @NamedQuery(
+                name = "Bommel.GetParentsRecursive",
+                query = """
+                    with parents as (
+                        select n.parent as bommel
+                        from Bommel n
+                        where n.id = :startId
+        
+                        union
+        
+                        select n as bommel
+                        from Bommel n
+                        join parents c on n = c.bommel.parent
+                      ) cycle bommel set cycleMark
+                      select n
+                      from Bommel n
+                      join parents c on n.id = c.bommel.id
+        """
+        )
+})
 public class Bommel extends PanacheEntity {
 
     private String name;
