@@ -6,10 +6,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @ApplicationScoped
 public class BommelRepository implements PanacheRepository<Bommel> {
@@ -19,6 +16,9 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     /**
      * Fetches the lineage of this bommel,
      * so the path all the way to the root bommel.
+     * Does not include the base element itself.
+     * Goes upwards towards the root element, i.e.
+     * the root element will always be the last.
      * TODO: make this a recursive query
      */
     public List<Bommel> getParents(Bommel base) throws IllegalStateException {
@@ -26,9 +26,14 @@ public class BommelRepository implements PanacheRepository<Bommel> {
 
         Bommel current = base;
         int i;
-        for (i = 0; i < 200 && current != null; i++) {
+        for (i = 0; i < 200; i++) {
             current = current.getParent();
-            parents.add(current);
+
+            if (current != null) {
+                parents.add(current);
+            } else {
+                break;
+            }
         }
 
         if (i >= 100) {
@@ -37,6 +42,11 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         }
 
         return parents;
+    }
+
+    public List<Bommel> getParentsRecursiveQuery(Bommel base) throws IllegalStateException {
+        return find("#Bommel.GetParentsRecursive", Map.of("startId", base.id))
+                .list();
     }
 
     public Bommel getRoot() {

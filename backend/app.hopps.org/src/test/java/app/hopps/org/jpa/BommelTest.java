@@ -26,7 +26,19 @@ class BommelTest {
         repo.deleteAll();
     }
 
-    // TODO: getParents tests
+    @Test
+    @TestTransaction
+    void simpleGetParentsTest() {
+        // Arrange
+        var existingBommels = setupSimpleTree();
+        var expectedParentsList = List.of(existingBommels.get(1), existingBommels.getFirst());
+
+        // Act
+        var actualParentsList = repo.getParentsRecursiveQuery(existingBommels.get(3));
+
+        // Assert
+        assertEquals(expectedParentsList, actualParentsList);
+    }
 
     @Test
     @TestTransaction
