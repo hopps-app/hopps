@@ -40,3 +40,9 @@ unter [hub.docker.com/r/apache/incubator-kie-kogito-data-index-ephemeral/tags](h
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+### How to use the allcontributors bot
+
+Guide: https://allcontributors.org/docs/en/bot/usage
+
+Available emojis: https://allcontributors.org/docs/en/emoji-key
