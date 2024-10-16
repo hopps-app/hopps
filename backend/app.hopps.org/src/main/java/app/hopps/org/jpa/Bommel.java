@@ -2,26 +2,26 @@ package app.hopps.org.jpa;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@Table(indexes = @Index(columnList = "parent_id"))
 public class Bommel extends PanacheEntity {
 
     private String name;
-    private char emoji;
+    private String emoji;
 
     @ManyToOne(cascade = {CascadeType.DETACH})
     private Member responsibleMember;
 
     // TODO: Make sure this has an index on it, so we can
     // quickly find children
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.DETACH})
     private Bommel parent;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH}, mappedBy = "parent")
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE}, mappedBy = "parent")
     private Set<Bommel> children;
 
     public String getName() {
@@ -32,11 +32,11 @@ public class Bommel extends PanacheEntity {
         this.name = name;
     }
 
-    public char getEmoji() {
+    public String getEmoji() {
         return emoji;
     }
 
-    public void setEmoji(char emoji) {
+    public void setEmoji(String emoji) {
         this.emoji = emoji;
     }
 
@@ -66,10 +66,11 @@ public class Bommel extends PanacheEntity {
         if (o == null || getClass() != o.getClass()) return false;
         Bommel bommel = (Bommel) o;
         return Objects.equals(id, bommel.id)
-                && emoji == bommel.emoji
-                && Objects.equals(name, bommel.name)
-                && Objects.equals(responsibleMember, bommel.responsibleMember)
-                && Objects.equals(parent.id, bommel.parent.id);
+                && Objects.equals(getEmoji(), bommel.getEmoji())
+                && Objects.equals(getName(), bommel.getName())
+                && Objects.equals(getResponsibleMember(), bommel.getResponsibleMember())
+                && Objects.equals(getParent() != null ? getParent().id : null, bommel.getParent() != null ? bommel.getParent().id : null)
+                && Objects.equals(getChildren(), bommel.getChildren());
     }
 
     @Override
