@@ -44,8 +44,23 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         return parents;
     }
 
-    public List<Bommel> getParentsRecursiveQuery(Bommel base) throws IllegalStateException {
+    public static class CycleWrapper {
+        public Bommel bommel;
+        public boolean cycleMark;
+        public List<Long> cyclePath;
+
+        public CycleWrapper() { }
+
+        public CycleWrapper(Bommel bommel, boolean cycleMark, List<Long> cyclePath) {
+            this.bommel = bommel;
+            this.cycleMark = cycleMark;
+            this.cyclePath = cyclePath;
+        }
+    }
+
+    public List<CycleWrapper> getParentsRecursiveQuery(Bommel base) throws IllegalStateException {
         return find("#Bommel.GetParentsRecursive", Map.of("startId", base.id))
+                .project(CycleWrapper.class)
                 .list();
     }
 
