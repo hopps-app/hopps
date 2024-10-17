@@ -54,7 +54,7 @@
       <bpmn:incoming>Flow_15iaad6</bpmn:incoming>
       <bpmn:outgoing>Flow_03twvkx</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:sendTask id="Activity_1tiamej" name="Kassenbon zum Kassier senden">
+    <bpmn:sendTask id="Activity_1tiamej" name="Beleg zum Kassier senden">
       <bpmn:incoming>Flow_10p9yq8</bpmn:incoming>
       <bpmn:outgoing>Flow_1tynah3</bpmn:outgoing>
     </bpmn:sendTask>
@@ -463,13 +463,6 @@
         <di:waypoint x="820" y="900" />
         <di:waypoint x="982" y="900" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1lsyxfa_di" bpmnElement="Flow_1lsyxfa">
-        <di:waypoint x="1660" y="610" />
-        <di:waypoint x="1660" y="450" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1640" y="524" width="72" height="40" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_09pieru_di" bpmnElement="Flow_09pieru">
         <di:waypoint x="1200" y="340" />
         <di:waypoint x="1200" y="480" />
@@ -477,6 +470,13 @@
         <di:waypoint x="290" y="812" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="717" y="462" width="56" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1lsyxfa_di" bpmnElement="Flow_1lsyxfa">
+        <di:waypoint x="1660" y="610" />
+        <di:waypoint x="1660" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1640" y="524" width="72" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_03lvf2g_di" bpmnElement="Flow_03lvf2g">
