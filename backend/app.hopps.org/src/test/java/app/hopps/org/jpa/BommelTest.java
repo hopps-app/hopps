@@ -42,6 +42,34 @@ class BommelTest {
 
     @Test
     @TestTransaction
+    void getParentsWithCycle() {
+        // Arrange
+        // Arrange
+        var bommel1 = new Bommel();
+        bommel1.setName("Bommel1");
+
+        var bommel2 = new Bommel();
+        bommel2.setName("Bommel2");
+
+        var bommel3 = new Bommel();
+        bommel3.setName("Bommel3");
+
+        bommel1.setParent(bommel2);
+        bommel2.setParent(bommel3);
+        bommel3.setParent(bommel1);
+
+        // Scary!
+        repo.persist(bommel1, bommel2, bommel3);
+
+        // Act
+        var actualParentsList = repo.getParentsRecursiveQuery(bommel1);
+
+        // Assert
+        assertEquals(List.of(), actualParentsList);
+    }
+
+    @Test
+    @TestTransaction
     void getRoot() {
         // Arrange
         List<Bommel> existingBommels = setupSimpleTree();
