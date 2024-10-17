@@ -14,19 +14,19 @@ import java.util.Set;
                 name = "Bommel.GetParentsRecursive",
                 query = """
                     with parents as (
-                        select n.parent as bommel
+                        select n.parent.id as bommel
                         from Bommel n
                         where n.id = :startId
         
                         union
         
-                        select n as bommel
+                        select n.parent.id as bommel
                         from Bommel n
-                        join parents c on n = c.bommel.parent
-                      ) cycle bommel set cycleMark
-                      select n
-                      from Bommel n
-                      join parents c on n.id = c.bommel.id
+                        join parents c on n.id = c.bommel
+                    ) cycle bommel set cycleMark using cyclePath
+                    select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
+                    from Bommel n
+                    join parents c on n.id = c.bommel
         """
         )
 })
