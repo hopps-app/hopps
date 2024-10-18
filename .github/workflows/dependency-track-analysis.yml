@@ -1,0 +1,41 @@
+name: Upload BOM to Dependency-Track
+
+on:
+  push:
+    paths:
+      - backend/**
+      - .github/workflows/dependency-track-analysis.yml
+    branches: ["main", "86-owasp-dependency-track-und-sbom-analyse"]
+  pull_request:
+    paths:
+      - backend/**
+      - .github/workflows/dependency-track-analysis.yml
+    types: [opened, reopened, synchronize]
+
+jobs:
+  upload-bom:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: maven
+
+      - name: mvn makeAggregateBom
+        run: mvn org.cyclonedx:cyclonedx-maven-plugin:2.8.0:makeAggregateBom --file backend/pom.xml
+
+      # Upload the SBOM to Dependency-Track
+      - name: Upload BOM to Dependency-Track
+        uses: DependencyTrack/gh-upload-sbom@v3.1.0
+        with:
+          apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+          serverHostname: "https://dtrack.hopps.cloud"
+          bomFilename: "backend/target/bom.xml"
+          projectName: "hopps backend"
+          projectVersion: "main"
+          projectTags: "hopps"
+          autoCreate: true
