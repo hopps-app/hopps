@@ -39,4 +39,3 @@ jobs:
           projectVersion: "main"
           projectTags: "hopps"
           autoCreate: true
-          debug: true
