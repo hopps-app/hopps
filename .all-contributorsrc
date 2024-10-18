@@ -26,6 +26,16 @@
         "code",
         "business"
       ]
+    },
+    {
+      "login": "manuelhummler",
+      "name": "Manuel hummler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25209702?v=4",
+      "profile": "http://www.hummli.de",
+      "contributions": [
+        "code",
+        "business"
+      ]
     }
   ]
 }
