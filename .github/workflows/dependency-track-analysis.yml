@@ -5,7 +5,7 @@ on:
     paths:
       - backend/**
       - .github/workflows/dependency-track-analysis.yml
-    branches: ["main", "86-owasp-dependency-track-und-sbom-analyse"]
+    branches: ["main"]
   pull_request:
     paths:
       - backend/**
