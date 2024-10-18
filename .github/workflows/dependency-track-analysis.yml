@@ -35,7 +35,7 @@ jobs:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           serverHostname: "dtrack.hopps.cloud"
           bomFilename: "backend/app.hopps.org/target/bom.xml"
-          projectName: "hopps-backend"
+          projectName: "app.hopps.org"
           projectVersion: "main"
           autoCreate: true
 
@@ -46,6 +46,6 @@ jobs:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           serverHostname: "dtrack.hopps.cloud"
           bomFilename: "backend/app.hopps.az-document-ai/target/bom.xml"
-          projectName: "hopps-backend"
+          projectName: "app.hopps.az-document-ai"
           projectVersion: "main"
           autoCreate: true
