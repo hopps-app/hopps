@@ -33,9 +33,8 @@ jobs:
         uses: DependencyTrack/gh-upload-sbom@v3.1.0
         with:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
-          serverHostname: "https://dtrack.hopps.cloud"
+          serverHostname: "dtrack.hopps.cloud"
           bomFilename: "backend/target/bom.xml"
-          projectName: "hopps backend"
+          projectName: "hopps-backend"
           projectVersion: "main"
-          projectTags: "hopps"
           autoCreate: true
