@@ -26,7 +26,7 @@ jobs:
           cache: maven
 
       - name: mvn makeAggregateBom
-        run: mvn org.cyclonedx:cyclonedx-maven-plugin:2.8.0:makeAggregateBom --file backend/pom.xml
+        run: mvn org.cyclonedx:cyclonedx-maven-plugin:2.8.0:makeBom --file backend/pom.xml
 
       # Upload the SBOM to Dependency-Track
       - name: Upload BOM to Dependency-Track
@@ -34,7 +34,18 @@ jobs:
         with:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           serverHostname: "dtrack.hopps.cloud"
-          bomFilename: "backend/target/bom.xml"
+          bomFilename: "backend/app.hopps.org/target/bom.xml"
+          projectName: "hopps-backend"
+          projectVersion: "main"
+          autoCreate: true
+
+      # Upload the SBOM to Dependency-Track
+      - name: Upload BOM to Dependency-Track
+        uses: DependencyTrack/gh-upload-sbom@v3.1.0
+        with:
+          apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+          serverHostname: "dtrack.hopps.cloud"
+          bomFilename: "backend/app.hopps.az-document-ai/target/bom.xml"
           projectName: "hopps-backend"
           projectVersion: "main"
           autoCreate: true
