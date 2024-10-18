@@ -1,0 +1,19 @@
+.banner {
+  display: flex;
+  height: var(--line-height-text-4xl, 40px);
+  padding: var(--padding-p-2, 8px) 0px;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+
+  &__text{
+    color: var(--Neutral-950, #0A0A0A);
+
+    /* text-base/font-normal */
+    font-family: var(--font-family);
+    font-size: var(--font-size-text-base, 16px);
+    font-style: normal;
+    font-weight: 400;
+    line-height: var(--line-height-text-base, 24px); /* 150% */
+  }
+}
