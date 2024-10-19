@@ -23,8 +23,8 @@ jobs:
       fail-fast: false
       matrix:
         service:
-          - label: vereine
-            directory: app.hopps.vereine
+          - label: org
+            directory: app.hopps.org
           - label: az-document-ai
             directory: app.hopps.az-document-ai
 
