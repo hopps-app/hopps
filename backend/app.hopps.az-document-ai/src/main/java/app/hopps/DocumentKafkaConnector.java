@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DocumentKafkaConnector {
+
     private final Logger LOGGER = LoggerFactory.getLogger(DocumentKafkaConnector.class);
 
     @Inject

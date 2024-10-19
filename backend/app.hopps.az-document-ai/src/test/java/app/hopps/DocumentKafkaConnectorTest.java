@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(KafkaTestResourceLifecycleManager.class)
@@ -36,7 +37,7 @@ class DocumentKafkaConnectorTest {
 
     @Test
     public void onlySendsToInvoices() throws URISyntaxException, MalformedURLException {
-        // Arrange
+
         InvoiceData invoiceData = fakeInvoiceData();
 
         DocumentImage documentImage = new DocumentImage(
@@ -44,9 +45,9 @@ class DocumentKafkaConnectorTest {
                 DocumentType.Invoice
         );
 
-        Mockito.when(azureAiServiceMock.scanInvoice(Mockito.any()))
+        when(azureAiServiceMock.scanInvoice(Mockito.any()))
                 .thenReturn(invoiceData);
-        Mockito.when(azureAiServiceMock.scanReceipt(Mockito.any()))
+        when(azureAiServiceMock.scanReceipt(Mockito.any()))
                 .thenReturn(null);
 
         InMemorySource<DocumentImage> ordersIn = connector.source("documents-in");

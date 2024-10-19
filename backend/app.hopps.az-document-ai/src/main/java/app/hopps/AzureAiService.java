@@ -21,6 +21,7 @@ import java.util.List;
 
 @ApplicationScoped
 public class AzureAiService {
+
     private final Logger LOGGER = LoggerFactory.getLogger(AzureAiService.class);
 
     @ConfigProperty(name = "app.hopps.az-document-ai.azure.invoiceModelId")
