@@ -19,49 +19,21 @@ public class BommelRepository implements PanacheRepository<Bommel> {
      * Does not include the base element itself.
      * Goes upwards towards the root element, i.e.
      * the root element will always be the last.
-     * TODO: make this a recursive query
      */
-    public List<Bommel> getParents(Bommel base) throws IllegalStateException {
-        List<Bommel> parents = new ArrayList<>();
+    public List<TreeSearchBommel> getParents(Bommel base) throws IllegalStateException {
+        List<TreeSearchBommel> possibleCycleBommels = this.getEntityManager()
+                .createNamedQuery("Bommel.GetParentsRecursive", TreeSearchBommel.class)
+                .setParameter("startId", base.id)
+                .getResultList();
 
-        Bommel current = base;
-        int i;
-        for (i = 0; i < 200; i++) {
-            current = current.getParent();
+        Optional<TreeSearchBommel> cycle = possibleCycleBommels.stream()
+                .filter(TreeSearchBommel::cycleMark).findAny();
 
-            if (current != null) {
-                parents.add(current);
-            } else {
-                break;
-            }
+        if (cycle.isPresent()) {
+            throw new IllegalStateException("Cycle detected on bommel " + cycle.get());
         }
 
-        if (i >= 100) {
-            LOGGER.error("Bommel has more than 200 parents, loop in tree? (bommel={})", base);
-            throw new IllegalStateException("Bommel has more than 200 parents, loop in tree?");
-        }
-
-        return parents;
-    }
-
-    public static class CycleWrapper {
-        public Bommel bommel;
-        public boolean cycleMark;
-        public List<Long> cyclePath;
-
-        public CycleWrapper() { }
-
-        public CycleWrapper(Bommel bommel, boolean cycleMark, List<Long> cyclePath) {
-            this.bommel = bommel;
-            this.cycleMark = cycleMark;
-            this.cyclePath = cyclePath;
-        }
-    }
-
-    public List<CycleWrapper> getParentsRecursiveQuery(Bommel base) throws IllegalStateException {
-        return find("#Bommel.GetParentsRecursive", Map.of("startId", base.id))
-                .project(CycleWrapper.class)
-                .list();
+        return possibleCycleBommels;
     }
 
     public Bommel getRoot() {

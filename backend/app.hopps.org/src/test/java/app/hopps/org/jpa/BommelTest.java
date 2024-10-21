@@ -34,16 +34,18 @@ class BommelTest {
         var expectedParentsList = List.of(existingBommels.get(1), existingBommels.getFirst());
 
         // Act
-        var actualParentsList = repo.getParentsRecursiveQuery(existingBommels.get(3));
+        List<TreeSearchBommel> treeSearchParents = repo.getParents(existingBommels.get(3));
 
         // Assert
-        assertEquals(expectedParentsList, actualParentsList);
+        var actualParents = treeSearchParents.stream()
+                        .map(TreeSearchBommel::bommel)
+                        .toList();
+        assertEquals(expectedParentsList, actualParents);
     }
 
     @Test
     @TestTransaction
     void getParentsWithCycle() {
-        // Arrange
         // Arrange
         var bommel1 = new Bommel();
         bommel1.setName("Bommel1");
@@ -61,11 +63,11 @@ class BommelTest {
         // Scary!
         repo.persist(bommel1, bommel2, bommel3);
 
-        // Act
-        var actualParentsList = repo.getParentsRecursiveQuery(bommel1);
-
-        // Assert
-        assertEquals(List.of(), actualParentsList);
+        // Act + Assert
+        assertThrows(
+                IllegalStateException.class,
+                () -> repo.getParents(bommel1)
+        );
     }
 
     @Test
