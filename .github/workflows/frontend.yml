@@ -20,7 +20,7 @@ jobs:
       - name: TEST
         run: env
 
-      - name: TEST2
+      - name: TEST3
         run: TAG=$(git describe --tags --exact-match) && echo $TAG
 
       - name: Set up Node.js
