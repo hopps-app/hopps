@@ -53,9 +53,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set build number
-        run: echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: Determine Docker image tag
+        id: get-version
+        run: |
+          if git describe --tags --exact-match 2>/dev/null; then
+            VERSION=$(git describe --tags --exact-match)
+            echo "VERSION=${VERSION#spa-}" >> $GITHUB_ENV
+            echo "TAG=hopps/spa:${VERSION#spa-}" >> $GITHUB_ENV
+          else
+            echo "TAG=hopps/spa:${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          fi
 
+#      - name: Set build number
+#        run: echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -63,4 +73,4 @@ jobs:
           context: frontend/spa
           file: frontend/spa/docker/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:${{ env.BUILD_NUMBER }}
+          tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
