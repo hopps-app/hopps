@@ -54,7 +54,7 @@ public class Bommel extends PanacheEntity {
     private String name;
     private String emoji;
 
-    @ManyToOne(cascade = {CascadeType.DETACH})
+    @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     private Member responsibleMember;
 
     // TODO: Make sure this has an index on it, so we can
@@ -64,6 +64,18 @@ public class Bommel extends PanacheEntity {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.REMOVE}, mappedBy = "parent")
     private Set<Bommel> children;
+
+    /**
+     * Merges other into this object. Changes every field to that of other,
+     * except for the parent or childrens. Therefore,
+     * this cannot move the Bommel in the tree, only update it/its
+     * responsible member.
+     */
+    public void merge(Bommel other) {
+        this.setName(other.getName());
+        this.setEmoji(other.getEmoji());
+        this.setResponsibleMember(other.getResponsibleMember());
+    }
 
     public String getName() {
         return name;
