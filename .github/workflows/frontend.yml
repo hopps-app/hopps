@@ -22,20 +22,26 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install PNPM
+        run: npm install -g pnpm
+
       - name: Install dependencies
-        run: npm install -g pnpm && pnpm install
+        run: pnpm install
+        working-directory: frontend/spa
 
       - name: Run tests
-        run: pnpm run test:coverage
+        run: pnpm run validate
+        working-directory: frontend/spa
 
       - name: Build project
-        run: pnpm run build
+        run: pnpm run build && ls -la
+        working-directory: frontend/spa
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build
-          path: build/
+          path: frontend/spa/dist/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,6 +57,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: frontend/spa
-          file: frontend/spa/Dockerfile
+          file: frontend/spa/docker/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/frontend:latest

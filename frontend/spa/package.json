@@ -9,7 +9,7 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "preview": "vite preview",
-    "validate": "pnpm run lint && pnpm run test:coverage",
+    "validate": "pnpm run lint && pnpm run test",
     "test": "vitest run",
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage"
