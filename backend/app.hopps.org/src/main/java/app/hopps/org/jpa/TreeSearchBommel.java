@@ -6,7 +6,7 @@ import java.util.List;
 public record TreeSearchBommel(
         Bommel bommel,
         boolean cycleMark,
-        List<Long> cyclePathParsed
+        List<Long> cyclePath
 ) {
     public TreeSearchBommel(Bommel bommel, Boolean cycleMark, String cyclePath) {
         this(bommel, cycleMark != null && cycleMark, parseCyclePath(cyclePath));

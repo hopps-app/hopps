@@ -36,6 +36,28 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         return possibleCycleBommels;
     }
 
+    /**
+     * Gets all children, recursively. The cyclePath of the returned
+     * record will be the id's from the base Bommel to the found child,
+     * including the base id and its own id.
+     * @throws IllegalStateException when there has been a cycle
+     */
+    public List<TreeSearchBommel> getChildrenRecursive(Bommel base) throws IllegalStateException {
+        List<TreeSearchBommel> possibleCycleBommels = this.getEntityManager()
+                .createNamedQuery("Bommel.GetChildrenRecursive", TreeSearchBommel.class)
+                .setParameter("startId", base.id)
+                .getResultList();
+
+        Optional<TreeSearchBommel> cycle = possibleCycleBommels.stream()
+                .filter(TreeSearchBommel::cycleMark).findAny();
+
+        if (cycle.isPresent()) {
+            throw new IllegalStateException("Cycle detected on bommel " + cycle.get());
+        }
+
+        return possibleCycleBommels;
+    }
+
     public Bommel getRoot() {
         return find("where parent is null").firstResult();
     }
