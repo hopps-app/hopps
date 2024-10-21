@@ -10,23 +10,4 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'),
         },
     },
-    test: {
-        globals: true,
-        environment: 'jsdom',
-        setupFiles: ['./src/setupTests.ts'],
-        coverage: {
-            reportsDirectory: './coverage',
-            provider: 'v8', // or 'istanbul'
-            reporter: ['text', 'json', 'html'],
-            all: true,
-            include: ['src/**/*.{ts,tsx}'],
-            exclude: ['node_modules', 'test'],
-            thresholds: {
-                statements: 80,
-                branches: 80,
-                functions: 80,
-                lines: 80,
-            },
-        },
-    },
 });

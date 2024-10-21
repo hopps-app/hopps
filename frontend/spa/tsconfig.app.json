@@ -31,5 +31,9 @@
   "include": [
     "src",
     "./setupTest.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }

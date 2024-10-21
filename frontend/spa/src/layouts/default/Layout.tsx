@@ -1,5 +1,6 @@
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+
 import Header from './Header.tsx';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from '@/views/Home.tsx';
 import Demo from '@/views/Demo.tsx';
 import Login from '@/views/Login.tsx';

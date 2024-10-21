@@ -2,11 +2,14 @@
   "name": "hopps-spa",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "preview": "vite preview",
+    "validate": "pnpm run lint && pnpm run test:coverage",
     "test": "vitest run",
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -19,6 +22,7 @@
     "@types/lodash": "^4.17.11",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "eslint-plugin-import": "^2.31.0",
     "i18next": "^23.16.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.453.0",
