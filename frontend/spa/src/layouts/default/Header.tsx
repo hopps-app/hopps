@@ -14,9 +14,9 @@ function Header() {
                 <div className="flex items-center justify-between flex-shrink-0 ">
                     <HeaderMobileMenuButton />
 
-                    <a className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" href="#" aria-label="Brand">
-                        <img src="/logo.svg" alt="Hoppo" />
-                    </a>
+                    <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="Hopps">
+                        <img src="/logo.svg" alt="Hopps" />
+                    </Link>
 
                     <div className="sm:hidden">
                         <Button>Call to action</Button>
