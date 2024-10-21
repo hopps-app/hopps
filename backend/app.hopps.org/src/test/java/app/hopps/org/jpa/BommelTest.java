@@ -28,6 +28,69 @@ class BommelTest {
 
     @Test
     @TestTransaction
+    void simpleChildrenSearch() {
+        // Arrange
+        var existingBommels = setupSimpleTree();
+        var expectedChildren = List.of(existingBommels.getLast());
+
+        // Act
+        List<TreeSearchBommel> treeSearchChildren = repo.getChildrenRecursive(existingBommels.get(1));
+
+        // Assert
+        var actualChildren = treeSearchChildren.stream()
+                .map(TreeSearchBommel::bommel)
+                .toList();
+
+        assertEquals(expectedChildren, actualChildren);
+    }
+
+    @Test
+    @TestTransaction
+    void twoLayerChildrenSearch() {
+        // Arrange
+        var existingBommels = setupSimpleTree();
+        List<TreeSearchBommel> expectedChildren = List.of(
+                new TreeSearchBommel(existingBommels.get(1), false, List.of(1L, 2L)),
+                new TreeSearchBommel(existingBommels.get(2), false, List.of(1L, 3L)),
+                new TreeSearchBommel(existingBommels.get(3), false, List.of(1L, 2L, 4L))
+        );
+
+        // Act
+        List<TreeSearchBommel> actualChildren = repo.getChildrenRecursive(existingBommels.getFirst());
+
+        // Assert
+        assertEquals(expectedChildren, actualChildren);
+    }
+
+    @Test
+    @TestTransaction
+    void getChildrenWithCycle() {
+        // Arrange
+        var bommel1 = new Bommel();
+        bommel1.setName("Bommel1");
+
+        var bommel2 = new Bommel();
+        bommel2.setName("Bommel2");
+
+        var bommel3 = new Bommel();
+        bommel3.setName("Bommel3");
+
+        bommel1.setParent(bommel2);
+        bommel2.setParent(bommel3);
+        bommel3.setParent(bommel1);
+
+        // Scary!
+        repo.persist(bommel1, bommel2, bommel3);
+
+        // Act + Assert
+        assertThrows(
+                IllegalStateException.class,
+                () -> repo.getChildrenRecursive(bommel1)
+        );
+    }
+
+    @Test
+    @TestTransaction
     void simpleGetParentsTest() {
         // Arrange
         var existingBommels = setupSimpleTree();
@@ -256,6 +319,8 @@ class BommelTest {
         assertEquals(1, newParent.getChildren().size());
         assertEquals(Set.of(child),  newParent.getChildren());
         assertEquals(4, repo.count());
+
+        repo.ensureConsistency();
     }
 
     /**
@@ -276,18 +341,22 @@ class BommelTest {
     }
 
     private static List<Bommel> generateSimpleTree() {
+        // id=1
         Bommel root = new Bommel();
         root.setName("Root bommel");
         root.setEmoji("\uD83C\uDFF3\uFE0F\u200D⚧\uFE0F");
 
+        // id=2
         Bommel child1 = new Bommel();
         child1.setName("Child bommel 1");
         child1.setEmoji("\uD83E\uDD7A");
 
+        // id=3
         Bommel child2 = new Bommel();
         child2.setName("Child bommel 2");
         child2.setEmoji("\uD83D\uDC49");
 
+        // id=4
         Bommel child3 = new Bommel();
         child3.setName("Inner child bommel 3");
         child3.setEmoji("\uD83D\uDC48");

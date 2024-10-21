@@ -11,6 +11,8 @@ import java.util.Collection;
 @Entity
 public class Member extends PanacheEntity {
 
+    // TODO: Add OneToMany to Bommel here and test it
+
     @NotBlank
     private String firstName;
 

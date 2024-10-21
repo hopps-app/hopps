@@ -8,7 +8,6 @@ import java.util.Set;
 
 @Entity
 @Table(indexes = @Index(columnList = "parent_id"))
-
 @NamedQueries({
         @NamedQuery(
                 name = "Bommel.GetParentsRecursive",
@@ -27,6 +26,26 @@ import java.util.Set;
                     select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
                     from Bommel n
                     join parents c on n.id = c.bommel
+        """
+        ),
+        @NamedQuery(
+                name = "Bommel.GetChildrenRecursive",
+                query = """
+                    with children_query as (
+                        select n.id as bommel
+                        from Bommel n
+                        where n.id = :startId
+        
+                        union
+        
+                        select n.id as bommel
+                        from Bommel n
+                        join children_query c on n.parent.id = c.bommel
+                    ) cycle bommel set cycleMark using cyclePath
+                    select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
+                    from Bommel n
+                    join children_query c on n.id = c.bommel
+                    where n.id != :startId or cycleMark = true
         """
         )
 })
