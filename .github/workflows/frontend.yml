@@ -63,9 +63,6 @@ jobs:
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
           fi
 
-#      - name: Set build number
-#        run: echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
