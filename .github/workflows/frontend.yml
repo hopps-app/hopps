@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - feature/**
+    tags:
+      - 'spa-*.*.*'
   pull_request:
     branches:
       - main
