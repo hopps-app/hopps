@@ -57,11 +57,10 @@ jobs:
         id: get-version
         run: |
           if git describe --tags --exact-match 2>/dev/null; then
-            VERSION=$(git describe --tags --exact-match)
-            echo "VERSION=${VERSION#spa-}" >> $GITHUB_ENV
-            echo "TAG=hopps/spa:${VERSION#spa-}" >> $GITHUB_ENV
+            TAG=$(git describe --tags --exact-match)
+            echo "VERSION=${TAG#spa-}" >> $GITHUB_ENV
           else
-            echo "TAG=hopps/spa:${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+            echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
           fi
 
 #      - name: Set build number
@@ -73,4 +72,4 @@ jobs:
           context: frontend/spa
           file: frontend/spa/docker/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:${{ env.TAG }}
+          tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
