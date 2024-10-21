@@ -53,10 +53,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set build number
+        run: echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: frontend/spa
           file: frontend/spa/docker/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
+          tags: ghcr.io/${{ github.repository }}/frontend:${{ env.BUILD_NUMBER }}
