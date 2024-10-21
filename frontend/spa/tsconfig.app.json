@@ -26,11 +26,19 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/vitest",
+      "./src/@types"
+    ],
+    "types": [
+      "node"
+    ]
   },
   "include": [
-    "src",
-    "./setupTest.ts"
+    "./src/**/**.*",
+    "./src/setupTest.ts"
   ],
   "exclude": [
     "**/*.test.ts",

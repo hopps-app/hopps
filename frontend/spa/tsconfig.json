@@ -15,8 +15,5 @@
         "./src/*"
       ]
     },
-    "types": [
-      "vitest/globals"
-    ]
   }
 }
