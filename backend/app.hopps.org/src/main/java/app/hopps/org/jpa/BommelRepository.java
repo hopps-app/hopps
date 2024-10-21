@@ -63,7 +63,7 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     @Transactional
-    public void createRoot(Bommel root) {
+    public Bommel createRoot(Bommel root) {
         if (root.getParent() != null) {
             throw new IllegalStateException("Root bommel cannot have a parent");
         }
@@ -74,6 +74,8 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         }
 
         persist(root);
+
+        return root;
     }
 
     /**
@@ -81,7 +83,7 @@ public class BommelRepository implements PanacheRepository<Bommel> {
      * This cannot create a root node, use {@link BommelRepository#createRoot} for that.
      */
     @Transactional
-    public void insertBommel(Bommel child) throws IllegalStateException, IllegalArgumentException {
+    public Bommel insertBommel(Bommel child) throws IllegalStateException, IllegalArgumentException {
         if (child.getParent() == null) {
             throw new IllegalArgumentException("Bommel must have a parent");
         }
@@ -91,6 +93,8 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         }
 
         ensureNoCycleFromBommel(child);
+
+        return child;
     }
 
     @Transactional
@@ -103,10 +107,12 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     @Transactional
-    public void moveBommel(Bommel bommel, Bommel destination) {
+    public Bommel moveBommel(Bommel bommel, Bommel destination) {
         persist(bommel);
         bommel.setParent(destination);
         ensureNoCycleFromBommel(bommel);
+
+        return bommel;
     }
 
     /**
