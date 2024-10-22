@@ -2,11 +2,12 @@ package app.hopps.org.rest;
 
 import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
+import io.quarkiverse.openfga.client.AuthorizationModelClient;
+import io.quarkiverse.openfga.client.model.TupleKey;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 
 import java.util.Optional;
 
@@ -16,9 +17,13 @@ public class BommelResource {
     @Inject
     BommelRepository bommelRepo;
 
+    @Inject
+    AuthorizationModelClient authModelClient;
+
     @GET
     @Path("/{id}")
     public Optional<Bommel> getBommel(@PathParam("id") long id) {
+        authModelClient.check(TupleKey.of("bommel:" + id, "bommel:read", "user:TODO"));
         return bommelRepo.findByIdOptional(id);
     }
 
