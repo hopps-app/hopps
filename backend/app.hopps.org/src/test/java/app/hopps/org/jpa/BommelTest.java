@@ -5,6 +5,7 @@ import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.WebApplicationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,7 +85,7 @@ class BommelTest {
 
         // Act + Assert
         assertThrows(
-                IllegalStateException.class,
+                WebApplicationException.class,
                 () -> repo.getChildrenRecursive(bommel1)
         );
     }
@@ -128,7 +129,7 @@ class BommelTest {
 
         // Act + Assert
         assertThrows(
-                IllegalStateException.class,
+                WebApplicationException.class,
                 () -> repo.getParents(bommel1)
         );
     }
@@ -184,7 +185,7 @@ class BommelTest {
 
         // Act
         assertThrows(
-            IllegalStateException.class,
+                WebApplicationException.class,
             () -> repo.createRoot(fakeRoot)
         );
 
@@ -203,7 +204,7 @@ class BommelTest {
 
         // Act
         assertThrows(
-                IllegalArgumentException.class,
+                WebApplicationException.class,
                 () -> repo.insertBommel(accidentalRoot)
         );
 
@@ -219,7 +220,7 @@ class BommelTest {
         assertEquals(1, toBeDeleted.getChildren().size());
 
         assertThrows(
-                IllegalArgumentException.class,
+                WebApplicationException.class,
                 () -> QuarkusTransaction.requiringNew().run(
                         () -> repo.deleteBommel(toBeDeleted, false)
                 )
@@ -276,7 +277,7 @@ class BommelTest {
 
         // Act + Assert
         assertThrows(
-                IllegalStateException.class,
+                WebApplicationException.class,
                 () -> repo.ensureConsistency()
         );
     }
@@ -295,7 +296,7 @@ class BommelTest {
 
         // Act + Assert
         assertThrows(
-                IllegalStateException.class,
+                WebApplicationException.class,
                 () -> repo.ensureConsistency()
         );
     }
