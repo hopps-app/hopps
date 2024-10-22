@@ -3,15 +3,14 @@ package app.hopps.org.jpa;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class BommelRepository implements PanacheRepository<Bommel> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BommelRepository.class);
 
     /**
      * Fetches the lineage of this bommel,
@@ -20,7 +19,7 @@ public class BommelRepository implements PanacheRepository<Bommel> {
      * Goes upwards towards the root element, i.e.
      * the root element will always be the last.
      */
-    public List<TreeSearchBommel> getParents(Bommel base) throws IllegalStateException {
+    public List<TreeSearchBommel> getParents(Bommel base) throws WebApplicationException {
         List<TreeSearchBommel> possibleCycleBommels = this.getEntityManager()
                 .createNamedQuery("Bommel.GetParentsRecursive", TreeSearchBommel.class)
                 .setParameter("startId", base.id)
@@ -30,7 +29,7 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                 .filter(TreeSearchBommel::cycleMark).findAny();
 
         if (cycle.isPresent()) {
-            throw new IllegalStateException("Cycle detected on bommel " + cycle.get());
+            throw new WebApplicationException("Cycle detected on bommel " + cycle.get());
         }
 
         return possibleCycleBommels;
@@ -52,25 +51,28 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                 .filter(TreeSearchBommel::cycleMark).findAny();
 
         if (cycle.isPresent()) {
-            throw new IllegalStateException("Cycle detected on bommel " + cycle.get());
+            throw new WebApplicationException("Cycle detected on bommel " + cycle.get());
         }
 
         return possibleCycleBommels;
     }
 
+    /**
+     * Gets the root object, or null if none exist.
+     */
     public Bommel getRoot() {
         return find("where parent is null").firstResult();
     }
 
     @Transactional
-    public Bommel createRoot(Bommel root) {
+    public Bommel createRoot(Bommel root) throws WebApplicationException  {
         if (root.getParent() != null) {
-            throw new IllegalStateException("Root bommel cannot have a parent");
+            throw new WebApplicationException("Root bommel cannot have a parent", Response.Status.BAD_REQUEST);
         }
 
         long rootNodeCount = count("where parent is null");
         if (rootNodeCount != 0) {
-            throw new IllegalStateException("Expected 0 root nodes, found " + rootNodeCount);
+            throw new WebApplicationException("Expected 0 root nodes, found " + rootNodeCount, Response.Status.CONFLICT);
         }
 
         persist(root);
@@ -83,9 +85,9 @@ public class BommelRepository implements PanacheRepository<Bommel> {
      * This cannot create a root node, use {@link BommelRepository#createRoot} for that.
      */
     @Transactional
-    public Bommel insertBommel(Bommel child) throws IllegalStateException, IllegalArgumentException {
+    public Bommel insertBommel(Bommel child) throws WebApplicationException {
         if (child.getParent() == null) {
-            throw new IllegalArgumentException("Bommel must have a parent");
+            throw new WebApplicationException("Bommel must have a parent", Response.Status.BAD_REQUEST);
         }
 
         if (!child.isPersistent()) {
@@ -100,7 +102,10 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     @Transactional
     public void deleteBommel(Bommel bommel, boolean recursive) {
         if (!recursive && !bommel.getChildren().isEmpty()) {
-            throw new IllegalArgumentException("Bommel has children, specify recursive=true to delete it and its children");
+            throw new WebApplicationException(
+                    "Bommel has children, specify recursive=true to delete it and its children",
+                    Response.Status.BAD_REQUEST
+            );
         }
 
         delete(bommel);
@@ -122,30 +127,19 @@ public class BommelRepository implements PanacheRepository<Bommel> {
      * This is expensive, especially with a large number of bommels.
      */
     @Transactional
-    public void ensureConsistency() throws IllegalStateException {
+    public void ensureConsistency() throws WebApplicationException {
         var edgesCount = count("where parent is not null");
         var nodesCount = count();
         if (nodesCount != (edgesCount + 1)) {
-            throw new IllegalStateException("Operation introduced loop/created a separate tree");
+            throw new WebApplicationException("Operation introduced loop/created a separate tree");
         }
     }
 
     /**
      * Ensures that, starting from child, there is no
-     * cycle in the graph.
+     * cycle in the graph. Uses getParents internally.
      */
-    private void ensureNoCycleFromBommel(Bommel child) throws IllegalStateException {
-        Set<Long> parentIdSet = new HashSet<>();
-
-        Bommel current = child;
-        while (current != null) {
-            if (parentIdSet.contains(current.id)) {
-                throw new IllegalStateException("Found cycle containing id " + current.id + " starting with " + child.id);
-            }
-
-            parentIdSet.add(current.id);
-
-            current = current.getParent();
-        }
+    private void ensureNoCycleFromBommel(Bommel child) throws WebApplicationException {
+        getParents(child);
     }
 }
