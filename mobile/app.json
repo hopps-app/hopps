@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "hopps-mobile",
-    "slug": "hopps-mobile",
+    "name": "hopps",
+    "slug": "hopps",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "app.hopps"
     },
     "web": {
       "bundler": "metro",
@@ -31,6 +32,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5337a075-882c-4be5-981a-a7891f5542ee"
+      }
+    },
+    "owner": "hopps"
   }
 }
