@@ -41,6 +41,7 @@ unter [hub.docker.com/r/apache/incubator-kie-kogito-data-index-ephemeral/tags](h
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/RabeaBonten"><img src="https://avatars.githubusercontent.com/u/176834893?v=4?s=100" width="100px;" alt="Rabea Bonten"/><br /><sub><b>Rabea Bonten</b></sub></a><br /><a href="#design-RabeaBonten" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kzamurnyak"><img src="https://avatars.githubusercontent.com/u/45554106?v=4?s=100" width="100px;" alt="Kostya Zamurnyak"/><br /><sub><b>Kostya Zamurnyak</b></sub></a><br /><a href="#code-kzamurnyak" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/zom5583"><img src="https://avatars.githubusercontent.com/u/103882767?v=4?s=100" width="100px;" alt="zom5583"/><br /><sub><b>zom5583</b></sub></a><br /><a href="#code-zom5583" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lukas-leonhardt"><img src="https://avatars.githubusercontent.com/u/143081806?v=4?s=100" width="100px;" alt="lukas-leonhardt"/><br /><sub><b>lukas-leonhardt</b></sub></a><br /><a href="#design-lukas-leonhardt" title="Design">🎨</a></td>
     </tr>
   </tbody>
 </table>
