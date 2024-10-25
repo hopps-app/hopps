@@ -15,7 +15,8 @@
     </properties>
 
     <name>Hopps</name>
-    <description>Hopps will be a cloud-based open-source accounting software with AI, so that non-profits have more time for
+    <description>
+        Hopps will be a cloud-based open-source accounting software with AI, so that non-profits have more time for
         their essential goals and offerings, and frustrating situations with accounting are a thing of the past.
     </description>
 
@@ -52,6 +53,11 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>4.0.0.4121</version>
+            </plugin>
+            <plugin>
                 <groupId>net.revelc.code.formatter</groupId>
                 <artifactId>formatter-maven-plugin</artifactId>
                 <version>2.23.0</version>
@@ -67,7 +73,6 @@
                     <configFile>${project.basedir}/../formatter/java.xml</configFile>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.cyclonedx</groupId>
                 <artifactId>cyclonedx-maven-plugin</artifactId>
@@ -75,6 +80,24 @@
                 <configuration>
                     <projectType>application</projectType>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <exclClassLoaders>*QuarkusClassLoader</exclClassLoaders>
+                            <destFile>${project.build.directory}/jacoco-quarkus.exec</destFile>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
