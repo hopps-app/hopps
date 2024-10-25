@@ -8,6 +8,7 @@ des [Open Project e.V. Pfaffenhofen an der Ilm](https://op-paf.de).
 Das Projekt wird gefördert von
 der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-engagement-und-ehrenamt.de/).
 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps)
 
 ## Caveats
