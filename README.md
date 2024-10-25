@@ -39,6 +39,7 @@ unter [hub.docker.com/r/apache/incubator-kie-kogito-data-index-ephemeral/tags](h
       <td align="center" valign="top" width="14.28%"><a href="http://explore.de"><img src="https://avatars.githubusercontent.com/u/545499?v=4?s=100" width="100px;" alt="Markus Herhoffer"/><br /><sub><b>Markus Herhoffer</b></sub></a><br /><a href="#code-d135-1r43" title="Code">💻</a> <a href="#business-d135-1r43" title="Business development">💼</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.hummli.de"><img src="https://avatars.githubusercontent.com/u/25209702?v=4?s=100" width="100px;" alt="Manuel hummler"/><br /><sub><b>Manuel hummler</b></sub></a><br /><a href="#code-manuelhummler" title="Code">💻</a> <a href="#business-manuelhummler" title="Business development">💼</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/RabeaBonten"><img src="https://avatars.githubusercontent.com/u/176834893?v=4?s=100" width="100px;" alt="Rabea Bonten"/><br /><sub><b>Rabea Bonten</b></sub></a><br /><a href="#design-RabeaBonten" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kzamurnyak"><img src="https://avatars.githubusercontent.com/u/45554106?v=4?s=100" width="100px;" alt="Kostya Zamurnyak"/><br /><sub><b>Kostya Zamurnyak</b></sub></a><br /><a href="#code-kzamurnyak" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
