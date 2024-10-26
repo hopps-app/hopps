@@ -42,8 +42,7 @@ class DocumentKafkaConnectorTest {
 
         DocumentImage documentImage = new DocumentImage(
                 new URI("http://something.test/picture").toURL(),
-                DocumentType.Invoice
-        );
+                DocumentType.Invoice);
 
         when(azureAiServiceMock.scanInvoice(Mockito.any()))
                 .thenReturn(invoiceData);
@@ -77,19 +76,17 @@ class DocumentKafkaConnectorTest {
                 Optional.empty(),
                 135.0,
                 Optional.empty(),
-                "EUR"
-        );
+                "EUR");
     }
 
     private static Address fakeAddress() {
         return new Address(
-            "Germany",
-            "85276",
-            "Bavaria",
-            "Pfaffenhofen",
-            "Bistumerweg",
-            "5"
-        );
+                "Germany",
+                "85276",
+                "Bavaria",
+                "Pfaffenhofen",
+                "Bistumerweg",
+                "5");
     }
 
 }

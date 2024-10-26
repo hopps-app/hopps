@@ -56,7 +56,9 @@ public class RestValidator {
             return new ValidationResult();
         }
 
-        public enum Validity {VALID, INVALID}
+        public enum Validity {
+            VALID, INVALID
+        }
 
         private Set<Violation> violations = Collections.emptySet();
 

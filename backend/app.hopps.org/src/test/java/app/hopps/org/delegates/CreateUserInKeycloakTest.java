@@ -63,7 +63,8 @@ class CreateUserInKeycloakTest {
                 .roles()
                 .realmLevel()
                 .listAll()
-                .stream().map(RoleRepresentation::getName)
+                .stream()
+                .map(RoleRepresentation::getName)
                 .toList();
 
         assertTrue(realmRoles.contains(defaultRole));

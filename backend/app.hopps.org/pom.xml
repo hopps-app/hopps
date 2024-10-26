@@ -4,7 +4,12 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>app.hopps</groupId>
+    <parent>
+        <groupId>app.hopps</groupId>
+        <artifactId>hopps</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>org</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
