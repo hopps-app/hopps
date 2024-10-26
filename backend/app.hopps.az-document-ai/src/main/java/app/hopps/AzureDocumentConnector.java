@@ -18,11 +18,8 @@ public class AzureDocumentConnector {
     private final DocumentIntelligenceClient azureClient;
 
     public AzureDocumentConnector(
-            @ConfigProperty(name = "app.hopps.az-document-ai.azure.endpoint")
-            String endpoint,
-            @ConfigProperty(name = "app.hopps.az-document-ai.azure.key")
-            String key
-    ) {
+            @ConfigProperty(name = "app.hopps.az-document-ai.azure.endpoint") String endpoint,
+            @ConfigProperty(name = "app.hopps.az-document-ai.azure.key") String key) {
         azureClient = new DocumentIntelligenceClientBuilder()
                 .credential(new AzureKeyCredential(key))
                 .endpoint(endpoint)
@@ -30,8 +27,8 @@ public class AzureDocumentConnector {
     }
 
     public AnalyzeResult getAnalyzeResult(String modelId, URL imageUrl) {
-        SyncPoller<AnalyzeResultOperation, AnalyzeResult> analyzeLayoutPoller
-                = azureClient.beginAnalyzeDocument(modelId,
+        SyncPoller<AnalyzeResultOperation, AnalyzeResult> analyzeLayoutPoller = azureClient.beginAnalyzeDocument(
+                modelId,
                 null,
                 null,
                 null,

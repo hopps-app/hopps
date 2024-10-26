@@ -35,14 +35,18 @@ public class AzureAiService {
 
     public ReceiptData scanReceipt(URL imageUrl) {
         Document document = scanDocument(receiptModelId, imageUrl);
-        if (document == null) return null;
+        if (document == null) {
+            return null;
+        }
 
         return ReceiptData.fromDocument(document);
     }
 
     public InvoiceData scanInvoice(URL imageUrl) {
         Document document = scanDocument(invoiceModelId, imageUrl);
-        if (document == null) return null;
+        if (document == null) {
+            return null;
+        }
 
         LOGGER.info("Scanned document: {}", document.getFields());
 

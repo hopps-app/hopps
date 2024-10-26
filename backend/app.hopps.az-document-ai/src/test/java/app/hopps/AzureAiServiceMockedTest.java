@@ -31,14 +31,14 @@ class AzureAiServiceMockedTest {
     AzureDocumentConnector azureDocumentConnector;
 
     // FIXME: this doesn't work, we currently don't know of a way to create an AnalyzeResult,
-    //  if there is a way please create the object and put it into the mock.
+    // if there is a way please create the object and put it into the mock.
     @BeforeEach
     void setupMocks() throws IOException {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("sample-receipt-01.json");
         ObjectMapper objectMapper = new ObjectMapper();
-        AnalyzeResult mockAnalyzeResult = objectMapper.readValue(stream, AnalyzeResult.class);;
+        AnalyzeResult mockAnalyzeResult = objectMapper.readValue(stream, AnalyzeResult.class);
         when(azureDocumentConnector.getAnalyzeResult(anyString(), any(URL.class)))
-            .thenReturn(mockAnalyzeResult);
+                .thenReturn(mockAnalyzeResult);
     }
 
     @Disabled
@@ -51,7 +51,7 @@ class AzureAiServiceMockedTest {
         // when
         InvoiceData invoiceData = aiService.scanInvoice(new URI(url).toURL());
 
-        //then
+        // then
         assertNotNull(invoiceData);
     }
 }

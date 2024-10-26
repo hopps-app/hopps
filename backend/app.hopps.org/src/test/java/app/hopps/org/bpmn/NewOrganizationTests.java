@@ -47,7 +47,7 @@ public class NewOrganizationTests {
     @DisplayName("should validate valid verein and owner")
     public void shouldValidate() throws Exception {
 
-        //given
+        // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
         kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);

@@ -162,8 +162,8 @@ class OrganizationTests {
 
     @Test
     @DisplayName("should only accept valid URL conform slugs")
-    void shouldOnlyAcceptValidSlugs()
-    {
+    void shouldOnlyAcceptValidSlugs() {
+
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");

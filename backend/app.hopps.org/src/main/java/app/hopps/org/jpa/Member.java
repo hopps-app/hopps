@@ -22,8 +22,7 @@ public class Member extends PanacheEntity {
     private String email;
 
     @ManyToMany
-    @JoinTable(name = "member_verein",
-            joinColumns = @JoinColumn(name = "member_id"))
+    @JoinTable(name = "member_verein", joinColumns = @JoinColumn(name = "member_id"))
     private Collection<Organization> organizations = new ArrayList<>();
 
     public Collection<Organization> getOrganizations() {

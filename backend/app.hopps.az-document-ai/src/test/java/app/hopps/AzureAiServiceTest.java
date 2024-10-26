@@ -27,7 +27,7 @@ class AzureAiServiceTest {
         // when
         InvoiceData invoiceData = aiService.scanInvoice(new URI(url).toURL());
 
-        //then
+        // then
         assertNotNull(invoiceData);
     }
 }

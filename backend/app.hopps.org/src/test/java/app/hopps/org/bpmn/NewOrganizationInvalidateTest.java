@@ -44,7 +44,7 @@ public class NewOrganizationInvalidateTest {
     @Disabled("Currently not working, but is already discussed in Zulip")
     void shouldTerminateIfDataIsInvalid() {
 
-        //given
+        // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
         kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
