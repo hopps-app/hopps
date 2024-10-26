@@ -45,6 +45,7 @@ unter [hub.docker.com/r/apache/incubator-kie-kogito-data-index-ephemeral/tags](h
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/eliashehme"><img src="https://avatars.githubusercontent.com/u/176706065?v=4?s=100" width="100px;" alt="Elias Hehme"/><br /><sub><b>Elias Hehme</b></sub></a><br /><a href="#projectManagement-eliashehme" title="Project Management">📆</a> <a href="#business-eliashehme" title="Business development">💼</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.nachhilfe-paf.de"><img src="https://avatars.githubusercontent.com/u/119429802?v=4?s=100" width="100px;" alt="Simon Krumböck"/><br /><sub><b>Simon Krumböck</b></sub></a><br /><a href="#projectManagement-sk2675" title="Project Management">📆</a></td>
     </tr>
   </tbody>
 </table>
