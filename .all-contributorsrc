@@ -82,6 +82,15 @@
         "projectManagement",
         "business"
       ]
+    },
+    {
+      "login": "sk2675",
+      "name": "Simon Krumböck",
+      "avatar_url": "https://avatars.githubusercontent.com/u/119429802?v=4",
+      "profile": "http://www.nachhilfe-paf.de",
+      "contributions": [
+        "projectManagement"
+      ]
     }
   ]
 }
