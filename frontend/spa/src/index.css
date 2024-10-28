@@ -29,7 +29,11 @@
         --font-color: #000000;
         --font-family: "Public Sans", sans-serif;
         --body-background: #f5EEFA;
-        --muted: #888888
+        --muted: #888888;
+        --popover: #FFFFFF;
+        --popover-foreground: #000000;
+        --accent: #e1e1e1;
+        --accent-foreground: #4a4a4a;
     }
 
     .dark {
@@ -41,7 +45,9 @@
         --font-color: #FFFFFF;
         --font-family: "Public Sans", sans-serif;
         --body-background: #1C0C28;
-        --muted: #888888
+        --muted: #888888;
+        --popover: #FFFFFF;
+        --popover-foreground: #000000;
     }
 }
 

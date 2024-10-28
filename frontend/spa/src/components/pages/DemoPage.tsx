@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
 
-function Demo() {
+function DemoPage() {
     return (
         <div>
             <h1 className="text-center">Demo page</h1>
@@ -25,4 +25,4 @@ function Demo() {
     );
 }
 
-export default Demo;
+export default DemoPage;

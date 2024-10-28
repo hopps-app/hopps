@@ -1,10 +1,20 @@
+import { useEffect, useState } from 'react';
+
 import Layout from '@/layouts/default/Layout.tsx';
 import themeService from '@/services/ThemeService.ts';
+import authService from './services/auth/AuthService';
 
 function App() {
-    themeService.init();
+    const [isInitialized, setIsInitialized] = useState(false);
 
-    return <Layout />;
+    useEffect(() => {
+        themeService.init();
+        authService.init().catch((e) => console.error('Failed to init authService:', e));
+
+        setIsInitialized(true);
+    }, []);
+
+    return isInitialized ? <Layout /> : null;
 }
 
 export default App;
