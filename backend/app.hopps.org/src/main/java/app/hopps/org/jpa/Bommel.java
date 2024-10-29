@@ -106,9 +106,14 @@ public class Bommel extends PanacheEntity {
         this.responsibleMember = responsibleMember;
     }
 
-    @JsonIgnore
     public Bommel getParent() {
         return parent;
+    }
+
+    // Write-only, because  when reading the id-only setter right below this should be used.
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    public void setParent(Bommel parent) {
+        this.parent = parent;
     }
 
     /**
@@ -125,10 +130,6 @@ public class Bommel extends PanacheEntity {
         parentBommel.id = this.getParent().id;
 
         return parentBommel;
-    }
-
-    public void setParent(Bommel parent) {
-        this.parent = parent;
     }
 
     @JsonIgnore
