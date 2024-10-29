@@ -21,6 +21,9 @@ class BommelTest {
     @Inject
     BommelRepository repo;
 
+    @Inject
+    BommelTestResourceCreator resourceCreator;
+
     @BeforeEach
     @Transactional
     void clearDatabase() {
@@ -31,7 +34,7 @@ class BommelTest {
     @TestTransaction
     void simpleChildrenSearch() {
         // Arrange
-        var existingBommels = setupSimpleTree();
+        var existingBommels = resourceCreator.setupSimpleTree();
         var expectedChildren = List.of(existingBommels.getLast());
 
         // Act
@@ -49,7 +52,7 @@ class BommelTest {
     @TestTransaction
     void twoLayerChildrenSearch() {
         // Arrange
-        var existingBommels = setupSimpleTree();
+        var existingBommels = resourceCreator.setupSimpleTree();
         List<TreeSearchBommel> expectedChildren = List.of(
                 new TreeSearchBommel(existingBommels.get(1), false, List.of(1L, 2L)),
                 new TreeSearchBommel(existingBommels.get(2), false, List.of(1L, 3L)),
@@ -94,7 +97,7 @@ class BommelTest {
     @TestTransaction
     void simpleGetParentsTest() {
         // Arrange
-        var existingBommels = setupSimpleTree();
+        var existingBommels = resourceCreator.setupSimpleTree();
         var expectedParentsList = List.of(existingBommels.get(1), existingBommels.getFirst());
 
         // Act
@@ -138,7 +141,7 @@ class BommelTest {
     @TestTransaction
     void getRoot() {
         // Arrange
-        List<Bommel> existingBommels = setupSimpleTree();
+        List<Bommel> existingBommels = resourceCreator.setupSimpleTree();
 
         // Act
         Bommel actual = repo.getRoot();
@@ -154,7 +157,7 @@ class BommelTest {
     @TestTransaction
     void simpleInsertionTest() {
         // Arrange
-        setupSimpleTree();
+        resourceCreator.setupSimpleTree();
         Bommel root = repo.getRoot();
 
         Bommel newChild = new Bommel();
@@ -178,7 +181,7 @@ class BommelTest {
     @TestTransaction
     void disallowTwoRoots() {
         // Arrange
-        setupSimpleTree();
+        resourceCreator.setupSimpleTree();
 
         Bommel fakeRoot = new Bommel();
         fakeRoot.setName("I'm a root for sure trust me");
@@ -197,7 +200,7 @@ class BommelTest {
     @DisplayName("Do not allow accidentally creating a new root with the standard insert method")
     void disallowCreatingNewRootWithNormalInsertMethod() {
         // Arrange
-        setupSimpleTree();
+        resourceCreator.setupSimpleTree();
 
         Bommel accidentalRoot = new Bommel();
         accidentalRoot.setName("Oops");
@@ -215,7 +218,7 @@ class BommelTest {
     @Test
     @TestTransaction
     void disallowAccidentalRecursiveDelete() {
-        var bommels = setupSimpleTree();
+        var bommels = resourceCreator.setupSimpleTree();
         var toBeDeleted = bommels.get(1);
         assertEquals(1, toBeDeleted.getChildren().size());
 
@@ -233,7 +236,7 @@ class BommelTest {
     @TestTransaction
     void deletionWorks() {
         // Arrange
-        var bommels = setupSimpleTree();
+        var bommels = resourceCreator.setupSimpleTree();
 
         // Act
         repo.deleteBommel(bommels.get(2), false);
@@ -246,7 +249,7 @@ class BommelTest {
     @TestTransaction
     void recursiveDeletionWorks() {
         // Arrange
-        var bommels = setupSimpleTree();
+        var bommels = resourceCreator.setupSimpleTree();
 
         // Act
         repo.deleteBommel(bommels.get(1), true);
@@ -286,7 +289,7 @@ class BommelTest {
     @TestTransaction
     void ensureConsistencyDetectsMultipleRoots() {
         // Arrange
-        setupSimpleTree();
+        resourceCreator.setupSimpleTree();
 
         var secondRoot = new Bommel();
         secondRoot.setName("illegal second root");
@@ -305,7 +308,7 @@ class BommelTest {
     @TestTransaction
     void simpleBommelMoveWorks() {
         // Arrange
-        var bommels = setupSimpleTree();
+        var bommels = resourceCreator.setupSimpleTree();
         // Refetch child from database to make sure its managed
         Bommel child = repo.findById(bommels.get(3).id);
         Bommel parent = bommels.get(2);
@@ -323,50 +326,4 @@ class BommelTest {
 
         repo.ensureConsistency();
     }
-
-    /**
-     * @return The bommels created
-     */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    List<Bommel> setupSimpleTree() {
-        var bommels = generateSimpleTree();
-
-        repo.persist(bommels);
-        repo.flush();
-
-        for (var bommel : bommels) {
-            repo.getEntityManager().refresh(bommel);
-        }
-
-        return bommels;
-    }
-
-    private static List<Bommel> generateSimpleTree() {
-        // id=1
-        Bommel root = new Bommel();
-        root.setName("Root bommel");
-        root.setEmoji("\uD83C\uDFF3\uFE0F\u200D⚧\uFE0F");
-
-        // id=2
-        Bommel child1 = new Bommel();
-        child1.setName("Child bommel 1");
-        child1.setEmoji("\uD83E\uDD7A");
-
-        // id=3
-        Bommel child2 = new Bommel();
-        child2.setName("Child bommel 2");
-        child2.setEmoji("\uD83D\uDC49");
-
-        // id=4
-        Bommel child3 = new Bommel();
-        child3.setName("Inner child bommel 3");
-        child3.setEmoji("\uD83D\uDC48");
-
-        child1.setParent(root);
-        child2.setParent(root);
-        child3.setParent(child1);
-
-        return List.of(root, child1, child2, child3);
-    }
-
 }

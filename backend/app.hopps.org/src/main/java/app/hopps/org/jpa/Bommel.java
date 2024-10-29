@@ -1,6 +1,7 @@
 package app.hopps.org.jpa;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 
@@ -105,8 +106,25 @@ public class Bommel extends PanacheEntity {
         this.responsibleMember = responsibleMember;
     }
 
+    @JsonIgnore
     public Bommel getParent() {
         return parent;
+    }
+
+    /**
+     * This gets the parent bommel, with only the id set. Required for jackson,
+     * otherwise we would have unwanted recursion.
+     */
+    @JsonProperty(value = "parent", access = JsonProperty.Access.READ_ONLY)
+    public Bommel getOnlyParentId() {
+        if (this.getParent() == null) {
+            return null;
+        }
+
+        var parentBommel = new Bommel();
+        parentBommel.id = this.getParent().id;
+
+        return parentBommel;
     }
 
     public void setParent(Bommel parent) {
@@ -133,6 +151,6 @@ public class Bommel extends PanacheEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, emoji, responsibleMember, parent.id);
+        return Objects.hash(id, name, emoji, responsibleMember, getParent() == null ? null : getParent().id);
     }
 }

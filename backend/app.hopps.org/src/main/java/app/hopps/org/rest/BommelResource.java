@@ -137,6 +137,10 @@ public class BommelResource {
 
         existingBommel.merge(bommel);
 
+        // TODO: Check if this is needed
+        bommelRepo.getEntityManager().flush();
+        bommelRepo.getEntityManager().detach(existingBommel);
+
         return existingBommel;
     }
 
@@ -190,7 +194,7 @@ public class BommelResource {
     }
 
     /**
-     * Checks that the currently signed in user can access this bommel with this relation.
+     * Checks that the currently signed-in user can access this bommel with this relation.
      * Throws a WebApplication exception if anything goes wrong.
      */
     private void checkUserHasPermission(long bommelId, String relation) throws WebApplicationException {
