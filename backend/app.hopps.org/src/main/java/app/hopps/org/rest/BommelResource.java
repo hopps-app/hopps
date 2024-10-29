@@ -137,10 +137,6 @@ public class BommelResource {
 
         existingBommel.merge(bommel);
 
-        // TODO: Check if this is needed
-        bommelRepo.getEntityManager().flush();
-        bommelRepo.getEntityManager().detach(existingBommel);
-
         return existingBommel;
     }
 
