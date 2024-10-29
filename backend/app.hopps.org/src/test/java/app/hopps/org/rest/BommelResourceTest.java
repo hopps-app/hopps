@@ -33,9 +33,6 @@ class BommelResourceTest {
     @InjectMock
     AuthorizationModelClient authModelClient;
 
-//    @Inject
-//    StoreClient storeClient;
-
     @BeforeEach
     @Transactional
     public void setup() {
@@ -43,21 +40,6 @@ class BommelResourceTest {
 
         Mockito.when(authModelClient.check(any(TupleKey.class)))
                 .thenReturn(Uni.createFrom().item(false));
-
-//        var newTuples = bommels.stream()
-//                .map(bommel ->
-//                    ConditionalTupleKey.of("bommel:" + bommel.id, "read", "user:test"))
-//                .toList();
-//
-//        var tuplesToDelete = List.of(
-//                TupleKey.of("bommel:*", "read", "user:test"),
-//                TupleKey.of("bommel:*", "write", "user:test")
-//        );
-//
-//        storeClient.authorizationModels().defaultModel().write(
-//                newTuples,
-//                tuplesToDelete
-//        ).await().indefinitely();
     }
 
     @Test
