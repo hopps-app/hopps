@@ -5,7 +5,7 @@ on:
     paths:
       - backend/**
       - .github/workflows/backend.yml
-    branches: [ '**' ]
+    branches: [ "**" ]
     tags: [ 'org-*.*.*' ]
 
 env:
