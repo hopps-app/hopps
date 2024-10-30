@@ -2,19 +2,22 @@ name: CI/CD Pipeline for frontend
 
 on:
   push:
-    branches:
-      - main
-      - feature/**
+    paths:
+      - frontend/**
+      - .github/workflows/frontend.yml
+    branches: [ "**" ]
     tags:
       - 'spa-*.*.*'
   pull_request:
+    paths:
+      - frontend/**
+      - .github/workflows/frontend.yml
     branches:
       - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
