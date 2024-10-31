@@ -59,9 +59,6 @@ public class Bommel extends PanacheEntity {
     @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     private Member responsibleMember;
 
-    // TODO: In JSON serialization, this should only serialize
-    // the parents id in order to prevent unwanted recursion.
-
     // TODO: Make sure this has an index on it, so we can
     // quickly find children
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.DETACH})
