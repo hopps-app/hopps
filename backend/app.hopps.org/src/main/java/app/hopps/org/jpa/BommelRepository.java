@@ -13,11 +13,8 @@ import java.util.Optional;
 public class BommelRepository implements PanacheRepository<Bommel> {
 
     /**
-     * Fetches the lineage of this bommel,
-     * so the path all the way to the root bommel.
-     * Does not include the base element itself.
-     * Goes upwards towards the root element, i.e.
-     * the root element will always be the last.
+     * Fetches the lineage of this bommel, so the path all the way to the root bommel. Does not include the base element
+     * itself. Goes upwards towards the root element, i.e. the root element will always be the last.
      */
     public List<TreeSearchBommel> getParents(Bommel base) throws WebApplicationException {
         List<TreeSearchBommel> possibleCycleBommels = this.getEntityManager()
@@ -26,7 +23,8 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                 .getResultList();
 
         Optional<TreeSearchBommel> cycle = possibleCycleBommels.stream()
-                .filter(TreeSearchBommel::cycleMark).findAny();
+                .filter(TreeSearchBommel::cycleMark)
+                .findAny();
 
         if (cycle.isPresent()) {
             throw new WebApplicationException("Cycle detected on bommel " + cycle.get());
@@ -36,10 +34,11 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     /**
-     * Gets all children, recursively. The cyclePath of the returned
-     * record will be the id's from the base Bommel to the found child,
-     * including the base id and its own id.
-     * @throws IllegalStateException when there has been a cycle
+     * Gets all children, recursively. The cyclePath of the returned record will be the id's from the base Bommel to the
+     * found child, including the base id and its own id.
+     *
+     * @throws IllegalStateException
+     *             when there has been a cycle
      */
     public List<TreeSearchBommel> getChildrenRecursive(Bommel base) throws IllegalStateException {
         List<TreeSearchBommel> possibleCycleBommels = this.getEntityManager()
@@ -48,7 +47,8 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                 .getResultList();
 
         Optional<TreeSearchBommel> cycle = possibleCycleBommels.stream()
-                .filter(TreeSearchBommel::cycleMark).findAny();
+                .filter(TreeSearchBommel::cycleMark)
+                .findAny();
 
         if (cycle.isPresent()) {
             throw new WebApplicationException("Cycle detected on bommel " + cycle.get());
@@ -65,14 +65,15 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     @Transactional
-    public Bommel createRoot(Bommel root) throws WebApplicationException  {
+    public Bommel createRoot(Bommel root) throws WebApplicationException {
         if (root.getParent() != null) {
             throw new WebApplicationException("Root bommel cannot have a parent", Response.Status.BAD_REQUEST);
         }
 
         long rootNodeCount = count("where parent is null");
         if (rootNodeCount != 0) {
-            throw new WebApplicationException("Expected 0 root nodes, found " + rootNodeCount, Response.Status.CONFLICT);
+            throw new WebApplicationException("Expected 0 root nodes, found " + rootNodeCount,
+                    Response.Status.CONFLICT);
         }
 
         persist(root);
@@ -81,8 +82,8 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     /**
-     * Inserts this bommel, linking it to the stored parent.
-     * This cannot create a root node, use {@link BommelRepository#createRoot} for that.
+     * Inserts this bommel, linking it to the stored parent. This cannot create a root node, use
+     * {@link BommelRepository#createRoot} for that.
      */
     @Transactional
     public Bommel insertBommel(Bommel child) throws WebApplicationException {
@@ -104,8 +105,7 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         if (!recursive && !bommel.getChildren().isEmpty()) {
             throw new WebApplicationException(
                     "Bommel has children, specify recursive=true to delete it and its children",
-                    Response.Status.BAD_REQUEST
-            );
+                    Response.Status.BAD_REQUEST);
         }
 
         delete(bommel);
@@ -121,10 +121,8 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     /**
-     * Counts the number of edges (k) and vertices (n) in the tree,
-     * and uses the property n = k - 1 to ensure that no subtrees
-     * have separated and no cycles exist.
-     * This is expensive, especially with a large number of bommels.
+     * Counts the number of edges (k) and vertices (n) in the tree, and uses the property n = k - 1 to ensure that no
+     * subtrees have separated and no cycles exist. This is expensive, especially with a large number of bommels.
      */
     @Transactional
     public void ensureConsistency() throws WebApplicationException {
@@ -136,8 +134,7 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     /**
-     * Ensures that, starting from child, there is no
-     * cycle in the graph. Uses getParents internally.
+     * Ensures that, starting from child, there is no cycle in the graph. Uses getParents internally.
      */
     private void ensureNoCycleFromBommel(Bommel child) throws WebApplicationException {
         getParents(child);

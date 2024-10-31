@@ -33,9 +33,7 @@ public class BommelResource {
     boolean authEnabled;
 
     public BommelResource(
-            @ConfigProperty(name = "quarkus.security.auth.enabled-in-dev-mode", defaultValue = "true")
-            boolean devModeAuthEnabled
-    ) {
+            @ConfigProperty(name = "quarkus.security.auth.enabled-in-dev-mode", defaultValue = "true") boolean devModeAuthEnabled) {
         this.authEnabled = devModeAuthEnabled || !ConfigUtils.isProfileActive("dev");
     }
 
@@ -99,7 +97,7 @@ public class BommelResource {
         }
 
         // TODO: We're not checking OpenFGA here - not sure what to check for, since there's no
-        //  bommel yet in the tree
+        // bommel yet in the tree
 
         return bommelRepo.createRoot(root);
     }
@@ -111,8 +109,7 @@ public class BommelResource {
         if (bommel.getParent() == null) {
             throw new WebApplicationException(
                     "Bommel has no parent, cannot create root bommel",
-                    Response.Status.BAD_REQUEST
-            );
+                    Response.Status.BAD_REQUEST);
         }
 
         checkUserHasPermission(bommel.getParent().id, "write");
@@ -131,8 +128,7 @@ public class BommelResource {
         if (existingBommel == null) {
             throw new WebApplicationException(
                     "Could not find bommel with this id",
-                    Response.Status.BAD_REQUEST
-            );
+                    Response.Status.BAD_REQUEST);
         }
 
         existingBommel.merge(bommel);
@@ -141,8 +137,7 @@ public class BommelResource {
     }
 
     /**
-     * Moves the bommel specified by id (first parameter)
-     * to the new parent (specified by newParentId)
+     * Moves the bommel specified by id (first parameter) to the new parent (specified by newParentId)
      */
     @PUT
     @Path("/move/{id}/to/{newParentId}")
@@ -157,15 +152,13 @@ public class BommelResource {
         if (base == null) {
             throw new WebApplicationException(
                     "Base bommel does not exist",
-                    Response.Status.BAD_REQUEST
-            );
+                    Response.Status.BAD_REQUEST);
         }
 
         if (parent == null) {
             throw new WebApplicationException(
                     "Parent bommel does not exist",
-                    Response.Status.BAD_REQUEST
-            );
+                    Response.Status.BAD_REQUEST);
         }
 
         return bommelRepo.moveBommel(base, parent);
@@ -174,7 +167,8 @@ public class BommelResource {
     @DELETE
     @Path("/{id}")
     @Transactional
-    public void deleteBommel(@PathParam("id") long id, @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
+    public void deleteBommel(@PathParam("id") long id,
+            @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
         checkUserHasPermission(id, "write");
 
         Bommel base = bommelRepo.findById(id);
@@ -182,16 +176,15 @@ public class BommelResource {
         if (base == null) {
             throw new WebApplicationException(
                     "Could not find bommel",
-                    Response.Status.BAD_REQUEST
-            );
+                    Response.Status.BAD_REQUEST);
         }
 
         bommelRepo.deleteBommel(base, recursive);
     }
 
     /**
-     * Checks that the currently signed-in user can access this bommel with this relation.
-     * Throws a WebApplication exception if anything goes wrong.
+     * Checks that the currently signed-in user can access this bommel with this relation. Throws a WebApplication
+     * exception if anything goes wrong.
      */
     private void checkUserHasPermission(long bommelId, String relation) throws WebApplicationException {
         var principal = securityContext.getUserPrincipal();
