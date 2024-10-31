@@ -56,8 +56,7 @@ class BommelTest {
         List<TreeSearchBommel> expectedChildren = List.of(
                 new TreeSearchBommel(existingBommels.get(1), false, List.of(1L, 2L)),
                 new TreeSearchBommel(existingBommels.get(2), false, List.of(1L, 3L)),
-                new TreeSearchBommel(existingBommels.get(3), false, List.of(1L, 2L, 4L))
-        );
+                new TreeSearchBommel(existingBommels.get(3), false, List.of(1L, 2L, 4L)));
 
         // Act
         List<TreeSearchBommel> actualChildren = repo.getChildrenRecursive(existingBommels.getFirst());
@@ -89,8 +88,7 @@ class BommelTest {
         // Act + Assert
         assertThrows(
                 WebApplicationException.class,
-                () -> repo.getChildrenRecursive(bommel1)
-        );
+                () -> repo.getChildrenRecursive(bommel1));
     }
 
     @Test
@@ -105,8 +103,8 @@ class BommelTest {
 
         // Assert
         var actualParents = treeSearchParents.stream()
-                        .map(TreeSearchBommel::bommel)
-                        .toList();
+                .map(TreeSearchBommel::bommel)
+                .toList();
         assertEquals(expectedParentsList, actualParents);
     }
 
@@ -133,8 +131,7 @@ class BommelTest {
         // Act + Assert
         assertThrows(
                 WebApplicationException.class,
-                () -> repo.getParents(bommel1)
-        );
+                () -> repo.getParents(bommel1));
     }
 
     @Test
@@ -189,8 +186,7 @@ class BommelTest {
         // Act
         assertThrows(
                 WebApplicationException.class,
-            () -> repo.createRoot(fakeRoot)
-        );
+                () -> repo.createRoot(fakeRoot));
 
         // Assert
         repo.ensureConsistency();
@@ -208,8 +204,7 @@ class BommelTest {
         // Act
         assertThrows(
                 WebApplicationException.class,
-                () -> repo.insertBommel(accidentalRoot)
-        );
+                () -> repo.insertBommel(accidentalRoot));
 
         // Assert
         repo.ensureConsistency();
@@ -224,10 +219,9 @@ class BommelTest {
 
         assertThrows(
                 WebApplicationException.class,
-                () -> QuarkusTransaction.requiringNew().run(
-                        () -> repo.deleteBommel(toBeDeleted, false)
-                )
-        );
+                () -> QuarkusTransaction.requiringNew()
+                        .run(
+                                () -> repo.deleteBommel(toBeDeleted, false)));
 
         repo.ensureConsistency();
     }
@@ -281,8 +275,7 @@ class BommelTest {
         // Act + Assert
         assertThrows(
                 WebApplicationException.class,
-                () -> repo.ensureConsistency()
-        );
+                () -> repo.ensureConsistency());
     }
 
     @Test
@@ -300,8 +293,7 @@ class BommelTest {
         // Act + Assert
         assertThrows(
                 WebApplicationException.class,
-                () -> repo.ensureConsistency()
-        );
+                () -> repo.ensureConsistency());
     }
 
     @Test
@@ -321,7 +313,7 @@ class BommelTest {
         var newParent = repo.findById(parent.id);
         repo.getEntityManager().refresh(newParent);
         assertEquals(1, newParent.getChildren().size());
-        assertEquals(Set.of(child),  newParent.getChildren());
+        assertEquals(Set.of(child), newParent.getChildren());
         assertEquals(4, repo.count());
 
         repo.ensureConsistency();

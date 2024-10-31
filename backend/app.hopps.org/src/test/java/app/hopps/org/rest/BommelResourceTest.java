@@ -52,18 +52,20 @@ class BommelResourceTest {
     @TestTransaction
     public void testCreateRoot() {
         given()
-            .when().get("/bommel/root")
-            .then()
+                .when()
+                .get("/bommel/root")
+                .then()
                 .statusCode(200)
                 .body(is("null"));
 
         given()
-            .body("""
-                { "name": "Root", "emoji":"" }
-                """)
-            .contentType("application/json")
-            .when().post("/bommel/root")
-            .then()
+                .body("""
+                        { "name": "Root", "emoji":"" }
+                        """)
+                .contentType("application/json")
+                .when()
+                .post("/bommel/root")
+                .then()
                 .statusCode(200);
 
         long rootId = bommelRepo.getRoot().id;
@@ -74,11 +76,13 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
-            .when().get("/bommel/root")
-            .then()
+                .when()
+                .get("/bommel/root")
+                .then()
                 .statusCode(200)
                 .body("name", is("Root"))
-                .and().body("parent", is(nullValue()));
+                .and()
+                .body("parent", is(nullValue()));
     }
 
     @Test
@@ -91,7 +95,8 @@ class BommelResourceTest {
         given()
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
                 .contentType("application/json")
-                .when().post("/bommel")
+                .when()
+                .post("/bommel")
                 .then()
                 .statusCode(401);
 
@@ -104,7 +109,8 @@ class BommelResourceTest {
         given()
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
                 .contentType("application/json")
-                .when().post("/bommel")
+                .when()
+                .post("/bommel")
                 .then()
                 .statusCode(401);
 
@@ -117,7 +123,8 @@ class BommelResourceTest {
         given()
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
                 .contentType("application/json")
-                .when().post("/bommel")
+                .when()
+                .post("/bommel")
                 .then()
                 .statusCode(200);
 
@@ -134,7 +141,8 @@ class BommelResourceTest {
         given()
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\" }")
                 .contentType("application/json")
-                .when().put("/bommel/{id}", bommel.id)
+                .when()
+                .put("/bommel/{id}", bommel.id)
                 .then()
                 .statusCode(401);
 
@@ -147,13 +155,17 @@ class BommelResourceTest {
         given()
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\" }")
                 .contentType("application/json")
-                .when().put("/bommel/{id}", bommel.id)
+                .when()
+                .put("/bommel/{id}", bommel.id)
                 .then()
                 .statusCode(200)
                 .body("id", is(bommel.id.intValue()))
-                .and().body("name", is("Test bommel"))
-                .and().body("parent.id", is(bommel.getParent().id.intValue()))
-                .and().body("parent.parent", is(nullValue()));
+                .and()
+                .body("name", is("Test bommel"))
+                .and()
+                .body("parent.id", is(bommel.getParent().id.intValue()))
+                .and()
+                .body("parent.parent", is(nullValue()));
 
         var updatedBommel = bommelRepo.findById(bommel.id);
         bommelRepo.getEntityManager().refresh(updatedBommel);
@@ -169,7 +181,8 @@ class BommelResourceTest {
         var bommel = bommels.getLast();
 
         given()
-                .when().get("/bommel/{id}", bommel.id)
+                .when()
+                .get("/bommel/{id}", bommel.id)
                 .then()
                 .statusCode(401);
 
@@ -177,13 +190,17 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
-                .when().get("/bommel/{id}", bommel.id)
+                .when()
+                .get("/bommel/{id}", bommel.id)
                 .then()
                 .statusCode(200)
                 .body("id", is(bommel.id.intValue()))
-                .and().body("name", is(bommel.getName()))
-                .and().body("emoji", is(bommel.getEmoji()))
-                .and().body("parent.id", is(bommel.getParent().id.intValue()));
+                .and()
+                .body("name", is(bommel.getName()))
+                .and()
+                .body("emoji", is(bommel.getEmoji()))
+                .and()
+                .body("parent.id", is(bommel.getParent().id.intValue()));
     }
 
     @Test
@@ -201,12 +218,13 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
-                .when().put("/bommel/move/{id}/to/{newParent}", child.id, newParent.id)
+                .when()
+                .put("/bommel/move/{id}/to/{newParent}", child.id, newParent.id)
                 .then()
                 .statusCode(200)
                 .body("id", is(child.id.intValue()))
-                .and().body("parent.id", is(newParent.id.intValue()));
-
+                .and()
+                .body("parent.id", is(newParent.id.intValue()));
 
         var updatedChild = bommelRepo.findById(child.id);
         bommelRepo.getEntityManager().refresh(updatedChild);
@@ -226,7 +244,8 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
-                .when().put("/bommel/move/{id}/to/{newParent}", child.id, newParent.id)
+                .when()
+                .put("/bommel/move/{id}/to/{newParent}", child.id, newParent.id)
                 .then()
                 .statusCode(401);
 
@@ -246,30 +265,29 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         List<TreeSearchBommel> treeSearchChildren = given()
-                .when().get("/bommel/{id}/children/recursive", root.id)
+                .when()
+                .get("/bommel/{id}/children/recursive", root.id)
                 .then()
                 .statusCode(200)
                 .extract()
-                .jsonPath().getList("$", TreeSearchBommel.class);
+                .jsonPath()
+                .getList("$", TreeSearchBommel.class);
 
         var children = treeSearchChildren.stream()
                 .map(TreeSearchBommel::bommel)
                 .toList();
 
         assertTrue(
-            children.stream()
-                .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(1).id))
-        );
+                children.stream()
+                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(1).id)));
 
         assertTrue(
                 children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(2).id))
-        );
+                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(2).id)));
 
         assertTrue(
                 children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(3).id))
-        );
+                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(3).id)));
     }
 
     @Test
@@ -283,26 +301,25 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         List<Bommel> children = given()
-                .when().get("/bommel/{id}/children", root.id)
+                .when()
+                .get("/bommel/{id}/children", root.id)
                 .then()
                 .statusCode(200)
                 .extract()
-                .jsonPath().getList("$", Bommel.class);
+                .jsonPath()
+                .getList("$", Bommel.class);
 
         assertTrue(
                 children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(1).id))
-        );
+                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(1).id)));
 
         assertTrue(
                 children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(2).id))
-        );
+                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(2).id)));
 
         assertFalse(
                 children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(3).id))
-        );
+                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(3).id)));
     }
 
     @Test
@@ -316,7 +333,8 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
-                .when().delete("/bommel/{id}", bommel.id)
+                .when()
+                .delete("/bommel/{id}", bommel.id)
                 .then()
                 .statusCode(401);
 
@@ -334,7 +352,8 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
-                .when().delete("/bommel/{id}", bommel.id)
+                .when()
+                .delete("/bommel/{id}", bommel.id)
                 .then()
                 .statusCode(204);
 
