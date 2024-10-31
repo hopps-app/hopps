@@ -59,8 +59,6 @@ public class Bommel extends PanacheEntity {
     @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     private Member responsibleMember;
 
-    // TODO: Make sure this has an index on it, so we can
-    // quickly find children
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.DETACH})
     private Bommel parent;
 
