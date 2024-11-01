@@ -1,59 +1,39 @@
 import { FaUser } from 'react-icons/fa';
-import { useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@/store/store.ts';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu.tsx';
 import authService from '@/services/auth/AuthService.ts';
+import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 
 function UserMenu() {
     const authStore = useAuthStore();
     const user = authStore.user;
 
     const navigate = useNavigate();
-
-    const onClickLogout = useCallback(() => {
-        authService.logout().catch((e) => console.error('Failed to logout:', e));
-    }, []);
-
-    const onClickSettings = useCallback(() => {
-        navigate('/settings');
-    }, [navigate]);
+    const [menuItems] = useState<DropdownMenuItem[]>([
+        { type: 'label', title: 'My Account' },
+        { type: 'separator' },
+        { title: 'Profile', onClick: () => console.log('Profile') },
+        { title: 'Billing', onClick: () => console.log('Billing') },
+        { title: 'Settings', onClick: () => navigate('/settings') },
+        { type: 'separator' },
+        { title: 'GitHub', onClick: () => console.log('GitHub') },
+        { title: 'Support', onClick: () => console.log('Support') },
+        { type: 'separator' },
+        { title: 'Log out', onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)) },
+    ]);
 
     return (
         <div>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
-                        <div className="flex-shrink-0">
-                            <FaUser />
-                        </div>
-
-                        <div> {user ? user.name : 'USER'}</div>
+            <DropdownMenu items={menuItems} className="w-56">
+                <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
+                    <div className="flex-shrink-0">
+                        <FaUser />
                     </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem>Profile</DropdownMenuItem>
-                        <DropdownMenuItem>Billing</DropdownMenuItem>
-                        <DropdownMenuItem onClick={onClickSettings}>Settings</DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>GitHub</DropdownMenuItem>
-                    <DropdownMenuItem>Support</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onClickLogout}>Log out</DropdownMenuItem>
-                </DropdownMenuContent>
+
+                    <div> {user ? user.name : 'USER'}</div>
+                </div>
             </DropdownMenu>
         </div>
     );

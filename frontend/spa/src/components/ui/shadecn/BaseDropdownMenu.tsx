@@ -4,7 +4,8 @@ import { CheckIcon, ChevronRightIcon, DotFilledIcon } from '@radix-ui/react-icon
 
 import { cn } from '@/lib/utils';
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+const BaseDropdownMenu = DropdownMenuPrimitive.Root;
+BaseDropdownMenu.displayName = 'BaseDropdownMenu';
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 
@@ -156,7 +157,7 @@ const DropdownMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTML
 DropdownMenuShortcut.displayName = 'DropdownMenuShortcut';
 
 export {
-    DropdownMenu,
+    BaseDropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,

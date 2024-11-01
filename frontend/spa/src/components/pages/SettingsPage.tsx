@@ -1,10 +1,14 @@
 import { useCallback, useState } from 'react';
 
-import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup.tsx';
-import { Label } from '@/components/ui/label.tsx';
 import themeService, { Themes } from '@/services/ThemeService.ts';
+import Radio from '@/components/ui/Radio.tsx';
 
 function SettingsPage() {
+    const [themes] = useState([
+        { label: 'Light', value: 'light' },
+        { label: 'Dark', value: 'dark' },
+        { label: 'Auto', value: 'auto' },
+    ]);
     const [theme, setTheme] = useState(themeService.isAutoMode() ? 'auto' : themeService.getTheme());
 
     const onThemeChanged = useCallback((value: string) => {
@@ -27,20 +31,7 @@ function SettingsPage() {
                 <div className="flex flex-row">
                     <div className="min-w-[200px]">Theme:</div>
                     <div>
-                        <RadioGroup defaultValue={theme || 'auto'} className="flex flex-row" onValueChange={onThemeChanged}>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="light" id="r1" />
-                                <Label htmlFor="r1">Light</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="dark" id="r2" />
-                                <Label htmlFor="r2">Dark</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="auto" id="r3" />
-                                <Label htmlFor="r3">Auto</Label>
-                            </div>
-                        </RadioGroup>
+                        <Radio items={themes} value={theme || 'auto'} layout="horizontal" onValueChange={onThemeChanged} />
                     </div>
                 </div>
                 <div className="flex flex-row">

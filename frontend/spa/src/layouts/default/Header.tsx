@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { Button } from '@/components/ui/Button.tsx';
+import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import { useAuthStore } from '@/store/store.ts';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
