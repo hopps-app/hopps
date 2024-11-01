@@ -9,7 +9,7 @@ on:
     tags: [ 'org-*.*.*' ]
 
 env:
-  BASE_IMAGE_NAME: ghcr.io/hopps-app/hopps/org
+  BASE_IMAGE_NAME: ghcr.io/hopps-app/hopps
 
   # prefix which needs to be in front of version tags
   VERSION_TAG_PREFIX: 'org-'
@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ format('{0}{1}', env.BASE_IMAGE_NAME, matrix.service.label) }}
+          images: ${{ format('{0}/{1}', env.BASE_IMAGE_NAME, matrix.service.label) }}
           tags: |
             # increasing run number tag on main
             type=raw,value=${{ github.run_number }},enable={{is_default_branch}}
