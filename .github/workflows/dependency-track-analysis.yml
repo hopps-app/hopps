@@ -50,3 +50,14 @@ jobs:
           projectName: "app.hopps.az-document-ai"
           projectVersion: "main"
           autoCreate: true
+
+      # Upload the SBOM to Dependency-Track
+      - name: Upload BOM to Dependency-Track
+        uses: DependencyTrack/gh-upload-sbom@v3.1.0
+        with:
+          apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
+          serverHostname: "dtrack.hopps.cloud"
+          bomFilename: "backend/app.hopps.fin/target/bom.xml"
+          projectName: "app.hopps.fin"
+          projectVersion: "main"
+          autoCreate: true
