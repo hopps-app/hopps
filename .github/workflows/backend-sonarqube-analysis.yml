@@ -54,3 +54,13 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=hopps-app \
             -Dsonar.projectKey=hopps-app_hopps-vereine
+
+      - name: SonarQube Scan "Finanzen"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B sonar:sonar \
+            --file backend/app.hopps.fin/pom.xml \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=hopps-app \
+            -Dsonar.projectKey=hopps-app_hopps-fin

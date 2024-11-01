@@ -23,6 +23,8 @@ jobs:
       fail-fast: false
       matrix:
         service:
+          - label: fin
+            directory: app.hopps.fin
           - label: org
             directory: app.hopps.org
           - label: az-document-ai
