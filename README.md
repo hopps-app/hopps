@@ -8,10 +8,14 @@ des [Open Project e.V. Pfaffenhofen an der Ilm](https://op-paf.de).
 Das Projekt wird gefördert von
 der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-engagement-und-ehrenamt.de/).
 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
 ![Frontend](https://github.com/hopps-app/hopps/actions/workflows/frontend.yml/badge.svg)
 ![Backend](https://github.com/hopps-app/hopps/actions/workflows/backend.yml/badge.svg)
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-vereine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-vereine)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-fin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-fin)
 
 ## Caveats
 
