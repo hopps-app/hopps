@@ -45,7 +45,7 @@ jobs:
         working-directory: ${{ matrix.baseDirectory }}
 
       - name: Get current project version
-        uses: avides/actions-project-version-check@latest
+        uses: avides/actions-project-version-check@v1.4.0
         id: project_version
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
