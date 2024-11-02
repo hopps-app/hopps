@@ -35,7 +35,7 @@ jobs:
         run: mvn org.cyclonedx:cyclonedx-maven-plugin:2.8.0:makeBom --file backend/pom.xml
 
       - name: Get current project version
-        uses: avides/actions-project-version-check@latest
+        uses: avides/actions-project-version-check@v1.4.0
         id: project_version
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
