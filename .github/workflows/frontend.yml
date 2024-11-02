@@ -73,5 +73,5 @@ jobs:
         with:
           context: frontend/spa
           file: frontend/spa/docker/Dockerfile
-          push: true
+          push: ${{ !startsWith(github.ref, 'refs/heads/dependabot/maven/backend') }}
           tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
