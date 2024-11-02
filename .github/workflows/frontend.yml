@@ -18,6 +18,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        baseDirectory: [ "frontend/spa" ]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,21 +37,21 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-        working-directory: frontend/spa
+        working-directory: ${{ matrix.baseDirectory }}
 
       - name: Run tests
         run: pnpm run validate
-        working-directory: frontend/spa
+        working-directory: ${{ matrix.baseDirectory }}
 
       - name: Build project
-        run: pnpm run build && ls -la
-        working-directory: frontend/spa
+        run: pnpm run build
+        working-directory: ${{ matrix.baseDirectory }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build
-          path: frontend/spa/dist/
+          path: ${{ matrix.baseDirectory }}/dist/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -71,7 +76,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: frontend/spa
-          file: frontend/spa/docker/Dockerfile
+          context: ${{ matrix.baseDirectory }}
+          file: ${{ matrix.baseDirectory }}/docker/Dockerfile
           push: ${{ !startsWith(github.ref, 'refs/heads/dependabot/maven/backend') }}
           tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
