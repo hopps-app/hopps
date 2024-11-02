@@ -123,6 +123,14 @@
             <artifactId>kie-addons-quarkus-messaging</artifactId>
         </dependency>
 
+        <!-- third party -->
+        <dependency>
+            <groupId>org.javamoney</groupId>
+            <artifactId>moneta</artifactId>
+            <version>1.4.4</version>
+            <type>pom</type>
+        </dependency>
+
         <!-- test -->
         <dependency>
             <groupId>io.quarkiverse.openfga</groupId>
