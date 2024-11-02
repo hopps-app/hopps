@@ -40,6 +40,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           file-to-check: "backend/${{ matrix.projectName }}/pom.xml"
+          only-return-version: true
 
       # Upload the SBOM to Dependency-Track
       - name: Upload BOM to Dependency-Track

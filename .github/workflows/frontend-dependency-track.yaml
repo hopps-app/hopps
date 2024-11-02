@@ -50,6 +50,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           file-to-check: "${{ matrix.baseDirectory }}/package.json"
+          only-return-version: true
 
       # Upload the SBOM to Dependency-Track
       - name: Upload BOM to Dependency-Track
