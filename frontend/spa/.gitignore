@@ -26,3 +26,5 @@ coverage/*
 *.sw?
 /tsconfig.app.tsbuildinfo
 /tsconfig.node.tsbuildinfo
+
+bom.json
