@@ -34,6 +34,12 @@ jobs:
       - name: mvn makeAggregateBom
         run: mvn org.cyclonedx:cyclonedx-maven-plugin:2.8.0:makeBom --file backend/pom.xml
 
+      - uses: avides/actions-project-version-check@latest
+        id: project_version
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          file-to-check: "backend/${{ matrix.projectName }}/pom.xml"
+
       # Upload the SBOM to Dependency-Track
       - name: Upload BOM to Dependency-Track
         uses: DependencyTrack/gh-upload-sbom@v3.1.0
@@ -42,5 +48,5 @@ jobs:
           serverHostname: "dtrack.hopps.cloud"
           bomFilename: "backend/${{ matrix.projectName }}/target/bom.xml"
           projectName: "${{ matrix.projectName }}"
-          projectVersion: "main"
+          projectVersion: "${{ steps.project_version.outputs.version }}"
           autoCreate: true
