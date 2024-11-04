@@ -25,7 +25,7 @@
         <quarkus.platform.version>3.15.1</quarkus.platform.version>
         <version.org.kie.kogito>999-SNAPSHOT</version.org.kie.kogito>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.5.1</surefire-plugin.version>
+        <surefire-plugin.version>3.5.2</surefire-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.build.directory}/jacoco-report/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
