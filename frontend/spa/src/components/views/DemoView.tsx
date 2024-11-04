@@ -6,7 +6,7 @@ import Radio from '@/components/ui/Radio.tsx';
 import Select from '@/components/ui/Select.tsx';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 
-function DemoPage() {
+function DemoView() {
     const [radioItems] = useState([
         { label: 'radio item 1', value: '1' },
         { label: 'radio item 2', value: '2' },
@@ -95,4 +95,4 @@ function DemoPage() {
     );
 }
 
-export default DemoPage;
+export default DemoView;

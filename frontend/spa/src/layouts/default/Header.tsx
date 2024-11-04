@@ -26,7 +26,7 @@ function Header() {
                     <HeaderMobileMenuButton />
 
                     <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="Hopps">
-                        <img src="/logo.svg" alt="Hopps" />
+                        <img src="/logo2.svg" alt="Hopps" />
                     </Link>
 
                     <div className="sm:hidden">

@@ -42,12 +42,24 @@ export class AuthService {
         return localStorage.getItem('AUTH_TOKEN_REFRESH') || undefined;
     }
 
-    setAuthUser(userData: { name: string; email: string }) {
-        useAuthStore.getState().setIsAuthenticated(true);
-        useAuthStore.getState().setUser({
-            name: userData.name,
-            email: userData.email,
-        });
+    setAuthUser(userData: { name: string; email: string } | null) {
+        useAuthStore.getState().setIsAuthenticated(!!userData);
+        useAuthStore.getState().setUser(
+            userData !== null
+                ? {
+                      name: userData.name,
+                      email: userData.email,
+                  }
+                : null
+        );
+    }
+
+    isAuthenticated() {
+        return useAuthStore.getState().isAuthenticated;
+    }
+
+    setIsInitialized(value: boolean) {
+        useAuthStore.getState().setIsInitialized(value);
     }
 }
 
