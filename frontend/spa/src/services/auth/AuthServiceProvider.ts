@@ -8,4 +8,6 @@ export interface AuthServiceProvider {
     logout(): Promise<void>;
 
     checkLogin(): Promise<void>;
+
+    isAuthenticated(): boolean;
 }

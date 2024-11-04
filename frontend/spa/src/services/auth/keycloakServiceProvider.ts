@@ -15,27 +15,35 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
             clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
         });
 
+        let isSuccessInit = false;
         try {
-            const isSuccessInit = await this.keycloak?.init({
+            isSuccessInit = await this.keycloak?.init({
                 enableLogging: true,
                 onLoad: 'check-sso',
                 token: authService.getAuthToken(),
                 refreshToken: authService.getAuthRefreshToken(),
                 checkLoginIframe: true,
             });
+        } catch (error) {
+            console.error('Failed to initialize adapter:', error);
+        }
 
-            if (isSuccessInit) {
-                this.authService.setAuthTokens(this.keycloak.token, this.keycloak.refreshToken);
+        if (isSuccessInit) {
+            this.authService.setAuthTokens(this.keycloak.token, this.keycloak.refreshToken);
 
+            try {
                 const data = (await this.keycloak.loadUserInfo()) as {
                     name: string;
                     email: string;
                 };
                 this.authService.setAuthUser(data);
+            } catch (e) {
+                this.authService.setAuthUser(null);
+                console.error('Failed to load user info', e);
             }
-        } catch (error) {
-            console.error('Failed to initialize adapter:', error);
         }
+
+        this.authService.setIsInitialized(true);
     }
 
     async login() {
@@ -59,5 +67,9 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
             .catch(() => {
                 console.error('Failed to refresh token or user is not authenticated');
             });
+    }
+
+    isAuthenticated(): boolean {
+        return this.keycloak?.isTokenExpired() || false;
     }
 }

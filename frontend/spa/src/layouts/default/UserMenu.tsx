@@ -25,17 +25,19 @@ function UserMenu() {
     ]);
 
     return (
-        <div>
-            <DropdownMenu items={menuItems} className="w-56">
-                <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
-                    <div className="flex-shrink-0">
-                        <FaUser />
-                    </div>
+        authStore.isInitialized && (
+            <div>
+                <DropdownMenu items={menuItems} className="w-56">
+                    <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
+                        <div className="flex-shrink-0">
+                            <FaUser />
+                        </div>
 
-                    <div> {user ? user.name : 'USER'}</div>
-                </div>
-            </DropdownMenu>
-        </div>
+                        <div> {user ? user.name : 'USER'}</div>
+                    </div>
+                </DropdownMenu>
+            </div>
+        )
     );
 }
 
