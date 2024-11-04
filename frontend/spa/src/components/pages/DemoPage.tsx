@@ -4,7 +4,7 @@ import TextField from '@/components/ui/TextField.tsx';
 import Button from '@/components/ui/Button.tsx';
 import Radio from '@/components/ui/Radio.tsx';
 import Select from '@/components/ui/Select.tsx';
-import DropdownMenu from '@/components/ui/DropdownMenu.tsx';
+import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 
 function DemoPage() {
     const [radioItems] = useState([
@@ -21,7 +21,7 @@ function DemoPage() {
         setSelectValue(value);
     };
 
-    const [dropdownMenuItems] = useState([
+    const [dropdownMenuItems] = useState<DropdownMenuItem[]>([
         { type: 'label', title: 'Label' },
         { type: 'separator' },
         { title: 'Item with action', onClick: () => alert('action') },
@@ -87,7 +87,7 @@ function DemoPage() {
                 <h2 className="text-center">Dropdown Menu:</h2>
                 <div className="flex flex-row gap-4 justify-center">
                     <DropdownMenu items={dropdownMenuItems}>
-                        <Button>click me</Button>
+                        <Button>Click me</Button>
                     </DropdownMenu>
                 </div>
             </div>
