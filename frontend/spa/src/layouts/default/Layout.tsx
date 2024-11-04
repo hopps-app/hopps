@@ -1,11 +1,11 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import Header from './Header.tsx';
-import Home from '@/views/Home.tsx';
-import Demo from '@/views/Demo.tsx';
-import Login from '@/views/Login.tsx';
+import HomePage from '@/components/pages/HomePage.tsx';
+import DemoPage from '@/components/pages/DemoPage.tsx';
 import Banner from './Banner.tsx';
-import NotFound from '@/views/NotFound.tsx';
+import NotFound from '@/components/pages/NotFound.tsx';
+import SettingsPage from '@/components/pages/SettingsPage.tsx';
 
 function Layout() {
     return (
@@ -15,9 +15,9 @@ function Layout() {
                 <Header />
                 <div className="min-h-[calc(100vh-80px-40px)] pt-20">
                     <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/demo" element={<Demo />} />
-                        <Route path="/login" element={<Login />} />
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/demo" element={<DemoPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
 
                         <Route path="*" element={<NotFound />} />
                     </Routes>

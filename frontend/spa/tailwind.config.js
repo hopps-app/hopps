@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-    darkMode: ['selector', '[data-mode="dark"]'],
+    darkMode: 'class', //['selector', '[data-mode="dark"]'],
     content: ['./src/**/*.{js,jsx,ts,tsx}'],
     theme: {
         extend: {
@@ -17,8 +17,8 @@ export default {
                     foreground: 'hsl(var(--card-foreground))',
                 },
                 popover: {
-                    DEFAULT: 'hsl(var(--popover))',
-                    foreground: 'hsl(var(--popover-foreground))',
+                    DEFAULT: 'var(--popover)',
+                    foreground: 'var(--popover-foreground)',
                 },
                 primary: {
                     DEFAULT: 'var(--primary)',
@@ -34,8 +34,8 @@ export default {
                     foreground: 'var(--muted-foreground)',
                 },
                 accent: {
-                    DEFAULT: 'hsl(var(--accent))',
-                    foreground: 'hsl(var(--accent-foreground))',
+                    DEFAULT: 'var(--accent)',
+                    foreground: 'var(--accent-foreground)',
                 },
                 destructive: {
                     DEFAULT: 'hsl(var(--destructive))',
