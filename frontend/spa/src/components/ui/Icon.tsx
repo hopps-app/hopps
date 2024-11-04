@@ -1,7 +1,7 @@
 import * as icons from '@radix-ui/react-icons';
 
 type RemoveIconSuffix<T> = T extends `${infer U}Icon` ? U : T;
-type RadixIcons = RemoveIconSuffix<keyof typeof icons>;
+export type RadixIcons = RemoveIconSuffix<keyof typeof icons>;
 
 export interface IconProps {
     icon: RadixIcons;

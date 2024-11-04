@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import themeService, { Themes } from '@/services/ThemeService.ts';
 import Radio from '@/components/ui/Radio.tsx';
 
-function SettingsPage() {
+function ProfileSettingsView() {
     const [themes] = useState([
         { label: 'Light', value: 'light' },
         { label: 'Dark', value: 'dark' },
@@ -23,10 +23,6 @@ function SettingsPage() {
 
     return (
         <div>
-            <h1 className="text-center">Settings</h1>
-
-            <hr />
-
             <div className="mt-4">
                 <div className="flex flex-row">
                     <div className="min-w-[200px]">Theme:</div>
@@ -43,4 +39,4 @@ function SettingsPage() {
     );
 }
 
-export default SettingsPage;
+export default ProfileSettingsView;

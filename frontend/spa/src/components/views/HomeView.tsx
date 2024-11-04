@@ -1,6 +1,6 @@
 import Button from '@/components/ui/Button.tsx';
 
-function HomePage() {
+function HomeView() {
     return (
         <div>
             <div className="flex flex-row">
@@ -24,4 +24,4 @@ function HomePage() {
     );
 }
 
-export default HomePage;
+export default HomeView;
