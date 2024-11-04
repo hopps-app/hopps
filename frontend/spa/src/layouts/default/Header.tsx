@@ -1,13 +1,23 @@
 import { Link } from 'react-router-dom';
 
-import { Button } from '@/components/ui/Button.tsx';
+import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
+import { useAuthStore } from '@/store/store.ts';
+import UserMenu from '@/layouts/default/UserMenu.tsx';
+import authService from '@/services/auth/AuthService.ts';
 
 function Header() {
     const menuItems = [
         { url: '/', label: 'Home' },
         { url: '/demo', label: 'Demo' },
     ];
+
+    const appStore = useAuthStore();
+    const isAuthenticated = appStore.isAuthenticated;
+
+    const onClickLogin = () => {
+        authService.login();
+    };
 
     return (
         <header className="mb-auto flex flex-wrap sm:justify-start sm:flex-nowrap z-50 w-full text-sm py-4">
@@ -44,16 +54,16 @@ function Header() {
                             })}
                         </div>
                     </div>
-                    <div className="flex flex-row gap-5 items-center mt-0 ps-5">
-                        <Link to="/login">
-                            <Button variant="link" className="px-0">
+                    {isAuthenticated ? (
+                        <UserMenu />
+                    ) : (
+                        <div className="flex flex-row gap-5 items-center mt-0 ps-5">
+                            <Button variant="link" className="px-0" onClick={onClickLogin}>
                                 Login
                             </Button>
-                        </Link>
-                        <Link to="/action">
                             <Button>Jetzt testen</Button>
-                        </Link>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </nav>
         </header>

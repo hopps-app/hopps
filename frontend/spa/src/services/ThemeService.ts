@@ -22,8 +22,17 @@ export class ThemeService {
         this.currentTheme = theme;
     }
 
+    setAutoMode() {
+        localStorage.removeItem(this.localStorageKey);
+        this.init();
+    }
+
     getTheme() {
         return this.currentTheme;
+    }
+
+    isAutoMode() {
+        return localStorage.getItem(this.localStorageKey) === null;
     }
 }
 
