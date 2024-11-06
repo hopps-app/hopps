@@ -17,8 +17,8 @@ public record InvoiceData(
 
 
     public static InvoiceData fromZugferd(Invoice invoice) {
-
         TransactionCalculator tc = new TransactionCalculator(invoice);
+
         return new InvoiceData(
                 Optional.ofNullable(invoice.getRecipient().getName()),
                 Optional.ofNullable(invoice.getRecipient().getAdditionalAddress()),
@@ -29,7 +29,6 @@ public record InvoiceData(
                 tc.getChargeTotal().doubleValue(),
                 Optional.ofNullable(tc.getChargeTotal().subtract(invoice.getTotalPrepaidAmount()).doubleValue()),
                 invoice.getCurrency()
-
         );
     }
 }
