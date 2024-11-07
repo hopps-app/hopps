@@ -4,10 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SettingsPage from '@/components/SettingsPage/SettingsPage.tsx';
 import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
 import OrganizationSettingsView from '@/components/views/OrganizationSettingsView.tsx';
+import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
 
-const navigationItems = [
-    { title: 'Profile', value: 'profile' },
-    { title: 'Organization', value: 'organization' },
+const navigationItems: MenuItem[] = [
+    { title: 'Profile', value: 'profile', icon: 'Avatar' },
+    { title: 'Organization', value: 'organization', icon: 'Backpack' },
 ];
 
 function SettingsView() {
@@ -18,7 +19,6 @@ function SettingsView() {
     useEffect(() => {
         const path = location.pathname.split('/').pop();
         if (path && navigationItems.some((item) => item.value === path)) {
-            console.log('ROUTE CHANGED', path);
             setActiveTab(path);
         }
     }, [location]);
