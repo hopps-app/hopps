@@ -4,12 +4,14 @@ import { NodeModel, useDragOver } from '@minoru/react-dnd-treeview';
 import Icon from '@/components/ui/Icon.tsx';
 import TextField from '@/components/ui/TextField.tsx';
 import Button from '@/components/ui/Button.tsx';
+import { cn } from '@/lib/utils.ts';
 
 type Props = {
     node: NodeModel;
     depth: number;
     isOpen: boolean;
     hasChild: boolean;
+    disableHover: boolean;
     onToggle: (id: NodeModel['id']) => void;
     onEdit: (id: NodeModel['id'], text: string) => void;
     onDelete: (id: NodeModel['id']) => void;
@@ -69,15 +71,19 @@ function OrganizationTreeNode(props: Props) {
 
     return (
         <div
-            className="h-10 leading-10"
+            className={cn('h-10 leading-10', { 'hover:bg-accent': !props.disableHover })}
             style={{ paddingInlineStart: indent }}
-            {...dragOverProps}
             onMouseEnter={() => setIsHover(true)}
             onMouseLeave={() => setIsHover(false)}
+            {...dragOverProps}
         >
             <div className="flex flex-row items-center">
                 <div className="scale-150 pr-1" onClick={handleToggle}>
-                    {props.hasChild ? <Icon icon={props.isOpen ? 'TriangleDown' : 'TriangleRight'} /> : <Icon icon="Dot" />}
+                    {props.hasChild ? (
+                        <Icon icon={props.isOpen ? 'TriangleDown' : 'TriangleRight'} className="cursor-pointer hover:text-primary" />
+                    ) : (
+                        <Icon icon="Dot" />
+                    )}
                 </div>
                 <div className="w-full">
                     {isEditing ? (

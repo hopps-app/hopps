@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { NodeModel } from '@minoru/react-dnd-treeview';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
+import Button from '@/components/ui/Button.tsx';
+import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 
 function OrganizationSettingsView() {
     const savedTree = localStorage.getItem('organizationTree');
@@ -11,15 +13,25 @@ function OrganizationSettingsView() {
 
     const onTreeChanged = (newTree: NodeModel[]) => {
         setTree(newTree);
+    };
 
-        localStorage.setItem('organizationTree', JSON.stringify(newTree));
+    const onClickSave = () => {
+        localStorage.setItem('organizationTree', JSON.stringify(tree));
     };
 
     return (
-        <div>
-            OrganizationSettingsView
-            <OrganizationTree tree={tree} onTreeChanged={onTreeChanged} />
-        </div>
+        <>
+            <SettingsPageHeader>
+                <Button onClick={onClickSave}>Save</Button>
+            </SettingsPageHeader>
+            <div className="flex flex-row">
+                <div className="w-full"></div>
+                <div className="shrink-0 w-[400px]">
+                    <h3>Structure:</h3>
+                    <OrganizationTree tree={tree} onTreeChanged={onTreeChanged} />
+                </div>
+            </div>
+        </>
     );
 }
 

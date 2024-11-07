@@ -6,7 +6,7 @@ import OrganizationTreeNode from '@/components/OrganizationStructureTree/Organiz
 import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/OrganizationTreeDropPreview.tsx';
 import OrganizationTreePlaceholder from '@/components/OrganizationStructureTree/OrganizationTreePlaceholder.tsx';
 import Button from '@/components/ui/Button.tsx';
-import { getMaxId } from '@/components/OrganizationStructureTree/OrganizationTreeUtils.ts';
+import { getMaxId } from '@/components/OrganizationStructureTree/OrganizationTreeUtils';
 
 interface OrganizationStructureTreeProps {
     tree: NodeModel[];
@@ -15,6 +15,8 @@ interface OrganizationStructureTreeProps {
 
 function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProps) {
     const [treeData, setTreeData] = useState<NodeModel[]>(JSON.parse(JSON.stringify(tree)));
+    const [isDragging, setIsDragging] = useState(false);
+
     const handleDrop = (newTree: NodeModel[]) => {
         setTreeData(newTree);
         onTreeChanged?.(newTree);
@@ -37,6 +39,14 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
         onTreeChanged?.(newTree);
     };
 
+    const onDragStart = () => {
+        setIsDragging(true);
+    };
+
+    const onDragEnd = () => {
+        setIsDragging(false);
+    };
+
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
             <div>
@@ -51,10 +61,14 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
                             return true;
                         }
                     }}
-                    render={(node, options) => <OrganizationTreeNode node={node} onEdit={onEditNode} onDelete={onDeleteNode} {...options} />}
+                    render={(node, options) => (
+                        <OrganizationTreeNode node={node} onEdit={onEditNode} onDelete={onDeleteNode} disableHover={isDragging} {...options} />
+                    )}
                     dragPreviewRender={(monitorProps) => <OrganizationTreeDropPreview monitorProps={monitorProps} />}
                     placeholderRender={(node, { depth }) => <OrganizationTreePlaceholder node={node} depth={depth} />}
                     onDrop={handleDrop}
+                    onDragStart={onDragStart}
+                    onDragEnd={onDragEnd}
                     classes={{
                         draggingSource: 'opacity-30',
                         placeholder: 'relative',
