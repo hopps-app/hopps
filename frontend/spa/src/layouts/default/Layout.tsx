@@ -7,31 +7,35 @@ import Banner from './Banner.tsx';
 import NotFoundView from '@/components/views/NotFoundView.tsx';
 import SettingsView from '@/components/views/SettingsView.tsx';
 import AuthGuard from '@/guards/AuthGuard.tsx';
+import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
 
 function Layout() {
     return (
-        <Router>
-            <Banner />
-            <div className="flex flex-col mx-auto size-full" style={{ maxWidth: 1360, padding: '0 40px' }}>
-                <Header />
-                <div className="min-h-[calc(100vh-80px-40px)] pt-20">
-                    <Routes>
-                        <Route path="/" element={<HomeView />} />
-                        <Route path="/demo" element={<DemoView />} />
-                        <Route
-                            path="/settings/*"
-                            element={
-                                <AuthGuard>
-                                    <SettingsView />
-                                </AuthGuard>
-                            }
-                        />
+        <>
+            <Router>
+                <Banner />
+                <div className="flex flex-col mx-auto size-full" style={{ maxWidth: 1360, padding: '0 40px' }}>
+                    <Header />
+                    <div className="min-h-[calc(100vh-80px-40px)] pt-20">
+                        <Routes>
+                            <Route path="/" element={<HomeView />} />
+                            <Route path="/demo" element={<DemoView />} />
+                            <Route
+                                path="/settings/*"
+                                element={
+                                    <AuthGuard>
+                                        <SettingsView />
+                                    </AuthGuard>
+                                }
+                            />
 
-                        <Route path="*" element={<NotFoundView />} />
-                    </Routes>
+                            <Route path="*" element={<NotFoundView />} />
+                        </Routes>
+                    </div>
                 </div>
-            </div>
-        </Router>
+            </Router>
+            <Toaster />
+        </>
     );
 }
 

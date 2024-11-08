@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
 import Button from '@/components/ui/Button.tsx';
 import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
+import { useToast } from '@/hooks/use-toast.ts';
 
 function OrganizationSettingsView() {
+    const { toast } = useToast();
     const savedTree = localStorage.getItem('organizationTree');
     const saveTreeNodes = savedTree ? (JSON.parse(savedTree) as OrganizationTreeNodeModel[]) : [];
 
@@ -17,6 +19,8 @@ function OrganizationSettingsView() {
 
     const onClickSave = () => {
         localStorage.setItem('organizationTree', JSON.stringify(tree));
+
+        toast({ title: 'Organization structure in local storage', variant: 'success' });
     };
 
     return (

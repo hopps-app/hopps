@@ -20,9 +20,7 @@ function SettingsPageHeader(props: SettingsPageHeaderProps) {
 
                 <div>{props.children}</div>
             </div>
-            <div className="py-4">
-                <hr />
-            </div>
+            <hr />
         </>
     );
 }
