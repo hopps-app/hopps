@@ -16,4 +16,11 @@ declare global {
     const onTestFailed: (typeof import('vitest'))['onTestFailed'];
     const onTestFinished: (typeof import('vitest'))['onTestFinished'];
 }
+
+declare namespace JSX {
+    interface IntrinsicElements {
+        'em-emoji': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & { id: string };
+    }
+}
+
 export {};

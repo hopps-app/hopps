@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import SettingsPageMenu from '@/components/SettingsPage/SettingsPageMenu.tsx';
 import Icon from '@/components/ui/Icon.tsx';
 import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
@@ -11,6 +13,7 @@ interface SettingsPageProps {
 }
 
 function SettingsPage({ activeTab, menu, children, onActiveTabChanged }: SettingsPageProps) {
+    const { t } = useTranslation();
     const activeItem = menu.find((item) => item.value === activeTab);
     const onChangeTab = (value: string) => {
         if (onActiveTabChanged) {
@@ -25,7 +28,7 @@ function SettingsPage({ activeTab, menu, children, onActiveTabChanged }: Setting
                     <div className="px-4 pt-4">
                         <h1 className="flex flex-row gap-2 h-10 items-center">
                             <Icon icon="HamburgerMenu" size="md" />
-                            Menu
+                            {t('settingsPage.menu')}
                         </h1>
 
                         <div className="py-4">
