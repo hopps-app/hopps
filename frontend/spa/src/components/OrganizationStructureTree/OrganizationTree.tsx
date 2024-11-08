@@ -1,4 +1,4 @@
-import { Tree, getBackendOptions, MultiBackend, NodeModel } from '@minoru/react-dnd-treeview';
+import { Tree, getBackendOptions, MultiBackend } from '@minoru/react-dnd-treeview';
 import { DndProvider } from 'react-dnd';
 import { useState } from 'react';
 
@@ -7,17 +7,18 @@ import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/
 import OrganizationTreePlaceholder from '@/components/OrganizationStructureTree/OrganizationTreePlaceholder.tsx';
 import Button from '@/components/ui/Button.tsx';
 import { getMaxId } from '@/components/OrganizationStructureTree/OrganizationTreeUtils';
+import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 
 interface OrganizationStructureTreeProps {
-    tree: NodeModel[];
-    onTreeChanged?: (tree: NodeModel[]) => void;
+    tree: OrganizationTreeNodeModel[];
+    onTreeChanged?: (tree: OrganizationTreeNodeModel[]) => void;
 }
 
 function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProps) {
-    const [treeData, setTreeData] = useState<NodeModel[]>(JSON.parse(JSON.stringify(tree)));
+    const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>(JSON.parse(JSON.stringify(tree)));
     const [isDragging, setIsDragging] = useState(false);
 
-    const handleDrop = (newTree: NodeModel[]) => {
+    const handleDrop = (newTree: OrganizationTreeNodeModel[]) => {
         setTreeData(newTree);
         onTreeChanged?.(newTree);
     };
@@ -27,13 +28,13 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
         onTreeChanged?.(newTree);
     };
 
-    const onDeleteNode = (id: NodeModel['id']) => {
+    const onDeleteNode = (id: OrganizationTreeNodeModel['id']) => {
         const newTree = treeData.filter((node) => node.id !== id);
         setTreeData(newTree);
         onTreeChanged?.(newTree);
     };
 
-    const onEditNode = (id: NodeModel['id'], text: string) => {
+    const onEditNode = (id: OrganizationTreeNodeModel['id'], text: string) => {
         const newTree = treeData.map((node) => (node.id === id ? { ...node, text } : node));
         setTreeData(newTree);
         onTreeChanged?.(newTree);
