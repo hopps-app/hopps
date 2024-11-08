@@ -16,6 +16,10 @@
     h3 {
         @apply text-lg;
     }
+
+    hr {
+        @apply border-t border-separator my-4;
+    }
 }
 
 
@@ -26,6 +30,7 @@
         --primary-foreground: #FFFFFF;
         --secondary: #000000;
         --secondary-foreground: #FFFFFF;
+        --separator: #E5E5E5;
         --font-color: #000000;
         --font-family: "Public Sans", sans-serif;
         --body-background: #f5EEFA;
@@ -34,6 +39,8 @@
         --popover-foreground: #000000;
         --accent: #f1f1f1;
         --accent-foreground: #4a4a4a;
+        --destructive: #aa0000;
+        --destructive-foreground: #ffffff;
     }
 
     .dark {
@@ -42,12 +49,17 @@
         --primary-foreground: #FFFFFF;
         --secondary: #000000;
         --secondary-foreground: #FFFFFF;
+        --separator: #3f145d;
         --font-color: #FFFFFF;
         --font-family: "Public Sans", sans-serif;
         --body-background: #1C0C28;
         --muted: #888888;
         --popover: #FFFFFF;
         --popover-foreground: #000000;
+        --accent: #3b1951;
+        --accent-foreground: #FFFFFF;
+        --destructive: #aa0000;
+        --destructive-foreground: #ffffff;
     }
 }
 

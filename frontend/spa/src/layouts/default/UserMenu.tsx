@@ -14,9 +14,8 @@ function UserMenu() {
     const [menuItems] = useState<DropdownMenuItem[]>([
         { type: 'label', title: 'My Account' },
         { type: 'separator' },
-        { title: 'Profile', onClick: () => console.log('Profile') },
-        { title: 'Billing', onClick: () => console.log('Billing') },
-        { title: 'Settings', onClick: () => navigate('/settings') },
+        { title: 'Profile', onClick: () => navigate('/settings/profile') },
+        { title: 'Organization', onClick: () => navigate('/settings/organization') },
         { type: 'separator' },
         { title: 'GitHub', onClick: () => console.log('GitHub') },
         { title: 'Support', onClick: () => console.log('Support') },

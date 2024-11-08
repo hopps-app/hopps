@@ -111,9 +111,11 @@ function OrganizationTreeNode(props: Props) {
                         </div>
                     ) : (
                         <div className="flex flex-row items-center">
-                            <span className="mr-1">
-                                <Emoji emoji={emoji} className="text-xl" />
-                            </span>
+                            {emoji && (
+                                <span className="mr-1">
+                                    <Emoji emoji={emoji} className="text-xl" />
+                                </span>
+                            )}
                             {props.node.text}
                             <div className="flex-grow"></div>
                             {isHover && (
