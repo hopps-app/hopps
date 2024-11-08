@@ -38,9 +38,10 @@ export default {
                     foreground: 'var(--accent-foreground)',
                 },
                 destructive: {
-                    DEFAULT: 'hsl(var(--destructive))',
-                    foreground: 'hsl(var(--destructive-foreground))',
+                    DEFAULT: 'var(--destructive)',
+                    foreground: 'var(--destructive-foreground)',
                 },
+                separator: 'var(--separator)',
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',
                 ring: 'hsl(var(--ring))',

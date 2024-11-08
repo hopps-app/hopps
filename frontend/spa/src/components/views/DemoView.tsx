@@ -5,8 +5,10 @@ import Button from '@/components/ui/Button.tsx';
 import Radio from '@/components/ui/Radio.tsx';
 import Select from '@/components/ui/Select.tsx';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
+import { useToast } from '@/hooks/use-toast.ts';
 
 function DemoView() {
+    const { toast } = useToast();
     const [radioItems] = useState([
         { label: 'radio item 1', value: '1' },
         { label: 'radio item 2', value: '2' },
@@ -89,6 +91,14 @@ function DemoView() {
                     <DropdownMenu items={dropdownMenuItems}>
                         <Button>Click me</Button>
                     </DropdownMenu>
+                </div>
+            </div>
+            <div className="my-4">
+                <h2 className="text-center">Toast notifications:</h2>
+                <div className="flex flex-row gap-4 justify-center">
+                    <Button title="default" onClick={() => toast({ title: 'Default toast' })} />
+                    <Button title="success" onClick={() => toast({ title: 'Success toast', variant: 'success' })} />
+                    <Button title="error" onClick={() => toast({ title: 'Error toast', variant: 'error' })} />
                 </div>
             </div>
         </div>

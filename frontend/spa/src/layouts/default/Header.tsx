@@ -46,7 +46,7 @@ function Header() {
                                     <Link
                                         to={url}
                                         key={url}
-                                        className="font-normal text-xl text-black/70 underline-offset-4 focus:outline-none focus:underline hover:underline"
+                                        className="font-normal text-xl text-black/70 dark:text-white underline-offset-4 focus:outline-none focus:underline hover:underline"
                                     >
                                         {label}
                                     </Link>
