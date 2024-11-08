@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { NodeModel } from '@minoru/react-dnd-treeview';
+import React, { useState } from 'react';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
 import Button from '@/components/ui/Button.tsx';
 import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
+import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 
 function OrganizationSettingsView() {
     const savedTree = localStorage.getItem('organizationTree');
-    const saveTreeNodes = savedTree ? (JSON.parse(savedTree) as NodeModel[]) : [];
+    const saveTreeNodes = savedTree ? (JSON.parse(savedTree) as OrganizationTreeNodeModel[]) : [];
 
-    const [tree, setTree] = useState<NodeModel[]>(saveTreeNodes);
+    const [tree, setTree] = useState<OrganizationTreeNodeModel[]>(saveTreeNodes);
 
-    const onTreeChanged = (newTree: NodeModel[]) => {
+    const onTreeChanged = (newTree: OrganizationTreeNodeModel[]) => {
         setTree(newTree);
     };
 
@@ -24,13 +24,9 @@ function OrganizationSettingsView() {
             <SettingsPageHeader>
                 <Button onClick={onClickSave}>Save</Button>
             </SettingsPageHeader>
-            <div className="flex flex-row">
-                <div className="w-full"></div>
-                <div className="shrink-0 w-[400px]">
-                    <h3>Structure:</h3>
-                    <OrganizationTree tree={tree} onTreeChanged={onTreeChanged} />
-                </div>
-            </div>
+
+            <h3>Structure:</h3>
+            <OrganizationTree tree={tree} onTreeChanged={onTreeChanged} />
         </>
     );
 }
