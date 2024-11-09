@@ -17,7 +17,7 @@ on:
 
 jobs:
   build:
-    if: ${{ !startsWith(github.ref, 'refs/heads/dependabot/maven/backend') }}
+    if: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
     runs-on: ubuntu-latest
 
     strategy:

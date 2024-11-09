@@ -14,7 +14,7 @@ on:
 
 jobs:
   upload-bom:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
     runs-on: ubuntu-latest
 
     strategy:
