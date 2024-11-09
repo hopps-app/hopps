@@ -78,5 +78,5 @@ jobs:
         with:
           context: ${{ matrix.baseDirectory }}
           file: ${{ matrix.baseDirectory }}/docker/Dockerfile
-          push: ${{ !startsWith(github.ref, 'refs/heads/dependabot/maven/backend') }}
+          push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
           tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
