@@ -73,5 +73,5 @@ jobs:
           context: backend/${{ matrix.service.directory }}
           file: backend/${{ matrix.service.directory }}/src/main/docker/Dockerfile.jvm
           # don't push dependabot branches
-          push: ${{ !startsWith(github.ref, 'refs/heads/dependabot/maven/backend') }}
+          push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
           tags: ${{ steps.meta.outputs.tags }} # tags from the docker/metadata-action
