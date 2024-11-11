@@ -53,6 +53,9 @@ public class Bommel extends PanacheEntity {
     @ManyToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH })
     private Member responsibleMember;
 
+    @OneToOne(mappedBy = "rootBommel", cascade = { CascadeType.DETACH, CascadeType.REFRESH })
+    private Organization organization;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.REFRESH, CascadeType.DETACH })
     private Bommel parent;
 
@@ -92,6 +95,14 @@ public class Bommel extends PanacheEntity {
 
     public void setResponsibleMember(Member responsibleMember) {
         this.responsibleMember = responsibleMember;
+    }
+
+    public Organization getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 
     public Bommel getParent() {
