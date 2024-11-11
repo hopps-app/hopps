@@ -4,6 +4,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 @ApplicationScoped
@@ -12,14 +15,21 @@ public class BommelTestResourceCreator {
     @Inject
     BommelRepository repo;
 
+    @Inject
+    OrganizationRepository orgRepo;
+
     /**
      * @return The bommels created
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public List<Bommel> setupSimpleTree() {
         var bommels = generateSimpleTree();
+        Organization org = generateOrganization();
+        org.setRootBommel(bommels.getFirst());
 
         repo.persist(bommels);
+        orgRepo.persist(org);
+        orgRepo.flush();
         repo.flush();
 
         for (var bommel : bommels) {
@@ -27,6 +37,20 @@ public class BommelTestResourceCreator {
         }
 
         return bommels;
+    }
+
+    private static Organization generateOrganization() {
+        Organization org = new Organization();
+        org.setName("Hopps");
+        org.setSlug("hopps");
+        org.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        try {
+            org.setWebsite(new URI("https://hopps.cloud/").toURL());
+        } catch (MalformedURLException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        return org;
     }
 
     private static List<Bommel> generateSimpleTree() {

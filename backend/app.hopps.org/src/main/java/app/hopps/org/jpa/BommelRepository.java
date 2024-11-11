@@ -70,9 +70,13 @@ public class BommelRepository implements PanacheRepository<Bommel> {
             throw new WebApplicationException("Root bommel cannot have a parent", Response.Status.BAD_REQUEST);
         }
 
-        long rootNodeCount = count("where parent is null");
+        if (root.getOrganization() == null) {
+            throw new WebApplicationException("Root bommel needs to have an organization", Response.Status.BAD_REQUEST);
+        }
+
+        long rootNodeCount = count("where organization = :organization and parent is null", root.getOrganization().getId());
         if (rootNodeCount != 0) {
-            throw new WebApplicationException("Expected 0 root nodes, found " + rootNodeCount,
+            throw new WebApplicationException("Expected 0 root nodes in organization, found " + rootNodeCount,
                     Response.Status.CONFLICT);
         }
 
@@ -89,6 +93,9 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     public Bommel insertBommel(Bommel child) throws WebApplicationException {
         if (child.getParent() == null) {
             throw new WebApplicationException("Bommel must have a parent", Response.Status.BAD_REQUEST);
+        }
+        if (child.getOrganization() != null) {
+            throw new WebApplicationException("non-root Bommel cannot have an organization");
         }
 
         if (!child.isPersistent()) {
@@ -121,14 +128,19 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     /**
-     * Counts the number of edges (k) and vertices (n) in the tree, and uses the property n = k - 1 to ensure that no
+     * Counts the number of edges (k) and vertices (n) in all trees, and uses the property n = k - 1 to ensure that no illegal
      * subtrees have separated and no cycles exist. This is expensive, especially with a large number of bommels.
+     * We have exactly as many subtrees as we have root nodes with an organization attached
+     * (parent = null and organization != null). If there's a root node without an organization,
+     * this means that it got created by accident.
      */
     @Transactional
     public void ensureConsistency() throws WebApplicationException {
         var edgesCount = count("where parent is not null");
         var nodesCount = count();
-        if (nodesCount != (edgesCount + 1)) {
+        var treesCount = count("where organization is not null and parent is null");
+
+        if ((nodesCount - treesCount) != edgesCount) {
             throw new WebApplicationException("Operation introduced loop/created a separate tree");
         }
     }

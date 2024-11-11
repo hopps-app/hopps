@@ -22,6 +22,9 @@ class BommelTest {
     BommelRepository repo;
 
     @Inject
+    OrganizationRepository orgRepo;
+
+    @Inject
     BommelTestResourceCreator resourceCreator;
 
     @BeforeEach
@@ -179,8 +182,11 @@ class BommelTest {
     void disallowTwoRoots() {
         // Arrange
         resourceCreator.setupSimpleTree();
+        Organization org = orgRepo.listAll().getFirst();
 
         Bommel fakeRoot = new Bommel();
+        fakeRoot.setOrganization(org);
+
         fakeRoot.setName("I'm a root for sure trust me");
 
         // Act
