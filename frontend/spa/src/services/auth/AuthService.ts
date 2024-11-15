@@ -4,13 +4,19 @@ import { useAuthStore } from '@/store/store.ts';
 
 export class AuthService {
     private provider: AuthServiceProvider;
+    private refreshTokenInterval: number = 0;
 
     constructor(provider: AuthServiceProvider) {
         this.provider = provider;
     }
 
     async init() {
-        return this.provider.init(this);
+        await this.provider.init(this);
+        console.log('INIT', this.isAuthenticated());
+
+        if (this.isAuthenticated()) {
+            this.startTokenRefresh();
+        }
     }
 
     login() {
@@ -19,6 +25,7 @@ export class AuthService {
 
     async logout() {
         await this.provider.logout();
+        this.stopTokenRefresh();
 
         this.setAuthTokens(undefined, undefined);
         useAuthStore.getState().setIsAuthenticated(false);
@@ -60,6 +67,30 @@ export class AuthService {
 
     setIsInitialized(value: boolean) {
         useAuthStore.getState().setIsInitialized(value);
+    }
+
+    async refreshToken() {
+        console.log('REFRESH AUTH TOKEN');
+        const refreshToken = this.getAuthRefreshToken();
+        if (!refreshToken) {
+            throw new Error('No refresh token available');
+        }
+
+        this.provider.refreshToken(refreshToken);
+    }
+
+    private startTokenRefresh() {
+        console.log('STARTED REFRESH INTERVAL');
+        this.stopTokenRefresh();
+
+        this.refreshTokenInterval = window.setInterval(() => {
+            this.refreshToken().catch((e) => console.error(e));
+        }, 30000);
+    }
+
+    private stopTokenRefresh() {
+        window.clearInterval(this.refreshTokenInterval);
+        this.refreshTokenInterval = 0;
     }
 }
 
