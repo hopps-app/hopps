@@ -14,7 +14,7 @@ export class BommelService {
         await fetch(`${this.baseUrl}/bommel/${id}`, { method: 'DELETE' });
     }
 
-    async createBommel(data: any) {
+    async createBommel(data: Bommel) {
         const response = await fetch(`${this.baseUrl}/bommel`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -23,7 +23,7 @@ export class BommelService {
         return response.json();
     }
 
-    async createRootBommel(data: any) {
+    async createRootBommel(data: Bommel) {
         const response = await fetch(`${this.baseUrl}/bommel/root`, {
             method: 'POST',
             headers: {
@@ -55,7 +55,7 @@ export class BommelService {
         return response.json();
     }
 
-    async updateBommel(id: string, data: any) {
+    async updateBommel(id: string, data: Bommel) {
         const response = await fetch(`${this.baseUrl}/bommel/${id}`, {
             method: 'PUT',
             headers: {
@@ -73,6 +73,6 @@ export class BommelService {
                 'Content-Type': 'application/json',
             },
         });
-        return response.json();
+        return response.json() as Promise<Bommel>;
     }
 }

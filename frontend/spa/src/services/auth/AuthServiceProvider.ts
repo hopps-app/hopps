@@ -10,4 +10,6 @@ export interface AuthServiceProvider {
     checkLogin(): Promise<void>;
 
     isAuthenticated(): boolean;
+
+    refreshToken(refreshToken: string): void;
 }

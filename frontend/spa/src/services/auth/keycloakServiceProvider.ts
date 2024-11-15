@@ -72,4 +72,26 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
     isAuthenticated(): boolean {
         return this.keycloak?.isTokenExpired() || false;
     }
+
+    async refreshToken() {
+        if (!this.keycloak) {
+            throw new Error('No refresh token available');
+        }
+        try {
+            console.log(this.keycloak.refreshTokenParsed);
+            const expiresIn = (this.keycloak.refreshTokenParsed?.['exp'] || 0) - Math.ceil(new Date().getTime() / 1000);
+
+            console.log('TOKEN EXPITES IN ', expiresIn);
+            const refreshed = await this.keycloak.updateToken(5);
+            if (refreshed) {
+                this.authService!.setAuthTokens(this.keycloak.token, this.keycloak.refreshToken);
+                console.log('Token was successfully refreshed');
+            } else {
+                console.log('Token is still valid');
+            }
+        } catch (e) {
+            console.error(e);
+            throw new Error('Failed to refresh the token, or the session has expired');
+        }
+    }
 }
