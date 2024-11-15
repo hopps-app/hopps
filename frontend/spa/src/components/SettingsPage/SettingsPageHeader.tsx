@@ -1,7 +1,7 @@
 import React from 'react';
 
 import Icon from '@/components/ui/Icon.tsx';
-import { useActiveTab } from '@/context/ActiveTabContext.tsx';
+import { useActiveTab } from '@/context/ActiveTabContext.ts';
 
 interface SettingsPageHeaderProps {
     children?: React.ReactNode;
