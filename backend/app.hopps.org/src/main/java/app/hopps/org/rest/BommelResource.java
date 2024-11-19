@@ -6,6 +6,7 @@ import app.hopps.org.jpa.TreeSearchBommel;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.runtime.configuration.ConfigUtils;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Path("/bommel")
+@Authenticated
 public class BommelResource {
 
     @Inject
