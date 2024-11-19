@@ -16,7 +16,7 @@ public class KafkaConnector {
     @Inject
     ZugFerdService zugFerdService;
 
-    @Incoming("invoices-in")
+    @Incoming("documents-in")
     public void scanInvoices(String invoiceUrl) {
         invoiceDataEmitter.send(zugFerdService.scanInvoice(invoiceUrl));
     }
