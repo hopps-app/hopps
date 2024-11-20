@@ -26,7 +26,7 @@ public class Organization extends PanacheEntity {
     @Embedded
     private Address address;
 
-    @OneToOne
+    @OneToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE })
     private Bommel rootBommel;
 
     @ManyToMany(mappedBy = "organizations", cascade = CascadeType.PERSIST)

@@ -1,7 +1,9 @@
 package app.hopps.org.jpa;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 
@@ -53,7 +55,7 @@ public class Bommel extends PanacheEntity {
     @ManyToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH })
     private Member responsibleMember;
 
-    @OneToOne(mappedBy = "rootBommel", cascade = { CascadeType.DETACH, CascadeType.REFRESH })
+    @OneToOne(mappedBy = "rootBommel", cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE })
     private Organization organization;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.REFRESH, CascadeType.DETACH })
@@ -101,6 +103,7 @@ public class Bommel extends PanacheEntity {
         return organization;
     }
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public void setOrganization(Organization organization) {
         this.organization = organization;
     }
@@ -153,11 +156,25 @@ public class Bommel extends PanacheEntity {
                 && Objects.equals(getResponsibleMember(), bommel.getResponsibleMember())
                 && Objects.equals(getParent() != null ? getParent().id : null,
                         bommel.getParent() != null ? bommel.getParent().id : null)
+                && Objects.equals(getOrganization() != null ? getOrganization().getId() : null,
+                        bommel.getOrganization() != null ? bommel.getOrganization().getId() : null)
                 && Objects.equals(getChildren(), bommel.getChildren());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, emoji, responsibleMember, getParent() == null ? null : getParent().id);
+        return Objects.hash(id, name, emoji, responsibleMember, getParent() == null ? null : getParent().id, getOrganization() == null ? null : getOrganization().getId());
+    }
+
+    @Override
+    public String toString() {
+        return "Bommel{" +
+                "id=" + id +
+                ", parent.id=" + (parent != null ? parent.id : null) +
+                ", organization.id=" + (organization != null ? organization.getId() : null) +
+                ", responsibleMember=" + responsibleMember +
+                ", emoji='" + emoji + '\'' +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

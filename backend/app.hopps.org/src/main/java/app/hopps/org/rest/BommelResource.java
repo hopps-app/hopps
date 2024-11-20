@@ -1,8 +1,6 @@
 package app.hopps.org.rest;
 
-import app.hopps.org.jpa.Bommel;
-import app.hopps.org.jpa.BommelRepository;
-import app.hopps.org.jpa.TreeSearchBommel;
+import app.hopps.org.jpa.*;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.runtime.configuration.ConfigUtils;
@@ -15,6 +13,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,6 +23,9 @@ public class BommelResource {
 
     @Inject
     BommelRepository bommelRepo;
+
+    @Inject
+    OrganizationRepository orgRepo;
 
     @Inject
     SecurityContext securityContext;
@@ -75,9 +77,9 @@ public class BommelResource {
     }
 
     @GET
-    @Path("/root")
-    public Optional<Bommel> getRootBommel() {
-        Bommel rootBommel = bommelRepo.getRoot();
+    @Path("/root/{orgId}")
+    public Optional<Bommel> getRootBommel(@PathParam("orgId") long orgId) {
+        Bommel rootBommel = bommelRepo.getRootBommel(orgId);
 
         if (rootBommel == null) {
             return Optional.empty();
@@ -98,8 +100,19 @@ public class BommelResource {
             throw new WebApplicationException("User is not logged in", Response.Status.INTERNAL_SERVER_ERROR);
         }
 
-        // TODO: We're not checking OpenFGA here - not sure what to check for, since there's no
-        // bommel yet in the tree
+        if (root.getOrganization() == null || root.getOrganization().getId() == null) {
+            throw new WebApplicationException("field `organization` and its subfield `id` is required", Response.Status.BAD_REQUEST);
+        }
+
+        Organization org = orgRepo.findById(root.getOrganization().getId());
+        if (org == null) {
+            throw new WebApplicationException("Invalid organization", Response.Status.BAD_REQUEST);
+        }
+
+        // Make sure root has a valid database object as its organization
+        root.setOrganization(org);
+
+        // TODO: Check that the user has write access to the bommels organization here.
 
         return bommelRepo.createRoot(root);
     }

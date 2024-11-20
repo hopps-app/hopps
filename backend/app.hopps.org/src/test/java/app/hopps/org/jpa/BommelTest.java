@@ -10,6 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +32,7 @@ class BommelTest {
     @BeforeEach
     @Transactional
     void clearDatabase() {
+        orgRepo.deleteAll();
         repo.deleteAll();
     }
 
@@ -139,26 +142,10 @@ class BommelTest {
 
     @Test
     @TestTransaction
-    void getRoot() {
-        // Arrange
-        List<Bommel> existingBommels = resourceCreator.setupSimpleTree();
-
-        // Act
-        Bommel actual = repo.getRoot();
-
-        // Assert
-        Bommel expected = existingBommels.getFirst();
-
-        assertNotNull(actual);
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @TestTransaction
     void simpleInsertionTest() {
         // Arrange
-        resourceCreator.setupSimpleTree();
-        Bommel root = repo.getRoot();
+        var existingBommels = resourceCreator.setupSimpleTree();
+        Bommel root = existingBommels.getFirst();
 
         Bommel newChild = new Bommel();
         newChild.setName("New child");
@@ -170,23 +157,22 @@ class BommelTest {
         repo.flush();
 
         // Assert
-        repo.getEntityManager().refresh(root);
-        assertEquals(3, root.getChildren().size());
-        assertTrue(root.getChildren().contains(newChild));
+        var updatedRoot = repo.findById(root.id);
+        assertEquals(3, updatedRoot.getChildren().size());
+        assertTrue(updatedRoot.getChildren().contains(newChild));
 
         repo.ensureConsistency();
     }
 
     @Test
     @TestTransaction
-    void disallowTwoRoots() {
+    void disallowTwoRootsInSameOrg() {
         // Arrange
         resourceCreator.setupSimpleTree();
-        Organization org = orgRepo.listAll().getFirst();
+        Organization org = orgRepo.findAll().firstResult();
 
         Bommel fakeRoot = new Bommel();
         fakeRoot.setOrganization(org);
-
         fakeRoot.setName("I'm a root for sure trust me");
 
         // Act
@@ -196,6 +182,26 @@ class BommelTest {
 
         // Assert
         repo.ensureConsistency();
+    }
+
+    @Test
+    @TestTransaction
+    void disallowRootWithoutOrganization() {
+        Bommel illegalRoot = new Bommel();
+        illegalRoot.setName("I'm a lonely root bommel without an org");
+
+        assertThrows(
+                WebApplicationException.class,
+                () -> repo.createRoot(illegalRoot)
+        );
+    }
+
+    @Test
+    @TestTransaction
+    void allowOrganizationWithoutRoot() {
+        Organization org = BommelTestResourceCreator.generateOrganization();
+
+        orgRepo.persist(org);
     }
 
     @Test
@@ -304,6 +310,24 @@ class BommelTest {
 
     @Test
     @TestTransaction
+    void bommelMoveBetweenOrganizationsFails() throws MalformedURLException, URISyntaxException {
+        resourceCreator.setupTwoTreesAndOrgs();
+        var orgs = orgRepo.listAll();
+        var firstOrg = orgs.getFirst();
+        var secondOrg = orgs.get(1);
+        var child = firstOrg.getRootBommel().getChildren()
+                .stream().filter(bommel -> bommel.getChildren().isEmpty())
+                .findFirst().get();
+        var root = secondOrg.getRootBommel();
+
+        assertThrows(
+                WebApplicationException.class,
+                () -> repo.moveBommel(child, root)
+        );
+    }
+
+    @Test
+    @TestTransaction
     void simpleBommelMoveWorks() {
         // Arrange
         var bommels = resourceCreator.setupSimpleTree();
@@ -321,6 +345,13 @@ class BommelTest {
         assertEquals(1, newParent.getChildren().size());
         assertEquals(Set.of(child), newParent.getChildren());
         assertEquals(4, repo.count());
+
+        repo.ensureConsistency();
+    }
+
+    @Test
+    void organizationsCanCoexist() throws URISyntaxException, MalformedURLException {
+        resourceCreator.setupTwoTreesAndOrgs();
 
         repo.ensureConsistency();
     }
