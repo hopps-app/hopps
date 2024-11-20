@@ -17,6 +17,10 @@ public record TreeSearchBommel(
                 .split(",");
 
         return Arrays.stream(childIds)
+                // For some reason, either hibernate or postgres
+                // return a list of strings here `{"1","2"}`
+                // instead of a list of long's `{1,2}`.
+                .map(id -> id.replace("\"", ""))
                 .map(Long::valueOf)
                 .toList();
     }

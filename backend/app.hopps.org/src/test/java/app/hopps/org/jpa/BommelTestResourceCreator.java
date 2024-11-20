@@ -39,7 +39,37 @@ public class BommelTestResourceCreator {
         return bommels;
     }
 
-    private static Organization generateOrganization() {
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public Organization setupOrganization() {
+        var organization = BommelTestResourceCreator.generateOrganization();
+        orgRepo.persistAndFlush(organization);
+        return organization;
+    }
+
+    /**
+     * Sets up two organizations, each with their own bommel tree
+     */
+    @Transactional
+    public void setupTwoTreesAndOrgs() throws MalformedURLException, URISyntaxException {
+        // Arrange
+        this.setupSimpleTree();
+
+        var secondOrg = new Organization();
+        secondOrg.setName("OpenProject e.V.");
+        secondOrg.setSlug("op-paf");
+        secondOrg.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        secondOrg.setWebsite(new URI("https://op-paf.de/").toURL());
+        orgRepo.persist(secondOrg);
+
+        Bommel secondRoot = new Bommel();
+        secondRoot.setName("Open Project root");
+
+        secondOrg.setRootBommel(secondRoot);
+
+        repo.persistAndFlush(secondRoot);
+    }
+
+    public static Organization generateOrganization() {
         Organization org = new Organization();
         org.setName("Hopps");
         org.setSlug("hopps");
