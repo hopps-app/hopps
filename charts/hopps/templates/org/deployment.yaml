@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hopps.orgFullname" . }}
+  labels:
+    {{- include "hopps.orgLabels" . | nindent 4 }}
+spec:
+  {{- if not .Values.org.autoscaling.enabled }}
+  replicas: {{ .Values.org.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hopps.orgSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.org.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hopps.orgSelectorLabels" . | nindent 8 }}
+        {{- with .Values.org.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.org.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.org.serviceAccount.create }}
+      serviceAccountName: {{ .Values.org.serviceAccount.name | default (include "hopps.orgFullname" .) }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.org.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- if .Values.org.envVars }}
+          env:
+            {{- toYaml .Values.org.envVars | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.org.securityContext | nindent 12 }}
+          image: "{{ .Values.org.image.repository }}:{{ .Values.org.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.org.image.pullPolicy }}
+          {{- with .Values.org.envFrom }}
+          envFrom: {{ toYaml . | nindent 8 }}
+                {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.org.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.org.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.org.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.org.resources | nindent 12 }}
+          {{- with .Values.org.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.org.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.org.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.org.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.org.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

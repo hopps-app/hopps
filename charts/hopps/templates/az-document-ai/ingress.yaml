@@ -1,0 +1,43 @@
+{{- if .Values.azDocumentAi.ingress.enabled -}}
+{{- $fullName := include "hopps.azDocumentAiFullname" . -}}
+{{- $ingressPath := .Values.azDocumentAi.ingress.path -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "hopps.azDocumentAiLabels" . | nindent 4 }}
+{{- with .Values.azDocumentAi.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  {{- if or (.Capabilities.APIVersions.Has "networking.k8s.io/v1/IngressClass") (.Capabilities.APIVersions.Has "networking.k8s.io/v1beta1/IngressClass") }}
+  {{- if .Values.azDocumentAi.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.azDocumentAi.ingress.ingressClassName }}
+  {{- end }}
+  {{- end }}
+{{- if .Values.azDocumentAi.ingress.tls }}
+  tls:
+  {{- range .Values.azDocumentAi.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.azDocumentAi.ingress.hosts }}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: {{ $ingressPath }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  name: http
+  {{- end }}
+{{- end }}
