@@ -66,6 +66,7 @@ azDocumentAi:
   serviceAccount:
     create: true
     annotations: {}
+    # ToDo: make fallback name unique
     name: az-document-ai
     automount: false
   # We usually recommend not to specify default resources and to leave this as a conscious
