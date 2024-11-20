@@ -1,0 +1,55 @@
+name: Release Charts
+
+on:
+  push:
+    paths:
+      - 'charts/hopps/**'
+    branches:
+      - main
+  workflow_dispatch: # allow manual trigger
+
+# depending on default permission settings for your org (contents being read-only or read-write for workloads), you will have to add permissions
+# see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name ${{ github.actor }}
+          git config user.email ${{ github.actor }}@users.noreply.github.com
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+
+      - name: Install Python dependencies
+        run: pip install pyyaml yq
+
+      - name: Get latest release version
+        id: get_latest_release
+        run: |
+          VERSION=$(yq '.version' charts/hopps/Chart.yaml)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version: $VERSION"
+
+      - name: Chart | push
+        uses: appany/helm-oci-chart-releaser@v0.4.2
+        with:
+          name: hopps
+          repository: ${{ github.repository }}
+          path: charts/hopps
+          tag: ${{ env.VERSION }}
+          registry: ghcr.io
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,521 @@
+global:
+  test: value
+
+nameOverride: ""
+fullnameOverride: ""
+
+azDocumentAi:
+  replicaCount: 1
+  # ToDo: should also be globally configurable
+  # List of imagePullSecrets for private image repositories
+  imagePullSecrets: []
+  image:
+    # ToDo: should also be globally configurable
+    #registry: ghcr.io
+    repository: ghcr.io/hopps-app/hopps/az-document-ai
+    tag: ""
+    pullPolicy: IfNotPresent
+  envFrom: []
+  #  - configMapRef:
+  #      name: name
+  envVars: []
+    #- name: ENV_VAR
+    #  value: value
+  ingress:
+    enabled: false
+    annotations: {}
+    ingressClassName: ~
+    path: /
+    hosts:
+      - chart-example.local
+    tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    port: 8100
+  strategy: {}
+    # type: Recreate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  serviceMonitor:
+    enabled: false
+    namespace: ~
+    scrapeInterval: 15s
+    scrapeTimeout: 15s
+  serviceAccount:
+    create: true
+    annotations: {}
+    # ToDo: make fallback name unique
+    name: az-document-ai
+    automount: false
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  # Node selector settings for scheduling the pod on specific nodes
+  nodeSelector: {}
+  # Tolerations settings for scheduling the pod based on node taints
+  tolerations: []
+  # Affinity settings for controlling pod scheduling
+  affinity: {}
+  # ToDo: enable when endpoints are available
+  livenessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 20
+  #  successThreshold: 1
+  #  timeoutSeconds: 2
+  readinessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 10
+  #  successThreshold: 1
+  #  timeoutSeconds: 1
+  startupProbe: {}
+    # initialDelaySeconds: 1
+    # periodSeconds: 5
+    # timeoutSeconds: 1
+    # successThreshold: 1
+    # failureThreshold: 1
+    # httpGet:
+    #   scheme: HTTP
+    #   path: /
+    #   port: http
+  volumes:
+    - name: cache
+      emptyDir: {}
+  volumeMounts:
+    - name: cache
+      mountPath: /tmp
+fin:
+  replicaCount: 1
+  # ToDo: should also be globally configurable
+  # List of imagePullSecrets for private image repositories
+  imagePullSecrets: []
+  image:
+    # ToDo: should also be globally configurable
+    #registry: ghcr.io
+    repository: ghcr.io/hopps-app/hopps/fin
+    tag: ""
+    pullPolicy: IfNotPresent
+  envFrom: []
+  #  - configMapRef:
+  #      name: name
+  envVars: []
+    #- name: ENV_VAR
+  #  value: value
+  ingress:
+    enabled: false
+    annotations: {}
+    ingressClassName: ~
+    path: /
+    hosts:
+      - chart-example.local
+    tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    port: 8080
+  strategy: {}
+  # type: Recreate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  serviceMonitor:
+    enabled: false
+    namespace: ~
+    scrapeInterval: 15s
+    scrapeTimeout: 15s
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+    automount: false
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  # Node selector settings for scheduling the pod on specific nodes
+  nodeSelector: {}
+  # Tolerations settings for scheduling the pod based on node taints
+  tolerations: []
+  # Affinity settings for controlling pod scheduling
+  affinity: {}
+  # ToDo: allow healhchecks to be disable
+  # ToDo: enable when endpoints are available
+  livenessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 20
+  #  successThreshold: 1
+  #  timeoutSeconds: 2
+  readinessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 10
+  #  successThreshold: 1
+  #  timeoutSeconds: 1
+  startupProbe: {}
+    # initialDelaySeconds: 1
+    # periodSeconds: 5
+    # timeoutSeconds: 1
+    # successThreshold: 1
+    # failureThreshold: 1
+    # httpGet:
+    #   scheme: HTTP
+    #   path: /
+  #   port: http
+  volumes:
+    - name: cache
+      emptyDir: {}
+  volumeMounts:
+    - name: cache
+      mountPath: /tmp
+
+postgresql-fin:
+  enabled: true
+  nameOverride: fin-postgresql
+  auth:
+    database: fin
+
+org:
+  replicaCount: 1
+  # ToDo: should also be globally configurable
+  # List of imagePullSecrets for private image repositories
+  imagePullSecrets: []
+  image:
+    # ToDo: should also be globally configurable
+    #registry: ghcr.io
+    repository: ghcr.io/hopps-app/hopps/org
+    tag: ""
+    pullPolicy: IfNotPresent
+  envFrom: []
+  #  - configMapRef:
+  #      name: name
+  envVars: []
+  #- name: ENV_VAR
+  #  value: value
+  ingress:
+    enabled: false
+    annotations: {}
+    ingressClassName: ~
+    path: /
+    hosts:
+      - chart-example.local
+    tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    port: 8080
+  strategy: {}
+  # type: Recreate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  serviceMonitor:
+    enabled: false
+    namespace: ~
+    scrapeInterval: 15s
+    scrapeTimeout: 15s
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+    automount: false
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  # Node selector settings for scheduling the pod on specific nodes
+  nodeSelector: {}
+  # Tolerations settings for scheduling the pod based on node taints
+  tolerations: []
+  # Affinity settings for controlling pod scheduling
+  affinity: {}
+  # ToDo: allow healhchecks to be disable
+  # ToDo: enable when endpoints are available
+  livenessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 20
+  #  successThreshold: 1
+  #  timeoutSeconds: 2
+  readinessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 10
+  #  successThreshold: 1
+  #  timeoutSeconds: 1
+  startupProbe: {}
+    # initialDelaySeconds: 1
+    # periodSeconds: 5
+    # timeoutSeconds: 1
+    # successThreshold: 1
+    # failureThreshold: 1
+    # httpGet:
+  #   scheme: HTTP
+  #   path: /
+  #   port: http
+  volumes:
+    - name: cache
+      emptyDir: {}
+  volumeMounts:
+    - name: cache
+      mountPath: /tmp
+
+postgresql-org:
+  enabled: true
+  nameOverride: org-postgresql
+  auth:
+    database: org
+
+frontend:
+  replicaCount: 1
+  # ToDo: should also be globally configurable
+  # List of imagePullSecrets for private image repositories
+  imagePullSecrets: []
+  image:
+    # ToDo: should also be globally configurable
+    #registry: ghcr.io
+    repository: ghcr.io/hopps-app/hopps/frontend
+    tag: ""
+    pullPolicy: IfNotPresent
+  envFrom: []
+  #  - configMapRef:
+  #      name: name
+  envVars: []
+  #- name: ENV_VAR
+  #  value: value
+  ingress:
+    enabled: false
+    annotations: {}
+    ingressClassName: ~
+    path: /
+    hosts:
+      - chart-example.local
+    tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 1000
+    # ToDo: check if can be run with readonly root filesystem, following access is needed
+    # - /var/cache/nginx
+    # - /etc/nginx/config.d
+    # - /var/run/nginx.pid
+    readOnlyRootFilesystem: false
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    port: 8080
+  strategy: {}
+  # type: Recreate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  serviceMonitor:
+    enabled: false
+    namespace: ~
+    scrapeInterval: 15s
+    scrapeTimeout: 15s
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+    automount: false
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  # Node selector settings for scheduling the pod on specific nodes
+  nodeSelector: {}
+  # Tolerations settings for scheduling the pod based on node taints
+  tolerations: []
+  # Affinity settings for controlling pod scheduling
+  affinity: { }
+  # ToDo: allow healhchecks to be disable
+  # ToDo: enable when endpoints are available
+  livenessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 20
+  #  successThreshold: 1
+  #  timeoutSeconds: 2
+  readinessProbe: {}
+  #  failureThreshold: 3
+  #  httpGet:
+  #    path: /
+  #    port: http
+  #    scheme: HTTP
+  #  periodSeconds: 10
+  #  successThreshold: 1
+  #  timeoutSeconds: 1
+  startupProbe: {}
+    # initialDelaySeconds: 1
+    # periodSeconds: 5
+    # timeoutSeconds: 1
+    # successThreshold: 1
+  # failureThreshold: 1
+  # httpGet:
+  #   scheme: HTTP
+  #   path: /
+  #   port: http
+  volumes:
+    - name: cache
+      emptyDir: {}
+  volumeMounts:
+    - name: cache
+      mountPath: /var/cache/nginx
+
+# external dependencies
+keycloak:
+  enabled: false
+
+kafka-ui:
+  enabled: false
+  #yamlApplicationConfig:
+  #  kafka:
+  #    clusters:
+  #      - name: yaml
+  #        # ToDo: url should automatically be calculated, dependent on the name of the release-name
+  #        bootstrapServers: hopps-kafka:9092
+  #  auth:
+  #    type: disabled
+  #  management:
+  #    health:
+  #      ldap:
+  #        enabled: false
+  #  ingress:
+  #    enabled: true
+  #    ingressClassName: nginx
+  #    annotations: {}
+  #      # cert-manager.io/cluster-issuer: letsencrypt-prod
+  #    tls:
+  #      enabled: true
+  #      secretName: kafka-tls
+  #    # ToDo: mask domain
+  #    host: kafka-ui.<domain>
