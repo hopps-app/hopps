@@ -1,0 +1,21 @@
+dependencies:
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 24.1.0
+- name: openfga
+  repository: https://openfga.github.io/helm-charts
+  version: 0.2.16
+- name: kafka-ui
+  repository: https://provectus.github.io/kafka-ui-charts
+  version: 0.7.6
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 31.0.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.2.1
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.2.1
+digest: sha256:805d67991326d972a826255b81c0d74ef488843631cbddeb463d89e77a03accb
+generated: "2024-11-17T16:45:08.263515+01:00"
