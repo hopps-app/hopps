@@ -30,9 +30,16 @@ function DemoView() {
         { title: 'Item without action' },
     ]);
 
+    const onClickTest = async () => {
+        await window.fetch('http://localhost:8080/bommel/root', {});
+    };
+
     return (
         <div>
             <h1 className="text-center">Demo page</h1>
+
+            <Button onClick={onClickTest}>TEst</Button>
+
             <div className="my-4">
                 <h2 className="text-center">Buttons:</h2>
                 <div className="flex flex-row gap-4 justify-center">
