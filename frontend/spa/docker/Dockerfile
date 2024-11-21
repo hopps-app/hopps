@@ -16,18 +16,21 @@ COPY .. .
 # Build the React app
 RUN pnpm run build
 
-# Use an official nginx image to serve the React app
-FROM nginx:alpine
+# Use an official node image to serve the React app
+FROM node:18
 
-# Copy the build output to the nginx html directory
-COPY --from=build /app/dist /usr/share/nginx/html
+# Set the working directory
+WORKDIR /app
 
-# Copy custom nginx configuration
-COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY docker/nginx/server.conf /etc/nginx/conf.d/default.conf
+# Copy the build output and server file
+COPY --from=build /app/dist ./build
+COPY ../docker/node/server.js .
+
+# Install express
+RUN npm install express
 
 # Expose port 8080
 EXPOSE 8080
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the server
+CMD ["node", "server.js"]
