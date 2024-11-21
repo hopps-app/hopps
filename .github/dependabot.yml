@@ -3,4 +3,8 @@ updates:
   - package-ecosystem: "maven"
     directory: "/backend"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
