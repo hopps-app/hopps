@@ -1,4 +1,5 @@
 package app.hopps;
+
 import app.hopps.model.InvoiceData;
 import org.mustangproject.Invoice;
 import org.mustangproject.ZUGFeRD.ZUGFeRDInvoiceImporter;

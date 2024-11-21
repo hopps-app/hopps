@@ -1,6 +1,8 @@
 package app.hopps.model;
+
 import org.mustangproject.Invoice;
 import org.mustangproject.ZUGFeRD.TransactionCalculator;
+
 import java.util.Date;
 import java.util.Optional;
 
@@ -14,7 +16,6 @@ public record InvoiceData(
         double total,
         Optional<Double> amountDue,
         String currencyCode) {
-
 
     public static InvoiceData fromZugferd(Invoice invoice) {
         TransactionCalculator tc = new TransactionCalculator(invoice);

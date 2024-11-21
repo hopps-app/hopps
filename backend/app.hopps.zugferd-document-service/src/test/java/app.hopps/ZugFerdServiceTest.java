@@ -26,6 +26,5 @@ class ZugFerdServiceTest {
 
         // then
         assertNotNull(invoiceData);
-
     }
 }
