@@ -13,5 +13,5 @@
 ```
 
 ```shell
-  docker run -d -p 8080:8080 hopps:latest  
+  docker run -d -p 8080:8080 hopps:latest
 ```
