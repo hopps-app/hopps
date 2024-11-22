@@ -22,6 +22,6 @@ public class KafkaConnector {
 
     @Incoming("invoices-in")
     public void scanInvoices(String invoiceUrl) throws XPathExpressionException, ParseException {
-        invoiceDataEmitter.send(zugFerdService.scanInvoice(invoiceUrl));
+//        invoiceDataEmitter.send(zugFerdService.scanInvoice(invoiceUrl));
     }
 }

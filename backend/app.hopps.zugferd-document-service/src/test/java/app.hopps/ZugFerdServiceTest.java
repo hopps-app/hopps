@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,10 +23,10 @@ class ZugFerdServiceTest {
     void shouldAnalyzeInvoiceWithZugferd() throws Exception {
 
         // given
-        String path = "src/test/resources/MustangGnuaccountingBeispielRE-20170509_505.pdf";
+        InputStream stream = getClass().getClassLoader().getResourceAsStream("MustangGnuaccountingBeispielRE-20170509_505.pdf");
 
         // when
-        InvoiceData invoiceData = zugFerdService.scanInvoice(path);
+        InvoiceData invoiceData = zugFerdService.scanInvoice(stream);
 
         // then
         assertNotNull(invoiceData);
