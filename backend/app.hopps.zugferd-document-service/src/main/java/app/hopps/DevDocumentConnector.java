@@ -7,6 +7,9 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 
+import javax.xml.xpath.XPathExpressionException;
+import java.text.ParseException;
+
 @ApplicationScoped
 @IfBuildProfile("dev")
 @Path("/zugferd/documents/scan")
@@ -16,7 +19,7 @@ public class DevDocumentConnector {
 
     @Path("/invoice")
     @POST
-    public InvoiceData scanInvoice(String targetURL) {
+    public InvoiceData scanInvoice(String targetURL) throws XPathExpressionException, ParseException {
         return zugFerdService.scanInvoice(targetURL);
     }
 }

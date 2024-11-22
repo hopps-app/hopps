@@ -13,21 +13,9 @@ import java.text.ParseException;
 @ApplicationScoped
 public class ZugFerdService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ZugFerdService.class);
-
-    public InvoiceData scanInvoice(String invoiceURL) {
+    public InvoiceData scanInvoice(String invoiceURL) throws XPathExpressionException, ParseException {
         ZUGFeRDInvoiceImporter zii = new ZUGFeRDInvoiceImporter(invoiceURL);
-        Invoice invoice;
-
-        try {
-            invoice = zii.extractInvoice();
-        } catch (XPathExpressionException | ParseException e) {
-            LOGGER.info("Scan was not successful");
-            throw new RuntimeException(e);
-        }
-
-        LOGGER.info("Invoice scanned successfully");
-
+        Invoice invoice = zii.extractInvoice();
         return InvoiceData.fromZugferd(invoice);
     }
 }

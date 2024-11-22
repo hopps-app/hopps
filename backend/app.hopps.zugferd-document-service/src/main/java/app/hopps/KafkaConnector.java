@@ -7,6 +7,9 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
+import javax.xml.xpath.XPathExpressionException;
+import java.text.ParseException;
+
 @ApplicationScoped
 public class KafkaConnector {
 
@@ -18,7 +21,7 @@ public class KafkaConnector {
     ZugFerdService zugFerdService;
 
     @Incoming("invoices-in")
-    public void scanInvoices(String invoiceUrl) {
+    public void scanInvoices(String invoiceUrl) throws XPathExpressionException, ParseException {
         invoiceDataEmitter.send(zugFerdService.scanInvoice(invoiceUrl));
     }
 }
