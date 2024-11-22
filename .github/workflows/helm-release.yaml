@@ -46,10 +46,14 @@ jobs:
       - name: Chart | push
         uses: appany/helm-oci-chart-releaser@v0.4.2
         with:
+          # configure helm chart properties
           name: hopps
           repository: ${{ github.repository }}
           path: charts/hopps
           tag: ${{ env.VERSION }}
+          # update helm dependencies before packaging
+          update_dependencies: 'true'
+          # configure helm oci registry
           registry: ghcr.io
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
