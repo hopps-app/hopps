@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/hopps-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "app.hopps"
