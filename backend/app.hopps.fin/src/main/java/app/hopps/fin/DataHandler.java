@@ -9,7 +9,6 @@ import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 public class DataHandler {
-
     @Inject
     TransactionRecordRepository repository;
 

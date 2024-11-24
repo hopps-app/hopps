@@ -9,16 +9,20 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 public record InvoiceData(
+        BigDecimal total,
+        LocalDate invoiceDate,
+        String currencyCode,
         Optional<String> customerName,
         Optional<Address> billingAddress,
         Optional<String> purchaseOrderNumber,
         Optional<String> invoiceId,
-        LocalDate invoiceDate,
         Optional<LocalDate> dueDate,
         Optional<BigDecimal> subTotal,
-        BigDecimal total,
-        Optional<BigDecimal> amountDue,
-        String currencyCode) implements TransactionRecordConverter {
+        Optional<BigDecimal> amountDue) implements TransactionRecordConverter {
+
+    public InvoiceData(BigDecimal total, LocalDate invoiceDate, String currencyCode) {
+        this(total, invoiceDate, currencyCode, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    }
 
     @Override
     public TransactionRecord convertToTransactionRecord() {
