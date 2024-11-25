@@ -5,8 +5,7 @@ resources:
   - ../../base/hopps
   - namespace.yaml
   - helm-release.yaml
-patches:
-  - path: postgresql.yaml
+  - postgresql.yaml
 # create all needed secrets with fix name
 generatorOptions:
   disableNameSuffixHash: true
