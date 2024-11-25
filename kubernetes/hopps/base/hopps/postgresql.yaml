@@ -2,6 +2,7 @@ apiVersion: "acid.zalan.do/v1"
 kind: postgresql
 metadata:
   name: postgres-cluster
+  namespace: hopps-dev
 spec:
   teamId: "hopps"
   postgresql:
