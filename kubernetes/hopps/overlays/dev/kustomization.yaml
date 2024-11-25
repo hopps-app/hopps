@@ -22,9 +22,9 @@ secretGenerator:
   #- name: frontend
   #  envs:
   #    - frontend-secret-encrypted.env
-  #- name: openfga
-  #  envs:
-  #    - openfga-secret-encrypted.env
+  - name: openfga
+    envs:
+      - openfga-secret-encrypted.env
   - name: postgres-operator-secret
     envs:
-      - postgres-secret-encrypted.env
+      - postgres-cluster-secret-encrypted.env
