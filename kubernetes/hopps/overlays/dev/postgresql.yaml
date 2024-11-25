@@ -1,14 +1,19 @@
-# create users
-users:
-  # namespace.name: roles
-  hopps-dev.org: []
-  hopps-dev.fin: []
-  hopps-dev.openfga: []
-  hopps-dev.keycloak: []
-databases:
-  # name: owner (namespace.name)
-  # namespace notation is part of user name
-  org: hopps-dev.org
-  fin: hopps-dev.fin
-  openfga: hopps-dev.openfga
-  keycloak: hopps-dev.keycloak
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: postgres-cluster
+spec:
+  # create users
+  users:
+    # namespace.name: roles
+    hopps-dev.org: []
+    hopps-dev.fin: []
+    hopps-dev.openfga: []
+    hopps-dev.keycloak: []
+  databases:
+    # name: owner (namespace.name)
+    # namespace notation is part of user name
+    org: hopps-dev.org
+    fin: hopps-dev.fin
+    openfga: hopps-dev.openfga
+    keycloak: hopps-dev.keycloak
