@@ -15,13 +15,13 @@ spec:
     storageClass: "longhorn"
   allowedSourceRanges: # load balancers' source ranges for both master and replica services
     - 10.0.0.0/16
-  resources:
-    requests:
-      cpu: 100m
-      memory: 100Mi
-    limits:
-      cpu: 500m
-      memory: 500Mi
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 100Mi
+  #  limits:
+  #    cpu: 500m
+  #    memory: 500Mi
   # create users
   users:
     # namespace.name: roles
