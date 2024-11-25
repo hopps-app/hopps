@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: hopps-dev
+resources:
+  - ../../base/hopps
+  - namespace.yaml
+  - helm-release.yaml
+patches:
+  - path: postgresql.yaml
+# create all needed secrets with fix name
+generatorOptions:
+  disableNameSuffixHash: true
+secretGenerator:
+  - name: fin
+    envs:
+      - fin-secret-encrypted.env
+  - name: org
+    envs:
+      - org-secret-encrypted.env
+  - name: az-document-ai
+    envs:
+      - az-document-ai-secret-encrypted.env
+  - name: frontend
+    envs:
+      - frontend-secret-encrypted.env
+  - name: openfga
+    envs:
+      - openfga-secret-encrypted.env
