@@ -25,3 +25,6 @@ secretGenerator:
   #- name: openfga
   #  envs:
   #    - openfga-secret-encrypted.env
+  - name: postgres-operator-secret
+    envs:
+      - postgres-secret-encrypted.env
