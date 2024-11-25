@@ -31,8 +31,12 @@ class ZugFerdServiceTest {
         // then
         assertNotNull(invoiceData);
 
-        assertEquals(invoiceData.invoiceDate(), LocalDate.of(2017, 5, 9));
+        assertEquals(LocalDate.of(2017, 5, 30), invoiceData.dueDate());
 
-        assertEquals(invoiceData.customerName(), "Theodor Est");
+        assertEquals(LocalDate.of(2017, 5, 9), invoiceData.invoiceDate());
+
+        assertEquals("Theodor Est", invoiceData.customerName());
+
+        assertEquals(571.04, invoiceData.total());
     }
 }

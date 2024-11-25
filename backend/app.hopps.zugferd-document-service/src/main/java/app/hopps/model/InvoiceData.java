@@ -5,17 +5,16 @@ import org.mustangproject.ZUGFeRD.TransactionCalculator;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Optional;
 
 public record InvoiceData(
         String customerName,
-        Optional<String> billingAddress,
-        Optional<String> purchaseOrderNumber,
-        Optional<String> invoiceId,
+        String billingAddress,
+        String purchaseOrderNumber,
+        String invoiceId,
         LocalDate invoiceDate,
-        Optional<LocalDate> dueDate,
+        LocalDate dueDate,
         double total,
-        Optional<Double> amountDue,
+        double amountDue,
         String currencyCode) {
 
     public static InvoiceData fromZugferd(Invoice invoice) {
@@ -32,13 +31,13 @@ public record InvoiceData(
 
         return new InvoiceData(
                 invoice.getRecipient().getName(),
-                Optional.ofNullable(invoice.getRecipient().getAdditionalAddress()),
-                Optional.ofNullable(invoice.getReferenceNumber()),
-                Optional.ofNullable(invoice.getNumber()),
+                invoice.getRecipient().getAdditionalAddress(),
+                invoice.getReferenceNumber(),
+                invoice.getNumber(),
                 invoice.getIssueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
-                Optional.ofNullable(dueDate),
-                tc.getChargeTotal().doubleValue(),
-                Optional.ofNullable(tc.getChargeTotal().doubleValue() - prePaidAmount),
+                dueDate,
+                tc.getGrandTotal().doubleValue(),
+                tc.getChargeTotal().doubleValue() - prePaidAmount,
                 invoice.getCurrency()
         );
     }
