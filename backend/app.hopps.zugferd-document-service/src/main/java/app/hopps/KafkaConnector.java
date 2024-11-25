@@ -1,5 +1,6 @@
 package app.hopps;
 
+import app.hopps.model.InvoiceDocument;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
@@ -9,8 +10,8 @@ public class KafkaConnector {
 
     @Incoming("source")
     @Outgoing("sink")
-    public String process(String consumedPayload) {
+    public String process(InvoiceDocument invoiceDocument) {
         // Process the incoming message payload and return an updated payload
-        return consumedPayload.toLowerCase();
+        return invoiceDocument.URL().toUpperCase();
     }
 }
