@@ -14,13 +14,11 @@
     "production": {
       "autoIncrement": true
     },
-  "ios-simulator": {
-    "extends": "development",
-    "ios": {
-      "simulator": true
+    "ios-simulator": {
+      "extends": "development",
+      "ios": {
+        "simulator": true
+      }
     }
-  },
-  "submit": {
-    "production": {}
   }
 }
