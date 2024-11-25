@@ -3,7 +3,8 @@ kind: Namespace
 metadata:
   name: hopps-dev
   labels:
-    pod-security.kubernetes.io/enforce: restricted
+    # postgres-cluster can't be configured to be pss "restricted" profile
+    pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/enforce-version: v1.31
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/audit-version: v1.31

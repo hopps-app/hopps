@@ -117,6 +117,9 @@ spec:
           - secretName: fin-tls
             hosts:
               - frontend.${DOMAIN_2}
+    kafka:
+      controller:
+        replicaCount: 1
     kafka-ui:
       enabled: true
       yamlApplicationConfig:
@@ -148,6 +151,8 @@ spec:
     openfga:
       # ToDo: check why enabled attribute isn't working
       #enabled: true
+      # only run one pod for now
+      replicaCount: 1
       # configure securityContext
       podSecurityContext:
         fsGroup: 2000
