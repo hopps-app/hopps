@@ -120,6 +120,7 @@ spec:
     kafka:
       controller:
         replicaCount: 1
+      resourcesPreset: "none"
     kafka-ui:
       enabled: true
       yamlApplicationConfig:
@@ -177,6 +178,7 @@ spec:
     # use already available keycloak
     keycloak:
       enabled: true
+      resourcesPreset: "none"
       postgresql:
         enabled: false
       externalDatabase:
