@@ -2,15 +2,33 @@ apiVersion: "acid.zalan.do/v1"
 kind: postgresql
 metadata:
   name: postgres-cluster
-  namespace: hopps-dev
 spec:
+  teamId: "hopps"
+  postgresql:
+    version: "16"
+    parameters:
+      # depending on application that can cause issues
+      password_encryption: scram-sha-256
+  numberOfInstances: 1
+  volume:
+    size: "10Gi"
+    storageClass: "longhorn"
+  allowedSourceRanges: # load balancers' source ranges for both master and replica services
+    - 10.0.0.0/16
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
   # create users
   users:
     # namespace.name: roles
-    hopps-dev.org: []
-    hopps-dev.fin: []
-    hopps-dev.openfga: []
-    hopps-dev.keycloak: []
+    hopps-dev.org: [ ]
+    hopps-dev.fin: [ ]
+    hopps-dev.openfga: [ ]
+    hopps-dev.keycloak: [ ]
   databases:
     # name: owner (namespace.name)
     # namespace notation is part of user name
