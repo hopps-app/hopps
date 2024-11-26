@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hopps-openfga-migrate
+  labels:
+    helm.sh/chart: openfga-0.2.16
+    app.kubernetes.io/name: openfga
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v1.8.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    helm.sh/hook: post-install, post-upgrade, post-rollback, post-delete
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-5"
+spec:
+  template:
+    metadata:
+      annotations:
+        helm.sh/hook: post-install, post-upgrade, post-rollback, post-delete
+        helm.sh/hook-delete-policy: before-hook-creation
+        helm.sh/hook-weight: "-5"
+    spec:
+      serviceAccountName: release-name-openfga
+      containers:
+        - name: migrate-database
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          image: "openfga/openfga:v1.8.0"
+          args: ["migrate"]
+          env:
+            - name: OPENFGA_DATASTORE_ENGINE
+              value: "postgres"
+            - name: OPENFGA_DATASTORE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: "openfga"
+                  key: "uri"
+          resources:
+            {}
+      restartPolicy: Never
+  backoffLimit: 1
