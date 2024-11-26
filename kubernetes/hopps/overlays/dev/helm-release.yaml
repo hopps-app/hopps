@@ -15,19 +15,37 @@ spec:
     azDocumentAi:
       image:
         tag: upgrade-jdk
-      envFrom:
-        - secretRef:
-            name: az-document-ai
+      #envFrom:
+      #  - secretRef:
+      #      name: az-document-ai
       envVars:
+        - name: app.hopps.az-document-ai.azure.endpoint
+          valueFrom:
+            secretKeyRef:
+              name: az-document-ai
+              key: app.hopps.az-document-ai.azure.endpoint
+        - name: app.hopps.az-document-ai.azure.key
+          valueFrom:
+            secretKeyRef:
+              name: az-document-ai
+              key: app.hopps.az-document-ai.azure.key
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         - name: kafka.bootstrap.servers
           value: hopps-kafka:9092
+      livenessProbe:
+        exec:
+          command:
+            - "true"
+      readinessProbe:
+        exec:
+          command:
+            - "true"
     org:
       image:
         tag: upgrade-jdk
-      envFrom:
-        - secretRef:
-            name: org
+      #envFrom:
+      #  - secretRef:
+      #      name: org
       envVars:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
@@ -41,13 +59,29 @@ spec:
         - name: quarkus.datasource.username
           valueFrom:
             secretKeyRef:
-              name: org.hopps-dev.postgres-cluster.credentials.postgresql.acid.zalan.do
+              name: hopps-dev.org.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: username
         - name: quarkus.datasource.password
           valueFrom:
             secretKeyRef:
-              name: org.hopps-dev.postgres-cluster.credentials.postgresql.acid.zalan.do
+              name: hopps-dev.org.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
+        # OIDC
+        - name: QUARKUS_OIDC_AUTH_SERVER_URL
+          valueFrom:
+            secretKeyRef:
+              name: org
+              key: QUARKUS_OIDC_AUTH_SERVER_URL
+        - name: QUARKUS_OIDC_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: org
+              key: QUARKUS_OIDC_CLIENT_ID
+        - name: QUARKUS_OIDC_CREDENTIALS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: org
+              key: QUARKUS_OIDC_CREDENTIALS_SECRET
       ingress:
         enabled: true
         annotations:
@@ -59,14 +93,22 @@ spec:
           - secretName: fin-tls
             hosts:
               - org.${DOMAIN_2}
+      livenessProbe:
+        exec:
+          command:
+            - "true"
+      readinessProbe:
+        exec:
+          command:
+            - "true"
     postgresql-org:
       enabled: false
     fin:
       image:
         tag: upgrade-jdk
-      envFrom:
-        - secretRef:
-            name: fin
+      #envFrom:
+      #  - secretRef:
+      #      name: fin
       envVars:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
@@ -80,13 +122,29 @@ spec:
         - name: quarkus.datasource.username
           valueFrom:
             secretKeyRef:
-              name: fin.hopps-dev.postgres-cluster.credentials.postgresql.acid.zalan.do
+              name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: username
         - name: quarkus.datasource.password
           valueFrom:
             secretKeyRef:
-              name: fin.hopps-dev.postgres-cluster.credentials.postgresql.acid.zalan.do
+              name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
+        # OIDC
+        - name: QUARKUS_OIDC_AUTH_SERVER_URL
+          valueFrom:
+            secretKeyRef:
+              name: fin
+              key: QUARKUS_OIDC_AUTH_SERVER_URL
+        - name: QUARKUS_OIDC_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: fin
+              key: QUARKUS_OIDC_CLIENT_ID
+        - name: QUARKUS_OIDC_CREDENTIALS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: fin
+              key: QUARKUS_OIDC_CREDENTIALS_SECRET
       ingress:
         enabled: true
         annotations:
@@ -98,14 +156,39 @@ spec:
           - secretName: fin-tls
             hosts:
               - fin.${DOMAIN_2}
+      livenessProbe:
+        exec:
+          command:
+            - "true"
+      readinessProbe:
+        exec:
+          command:
+            - "true"
     postgresql-fin:
       enabled: false
     frontend:
       image:
         tag: 118
-      envFrom:
-        - secretRef:
-            name: frontend
+      #envFrom:
+      #  - secretRef:
+      #      name: frontend
+      env:
+        # OIDC
+        - name: VITE_KEYCLOAK_URL
+          valueFrom:
+            secretKeyRef:
+              name: frontend
+              key: VITE_KEYCLOAK_URL
+        - name: VITE_KEYCLOAK_REALM
+          valueFrom:
+            secretKeyRef:
+              name: frontend
+              key: VITE_KEYCLOAK_REALM
+        - name: VITE_KEYCLOAK_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: frontend
+              key: VITE_KEYCLOAK_CLIENT_ID
       ingress:
         enabled: true
         annotations:
@@ -117,6 +200,14 @@ spec:
           - secretName: fin-tls
             hosts:
               - frontend.${DOMAIN_2}
+      livenessProbe:
+        exec:
+          command:
+            - "true"
+      readinessProbe:
+        exec:
+          command:
+            - "true"
     kafka:
       controller:
         replicaCount: 1
@@ -171,7 +262,7 @@ spec:
       datastore:
         engine: postgres
         uriSecret: openfga
-        # needed, else the
+        # needed, else the migration won't work
         migrationType: "job"
       postgresql:
         enabled: false
@@ -185,7 +276,7 @@ spec:
         host: postgres-cluster
         database: keycloak
         post: 5432
-        existingSecret: keycloak.hopps-dev.postgres-cluster.credentials.postgresql.acid.zalan.do
+        existingSecret: hopps-dev.keycloak.postgres-cluster.credentials.postgresql.acid.zalan.do
         existingSecretUserKey: "username"
         existingSecretPasswordKey: "password"
       ingress:
