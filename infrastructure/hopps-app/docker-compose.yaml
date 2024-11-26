@@ -1,6 +1,87 @@
 services:
-  hopps-backend:
-    image: ghcr.io/hopps-app/hopps/vereine:backend-ci-cd
-    container_name: hopps-backend
+  org:
+    image: ghcr.io/hopps-app/hopps/org:161
     ports:
-      - 8080:8080
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgres://postgres:postgres@postgres:5432/org
+      - QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL=http://keycloak:8080/
+      - HOPPS_OPENFGA_URL=http://openfga:8080/
+      - quarkus.oidc.auth-server-url=http://keycloak:8080/realms/quarkus/
+
+  fin:
+    image: ghcr.io/hopps-app/hopps/fin:161
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL=http://keycloak:8080/
+      - HOPPS_OPENFGA_URL=http://openfga:8080/
+
+  az-document-ai:
+    image: ghcr.io/hopps-app/hopps/az-document-ai:161
+    depends_on:
+      - kafka
+    environment:
+      - HOPPS_AZURE_DOCUMENT_AI_ENDPOINT=${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT}
+      - HOPPS_AZURE_DOCUMENT_AI_KEY=${HOPPS_AZURE_DOCUMENT_AI_KEY}
+
+  postgres:
+    image: postgres:17-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  kafka:
+    image: bitnami/kafka:3.9
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev
+    ports:
+      - "8092:8080"
+    depends_on:
+      - postgres
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8082
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+
+  # OpenFGA
+  openfga:
+    image: openfga/openfga:v1.5.9
+    command: run
+    depends_on:
+      - postgres
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:postgres@postgres:5432/openfga
+      - OPENFGA_PLAYGROUND_ENABLED=true
+    ports:
+      - "9080:8080" #http
+      - "9081:8081" #grpc
+      - "3000:3000" #playground
+
+volumes:
+  postgres_data:
