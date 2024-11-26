@@ -211,7 +211,9 @@ spec:
     kafka:
       controller:
         replicaCount: 1
-      resourcesPreset: "none"
+        resourcesPreset: "none"
+      volumePermissions:
+        resourcesPreset: "none"
     kafka-ui:
       enabled: true
       yamlApplicationConfig:
