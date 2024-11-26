@@ -90,7 +90,7 @@ spec:
         hosts:
           - org.${DOMAIN_2}
         tls:
-          - secretName: fin-tls
+          - secretName: org-tls
             hosts:
               - org.${DOMAIN_2}
       livenessProbe:
@@ -197,7 +197,7 @@ spec:
         hosts:
           - frontend.${DOMAIN_2}
         tls:
-          - secretName: fin-tls
+          - secretName: frontend-tls
             hosts:
               - frontend.${DOMAIN_2}
       livenessProbe:
