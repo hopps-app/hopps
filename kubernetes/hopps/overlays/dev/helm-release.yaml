@@ -67,7 +67,7 @@ spec:
               name: hopps-dev.org.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
         # OIDC
-        - name: QUARKUS_OIDC_AUTH_SERVER_URL
+        - name: quarkus.oidc.auth-server-url
           valueFrom:
             secretKeyRef:
               name: org
@@ -130,7 +130,7 @@ spec:
               name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
         # OIDC
-        - name: QUARKUS_OIDC_AUTH_SERVER_URL
+        - name: quarkus.oidc.auth-server-url
           valueFrom:
             secretKeyRef:
               name: fin
