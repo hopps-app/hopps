@@ -228,20 +228,20 @@ spec:
           health:
             ldap:
               enabled: false
-        ingress:
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          # configure oauth2-proxy security
+          nginx.ingress.kubernetes.io/auth-response-headers: x-auth-request-user, x-auth-request-email
+          nginx.ingress.kubernetes.io/auth-signin: https://${OAUTH_PROXY_DOMAIN}/oauth2/start?rd=$scheme://$host$request_uri
+          nginx.ingress.kubernetes.io/auth-url: https://${OAUTH_PROXY_DOMAIN}/oauth2/auth
+        tls:
           enabled: true
-          ingressClassName: nginx
-          annotations:
-            cert-manager.io/cluster-issuer: letsencrypt-prod
-            # configure oauth2-proxy security
-            nginx.ingress.kubernetes.io/auth-response-headers: x-auth-request-user, x-auth-request-email
-            nginx.ingress.kubernetes.io/auth-signin: https://${OAUTH_PROXY_DOMAIN}/oauth2/start?rd=$scheme://$host$request_uri
-            nginx.ingress.kubernetes.io/auth-url: https://${OAUTH_PROXY_DOMAIN}/oauth2/auth
-          tls:
-            enabled: true
-            secretName: kafka-tls
-          # ToDo: mask domain
-          host: kafka-ui.${DOMAIN_2}
+          secretName: kafka-tls
+        # ToDo: mask domain
+        host: kafka-ui.${DOMAIN_2}
     openfga:
       # ToDo: check why enabled attribute isn't working
       #enabled: true
