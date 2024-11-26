@@ -50,7 +50,7 @@ spec:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
         - name: QUARKUS_OPENFGA_URL
-          value: http://openfga:8080
+          value: http://hopps-openfga:8080
         - name: QUARKUS_OPENFGA_STORE
           value: hopps
         # Database secrets
@@ -113,7 +113,7 @@ spec:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
         - name: QUARKUS_OPENFGA_URL
-          value: http://openfga:8080
+          value: http://hopps-openfga:8080
         - name: QUARKUS_OPENFGA_STORE
           value: hopps
         # Database secrets
