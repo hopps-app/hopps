@@ -10,18 +10,18 @@ resources:
 generatorOptions:
   disableNameSuffixHash: true
 secretGenerator:
-  #- name: fin
-  #  envs:
-  #    - fin-secret-encrypted.env
-  #- name: org
-  #  envs:
-  #    - org-secret-encrypted.env
+  - name: fin
+    envs:
+      - fin-secret-encrypted.env
+  - name: org
+    envs:
+      - org-secret-encrypted.env
   - name: az-document-ai
     envs:
       - az-document-ai-secret-encrypted.env
-  #- name: frontend
-  #  envs:
-  #    - frontend-secret-encrypted.env
+  - name: frontend
+    envs:
+      - frontend-secret-encrypted.env
   - name: openfga
     envs:
       - openfga-secret-encrypted.env
