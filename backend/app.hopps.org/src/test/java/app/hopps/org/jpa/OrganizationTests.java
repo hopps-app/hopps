@@ -57,6 +57,7 @@ class OrganizationTests {
         organization.setId(null);
         organization.setSlug("i-am-a-valid-slug");
         organization.setMembers(Collections.emptySet());
+        organization.setRootBommel(null);
 
         // when
         organizationRepository.persist(organization);
@@ -78,6 +79,7 @@ class OrganizationTests {
         organization.setId(null);
         organization.setMembers(Collections.emptySet());
         organization.setSlug("i-am-a-valid-slug");
+        organization.setRootBommel(null);
 
         // when
         organizationRepository.persist(organization);
@@ -119,6 +121,7 @@ class OrganizationTests {
         organization.setId(null);
         organization.setName("");
         organization.setMembers(Collections.emptySet());
+        organization.setRootBommel(null);
 
         // when
         QuarkusTransaction.begin();
