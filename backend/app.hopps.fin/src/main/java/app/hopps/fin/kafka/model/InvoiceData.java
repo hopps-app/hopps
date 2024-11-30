@@ -21,7 +21,8 @@ public record InvoiceData(
         Optional<BigDecimal> amountDue) implements TransactionRecordConverter {
 
     public InvoiceData(BigDecimal total, LocalDate invoiceDate, String currencyCode) {
-        this(total, invoiceDate, currencyCode, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        this(total, invoiceDate, currencyCode, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     @Override
@@ -36,7 +37,8 @@ public record InvoiceData(
         billingAddress().ifPresent(address -> transactionRecord.setAddress(address.convertToJpa()));
         purchaseOrderNumber().ifPresent(transactionRecord::setOrderNumber);
         invoiceId().ifPresent(transactionRecord::setInvoiceId);
-        dueDate().ifPresent(dueDate -> transactionRecord.setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        dueDate().ifPresent(
+                dueDate -> transactionRecord.setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         subTotal().ifPresent(transactionRecord::setSubTotal);
         amountDue().ifPresent(transactionRecord::setAmountDue);
 

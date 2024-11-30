@@ -39,8 +39,7 @@ class DataHandlerTest {
         InvoiceData invoiceData = new InvoiceData(
                 BigDecimal.valueOf(500),
                 LocalDate.now(),
-                "EUR"
-        );
+                "EUR");
 
         // when
         dataHandler.processTransactionRecord(invoiceData);
@@ -64,8 +63,7 @@ class DataHandlerTest {
                 Optional.of("invoiceId"),
                 Optional.of(dueDate),
                 Optional.of(BigDecimal.valueOf(350)),
-                Optional.of(BigDecimal.valueOf(150))
-        );
+                Optional.of(BigDecimal.valueOf(150)));
 
         // when
         dataHandler.processTransactionRecord(invoiceData);
@@ -104,8 +102,7 @@ class DataHandlerTest {
                 Optional.of(BigDecimal.valueOf(75)),
                 Optional.of("StoreName"),
                 Optional.of(address),
-                Optional.of(transactionTime)
-        );
+                Optional.of(transactionTime));
 
         // when
         dataHandler.processTransactionRecord(receiptData);

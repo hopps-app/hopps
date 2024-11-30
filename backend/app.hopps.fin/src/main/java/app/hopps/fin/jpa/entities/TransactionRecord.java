@@ -30,6 +30,7 @@ public class TransactionRecord {
 
     @Embedded
     private Address address;
+
     private String name;
 
     // Specific columns for invoice

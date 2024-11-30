@@ -1,5 +1,6 @@
 package app.hopps.fin.endpoint;
 
+import app.hopps.fin.client.OrgRestClient;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.panache.common.Page;
@@ -12,6 +13,8 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,9 @@ public class TransactionRecordResource {
 
     @Inject
     TransactionRecordRepository repository;
+
+    @RestClient
+    OrgRestClient orgRestClient;
 
     @GET
     @Path("/all")
@@ -45,6 +51,7 @@ public class TransactionRecordResource {
     @Path("{id}/bommel")
     @Operation(summary = "Add a transaction record to a bommel", operationId = "updateBommel", description = "Attaches an transaction record to a bommel item")
     @APIResponse(description = "Specified transaction record id was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN), responseCode = "404")
+    @APIResponse(description = "Bommel was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN), responseCode = "400")
     @APIResponse(description = "Specified transaction record was attached to bommel", responseCode = "200")
     public Response updateBommel(@PathParam("id") Long id, @QueryParam("bommelId") Long bommelId) {
         Optional<TransactionRecord> byIdOptional = repository.findByIdOptional(id);
@@ -57,8 +64,24 @@ public class TransactionRecordResource {
                     .build());
         }
 
+        try {
+            // Just check if bommel is available
+            orgRestClient.getBommel(bommelId);
+        } catch (ClientWebApplicationException clientWebApplicationException) {
+            int status = clientWebApplicationException.getResponse().getStatus();
+
+            if (status == 404) {
+                throw new WebApplicationException(Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .type(MediaType.TEXT_PLAIN)
+                        .entity("Bommel not found")
+                        .build());
+            }
+
+            throw clientWebApplicationException;
+        }
+
         TransactionRecord transactionRecord = byIdOptional.get();
-        // TODO: Check if bommelId is available?
         transactionRecord.setBommelId(bommelId);
         repository.persist(transactionRecord);
 
