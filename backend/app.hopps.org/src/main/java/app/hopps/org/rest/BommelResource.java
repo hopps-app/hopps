@@ -20,9 +20,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -81,10 +85,21 @@ public class BommelResource {
 
     @GET
     @Path("/{id}")
-    public Optional<Bommel> getBommel(@PathParam("id") long id) {
+    @Operation(operationId = "getBommel", summary = "Fetch a bommel by its id")
+    @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    @APIResponse(responseCode = "404", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public Bommel getBommel(@PathParam("id") long id) {
         checkUserHasPermission(id, "read");
 
-        return bommelRepo.findByIdOptional(id);
+        Optional<Bommel> byIdOptional = bommelRepo.findByIdOptional(id);
+        if (byIdOptional.isEmpty()) {
+            throw new NotFoundException(Response
+                    .status(404)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity("Bommel not found")
+                    .build());
+        }
+        return byIdOptional.get();
     }
 
     @GET
