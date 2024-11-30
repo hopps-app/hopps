@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 @TestSecurity(authorizationEnabled = false)
 class DataHandlerTest {
-    private final static Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
+    private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
 
     @Inject
     DataHandler dataHandler;
@@ -72,10 +72,10 @@ class DataHandlerTest {
         List<TransactionRecord> transactionRecords = repository.listAll();
         assertEquals(1, transactionRecords.size());
 
-        TransactionRecord record = transactionRecords.getFirst();
-        assertEquals("CustomerName", record.getName());
-        assertEquals(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant(), record.getDueDate());
-        assertEquals("State", record.getAddress().getState());
+        TransactionRecord transactionRecord = transactionRecords.getFirst();
+        assertEquals("CustomerName", transactionRecord.getName());
+        assertEquals(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant(), transactionRecord.getDueDate());
+        assertEquals("State", transactionRecord.getAddress().getState());
     }
 
     @Test
@@ -111,9 +111,9 @@ class DataHandlerTest {
         List<TransactionRecord> transactionRecords = repository.listAll();
         assertEquals(1, transactionRecords.size());
 
-        TransactionRecord record = transactionRecords.getFirst();
-        assertEquals("StoreName", record.getName());
-        assertEquals("City", record.getAddress().getCity());
-        assertEquals(transactionTime.atOffset(ZoneOffset.UTC).toInstant(), record.getTransactionTime());
+        TransactionRecord transactionRecord = transactionRecords.getFirst();
+        assertEquals("StoreName", transactionRecord.getName());
+        assertEquals("City", transactionRecord.getAddress().getCity());
+        assertEquals(transactionTime.atOffset(ZoneOffset.UTC).toInstant(), transactionRecord.getTransactionTime());
     }
 }

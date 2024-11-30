@@ -120,6 +120,33 @@ class TransactionRecordResourceTest {
     }
 
     @Test
+    void shouldThrowInternalErrorWhenOrgServiceDoesStrangeThings() {
+        // given
+        Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
+
+        Long bommelId = 1L;
+
+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+        objectNode
+                .put("name", "BommelName")
+                .put("emoji", "BommelEmoji");
+
+        wireMock.register(
+                get(urlPathMatching("/bommel/1"))
+                        .willReturn(aResponse()
+                                .withStatus(500)));
+
+        // when
+        given()
+                .when()
+                .pathParam("id", id)
+                .queryParam("bommelId", bommelId)
+                .patch("{id}/bommel")
+                .then()
+                .statusCode(500);
+    }
+
+    @Test
     void shouldNotAddToBommel() {
         Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
 
@@ -132,5 +159,16 @@ class TransactionRecordResourceTest {
                 .patch("{id}/bommel")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void shouldNotFindTransactionRecord() {
+        given()
+                .when()
+                .pathParam("id", 99)
+                .queryParam("bommelId", 99)
+                .patch("{id}/bommel")
+                .then()
+                .statusCode(404);
     }
 }
