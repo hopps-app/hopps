@@ -1,0 +1,51 @@
+{
+  "consumer": {
+    "name": "fin"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "app.hopps.fin.pact.PactConsumerTest.testConsumer()",
+        "text": [
+
+        ]
+      },
+      "description": "get bommel request",
+      "key": "deeb4501",
+      "pending": false,
+      "request": {
+        "method": "GET",
+        "path": "/bommel/1"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "emoji": "BommelEmoji",
+            "name": "BommelName"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "transport": "https",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.11"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "org"
+  }
+}
