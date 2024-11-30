@@ -2,29 +2,38 @@ package app.hopps.fin.endpoint;
 
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import io.quarkiverse.wiremock.devservice.ConnectWireMock;
 import io.quarkus.panache.common.Page;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import wiremock.com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import wiremock.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.math.BigDecimal;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
+@ConnectWireMock
 @TestHTTPEndpoint(TransactionRecordResource.class)
 class TransactionRecordResourceTest {
     @Inject
     TransactionRecordRepository repository;
 
+    WireMock wireMock;
+
     @BeforeEach
     @Transactional
     void setup() {
+        repository.deleteAll();
+
         TransactionRecord withBommel = new TransactionRecord();
         withBommel.setTotal(BigDecimal.valueOf(50));
         withBommel.setBommelId(1L);
@@ -84,10 +93,23 @@ class TransactionRecordResourceTest {
 
     @Test
     void shouldAddToBommel() {
+        // given
         Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
 
         Long bommelId = 1L;
 
+        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+        objectNode
+                .put("name", "BommelName")
+                .put("emoji", "BommelEmoji");
+
+        wireMock.register(
+                get(urlPathMatching("/bommel/1"))
+                        .willReturn(aResponse()
+                                .withStatus(200)
+                                .withJsonBody(objectNode)));
+
+        // when
         given()
                 .when()
                 .pathParam("id", id)
@@ -97,9 +119,18 @@ class TransactionRecordResourceTest {
                 .statusCode(201);
     }
 
-    @AfterEach
-    @Transactional
-    void cleanup() {
-        repository.deleteAll();
+    @Test
+    void shouldNotAddToBommel() {
+        Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
+
+        Long bommelId = 99L;
+
+        given()
+                .when()
+                .pathParam("id", id)
+                .queryParam("bommelId", bommelId)
+                .patch("{id}/bommel")
+                .then()
+                .statusCode(400);
     }
 }

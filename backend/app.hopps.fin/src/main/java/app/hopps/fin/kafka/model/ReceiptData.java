@@ -26,7 +26,8 @@ public record ReceiptData(
         subTotal().ifPresent(transactionRecord::setSubTotal);
         storeName().ifPresent(transactionRecord::setName);
         storeAddress().ifPresent(address -> transactionRecord.setAddress(address.convertToJpa()));
-        transactionTime().ifPresent(transactionTime -> transactionRecord.setTransactionTime(transactionTime.toInstant(ZoneOffset.UTC)));
+        transactionTime().ifPresent(
+                transactionTime -> transactionRecord.setTransactionTime(transactionTime.toInstant(ZoneOffset.UTC)));
 
         return transactionRecord;
     }
