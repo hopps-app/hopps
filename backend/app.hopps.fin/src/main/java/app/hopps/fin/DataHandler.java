@@ -7,7 +7,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+/**
+ * Constructor injection is not possible thanks to the kogito
+ */
 @ApplicationScoped
+@SuppressWarnings("java:S6813")
 public class DataHandler {
     @Inject
     TransactionRecordRepository repository;
