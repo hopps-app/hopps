@@ -25,7 +25,7 @@ jobs:
             label: "AZ Document AI"
           - key: "hopps-app_hopps-vereine"
             folder: "app.hopps.org"
-            label: "Vereine"
+            label: "Org"
           - key: "hopps-app_hopps-fin"
             folder: "app.hopps.fin"
             label: "Finanzen"
