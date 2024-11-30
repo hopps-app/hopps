@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @MockServerConfig(port = "${app.hopps.fin.pact.port}")
 @TestProfile(PactTestProfile.class)
 @ExtendWith(PactConsumerTestExt.class)
-public class PactConsumerTest {
+class PactConsumerTest {
 
     @RestClient
     OrgRestClient orgRestClient;

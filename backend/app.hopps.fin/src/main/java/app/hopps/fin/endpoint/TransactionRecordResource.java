@@ -21,12 +21,14 @@ import java.util.Optional;
 
 @Path("")
 public class TransactionRecordResource {
+    private final TransactionRecordRepository repository;
+    private final OrgRestClient orgRestClient;
 
     @Inject
-    TransactionRecordRepository repository;
-
-    @RestClient
-    OrgRestClient orgRestClient;
+    public TransactionRecordResource(TransactionRecordRepository repository, @RestClient OrgRestClient orgRestClient) {
+        this.repository = repository;
+        this.orgRestClient = orgRestClient;
+    }
 
     @GET
     @Path("/all")
@@ -39,8 +41,9 @@ public class TransactionRecordResource {
             return repository.findWithoutBommel(page);
         }
 
-        if (parameters.getBommelId().isPresent()) {
-            return repository.findByBommelId(parameters.getBommelId().get(), page);
+        Optional<Long> bommelId = parameters.getBommelId();
+        if (bommelId.isPresent()) {
+            return repository.findByBommelId(bommelId.get(), page);
         }
 
         return repository.findAll().page(page).list();
@@ -70,7 +73,7 @@ public class TransactionRecordResource {
         } catch (ClientWebApplicationException clientWebApplicationException) {
             int status = clientWebApplicationException.getResponse().getStatus();
 
-            if (status == 404) {
+            if (status == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new WebApplicationException(Response
                         .status(Response.Status.BAD_REQUEST)
                         .type(MediaType.TEXT_PLAIN)
