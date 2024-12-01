@@ -1,11 +1,15 @@
 package app.hopps.org.jpa;
 
 import io.quarkus.narayana.jta.QuarkusTransaction;
+import io.quarkus.narayana.jta.QuarkusTransactionException;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
+import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsIterableWithSize;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +19,9 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.collection.IsIterableWithSize.iterableWithSize;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
@@ -192,8 +199,7 @@ class BommelTest {
 
         assertThrows(
                 WebApplicationException.class,
-                () -> repo.createRoot(illegalRoot)
-        );
+                () -> repo.createRoot(illegalRoot));
     }
 
     @Test
@@ -315,15 +321,17 @@ class BommelTest {
         var orgs = orgRepo.listAll();
         var firstOrg = orgs.getFirst();
         var secondOrg = orgs.get(1);
-        var child = firstOrg.getRootBommel().getChildren()
-                .stream().filter(bommel -> bommel.getChildren().isEmpty())
-                .findFirst().get();
+        var child = firstOrg.getRootBommel()
+                .getChildren()
+                .stream()
+                .filter(bommel -> bommel.getChildren().isEmpty())
+                .findFirst()
+                .get();
         var root = secondOrg.getRootBommel();
 
         assertThrows(
                 WebApplicationException.class,
-                () -> repo.moveBommel(child, root)
-        );
+                () -> repo.moveBommel(child, root));
     }
 
     @Test
@@ -354,5 +362,24 @@ class BommelTest {
         resourceCreator.setupTwoTreesAndOrgs();
 
         repo.ensureConsistency();
+    }
+
+    @Test
+    void shouldNotCascadeParent() {
+        // given
+        Bommel parent = Instancio.create(Bommel.class);
+        parent.id = null;
+        parent.setParent(null);
+        parent.getOrganization().id = null;
+
+        Bommel child = Instancio.create(Bommel.class);
+        child.id = null;
+        child.setParent(parent);
+        child.setOrganization(null);
+
+        // when
+        QuarkusTransaction.begin();
+        repo.persist(child);
+        assertThrows(QuarkusTransactionException.class, QuarkusTransaction::commit);
     }
 }
