@@ -32,9 +32,10 @@ public class TransactionRecordResource {
 
     @GET
     @Path("/all")
+    @Operation(summary = "Get all transaction records", description = "Fetches all transaction records with optional filters for bommel association")
+    @APIResponse(responseCode = "200", description = "List of transaction records, empty list if none are available", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public List<TransactionRecord> getAll(@BeanParam AllParameters parameters) {
         parameters.verifyOnlyOneIsActive();
-
         Page page = new Page(parameters.getPageIndex(), parameters.getPageSize());
 
         if (parameters.getDetached().isPresent()) {
@@ -44,18 +45,18 @@ public class TransactionRecordResource {
         Optional<Long> bommelId = parameters.getBommelId();
         if (bommelId.isPresent()) {
             return repository.findByBommelId(bommelId.get(), page);
+        } else {
+            return repository.findAll().page(page).list();
         }
-
-        return repository.findAll().page(page).list();
     }
 
     @PATCH
     @Transactional
     @Path("{id}/bommel")
     @Operation(summary = "Add a transaction record to a bommel", operationId = "updateBommel", description = "Attaches an transaction record to a bommel item")
-    @APIResponse(description = "Specified transaction record id was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN), responseCode = "404")
-    @APIResponse(description = "Bommel was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN), responseCode = "400")
-    @APIResponse(description = "Specified transaction record was attached to bommel", responseCode = "200")
+    @APIResponse(responseCode = "200", description = "Specified transaction record was attached to bommel")
+    @APIResponse(responseCode = "404", description = "Specified transaction record id was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "400", description = "Bommel was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Response updateBommel(@PathParam("id") Long id, @QueryParam("bommelId") Long bommelId) {
         Optional<TransactionRecord> byIdOptional = repository.findByIdOptional(id);
 
