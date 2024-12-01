@@ -62,7 +62,8 @@ public class Bommel extends PanacheEntity {
     @ManyToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH })
     private Member responsibleMember;
 
-    @OneToOne(mappedBy = "rootBommel", cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE })
+    @OneToOne(mappedBy = "rootBommel", cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST,
+            CascadeType.MERGE })
     private Organization organization;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.REFRESH, CascadeType.DETACH })
@@ -170,7 +171,8 @@ public class Bommel extends PanacheEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, emoji, responsibleMember, getParent() == null ? null : getParent().id, getOrganization() == null ? null : getOrganization().getId());
+        return Objects.hash(id, name, emoji, responsibleMember, getParent() == null ? null : getParent().id,
+                getOrganization() == null ? null : getOrganization().getId());
     }
 
     @Override

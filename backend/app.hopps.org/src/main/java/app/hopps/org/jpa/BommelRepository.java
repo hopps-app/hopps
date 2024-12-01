@@ -74,13 +74,13 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     public Bommel getRootBommel(long orgId) {
         return find("where organization.id = :org",
                 Map.of("org", orgId))
-                .firstResult();
+                        .firstResult();
     }
 
     /**
-     *
-     * @param root This bommel will be used as the root bommel of its organization.
-     *             The organization cannot be just an id, it needs to be a managed object.
+     * @param root
+     *            This bommel will be used as the root bommel of its organization. The organization cannot be just an
+     *            id, it needs to be a managed object.
      */
     @Transactional
     public Bommel createRoot(Bommel root) throws WebApplicationException {
@@ -141,7 +141,8 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     @Transactional
     public Bommel moveBommel(Bommel bommel, Bommel destination) {
         if (getOrganization(bommel) != getOrganization(destination)) {
-            throw new WebApplicationException("Cannot move bommel into another organization", Response.Status.BAD_REQUEST);
+            throw new WebApplicationException("Cannot move bommel into another organization",
+                    Response.Status.BAD_REQUEST);
         }
 
         if (bommel.getParent() == null) {
@@ -156,11 +157,11 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     /**
-     * Counts the number of edges (k) and vertices (n) in all trees, and uses the property n = k - 1 to ensure that no illegal
-     * subtrees have separated and no cycles exist. This is expensive, especially with a large number of bommels.
-     * We have exactly as many subtrees as we have root nodes with an organization attached
-     * (parent = null and organization != null). If there's a root node without an organization,
-     * this means that it got created by accident.
+     * Counts the number of edges (k) and vertices (n) in all trees, and uses the property n = k - 1 to ensure that no
+     * illegal subtrees have separated and no cycles exist. This is expensive, especially with a large number of
+     * bommels. We have exactly as many subtrees as we have root nodes with an organization attached (parent = null and
+     * organization != null). If there's a root node without an organization, this means that it got created by
+     * accident.
      */
     @Transactional
     public void ensureConsistency() throws WebApplicationException {
@@ -170,9 +171,9 @@ public class BommelRepository implements PanacheRepository<Bommel> {
 
         if ((nodesCount - roots.size()) != edgesCount) {
             throw new WebApplicationException(
-                "An illegal subtree has been created"
-                + " (nodes=" + nodesCount + ", roots=" + roots.size()
-                + ", edges=" + edgesCount + ")");
+                    "An illegal subtree has been created"
+                            + " (nodes=" + nodesCount + ", roots=" + roots.size()
+                            + ", edges=" + edgesCount + ")");
         }
 
         long reachableNodes = roots.size();
@@ -182,8 +183,7 @@ public class BommelRepository implements PanacheRepository<Bommel> {
 
         if (reachableNodes != nodesCount) {
             throw new WebApplicationException("Could only reach "
-                + reachableNodes + "/" + nodesCount + " nodes, starting from root"
-            );
+                    + reachableNodes + "/" + nodesCount + " nodes, starting from root");
         }
     }
 
