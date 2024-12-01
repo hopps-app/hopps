@@ -7,8 +7,9 @@ public record Address(
         String city,
         String road,
         String houseNumber) {
+
     public app.hopps.fin.jpa.entities.Address convertToJpa() {
-        app.hopps.fin.jpa.entities.Address address = new app.hopps.fin.jpa.entities.Address();
+        var address = new app.hopps.fin.jpa.entities.Address();
         address.setCountry(countryOrRegion());
         address.setZipCode(postalCode());
         address.setState(state());
