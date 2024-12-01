@@ -55,9 +55,9 @@ class BommelResourceTest {
         var organization = resourceCreator.setupOrganization();
 
         String newBommelJson = "{"
-                +"\"name\": \"Root\", \"emoji\":\"\","
+                + "\"name\": \"Root\", \"emoji\":\"\","
                 + "\"organization\": { \"id\": " + organization.getId() + "}"
-            + "}";
+                + "}";
 
         given()
                 .when()
@@ -73,7 +73,9 @@ class BommelResourceTest {
                 .post("/bommel/root")
                 .then()
                 .statusCode(200)
-                .extract().jsonPath().getLong("id");
+                .extract()
+                .jsonPath()
+                .getLong("id");
 
         var allowedTuple = TupleKey.of("bommel:" + rootId, "read", "user:test");
 
@@ -86,7 +88,8 @@ class BommelResourceTest {
                 .then()
                 .statusCode(200)
                 .body("name", is("Root"))
-                .and().body("parent", is(nullValue()));
+                .and()
+                .body("parent", is(nullValue()));
     }
 
     @Test
@@ -382,7 +385,8 @@ class BommelResourceTest {
                 .get("/bommel/root/{orgId}", organization.getId())
                 .then()
                 .statusCode(200)
-                .extract().as(Bommel.class);
+                .extract()
+                .as(Bommel.class);
 
         // Assert
         Bommel expected = existingBommels.getFirst();

@@ -112,7 +112,8 @@ public class BommelResource {
         }
 
         if (root.getOrganization() == null || root.getOrganization().getId() == null) {
-            throw new WebApplicationException("field `organization` and its subfield `id` is required", Response.Status.BAD_REQUEST);
+            throw new WebApplicationException("field `organization` and its subfield `id` is required",
+                    Response.Status.BAD_REQUEST);
         }
 
         Organization org = orgRepo.findById(root.getOrganization().getId());
