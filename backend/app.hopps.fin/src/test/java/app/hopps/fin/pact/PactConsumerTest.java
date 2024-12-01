@@ -24,7 +24,6 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-
 @QuarkusTest
 @PactDirectory("../../pacts")
 @PactTestFor(providerName = "org", pactVersion = PactSpecVersion.V4)
