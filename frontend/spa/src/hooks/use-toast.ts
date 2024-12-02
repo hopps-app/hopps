@@ -178,6 +178,9 @@ function useToast() {
         ...state,
         toast,
         dismiss: (toastId?: string) => dispatch({ type: ActionType.DISMISS_TOAST, toastId }),
+        show: (props: Toast) => toast({ ...props, variant: 'success' }),
+        showSuccess: (props: Toast) => toast({ ...props, variant: 'success' }),
+        showError: (props: Toast) => toast({ ...props, variant: 'error' }),
     };
 }
 
