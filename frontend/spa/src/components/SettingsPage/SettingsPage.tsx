@@ -35,7 +35,7 @@ function SettingsPage({ activeTab, menu, children, onActiveTabChanged }: Setting
                     </div>
                     <SettingsPageMenu items={menu} activeTab={activeTab} onChange={onChangeTab} />
                 </div>
-                <div className="settings-page__content w-full">
+                <div className="settings-page__content w-full relative">
                     <div className="px-10 pt-4">{children}</div>
                 </div>
             </div>

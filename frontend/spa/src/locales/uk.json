@@ -3,6 +3,12 @@
     "text1": "Спробуй Hopps 14 днів безкоштовно",
     "text2": ""
   },
+  "common": {
+    "refresh": "Оновити"
+  },
+  "invoices": {
+    "noInvoices": "Немає рахунків-фактур для показу"
+  },
   "settingsPage": {
     "menu": "Меню"
   }

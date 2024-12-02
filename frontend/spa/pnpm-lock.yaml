@@ -17,6 +17,9 @@ importers:
       '@minoru/react-dnd-treeview':
         specifier: ^3.4.4
         version: 3.4.4(react-dnd@16.0.1(@types/node@22.7.6)(@types/react@18.3.11)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-checkbox':
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.1.2
         version: 2.1.2(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -44,6 +47,12 @@ importers:
       '@types/lodash':
         specifier: ^4.17.11
         version: 4.17.11
+      ag-grid-community:
+        specifier: ^32.3.3
+        version: 32.3.3
+      ag-grid-react:
+        specifier: ^32.3.3
+        version: 32.3.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -68,6 +77,9 @@ importers:
       lucide-react:
         specifier: ^0.453.0
         version: 0.453.0(react@18.3.1)
+      moment:
+        specifier: ^2.30.1
+        version: 2.30.1
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -83,6 +95,9 @@ importers:
       react-icons:
         specifier: ^5.3.0
         version: 5.3.0(react@18.3.1)
+      react-loading-indicators:
+        specifier: ^1.0.0
+        version: 1.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react-router-dom:
         specifier: ^6.27.0
         version: 6.27.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -837,6 +852,19 @@ packages:
 
   '@radix-ui/react-arrow@1.1.0':
     resolution: {integrity: sha512-FmlW1rCg7hBpEBwFbjHwCW6AmWLQM6g/v0Sn8XbP9NvmSZ2San1FpQeyPtufzOMSIx7Y4dzjlHoifhp+7NkZhw==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
+  '@radix-ui/react-checkbox@1.1.2':
+    resolution: {integrity: sha512-/i0fl686zaJbDQLNKrkCbMyDm6FQMt4jg323k7HuqitoANm9sE23Ql8yOK3Wusk34HSLKDChhMux05FnP6KUkw==}
     peerDependencies:
       '@types/react': '*'
       '@types/react-dom': '*'
@@ -1667,6 +1695,18 @@ packages:
     resolution: {integrity: sha512-cl669nCJTZBsL97OF4kUQm5g5hC2uihk0NxY3WENAC0TYdILVkAyHymAntgxGkl7K+t0cXIrH5siy5S4XkFycA==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+
+  ag-charts-types@10.3.3:
+    resolution: {integrity: sha512-8rmyquaTkwfP4Lzei/W/cbkq9wwEl8+grIo3z97mtxrMIXh9sHJK1oJipd/u08MmBZrca5Jjtn5F1+UNPu/4fQ==}
+
+  ag-grid-community@32.3.3:
+    resolution: {integrity: sha512-KhSJ3B6mwRFA4cLjNjOZkDndJBh8o83794ZHl4Q7xP9MJf43oCN9qoZ8pyBanohgpVfLcP0scYYCr9xIlzjdiA==}
+
+  ag-grid-react@32.3.3:
+    resolution: {integrity: sha512-0u6oYoSHf7P2eRgK8FtnXix+bW8hcbiGXhYhg+UpYJHNlKug+spNqjGSzX43f70AZ2QpOBLsL7Bz2FPsadv3HA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -3701,6 +3741,9 @@ packages:
     resolution: {integrity: sha512-y+WKFlBR8BGXnsNlIHFGPZmyDf3DFMoLhaflAnyZgV6rG6xu+JwesTo2Q9R6XwYmtmwAFCkAk3e35jEdoeh/3g==}
     engines: {node: '>=10'}
 
+  prop-types@15.8.1:
+    resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
+
   properties-reader@2.3.0:
     resolution: {integrity: sha512-z597WicA7nDZxK12kZqHr2TcvwNU1GCfA5UwfDY/HDp3hXPoPlb5rlEx9bwGTiJnc0OqbBTkU975jDToth8Gxw==}
     engines: {node: '>=14'}
@@ -3780,6 +3823,13 @@ packages:
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
+
+  react-loading-indicators@1.0.0:
+    resolution: {integrity: sha512-0xI07RxuT62NcdKB+6pphR++cnkk9iu8DO0H9kSKE9X71oY/M+gkqTaCjoYA1T3UYrRKdm52QvnwY/YTAU5/cg==}
+    engines: {node: '>=12.0.0'}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   react-refresh@0.14.2:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
@@ -5512,6 +5562,22 @@ snapshots:
       '@types/react': 18.3.11
       '@types/react-dom': 18.3.1
 
+  '@radix-ui/react-checkbox@1.1.2(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@radix-ui/primitive': 1.1.0
+      '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.3.11)(react@18.3.1)
+      '@radix-ui/react-context': 1.1.1(@types/react@18.3.11)(react@18.3.1)
+      '@radix-ui/react-presence': 1.1.1(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-primitive': 2.0.0(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-use-controllable-state': 1.1.0(@types/react@18.3.11)(react@18.3.1)
+      '@radix-ui/react-use-previous': 1.1.0(@types/react@18.3.11)(react@18.3.1)
+      '@radix-ui/react-use-size': 1.1.0(@types/react@18.3.11)(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      '@types/react': 18.3.11
+      '@types/react-dom': 18.3.1
+
   '@radix-ui/react-collection@1.1.0(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.3.11)(react@18.3.1)
@@ -6380,6 +6446,19 @@ snapshots:
   acorn@8.13.0: {}
 
   acorn@8.14.0: {}
+
+  ag-charts-types@10.3.3: {}
+
+  ag-grid-community@32.3.3:
+    dependencies:
+      ag-charts-types: 10.3.3
+
+  ag-grid-react@32.3.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      ag-grid-community: 32.3.3
+      prop-types: 15.8.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   agent-base@6.0.2:
     dependencies:
@@ -8279,8 +8358,7 @@ snapshots:
       moment: 2.30.1
     optional: true
 
-  moment@2.30.1:
-    optional: true
+  moment@2.30.1: {}
 
   ms@2.0.0:
     optional: true
@@ -8743,6 +8821,12 @@ snapshots:
       err-code: 2.0.3
       retry: 0.12.0
 
+  prop-types@15.8.1:
+    dependencies:
+      loose-envify: 1.4.0
+      object-assign: 4.1.1
+      react-is: 16.13.1
+
   properties-reader@2.3.0:
     dependencies:
       mkdirp: 1.0.4
@@ -8823,6 +8907,11 @@ snapshots:
   react-is@16.13.1: {}
 
   react-is@17.0.2: {}
+
+  react-loading-indicators@1.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   react-refresh@0.14.2: {}
 

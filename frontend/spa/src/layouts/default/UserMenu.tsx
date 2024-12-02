@@ -16,9 +16,7 @@ function UserMenu() {
         { type: 'separator' },
         { title: 'Profile', onClick: () => navigate('/settings/profile') },
         { title: 'Organization', onClick: () => navigate('/settings/organization') },
-        { type: 'separator' },
-        { title: 'GitHub', onClick: () => console.log('GitHub') },
-        { title: 'Support', onClick: () => console.log('Support') },
+        { title: 'Invoices', onClick: () => navigate('/settings/invoices') },
         { type: 'separator' },
         { title: 'Log out', onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)) },
     ]);
