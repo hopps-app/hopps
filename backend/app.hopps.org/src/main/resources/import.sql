@@ -1,3 +1,5 @@
+START TRANSACTION;
+
 insert into Organization (type, id, slug, name, website, plz, city, street, number)
 values
 (0, 2, 'gruenes-herz-ev', 'Grünes Herz e.V.', 'https://gruenes-herz.de/', '27324', 'Schweringen', 'Am Lennestein', '110'),
@@ -55,12 +57,9 @@ values
 (19, 4),
 (20, 4);
 
--- TODO: Wait for bommel multitencancy - this here has three root bommels, which can only be allowed
---       when each root bommel is connected to an organization
-
 insert into Bommel (id, parent_id, name, emoji, responsibleMember_id)
 values
--- gruenes-herz-ev
+-- gruenes-herz-ev (id=2)
 (2, null, 'Grünes Herz e.V.', null, null),
 (3, 2, 'Fundraising & Spenden', null, null),
 (4, 2, 'Bildungs-Projekte', null, null),
@@ -70,7 +69,7 @@ values
 (8, 6, 'Vortrag 1', null, null),
 (9, 6, 'Vortrag 2', null, null),
 (10, 5, 'Schutz eines Feuchte-Gebietes', null, null),
--- kaeltekrieger
+-- kaeltekrieger (id=3)
 (11, null, 'Kältekrieger e.V.', null, null),
 (12, 11, 'Verkauf', null, null),
 (13, 11, 'Öffentlicher Lauf', null, null),
@@ -83,7 +82,7 @@ values
 (20, 14, '3. Liga', null, null),
 (21, 14, 'Jugend', null, null),
 (22, 15, 'Eis Pflege', null, null),
--- buehnefrei-ev
+-- buehnefrei-ev (id=4)
 (23, null, 'Bühnefrei e.V.', null, null),
 (24, 23, 'Kiosk', null, null),
 (25, 23, 'Räumlichkeiten', null, null),
@@ -94,4 +93,16 @@ values
 (30, 27, 'König der Löwen', null, null)
 ;
 
+update Organization
+set rootBommel_id = 2
+where id = 2;
 
+update Organization
+set rootBommel_id = 11
+where id = 3;
+
+update Organization
+set rootBommel_id = 23
+where id = 4;
+
+COMMIT;
