@@ -2,12 +2,11 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import './InvoicesTable.scss';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef, GridApi } from 'ag-grid-community';
+import { ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
-import type { FilterChangedEvent } from 'ag-grid-community/dist/types/core/events';
 
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import AgGridSetFilter from '@/components/AgGrid/agGridSetFilter';
@@ -21,15 +20,27 @@ const InvoicesTable = ({ invoices }: Props) => {
     const currencySymbolAfter = import.meta.env.VITE_GENERAL_CURRENCY_SYMBOL_AFTER;
 
     const { t } = useTranslation();
-    const [isShowTable, setIsShowTable] = useState(false);
+    const [api, setApi] = useState<GridApi | null>(null);
     const [rowData, setRowData] = useState<InvoicesTableData[]>([]);
     const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
     const [filteredData, setFilteredData] = useState<InvoicesTableData[]>(invoices);
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
 
-        return `Total ${invoices.length} invoices with sum ${totalAmount}${currencySymbolAfter ? currencySymbolAfter : ''}`;
+        console.log('TEST', totalAmount, filteredData.length);
+        return `Total ${filteredData.length} invoices with sum ${totalAmount}${currencySymbolAfter ? currencySymbolAfter : ''}`;
     }, [filteredData]);
+
+    const updateFilteredData = useCallback(() => {
+        const items: InvoicesTableData[] = [];
+
+        console.log('updateFilteredData', api);
+        api?.forEachNodeAfterFilter((node) => {
+            items.push(node.data);
+        });
+        setFilteredData(items);
+        console.log('SET FILTERED DATA', items.length);
+    }, [api]);
 
     const getBommelFilterItems = () => {
         const ids: string[] = [];
@@ -43,8 +54,7 @@ const InvoicesTable = ({ invoices }: Props) => {
     };
 
     function getColumnDefs(): ColDef<InvoicesTableData>[] {
-        const filterItems = getBommelFilterItems();
-        const colDefs: ColDef<InvoicesTableData>[] = [
+        return [
             {
                 headerName: 'Date',
                 field: 'date',
@@ -57,7 +67,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                 headerName: 'Bommel',
                 field: 'bommel',
                 filter: AgGridSetFilter,
-                filterParams: { items: filterItems },
+                filterParams: { items: getBommelFilterItems() },
                 flex: 1,
             },
             { headerName: 'Creditor', field: 'creditor', filter: 'agTextColumnFilter', flex: 2 },
@@ -70,23 +80,24 @@ const InvoicesTable = ({ invoices }: Props) => {
                 valueFormatter: (params) => `${params.value}${currencySymbolAfter ? currencySymbolAfter : ''}`,
             },
         ];
-        return colDefs;
     }
 
-    const onFilterChanged = useCallback((event: FilterChangedEvent) => {
-        const filteredData: InvoicesTableData[] = [];
-        (event.api as GridApi).forEachNodeAfterFilter((node) => {
-            filteredData.push(node.data);
-        });
-        setFilteredData(filteredData);
-    }, []);
+    const onFilterChanged = useCallback(() => {
+        updateFilteredData();
+    }, [api, updateFilteredData]);
+
+    const onGridReady = useCallback(
+        (event: GridReadyEvent) => {
+            setApi(event.api);
+        },
+        [setApi]
+    );
 
     useEffect(() => {
-        setIsShowTable(false);
         setRowData(invoices);
         setColumnDefs(getColumnDefs());
-        setIsShowTable(true);
-    }, [invoices]);
+        updateFilteredData();
+    }, [invoices.length]);
 
     const Grid = useMemo(
         () => (
@@ -96,6 +107,8 @@ const InvoicesTable = ({ invoices }: Props) => {
                 defaultColDef={{ filter: true, sortable: true, resizable: true }}
                 domLayout="autoHeight"
                 overlayNoRowsTemplate={t('invoices.noInvoices')}
+                onGridReady={onGridReady}
+                onFirstDataRendered={updateFilteredData}
                 onFilterChanged={onFilterChanged}
             />
         ),
@@ -103,13 +116,11 @@ const InvoicesTable = ({ invoices }: Props) => {
     );
 
     return (
-        isShowTable && (
-            <div className="invoices-table ag-theme-quartz w-full">
-                {Grid}
-                <div className="h-10 leading-10 text-right font-semibold">{summary}</div>
-            </div>
-        )
+        <div className="invoices-table ag-theme-quartz w-full">
+            {Grid}
+            <div className="h-10 leading-10 text-right font-semibold">{summary}</div>
+        </div>
     );
 };
 
-export default InvoicesTable;
+export default memo(InvoicesTable);
