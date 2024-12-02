@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { IDoesFilterPassParams, IAfterGuiAttachedParams } from 'ag-grid-community';
 import { CustomFilterProps, useGridFilter } from 'ag-grid-react';
 import * as _ from 'lodash';
@@ -11,41 +11,64 @@ interface AgGridSetFilterProps extends CustomFilterProps {
     field: string;
 }
 
+type Checkbox = {
+    checked: boolean;
+    id: string;
+    title: string;
+    value: string;
+};
+
 const AgGridSetFilter = ({ model, onModelChange, items, ...props }: AgGridSetFilterProps) => {
     const [closeFilter, setCloseFilter] = useState<(() => void) | undefined>();
-    const [unappliedModel, setUnappliedModel] = useState<string[] | null>(model);
+    const [checkboxes, setCheckboxes] = useState(new Map<string, Checkbox>());
+    const [isInitialized, setIsInitialized] = useState(false);
     const field = props.colDef.field!;
 
-    const doesFilterPass = (params: IDoesFilterPassParams) => {
-        const value = params.data[field];
-        console.log('FILTER ' + field, value, params);
-
-        return !model ? true : model.includes(value);
-    };
+    const doesFilterPass = (params: IDoesFilterPassParams) => (!model ? true : model.includes(params.data[field]));
 
     const afterGuiAttached = useCallback(({ hidePopup }: IAfterGuiAttachedParams) => {
         setCloseFilter(() => hidePopup);
     }, []);
 
     const onCheckedChange = (value: string, state: CheckedState) => {
-        console.log('CHANGE', value, state);
-        let newModel = unappliedModel === null ? [] : [...unappliedModel];
-
-        if (state === true) {
-            newModel = [...newModel, value];
-        } else {
-            newModel = newModel.filter((v) => v !== value);
+        const checkbox = checkboxes.get(value);
+        if (checkbox) {
+            checkbox.checked = !!state;
+            setCheckboxes(new Map(checkboxes));
         }
+    };
 
-        if (newModel.length === 0) {
-            setUnappliedModel(null);
+    useEffect(() => {
+        if (!isInitialized) return;
+        console.log('CHECKBOXES CHANGED', checkboxes);
+
+        const newModel = Array.from(checkboxes)
+            .filter(([, checkbox]) => checkbox.checked)
+            .map(([, checkbox]) => checkbox.value);
+
+        if (newModel.length === items.length) {
             onModelChange(null);
             return;
         }
 
-        setUnappliedModel(newModel);
         onModelChange(newModel);
-    };
+    }, [checkboxes]);
+
+    useEffect(() => {
+        const map = new Map<string, Checkbox>();
+        items.forEach((item) => {
+            const checked = model !== null ? model.includes(item.value) : true;
+            map.set(item.value, {
+                checked,
+                id: _.uniqueId('ag-grid-set-filter_'),
+                title: item.title,
+                value: item.value,
+            });
+        });
+
+        setCheckboxes(map);
+        setIsInitialized(true);
+    }, []);
 
     useGridFilter({
         doesFilterPass,
@@ -55,22 +78,22 @@ const AgGridSetFilter = ({ model, onModelChange, items, ...props }: AgGridSetFil
     return (
         <div className="ag-grid-set-filter ag-simple-filter-body-wrapper {">
             <div>
-                {items.map((item) => {
-                    const id = _.uniqueId('ag-grid-set-filter_');
+                {Array.from(checkboxes).map(([_, item]) => {
                     return (
                         <div key={item.value} className="flex justify-between items-center hover:bg-accent">
-                            <label htmlFor={id} className="w-full cursor-pointer py-1">
+                            <label htmlFor={item.id} className="w-full cursor-pointer py-1">
                                 {item.title}
                             </label>
-                            <Checkbox id={id} className="shrink-0" onCheckedChange={(state) => onCheckedChange(item.value, state)} />
+                            <Checkbox
+                                id={item.id}
+                                checked={item.checked}
+                                className="shrink-0"
+                                onCheckedChange={(state) => onCheckedChange(item.value, state)}
+                            />
                         </div>
                     );
                 })}
             </div>
-            {/*<hr />*/}
-            {/*<div className="text-right">*/}
-            {/*    <Button onClick={onClickApply}>Apply</Button>*/}
-            {/*</div>*/}
         </div>
     );
 };
