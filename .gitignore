@@ -190,3 +190,6 @@ $RECYCLE.BIN/
 
 # Quarkus
 .quarkus
+
+# Drawio
+*.drawio.bkp
