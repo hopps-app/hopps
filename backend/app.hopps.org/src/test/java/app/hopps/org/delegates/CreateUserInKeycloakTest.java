@@ -13,7 +13,8 @@ import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 class CreateUserInKeycloakTest {
@@ -25,11 +26,11 @@ class CreateUserInKeycloakTest {
     Keycloak keycloak;
 
     @Inject
-    @ConfigProperty(name = "app.hopps.vereine.auth.default-role")
+    @ConfigProperty(name = "app.hopps.org.auth.default-role")
     String defaultRole;
 
     @Inject
-    @ConfigProperty(name = "app.hopps.vereine.auth.realm-name")
+    @ConfigProperty(name = "app.hopps.org.auth.realm-name")
     String realmName;
 
     @Test
