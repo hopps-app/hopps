@@ -29,6 +29,7 @@ create table member_verein (
 create table Organization (
     type smallint check (type between 0 and 0),
     id bigint not null,
+    rootBommel_id bigint unique,
     additionalLine varchar(255),
     city varchar(255),
     name varchar(255),
@@ -63,3 +64,8 @@ alter table if exists member_verein
    add constraint FKkt8siyyn76gakg9jqqaj9qd1c
    foreign key (member_id)
    references Member;
+
+alter table if exists Organization
+   add constraint FK89fpn5hdvenb13jjiauloqbya
+   foreign key (rootBommel_id)
+   references Bommel;
