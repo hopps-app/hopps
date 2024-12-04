@@ -1,6 +1,6 @@
 services:
   org:
-    image: ghcr.io/hopps-app/hopps/org:161
+    image: ghcr.io/hopps-app/hopps/org:backend-docker-compose-156
     ports:
       - "8080:8080"
     depends_on:
@@ -11,10 +11,13 @@ services:
       - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/org
       - QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL=http://keycloak:8080/
       - HOPPS_OPENFGA_URL=http://openfga:8080/
-      - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/realms/hopps/
+      - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/realms/hopps
+      - QUARKUS_OIDC_CREDENTIALS_SECRET=mysecret
+      - QUARKUS_OIDC_CLIENT_ID=hopps
+      - QUARKUS_OIDC_TLS_VERIFICATION=none
 
   fin:
-    image: ghcr.io/hopps-app/hopps/fin:161
+    image: ghcr.io/hopps-app/hopps/fin:backend-docker-compose-156
     ports:
       - "8081:8080"
     depends_on:
@@ -29,7 +32,7 @@ services:
       - HOPPS_OPENFGA_URL=http://openfga:8080/
 
   az-document-ai:
-    image: ghcr.io/hopps-app/hopps/az-document-ai:161
+    image: ghcr.io/hopps-app/hopps/az-document-ai:backend-docker-compose-156
     depends_on:
       - kafka
     environment:
