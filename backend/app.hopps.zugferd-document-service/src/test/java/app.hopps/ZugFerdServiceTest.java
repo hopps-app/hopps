@@ -20,7 +20,7 @@ class ZugFerdServiceTest {
 
     @Test
     @Tag("zugferd")
-    void shouldAnalyzeInvoiceWithZugferd() throws Exception {
+    public void shouldAnalyzeInvoiceWithZugferd() throws Exception {
 
         // given
         InputStream stream = getClass().getClassLoader().getResourceAsStream("MustangGnuaccountingBeispielRE-20170509_505.pdf");
@@ -38,5 +38,9 @@ class ZugFerdServiceTest {
         assertEquals("Theodor Est", invoiceData.customerName());
 
         assertEquals(571.04, invoiceData.total());
+
+        assertEquals("RE-20170509/505", invoiceData.invoiceId());
+
+        assertEquals("EUR", invoiceData.currencyCode());
     }
 }
