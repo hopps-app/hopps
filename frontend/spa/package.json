@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:dev": "vitest",
     "test:coverage": "vitest run --coverage",
+    "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o",
     "sbom": "cdxgen -o bom.json"
   },
   "dependencies": {
@@ -55,6 +56,9 @@
   "devDependencies": {
     "@cyclonedx/cdxgen": "^10.11.0",
     "@eslint/js": "^9.11.1",
+    "@pact-foundation/pact": "^13.2.0",
+    "@pact-foundation/pact-node": "^10.18.0",
+    "@pact-foundation/pact-web": "^9.18.1",
     "@testing-library/jest-dom": "^6.6.2",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
