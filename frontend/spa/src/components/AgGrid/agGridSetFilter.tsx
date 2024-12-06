@@ -40,7 +40,6 @@ const AgGridSetFilter = ({ model, onModelChange, items, ...props }: AgGridSetFil
 
     useEffect(() => {
         if (!isInitialized) return;
-        console.log('CHECKBOXES CHANGED', checkboxes);
 
         const newModel = Array.from(checkboxes)
             .filter(([, checkbox]) => checkbox.checked)

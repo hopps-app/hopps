@@ -27,19 +27,16 @@ const InvoicesTable = ({ invoices }: Props) => {
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
 
-        console.log('TEST', totalAmount, filteredData.length);
         return `Total ${filteredData.length} invoices with sum ${totalAmount}${currencySymbolAfter ? currencySymbolAfter : ''}`;
-    }, [filteredData]);
+    }, [filteredData, currencySymbolAfter]);
 
     const updateFilteredData = useCallback(() => {
         const items: InvoicesTableData[] = [];
 
-        console.log('updateFilteredData', api);
         api?.forEachNodeAfterFilter((node) => {
             items.push(node.data);
         });
         setFilteredData(items);
-        console.log('SET FILTERED DATA', items.length);
     }, [api]);
 
     const getBommelFilterItems = () => {
@@ -84,7 +81,7 @@ const InvoicesTable = ({ invoices }: Props) => {
 
     const onFilterChanged = useCallback(() => {
         updateFilteredData();
-    }, [api, updateFilteredData]);
+    }, [updateFilteredData]);
 
     const onGridReady = useCallback(
         (event: GridReadyEvent) => {

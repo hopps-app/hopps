@@ -27,12 +27,7 @@ function Select(props: SelectProps) {
         <div className={`grid w-full max-w-sm items-center gap-1.5 ${className}`}>
             {label && <Label htmlFor={id}>{label}</Label>}
             <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} onOpenChange={setIsOpened} {...otherProps}>
-                <SelectTrigger
-                    className={'w-[180px]' + (isOpened ? ' rounded ring-2 ring-primary' : '')}
-                    onSelect={(event) => {
-                        console.log('SELECTED', event);
-                    }}
-                >
+                <SelectTrigger className={'w-[180px]' + (isOpened ? ' rounded ring-2 ring-primary' : '')}>
                     <SelectValue placeholder={placeholder || 'Select'} className="placeholder:text-muted" />
                 </SelectTrigger>
                 <SelectContent>
