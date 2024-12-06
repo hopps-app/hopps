@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import InvoicesTable from '../InvoicesTable/InvoicesTable';
@@ -38,8 +38,6 @@ function InvoicesView() {
     useEffect(() => {
         loadInvoices();
     }, []);
-
-    console.log('REDNER InvoicesView', invoices.length);
 
     return (
         <>
