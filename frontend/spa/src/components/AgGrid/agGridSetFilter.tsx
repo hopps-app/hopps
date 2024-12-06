@@ -19,7 +19,7 @@ type Checkbox = {
 };
 
 const AgGridSetFilter = ({ model, onModelChange, items, ...props }: AgGridSetFilterProps) => {
-    const [closeFilter, setCloseFilter] = useState<(() => void) | undefined>();
+    const [, setCloseFilter] = useState<(() => void) | undefined>();
     const [checkboxes, setCheckboxes] = useState(new Map<string, Checkbox>());
     const [isInitialized, setIsInitialized] = useState(false);
     const field = props.colDef.field!;
@@ -77,7 +77,7 @@ const AgGridSetFilter = ({ model, onModelChange, items, ...props }: AgGridSetFil
     return (
         <div className="ag-grid-set-filter ag-simple-filter-body-wrapper {">
             <div>
-                {Array.from(checkboxes).map(([_, item]) => {
+                {Array.from(checkboxes).map(([, item]) => {
                     return (
                         <div key={item.value} className="flex justify-between items-center hover:bg-accent">
                             <label htmlFor={item.id} className="w-full cursor-pointer py-1">

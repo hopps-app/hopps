@@ -93,8 +93,7 @@ const InvoicesTable = ({ invoices }: Props) => {
     useEffect(() => {
         setRowData(invoices);
         setColumnDefs(getColumnDefs());
-        updateFilteredData();
-    }, [invoices.length]);
+    }, [invoices]);
 
     const Grid = useMemo(
         () => (
@@ -105,6 +104,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                 domLayout="autoHeight"
                 overlayNoRowsTemplate={t('invoices.noInvoices')}
                 onGridReady={onGridReady}
+                onRowDataUpdated={updateFilteredData}
                 onFirstDataRendered={updateFilteredData}
                 onFilterChanged={onFilterChanged}
             />
