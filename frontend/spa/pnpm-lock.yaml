@@ -17,15 +17,6 @@ importers:
       '@minoru/react-dnd-treeview':
         specifier: ^3.4.4
         version: 3.4.4(react-dnd@16.0.1(@types/node@22.7.6)(@types/react@18.3.11)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@pact-foundation/pact':
-        specifier: ^13.2.0
-        version: 13.2.0
-      '@pact-foundation/pact-node':
-        specifier: ^10.18.0
-        version: 10.18.0
-      '@pact-foundation/pact-web':
-        specifier: ^9.18.1
-        version: 9.18.1
       '@radix-ui/react-checkbox':
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -129,6 +120,15 @@ importers:
       '@eslint/js':
         specifier: ^9.11.1
         version: 9.12.0
+      '@pact-foundation/pact':
+        specifier: ^13.2.0
+        version: 13.2.0
+      '@pact-foundation/pact-node':
+        specifier: ^10.18.0
+        version: 10.18.0
+      '@pact-foundation/pact-web':
+        specifier: ^9.18.1
+        version: 9.18.1
       '@testing-library/jest-dom':
         specifier: ^6.6.2
         version: 6.6.2
@@ -772,12 +772,10 @@ packages:
   '@pact-foundation/pact-core@15.2.1':
     resolution: {integrity: sha512-IhWwc026bqffjHAVjOfVnDzmhRlr7FBVrLeg/pKjhrcIi0Z/bWahU0u3LEKKctnMkICSH4nAVTYZEg3kUNTxag==}
     engines: {node: '>=16'}
-    cpu: [x64, ia32, arm64]
     os: [darwin, linux, win32]
 
   '@pact-foundation/pact-node@10.18.0':
     resolution: {integrity: sha512-q6b/q0/IbuDSub2rL2pB/Zu5340vWGN+nUIk9I9HhJwbN/xOBv2yK2mve5ygTUUiKFNn4/1M9/YJ8ze/P5Etrw==}
-    cpu: [x64, ia32, arm64]
     os: [darwin, linux, win32]
     hasBin: true
 
