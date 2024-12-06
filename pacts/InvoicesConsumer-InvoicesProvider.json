@@ -1,0 +1,117 @@
+{
+  "consumer": {
+    "name": "InvoicesConsumer"
+  },
+  "interactions": [
+    {
+      "description": "a request for invoices",
+      "request": {
+        "method": "GET",
+        "path": "/invoices"
+      },
+      "response": {
+        "body": [
+          {
+            "amount": 100,
+            "bommel": "Bommel1",
+            "creditor": "Creditor A",
+            "date": "2023-01-01",
+            "id": "1",
+            "submitter": "Submitter A"
+          },
+          {
+            "amount": 200,
+            "bommel": "Bommel1",
+            "creditor": "Creditor B",
+            "date": "2023-02-01",
+            "id": "2",
+            "submitter": "Submitter B"
+          },
+          {
+            "amount": 300,
+            "bommel": "Bommel1",
+            "creditor": "Creditor C",
+            "date": "2023-03-01",
+            "id": "3",
+            "submitter": "Submitter C"
+          },
+          {
+            "amount": 400,
+            "bommel": "Bommel1",
+            "creditor": "Creditor D",
+            "date": "2023-04-01",
+            "id": "4",
+            "submitter": "Submitter D"
+          },
+          {
+            "amount": 500,
+            "bommel": "Bommel1",
+            "creditor": "Creditor E",
+            "date": "2023-05-01",
+            "id": "5",
+            "submitter": "Submitter E"
+          },
+          {
+            "amount": 600,
+            "bommel": "Bommel1",
+            "creditor": "Creditor F",
+            "date": "2023-06-01",
+            "id": "6",
+            "submitter": "Submitter F"
+          },
+          {
+            "amount": 700,
+            "bommel": "Bommel1",
+            "creditor": "Creditor G",
+            "date": "2023-07-01",
+            "id": "7",
+            "submitter": "Submitter G"
+          },
+          {
+            "amount": 800,
+            "bommel": "Bommel2",
+            "creditor": "Creditor H",
+            "date": "2023-08-01",
+            "id": "8",
+            "submitter": "Submitter H"
+          },
+          {
+            "amount": 900,
+            "bommel": "Bommel2",
+            "creditor": "Creditor I",
+            "date": "2023-09-01",
+            "id": "9",
+            "submitter": "Submitter I"
+          },
+          {
+            "amount": 1000,
+            "bommel": "Bommel2",
+            "creditor": "Creditor J",
+            "date": "2023-10-01",
+            "id": "10",
+            "submitter": "Submitter J"
+          }
+        ],
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "13.2.0"
+    },
+    "pactRust": {
+      "ffi": "0.4.22",
+      "models": "1.2.3"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "InvoicesProvider"
+  }
+}

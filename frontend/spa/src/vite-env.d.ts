@@ -7,6 +7,9 @@ interface ImportMetaEnv {
     readonly VITE_KEYCLOAK_URL: string;
     readonly VITE_KEYCLOAK_REALM: string;
     readonly VITE_KEYCLOAK_CLIENT_ID: string;
+
+    // API URLs
+    readonly VITE_INVOICES_SERVICE_URL: string;
 }
 
 interface ImportMeta {
