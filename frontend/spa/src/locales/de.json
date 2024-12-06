@@ -9,6 +9,9 @@
   "invoices": {
     "noInvoices": "Keine Rechnungen vorzulegen"
   },
+  "organizationSettings": {
+    "saved": "Organisationsstruktur erfolgreich gespeichert"
+  },
   "settingsPage": {
     "menu": "Speisekarte"
   }

@@ -9,6 +9,9 @@
   "invoices": {
     "noInvoices": "Немає рахунків-фактур для показу"
   },
+  "organizationSettings": {
+    "saved": "Струкрура організації успішно збережена"
+  },
   "settingsPage": {
     "menu": "Меню"
   }

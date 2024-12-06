@@ -9,6 +9,9 @@
   "invoices": {
     "noInvoices": "No invoices to show"
   },
+  "organizationSettings": {
+    "saved": "Organization structure successfully saved"
+  },
   "settingsPage": {
     "menu": "Menu"
   }
