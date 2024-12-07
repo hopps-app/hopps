@@ -23,8 +23,8 @@ public class CreateUserInKeycloak {
 
     public CreateUserInKeycloak(
             Keycloak keycloak,
-            @ConfigProperty(name = "app.hopps.vereine.auth.realm-name") String realmName,
-            @ConfigProperty(name = "app.hopps.vereine.auth.default-role") String ownerRoleName) {
+            @ConfigProperty(name = "app.hopps.org.auth.realm-name") String realmName,
+            @ConfigProperty(name = "app.hopps.org.auth.default-role") String ownerRoleName) {
         this.keycloak = keycloak;
         this.realmResource = keycloak.realm(realmName);
         this.usersResource = realmResource.users();

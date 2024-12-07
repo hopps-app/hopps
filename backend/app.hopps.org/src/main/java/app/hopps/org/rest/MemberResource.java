@@ -3,7 +3,6 @@ package app.hopps.org.rest;
 import app.hopps.org.jpa.Member;
 import app.hopps.org.rest.RestValidator.ValidationResult;
 import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -32,7 +31,7 @@ public class MemberResource {
         LOG.info("Validating Member {} {}", member.getFirstName(), member.getLastName());
 
         if (result.isValid() == ValidationResult.Validity.INVALID) {
-            Response response = Response.status(HttpServletResponse.SC_BAD_REQUEST)
+            Response response = Response.status(Response.Status.BAD_REQUEST)
                     .entity(result)
                     .build();
 
