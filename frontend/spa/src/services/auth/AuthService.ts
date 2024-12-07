@@ -12,7 +12,6 @@ export class AuthService {
 
     async init() {
         await this.provider.init(this);
-        console.log('INIT', this.isAuthenticated());
 
         if (this.isAuthenticated()) {
             this.startTokenRefresh();
@@ -70,7 +69,6 @@ export class AuthService {
     }
 
     async refreshToken() {
-        console.log('REFRESH AUTH TOKEN');
         const refreshToken = this.getAuthRefreshToken();
         if (!refreshToken) {
             throw new Error('No refresh token available');
@@ -80,7 +78,6 @@ export class AuthService {
     }
 
     private startTokenRefresh() {
-        console.log('STARTED REFRESH INTERVAL');
         this.stopTokenRefresh();
 
         this.refreshTokenInterval = window.setInterval(() => {

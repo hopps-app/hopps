@@ -34,8 +34,8 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
         onTreeChanged?.(newTree);
     };
 
-    const onEditNode = (id: OrganizationTreeNodeModel['id'], text: string) => {
-        const newTree = treeData.map((node) => (node.id === id ? { ...node, text } : node));
+    const onEditNode = (node: OrganizationTreeNodeModel) => {
+        const newTree = treeData.map((item) => (item.id === node.id ? node : item));
         setTreeData(newTree);
         onTreeChanged?.(newTree);
     };

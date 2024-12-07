@@ -1,7 +1,7 @@
 import { NodeModel } from '@minoru/react-dnd-treeview';
 
-type TreeData = {
+export type OrganizationTreeNodeData = {
     emoji: string;
 };
 
-export type OrganizationTreeNodeModel = NodeModel<TreeData>;
+export type OrganizationTreeNodeModel = NodeModel<OrganizationTreeNodeData>;

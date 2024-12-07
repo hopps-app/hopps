@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
 import Button from '@/components/ui/Button.tsx';
@@ -8,6 +9,7 @@ import { useToast } from '@/hooks/use-toast.ts';
 
 function OrganizationSettingsView() {
     const { toast } = useToast();
+    const { t } = useTranslation();
     const savedTree = localStorage.getItem('organizationTree');
     const saveTreeNodes = savedTree ? (JSON.parse(savedTree) as OrganizationTreeNodeModel[]) : [];
 
@@ -20,7 +22,7 @@ function OrganizationSettingsView() {
     const onClickSave = () => {
         localStorage.setItem('organizationTree', JSON.stringify(tree));
 
-        toast({ title: 'Organization structure in local storage', variant: 'success' });
+        toast({ title: t('organizationSettings.saved'), variant: 'success' });
     };
 
     return (

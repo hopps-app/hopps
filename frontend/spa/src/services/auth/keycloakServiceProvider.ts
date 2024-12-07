@@ -55,18 +55,9 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
     }
 
     async checkLogin() {
-        this.keycloak
-            ?.updateToken(5)
-            .then((isUpdated) => {
-                if (isUpdated) {
-                    console.log('Token was successfully refreshed');
-                } else {
-                    console.log('Token is still valid');
-                }
-            })
-            .catch(() => {
-                console.error('Failed to refresh token or user is not authenticated');
-            });
+        this.keycloak?.updateToken(5).catch(() => {
+            console.error('Failed to refresh token or user is not authenticated');
+        });
     }
 
     isAuthenticated(): boolean {
@@ -78,16 +69,9 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
             throw new Error('No refresh token available');
         }
         try {
-            console.log(this.keycloak.refreshTokenParsed);
-            const expiresIn = (this.keycloak.refreshTokenParsed?.['exp'] || 0) - Math.ceil(new Date().getTime() / 1000);
-
-            console.log('TOKEN EXPITES IN ', expiresIn);
             const refreshed = await this.keycloak.updateToken(5);
             if (refreshed) {
                 this.authService!.setAuthTokens(this.keycloak.token, this.keycloak.refreshToken);
-                console.log('Token was successfully refreshed');
-            } else {
-                console.log('Token is still valid');
             }
         } catch (e) {
             console.error(e);

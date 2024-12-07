@@ -1,14 +1,17 @@
 import { BommelService } from '@/services/api/BommelService.ts';
+import { InvoicesService } from '@/services/api/invoicesService.ts';
 
 export class ApiService {
     public baseUrl: string;
 
-    public bommelService: BommelService;
+    public bommel: BommelService;
+    public invoices: InvoicesService;
 
     constructor() {
-        this.baseUrl = process.env.REACT_APP_API_URL || '';
+        this.baseUrl = import.meta.env.VITE_API_URL || '';
 
-        this.bommelService = new BommelService('');
+        this.bommel = new BommelService(this.baseUrl);
+        this.invoices = new InvoicesService(this.baseUrl);
     }
 }
 

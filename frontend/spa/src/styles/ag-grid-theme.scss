@@ -1,0 +1,16 @@
+.ag-theme-quartz {
+  --ag-active-color: var(--primary);
+  --ag-background-color: white;
+  --ag-border-radius: 0;
+  --ag-wrapper-border-radius: 0;
+}
+
+html.dark {
+  .ag-theme-quartz {
+    --ag-foreground-color: var(--primary-foreground);
+    --ag-background-color: black;
+    --ag-header-background-color: var(--accent);
+    --ag-header-foreground-color: var(--accent-foreground);
+    --ag-header-column-resize-handle-color: var(--primary);
+  }
+}
