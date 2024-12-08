@@ -1,5 +1,3 @@
-START TRANSACTION;
-
 insert into Organization (type, id, slug, name, website, plz, city, street, number)
 values
 (0, 2, 'gruenes-herz-ev', 'Grünes Herz e.V.', 'https://gruenes-herz.de/', '27324', 'Schweringen', 'Am Lennestein', '110'),
@@ -104,5 +102,3 @@ where id = 3;
 update Organization
 set rootBommel_id = 23
 where id = 4;
-
-COMMIT;
