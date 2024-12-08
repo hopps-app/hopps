@@ -11,6 +11,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
+import org.flywaydb.core.Flyway;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @QuarkusTest
-public class CreationValidationDelegateTests {
+class CreationValidationDelegateTests {
 
     @Inject
     CreationValidationDelegate delegate;
@@ -32,13 +33,12 @@ public class CreationValidationDelegateTests {
     OrganizationRepository organizationRepository;
 
     @Inject
-    MemberRespository memberRespository;
+    Flyway flyway;
 
     @BeforeEach
-    @Transactional
-    void setUp() {
-        organizationRepository.deleteAll();
-        memberRespository.deleteAll();
+    public void cleanDatabase() {
+        flyway.clean();
+        flyway.migrate();
     }
 
     @Test
