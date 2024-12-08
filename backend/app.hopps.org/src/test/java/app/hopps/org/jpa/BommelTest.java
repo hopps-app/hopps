@@ -1,18 +1,27 @@
 package app.hopps.org.jpa;
 
 import io.quarkus.narayana.jta.QuarkusTransaction;
+import io.quarkus.narayana.jta.QuarkusTransactionException;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
+import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsIterableWithSize;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.collection.IsIterableWithSize.iterableWithSize;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
@@ -22,11 +31,15 @@ class BommelTest {
     BommelRepository repo;
 
     @Inject
+    OrganizationRepository orgRepo;
+
+    @Inject
     BommelTestResourceCreator resourceCreator;
 
     @BeforeEach
     @Transactional
     void clearDatabase() {
+        orgRepo.deleteAll();
         repo.deleteAll();
     }
 
@@ -136,26 +149,10 @@ class BommelTest {
 
     @Test
     @TestTransaction
-    void getRoot() {
-        // Arrange
-        List<Bommel> existingBommels = resourceCreator.setupSimpleTree();
-
-        // Act
-        Bommel actual = repo.getRoot();
-
-        // Assert
-        Bommel expected = existingBommels.getFirst();
-
-        assertNotNull(actual);
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @TestTransaction
     void simpleInsertionTest() {
         // Arrange
-        resourceCreator.setupSimpleTree();
-        Bommel root = repo.getRoot();
+        var existingBommels = resourceCreator.setupSimpleTree();
+        Bommel root = existingBommels.getFirst();
 
         Bommel newChild = new Bommel();
         newChild.setName("New child");
@@ -167,20 +164,22 @@ class BommelTest {
         repo.flush();
 
         // Assert
-        repo.getEntityManager().refresh(root);
-        assertEquals(3, root.getChildren().size());
-        assertTrue(root.getChildren().contains(newChild));
+        var updatedRoot = repo.findById(root.id);
+        assertEquals(3, updatedRoot.getChildren().size());
+        assertTrue(updatedRoot.getChildren().contains(newChild));
 
         repo.ensureConsistency();
     }
 
     @Test
     @TestTransaction
-    void disallowTwoRoots() {
+    void disallowTwoRootsInSameOrg() {
         // Arrange
         resourceCreator.setupSimpleTree();
+        Organization org = orgRepo.findAll().firstResult();
 
         Bommel fakeRoot = new Bommel();
+        fakeRoot.setOrganization(org);
         fakeRoot.setName("I'm a root for sure trust me");
 
         // Act
@@ -190,6 +189,25 @@ class BommelTest {
 
         // Assert
         repo.ensureConsistency();
+    }
+
+    @Test
+    @TestTransaction
+    void disallowRootWithoutOrganization() {
+        Bommel illegalRoot = new Bommel();
+        illegalRoot.setName("I'm a lonely root bommel without an org");
+
+        assertThrows(
+                WebApplicationException.class,
+                () -> repo.createRoot(illegalRoot));
+    }
+
+    @Test
+    @TestTransaction
+    void allowOrganizationWithoutRoot() {
+        Organization org = BommelTestResourceCreator.generateOrganization();
+
+        orgRepo.persist(org);
     }
 
     @Test
@@ -298,6 +316,26 @@ class BommelTest {
 
     @Test
     @TestTransaction
+    void bommelMoveBetweenOrganizationsFails() throws MalformedURLException, URISyntaxException {
+        resourceCreator.setupTwoTreesAndOrgs();
+        var orgs = orgRepo.listAll();
+        var firstOrg = orgs.getFirst();
+        var secondOrg = orgs.get(1);
+        var child = firstOrg.getRootBommel()
+                .getChildren()
+                .stream()
+                .filter(bommel -> bommel.getChildren().isEmpty())
+                .findFirst()
+                .get();
+        var root = secondOrg.getRootBommel();
+
+        assertThrows(
+                WebApplicationException.class,
+                () -> repo.moveBommel(child, root));
+    }
+
+    @Test
+    @TestTransaction
     void simpleBommelMoveWorks() {
         // Arrange
         var bommels = resourceCreator.setupSimpleTree();
@@ -317,5 +355,31 @@ class BommelTest {
         assertEquals(4, repo.count());
 
         repo.ensureConsistency();
+    }
+
+    @Test
+    void organizationsCanCoexist() throws URISyntaxException, MalformedURLException {
+        resourceCreator.setupTwoTreesAndOrgs();
+
+        repo.ensureConsistency();
+    }
+
+    @Test
+    void shouldNotCascadeParent() {
+        // given
+        Bommel parent = Instancio.create(Bommel.class);
+        parent.id = null;
+        parent.setParent(null);
+        parent.getOrganization().id = null;
+
+        Bommel child = Instancio.create(Bommel.class);
+        child.id = null;
+        child.setParent(parent);
+        child.setOrganization(null);
+
+        // when
+        QuarkusTransaction.begin();
+        repo.persist(child);
+        assertThrows(QuarkusTransactionException.class, QuarkusTransaction::commit);
     }
 }

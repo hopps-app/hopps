@@ -2,5 +2,8 @@
   "banner": {
     "text1": "Testen Sie hopps 14 Tage",
     "text2": "kostenlos"
+  },
+  "settingsPage": {
+    "menu": "Speisekarte"
   }
 }

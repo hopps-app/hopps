@@ -9,6 +9,7 @@
     ],
     "module": "ESNext",
     "skipLibCheck": true,
+    "incremental": false, // Prevent TypeScript from generating tsbuildinfo files
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -30,18 +31,20 @@
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/vitest",
-      "./src/@types"
+      "./src/@types",
+      "./src/vite-env.d.ts"
     ],
     "types": [
       "node"
     ]
   },
   "include": [
-    "./src/**/**.*",
-    "./src/setupTest.ts"
+    "./src/vite-env.d.ts",
+    "./src/**/*.*"
   ],
   "exclude": [
     "**/*.test.ts",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "./src/setupTest.ts"
   ]
 }

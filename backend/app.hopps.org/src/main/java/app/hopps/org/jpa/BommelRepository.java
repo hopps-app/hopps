@@ -3,10 +3,12 @@ package app.hopps.org.jpa;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -33,6 +35,18 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         return possibleCycleBommels;
     }
 
+    public Organization getOrganization(Bommel base) throws WebApplicationException {
+        Optional<TreeSearchBommel> root = getParents(base).stream()
+                .filter(bommel -> bommel.bommel().getOrganization() != null)
+                .findAny();
+
+        if (root.isEmpty()) {
+            throw new InternalServerErrorException("Bommel " + base.id + " does not have a root?!");
+        }
+
+        return root.get().bommel().getOrganization();
+    }
+
     /**
      * Gets all children, recursively. The cyclePath of the returned record will be the id's from the base Bommel to the
      * found child, including the base id and its own id.
@@ -57,26 +71,36 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         return possibleCycleBommels;
     }
 
-    /**
-     * Gets the root object, or null if none exist.
-     */
-    public Bommel getRoot() {
-        return find("where parent is null").firstResult();
+    public Bommel getRootBommel(long orgId) {
+        return find("where organization.id = :org",
+                Map.of("org", orgId))
+                        .firstResult();
     }
 
+    /**
+     * @param root
+     *            This bommel will be used as the root bommel of its organization. The organization cannot be just an
+     *            id, it needs to be a managed object.
+     */
     @Transactional
     public Bommel createRoot(Bommel root) throws WebApplicationException {
         if (root.getParent() != null) {
             throw new WebApplicationException("Root bommel cannot have a parent", Response.Status.BAD_REQUEST);
         }
 
-        long rootNodeCount = count("where parent is null");
+        if (root.getOrganization() == null) {
+            throw new WebApplicationException("Root bommel needs to have an organization", Response.Status.BAD_REQUEST);
+        }
+
+        long rootNodeCount = count("organization", root.getOrganization());
+
         if (rootNodeCount != 0) {
-            throw new WebApplicationException("Expected 0 root nodes, found " + rootNodeCount,
+            throw new WebApplicationException("Expected 0 root nodes in organization, found " + rootNodeCount,
                     Response.Status.CONFLICT);
         }
 
         persist(root);
+        root.getOrganization().setRootBommel(root);
 
         return root;
     }
@@ -89,6 +113,9 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     public Bommel insertBommel(Bommel child) throws WebApplicationException {
         if (child.getParent() == null) {
             throw new WebApplicationException("Bommel must have a parent", Response.Status.BAD_REQUEST);
+        }
+        if (child.getOrganization() != null) {
+            throw new WebApplicationException("non-root Bommel cannot have an organization");
         }
 
         if (!child.isPersistent()) {
@@ -113,6 +140,15 @@ public class BommelRepository implements PanacheRepository<Bommel> {
 
     @Transactional
     public Bommel moveBommel(Bommel bommel, Bommel destination) {
+        if (getOrganization(bommel) != getOrganization(destination)) {
+            throw new WebApplicationException("Cannot move bommel into another organization",
+                    Response.Status.BAD_REQUEST);
+        }
+
+        if (bommel.getParent() == null) {
+            throw new WebApplicationException("Cannot move the root bommel");
+        }
+
         persist(bommel);
         bommel.setParent(destination);
         ensureNoCycleFromBommel(bommel);
@@ -121,15 +157,33 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     /**
-     * Counts the number of edges (k) and vertices (n) in the tree, and uses the property n = k - 1 to ensure that no
-     * subtrees have separated and no cycles exist. This is expensive, especially with a large number of bommels.
+     * Counts the number of edges (k) and vertices (n) in all trees, and uses the property n = k - 1 to ensure that no
+     * illegal subtrees have separated and no cycles exist. This is expensive, especially with a large number of
+     * bommels. We have exactly as many subtrees as we have root nodes with an organization attached (parent = null and
+     * organization != null). If there's a root node without an organization, this means that it got created by
+     * accident.
      */
     @Transactional
     public void ensureConsistency() throws WebApplicationException {
         var edgesCount = count("where parent is not null");
         var nodesCount = count();
-        if (nodesCount != (edgesCount + 1)) {
-            throw new WebApplicationException("Operation introduced loop/created a separate tree");
+        var roots = find("where organization is not null and parent is null").list();
+
+        if ((nodesCount - roots.size()) != edgesCount) {
+            throw new WebApplicationException(
+                    "An illegal subtree has been created"
+                            + " (nodes=" + nodesCount + ", roots=" + roots.size()
+                            + ", edges=" + edgesCount + ")");
+        }
+
+        long reachableNodes = roots.size();
+        for (Bommel treeRoot : roots) {
+            reachableNodes += getChildrenRecursive(treeRoot).size();
+        }
+
+        if (reachableNodes != nodesCount) {
+            throw new WebApplicationException("Could only reach "
+                    + reachableNodes + "/" + nodesCount + " nodes, starting from root");
         }
     }
 

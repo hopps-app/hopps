@@ -8,7 +8,10 @@
 
 ## build docker image and run container
 
-```bash
-  docker build -t hopps:latest -f docker/Dockerfile .
-  docker run -d -p 80:80 hopps:latest     
+```shell
+  docker build -t hopps:latest -f docker/Dockerfile .  
+```
+
+```shell
+  docker run -d -p 8080:8080 hopps:latest
 ```

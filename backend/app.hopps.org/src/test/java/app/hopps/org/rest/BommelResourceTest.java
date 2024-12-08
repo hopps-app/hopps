@@ -1,9 +1,6 @@
 package app.hopps.org.rest;
 
-import app.hopps.org.jpa.Bommel;
-import app.hopps.org.jpa.BommelRepository;
-import app.hopps.org.jpa.BommelTestResourceCreator;
-import app.hopps.org.jpa.TreeSearchBommel;
+import app.hopps.org.jpa.*;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.test.InjectMock;
@@ -33,6 +30,9 @@ class BommelResourceTest {
     BommelRepository bommelRepo;
 
     @Inject
+    OrganizationRepository orgRepo;
+
+    @Inject
     BommelTestResourceCreator resourceCreator;
 
     @InjectMock
@@ -41,6 +41,7 @@ class BommelResourceTest {
     @BeforeEach
     @Transactional
     public void setup() {
+        orgRepo.deleteAll();
         bommelRepo.deleteAll();
 
         Mockito.when(authModelClient.check(any(TupleKey.class)))
@@ -51,24 +52,30 @@ class BommelResourceTest {
     @TestSecurity(user = "test")
     @TestTransaction
     public void testCreateRoot() {
+        var organization = resourceCreator.setupOrganization();
+
+        String newBommelJson = "{"
+                + "\"name\": \"Root\", \"emoji\":\"\","
+                + "\"organization\": { \"id\": " + organization.getId() + "}"
+                + "}";
+
         given()
                 .when()
-                .get("/bommel/root")
+                .get("/bommel/root/{orgId}", organization.getId())
                 .then()
                 .statusCode(200)
                 .body(is("null"));
 
-        given()
-                .body("""
-                        { "name": "Root", "emoji":"" }
-                        """)
+        long rootId = given()
+                .body(newBommelJson)
                 .contentType("application/json")
                 .when()
                 .post("/bommel/root")
                 .then()
-                .statusCode(200);
-
-        long rootId = bommelRepo.getRoot().id;
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getLong("id");
 
         var allowedTuple = TupleKey.of("bommel:" + rootId, "read", "user:test");
 
@@ -77,7 +84,7 @@ class BommelResourceTest {
 
         given()
                 .when()
-                .get("/bommel/root")
+                .get("/bommel/root/{orgId}", organization.getId())
                 .then()
                 .statusCode(200)
                 .body("name", is("Root"))
@@ -358,6 +365,35 @@ class BommelResourceTest {
                 .statusCode(204);
 
         assertEquals(bommels.size() - 1, bommelRepo.count());
+    }
+
+    @Test
+    @TestSecurity(user = "test")
+    @TestTransaction
+    public void getRootBommelTest() {
+        // Arrange
+        List<Bommel> existingBommels = resourceCreator.setupSimpleTree();
+        var organization = orgRepo.findAll().firstResult();
+        var rootBommel = existingBommels.getFirst();
+
+        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + rootBommel.id, "read", "user:test")))
+                .thenReturn(Uni.createFrom().item(true));
+
+        // Act
+        Bommel actual = given()
+                .when()
+                .get("/bommel/root/{orgId}", organization.getId())
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(Bommel.class);
+
+        // Assert
+        Bommel expected = existingBommels.getFirst();
+
+        assertNotNull(actual);
+        assertEquals(expected.id, actual.id);
+        assertEquals(expected.getName(), actual.getName());
     }
 
 }

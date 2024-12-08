@@ -2,26 +2,46 @@ package app.hopps.org.rest;
 
 import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
+import app.hopps.org.jpa.Organization;
+import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.runtime.configuration.ConfigUtils;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 @Path("/bommel")
+@Authenticated
 public class BommelResource {
 
     @Inject
     BommelRepository bommelRepo;
+
+    @Inject
+    OrganizationRepository orgRepo;
 
     @Inject
     SecurityContext securityContext;
@@ -66,16 +86,27 @@ public class BommelResource {
 
     @GET
     @Path("/{id}")
-    public Optional<Bommel> getBommel(@PathParam("id") long id) {
+    @Operation(operationId = "getBommel", summary = "Fetch a bommel by its id")
+    @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    @APIResponse(responseCode = "404", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public Bommel getBommel(@PathParam("id") long id) {
         checkUserHasPermission(id, "read");
 
-        return bommelRepo.findByIdOptional(id);
+        Optional<Bommel> byIdOptional = bommelRepo.findByIdOptional(id);
+        if (byIdOptional.isEmpty()) {
+            throw new NotFoundException(Response
+                    .status(404)
+                    .type(MediaType.TEXT_PLAIN)
+                    .entity("Bommel not found")
+                    .build());
+        }
+        return byIdOptional.get();
     }
 
     @GET
-    @Path("/root")
-    public Optional<Bommel> getRootBommel() {
-        Bommel rootBommel = bommelRepo.getRoot();
+    @Path("/root/{orgId}")
+    public Optional<Bommel> getRootBommel(@PathParam("orgId") long orgId) {
+        Bommel rootBommel = bommelRepo.getRootBommel(orgId);
 
         if (rootBommel == null) {
             return Optional.empty();
@@ -96,8 +127,20 @@ public class BommelResource {
             throw new WebApplicationException("User is not logged in", Response.Status.INTERNAL_SERVER_ERROR);
         }
 
-        // TODO: We're not checking OpenFGA here - not sure what to check for, since there's no
-        // bommel yet in the tree
+        if (root.getOrganization() == null || root.getOrganization().getId() == null) {
+            throw new WebApplicationException("field `organization` and its subfield `id` is required",
+                    Response.Status.BAD_REQUEST);
+        }
+
+        Organization org = orgRepo.findById(root.getOrganization().getId());
+        if (org == null) {
+            throw new WebApplicationException("Invalid organization", Response.Status.BAD_REQUEST);
+        }
+
+        // Make sure root has a valid database object as its organization
+        root.setOrganization(org);
+
+        // TODO: Check that the user has write access to the bommels organization here.
 
         return bommelRepo.createRoot(root);
     }

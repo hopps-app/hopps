@@ -14,9 +14,8 @@ function UserMenu() {
     const [menuItems] = useState<DropdownMenuItem[]>([
         { type: 'label', title: 'My Account' },
         { type: 'separator' },
-        { title: 'Profile', onClick: () => console.log('Profile') },
-        { title: 'Billing', onClick: () => console.log('Billing') },
-        { title: 'Settings', onClick: () => navigate('/settings') },
+        { title: 'Profile', onClick: () => navigate('/settings/profile') },
+        { title: 'Organization', onClick: () => navigate('/settings/organization') },
         { type: 'separator' },
         { title: 'GitHub', onClick: () => console.log('GitHub') },
         { title: 'Support', onClick: () => console.log('Support') },
@@ -25,17 +24,19 @@ function UserMenu() {
     ]);
 
     return (
-        <div>
-            <DropdownMenu items={menuItems} className="w-56">
-                <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
-                    <div className="flex-shrink-0">
-                        <FaUser />
-                    </div>
+        authStore.isInitialized && (
+            <div>
+                <DropdownMenu items={menuItems} className="w-56">
+                    <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
+                        <div className="flex-shrink-0">
+                            <FaUser />
+                        </div>
 
-                    <div> {user ? user.name : 'USER'}</div>
-                </div>
-            </DropdownMenu>
-        </div>
+                        <div> {user ? user.name : 'USER'}</div>
+                    </div>
+                </DropdownMenu>
+            </div>
+        )
     );
 }
 

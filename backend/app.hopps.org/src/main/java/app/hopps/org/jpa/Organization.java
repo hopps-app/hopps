@@ -5,6 +5,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -28,6 +29,9 @@ public class Organization extends PanacheEntity {
 
     @Embedded
     private Address address;
+
+    @OneToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE })
+    private Bommel rootBommel;
 
     @ManyToMany(mappedBy = "organizations", cascade = CascadeType.PERSIST)
     private Set<Member> members = new HashSet<>();
@@ -101,6 +105,14 @@ public class Organization extends PanacheEntity {
 
     public void setMembers(Set<Member> members) {
         this.members = members;
+    }
+
+    public Bommel getRootBommel() {
+        return rootBommel;
+    }
+
+    public void setRootBommel(Bommel rootBommel) {
+        this.rootBommel = rootBommel;
     }
 
     public enum TYPE {
