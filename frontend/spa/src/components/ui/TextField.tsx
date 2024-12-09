@@ -10,37 +10,46 @@ interface TextFieldProps {
     placeholder?: string;
     type?: 'text' | 'password';
     name?: string;
+    error?: string;
     appendIcon?: string;
     className?: string;
-    onChange?: (value: string) => void;
+    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onValueChange?: (value: string) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
     onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
     onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
-    const { value, label, placeholder, type, name, appendIcon, onChange, onKeyDown, onBlur, onFocus } = props;
     const [id] = useState(_.uniqueId('text-field-'));
 
     return (
-        <div className="grid w-full items-center gap-1.5">
-            {label && <Label htmlFor={id}>{label}</Label>}
+        <div className="relative grid w-full items-center gap-1.5">
+            {props.label && <Label htmlFor={id}>{props.label}</Label>}
             <div className="relative flex items-center">
                 <BaseInput
                     id={id}
-                    name={name || undefined}
-                    type={type || 'text'}
-                    placeholder={placeholder || ''}
-                    value={value}
+                    name={props.name || undefined}
+                    type={props.type || 'text'}
+                    placeholder={props.placeholder || ''}
+                    value={props.value}
                     className={props.className}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange?.(event.target.value)}
-                    onKeyDown={onKeyDown}
-                    onBlur={onBlur}
-                    onFocus={onFocus}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        props.onChange?.(event);
+                        props.onValueChange?.(event.target.value);
+                    }}
+                    onKeyDown={props.onKeyDown}
+                    onBlur={props.onBlur}
+                    onFocus={props.onFocus}
                     ref={ref}
                 />
-                {appendIcon || null}
+                {props.appendIcon || null}
             </div>
+            {props.error && (
+                <div className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none">
+                    {props.error}
+                </div>
+            )}
         </div>
     );
 });
