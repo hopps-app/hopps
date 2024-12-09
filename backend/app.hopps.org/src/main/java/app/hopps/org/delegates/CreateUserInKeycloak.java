@@ -2,6 +2,7 @@ package app.hopps.org.delegates;
 
 import app.hopps.org.jpa.Member;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -16,44 +17,22 @@ import java.util.List;
 @ApplicationScoped
 public class CreateUserInKeycloak {
 
+    @Inject
     Keycloak keycloak;
-    RealmResource realmResource;
-    UsersResource usersResource;
-    RoleRepresentation ownerRole;
 
-    public CreateUserInKeycloak(
-            Keycloak keycloak,
-            @ConfigProperty(name = "app.hopps.org.auth.realm-name") String realmName,
-            @ConfigProperty(name = "app.hopps.org.auth.default-role") String ownerRoleName) {
-        this.keycloak = keycloak;
-        this.realmResource = keycloak.realm(realmName);
-        this.usersResource = realmResource.users();
-        this.ownerRole = createOwnerRole(realmResource, ownerRoleName);
-    }
+    @ConfigProperty(name = "app.hopps.org.auth.realm-name")
+    String realmName;
 
-    /**
-     * If necessary, creates the owner role, otherwise just returns it.
-     */
-    private static RoleRepresentation createOwnerRole(RealmResource realmResource, String ownerRoleName) {
-        RoleRepresentation ownerRole;
-        try {
-            ownerRole = realmResource.roles().get(ownerRoleName).toRepresentation();
-        } catch (Exception e) {
-            ownerRole = new RoleRepresentation();
-            ownerRole.setName(ownerRoleName);
-            try {
-                realmResource.roles().create(ownerRole);
-            } catch (Exception ignored) {
-            }
-
-            ownerRole = realmResource.roles().get(ownerRoleName).toRepresentation();
-        }
-        return ownerRole;
-    }
+    @ConfigProperty(name = "app.hopps.org.auth.default-role")
+    String ownerRoleName;
 
     public void createUserInKeycloak(Member user) {
-        UserRepresentation userRepresentation = new UserRepresentation();
+        
+        RealmResource realmResource = keycloak.realm(realmName);
+        UsersResource usersResource = realmResource.users();
+        RoleRepresentation ownerRole = createOwnerRole(realmResource, ownerRoleName);
 
+        UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
         userRepresentation.setFirstName(user.getFirstName());
         userRepresentation.setLastName(user.getLastName());
@@ -77,5 +56,22 @@ public class CreateUserInKeycloak {
                 .roles()
                 .realmLevel()
                 .add(List.of(ownerRole));
+    }
+
+    private RoleRepresentation createOwnerRole(RealmResource realmResource, String ownerRoleName) {
+        RoleRepresentation ownerRole;
+        try {
+            ownerRole = realmResource.roles().get(ownerRoleName).toRepresentation();
+        } catch (Exception e) {
+            ownerRole = new RoleRepresentation();
+            ownerRole.setName(ownerRoleName);
+            try {
+                realmResource.roles().create(ownerRole);
+            } catch (Exception ignored) {
+            }
+
+            ownerRole = realmResource.roles().get(ownerRoleName).toRepresentation();
+        }
+        return ownerRole;
     }
 }
