@@ -6,6 +6,10 @@
   "common": {
     "refresh": "Refresh"
   },
+  "header": {
+    "login": "Login",
+    "register": "Register"
+  },
   "invoices": {
     "noInvoices": "No invoices to show"
   },

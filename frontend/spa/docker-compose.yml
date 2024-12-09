@@ -6,7 +6,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
-      - "8080:8080"
+      - "8090:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ../keycloak-theme/dist_keycloak:/opt/keycloak/providers

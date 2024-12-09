@@ -4,7 +4,7 @@ export enum Themes {
 }
 
 export class ThemeService {
-    private localStorageKey = 'theme';
+    private localStorageKey = 'THEME';
     private currentTheme: string = Themes.light;
 
     init() {

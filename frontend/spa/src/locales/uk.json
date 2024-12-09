@@ -6,6 +6,10 @@
   "common": {
     "refresh": "Оновити"
   },
+  "header": {
+    "login": "Увійти",
+    "register": "Зареєструватися"
+  },
   "invoices": {
     "noInvoices": "Немає рахунків-фактур для показу"
   },
