@@ -12,14 +12,27 @@ interface TextFieldProps {
     name?: string;
     appendIcon?: string;
     className?: string;
-    onChange?: (value: string) => void;
+    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onValueChange?: (value: string) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
     onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
     onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
 }
 
 const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
-    const { value, label, placeholder, type, name, appendIcon, onChange, onKeyDown, onBlur, onFocus } = props;
+    const {
+        value,
+        label,
+        placeholder,
+        type,
+        name,
+        appendIcon,
+        onChange,
+        onValueChange,
+        onKeyDown,
+        onBlur,
+        onFocus,
+    } = props;
     const [id] = useState(_.uniqueId('text-field-'));
 
     return (
@@ -33,7 +46,11 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     placeholder={placeholder || ''}
                     value={value}
                     className={props.className}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange?.(event.target.value)}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        console.log('event', event);
+                        onChange?.(event);
+                        onValueChange?.(event.target.value);
+                    }}
                     onKeyDown={onKeyDown}
                     onBlur={onBlur}
                     onFocus={onFocus}
