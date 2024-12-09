@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.collection.IsIterableWithSize.iterableWithSize;
 
 @QuarkusTest
-public class PersistOrganizationDelegateTests {
+class PersistOrganizationDelegateTests {
 
     @Inject
     PersistOrganizationDelegate persistOrganizationDelegate;
