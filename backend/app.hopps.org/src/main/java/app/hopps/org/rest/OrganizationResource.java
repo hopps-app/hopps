@@ -1,6 +1,8 @@
 package app.hopps.org.rest;
 
+import app.hopps.org.jpa.Member;
 import app.hopps.org.jpa.Organization;
+import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import jakarta.inject.Inject;
@@ -11,6 +13,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.kie.kogito.Model;
 import org.kie.kogito.process.Process;
@@ -22,6 +25,7 @@ import java.util.Map;
 
 @Path("/organization")
 public class OrganizationResource {
+
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationResource.class);
 
     @Inject
@@ -30,6 +34,37 @@ public class OrganizationResource {
     @Inject
     @Named("NewOrganization")
     Process<? extends Model> process;
+
+    @Inject
+    OrganizationRepository organizationRepository;
+
+    @GET
+    @Path("/{slug}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get organization", description = "Retrieves the details of an organization using the unique slug identifier.")
+    @APIResponse(responseCode = "200", description = "Organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
+    @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
+    public Response getOrganizationBySlug(@PathParam("slug") String slug) {
+        Organization organization = organizationRepository.findBySlug(slug);
+        if (organization == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(organization).build();
+    }
+
+    @GET
+    @Path("/{slug}/members")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
+    @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
+    @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
+    public Response getOrganizationMembersBySlug(@PathParam("slug") String slug) {
+        Organization organization = organizationRepository.findBySlug(slug);
+        if (organization == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(organization.getMembers()).build();
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -68,4 +103,6 @@ public class OrganizationResource {
 
         return result;
     }
+    
+    
 }
