@@ -6,6 +6,10 @@
   "common": {
     "refresh": "Aktualisieren"
   },
+  "header": {
+    "login": "Login",
+    "register": "Registrieren"
+  },
   "invoices": {
     "noInvoices": "Keine Rechnungen vorzulegen"
   },
