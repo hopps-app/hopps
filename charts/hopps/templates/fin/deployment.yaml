@@ -43,11 +43,15 @@ spec:
           image: "{{ .Values.fin.image.repository }}:{{ .Values.fin.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.fin.image.pullPolicy }}
           {{- with .Values.fin.envFrom }}
-          envFrom: {{ toYaml . | nindent 8 }}
-                {{- end }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.fin.service.port }}
+              protocol: TCP
+            - name: management
+              containerPort: 9000
               protocol: TCP
           livenessProbe:
             {{- toYaml .Values.fin.livenessProbe | nindent 12 }}

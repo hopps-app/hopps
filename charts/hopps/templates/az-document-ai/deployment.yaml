@@ -43,11 +43,15 @@ spec:
           image: "{{ .Values.azDocumentAi.image.repository }}:{{ .Values.azDocumentAi.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.azDocumentAi.image.pullPolicy }}
           {{- with .Values.azDocumentAi.envFrom }}
-          envFrom: {{ toYaml . | nindent 8 }}
-                {{- end }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.azDocumentAi.service.port }}
+              protocol: TCP
+            - name: management
+              containerPort: 9000
               protocol: TCP
           livenessProbe:
             {{- toYaml .Values.azDocumentAi.livenessProbe | nindent 12 }}
