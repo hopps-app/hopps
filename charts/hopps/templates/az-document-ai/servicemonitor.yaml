@@ -1,0 +1,23 @@
+{{- if .Values.azDocumentAi.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "hopps.azDocumentAiFullname" . }}
+  namespace: {{ .Values.azDocumentAi.serviceMonitor.namespace }}
+  labels:
+    {{- include "hopps.azDocumentAiLabels" . | nindent 4 }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "hopps.azDocumentAiSelectorLabels" . | nindent 6 }}
+  jobLabel: {{ include "hopps.azDocumentAiFullname" . }}
+  endpoints:
+    - port: management
+      path: /q/metrics
+      interval: {{ .Values.azDocumentAi.serviceMonitor.scrapeInterval }}
+      scrapeTimeout: {{ .Values.azDocumentAi.serviceMonitor.scrapeTimeout }}
+{{- end }}
