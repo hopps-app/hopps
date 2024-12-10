@@ -30,16 +30,14 @@ class PersistOrganizationDelegateTests {
 
     @BeforeEach
     @Transactional
-    void cleanupDB()
-    {
+    void cleanupDB() {
         bommelRepository.deleteAll();
         organizationRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
     @Test
-    void shouldCreateRootBommel()
-    {
+    void shouldCreateRootBommel() {
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");

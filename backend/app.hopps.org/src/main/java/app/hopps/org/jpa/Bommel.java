@@ -55,7 +55,7 @@ import java.util.Set;
                 """)
 })
 public class Bommel extends PanacheEntity {
-    public static final String DEFAULT_ROOT_BOMMEL_EMOJI="\uD83C\uDF33"; // tree
+    public static final String DEFAULT_ROOT_BOMMEL_EMOJI = "\uD83C\uDF33"; // tree
 
     private String name;
     private String emoji;

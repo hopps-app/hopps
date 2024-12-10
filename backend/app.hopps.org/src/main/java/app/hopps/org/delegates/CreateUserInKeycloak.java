@@ -27,7 +27,7 @@ public class CreateUserInKeycloak {
     String ownerRoleName;
 
     public void createUserInKeycloak(Member user) {
-        
+
         RealmResource realmResource = keycloak.realm(realmName);
         UsersResource usersResource = realmResource.users();
         RoleRepresentation ownerRole = createOwnerRole(realmResource, ownerRoleName);
