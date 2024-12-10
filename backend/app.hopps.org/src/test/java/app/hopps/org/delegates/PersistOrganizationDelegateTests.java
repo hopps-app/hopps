@@ -26,7 +26,7 @@ class PersistOrganizationDelegateTests {
     OrganizationRepository organizationRepository;
 
     @Inject
-    MemberRespository memberRepository;
+    MemberRepository memberRepository;
 
     @BeforeEach
     @Transactional

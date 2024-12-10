@@ -1,7 +1,7 @@
 package app.hopps.org.delegates;
 
 import app.hopps.org.jpa.Member;
-import app.hopps.org.jpa.MemberRespository;
+import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.validation.NonUniqueConstraintViolation;
@@ -21,7 +21,7 @@ public class CreationValidationDelegate {
     Validator validator;
 
     @Inject
-    MemberRespository memberRespository;
+    MemberRepository memberRepository;
 
     @Inject
     OrganizationRepository organizationRepository;
@@ -53,7 +53,7 @@ public class CreationValidationDelegate {
         // is already in the database, ergo not unique
 
         Set<NonUniqueConstraintViolation> nonUniqueConstraintViolations = new HashSet<>();
-        boolean ownerUnique = (memberRespository.findByEmail(owner.getEmail()) == null);
+        boolean ownerUnique = (memberRepository.findByEmail(owner.getEmail()) == null);
         if (!ownerUnique) {
             nonUniqueConstraintViolations.add(new NonUniqueConstraintViolation("email", owner));
         }

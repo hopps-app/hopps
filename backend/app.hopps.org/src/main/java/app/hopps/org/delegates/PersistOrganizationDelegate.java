@@ -13,7 +13,7 @@ public class PersistOrganizationDelegate {
     OrganizationRepository organizationRepository;
 
     @Inject
-    MemberRespository memberRepository;
+    MemberRepository memberRepository;
 
     @Inject
     BommelRepository bommelRepository;
