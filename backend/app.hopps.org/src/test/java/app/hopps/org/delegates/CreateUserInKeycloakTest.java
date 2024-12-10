@@ -5,6 +5,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UsersResource;
@@ -13,11 +14,15 @@ import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 class CreateUserInKeycloakTest {
+
+    // Caveat: Keycloak Dev Container will be reused and keep its state
 
     @Inject
     CreateUserInKeycloak delegate;
@@ -45,11 +50,10 @@ class CreateUserInKeycloakTest {
         removeTestUser(usersResource, newUser);
 
         // Quarkus creates "alice" and "bob" users for us while testing
-        assertEquals(2, usersResource.count());
+        assertThat(usersResource.searchByFirstName("Foo", true), hasSize(0));
 
         delegate.createUserInKeycloak(newUser);
-
-        assertEquals(3, usersResource.count());
+        assertThat(usersResource.searchByFirstName("Foo", true), hasSize(1));
 
         var createdUsers = usersResource.searchByEmail(newUser.getEmail(), true);
 
