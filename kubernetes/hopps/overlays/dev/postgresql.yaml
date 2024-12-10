@@ -11,7 +11,7 @@ spec:
       password_encryption: scram-sha-256
   numberOfInstances: 1
   volume:
-    size: "10Gi"
+    size: "25Gi"
     storageClass: "longhorn"
   allowedSourceRanges: # load balancers' source ranges for both master and replica services
     - 10.0.0.0/16
