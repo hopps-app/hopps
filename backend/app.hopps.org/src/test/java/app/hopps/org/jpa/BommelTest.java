@@ -5,11 +5,8 @@ import io.quarkus.narayana.jta.QuarkusTransactionException;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import org.flywaydb.core.Flyway;
-import org.hamcrest.Matchers;
-import org.hamcrest.collection.IsIterableWithSize;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,9 +17,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.collection.IsIterableWithSize.iterableWithSize;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
@@ -69,10 +63,14 @@ class BommelTest {
     void twoLayerChildrenSearch() {
         // Arrange
         var existingBommels = resourceCreator.setupSimpleTree();
+        long rootBommelId = existingBommels.getFirst().id;
         List<TreeSearchBommel> expectedChildren = List.of(
-                new TreeSearchBommel(existingBommels.get(1), false, List.of(1L, 2L)),
-                new TreeSearchBommel(existingBommels.get(2), false, List.of(1L, 3L)),
-                new TreeSearchBommel(existingBommels.get(3), false, List.of(1L, 2L, 4L)));
+                new TreeSearchBommel(existingBommels.get(1), false,
+                        List.of(rootBommelId, existingBommels.get(1).id)),
+                new TreeSearchBommel(existingBommels.get(2), false,
+                        List.of(rootBommelId, existingBommels.get(2).id)),
+                new TreeSearchBommel(existingBommels.get(3), false,
+                        List.of(rootBommelId, existingBommels.get(1).id, existingBommels.get(3).id)));
 
         // Act
         List<TreeSearchBommel> actualChildren = repo.getChildrenRecursive(existingBommels.getFirst());
