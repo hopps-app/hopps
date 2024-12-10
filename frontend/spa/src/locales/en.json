@@ -3,6 +3,15 @@
     "text1": "Try hopps for 14 days free of",
     "text2": "charge"
   },
+  "common": {
+    "refresh": "Refresh"
+  },
+  "invoices": {
+    "noInvoices": "No invoices to show"
+  },
+  "organizationSettings": {
+    "saved": "Organization structure successfully saved"
+  },
   "settingsPage": {
     "menu": "Menu"
   }

@@ -7,6 +7,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
+import org.flywaydb.core.Flyway;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsIterableWithSize;
 import org.instancio.Instancio;
@@ -36,11 +37,13 @@ class BommelTest {
     @Inject
     BommelTestResourceCreator resourceCreator;
 
+    @Inject
+    Flyway flyway;
+
     @BeforeEach
-    @Transactional
-    void clearDatabase() {
-        orgRepo.deleteAll();
-        repo.deleteAll();
+    public void cleanDatabase() {
+        flyway.clean();
+        flyway.migrate();
     }
 
     @Test

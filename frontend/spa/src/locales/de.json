@@ -3,6 +3,15 @@
     "text1": "Testen Sie hopps 14 Tage",
     "text2": "kostenlos"
   },
+  "common": {
+    "refresh": "Aktualisieren"
+  },
+  "invoices": {
+    "noInvoices": "Keine Rechnungen vorzulegen"
+  },
+  "organizationSettings": {
+    "saved": "Organisationsstruktur erfolgreich gespeichert"
+  },
   "settingsPage": {
     "menu": "Speisekarte"
   }

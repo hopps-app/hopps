@@ -9,6 +9,7 @@ import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -24,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @QuarkusTest
 @TestSecurity(authorizationEnabled = false)
 class DataHandlerTest {
+
     private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
 
     @Inject
@@ -32,9 +34,16 @@ class DataHandlerTest {
     @Inject
     TransactionRecordRepository repository;
 
+    @BeforeEach
+    void setUp() {
+        // although this test does not persist to db, other test might…
+        repository.deleteAll();
+    }
+
     @Test
     @TestTransaction
     void shouldWriteMinimalInvoiceData() {
+
         // given
         InvoiceData invoiceData = new InvoiceData(
                 BigDecimal.valueOf(500),
@@ -51,6 +60,7 @@ class DataHandlerTest {
     @Test
     @TestTransaction
     void shouldWriteFullInvoiceData() {
+
         // given
         LocalDate dueDate = LocalDate.now().plusDays(3);
         InvoiceData invoiceData = new InvoiceData(
@@ -81,6 +91,7 @@ class DataHandlerTest {
     @Test
     @TestTransaction
     void shouldWriteMinimalReceiptData() {
+
         // given
         ReceiptData receiptData = new ReceiptData(BigDecimal.valueOf(100));
 

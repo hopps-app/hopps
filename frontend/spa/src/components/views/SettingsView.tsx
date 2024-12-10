@@ -5,10 +5,12 @@ import SettingsPage from '@/components/SettingsPage/SettingsPage.tsx';
 import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
 import OrganizationSettingsView from '@/components/views/OrganizationSettingsView.tsx';
 import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
+import InvoicesView from './InvoicesView';
 
 const navigationItems: MenuItem[] = [
     { title: 'Profile', value: 'profile', icon: 'Avatar' },
     { title: 'Organization', value: 'organization', icon: 'Backpack' },
+    { title: 'Invoices', value: 'invoices', icon: 'Archive' },
 ];
 
 function SettingsView() {
@@ -31,6 +33,7 @@ function SettingsView() {
         <SettingsPage menu={navigationItems} activeTab={activeTab} onActiveTabChanged={navigateTo}>
             {activeTab === 'profile' && <ProfileSettingsView />}
             {activeTab === 'organization' && <OrganizationSettingsView />}
+            {activeTab === 'invoices' && <InvoicesView />}
         </SettingsPage>
     );
 }
