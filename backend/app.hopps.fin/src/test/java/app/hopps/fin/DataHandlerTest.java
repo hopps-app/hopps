@@ -9,6 +9,7 @@ import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +36,7 @@ class DataHandlerTest {
     TransactionRecordRepository repository;
 
     @BeforeEach
+    @Transactional
     void setUp() {
         // although this test does not persist to db, other test might…
         repository.deleteAll();
