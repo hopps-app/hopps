@@ -103,6 +103,4 @@ public class OrganizationResource {
 
         return result;
     }
-    
-    
 }
