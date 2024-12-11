@@ -9,12 +9,12 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: hopps
-      version: 0.0.1
+      version: 0.0.2
   interval: 1m0s
   values:
     azDocumentAi:
       image:
-        tag: upgrade-jdk
+        tag: 239
       #envFrom:
       #  - secretRef:
       #      name: az-document-ai
@@ -32,17 +32,17 @@ spec:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         - name: kafka.bootstrap.servers
           value: hopps-kafka:9092
-      livenessProbe:
-        exec:
-          command:
-            - "true"
-      readinessProbe:
-        exec:
-          command:
-            - "true"
+      #livenessProbe:
+      #  exec:
+      #    command:
+      #      - "true"
+      #readinessProbe:
+      #  exec:
+      #    command:
+      #      - "true"
     org:
       image:
-        tag: upgrade-jdk
+        tag: 239
       #envFrom:
       #  - secretRef:
       #      name: org
@@ -87,25 +87,18 @@ spec:
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
         ingressClassName: nginx
+        path: /org
         hosts:
-          - org.${DOMAIN_2}
+          - api.${DOMAIN_2}
         tls:
-          - secretName: org-tls
+          - secretName: api-tls
             hosts:
-              - org.${DOMAIN_2}
-      livenessProbe:
-        exec:
-          command:
-            - "true"
-      readinessProbe:
-        exec:
-          command:
-            - "true"
+              - api.${DOMAIN_2}
     postgresql-org:
       enabled: false
     fin:
       image:
-        tag: upgrade-jdk
+        tag: 239
       #envFrom:
       #  - secretRef:
       #      name: fin
@@ -150,25 +143,18 @@ spec:
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
         ingressClassName: nginx
+        path: /fin
         hosts:
-          - fin.${DOMAIN_2}
+          - api.${DOMAIN_2}
         tls:
-          - secretName: fin-tls
+          - secretName: api-tls
             hosts:
-              - fin.${DOMAIN_2}
-      livenessProbe:
-        exec:
-          command:
-            - "true"
-      readinessProbe:
-        exec:
-          command:
-            - "true"
+              - api.${DOMAIN_2}
     postgresql-fin:
       enabled: false
     frontend:
       image:
-        tag: 118
+        tag: 138
       #envFrom:
       #  - secretRef:
       #      name: frontend
@@ -195,11 +181,11 @@ spec:
           cert-manager.io/cluster-issuer: letsencrypt-prod
         ingressClassName: nginx
         hosts:
-          - frontend.${DOMAIN_2}
+          - ${DOMAIN_2}
         tls:
           - secretName: frontend-tls
             hosts:
-              - frontend.${DOMAIN_2}
+              - ${DOMAIN_2}
       livenessProbe:
         exec:
           command:
@@ -285,6 +271,6 @@ spec:
         enabled: true
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
-        hostname: keycloak.${DOMAIN_2}
+        hostname: id.${DOMAIN_2}
         ingressClassName: nginx
         tls: true
