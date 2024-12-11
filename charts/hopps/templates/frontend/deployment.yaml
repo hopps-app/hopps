@@ -43,7 +43,8 @@ spec:
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           {{- with .Values.frontend.envFrom }}
-          envFrom: {{ toYaml . | nindent 8 }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
             - name: http
