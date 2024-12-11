@@ -1,5 +1,6 @@
 package app.hopps.org.jpa;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -27,6 +28,7 @@ public class Member extends PanacheEntity {
     @JoinTable(name = "member_verein", joinColumns = @JoinColumn(name = "member_id"))
     private Collection<Organization> organizations = new ArrayList<>();
 
+    @JsonIgnore
     public Collection<Organization> getOrganizations() {
         return organizations;
     }

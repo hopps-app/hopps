@@ -4,22 +4,38 @@ import app.hopps.org.jpa.Organization;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import app.hopps.org.rest.model.OrganizationInput;
 import app.hopps.org.rest.model.OwnerInput;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import org.flywaydb.core.Flyway;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Collections;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(OrganizationResource.class)
 class OrganizationResourceTests {
+
+    @Inject
+    Flyway flyway;
+
+    @BeforeEach
+    public void cleanDatabase() {
+        flyway.clean();
+        flyway.migrate();
+    }
+
     @Test
     @DisplayName("should validate valid verein")
     void shouldValidateValidVerein() {
