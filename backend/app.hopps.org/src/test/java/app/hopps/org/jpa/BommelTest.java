@@ -106,14 +106,24 @@ class BommelTest {
     }
 
     @Test
-    @TestTransaction
     void simpleGetParentsTest() {
         // Arrange
-        var existingBommels = resourceCreator.setupSimpleTree();
-        var expectedParentsList = List.of(existingBommels.get(1), existingBommels.getFirst());
+        flyway.clean();
+        flyway.migrate();
+
+        // bommel with id=2 is root
+        // id=4 is child of id=2
+        // id=7 is child of id=4
+
+        var expectedParentsList = List.of(
+                repo.findById(4L),
+                repo.findById(2L)
+        );
+
+        var child = repo.findById(7L);
 
         // Act
-        List<TreeSearchBommel> treeSearchParents = repo.getParents(existingBommels.get(3));
+        List<TreeSearchBommel> treeSearchParents = repo.getParents(child);
 
         // Assert
         var actualParents = treeSearchParents.stream()
