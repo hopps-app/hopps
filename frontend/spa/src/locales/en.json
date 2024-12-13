@@ -11,10 +11,31 @@
     "register": "Register"
   },
   "invoices": {
+    "loadFailed": "Failed to load invoices",
     "noInvoices": "No invoices to show"
   },
-  "organizationSettings": {
-    "saved": "Organization structure successfully saved"
+  "organization": {
+    "registration": {
+      "failed": "Failed to register organization",
+      "success": "Organisation successfully created"
+    },
+    "settings": {
+      "saveError": "Failed to save setting",
+      "saved": "Settings successfully saved"
+    }
+  },
+  "profile": {
+    "settings": {
+      "language": "Language",
+      "theme": "Theme"
+    }
+  },
+  "settings": {
+    "menu": {
+      "invoices": "Invoices",
+      "organization": "Organization",
+      "profile": "Profile"
+    }
   },
   "settingsPage": {
     "menu": "Menu"
