@@ -4,7 +4,7 @@ export type Bommel = {
     id: number;
     name: string;
     emoji: string;
-    parent: number;
+    parent?: Partial<Bommel>;
     responsibleMember?: User;
     children: string[];
 };

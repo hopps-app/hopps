@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 import { useStore } from '@/store/store.ts';
 import { Bommel } from '@/services/api/types/Bommel.ts';
+import organizationTreeService from '@/services/OrganizationTreeService.ts';
 
 function OrganizationSettingsView() {
     const { toast } = useToast();
@@ -24,8 +25,9 @@ function OrganizationSettingsView() {
         setTree(newTree);
     };
 
-    const onClickSave = () => {
-        localStorage.setItem('organizationTree', JSON.stringify(tree));
+    const onClickSave = async () => {
+        // localStorage.setItem('organizationTree', JSON.stringify(tree));
+        await organizationTreeService.saveOrganizationTree(tree, rootBommel!.id!);
 
         toast({ title: t('organizationSettings.saved'), variant: 'success' });
     };
@@ -36,6 +38,8 @@ function OrganizationSettingsView() {
             setTree([]);
             return;
         }
+
+        //@todo load bommel tree
     }, [rootBommel]);
 
     useEffect(() => {

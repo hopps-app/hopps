@@ -14,7 +14,7 @@ export class BommelService {
         await fetch(`${this.baseUrl}/bommel/${id}`, { method: 'DELETE' });
     }
 
-    async createBommel(data: Bommel) {
+    async createBommel(data: Partial<Bommel>) {
         const response = await fetch(`${this.baseUrl}/bommel`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -51,12 +51,10 @@ export class BommelService {
         return await response.json();
     }
 
-    async updateBommel(id: string, data: Bommel) {
+    async updateBommel(id: number, data: Partial<Bommel>) {
         const response = await fetch(`${this.baseUrl}/bommel/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
         return response.json();
