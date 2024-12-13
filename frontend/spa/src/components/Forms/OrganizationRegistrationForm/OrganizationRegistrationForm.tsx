@@ -45,11 +45,11 @@ export function OrganizationRegistrationForm(props: Props) {
                 },
             });
 
-            showSuccess({ description: 'Organisation successfully created' });
+            showSuccess(t('organization.registration.success'));
             props.onSuccess();
         } catch (e) {
             console.error(e);
-            showError({ title: 'Error', description: 'Failed to register organization' });
+            showError(t('organization.registration.failed'));
         }
     }
 
