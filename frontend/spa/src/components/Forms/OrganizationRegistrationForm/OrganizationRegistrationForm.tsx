@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
 
 import TextField from '@/components/ui/TextField.tsx';
 import Button from '@/components/ui/Button.tsx';
@@ -18,8 +17,11 @@ const schema = z.object({
 
 type FormFields = z.infer<typeof schema>;
 
-export function OrganizationRegistrationForm() {
-    const navigate = useNavigate();
+type Props = {
+    onSuccess: () => void;
+};
+
+export function OrganizationRegistrationForm(props: Props) {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
     const { register, handleSubmit, formState } = useForm<FormFields>({
@@ -44,7 +46,7 @@ export function OrganizationRegistrationForm() {
             });
 
             showSuccess({ description: 'Organisation successfully created' });
-            navigate('/login');
+            props.onSuccess();
         } catch (e) {
             console.error(e);
             showError({ title: 'Error', description: 'Failed to register organization' });

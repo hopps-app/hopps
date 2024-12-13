@@ -16,30 +16,39 @@ function OrganizationSettingsView() {
     const { t } = useTranslation();
     const store = useStore();
     const [isOrganizationError, setIsOrganizationError] = useState(false);
-    // const savedTree = localStorage.getItem('organizationTree');
-    // const saveTreeNodes = savedTree ? (JSON.parse(savedTree) as OrganizationTreeNodeModel[]) : [];
+    const [originalBommels, setOriginalBommels] = useState<Map<number, Bommel>>(new Map());
     const [rootBommel, setRootBommel] = useState<Bommel | null>(null);
     const [tree, setTree] = useState<OrganizationTreeNodeModel[]>([]);
+
+    const loadTree = async () => {
+        const bommels = await organizationTreeService.getOrganizationBommels(rootBommel!.id!);
+        const nodes = organizationTreeService.bommelsToTreeNodes(bommels, rootBommel!.id);
+
+        setOriginalBommels(new Map<number, Bommel>(bommels.map((bommel) => [bommel.id, bommel])));
+        setTree(nodes);
+    };
 
     const onTreeChanged = (newTree: OrganizationTreeNodeModel[]) => {
         setTree(newTree);
     };
 
     const onClickSave = async () => {
-        // localStorage.setItem('organizationTree', JSON.stringify(tree));
-        await organizationTreeService.saveOrganizationTree(tree, rootBommel!.id!);
+        // sort tree by depth
 
+        const sortedTree = organizationTreeService.sortTreeByDepth(tree);
+        console.log('Sorted tree', sortedTree);
+
+        await organizationTreeService.saveOrganizationTree(sortedTree, rootBommel!.id!, originalBommels);
         toast({ title: t('organizationSettings.saved'), variant: 'success' });
     };
 
     useEffect(() => {
-        console.log('rootBommel changed', rootBommel);
         if (!rootBommel) {
             setTree([]);
             return;
         }
 
-        //@todo load bommel tree
+        loadTree();
     }, [rootBommel]);
 
     useEffect(() => {
