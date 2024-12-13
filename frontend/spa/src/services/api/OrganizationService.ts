@@ -32,8 +32,19 @@ export class OrganizationService {
             },
             body: JSON.stringify(payload),
         });
+    }
 
-        console.log(result);
+    async getBySlug(slug: string) {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/${slug}`;
+        const result = await window.fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        const organisation = await result.json();
+        console.log(organisation);
+
+        return organisation;
     }
 
     createSlug(input: string): string {
