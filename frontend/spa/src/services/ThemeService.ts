@@ -9,7 +9,8 @@ export class ThemeService {
 
     init() {
         const isDarkMode =
-            localStorage.theme === Themes.dark || (!(this.localStorageKey in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            localStorage[this.localStorageKey] === Themes.dark ||
+            (!(this.localStorageKey in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
         document.documentElement.classList.toggle(Themes.dark, isDarkMode);
         this.currentTheme = isDarkMode ? Themes.dark : Themes.light;
