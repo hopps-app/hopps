@@ -23,12 +23,10 @@ export class BommelService {
         return response.json();
     }
 
-    async createRootBommel(data: Bommel) {
+    async createRootBommel(data: Partial<Bommel> & { organization: { id: number } }) {
         const response = await fetch(`${this.baseUrl}/bommel/root`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
         return response.json();
@@ -48,11 +46,9 @@ export class BommelService {
         return response.json();
     }
 
-    async getRootBommel() {
-        const response = await fetch(`${this.baseUrl}/bommel/root`, {
-            method: 'GET',
-        });
-        return response.json();
+    async getRootBommel(organisationId: number) {
+        const response = await fetch(`${this.baseUrl}/bommel/root/${organisationId}`, { method: 'GET' });
+        return await response.json();
     }
 
     async updateBommel(id: string, data: Bommel) {

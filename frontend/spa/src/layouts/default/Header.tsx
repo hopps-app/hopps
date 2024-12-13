@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import authService from '@/services/auth/AuthService.ts';
-import { useAuthStore } from '@/store/store.ts';
+import { useStore } from '@/store/store.ts';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
-import { useTranslation } from 'react-i18next';
 
 function Header() {
     const { t } = useTranslation();
@@ -15,7 +15,7 @@ function Header() {
         { url: '/demo', label: 'Demo' },
     ];
 
-    const appStore = useAuthStore();
+    const appStore = useStore();
     const isAuthenticated = appStore.isAuthenticated;
 
     const onClickLogin = () => {
@@ -32,9 +32,7 @@ function Header() {
                 <div className="flex items-center justify-between flex-shrink-0 ">
                     <HeaderMobileMenuButton />
 
-                    <Link to="/"
-                          className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80"
-                          aria-label="Hopps">
+                    <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="Hopps">
                         <img src="/logo2.svg" alt="Hopps" />
                     </Link>
 

@@ -32,10 +32,7 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
             this.authService.setAuthTokens(this.keycloak.token, this.keycloak.refreshToken);
 
             try {
-                const data = (await this.keycloak.loadUserInfo()) as {
-                    name: string;
-                    email: string;
-                };
+                const data = (await this.keycloak.loadUserInfo()) as { name: string; email: string };
                 await this.authService.setAuthUser(data);
             } catch (e) {
                 await this.authService.setAuthUser(null);

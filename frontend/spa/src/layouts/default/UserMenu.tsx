@@ -2,12 +2,12 @@ import { FaUser } from 'react-icons/fa';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuthStore } from '@/store/store.ts';
+import { useStore } from '@/store/store.ts';
 import authService from '@/services/auth/AuthService.ts';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 
 function UserMenu() {
-    const authStore = useAuthStore();
+    const authStore = useStore();
     const user = authStore.user;
 
     const navigate = useNavigate();
