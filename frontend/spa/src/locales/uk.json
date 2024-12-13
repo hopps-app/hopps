@@ -11,10 +11,31 @@
     "register": "Зареєструватися"
   },
   "invoices": {
+    "loadFailed": "Не вдалося завантажити рахунки-фактури",
     "noInvoices": "Немає рахунків-фактур для показу"
   },
-  "organizationSettings": {
-    "saved": "Струкрура організації успішно збережена"
+  "organization": {
+    "registration": {
+      "failed": "Не вдалося зареєструвати організацію",
+      "success": "Організацію успішно створено"
+    },
+    "settings": {
+      "saveError": "Не вдалося зберегти налаштування",
+      "saved": "Налаштування успішно збережені"
+    }
+  },
+  "profile": {
+    "settings": {
+      "language": "Мова",
+      "theme": "Тема"
+    }
+  },
+  "settings": {
+    "menu": {
+      "invoices": "Рахунки-фактури",
+      "organization": "організація",
+      "profile": "Профіль"
+    }
   },
   "settingsPage": {
     "menu": "Меню"
