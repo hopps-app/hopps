@@ -1,6 +1,6 @@
 import { KeycloakServiceProvider } from '@/services/auth/keycloakServiceProvider.ts';
 import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
-import { useAuthStore } from '@/store/store.ts';
+import { useStore } from '@/store/store.ts';
 import apiService from '@/services/ApiService.ts';
 
 export class AuthService {
@@ -28,8 +28,8 @@ export class AuthService {
         this.stopTokenRefresh();
 
         this.setAuthTokens(undefined, undefined);
-        useAuthStore.getState().setIsAuthenticated(false);
-        useAuthStore.getState().setUser(null);
+        useStore.getState().setIsAuthenticated(false);
+        useStore.getState().setUser(null);
     }
 
     checkLogin() {
@@ -37,10 +37,10 @@ export class AuthService {
     }
 
     async loadUserOrganisation() {
-        const user = useAuthStore.getState().user;
+        const user = useStore.getState().user;
 
         if (!user) {
-            useAuthStore.getState().setOrganisation(null);
+            useStore.getState().setOrganization(null);
             return;
         }
 
@@ -48,7 +48,7 @@ export class AuthService {
         const organisationSlug = 'test';
         const organisation = await apiService.organization.getBySlug(organisationSlug);
 
-        useAuthStore.getState().setOrganisation(organisation);
+        useStore.getState().setOrganization(organisation);
     }
 
     setAuthTokens(token: string | undefined, refreshToken: string | undefined) {
@@ -65,7 +65,7 @@ export class AuthService {
     }
 
     async setAuthUser(userData: { name: string; email: string } | null) {
-        useAuthStore.getState().setUser(
+        useStore.getState().setUser(
             userData !== null
                 ? {
                       name: userData.name,
@@ -74,15 +74,15 @@ export class AuthService {
                 : null
         );
         await this.loadUserOrganisation();
-        useAuthStore.getState().setIsAuthenticated(!!userData);
+        useStore.getState().setIsAuthenticated(!!userData);
     }
 
     isAuthenticated() {
-        return useAuthStore.getState().isAuthenticated;
+        return useStore.getState().isAuthenticated;
     }
 
     setIsInitialized(value: boolean) {
-        useAuthStore.getState().setIsInitialized(value);
+        useStore.getState().setIsInitialized(value);
     }
 
     async refreshToken() {
