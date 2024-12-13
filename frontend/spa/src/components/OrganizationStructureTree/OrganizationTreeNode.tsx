@@ -54,7 +54,7 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onClickAcceptEdit = () => {
-        props.onEdit({ ...props.node, text: editValue, data: { emoji } });
+        props.onEdit({ ...props.node, text: editValue, data: { ...props.node.data, emoji } });
         setIsEditing(false);
     };
 

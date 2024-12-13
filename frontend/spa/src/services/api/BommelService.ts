@@ -3,14 +3,14 @@ import { Bommel } from '@/services/api/types/Bommel.ts';
 export class BommelService {
     constructor(private baseUrl: string) {}
 
-    async getBommel(id: string) {
+    async getBommel(id: number) {
         const response = await fetch(`${this.baseUrl}/bommel/${id}`, {
             method: 'GET',
         });
         return (await response.json()) as Promise<Bommel>;
     }
 
-    async deleteBommel(id: string) {
+    async deleteBommel(id: number) {
         await fetch(`${this.baseUrl}/bommel/${id}`, { method: 'DELETE' });
     }
 
@@ -39,14 +39,12 @@ export class BommelService {
         return response.json();
     }
 
-    async getBommelChildrenRecursive(id: string) {
-        const response = await fetch(`${this.baseUrl}/bommel/${id}/children/recursive`, {
-            method: 'GET',
-        });
+    async getBommelChildrenRecursive(id: number): Promise<{ bommel: Bommel }[]> {
+        const response = await fetch(`${this.baseUrl}/bommel/${id}/children/recursive`, { method: 'GET' });
         return response.json();
     }
 
-    async getRootBommel(organisationId: number) {
+    async getRootBommel(organisationId: number): Promise<Bommel> {
         const response = await fetch(`${this.baseUrl}/bommel/root/${organisationId}`, { method: 'GET' });
         return await response.json();
     }
@@ -60,13 +58,11 @@ export class BommelService {
         return response.json();
     }
 
-    async moveBommel(id: string, newParentId: string) {
+    async moveBommel(id: number, newParentId: number): Promise<Partial<Bommel>> {
         const response = await fetch(`${this.baseUrl}/bommel/move/${id}/to/${newParentId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
         });
-        return response.json() as Promise<Bommel>;
+        return await response.json();
     }
 }
