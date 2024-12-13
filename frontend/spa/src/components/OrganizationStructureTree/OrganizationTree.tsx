@@ -1,6 +1,6 @@
 import { Tree, getBackendOptions, MultiBackend } from '@minoru/react-dnd-treeview';
 import { DndProvider } from 'react-dnd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import OrganizationTreeNode from '@/components/OrganizationStructureTree/OrganizationTreeNode.tsx';
 import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/OrganizationTreeDropPreview.tsx';
@@ -15,7 +15,7 @@ interface OrganizationStructureTreeProps {
 }
 
 function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProps) {
-    const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>(JSON.parse(JSON.stringify(tree)));
+    const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
 
     const handleDrop = (newTree: OrganizationTreeNodeModel[]) => {
@@ -56,6 +56,12 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
     const onDragEnd = () => {
         setIsDragging(false);
     };
+
+    useEffect(() => {
+        console.log('TREE PROP CHNAGED', tree);
+
+        setTreeData(tree);
+    }, [tree]);
 
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
