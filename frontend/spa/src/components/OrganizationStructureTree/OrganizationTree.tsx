@@ -23,7 +23,16 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
         onTreeChanged?.(newTree);
     };
     const onClickCreate = () => {
-        const newTree = [...treeData, { id: getMaxId(treeData) + 1, parent: 0, text: 'New item', droppable: true }];
+        const newTree = [
+            ...treeData,
+            {
+                id: getMaxId(treeData) + 1,
+                parent: 0,
+                text: 'New item',
+                droppable: true,
+                data: { emoji: '', isNew: true },
+            },
+        ];
         setTreeData(newTree);
         onTreeChanged?.(newTree);
     };
