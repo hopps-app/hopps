@@ -12,7 +12,7 @@ import { Bommel } from '@/services/api/types/Bommel.ts';
 import organizationTreeService from '@/services/OrganizationTreeService.ts';
 
 function OrganizationSettingsView() {
-    const { toast } = useToast();
+    const { showSuccess, showError } = useToast();
     const { t } = useTranslation();
     const store = useStore();
     const [isOrganizationError, setIsOrganizationError] = useState(false);
@@ -33,13 +33,14 @@ function OrganizationSettingsView() {
     };
 
     const onClickSave = async () => {
-        // sort tree by depth
-
         const sortedTree = organizationTreeService.sortTreeByDepth(tree);
-        console.log('Sorted tree', sortedTree);
-
-        await organizationTreeService.saveOrganizationTree(sortedTree, rootBommel!.id!, originalBommels);
-        toast({ title: t('organizationSettings.saved'), variant: 'success' });
+        try {
+            await organizationTreeService.saveOrganizationTree(sortedTree, rootBommel!.id!, originalBommels);
+            showSuccess(t('organization.settings.saved'));
+        } catch (e) {
+            console.error(e);
+            showError(t('organization.settings.saveError'));
+        }
     };
 
     useEffect(() => {

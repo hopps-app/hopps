@@ -25,7 +25,7 @@ function InvoicesView() {
             setInvoices(invoices);
         } catch (e) {
             console.error('Failed to load invoices:', e);
-            showError({ title: 'Failed to load invoices' });
+            showError(t('invoices.loadFailed'));
         } finally {
             setIsLoading(false);
         }
