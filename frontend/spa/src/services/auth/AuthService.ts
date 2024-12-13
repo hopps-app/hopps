@@ -1,6 +1,7 @@
 import { KeycloakServiceProvider } from '@/services/auth/keycloakServiceProvider.ts';
 import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
 import { useAuthStore } from '@/store/store.ts';
+import apiService from '@/services/ApiService.ts';
 
 export class AuthService {
     private provider: AuthServiceProvider;
@@ -35,6 +36,21 @@ export class AuthService {
         return this.provider.checkLogin();
     }
 
+    async loadUserOrganisation() {
+        const user = useAuthStore.getState().user;
+
+        if (!user) {
+            useAuthStore.getState().setOrganisation(null);
+            return;
+        }
+
+        // todo replace with out using slug
+        const organisationSlug = 'test';
+        const organisation = await apiService.organization.getBySlug(organisationSlug);
+
+        useAuthStore.getState().setOrganisation(organisation);
+    }
+
     setAuthTokens(token: string | undefined, refreshToken: string | undefined) {
         localStorage.setItem('AUTH_TOKEN', token || '');
         localStorage.setItem('AUTH_TOKEN_REFRESH', refreshToken || '');
@@ -48,8 +64,7 @@ export class AuthService {
         return localStorage.getItem('AUTH_TOKEN_REFRESH') || undefined;
     }
 
-    setAuthUser(userData: { name: string; email: string } | null) {
-        useAuthStore.getState().setIsAuthenticated(!!userData);
+    async setAuthUser(userData: { name: string; email: string } | null) {
         useAuthStore.getState().setUser(
             userData !== null
                 ? {
@@ -58,6 +73,8 @@ export class AuthService {
                   }
                 : null
         );
+        await this.loadUserOrganisation();
+        useAuthStore.getState().setIsAuthenticated(!!userData);
     }
 
     isAuthenticated() {

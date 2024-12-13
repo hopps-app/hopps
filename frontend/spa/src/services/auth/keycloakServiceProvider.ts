@@ -36,9 +36,9 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
                     name: string;
                     email: string;
                 };
-                this.authService.setAuthUser(data);
+                await this.authService.setAuthUser(data);
             } catch (e) {
-                this.authService.setAuthUser(null);
+                await this.authService.setAuthUser(null);
                 console.error('Failed to load user info', e);
             }
         }
