@@ -25,7 +25,7 @@ export class OrganizationService {
 
     async registerOrganization(payload: RegisterOrganizationPayload): Promise<void> {
         const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization`;
-        const result = await window.fetch(url, {
+        await window.fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
