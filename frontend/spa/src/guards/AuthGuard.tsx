@@ -1,14 +1,14 @@
 import { ReactNode, useEffect } from 'react';
 
 import authService from '@/services/auth/AuthService.ts';
-import { useAuthStore } from '@/store/store.ts';
+import { useStore } from '@/store/store.ts';
 
 interface AuthGuardProps {
     children: ReactNode;
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-    const { isInitialized, isAuthenticated } = useAuthStore();
+    const { isInitialized, isAuthenticated } = useStore();
 
     useEffect(() => {}, [isInitialized]);
 
