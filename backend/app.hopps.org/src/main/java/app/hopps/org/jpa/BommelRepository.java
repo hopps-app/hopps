@@ -71,10 +71,10 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         return possibleCycleBommels;
     }
 
-    public Bommel getRootBommel(long orgId) {
+    public Optional<Bommel> getRootBommel(long orgId) {
         return find("where organization.id = :org",
                 Map.of("org", orgId))
-                        .firstResult();
+                        .firstResultOptional();
     }
 
     /**
