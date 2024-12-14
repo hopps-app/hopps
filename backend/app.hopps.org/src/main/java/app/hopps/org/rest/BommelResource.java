@@ -2,33 +2,26 @@ package app.hopps.org.rest;
 
 import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
-import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
+import app.hopps.org.rest.model.BommelInput;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.runtime.configuration.ConfigUtils;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +29,10 @@ import java.util.Set;
 @Path("/bommel")
 @Authenticated
 public class BommelResource {
+    public static final String RELATION_WRITE = "write";
+    public static final String BOMMEL_NOT_FOUND = "Bommel not found";
+    public static final WebApplicationException NOT_FOUND_EXCEPTION = new WebApplicationException(
+            Response.status(Response.Status.NOT_FOUND).entity(BOMMEL_NOT_FOUND).build());
 
     @Inject
     BommelRepository bommelRepo;
@@ -59,120 +56,133 @@ public class BommelResource {
 
     @GET
     @Path("/{id}/children")
+    @Operation(summary = "Fetch the children of bommel", operationId = "getChildrenOfBommel")
+    @APIResponse(responseCode = "200", description = "Children of bommel", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel[].class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Set<Bommel> getBommelChildren(@PathParam("id") long id) {
         checkUserHasPermission(id, "read");
 
-        Bommel base = bommelRepo.findById(id);
-
-        if (base == null) {
-            throw new WebApplicationException("Invalid id, no such bommel", Response.Status.BAD_REQUEST);
-        }
-
-        return base.getChildren();
+        Optional<Bommel> base = bommelRepo.findByIdOptional(id);
+        return throwOrGetBommel(base).getChildren();
     }
 
     @GET
     @Path("/{id}/children/recursive")
+    @Operation(summary = "Fetch the children of bommel recursively", operationId = "getChildrenOfBommelRecursive")
+    @APIResponse(responseCode = "200", description = "Recursive children of bommel", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TreeSearchBommel[].class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public List<TreeSearchBommel> getBommelChildrenRecursive(@PathParam("id") long id) {
         checkUserHasPermission(id, "read");
-        Bommel base = bommelRepo.findById(id);
-
-        if (base == null) {
-            throw new WebApplicationException("Invalid id, no such bommel", Response.Status.BAD_REQUEST);
-        }
-
-        return bommelRepo.getChildrenRecursive(base);
+        Optional<Bommel> base = bommelRepo.findByIdOptional(id);
+        return bommelRepo.getChildrenRecursive(throwOrGetBommel(base));
     }
 
     @GET
     @Path("/{id}")
-    @Operation(operationId = "getBommel", summary = "Fetch a bommel by its id")
-    @APIResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON))
-    @APIResponse(responseCode = "404", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @Operation(summary = "Fetch a bommel by its id", operationId = "getBommel")
+    @APIResponse(responseCode = "200", description = "Bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Bommel getBommel(@PathParam("id") long id) {
         checkUserHasPermission(id, "read");
 
         Optional<Bommel> byIdOptional = bommelRepo.findByIdOptional(id);
-        if (byIdOptional.isEmpty()) {
-            throw new NotFoundException(Response
-                    .status(404)
-                    .type(MediaType.TEXT_PLAIN)
-                    .entity("Bommel not found")
-                    .build());
-        }
-        return byIdOptional.get();
+        return throwOrGetBommel(byIdOptional);
     }
 
     @GET
     @Path("/root/{orgId}")
-    public Optional<Bommel> getRootBommel(@PathParam("orgId") long orgId) {
-        Bommel rootBommel = bommelRepo.getRootBommel(orgId);
+    @Operation(summary = "Fetch root-bommel for organization", operationId = "getRootBommel")
+    @APIResponse(responseCode = "200", description = "Root-Bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public Bommel getRootBommel(@PathParam("orgId") long orgId) {
+        Optional<Bommel> rootBommelOpt = bommelRepo.getRootBommel(orgId);
 
-        if (rootBommel == null) {
-            return Optional.empty();
-        }
+        Bommel rootBommel = throwOrGetBommel(rootBommelOpt);
 
         checkUserHasPermission(rootBommel.id, "read");
 
-        return Optional.of(rootBommel);
+        return rootBommel;
     }
 
     @POST
     @Path("/root")
     @Transactional
-    public Bommel createRoot(Bommel root) {
-        var principal = securityContext.getUserPrincipal();
+    @Operation(summary = "Create root-bommel for organization", operationId = "createRootBommel")
+    @APIResponse(responseCode = "201", description = "Bommel created and added to the organization as root", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "400", description = """
+            <li> Organization not found
+            <li> Root-Bommel cannot have a parent
+            <li> Root-Bommel needs to have an organization
+            """, content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "409", description = "Organization has already one root set", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public Response createRoot(BommelInput input) {
+        isUserLoggedIn();
 
-        if (principal == null && this.authEnabled) {
-            throw new WebApplicationException("User is not logged in", Response.Status.INTERNAL_SERVER_ERROR);
-        }
+        Bommel bommel = input.toBommel();
 
-        if (root.getOrganization() == null || root.getOrganization().getId() == null) {
-            throw new WebApplicationException("field `organization` and its subfield `id` is required",
-                    Response.Status.BAD_REQUEST);
-        }
-
-        Organization org = orgRepo.findById(root.getOrganization().getId());
-        if (org == null) {
-            throw new WebApplicationException("Invalid organization", Response.Status.BAD_REQUEST);
-        }
-
-        // Make sure root has a valid database object as its organization
-        root.setOrganization(org);
+        // Set organization object or throw
+        orgRepo
+                .findByIdOptional(input.organizationId())
+                .ifPresentOrElse(bommel::setOrganization, () -> {
+                    throw new WebApplicationException(
+                            Response.status(Response.Status.BAD_REQUEST).entity("Invalid organization").build());
+                });
+        // set bommel parent if present
+        input.parentId()
+                .flatMap(parent -> bommelRepo.findByIdOptional(parent))
+                .ifPresent(bommel::setParent);
 
         // TODO: Check that the user has write access to the bommels organization here.
 
-        return bommelRepo.createRoot(root);
+        bommelRepo.createRoot(bommel);
+        URI uri = URI.create("/bommel/" + bommel.id);
+        return Response.created(uri).entity(bommel).build();
     }
 
     @POST
     @Path("/")
     @Transactional
-    public Bommel createBommel(Bommel bommel) {
+    @Operation(summary = "Create bommel", operationId = "createBommel", description = "Create bommel underneath a root-bommel, without the parent-bommel it will fail.")
+    @APIResponse(responseCode = "201", description = "Bommel successfully created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "400", description = "Bommel has no parent, cannot create root-bommel", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public Response createBommel(Bommel bommel) {
         if (bommel.getParent() == null) {
-            throw new WebApplicationException(
-                    "Bommel has no parent, cannot create root bommel",
-                    Response.Status.BAD_REQUEST);
+            throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Bommel has no parent, cannot create root-bommel")
+                    .build());
         }
 
-        checkUserHasPermission(bommel.getParent().id, "write");
+        checkUserHasPermission(bommel.getParent().id, RELATION_WRITE);
 
-        return bommelRepo.insertBommel(bommel);
+        Bommel insertBommel = bommelRepo.insertBommel(bommel);
+        URI uri = URI.create("/bommel/" + insertBommel.id + "/children");
+        return Response.created(uri).entity(insertBommel).build();
     }
 
     @PUT
     @Path("/{id}")
     @Transactional
+    @Operation(summary = "Update bommel", operationId = "updateBommel")
+    @APIResponse(responseCode = "200", description = "Bommel successfully updated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Bommel updateBommel(Bommel bommel, @PathParam("id") long id) {
-        checkUserHasPermission(id, "write");
+        checkUserHasPermission(id, RELATION_WRITE);
 
-        var existingBommel = bommelRepo.findById(id);
-
-        if (existingBommel == null) {
-            throw new WebApplicationException(
-                    "Could not find bommel with this id",
-                    Response.Status.BAD_REQUEST);
-        }
+        Optional<Bommel> existingBommelOpt = bommelRepo.findByIdOptional(id);
+        Bommel existingBommel = throwOrGetBommel(existingBommelOpt);
 
         existingBommel.merge(bommel);
 
@@ -185,23 +195,26 @@ public class BommelResource {
     @PUT
     @Path("/move/{id}/to/{newParentId}")
     @Transactional
+    @Operation(summary = "Move a bommel underneath a different parent", operationId = "moveBommel")
+    @APIResponse(responseCode = "200", description = "Bommel successfully moved", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized to move bommel", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = "<li>Bommel not found <li>New parent bommel not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public Bommel moveBommel(@PathParam("id") long id, @PathParam("newParentId") long newParentId) {
-        checkUserHasPermission(id, "write");
-        checkUserHasPermission(newParentId, "write");
+        checkUserHasPermission(id, RELATION_WRITE);
+        checkUserHasPermission(newParentId, RELATION_WRITE);
 
         Bommel base = bommelRepo.findById(id);
         Bommel parent = bommelRepo.findById(newParentId);
 
         if (base == null) {
             throw new WebApplicationException(
-                    "Base bommel does not exist",
-                    Response.Status.BAD_REQUEST);
+                    Response.status(Response.Status.NOT_FOUND).entity("Base-Bommel not found").build());
         }
 
         if (parent == null) {
             throw new WebApplicationException(
-                    "Parent bommel does not exist",
-                    Response.Status.BAD_REQUEST);
+                    Response.status(Response.Status.NOT_FOUND).entity("Parent-Bommel not found").build());
         }
 
         return bommelRepo.moveBommel(base, parent);
@@ -210,19 +223,24 @@ public class BommelResource {
     @DELETE
     @Path("/{id}")
     @Transactional
+    @Operation(summary = "Delete bommel", operationId = "deleteBommel")
+    @APIResponse(responseCode = "204", description = "Bommel successfully deleted")
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public void deleteBommel(@PathParam("id") long id,
             @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
-        checkUserHasPermission(id, "write");
-
-        Bommel base = bommelRepo.findById(id);
-
-        if (base == null) {
-            throw new WebApplicationException(
-                    "Could not find bommel",
-                    Response.Status.BAD_REQUEST);
-        }
-
+        checkUserHasPermission(id, RELATION_WRITE);
+        Bommel base = throwOrGetBommel(bommelRepo.findByIdOptional(id));
         bommelRepo.deleteBommel(base, recursive);
+    }
+
+    private void isUserLoggedIn() {
+        var principal = securityContext.getUserPrincipal();
+
+        if (principal == null && this.authEnabled) {
+            throw new WebApplicationException("User is not logged in", Response.Status.UNAUTHORIZED);
+        }
     }
 
     /**
@@ -230,17 +248,22 @@ public class BommelResource {
      * exception if anything goes wrong.
      */
     private void checkUserHasPermission(long bommelId, String relation) throws WebApplicationException {
-        var principal = securityContext.getUserPrincipal();
+        isUserLoggedIn();
 
-        if (principal == null && this.authEnabled) {
-            throw new WebApplicationException("User is not logged in", Response.Status.INTERNAL_SERVER_ERROR);
-        }
+        var principal = securityContext.getUserPrincipal();
 
         String username = principal == null ? "anonymous" : principal.getName();
 
         var accessTuple = TupleKey.of("bommel:" + bommelId, relation, "user:" + username);
-        if (this.authEnabled && !authModelClient.check(accessTuple).await().indefinitely()) {
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        if (this.authEnabled && Boolean.FALSE.equals(authModelClient.check(accessTuple).await().indefinitely())) {
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
+    }
+
+    private Bommel throwOrGetBommel(Optional<Bommel> rootBommelOpt) {
+        if (rootBommelOpt.isEmpty()) {
+            throw NOT_FOUND_EXCEPTION;
+        }
+        return rootBommelOpt.get();
     }
 }

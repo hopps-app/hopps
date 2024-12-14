@@ -152,6 +152,11 @@ class TransactionRecordResourceTest {
 
         Long bommelId = 99L;
 
+        wireMock.register(
+                get(urlPathMatching("/bommel/99"))
+                        .willReturn(aResponse()
+                                .withStatus(404)));
+
         given()
                 .when()
                 .pathParam("id", id)

@@ -28,20 +28,22 @@ public class OrganizationResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationResource.class);
 
-    @Inject
-    Validator validator;
+    private final Validator validator;
+    private final Process<? extends Model> process;
+    private final OrganizationRepository organizationRepository;
 
     @Inject
-    @Named("NewOrganization")
-    Process<? extends Model> process;
-
-    @Inject
-    OrganizationRepository organizationRepository;
+    public OrganizationResource(Validator validator, @Named("NewOrganization") Process<? extends Model> process,
+            OrganizationRepository organizationRepository) {
+        this.validator = validator;
+        this.process = process;
+        this.organizationRepository = organizationRepository;
+    }
 
     @GET
     @Path("/{slug}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization", description = "Retrieves the details of an organization using the unique slug identifier.")
+    @Operation(summary = "Get organization", operationId = "getOrganizationBySlug", description = "Retrieves the details of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response getOrganizationBySlug(@PathParam("slug") String slug) {
@@ -55,7 +57,7 @@ public class OrganizationResource {
     @GET
     @Path("/{slug}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
+    @Operation(summary = "Get organization members", operationId = "getOrganizationMembers", description = "Retrieves the members of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response getOrganizationMembersBySlug(@PathParam("slug") String slug) {
@@ -69,8 +71,8 @@ public class OrganizationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new organization", operationId = "createNewOrganization")
-    @APIResponse(responseCode = "202", description = "Creation started successfully")
-    @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    @APIResponse(responseCode = "201", description = "Creation started successfully", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     public Response create(NewOrganizationInput input) {
         Model model = process.createModel();
         Map<String, Object> newOrganizationParameters = input.toModel();
@@ -85,6 +87,9 @@ public class OrganizationResource {
     @Path(("/validate"))
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Validates the organization input", operationId = "validate")
+    @APIResponse(responseCode = "200", description = "Validation successful", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
+    @APIResponse(responseCode = "400", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     public ValidationResult validate(Organization organization) {
 
         ValidationResult result = RestValidator.forCandidate(organization)
@@ -94,10 +99,7 @@ public class OrganizationResource {
         LOG.info("Validating Organization {}", organization.getName());
 
         if (result.isValid() == ValidationResult.Validity.INVALID) {
-            Response response = Response.status(Response.Status.BAD_REQUEST)
-                    .entity(result)
-                    .build();
-
+            Response response = Response.status(Response.Status.BAD_REQUEST).entity(result).build();
             throw new BadRequestException(response);
         }
 

@@ -32,7 +32,7 @@ public class TransactionRecordResource {
 
     @GET
     @Path("/all")
-    @Operation(summary = "Get all transaction records", description = "Fetches all transaction records with optional filters for bommel association")
+    @Operation(summary = "Get all transaction records", operationId = "getAllTransactionRecords", description = "Fetches all transaction records with optional filters for bommel association")
     @APIResponse(responseCode = "200", description = "List of transaction records, empty list if none are available", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public List<TransactionRecord> getAll(@BeanParam AllParameters parameters) {
         parameters.verifyOnlyOneIsActive();

@@ -1,10 +1,12 @@
 package app.hopps.org.rest;
 
 import app.hopps.org.jpa.*;
+import app.hopps.org.rest.model.BommelInput;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.TestTransaction;
+import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.smallrye.mutiny.Uni;
@@ -18,12 +20,12 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
+@TestHTTPEndpoint(BommelResource.class)
 class BommelResourceTest {
 
     @Inject
@@ -40,7 +42,7 @@ class BommelResourceTest {
 
     @BeforeEach
     @Transactional
-    public void setup() {
+    void setup() {
         orgRepo.deleteAll();
         bommelRepo.deleteAll();
 
@@ -51,28 +53,32 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void testCreateRoot() {
-        var organization = resourceCreator.setupOrganization();
-
-        String newBommelJson = "{"
-                + "\"name\": \"Root\", \"emoji\":\"\","
-                + "\"organization\": { \"id\": " + organization.getId() + "}"
-                + "}";
+    void shouldNotFindRoot() {
+        Organization organization = resourceCreator.setupOrganization();
 
         given()
                 .when()
-                .get("/bommel/root/{orgId}", organization.getId())
+                .get("/root/{orgId}", organization.getId())
                 .then()
-                .statusCode(200)
-                .body(is("null"));
+                .statusCode(404)
+                .body(is("Bommel not found"));
+    }
+
+    @Test
+    @TestSecurity(user = "test")
+    @TestTransaction
+    void shouldCreateRoot() {
+        var organization = resourceCreator.setupOrganization();
+
+        BommelInput bommelInput = new BommelInput(organization.getId(), "Root", "", null, null);
 
         long rootId = given()
-                .body(newBommelJson)
+                .body(bommelInput)
                 .contentType("application/json")
                 .when()
-                .post("/bommel/root")
+                .post("/root")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract()
                 .jsonPath()
                 .getLong("id");
@@ -84,18 +90,17 @@ class BommelResourceTest {
 
         given()
                 .when()
-                .get("/bommel/root/{orgId}", organization.getId())
+                .get("/root/{orgId}", organization.getId())
                 .then()
                 .statusCode(200)
                 .body("name", is("Root"))
-                .and()
                 .body("parent", is(nullValue()));
     }
 
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void createBommelOnlyWithWritePermissions() {
+    void createBommelOnlyWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var parent = bommels.getLast();
 
@@ -103,9 +108,9 @@ class BommelResourceTest {
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
                 .contentType("application/json")
                 .when()
-                .post("/bommel")
+                .post()
                 .then()
-                .statusCode(401);
+                .statusCode(403);
 
         assertEquals(bommels.size(), bommelRepo.count());
 
@@ -117,9 +122,9 @@ class BommelResourceTest {
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
                 .contentType("application/json")
                 .when()
-                .post("/bommel")
+                .post()
                 .then()
-                .statusCode(401);
+                .statusCode(403);
 
         assertEquals(bommels.size(), bommelRepo.count());
 
@@ -131,9 +136,10 @@ class BommelResourceTest {
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
                 .contentType("application/json")
                 .when()
-                .post("/bommel")
+                .post()
                 .then()
-                .statusCode(200);
+                .statusCode(201)
+                .body("id", notNullValue());
 
         assertEquals(bommels.size() + 1, bommelRepo.count());
     }
@@ -141,7 +147,7 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void updateBommelOnlyWithWritePermissions() {
+    void updateBommelOnlyWithWritePermsions() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
@@ -149,11 +155,11 @@ class BommelResourceTest {
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\" }")
                 .contentType("application/json")
                 .when()
-                .put("/bommel/{id}", bommel.id)
+                .put("/{id}", bommel.id)
                 .then()
-                .statusCode(401);
+                .statusCode(403);
 
-        assertNotEquals(bommelRepo.findById(bommel.id).getName(), "Test bommel");
+        assertNotEquals("Test bommel", bommelRepo.findById(bommel.id).getName());
 
         // Give write permissions
         Mockito.when(authModelClient.check(TupleKey.of("bommel:" + bommel.id, "write", "user:test")))
@@ -163,7 +169,7 @@ class BommelResourceTest {
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\" }")
                 .contentType("application/json")
                 .when()
-                .put("/bommel/{id}", bommel.id)
+                .put("/{id}", bommel.id)
                 .then()
                 .statusCode(200)
                 .body("id", is(bommel.id.intValue()))
@@ -183,22 +189,22 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void getBommelRequiresReadPermissions() {
+    void getBommelRequiresReadPermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
         given()
                 .when()
-                .get("/bommel/{id}", bommel.id)
+                .get("/{id}", bommel.id)
                 .then()
-                .statusCode(401);
+                .statusCode(403);
 
         Mockito.when(authModelClient.check(TupleKey.of("bommel:" + bommel.id, "read", "user:test")))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
                 .when()
-                .get("/bommel/{id}", bommel.id)
+                .get("/{id}", bommel.id)
                 .then()
                 .statusCode(200)
                 .body("id", is(bommel.id.intValue()))
@@ -213,7 +219,7 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void moveBommelWorksWithWritePermissions() {
+    void moveBommelWorksWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var child = bommels.getLast();
         var newParent = bommels.get(2);
@@ -226,7 +232,7 @@ class BommelResourceTest {
 
         given()
                 .when()
-                .put("/bommel/move/{id}/to/{newParent}", child.id, newParent.id)
+                .put("/move/{id}/to/{newParent}", child.id, newParent.id)
                 .then()
                 .statusCode(200)
                 .body("id", is(child.id.intValue()))
@@ -241,7 +247,7 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void moveBommelFailsWithoutWritePermissions() {
+    void moveBommelFailsWithoutWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var child = bommels.getLast();
         var oldParent = bommels.get(1);
@@ -252,9 +258,9 @@ class BommelResourceTest {
 
         given()
                 .when()
-                .put("/bommel/move/{id}/to/{newParent}", child.id, newParent.id)
+                .put("/move/{id}/to/{newParent}", child.id, newParent.id)
                 .then()
-                .statusCode(401);
+                .statusCode(403);
 
         var updatedChild = bommelRepo.findById(child.id);
         bommelRepo.getEntityManager().refresh(updatedChild);
@@ -264,7 +270,7 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void getChildrenRecursiveReturnsAllChildren() {
+    void getChildrenRecursiveReturnsAllChildren() {
         var bommels = resourceCreator.setupSimpleTree();
         Bommel root = bommels.getFirst();
 
@@ -273,7 +279,7 @@ class BommelResourceTest {
 
         List<TreeSearchBommel> treeSearchChildren = given()
                 .when()
-                .get("/bommel/{id}/children/recursive", root.id)
+                .get("/{id}/children/recursive", root.id)
                 .then()
                 .statusCode(200)
                 .extract()
@@ -300,39 +306,27 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void getChildrenReturnsAllDirectChildren() {
+    void getChildrenReturnsAllDirectChildren() {
         var bommels = resourceCreator.setupSimpleTree();
         Bommel root = bommels.getFirst();
 
         Mockito.when(authModelClient.check(TupleKey.of("bommel:" + root.id, "read", "user:test")))
                 .thenReturn(Uni.createFrom().item(true));
 
-        List<Bommel> children = given()
+        given()
                 .when()
-                .get("/bommel/{id}/children", root.id)
+                .get("/{id}/children", root.id)
                 .then()
                 .statusCode(200)
-                .extract()
-                .jsonPath()
-                .getList("$", Bommel.class);
-
-        assertTrue(
-                children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(1).id)));
-
-        assertTrue(
-                children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(2).id)));
-
-        assertFalse(
-                children.stream()
-                        .anyMatch(bommel -> Objects.equals(bommel.id, bommels.get(3).id)));
+                .body("size()", is(2))
+                .body("[0].id", is(bommels.get(1).id.intValue()))
+                .body("[1].id", is(bommels.get(2).id.intValue()));
     }
 
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void deleteBommelDoesntWorkWithReadPermissions() {
+    void deleteBommelDoesntWorkWithReadPermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
@@ -341,9 +335,9 @@ class BommelResourceTest {
 
         given()
                 .when()
-                .delete("/bommel/{id}", bommel.id)
+                .delete("/{id}", bommel.id)
                 .then()
-                .statusCode(401);
+                .statusCode(403);
 
         assertEquals(bommels.size(), bommelRepo.count());
     }
@@ -351,7 +345,7 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void deleteBommelWorksWithWritePermissions() {
+    void deleteBommelWorksWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
@@ -360,7 +354,7 @@ class BommelResourceTest {
 
         given()
                 .when()
-                .delete("/bommel/{id}", bommel.id)
+                .delete("/{id}", bommel.id)
                 .then()
                 .statusCode(204);
 
@@ -370,7 +364,7 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
-    public void getRootBommelTest() {
+    void getRootBommelTest() {
         // Arrange
         List<Bommel> existingBommels = resourceCreator.setupSimpleTree();
         var organization = orgRepo.findAll().firstResult();
@@ -380,20 +374,13 @@ class BommelResourceTest {
                 .thenReturn(Uni.createFrom().item(true));
 
         // Act
-        Bommel actual = given()
+        given()
                 .when()
-                .get("/bommel/root/{orgId}", organization.getId())
+                .get("/root/{orgId}", organization.getId())
                 .then()
                 .statusCode(200)
-                .extract()
-                .as(Bommel.class);
-
-        // Assert
-        Bommel expected = existingBommels.getFirst();
-
-        assertNotNull(actual);
-        assertEquals(expected.id, actual.id);
-        assertEquals(expected.getName(), actual.getName());
+                .body("id", is(rootBommel.id.intValue()))
+                .body("name", is(rootBommel.getName()));
     }
 
 }
