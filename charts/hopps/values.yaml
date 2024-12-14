@@ -88,7 +88,7 @@ azDocumentAi:
   livenessProbe:
     httpGet:
       path: /q/health/live
-      port: http
+      port: management
       scheme: HTTP
     failureThreshold: 3
     periodSeconds: 20
@@ -97,7 +97,7 @@ azDocumentAi:
   readinessProbe:
     httpGet:
       path: /q/health/ready
-      port: http
+      port: management
       scheme: HTTP
     failureThreshold: 3
     periodSeconds: 10
@@ -107,7 +107,7 @@ azDocumentAi:
     httpGet:
       scheme: HTTP
       path: /q/health/started
-      port: http
+      port: management
     failureThreshold: 1
     periodSeconds: 5
     successThreshold: 1
@@ -203,7 +203,7 @@ fin:
   livenessProbe:
     httpGet:
       path: /q/health/live
-      port: http
+      port: management
       scheme: HTTP
     failureThreshold: 3
     periodSeconds: 20
@@ -212,7 +212,7 @@ fin:
   readinessProbe:
     httpGet:
       path: /q/health/ready
-      port: http
+      port: management
       scheme: HTTP
     failureThreshold: 3
     periodSeconds: 10
@@ -222,7 +222,7 @@ fin:
     httpGet:
       scheme: HTTP
       path: /q/health/started
-      port: http
+      port: management
     failureThreshold: 1
     periodSeconds: 5
     successThreshold: 1
@@ -325,7 +325,7 @@ org:
   livenessProbe:
     httpGet:
       path: /q/health/live
-      port: http
+      port: management
       scheme: HTTP
     failureThreshold: 3
     periodSeconds: 20
@@ -334,7 +334,7 @@ org:
   readinessProbe:
     httpGet:
       path: /q/health/ready
-      port: http
+      port: management
       scheme: HTTP
     failureThreshold: 3
     periodSeconds: 10
@@ -344,7 +344,7 @@ org:
     httpGet:
       scheme: HTTP
       path: /q/health/started
-      port: http
+      port: management
     failureThreshold: 1
     periodSeconds: 5
     successThreshold: 1
@@ -401,10 +401,6 @@ frontend:
         - ALL
     runAsNonRoot: true
     runAsUser: 1000
-    # ToDo: check if can be run with readonly root filesystem, following access is needed
-    # - /var/cache/nginx
-    # - /etc/nginx/config.d
-    # - /var/run/nginx.pid
     readOnlyRootFilesystem: false
     seccompProfile:
       type: RuntimeDefault
@@ -421,6 +417,7 @@ frontend:
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
+  # Note: not implemented for frontend yet
   serviceMonitor:
     enabled: false
     namespace: ~
@@ -447,9 +444,7 @@ frontend:
   # Tolerations settings for scheduling the pod based on node taints
   tolerations: []
   # Affinity settings for controlling pod scheduling
-  affinity: { }
-  # ToDo: allow healhchecks to be disable
-  # ToDo: enable when endpoints are available
+  affinity: {}
   livenessProbe:
     failureThreshold: 3
     httpGet:
@@ -478,12 +473,8 @@ frontend:
       scheme: HTTP
       path: /
       port: http
-  volumes:
-    - name: cache
-      emptyDir: {}
-  volumeMounts:
-    - name: cache
-      mountPath: /var/cache/nginx
+  volumes: {}
+  volumeMounts: {}
 
 # external dependencies
 keycloak:
@@ -511,5 +502,4 @@ kafka-ui:
   #    tls:
   #      enabled: true
   #      secretName: kafka-tls
-  #    # ToDo: mask domain
   #    host: kafka-ui.<domain>
