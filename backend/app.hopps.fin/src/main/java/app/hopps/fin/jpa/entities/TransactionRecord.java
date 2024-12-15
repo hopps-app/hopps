@@ -15,6 +15,9 @@ public class TransactionRecord {
     @Column(name = "bommel_id")
     private Long bommelId;
 
+    @Column(name = "image_key")
+    private String documentKey;
+
     // That's the only required common column in the kafka events
     @Column(nullable = false)
     private BigDecimal total;
@@ -53,6 +56,14 @@ public class TransactionRecord {
 
     public void setBommelId(Long bommelId) {
         this.bommelId = bommelId;
+    }
+
+    public String getDocumentKey() {
+        return documentKey;
+    }
+
+    public void setDocumentKey(String documentKey) {
+        this.documentKey = documentKey;
     }
 
     public BigDecimal getTotal() {
