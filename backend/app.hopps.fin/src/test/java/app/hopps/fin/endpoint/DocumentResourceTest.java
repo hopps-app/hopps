@@ -1,0 +1,83 @@
+package app.hopps.fin.endpoint;
+
+import io.quarkus.test.common.http.TestHTTPEndpoint;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import java.io.InputStream;
+
+import static io.restassured.RestAssured.given;
+
+@QuarkusTest
+@TestHTTPEndpoint(DocumentResource.class)
+class DocumentResourceTest {
+    @Inject
+    Flyway flyway;
+
+    @Inject
+    S3Client s3Client;
+
+    @ConfigProperty(name = "app.hopps.fin.bucket.name")
+    String bucketName;
+
+    @BeforeEach
+    void setup() {
+        flyway.clean();
+        flyway.migrate();
+
+        try (InputStream zugferdInputStream = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf")) {
+            assert zugferdInputStream != null;
+            byte[] byteArray = IOUtils.toByteArray(zugferdInputStream);
+
+            s3Client.putObject(PutObjectRequest.builder()
+                    .key("imageKey")
+                    .bucket(bucketName)
+                    .build(), RequestBody.fromBytes(byteArray));
+        } catch (Exception ignored) {
+            // Do nothing
+        }
+    }
+
+    @Test
+    void shouldNotGetFile() {
+        given()
+                .when()
+                .get("{documentKey}", "randomKey")
+                .then()
+                .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    void shouldGetFile() {
+        given()
+                .when()
+                .get("{documentKey}", "imageKey")
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    @Disabled("ByteArrayInputStream serialization error")
+    void shouldUploadFile() {
+        InputStream zugferdInputStream = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+
+        given()
+                .when()
+                .multiPart("file", zugferdInputStream)
+                .multiPart("filename", "ZUGFeRD.pdf")
+                .multiPart("mimetype", "application/pdf")
+                .post()
+                .then()
+                .statusCode(Response.Status.ACCEPTED.getStatusCode());
+    }
+}
