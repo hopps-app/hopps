@@ -1,10 +1,10 @@
 package app.hopps.org.rest;
 
 import app.hopps.org.jpa.Organization;
+import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import app.hopps.org.rest.model.OrganizationInput;
 import app.hopps.org.rest.model.OwnerInput;
-import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -17,10 +17,8 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.Collections;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
@@ -29,6 +27,9 @@ class OrganizationResourceTests {
 
     @Inject
     Flyway flyway;
+
+    @Inject
+    OrganizationRepository organizationRepository;
 
     @BeforeEach
     public void cleanDatabase() {
@@ -78,6 +79,8 @@ class OrganizationResourceTests {
 
     @Test
     void shouldStartCreatingOrganization() throws MalformedURLException {
+        organizationRepository.deleteAll();
+
         OrganizationInput organizationInput = new OrganizationInput("Schützenverein", "schuetzenverein",
                 Organization.TYPE.EINGETRAGENER_VEREIN, URI.create("https://hopps.cloud").toURL(),
                 URI.create("https://hopps.cloud").toURL(), null);
