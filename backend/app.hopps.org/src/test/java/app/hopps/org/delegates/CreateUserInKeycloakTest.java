@@ -15,8 +15,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 class CreateUserInKeycloakTest {
@@ -51,7 +50,7 @@ class CreateUserInKeycloakTest {
         // Quarkus creates "alice" and "bob" users for us while testing
         assertThat(usersResource.searchByFirstName("Foo", true), hasSize(0));
 
-        delegate.createUserInKeycloak(newUser);
+        delegate.createUserInKeycloak(newUser, "testPassword");
         assertThat(usersResource.searchByFirstName("Foo", true), hasSize(1));
 
         var createdUsers = usersResource.searchByEmail(newUser.getEmail(), true);
@@ -74,6 +73,19 @@ class CreateUserInKeycloakTest {
         assertTrue(realmRoles.contains(defaultRole));
 
         removeTestUser(usersResource, newUser);
+    }
+
+    @Test
+    void shouldSetPassword() {
+        // given
+        String newPassword = "newPassword";
+        Member kevin = new Member();
+        kevin.setFirstName("Kevin");
+        kevin.setLastName("Cewyn");
+        kevin.setEmail("kevin@example.com");
+
+        // when
+        assertDoesNotThrow(() -> delegate.createUserInKeycloak(kevin, newPassword));
     }
 
     private static void removeTestUser(UsersResource usersResource, Member newUser) {

@@ -47,6 +47,7 @@ public class OrganizationResource {
     @APIResponse(responseCode = "200", description = "Organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response getOrganizationBySlug(@PathParam("slug") String slug) {
+
         Organization organization = organizationRepository.findBySlug(slug);
         if (organization == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -80,7 +81,9 @@ public class OrganizationResource {
         ProcessInstance<? extends Model> instance = process.createInstance(model);
         instance.start();
 
-        return Response.accepted().entity(instance).entity(instance.id()).build();
+        return Response.accepted()
+                .entity(instance.id())
+                .build();
     }
 
     @POST

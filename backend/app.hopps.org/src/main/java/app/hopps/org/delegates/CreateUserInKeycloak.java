@@ -9,13 +9,18 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @ApplicationScoped
 public class CreateUserInKeycloak {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CreateUserInKeycloak.class);
 
     @Inject
     Keycloak keycloak;
@@ -26,7 +31,11 @@ public class CreateUserInKeycloak {
     @ConfigProperty(name = "app.hopps.org.auth.default-role")
     String ownerRoleName;
 
-    public void createUserInKeycloak(Member user) {
+    public void createUserInKeycloak(Member user, String newPassword) {
+
+        if (newPassword == null || newPassword.isEmpty()) {
+            throw new IllegalArgumentException("New password cannot be null or empty");
+        }
 
         RealmResource realmResource = keycloak.realm(realmName);
         UsersResource usersResource = realmResource.users();
@@ -38,6 +47,12 @@ public class CreateUserInKeycloak {
         userRepresentation.setLastName(user.getLastName());
         userRepresentation.setEmail(user.getEmail());
         userRepresentation.setUsername(user.getEmail());
+
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(newPassword);
+        credential.setTemporary(false);
+        userRepresentation.setCredentials(List.of(credential));
 
         Response response = usersResource.create(userRepresentation);
 
@@ -68,6 +83,7 @@ public class CreateUserInKeycloak {
             try {
                 realmResource.roles().create(ownerRole);
             } catch (Exception ignored) {
+                LOG.warn("Could not create owner role: {}", ownerRoleName, e);
             }
 
             ownerRole = realmResource.roles().get(ownerRoleName).toRepresentation();
