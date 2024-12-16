@@ -117,6 +117,7 @@ class CreationValidationDelegateTests {
         existingOrganization.setSlug("kegelclub-777");
 
         QuarkusTransaction.begin();
+        organizationRepository.deleteAll();
         organizationRepository.persist(existingOrganization);
         QuarkusTransaction.commit();
 
