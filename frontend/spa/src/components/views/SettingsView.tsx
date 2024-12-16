@@ -29,7 +29,7 @@ function SettingsView() {
         if (path && navigationItems.some((item) => item.value === path)) {
             setActiveTab(path);
         }
-    }, [location]);
+    }, [location, navigationItems]);
 
     const navigateTo = (tab: string) => {
         navigate(`/settings/${tab}`);

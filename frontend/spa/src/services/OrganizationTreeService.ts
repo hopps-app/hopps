@@ -139,6 +139,33 @@ export class OrganizationTreeService {
 
         return node;
     }
+
+    async ensureRootBommelCreated(organizationId: number): Promise<Bommel> {
+        const loadRootBommel = async () => {
+            return await apiService.bommel.getRootBommel(organizationId);
+        };
+        const createRootBommel = async () => {
+            return await apiService.bommel.createRootBommel({
+                organization: { id: organizationId },
+                name: 'root',
+                emoji: '',
+                children: [],
+                parent: undefined,
+            });
+        };
+        try {
+            let rootBommel = await loadRootBommel();
+
+            if (!rootBommel) {
+                rootBommel = await createRootBommel();
+            }
+
+            return rootBommel;
+        } catch (e) {
+            console.error('Failed to load root bommel', e);
+            return await createRootBommel();
+        }
+    }
 }
 
 const organizationTreeService = new OrganizationTreeService();
