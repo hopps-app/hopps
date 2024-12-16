@@ -5,6 +5,7 @@ import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import app.hopps.org.rest.model.OrganizationInput;
 import app.hopps.org.rest.model.OwnerInput;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -79,7 +80,9 @@ class OrganizationResourceTests {
 
     @Test
     void shouldStartCreatingOrganization() throws MalformedURLException {
+        QuarkusTransaction.begin();
         organizationRepository.deleteAll();
+        QuarkusTransaction.commit();
 
         OrganizationInput organizationInput = new OrganizationInput("Schützenverein", "schuetzenverein",
                 Organization.TYPE.EINGETRAGENER_VEREIN, URI.create("https://hopps.cloud").toURL(),
