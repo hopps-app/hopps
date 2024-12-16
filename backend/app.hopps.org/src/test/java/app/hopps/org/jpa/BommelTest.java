@@ -38,8 +38,6 @@ class BommelTest {
     @BeforeEach
     @Transactional
     public void cleanDatabase() {
-//        flyway.clean();
-//        flyway.migrate();
         orgRepo.deleteAll();
         repo.deleteAll();
     }
@@ -121,8 +119,7 @@ class BommelTest {
 
         var expectedParentsList = List.of(
                 repo.findById(4L),
-                repo.findById(2L)
-        );
+                repo.findById(2L));
 
         var child = repo.findById(7L);
 
