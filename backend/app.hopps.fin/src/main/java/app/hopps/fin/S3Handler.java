@@ -13,7 +13,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -43,13 +42,12 @@ public class S3Handler {
     public void saveFile(DocumentForm documentForm) {
         try {
             byte[] bytes = IOUtils.toByteArray(documentForm.file());
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
 
             s3.putObject(PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(documentForm.filename())
                     .contentType(documentForm.mimetype())
-                    .build(), RequestBody.fromInputStream(byteArrayInputStream, bytes.length));
+                    .build(), RequestBody.fromBytes(bytes));
         } catch (IOException e) {
             LOG.warn("Could not upload file");
             throw new IllegalArgumentException("Could not upload file to s3");

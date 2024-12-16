@@ -7,7 +7,7 @@ import org.jboss.resteasy.reactive.RestForm;
 import java.io.InputStream;
 
 public record DocumentForm(
-        @RestForm("file") InputStream file,
+        @RestForm("file") @PartType(MediaType.APPLICATION_OCTET_STREAM) InputStream file,
         @RestForm @PartType(MediaType.TEXT_PLAIN) String filename,
         @RestForm @PartType(MediaType.TEXT_PLAIN) String mimetype,
         @RestForm @PartType(MediaType.TEXT_PLAIN) Long bommelId
