@@ -1,5 +1,7 @@
 package app.hopps.org.rest;
 
+import app.hopps.org.jpa.BommelRepository;
+import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.model.NewOrganizationInput;
@@ -31,6 +33,12 @@ class OrganizationResourceTests {
 
     @Inject
     OrganizationRepository organizationRepository;
+
+    @Inject
+    MemberRepository memberRepository;
+
+    @Inject
+    BommelRepository bommelRepository;
 
     @BeforeEach
     public void cleanDatabase() {
@@ -82,6 +90,8 @@ class OrganizationResourceTests {
     void shouldStartCreatingOrganization() throws MalformedURLException {
         QuarkusTransaction.begin();
         organizationRepository.deleteAll();
+        bommelRepository.deleteAll();
+        memberRepository.deleteAll();
         QuarkusTransaction.commit();
 
         OrganizationInput organizationInput = new OrganizationInput("Schützenverein", "schuetzenverein",
