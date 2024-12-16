@@ -107,7 +107,7 @@ class CreationValidationDelegateTests {
     }
 
     @Test
-    @DisplayName("should validate valid data")
+    @DisplayName("should invalidate non-unique slug")
     void shouldInvalidateUniqueness() {
 
         // given

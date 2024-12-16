@@ -42,7 +42,7 @@ jobs:
 
       # only build relevant service
       - name: mvn package
-        run: mvn -B package --file backend/${{ matrix.service.directory }}/pom.xml
+        run: mvn -B clean package --file backend/${{ matrix.service.directory }}/pom.xml
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
