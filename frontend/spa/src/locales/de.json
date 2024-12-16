@@ -17,6 +17,7 @@
   "organization": {
     "registration": {
       "failed": "Organisation konnte nicht registriert werden",
+      "header": "Organisation registrieren",
       "success": "Organisation erfolgreich erstellt"
     },
     "settings": {

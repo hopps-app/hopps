@@ -6,7 +6,6 @@ import Button from '@/components/ui/Button.tsx';
 import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import { useToast } from '@/hooks/use-toast.ts';
-import apiService from '@/services/ApiService.ts';
 import { useStore } from '@/store/store.ts';
 import { Bommel } from '@/services/api/types/Bommel.ts';
 import organizationTreeService from '@/services/OrganizationTreeService.ts';
@@ -60,30 +59,8 @@ function OrganizationSettingsView() {
             return;
         }
 
-        const loadRootBommel = async () => {
-            return await apiService.bommel.getRootBommel(organization.id);
-        };
-        const createRootBommel = async () => {
-            return await apiService.bommel.createRootBommel({
-                organization: { id: organization.id },
-                name: 'root',
-                emoji: '',
-                children: [],
-                parent: undefined,
-            });
-        };
-
-        loadRootBommel().then(async (rootBommel) => {
-            console.log('ROOT', rootBommel);
-
-            if (rootBommel) {
-                setRootBommel(rootBommel);
-                return;
-            }
-
-            await createRootBommel().then((rootBommel) => {
-                setRootBommel(rootBommel);
-            });
+        organizationTreeService.ensureRootBommelCreated(organization.id).then((bommel) => {
+            setRootBommel(bommel);
         });
     }, []);
 
