@@ -5,6 +5,7 @@ import io.quarkus.narayana.jta.QuarkusTransactionException;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import org.flywaydb.core.Flyway;
 import org.instancio.Instancio;
@@ -35,9 +36,12 @@ class BommelTest {
     Flyway flyway;
 
     @BeforeEach
+    @Transactional
     public void cleanDatabase() {
-        flyway.clean();
-        flyway.migrate();
+//        flyway.clean();
+//        flyway.migrate();
+        orgRepo.deleteAll();
+        repo.deleteAll();
     }
 
     @Test
