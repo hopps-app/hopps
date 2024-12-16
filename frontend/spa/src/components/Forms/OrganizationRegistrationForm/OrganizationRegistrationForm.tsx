@@ -55,6 +55,7 @@ export function OrganizationRegistrationForm(props: Props) {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="">
+            <h1 className="text-center">{t('organization.registration.header')}</h1>
             <div className="my-4">
                 <TextField label="Organization name" {...register('organizationName')} error={errors.organizationName?.message} />
             </div>
