@@ -40,7 +40,7 @@ jobs:
           cache: maven
 
       - name: mvn package
-        run: mvn -B verify --file backend/pom.xml
+        run: mvn -B clean verify --file backend/pom.xml
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
