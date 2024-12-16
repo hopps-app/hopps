@@ -193,7 +193,7 @@
         <dependency>
             <groupId>io.quarkiverse.wiremock</groupId>
             <artifactId>quarkus-wiremock-test</artifactId>
-            <version>1.4.0</version>
+            <version>1.4.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
