@@ -1,19 +1,17 @@
 package app.hopps.fin;
 
-import app.hopps.fin.endpoint.model.DocumentForm;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 @ApplicationScoped
@@ -39,24 +37,17 @@ public class S3Handler {
         return object.asInputStream();
     }
 
-    public void saveFile(DocumentForm documentForm) {
-        try {
-            byte[] bytes = IOUtils.toByteArray(documentForm.file());
-
-            s3.putObject(PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(documentForm.filename())
-                    .contentType(documentForm.mimetype())
-                    .build(), RequestBody.fromBytes(bytes));
-        } catch (IOException e) {
-            LOG.warn("Could not upload file");
-            throw new IllegalArgumentException("Could not upload file to s3");
-        }
+    public void saveFile(FileUpload file) {
+        s3.putObject(PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(file.fileName())
+                .contentType(file.contentType())
+                .build(), RequestBody.fromFile(file.uploadedFile()));
     }
 
     void setup(@Observes StartupEvent ev) {
         if (!checkBucketExists()) {
-            // Throw exception when exist but not creatable
+            // Throw exception when not creatable
             createBucket();
         }
     }

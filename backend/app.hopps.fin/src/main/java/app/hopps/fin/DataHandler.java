@@ -7,6 +7,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+import java.util.Optional;
+
 /**
  * Constructor injection is not possible thanks to the kogito
  */
@@ -17,15 +19,19 @@ public class DataHandler {
     TransactionRecordRepository repository;
 
     public void processTransactionRecord(TransactionRecordConverter recordConverter) {
-        persistAndVerify(recordConverter.convertToTransactionRecord());
+        persistAndVerify(recordConverter);
     }
 
     @Transactional
-    void persistAndVerify(TransactionRecord transactionRecord) {
-        repository.persist(transactionRecord);
-
-        if (!repository.isPersistent(transactionRecord)) {
-            throw new IllegalStateException("Transaction could not be saved!");
+    void persistAndVerify(TransactionRecordConverter recordConverter) {
+        Optional<TransactionRecord> byIdOptional = repository.findByIdOptional(recordConverter.getReferenceKey());
+        if (byIdOptional.isEmpty()) {
+            throw new IllegalStateException("Reference key is not found!");
         }
+
+        TransactionRecord transactionRecord = byIdOptional.get();
+        recordConverter.updateTransactionRecord(transactionRecord);
+
+        repository.persist(transactionRecord);
     }
 }

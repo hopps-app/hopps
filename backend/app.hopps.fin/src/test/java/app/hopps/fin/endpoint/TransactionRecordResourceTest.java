@@ -34,13 +34,13 @@ class TransactionRecordResourceTest {
     void setup() {
         repository.deleteAll();
 
-        TransactionRecord withBommel = new TransactionRecord();
-        withBommel.setTotal(BigDecimal.valueOf(50));
+        TransactionRecord withBommel = new TransactionRecord(BigDecimal.valueOf(50));
+        withBommel.setDocumentKey("randomKey");
         withBommel.setBommelId(1L);
         repository.persist(withBommel);
 
-        TransactionRecord noBommel = new TransactionRecord();
-        noBommel.setTotal(BigDecimal.valueOf(20));
+        TransactionRecord noBommel = new TransactionRecord(BigDecimal.valueOf(20));
+        noBommel.setDocumentKey("randomKey");
         repository.persist(noBommel);
     }
 
