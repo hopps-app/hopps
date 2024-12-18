@@ -9,7 +9,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: hopps
-      version: 0.0.2
+      version: 0.0.3
   interval: 1m0s
   values:
     azDocumentAi:
@@ -32,14 +32,6 @@ spec:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         - name: kafka.bootstrap.servers
           value: hopps-kafka:9092
-      #livenessProbe:
-      #  exec:
-      #    command:
-      #      - "true"
-      #readinessProbe:
-      #  exec:
-      #    command:
-      #      - "true"
     org:
       image:
         tag: 239
@@ -67,7 +59,7 @@ spec:
               name: hopps-dev.org.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
         # OIDC
-        - name: quarkus.oidc.auth-server-url
+        - name: QUARKUS_OIDC_AUTH_SERVER_URL
           valueFrom:
             secretKeyRef:
               name: org
@@ -123,7 +115,7 @@ spec:
               name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
         # OIDC
-        - name: quarkus.oidc.auth-server-url
+        - name: QUARKUS_OIDC_AUTH_SERVER_URL
           valueFrom:
             secretKeyRef:
               name: fin
@@ -138,6 +130,10 @@ spec:
             secretKeyRef:
               name: fin
               key: QUARKUS_OIDC_CREDENTIALS_SECRET
+        # kafka
+        # ToDo: url should automatically be calculated, dependent on the name of the release-name
+        - name: kafka.bootstrap.servers
+          value: hopps-kafka:9092
       ingress:
         enabled: true
         annotations:
@@ -186,20 +182,16 @@ spec:
           - secretName: frontend-tls
             hosts:
               - ${DOMAIN_2}
-      livenessProbe:
-        exec:
-          command:
-            - "true"
-      readinessProbe:
-        exec:
-          command:
-            - "true"
     kafka:
       controller:
         replicaCount: 1
         resourcesPreset: "none"
       volumePermissions:
         resourcesPreset: "none"
+      # disable authentication for kafka for now
+      listeners:
+        client:
+          protocol: PLAINTEXT
     kafka-ui:
       enabled: true
       yamlApplicationConfig:
@@ -219,10 +211,14 @@ spec:
         ingressClassName: nginx
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
-          # configure oauth2-proxy security
-          nginx.ingress.kubernetes.io/auth-response-headers: x-auth-request-user, x-auth-request-email
-          nginx.ingress.kubernetes.io/auth-signin: https://${OAUTH_PROXY_DOMAIN}/oauth2/start?rd=$scheme://$host$request_uri
-          nginx.ingress.kubernetes.io/auth-url: https://${OAUTH_PROXY_DOMAIN}/oauth2/auth
+          # basic auth
+          nginx.ingress.kubernetes.io/auth-type: basic
+          nginx.ingress.kubernetes.io/auth-secret: kafka-ui-auth
+          nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - Kafka'
+          # configure oauth2-proxy security ToDo: waiting for keycloak GitHub integration for SSO
+          #nginx.ingress.kubernetes.io/auth-response-headers: x-auth-request-user, x-auth-request-email
+          #nginx.ingress.kubernetes.io/auth-signin: https://${OAUTH_PROXY_DOMAIN}/oauth2/start?rd=$scheme://$host$request_uri
+          #nginx.ingress.kubernetes.io/auth-url: https://${OAUTH_PROXY_DOMAIN}/oauth2/auth
         tls:
           enabled: true
           secretName: kafka-tls
