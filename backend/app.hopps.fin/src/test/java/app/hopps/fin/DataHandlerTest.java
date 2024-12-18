@@ -35,11 +35,18 @@ class DataHandlerTest {
     @Inject
     TransactionRecordRepository repository;
 
+    Long referenceKey;
+
     @BeforeEach
     @Transactional
     void setUp() {
         // although this test does not persist to db, other test might…
         repository.deleteAll();
+
+        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.TEN);
+        transactionRecord.setDocumentKey("randomKey");
+        repository.persist(transactionRecord);
+        referenceKey = transactionRecord.getId();
     }
 
     @Test
@@ -48,6 +55,7 @@ class DataHandlerTest {
 
         // given
         InvoiceData invoiceData = new InvoiceData(
+                referenceKey,
                 BigDecimal.valueOf(500),
                 LocalDate.now(),
                 "EUR");
@@ -66,6 +74,7 @@ class DataHandlerTest {
         // given
         LocalDate dueDate = LocalDate.now().plusDays(3);
         InvoiceData invoiceData = new InvoiceData(
+                referenceKey,
                 BigDecimal.valueOf(500),
                 LocalDate.now(),
                 "EUR",
@@ -94,7 +103,7 @@ class DataHandlerTest {
     void shouldWriteMinimalReceiptData() {
 
         // given
-        ReceiptData receiptData = new ReceiptData(BigDecimal.valueOf(100));
+        ReceiptData receiptData = new ReceiptData(referenceKey, BigDecimal.valueOf(100));
 
         // when
         dataHandler.processTransactionRecord(receiptData);
@@ -110,6 +119,7 @@ class DataHandlerTest {
         LocalDateTime transactionTime = LocalDateTime.now();
 
         ReceiptData receiptData = new ReceiptData(
+                referenceKey,
                 BigDecimal.valueOf(100),
                 Optional.of("StoreName"),
                 Optional.of(address),

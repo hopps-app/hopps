@@ -9,6 +9,7 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 public record InvoiceData(
+        Long referenceKey,
         BigDecimal total,
         LocalDate invoiceDate,
         String currencyCode,
@@ -19,14 +20,20 @@ public record InvoiceData(
         Optional<LocalDate> dueDate,
         Optional<BigDecimal> amountDue) implements TransactionRecordConverter {
 
-    public InvoiceData(BigDecimal total, LocalDate invoiceDate, String currencyCode) {
-        this(total, invoiceDate, currencyCode, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+    public InvoiceData(Long referenceKey, BigDecimal total, LocalDate invoiceDate, String currencyCode) {
+        this(referenceKey, total, invoiceDate, currencyCode, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty());
     }
 
     @Override
-    public TransactionRecord convertToTransactionRecord() {
-        TransactionRecord transactionRecord = new TransactionRecord(total());
+    public Long getReferenceKey() {
+        return referenceKey();
+    }
+
+    @Override
+    public void updateTransactionRecord(TransactionRecord transactionRecord) {
+        transactionRecord.setTotal(total());
+
         // Required
         transactionRecord.setTransactionTime(invoiceDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
         transactionRecord.setCurrencyCode(currencyCode());
@@ -39,7 +46,5 @@ public record InvoiceData(
         dueDate().ifPresent(
                 dueDate -> transactionRecord.setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         amountDue().ifPresent(transactionRecord::setAmountDue);
-
-        return transactionRecord;
     }
 }

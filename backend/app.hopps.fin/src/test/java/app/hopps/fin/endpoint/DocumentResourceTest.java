@@ -3,6 +3,7 @@ package app.hopps.fin.endpoint;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -72,10 +73,10 @@ class DocumentResourceTest {
         InputStream zugferdInputStream = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
 
         given()
-                .when()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .accept(MediaType.APPLICATION_JSON)
                 .multiPart("file", zugferdInputStream)
-                .multiPart("filename", "ZUGFeRD.pdf")
-                .multiPart("mimetype", "application/pdf")
+                .when()
                 .post()
                 .then()
                 .statusCode(Response.Status.ACCEPTED.getStatusCode());

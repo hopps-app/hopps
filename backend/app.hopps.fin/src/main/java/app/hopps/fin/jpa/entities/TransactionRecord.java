@@ -15,7 +15,7 @@ public class TransactionRecord {
     @Column(name = "bommel_id")
     private Long bommelId;
 
-    @Column(name = "image_key")
+    @Column(name = "document_key", nullable = false)
     private String documentKey;
 
     // That's the only required common column in the kafka events

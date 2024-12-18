@@ -12,7 +12,8 @@ public class DocumentProducer {
     Emitter<DocumentData> documentEmitter;
 
     public void sendToProcess(TransactionRecord transactionRecord) {
-        DocumentData documentData = new DocumentData(transactionRecord.getDocumentKey(), transactionRecord.getId());
+        String internalFinUrl = "http://fin/document/" + transactionRecord.getDocumentKey();
+        DocumentData documentData = new DocumentData(internalFinUrl, transactionRecord.getId());
         documentEmitter.send(documentData);
     }
 }
