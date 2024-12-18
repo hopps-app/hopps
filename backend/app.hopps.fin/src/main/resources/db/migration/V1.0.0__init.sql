@@ -9,6 +9,7 @@ create table TransactionRecord
     dueDate          timestamp(6) with time zone,
     id               bigint         not null,
     transaction_time timestamp(6) with time zone,
+    document_key     varchar(255)   not null,
     city             varchar(255),
     country          varchar(255),
     currencyCode     varchar(255),

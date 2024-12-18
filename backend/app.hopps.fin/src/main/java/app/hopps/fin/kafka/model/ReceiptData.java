@@ -9,24 +9,29 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 
 public record ReceiptData(
+        Long referenceKey,
         BigDecimal total,
         Optional<String> storeName,
         Optional<Address> storeAddress,
         Optional<LocalDateTime> transactionTime) implements TransactionRecordConverter {
 
-    public ReceiptData(BigDecimal total) {
-        this(total, Optional.empty(), Optional.empty(), Optional.empty());
+    public ReceiptData(Long referenceKey, BigDecimal total) {
+        this(referenceKey, total, Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     @Override
-    public TransactionRecord convertToTransactionRecord() {
-        TransactionRecord transactionRecord = new TransactionRecord(total());
+    public Long getReferenceKey() {
+        return referenceKey();
+    }
+
+    @Override
+    public void updateTransactionRecord(TransactionRecord transactionRecord) {
+        transactionRecord.setTotal(total());
+
         // Optional
         storeName().ifPresent(transactionRecord::setName);
         storeAddress().ifPresent(address -> transactionRecord.setAddress(address.convertToJpa()));
         transactionTime().ifPresent(
                 transactionTime -> transactionRecord.setTransactionTime(transactionTime.toInstant(ZoneOffset.UTC)));
-
-        return transactionRecord;
     }
 }
