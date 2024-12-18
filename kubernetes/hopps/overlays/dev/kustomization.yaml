@@ -29,3 +29,7 @@ secretGenerator:
   - name: postgres-operator-secret
     envs:
       - postgres-cluster-secret-encrypted.env
+  # basic auth for kafka-ui
+  - name: kafka-ui-auth
+    envs:
+      - kafka-ui-secret-encrypted.env
