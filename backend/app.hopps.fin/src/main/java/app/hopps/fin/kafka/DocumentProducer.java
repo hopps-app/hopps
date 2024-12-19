@@ -11,9 +11,9 @@ public class DocumentProducer {
     @Channel("document-out")
     Emitter<DocumentData> documentEmitter;
 
-    public void sendToProcess(TransactionRecord transactionRecord) {
+    public void sendToProcess(TransactionRecord transactionRecord, String type) {
         String internalFinUrl = "http://fin/document/" + transactionRecord.getDocumentKey();
-        DocumentData documentData = new DocumentData(internalFinUrl, transactionRecord.getId());
+        DocumentData documentData = new DocumentData(internalFinUrl, transactionRecord.getId(), type);
         documentEmitter.send(documentData);
     }
 }
