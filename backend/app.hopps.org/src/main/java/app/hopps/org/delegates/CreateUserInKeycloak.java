@@ -82,8 +82,8 @@ public class CreateUserInKeycloak {
             ownerRole.setName(ownerRoleName);
             try {
                 realmResource.roles().create(ownerRole);
-            } catch (Exception ignored) {
-                LOG.warn("Could not create owner role: {}", ownerRoleName, e);
+            } catch (Exception roleException) {
+                LOG.warn("Could not create owner role: {}", ownerRoleName, roleException);
             }
 
             ownerRole = realmResource.roles().get(ownerRoleName).toRepresentation();
