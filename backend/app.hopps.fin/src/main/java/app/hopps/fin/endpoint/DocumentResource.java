@@ -5,6 +5,7 @@ import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import app.hopps.fin.kafka.DocumentProducer;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -54,7 +55,8 @@ public class DocumentResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId
+            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
+            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<String> type
     ) {
         s3Handler.saveFile(file);
 
@@ -63,11 +65,16 @@ public class DocumentResource {
         transactionRecord.setDocumentKey(file.fileName());
         bommelId.ifPresent(transactionRecord::setBommelId);
 
-        repository.persist(transactionRecord);
+        persistTransactionRecord(transactionRecord);
 
         // Sent to kafka to process
-        documentProducer.sendToProcess(transactionRecord);
+        documentProducer.sendToProcess(transactionRecord, type.orElse("invoice"));
 
         return Response.accepted().build();
+    }
+
+    @Transactional
+    void persistTransactionRecord(TransactionRecord transactionRecord) {
+        repository.persist(transactionRecord);
     }
 }

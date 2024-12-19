@@ -9,7 +9,6 @@ import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -68,14 +67,12 @@ class DocumentResourceTest {
     }
 
     @Test
-    @Disabled("ByteArrayInputStream serialization error")
     void shouldUploadFile() {
         InputStream zugferdInputStream = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
 
         given()
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .accept(MediaType.APPLICATION_JSON)
-                .multiPart("file", zugferdInputStream)
+                .multiPart("file", "ZUGFeRD.pdf", zugferdInputStream)
                 .when()
                 .post()
                 .then()
