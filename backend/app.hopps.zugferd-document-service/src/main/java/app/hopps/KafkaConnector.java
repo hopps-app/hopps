@@ -20,8 +20,8 @@ public class KafkaConnector {
     @Inject
     DocumentDownloader documentDownloader;
 
-    @Incoming("source")
-    @Outgoing("sink")
+    @Incoming("document-URL-in")
+    @Outgoing("document-data-out")
     public InvoiceData process(InvoiceDocument invoiceDocument) {
         // Process the incoming message payload and return an updated payload
         try {
