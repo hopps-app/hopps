@@ -1,25 +1,28 @@
 package app.hopps;
 
-import app.hopps.model.*;
+import app.hopps.commons.Address;
+import app.hopps.commons.DocumentData;
+import app.hopps.commons.InvoiceData;
+import app.hopps.commons.ReceiptData;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-
+import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import io.smallrye.reactive.messaging.memory.InMemorySink;
 import io.smallrye.reactive.messaging.memory.InMemorySource;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.spi.Connector;
 import org.junit.jupiter.api.Test;
-
-import jakarta.inject.Inject;
-import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import org.mockito.Mockito;
 
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static app.hopps.commons.DocumentType.INVOICE;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -36,25 +39,26 @@ class DocumentKafkaConnectorTest {
     AzureAiService azureAiServiceMock;
 
     @Test
-    public void onlySendsToInvoices() throws URISyntaxException, MalformedURLException {
+    void onlySendsToInvoices() throws URISyntaxException, MalformedURLException {
 
         InvoiceData invoiceData = fakeInvoiceData();
 
-        DocumentImage documentImage = new DocumentImage(
+        DocumentData documentData = new DocumentData(
                 new URI("http://something.test/picture").toURL(),
-                DocumentType.Invoice);
+                1L,
+                INVOICE);
 
         when(azureAiServiceMock.scanInvoice(Mockito.any()))
                 .thenReturn(invoiceData);
         when(azureAiServiceMock.scanReceipt(Mockito.any()))
                 .thenReturn(null);
 
-        InMemorySource<DocumentImage> ordersIn = connector.source("documents-in");
+        InMemorySource<DocumentData> ordersIn = connector.source("documents-in");
         InMemorySink<InvoiceData> invoiceOut = connector.sink("invoices-out");
         InMemorySink<ReceiptData> receiptsOut = connector.sink("receipts-out");
 
         // Act
-        ordersIn.send(documentImage);
+        ordersIn.send(documentData);
 
         // Assert
         await().until(invoiceOut::received, t -> t.size() == 1);
@@ -62,21 +66,21 @@ class DocumentKafkaConnectorTest {
         InvoiceData actual = invoiceOut.received().getFirst().getPayload();
         assertEquals(invoiceData, actual);
 
-        assertEquals(receiptsOut.received().size(), 0);
+        assertEquals(0, receiptsOut.received().size());
     }
 
     private static InvoiceData fakeInvoiceData() {
         return new InvoiceData(
+                0L,
+                BigDecimal.valueOf(135.0),
+                LocalDate.now(),
+                "EUR",
                 Optional.of("Test customer"),
                 Optional.of(fakeAddress()),
                 Optional.empty(),
                 Optional.empty(),
-                LocalDate.now(),
                 Optional.empty(),
-                Optional.empty(),
-                135.0,
-                Optional.empty(),
-                "EUR");
+                Optional.empty());
     }
 
     private static Address fakeAddress() {

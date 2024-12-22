@@ -1,5 +1,6 @@
 package app.hopps.fin.endpoint;
 
+import app.hopps.commons.DocumentType;
 import app.hopps.fin.S3Handler;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
@@ -30,7 +31,7 @@ public class DocumentResource {
 
     @Inject
     public DocumentResource(DocumentProducer documentProducer, S3Handler s3Handler,
-                            TransactionRecordRepository repository) {
+            TransactionRecordRepository repository) {
         this.documentProducer = documentProducer;
         this.s3Handler = s3Handler;
         this.repository = repository;
@@ -56,8 +57,7 @@ public class DocumentResource {
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
             @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<String> type
-    ) {
+            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<DocumentType> type) {
         s3Handler.saveFile(file);
 
         // Save in database
@@ -68,7 +68,7 @@ public class DocumentResource {
         persistTransactionRecord(transactionRecord);
 
         // Sent to kafka to process
-        documentProducer.sendToProcess(transactionRecord, type.orElse("invoice"));
+        documentProducer.sendToProcess(transactionRecord, type.orElse(DocumentType.INVOICE));
 
         return Response.accepted().build();
     }
