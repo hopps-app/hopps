@@ -19,10 +19,6 @@ public class TransactionRecord {
     @Column(nullable = false)
     private BigDecimal total;
 
-    // Common optional columns
-    @Column(name = "sub_total")
-    private BigDecimal subTotal;
-
     // invoice = invoice date
     // receipt = transaction time
     @Column(name = "transaction_time")
@@ -65,14 +61,6 @@ public class TransactionRecord {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
-    }
-
-    public BigDecimal getSubTotal() {
-        return subTotal;
-    }
-
-    public void setSubTotal(BigDecimal subTotal) {
-        this.subTotal = subTotal;
     }
 
     public Instant getTransactionTime() {

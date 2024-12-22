@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -33,7 +34,7 @@ public class TransactionRecordResource {
     @GET
     @Path("/all")
     @Operation(summary = "Get all transaction records", operationId = "getAllTransactionRecords", description = "Fetches all transaction records with optional filters for bommel association")
-    @APIResponse(responseCode = "200", description = "List of transaction records, empty list if none are available", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    @APIResponse(responseCode = "200", description = "List of transaction records, empty list if none are available", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionRecord[].class)))
     public List<TransactionRecord> getAll(@BeanParam AllParameters parameters) {
         parameters.verifyOnlyOneIsActive();
         Page page = new Page(parameters.getPageIndex(), parameters.getPageSize());

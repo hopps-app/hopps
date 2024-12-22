@@ -10,20 +10,18 @@ import java.util.Optional;
 
 public record ReceiptData(
         BigDecimal total,
-        Optional<BigDecimal> subTotal,
         Optional<String> storeName,
         Optional<Address> storeAddress,
         Optional<LocalDateTime> transactionTime) implements TransactionRecordConverter {
 
     public ReceiptData(BigDecimal total) {
-        this(total, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        this(total, Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     @Override
     public TransactionRecord convertToTransactionRecord() {
         TransactionRecord transactionRecord = new TransactionRecord(total());
         // Optional
-        subTotal().ifPresent(transactionRecord::setSubTotal);
         storeName().ifPresent(transactionRecord::setName);
         storeAddress().ifPresent(address -> transactionRecord.setAddress(address.convertToJpa()));
         transactionTime().ifPresent(

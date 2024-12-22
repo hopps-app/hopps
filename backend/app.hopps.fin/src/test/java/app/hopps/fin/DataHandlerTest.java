@@ -74,7 +74,6 @@ class DataHandlerTest {
                 Optional.of("pruchaseOrderNumber"),
                 Optional.of("invoiceId"),
                 Optional.of(dueDate),
-                Optional.of(BigDecimal.valueOf(350)),
                 Optional.of(BigDecimal.valueOf(150)));
 
         // when
@@ -112,7 +111,6 @@ class DataHandlerTest {
 
         ReceiptData receiptData = new ReceiptData(
                 BigDecimal.valueOf(100),
-                Optional.of(BigDecimal.valueOf(75)),
                 Optional.of("StoreName"),
                 Optional.of(address),
                 Optional.of(transactionTime));
