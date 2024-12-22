@@ -1,19 +1,32 @@
 package app.hopps.fin.kafka;
 
+import app.hopps.commons.DocumentData;
+import app.hopps.commons.DocumentType;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.model.DocumentData;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
 @ApplicationScoped
 public class DocumentProducer {
+    private static final Logger LOG = LoggerFactory.getLogger(DocumentProducer.class);
+
     @Channel("document-out")
     Emitter<DocumentData> documentEmitter;
 
-    public void sendToProcess(TransactionRecord transactionRecord, String type) {
-        String internalFinUrl = "http://fin/document/" + transactionRecord.getDocumentKey();
-        DocumentData documentData = new DocumentData(internalFinUrl, transactionRecord.getId(), type);
-        documentEmitter.send(documentData);
+    public void sendToProcess(TransactionRecord transactionRecord, DocumentType type) {
+        try {
+            URL internalFinUrl = URI.create("http://fin/document/" + transactionRecord.getDocumentKey()).toURL();
+            DocumentData documentData = new DocumentData(internalFinUrl, transactionRecord.getId(), type);
+            documentEmitter.send(documentData);
+        } catch (MalformedURLException e) {
+            LOG.warn("URL is malformed, sending to kafka failed", e);
+        }
     }
 }

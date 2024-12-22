@@ -1,17 +1,18 @@
 package app.hopps;
 
-import app.hopps.model.*;
+import app.hopps.model.Address;
+import app.hopps.model.DocumentImage;
+import app.hopps.model.InvoiceData;
+import app.hopps.model.ReceiptData;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-
+import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import io.smallrye.reactive.messaging.memory.InMemorySink;
 import io.smallrye.reactive.messaging.memory.InMemorySource;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.spi.Connector;
 import org.junit.jupiter.api.Test;
-
-import jakarta.inject.Inject;
-import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import org.mockito.Mockito;
 
 import java.net.MalformedURLException;
@@ -20,6 +21,7 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static app.hopps.commons.DocumentType.INVOICE;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -36,13 +38,13 @@ class DocumentKafkaConnectorTest {
     AzureAiService azureAiServiceMock;
 
     @Test
-    public void onlySendsToInvoices() throws URISyntaxException, MalformedURLException {
+    void onlySendsToInvoices() throws URISyntaxException, MalformedURLException {
 
         InvoiceData invoiceData = fakeInvoiceData();
 
         DocumentImage documentImage = new DocumentImage(
                 new URI("http://something.test/picture").toURL(),
-                DocumentType.Invoice);
+                INVOICE);
 
         when(azureAiServiceMock.scanInvoice(Mockito.any()))
                 .thenReturn(invoiceData);
@@ -62,7 +64,7 @@ class DocumentKafkaConnectorTest {
         InvoiceData actual = invoiceOut.received().getFirst().getPayload();
         assertEquals(invoiceData, actual);
 
-        assertEquals(receiptsOut.received().size(), 0);
+        assertEquals(0, receiptsOut.received().size());
     }
 
     private static InvoiceData fakeInvoiceData() {

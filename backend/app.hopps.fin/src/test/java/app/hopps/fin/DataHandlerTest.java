@@ -1,10 +1,10 @@
 package app.hopps.fin;
 
+import app.hopps.commons.Address;
+import app.hopps.commons.InvoiceData;
+import app.hopps.commons.ReceiptData;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.model.Address;
-import app.hopps.fin.kafka.model.InvoiceData;
-import app.hopps.fin.kafka.model.ReceiptData;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -30,10 +30,13 @@ class DataHandlerTest {
     private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
 
     @Inject
-    DataHandler dataHandler;
+    ReceiptDataHandler receiptDataHandler;
 
     @Inject
     TransactionRecordRepository repository;
+
+    @Inject
+    InvoiceDataHandler invoiceDataHandler;
 
     Long referenceKey;
 
@@ -61,7 +64,7 @@ class DataHandlerTest {
                 "EUR");
 
         // when
-        dataHandler.processTransactionRecord(invoiceData);
+        invoiceDataHandler.handleData(invoiceData);
 
         // then
         assertEquals(1, repository.count());
@@ -86,7 +89,7 @@ class DataHandlerTest {
                 Optional.of(BigDecimal.valueOf(150)));
 
         // when
-        dataHandler.processTransactionRecord(invoiceData);
+        invoiceDataHandler.handleData(invoiceData);
 
         // then
         List<TransactionRecord> transactionRecords = repository.listAll();
@@ -106,7 +109,7 @@ class DataHandlerTest {
         ReceiptData receiptData = new ReceiptData(referenceKey, BigDecimal.valueOf(100));
 
         // when
-        dataHandler.processTransactionRecord(receiptData);
+        receiptDataHandler.handleData(receiptData);
 
         // then
         assertEquals(1, repository.count());
@@ -126,7 +129,7 @@ class DataHandlerTest {
                 Optional.of(transactionTime));
 
         // when
-        dataHandler.processTransactionRecord(receiptData);
+        receiptDataHandler.handleData(receiptData);
 
         // then
         List<TransactionRecord> transactionRecords = repository.listAll();
