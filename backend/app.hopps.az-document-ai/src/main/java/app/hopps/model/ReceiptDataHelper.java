@@ -1,21 +1,21 @@
 package app.hopps.model;
 
+import app.hopps.commons.Address;
 import com.azure.ai.documentintelligence.models.CurrencyValue;
 import com.azure.ai.documentintelligence.models.Document;
 import com.azure.ai.documentintelligence.models.DocumentField;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Map;
 import java.util.Optional;
 
-public record ReceiptData(
-        double total,
-        Optional<Double> subTotal,
-        Optional<String> storeName,
-        Optional<Address> storeAddress,
-        Optional<LocalDateTime> transactionTime) {
-    public static ReceiptData fromDocument(Document document) {
+public class ReceiptDataHelper {
+    private ReceiptDataHelper() {
+        // only call the static method
+    }
+
+    public static app.hopps.commons.ReceiptData fromDocument(Long referenceKey, Document document) {
         Map<String, DocumentField> fields = document.getFields();
 
         DocumentField transactionTime = fields.get("TransactionTime");
@@ -23,15 +23,13 @@ public record ReceiptData(
         LocalTime time = transactionTime == null ? LocalTime.MIDNIGHT
                 : LocalTime.parse(transactionTime.getValueTime());
 
-        return new ReceiptData(
-                fields.get("Total").getValueCurrency().getAmount(),
-                Optional.ofNullable(fields.get("Subtotal"))
-                        .map(DocumentField::getValueCurrency)
-                        .map(CurrencyValue::getAmount),
+        return new app.hopps.commons.ReceiptData(
+                referenceKey,
+                BigDecimal.valueOf(fields.get("Total").getValueCurrency().getAmount()),
                 Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("MerchantAddress"))
                         .map(DocumentField::getValueAddress)
-                        .map(Address::fromAzure),
+                        .map(AddressHelper::fromAzure),
                 Optional.ofNullable(fields.get("TransactionDate"))
                         .map(DocumentField::getValueDate)
                         .map(t -> t.atTime(time)));
