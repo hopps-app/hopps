@@ -40,6 +40,7 @@ class PersistOrganizationDelegateTests {
 
     @Test
     void shouldCreateRootBommel() {
+
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
