@@ -19,8 +19,7 @@ class ZugFerdServiceTest {
     ZugFerdService zugFerdService;
 
     @Test
-    @Tag("zugferd")
-    public void shouldAnalyzeInvoiceWithZugferd() throws Exception {
+    void shouldAnalyzeInvoiceWithZugferd() throws Exception {
 
         // given
         InputStream stream = getClass().getClassLoader().getResourceAsStream("MustangGnuaccountingBeispielRE-20170509_505.pdf");
