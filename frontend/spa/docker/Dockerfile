@@ -1,6 +1,15 @@
 # Use an official node image to build the React app
 FROM node:18 AS build
 
+# General
+ENV VITE_TITLE "VITE_TITLE"
+ENV VITE_GENERAL_DATE_FORMAT "VITE_GENERAL_DATE_FORMAT"
+ENV VITE_GENERAL_CURRENCY_SYMBOL_AFTER "VITE_GENERAL_CURRENCY_SYMBOL_AFTER"
+ENV VITE_KEYCLOAK_URL "VITE_KEYCLOAK_URL"
+ENV VITE_KEYCLOAK_REALM "VITE_KEYCLOAK_REALM"
+ENV VITE_KEYCLOAK_CLIENT_ID "VITE_KEYCLOAK_CLIENT_ID"
+ENV VITE_API_URL "VITE_API_URL"
+
 # Set the working directory
 WORKDIR /app
 
@@ -31,6 +40,9 @@ RUN npm install express
 
 # Expose port 8080
 EXPOSE 8080
-
+COPY ./replaceEnvs.sh ./replaceEnvs.sh
+COPY ./startup.sh ./startup.sh
+RUN chmod +x ./replaceEnvs.sh
+RUN chmod +x ./startup.sh
 # Start the server
-CMD ["node", "server.js"]
+CMD ["/bin/bash", "-c", "/startup.sh"]
