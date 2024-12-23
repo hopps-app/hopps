@@ -1,7 +1,11 @@
 package app.hopps.org.jpa;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -11,7 +15,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@SequenceGenerator(name = "Organization_SEQ", allocationSize = 1)
 public class Organization extends PanacheEntity {
 
     @NotBlank
