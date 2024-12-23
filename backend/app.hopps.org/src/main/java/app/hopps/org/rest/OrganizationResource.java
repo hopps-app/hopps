@@ -5,6 +5,7 @@ import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
 import app.hopps.org.rest.model.NewOrganizationInput;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.validation.Validator;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 @Path("/organization")
+@Authenticated
 public class OrganizationResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationResource.class);

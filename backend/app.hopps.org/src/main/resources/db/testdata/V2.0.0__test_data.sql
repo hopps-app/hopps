@@ -1,11 +1,13 @@
 insert into Organization (type, id, slug, name, website, plz, city, street, number)
-values
-(0, 2, 'gruenes-herz-ev', 'Grünes Herz e.V.', 'https://gruenes-herz.de/', '27324', 'Schweringen', 'Am Lennestein', '110'),
-(0, 3, 'kaeltekrieger', 'Eishockeyclub Kältekrieger e.V.', 'https://kaeltekrieger.de/', '89129', 'Langenau', 'August-Brust-Straße', '78'),
-(0, 4, 'buehnefrei-ev', 'Theatervereine Bühnefrei e.V.', 'https://bühnefrei.de/', '33397', 'Rietberg', 'Dechant-Karthaus-Straße', '172');
+values (0, 2, 'gruenes-herz-ev', 'Grünes Herz e.V.', 'https://gruenes-herz.de/', '27324', 'Schweringen',
+        'Am Lennestein', '110'),
+       (0, 3, 'kaeltekrieger', 'Eishockeyclub Kältekrieger e.V.', 'https://kaeltekrieger.de/', '89129', 'Langenau',
+        'August-Brust-Straße', '78'),
+       (0, 4, 'buehnefrei-ev', 'Theatervereine Bühnefrei e.V.', 'https://bühnefrei.de/', '33397', 'Rietberg',
+        'Dechant-Karthaus-Straße', '172');
 
 insert into member
-(id, email, firstName, lastName)
+    (id, email, firstName, lastName)
 values
 -- gruenes-herz-ev
 (2, 'emanuel_urban@domain.none', 'Emanuel', 'Urban'),
@@ -102,3 +104,7 @@ where id = 3;
 update Organization
 set rootBommel_id = 23
 where id = 4;
+
+select setval('Bommel_SEQ', 30, true);
+select setval('Organization_SEQ', 4, true);
+select setval('Member_SEQ', 20, true);

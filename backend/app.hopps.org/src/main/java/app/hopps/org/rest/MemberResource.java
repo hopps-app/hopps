@@ -2,6 +2,7 @@ package app.hopps.org.rest;
 
 import app.hopps.org.jpa.Member;
 import app.hopps.org.rest.RestValidator.ValidationResult;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.*;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/member")
+@Authenticated
 public class MemberResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(MemberResource.class);
