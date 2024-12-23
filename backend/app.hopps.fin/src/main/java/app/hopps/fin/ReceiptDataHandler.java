@@ -22,7 +22,6 @@ public class ReceiptDataHandler extends AbstractDataHandler {
         transactionRecord.setTotal(data.total());
 
         // Optional
-        data.subTotal().ifPresent(transactionRecord::setSubTotal);
         data.storeName().ifPresent(transactionRecord::setName);
         data.storeAddress().ifPresent(addrees -> transactionRecord.setAddress(AddressHelper.convertToJpa(addrees)));
         data.transactionTime()

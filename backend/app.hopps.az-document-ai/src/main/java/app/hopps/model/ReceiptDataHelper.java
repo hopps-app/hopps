@@ -1,7 +1,5 @@
 package app.hopps.model;
 
-import app.hopps.commons.Address;
-import com.azure.ai.documentintelligence.models.CurrencyValue;
 import com.azure.ai.documentintelligence.models.Document;
 import com.azure.ai.documentintelligence.models.DocumentField;
 
