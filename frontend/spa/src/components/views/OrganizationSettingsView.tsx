@@ -60,18 +60,26 @@ function OrganizationSettingsView() {
         }
 
         organizationTreeService.ensureRootBommelCreated(organization.id).then((bommel) => {
-            setRootBommel(bommel);
+            if (bommel) {
+                setRootBommel(bommel);
+            } else {
+                setIsOrganizationError(true);
+            }
         });
     }, []);
 
     return (
         <>
-            <SettingsPageHeader>
-                <Button onClick={onClickSave}>Save</Button>
-            </SettingsPageHeader>
+            <SettingsPageHeader>{!isOrganizationError && <Button onClick={onClickSave}>Save</Button>}</SettingsPageHeader>
 
-            <h3>Structure:</h3>
-            {isOrganizationError ? <div>Error</div> : <OrganizationTree tree={tree} onTreeChanged={onTreeChanged} />}
+            {isOrganizationError ? (
+                <div>{t('organization.settings.error')}</div>
+            ) : (
+                <>
+                    <h3>Structure:</h3>
+                    <OrganizationTree tree={tree} onTreeChanged={onTreeChanged} />
+                </>
+            )}
         </>
     );
 }
