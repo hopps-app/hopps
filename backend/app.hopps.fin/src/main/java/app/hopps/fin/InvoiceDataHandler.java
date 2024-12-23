@@ -34,7 +34,6 @@ public class InvoiceDataHandler extends AbstractDataHandler {
                 .ifPresent(
                         dueDate -> transactionRecord
                                 .setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        data.subTotal().ifPresent(transactionRecord::setSubTotal);
         data.amountDue().ifPresent(transactionRecord::setAmountDue);
     }
 }

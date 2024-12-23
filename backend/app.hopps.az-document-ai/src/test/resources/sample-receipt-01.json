@@ -1405,37 +1405,6 @@
               }
             ]
           },
-          "SubTotal": {
-            "type": "currency",
-            "valueCurrency": {
-              "currencySymbol": "$",
-              "amount": 2297.97,
-              "currencyCode": "USD"
-            },
-            "content": "$2,297.97",
-            "boundingRegions": [
-              {
-                "pageNumber": 1,
-                "polygon": [
-                  1529,
-                  2221,
-                  1889,
-                  2221,
-                  1889,
-                  2319,
-                  1529,
-                  2321
-                ]
-              }
-            ],
-            "confidence": 0.99,
-            "spans": [
-              {
-                "offset": 151,
-                "length": 9
-              }
-            ]
-          },
           "TotalTax": {
             "type": "currency",
             "valueCurrency": {

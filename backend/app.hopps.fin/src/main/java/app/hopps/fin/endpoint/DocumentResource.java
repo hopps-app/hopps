@@ -41,6 +41,8 @@ public class DocumentResource {
     @Path("{documentKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public InputStream getDocumentByKey(@PathParam("documentKey") String documentKey) {
+        // TODO: How to verify that user has access?
+        // Go against the database get the bommel id then towards openfga?
         try {
             return s3Handler.getFile(documentKey);
         } catch (NoSuchKeyException ignored) {

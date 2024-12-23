@@ -16,7 +16,6 @@ public record InvoiceData(
         Optional<String> invoiceId,
         LocalDate invoiceDate,
         Optional<LocalDate> dueDate,
-        Optional<Double> subTotal,
         double total,
         Optional<Double> amountDue,
         String currencyCode) {
@@ -36,9 +35,6 @@ public record InvoiceData(
                 fields.get("InvoiceDate").getValueDate(),
                 Optional.ofNullable(fields.get("DueDate"))
                         .map(DocumentField::getValueDate),
-                Optional.ofNullable(fields.get("SubTotal"))
-                        .map(DocumentField::getValueCurrency)
-                        .map(CurrencyValue::getAmount),
                 fields.get("InvoiceTotal").getValueCurrency().getAmount(),
                 Optional.ofNullable(fields.get("AmountDue"))
                         .map(DocumentField::getValueCurrency)
