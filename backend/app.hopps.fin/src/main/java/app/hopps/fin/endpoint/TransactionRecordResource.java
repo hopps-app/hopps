@@ -6,7 +6,16 @@ import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.panache.common.Page;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -33,7 +42,7 @@ public class TransactionRecordResource {
 
     @GET
     @Path("/all")
-    @Operation(summary = "Get all transaction records", operationId = "getAllTransactionRecords", description = "Fetches all transaction records with optional filters for bommel association")
+    @Operation(summary = "Get all transaction records", description = "Fetches all transaction records with optional filters for bommel association")
     @APIResponse(responseCode = "200", description = "List of transaction records, empty list if none are available", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionRecord[].class)))
     public List<TransactionRecord> getAll(@BeanParam AllParameters parameters) {
         parameters.verifyOnlyOneIsActive();
@@ -54,7 +63,7 @@ public class TransactionRecordResource {
     @PATCH
     @Transactional
     @Path("{id}/bommel")
-    @Operation(summary = "Add a transaction record to a bommel", operationId = "updateBommel", description = "Attaches an transaction record to a bommel item")
+    @Operation(summary = "Add a transaction record to a bommel", description = "Attaches an transaction record to a bommel item")
     @APIResponse(responseCode = "200", description = "Specified transaction record was attached to bommel")
     @APIResponse(responseCode = "404", description = "Specified transaction record id was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "400", description = "Bommel was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))

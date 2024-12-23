@@ -6,37 +6,48 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Schema(name = "Organization", description = "An example of a Hopps Organization, i.e. Verein")
 public class Organization extends PanacheEntity {
 
     @NotBlank
+    @Schema(examples = "Raketenfreunde e.V.")
     private String name;
 
     @NotBlank
     @Pattern(regexp = "^[a-z0-9][a-z0-9-]*[a-z0-9]$")
+    @Schema(examples = "raketen-freunde")
     private String slug;
 
     @NotNull
+    @Schema(examples = "EINGETRAGENER_VEREIN")
     private TYPE type;
 
     @Embedded
     private Address address;
 
     @OneToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE })
+    @Schema(examples = "null")
     private Bommel rootBommel;
 
     @ManyToMany(mappedBy = "organizations", cascade = CascadeType.PERSIST)
+    @Schema(examples = "[]")
     private Set<Member> members = new HashSet<>();
 
+    @Schema(examples = "https://raketenfreunde.tld")
     private URL website;
+
+    @Schema(examples = "https://example.com/avatar.png")
     private URL profilePicture;
 
     public Organization() {

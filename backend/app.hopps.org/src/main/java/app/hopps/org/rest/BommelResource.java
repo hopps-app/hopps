@@ -56,7 +56,7 @@ public class BommelResource {
 
     @GET
     @Path("/{id}/children")
-    @Operation(summary = "Fetch the children of bommel", operationId = "getChildrenOfBommel")
+    @Operation(summary = "Fetch the children of bommel")
     @APIResponse(responseCode = "200", description = "Children of bommel", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel[].class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -70,7 +70,7 @@ public class BommelResource {
 
     @GET
     @Path("/{id}/children/recursive")
-    @Operation(summary = "Fetch the children of bommel recursively", operationId = "getChildrenOfBommelRecursive")
+    @Operation(summary = "Fetch the children of bommel recursively")
     @APIResponse(responseCode = "200", description = "Recursive children of bommel", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TreeSearchBommel[].class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -83,7 +83,7 @@ public class BommelResource {
 
     @GET
     @Path("/{id}")
-    @Operation(summary = "Fetch a bommel by its id", operationId = "getBommel")
+    @Operation(summary = "Fetch a bommel by its id")
     @APIResponse(responseCode = "200", description = "Bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -97,7 +97,7 @@ public class BommelResource {
 
     @GET
     @Path("/root/{orgId}")
-    @Operation(summary = "Fetch root-bommel for organization", operationId = "getRootBommel")
+    @Operation(summary = "Fetch root-bommel for organization")
     @APIResponse(responseCode = "200", description = "Root-Bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -115,7 +115,7 @@ public class BommelResource {
     @POST
     @Path("/root")
     @Transactional
-    @Operation(summary = "Create root-bommel for organization", operationId = "createRootBommel")
+    @Operation(summary = "Create root-bommel for organization")
     @APIResponse(responseCode = "201", description = "Bommel created and added to the organization as root", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "400", description = """
             <li> Organization not found
@@ -151,7 +151,7 @@ public class BommelResource {
     @POST
     @Path("/")
     @Transactional
-    @Operation(summary = "Create bommel", operationId = "createBommel", description = "Create bommel underneath a root-bommel, without the parent-bommel it will fail.")
+    @Operation(summary = "Create bommel", description = "Create bommel underneath a root-bommel, without the parent-bommel it will fail.")
     @APIResponse(responseCode = "201", description = "Bommel successfully created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "400", description = "Bommel has no parent, cannot create root-bommel", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -173,7 +173,7 @@ public class BommelResource {
     @PUT
     @Path("/{id}")
     @Transactional
-    @Operation(summary = "Update bommel", operationId = "updateBommel")
+    @Operation(summary = "Update bommel")
     @APIResponse(responseCode = "200", description = "Bommel successfully updated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -195,7 +195,7 @@ public class BommelResource {
     @PUT
     @Path("/move/{id}/to/{newParentId}")
     @Transactional
-    @Operation(summary = "Move a bommel underneath a different parent", operationId = "moveBommel")
+    @Operation(summary = "Move a bommel underneath a different parent")
     @APIResponse(responseCode = "200", description = "Bommel successfully moved", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized to move bommel", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -223,7 +223,7 @@ public class BommelResource {
     @DELETE
     @Path("/{id}")
     @Transactional
-    @Operation(summary = "Delete bommel", operationId = "deleteBommel")
+    @Operation(summary = "Delete bommel")
     @APIResponse(responseCode = "204", description = "Bommel successfully deleted")
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
