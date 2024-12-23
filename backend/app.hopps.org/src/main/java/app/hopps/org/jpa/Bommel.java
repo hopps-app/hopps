@@ -3,75 +3,65 @@ package app.hopps.org.jpa;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Index;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(indexes = @Index(columnList = "parent_id"))
-@NamedQueries({
-        @NamedQuery(name = "Bommel.GetParentsRecursive", query = """
-                            with parents as (
-                                select n.parent.id as bommel
-                                from Bommel n
-                                where n.id = :startId
-
-                                union
-
-                                select n.parent.id as bommel
-                                from Bommel n
-                                join parents c on n.id = c.bommel
-                            ) cycle bommel set cycleMark using cyclePath
-                            select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
-                            from Bommel n
-                            join parents c on n.id = c.bommel
-                """),
-        @NamedQuery(name = "Bommel.GetChildrenRecursive", query = """
-                            with children_query as (
-                                select n.id as bommel
-                                from Bommel n
-                                where n.id = :startId
-
-                                union
-
-                                select n.id as bommel
-                                from Bommel n
-                                join children_query c on n.parent.id = c.bommel
-                            ) cycle bommel set cycleMark using cyclePath
-                            select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
-                            from Bommel n
-                            join children_query c on n.id = c.bommel
-                            where n.id != :startId or cycleMark = true
-                """)
-})
+@NamedQuery(name = "Bommel.GetParentsRecursive", query = """
+                    with parents as (
+                        select n.parent.id as bommel
+                        from Bommel n
+                        where n.id = :startId
+        
+                        union
+        
+                        select n.parent.id as bommel
+                        from Bommel n
+                        join parents c on n.id = c.bommel
+                    ) cycle bommel set cycleMark using cyclePath
+                    select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
+                    from Bommel n
+                    join parents c on n.id = c.bommel
+        """)
+@NamedQuery(name = "Bommel.GetChildrenRecursive", query = """
+                    with children_query as (
+                        select n.id as bommel
+                        from Bommel n
+                        where n.id = :startId
+        
+                        union
+        
+                        select n.id as bommel
+                        from Bommel n
+                        join children_query c on n.parent.id = c.bommel
+                    ) cycle bommel set cycleMark using cyclePath
+                    select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
+                    from Bommel n
+                    join children_query c on n.id = c.bommel
+                    where n.id != :startId or cycleMark = true
+        """)
+@SequenceGenerator(name = "Bommel_SEQ", allocationSize = 1)
 public class Bommel extends PanacheEntity {
     public static final String DEFAULT_ROOT_BOMMEL_EMOJI = "\uD83C\uDF33"; // tree
 
     private String name;
     private String emoji;
 
-    @ManyToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH })
+    @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     private Member responsibleMember;
 
-    @OneToOne(mappedBy = "rootBommel", cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST,
-            CascadeType.MERGE })
+    @OneToOne(mappedBy = "rootBommel", cascade = {CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST,
+            CascadeType.MERGE})
     private Organization organization;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.REFRESH, CascadeType.DETACH })
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.DETACH})
     private Bommel parent;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH,
-            CascadeType.REMOVE }, mappedBy = "parent")
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH,
+            CascadeType.REMOVE}, mappedBy = "parent")
     private Set<Bommel> children;
 
     /**
@@ -164,9 +154,9 @@ public class Bommel extends PanacheEntity {
                 && Objects.equals(getName(), bommel.getName())
                 && Objects.equals(getResponsibleMember(), bommel.getResponsibleMember())
                 && Objects.equals(getParent() != null ? getParent().id : null,
-                        bommel.getParent() != null ? bommel.getParent().id : null)
+                bommel.getParent() != null ? bommel.getParent().id : null)
                 && Objects.equals(getOrganization() != null ? getOrganization().getId() : null,
-                        bommel.getOrganization() != null ? bommel.getOrganization().getId() : null)
+                bommel.getOrganization() != null ? bommel.getOrganization().getId() : null)
                 && Objects.equals(getChildren(), bommel.getChildren());
     }
 

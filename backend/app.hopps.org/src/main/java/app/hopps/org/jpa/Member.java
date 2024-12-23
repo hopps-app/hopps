@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
+@SequenceGenerator(name = "Member_SEQ", allocationSize = 1)
 public class Member extends PanacheEntity {
 
     // TODO: Add OneToMany to Bommel here and test it
