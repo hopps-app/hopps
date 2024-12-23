@@ -1,28 +1,28 @@
 package app.hopps.model;
 
-import app.hopps.commons.Address;
-import com.azure.ai.documentintelligence.models.CurrencyValue;
+import app.hopps.commons.InvoiceData;
 import com.azure.ai.documentintelligence.models.Document;
 import com.azure.ai.documentintelligence.models.DocumentField;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
 
-public record InvoiceData(
-        Optional<String> customerName,
-        Optional<Address> billingAddress,
-        Optional<String> purchaseOrderNumber,
-        Optional<String> invoiceId,
-        LocalDate invoiceDate,
-        Optional<LocalDate> dueDate,
-        double total,
-        Optional<Double> amountDue,
-        String currencyCode) {
-    public static InvoiceData fromDocument(Document document) {
+public class InvoiceDataHelper {
+    private InvoiceDataHelper() {
+        // only call the static method
+    }
+
+    public static InvoiceData fromDocument(Long referenceKey, Document document) {
         Map<String, DocumentField> fields = document.getFields();
 
         return new InvoiceData(
+                referenceKey,
+                BigDecimal.valueOf(fields.get("InvoiceTotal").getValueCurrency().getAmount()),
+                fields.get("InvoiceDate").getValueDate(),
+                Optional.ofNullable(fields.get("CurrencyCode"))
+                        .map(DocumentField::getValueString)
+                        .orElse("EUR"),
                 Optional.ofNullable(fields.get("CustomerName"))
                         .map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("BillingAddress"))
@@ -32,15 +32,11 @@ public record InvoiceData(
                         .map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("InvoiceId"))
                         .map(DocumentField::getValueString),
-                fields.get("InvoiceDate").getValueDate(),
                 Optional.ofNullable(fields.get("DueDate"))
                         .map(DocumentField::getValueDate),
-                fields.get("InvoiceTotal").getValueCurrency().getAmount(),
                 Optional.ofNullable(fields.get("AmountDue"))
                         .map(DocumentField::getValueCurrency)
-                        .map(CurrencyValue::getAmount),
-                Optional.ofNullable(fields.get("CurrencyCode"))
-                        .map(DocumentField::getValueString)
-                        .orElse("EUR"));
+                        .map(t -> BigDecimal.valueOf(t.getAmount()))
+        );
     }
 }

@@ -4,7 +4,7 @@ import app.hopps.fin.jpa.entities.Address;
 
 public class AddressHelper {
     private AddressHelper() {
-        // only static method should be called
+        // only call the static method
     }
 
     public static Address convertToJpa(app.hopps.commons.Address address) {

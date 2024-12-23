@@ -2,8 +2,8 @@ package app.hopps;
 
 import app.hopps.commons.Address;
 import app.hopps.commons.DocumentData;
-import app.hopps.model.InvoiceData;
-import app.hopps.model.ReceiptData;
+import app.hopps.commons.InvoiceData;
+import app.hopps.commons.ReceiptData;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -15,6 +15,7 @@ import org.eclipse.microprofile.reactive.messaging.spi.Connector;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -70,16 +71,16 @@ class DocumentKafkaConnectorTest {
 
     private static InvoiceData fakeInvoiceData() {
         return new InvoiceData(
+                0L,
+                BigDecimal.valueOf(135.0),
+                LocalDate.now(),
+                "EUR",
                 Optional.of("Test customer"),
                 Optional.of(fakeAddress()),
                 Optional.empty(),
                 Optional.empty(),
-                LocalDate.now(),
                 Optional.empty(),
-                Optional.empty(),
-                135.0,
-                Optional.empty(),
-                "EUR");
+                Optional.empty());
     }
 
     private static Address fakeAddress() {

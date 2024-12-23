@@ -1,6 +1,8 @@
 package app.hopps;
 
-import app.hopps.model.InvoiceData;
+import app.hopps.commons.DocumentData;
+import app.hopps.commons.DocumentType;
+import app.hopps.commons.InvoiceData;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.InjectMock;
@@ -47,9 +49,10 @@ class AzureAiServiceMockedTest {
 
         // given
         String url = "https://formrecognizer.appliedai.azure.com/documents/samples/prebuilt/receipt.png";
+        DocumentData documentData = new DocumentData(new URI(url).toURL(), -1L, DocumentType.INVOICE);
 
         // when
-        InvoiceData invoiceData = aiService.scanInvoice(new URI(url).toURL());
+        InvoiceData invoiceData = aiService.scanInvoice(documentData);
 
         // then
         assertNotNull(invoiceData);

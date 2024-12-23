@@ -2,8 +2,8 @@ package app.hopps;
 
 import app.hopps.commons.DocumentData;
 import app.hopps.commons.DocumentType;
-import app.hopps.model.InvoiceData;
-import app.hopps.model.ReceiptData;
+import app.hopps.commons.InvoiceData;
+import app.hopps.commons.ReceiptData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Channel;
@@ -22,7 +22,7 @@ public class DocumentKafkaConnector {
 
     @Inject
     public DocumentKafkaConnector(AzureAiService azureAi, @Channel("receipts-out") Emitter<ReceiptData> receiptEmitter,
-            @Channel("invoices-out") Emitter<InvoiceData> invoicesEmitter) {
+                                  @Channel("invoices-out") Emitter<InvoiceData> invoicesEmitter) {
         this.invoicesEmitter = invoicesEmitter;
         this.receiptEmitter = receiptEmitter;
         this.azureAi = azureAi;
@@ -30,16 +30,15 @@ public class DocumentKafkaConnector {
 
     @Incoming("documents-in")
     public void scanDocument(DocumentData message) {
-        var image = message.internalFinUrl();
         if (message.type() == DocumentType.RECEIPT) {
-            var receipt = azureAi.scanReceipt(image);
+            var receipt = azureAi.scanReceipt(message);
             if (receipt != null) {
                 receiptEmitter.send(receipt);
             } else {
                 LOG.error("Document analysis failed for receipt");
             }
         } else if (message.type() == DocumentType.INVOICE) {
-            var invoice = azureAi.scanInvoice(image);
+            var invoice = azureAi.scanInvoice(message);
             if (invoice != null) {
                 invoicesEmitter.send(invoice);
             } else {
