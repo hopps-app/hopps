@@ -9,7 +9,13 @@ import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.validation.Validator;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -43,9 +49,9 @@ public class OrganizationResource {
     }
 
     @GET
-    @Path("/{slug}")
+    @Path("{slug}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization", operationId = "getOrganizationBySlug", description = "Retrieves the details of an organization using the unique slug identifier.")
+    @Operation(summary = "Get organization", description = "Retrieves the details of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response getOrganizationBySlug(@PathParam("slug") String slug) {
@@ -58,9 +64,9 @@ public class OrganizationResource {
     }
 
     @GET
-    @Path("/{slug}/members")
+    @Path("{slug}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization members", operationId = "getOrganizationMembers", description = "Retrieves the members of an organization using the unique slug identifier.")
+    @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response getOrganizationMembersBySlug(@PathParam("slug") String slug) {
@@ -73,7 +79,7 @@ public class OrganizationResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a new organization", operationId = "createNewOrganization")
+    @Operation(summary = "Create a new organization")
     @APIResponse(responseCode = "201", description = "Creation started successfully", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     public Response create(NewOrganizationInput input) {
@@ -89,10 +95,10 @@ public class OrganizationResource {
     }
 
     @POST
-    @Path(("/validate"))
+    @Path(("validate"))
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Validates the organization input", operationId = "validate")
+    @Operation(summary = "Validates the organization input")
     @APIResponse(responseCode = "200", description = "Validation successful", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "400", description = "Validation failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     public ValidationResult validate(Organization organization) {
