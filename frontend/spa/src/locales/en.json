@@ -21,6 +21,7 @@
       "success": "Organisation successfully created"
     },
     "settings": {
+      "error": "Failed to load organization structure",
       "saveError": "Failed to save setting",
       "saved": "Settings successfully saved"
     }

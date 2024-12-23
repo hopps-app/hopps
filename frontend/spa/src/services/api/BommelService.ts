@@ -11,7 +11,7 @@ export class BommelService {
     }
 
     async deleteBommel(id: number) {
-        await fetch(`${this.baseUrl}/bommel/${id}`, { method: 'DELETE' });
+        await fetch(`${this.baseUrl}/bommel/${id}?recursive=true`, { method: 'DELETE' });
     }
 
     async createBommel(data: Partial<Bommel>) {
@@ -23,13 +23,13 @@ export class BommelService {
         return response.json();
     }
 
-    async createRootBommel(data: Partial<Bommel> & { organization: { id: number } }) {
+    async createRootBommel(data: Partial<Bommel> & { organizationId: number }): Promise<Bommel> {
         const response = await fetch(`${this.baseUrl}/bommel/root`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
-        return response.json();
+        return response.status === 200 || response.status === 201 ? response.json() : undefined;
     }
 
     async getBommelChildren(id: string) {

@@ -21,6 +21,7 @@
       "success": "Organisation erfolgreich erstellt"
     },
     "settings": {
+      "error": "Organisationsstruktur konnte nicht geladen werden",
       "saveError": "Einstellung konnte nicht gespeichert werden",
       "saved": "Einstellungen erfolgreich gespeichert"
     }

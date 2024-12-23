@@ -4,6 +4,7 @@ type RegisterOrganizationPayload = {
         lastName: string;
         email: string;
     };
+    newPassword: string;
     organization: {
         profilePicture?: string;
         website?: string;
