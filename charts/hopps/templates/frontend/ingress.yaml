@@ -1,6 +1,6 @@
 {{- if .Values.frontend.ingress.enabled -}}
 {{- $fullName := include "hopps.frontendFullname" . -}}
-{{- $ingressPath := .Values.org.ingress.path -}}
+{{- $ingressPath := .Values.frontend.ingress.path -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -13,8 +13,8 @@ metadata:
 {{- end }}
 spec:
   {{- if or (.Capabilities.APIVersions.Has "networking.k8s.io/v1/IngressClass") (.Capabilities.APIVersions.Has "networking.k8s.io/v1beta1/IngressClass") }}
-  {{- if .Values.org.ingress.ingressClassName }}
-  ingressClassName: {{ .Values.org.ingress.ingressClassName }}
+  {{- if .Values.frontend.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.frontend.ingress.ingressClassName }}
   {{- end }}
   {{- end }}
 {{- if .Values.frontend.ingress.tls }}
