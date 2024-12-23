@@ -150,7 +150,7 @@ spec:
       enabled: false
     frontend:
       image:
-        tag: 153
+        tag: 155
       envFrom:
         - secretRef:
             name: frontend
