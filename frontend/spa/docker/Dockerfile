@@ -45,4 +45,4 @@ COPY ../docker/startup.sh ./startup.sh
 RUN chmod +x ./replaceEnvs.sh
 RUN chmod +x ./startup.sh
 # Start the server
-CMD ["/bin/bash", "-c", "/startup.sh"]
+CMD ["/bin/bash", "-c", "/app/startup.sh"]
