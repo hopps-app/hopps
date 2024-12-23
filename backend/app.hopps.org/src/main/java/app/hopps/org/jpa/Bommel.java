@@ -15,9 +15,9 @@ import java.util.Set;
                         select n.parent.id as bommel
                         from Bommel n
                         where n.id = :startId
-        
+
                         union
-        
+
                         select n.parent.id as bommel
                         from Bommel n
                         join parents c on n.id = c.bommel
@@ -31,9 +31,9 @@ import java.util.Set;
                         select n.id as bommel
                         from Bommel n
                         where n.id = :startId
-        
+
                         union
-        
+
                         select n.id as bommel
                         from Bommel n
                         join children_query c on n.parent.id = c.bommel
@@ -50,18 +50,18 @@ public class Bommel extends PanacheEntity {
     private String name;
     private String emoji;
 
-    @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.REFRESH})
+    @ManyToOne(cascade = { CascadeType.DETACH, CascadeType.REFRESH })
     private Member responsibleMember;
 
-    @OneToOne(mappedBy = "rootBommel", cascade = {CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST,
-            CascadeType.MERGE})
+    @OneToOne(mappedBy = "rootBommel", cascade = { CascadeType.DETACH, CascadeType.REFRESH, CascadeType.PERSIST,
+            CascadeType.MERGE })
     private Organization organization;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.DETACH})
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.REFRESH, CascadeType.DETACH })
     private Bommel parent;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH,
-            CascadeType.REMOVE}, mappedBy = "parent")
+    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH,
+            CascadeType.REMOVE }, mappedBy = "parent")
     private Set<Bommel> children;
 
     /**
@@ -154,9 +154,9 @@ public class Bommel extends PanacheEntity {
                 && Objects.equals(getName(), bommel.getName())
                 && Objects.equals(getResponsibleMember(), bommel.getResponsibleMember())
                 && Objects.equals(getParent() != null ? getParent().id : null,
-                bommel.getParent() != null ? bommel.getParent().id : null)
+                        bommel.getParent() != null ? bommel.getParent().id : null)
                 && Objects.equals(getOrganization() != null ? getOrganization().getId() : null,
-                bommel.getOrganization() != null ? bommel.getOrganization().getId() : null)
+                        bommel.getOrganization() != null ? bommel.getOrganization().getId() : null)
                 && Objects.equals(getChildren(), bommel.getChildren());
     }
 

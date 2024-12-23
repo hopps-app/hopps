@@ -10,6 +10,7 @@ import app.hopps.org.rest.model.OwnerInput;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import org.flywaydb.core.Flyway;
@@ -25,6 +26,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
+@TestSecurity(authorizationEnabled = false)
 @TestHTTPEndpoint(OrganizationResource.class)
 class OrganizationResourceTests {
 

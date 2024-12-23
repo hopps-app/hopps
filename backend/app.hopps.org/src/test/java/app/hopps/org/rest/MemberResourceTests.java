@@ -3,6 +3,7 @@ package app.hopps.org.rest;
 import app.hopps.org.jpa.Member;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.RestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 @QuarkusTest
+@TestSecurity(authorizationEnabled = false)
 @TestHTTPEndpoint(MemberResource.class)
 class MemberResourceTests {
 

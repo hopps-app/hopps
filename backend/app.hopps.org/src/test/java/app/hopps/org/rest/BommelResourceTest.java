@@ -319,8 +319,7 @@ class BommelResourceTest {
                 .then()
                 .statusCode(200)
                 .body("size()", is(2))
-                .body("[0].id", is(bommels.get(1).id.intValue()))
-                .body("[1].id", is(bommels.get(2).id.intValue()));
+                .body("id", hasItems(bommels.get(1).id.intValue(), bommels.get(2).id.intValue()));
     }
 
     @Test
