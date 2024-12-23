@@ -9,6 +9,7 @@ import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.ParseException;
 
 @ApplicationScoped
@@ -20,13 +21,13 @@ public class KafkaConnector {
     @Inject
     DocumentDownloader documentDownloader;
 
-    @Incoming("document-URL-in")
+    @Incoming("document-uri-in")
     @Outgoing("document-data-out")
     public InvoiceData process(InvoiceDocument invoiceDocument) {
         // Process the incoming message payload and return an updated payload
         try {
-            return zugFerdService.scanInvoice(documentDownloader.downloadDocument(invoiceDocument.URL()));
-        } catch (RuntimeException | IOException | XPathExpressionException | ParseException e) {
+            return zugFerdService.scanInvoice(documentDownloader.downloadDocument(invoiceDocument.URI()));
+        } catch (RuntimeException | IOException | XPathExpressionException | ParseException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
