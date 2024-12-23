@@ -31,7 +31,7 @@ public class DocumentResource {
 
     @Inject
     public DocumentResource(DocumentProducer documentProducer, S3Handler s3Handler,
-                            TransactionRecordRepository repository) {
+            TransactionRecordRepository repository) {
         this.documentProducer = documentProducer;
         this.s3Handler = s3Handler;
         this.repository = repository;

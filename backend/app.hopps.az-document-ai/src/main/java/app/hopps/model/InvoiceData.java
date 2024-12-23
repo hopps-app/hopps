@@ -1,11 +1,11 @@
 package app.hopps.model;
 
+import app.hopps.commons.Address;
 import com.azure.ai.documentintelligence.models.CurrencyValue;
 import com.azure.ai.documentintelligence.models.Document;
 import com.azure.ai.documentintelligence.models.DocumentField;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,7 +28,7 @@ public record InvoiceData(
                         .map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("BillingAddress"))
                         .map(DocumentField::getValueAddress)
-                        .map(Address::fromAzure),
+                        .map(AddressHelper::fromAzure),
                 Optional.ofNullable(fields.get("PurchaseOrder"))
                         .map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("InvoiceId"))

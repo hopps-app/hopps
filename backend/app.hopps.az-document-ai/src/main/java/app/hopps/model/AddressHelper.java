@@ -1,14 +1,13 @@
 package app.hopps.model;
 
+import app.hopps.commons.Address;
 import com.azure.ai.documentintelligence.models.AddressValue;
 
-public record Address(
-        String countryOrRegion,
-        String postalCode,
-        String state,
-        String city,
-        String road,
-        String houseNumber) {
+public class AddressHelper {
+    private AddressHelper() {
+        // only call the static method
+    }
+
     public static Address fromAzure(AddressValue value) {
         return new Address(
                 value.getCountryRegion(),

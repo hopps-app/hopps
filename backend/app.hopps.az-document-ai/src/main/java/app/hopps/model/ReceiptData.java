@@ -1,5 +1,6 @@
 package app.hopps.model;
 
+import app.hopps.commons.Address;
 import com.azure.ai.documentintelligence.models.CurrencyValue;
 import com.azure.ai.documentintelligence.models.Document;
 import com.azure.ai.documentintelligence.models.DocumentField;
@@ -31,7 +32,7 @@ public record ReceiptData(
                 Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("MerchantAddress"))
                         .map(DocumentField::getValueAddress)
-                        .map(Address::fromAzure),
+                        .map(AddressHelper::fromAzure),
                 Optional.ofNullable(fields.get("TransactionDate"))
                         .map(DocumentField::getValueDate)
                         .map(t -> t.atTime(time)));

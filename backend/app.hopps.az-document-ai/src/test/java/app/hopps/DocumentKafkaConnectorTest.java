@@ -1,7 +1,7 @@
 package app.hopps;
 
-import app.hopps.model.Address;
-import app.hopps.model.DocumentImage;
+import app.hopps.commons.Address;
+import app.hopps.commons.DocumentData;
 import app.hopps.model.InvoiceData;
 import app.hopps.model.ReceiptData;
 import io.quarkus.test.InjectMock;
@@ -42,8 +42,9 @@ class DocumentKafkaConnectorTest {
 
         InvoiceData invoiceData = fakeInvoiceData();
 
-        DocumentImage documentImage = new DocumentImage(
+        DocumentData documentData = new DocumentData(
                 new URI("http://something.test/picture").toURL(),
+                1L,
                 INVOICE);
 
         when(azureAiServiceMock.scanInvoice(Mockito.any()))
@@ -51,12 +52,12 @@ class DocumentKafkaConnectorTest {
         when(azureAiServiceMock.scanReceipt(Mockito.any()))
                 .thenReturn(null);
 
-        InMemorySource<DocumentImage> ordersIn = connector.source("documents-in");
+        InMemorySource<DocumentData> ordersIn = connector.source("documents-in");
         InMemorySink<InvoiceData> invoiceOut = connector.sink("invoices-out");
         InMemorySink<ReceiptData> receiptsOut = connector.sink("receipts-out");
 
         // Act
-        ordersIn.send(documentImage);
+        ordersIn.send(documentData);
 
         // Assert
         await().until(invoiceOut::received, t -> t.size() == 1);
