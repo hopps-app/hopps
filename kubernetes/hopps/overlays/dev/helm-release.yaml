@@ -156,6 +156,21 @@ spec:
             name: frontend
       podSecurityContext:
         fsGroup: 1000
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        # ToDo: check if can be run with readonly root filesystem, following access is needed
+        # - /var/cache/nginx
+        # - /etc/nginx/config.d
+        # - /var/run/nginx.pid
+        readOnlyRootFilesystem: false
+        seccompProfile:
+          type: RuntimeDefault
       ingress:
         enabled: true
         annotations:
