@@ -9,7 +9,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: hopps
-      version: 0.0.3
+      version: 0.0.4
   interval: 1m0s
   values:
     azDocumentAi:
@@ -154,6 +154,8 @@ spec:
       envFrom:
         - secretRef:
             name: frontend
+      podSecurityContext:
+        fsGroup: 1000
       ingress:
         enabled: true
         annotations:
