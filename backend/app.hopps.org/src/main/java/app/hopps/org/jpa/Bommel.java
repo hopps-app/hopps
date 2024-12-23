@@ -3,7 +3,15 @@ package app.hopps.org.jpa;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 import java.util.Objects;
 import java.util.Set;
@@ -43,7 +51,6 @@ import java.util.Set;
                     join children_query c on n.id = c.bommel
                     where n.id != :startId or cycleMark = true
         """)
-@SequenceGenerator(name = "Bommel_SEQ", allocationSize = 1)
 public class Bommel extends PanacheEntity {
     public static final String DEFAULT_ROOT_BOMMEL_EMOJI = "\uD83C\uDF33"; // tree
 

@@ -2,7 +2,10 @@ package app.hopps.org.jpa;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -10,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
-@SequenceGenerator(name = "Member_SEQ", allocationSize = 1)
 public class Member extends PanacheEntity {
 
     // TODO: Add OneToMany to Bommel here and test it
