@@ -40,8 +40,8 @@ RUN npm install express
 
 # Expose port 8080
 EXPOSE 8080
-COPY ./replaceEnvs.sh ./replaceEnvs.sh
-COPY ./startup.sh ./startup.sh
+COPY ../docker/replaceEnvs.sh ./replaceEnvs.sh
+COPY ../docker/startup.sh ./startup.sh
 RUN chmod +x ./replaceEnvs.sh
 RUN chmod +x ./startup.sh
 # Start the server
