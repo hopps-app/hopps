@@ -6,6 +6,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
@@ -21,6 +23,8 @@ public class KafkaConnector {
     @Inject
     DocumentDownloader documentDownloader;
 
+    private final Logger LOGGER = LoggerFactory.getLogger(KafkaConnector.class);
+
     @Incoming("document-uri-in")
     @Outgoing("document-data-out")
     public InvoiceData process(InvoiceDocument invoiceDocument) {
@@ -28,7 +32,8 @@ public class KafkaConnector {
         try {
             return zugFerdService.scanInvoice(documentDownloader.downloadDocument(invoiceDocument.URI()));
         } catch (RuntimeException | IOException | XPathExpressionException | ParseException | URISyntaxException e) {
-            throw new RuntimeException(e);
+            LOGGER.error(e.toString());
         }
+        return null;
     }
 }
