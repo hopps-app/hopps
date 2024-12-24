@@ -42,7 +42,13 @@ RUN npm install express
 EXPOSE 8080
 COPY ../docker/replaceEnvs.sh ./replaceEnvs.sh
 COPY ../docker/startup.sh ./startup.sh
+
+# Make scripts executable
 RUN chmod +x ./replaceEnvs.sh
 RUN chmod +x ./startup.sh
+
+# add node user as owner
+RUN chown node:node /app/*
+
 # Start the server
 CMD ["/bin/bash", "-c", "/app/startup.sh"]
