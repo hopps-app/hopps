@@ -3,7 +3,6 @@ package app.hopps;
 import app.hopps.model.InvoiceData;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
