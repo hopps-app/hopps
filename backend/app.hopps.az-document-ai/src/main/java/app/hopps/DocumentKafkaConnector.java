@@ -22,7 +22,7 @@ public class DocumentKafkaConnector {
 
     @Inject
     public DocumentKafkaConnector(AzureAiService azureAi, @Channel("receipts-out") Emitter<ReceiptData> receiptEmitter,
-                                  @Channel("invoices-out") Emitter<InvoiceData> invoicesEmitter) {
+            @Channel("invoices-out") Emitter<InvoiceData> invoicesEmitter) {
         this.invoicesEmitter = invoicesEmitter;
         this.receiptEmitter = receiptEmitter;
         this.azureAi = azureAi;

@@ -4,6 +4,7 @@ import app.hopps.commons.DocumentData;
 import app.hopps.commons.DocumentType;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.slf4j.Logger;
@@ -20,9 +21,12 @@ public class DocumentProducer {
     @Channel("document-out")
     Emitter<DocumentData> documentEmitter;
 
+    @ConfigProperty(name = "app.hopps.fin.url")
+    String finUrl;
+
     public void sendToProcess(TransactionRecord transactionRecord, DocumentType type) {
         try {
-            URL internalFinUrl = URI.create("http://fin/document/" + transactionRecord.getDocumentKey()).toURL();
+            URL internalFinUrl = URI.create(finUrl + "/document/" + transactionRecord.getDocumentKey()).toURL();
             DocumentData documentData = new DocumentData(internalFinUrl, transactionRecord.getId(), type);
             documentEmitter.send(documentData);
         } catch (MalformedURLException e) {

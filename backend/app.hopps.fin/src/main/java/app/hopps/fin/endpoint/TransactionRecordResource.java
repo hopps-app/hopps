@@ -4,6 +4,7 @@ import app.hopps.fin.client.OrgRestClient;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.panache.common.Page;
+import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
@@ -29,6 +30,7 @@ import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import java.util.List;
 import java.util.Optional;
 
+@Authenticated
 @Path("")
 public class TransactionRecordResource {
     private final TransactionRecordRepository repository;
