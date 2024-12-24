@@ -48,7 +48,7 @@ RUN chmod +x ./replaceEnvs.sh
 RUN chmod +x ./startup.sh
 
 # add node user as owner
-RUN chown node:node /app/*
+RUN chown -R node:node /app
 
 # Start the server
 CMD ["/bin/bash", "-c", "/app/startup.sh"]
