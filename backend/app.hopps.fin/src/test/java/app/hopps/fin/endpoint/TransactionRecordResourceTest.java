@@ -7,6 +7,7 @@ import io.quarkiverse.wiremock.devservice.ConnectWireMock;
 import io.quarkus.panache.common.Page;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,12 +17,15 @@ import wiremock.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.math.BigDecimal;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
 @ConnectWireMock
+@TestSecurity(authorizationEnabled = false)
 @TestHTTPEndpoint(TransactionRecordResource.class)
 class TransactionRecordResourceTest {
     @Inject

@@ -2,6 +2,7 @@ package app.hopps.fin.endpoint;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -19,6 +20,7 @@ import java.io.InputStream;
 import static io.restassured.RestAssured.given;
 
 @QuarkusTest
+@TestSecurity(authorizationEnabled = false)
 @TestHTTPEndpoint(DocumentResource.class)
 class DocumentResourceTest {
     @Inject
