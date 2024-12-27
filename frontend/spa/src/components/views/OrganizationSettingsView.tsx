@@ -15,6 +15,7 @@ function OrganizationSettingsView() {
     const { t } = useTranslation();
     const store = useStore();
     const [isOrganizationError, setIsOrganizationError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [originalBommels, setOriginalBommels] = useState<Map<number, Bommel>>(new Map());
     const [rootBommel, setRootBommel] = useState<Bommel | null>(null);
     const [tree, setTree] = useState<OrganizationTreeNodeModel[]>([]);
@@ -32,13 +33,18 @@ function OrganizationSettingsView() {
     };
 
     const onClickSave = async () => {
+        setIsLoading(true);
         const sortedTree = organizationTreeService.sortTreeByDepth(tree);
         try {
             await organizationTreeService.saveOrganizationTree(sortedTree, rootBommel!.id!, originalBommels);
+            await loadTree();
             showSuccess(t('organization.settings.saved'));
         } catch (e) {
             console.error(e);
             showError(t('organization.settings.saveError'));
+        } finally {
+            console.log('Finally');
+            setIsLoading(false);
         }
     };
 
@@ -48,7 +54,9 @@ function OrganizationSettingsView() {
             return;
         }
 
-        loadTree();
+        loadTree().then(() => {
+            setIsLoading(false);
+        });
     }, [rootBommel]);
 
     useEffect(() => {
@@ -68,9 +76,17 @@ function OrganizationSettingsView() {
         });
     }, []);
 
+    console.log('RENDER', isLoading);
+
     return (
         <>
-            <SettingsPageHeader>{!isOrganizationError && <Button onClick={onClickSave}>Save</Button>}</SettingsPageHeader>
+            <SettingsPageHeader>
+                {!isOrganizationError && (
+                    <Button onClick={onClickSave} disabled={isLoading}>
+                        Save
+                    </Button>
+                )}
+            </SettingsPageHeader>
 
             {isOrganizationError ? (
                 <div>{t('organization.settings.error')}</div>

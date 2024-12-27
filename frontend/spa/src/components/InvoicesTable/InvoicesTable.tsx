@@ -10,9 +10,11 @@ import { useTranslation } from 'react-i18next';
 
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import AgGridSetFilter from '@/components/AgGrid/agGridSetFilter';
+import { Bommel } from '@/services/api/types/Bommel.ts';
 
 interface Props {
     invoices: InvoicesTableData[];
+    bommels: Bommel[];
 }
 
 const InvoicesTable = ({ invoices }: Props) => {
@@ -40,7 +42,7 @@ const InvoicesTable = ({ invoices }: Props) => {
     }, [api]);
 
     const getBommelFilterItems = () => {
-        const ids: string[] = [];
+        const ids: number[] = [];
         invoices.forEach((invoice) => {
             if (!ids.includes(invoice.bommel)) {
                 ids.push(invoice.bommel);
