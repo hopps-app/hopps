@@ -31,6 +31,8 @@ jobs:
             directory: app.hopps.az-document-ai
           - label: zugferd
             directory: app.hopps.zugferd
+          - label: fin-narrator
+            directory: app.hopps.fin-narrator
 
     runs-on: ubuntu-latest
     steps:
