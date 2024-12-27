@@ -1,8 +1,6 @@
 export type InvoicesTableData = {
-    id: string;
+    id: number;
     date: string;
-    creditor: string;
-    submitter: string;
     amount: number;
-    bommel: string;
+    bommel: number;
 };

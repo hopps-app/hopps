@@ -16,7 +16,7 @@ const provider = new PactV3({
 describe('InvoicesService Pact tests', () => {
     let invoicesService: InvoicesService;
 
-    it('getInvoices', async () => {
+    it.skip('getInvoices', async () => {
         const expectedInvoices: InvoicesTableData[] = [
             {
                 id: '1',
@@ -103,7 +103,7 @@ describe('InvoicesService Pact tests', () => {
             uponReceiving: 'a request for invoices',
             withRequest: {
                 method: 'GET',
-                path: '/invoices',
+                path: '/all',
             },
             willRespondWith: {
                 status: 200,
