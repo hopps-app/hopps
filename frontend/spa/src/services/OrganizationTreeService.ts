@@ -5,15 +5,19 @@ import { Bommel } from '@/services/api/types/Bommel.ts';
 import apiService from '@/services/ApiService.ts';
 
 export class OrganizationTreeService {
+    private savedNodesMap = new Map<number, number>();
+
     async saveOrganizationTree(tree: OrganizationTreeNodeModel[], rootBommelId: number, originalBommelsMap: Map<number, Bommel>) {
+        this.savedNodesMap.clear();
+
         // create and update bommels
         for (const node of tree) {
             let parentBommelId = rootBommelId;
             const nodeParentId = node.parent as number;
             if (nodeParentId !== 0) {
                 const parentNode = tree.find((n) => n.id === nodeParentId);
-                if (parentNode?.id) {
-                    parentBommelId = parentNode.id as number;
+                if (parentNode) {
+                    parentBommelId = (parentNode.data?.id || parentNode.id) as number;
                 }
             }
 
@@ -98,6 +102,7 @@ export class OrganizationTreeService {
             // save new bommel
             bommel = await apiService.bommel.createBommel(bommel);
             console.log('BOMMEL CREATED', bommel);
+            node.data = { id: bommel.id, emoji: bommel.emoji || '' };
         } else {
             // update existing bommel
             const original = originalBommelsMap.get(bommel.id!);
@@ -164,7 +169,6 @@ export class OrganizationTreeService {
             return rootBommel;
         } catch (e) {
             console.error('Failed to load root bommel', e);
-            debugger;
             return await createRootBommel();
         }
     }
