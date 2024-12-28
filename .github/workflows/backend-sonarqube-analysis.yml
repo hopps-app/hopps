@@ -29,6 +29,9 @@ jobs:
           - key: "hopps-app_hopps-fin"
             folder: "app.hopps.fin"
             label: "Finanzen"
+          - key: "hopps-app_zugferd"
+            folder: "app.hopps.zugferd"
+            label: "ZUGFeRD"
 
     steps:
       - uses: actions/checkout@v4
