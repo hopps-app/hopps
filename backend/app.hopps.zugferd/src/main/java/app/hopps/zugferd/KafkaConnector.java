@@ -1,7 +1,7 @@
-package app.hopps;
+package app.hopps.zugferd;
 
-import app.hopps.model.InvoiceData;
-import app.hopps.model.InvoiceDocument;
+import app.hopps.zugferd.model.InvoiceData;
+import app.hopps.zugferd.model.InvoiceDocument;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Incoming;

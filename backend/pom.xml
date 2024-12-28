@@ -48,7 +48,7 @@
         <module>app.hopps.fin</module>
         <module>app.hopps.org</module>
         <module>app.hopps.az-document-ai</module>
-        <module>app.hopps.zugferd-document-service</module>
+        <module>app.hopps.zugferd</module>
     </modules>
 
     <build>
