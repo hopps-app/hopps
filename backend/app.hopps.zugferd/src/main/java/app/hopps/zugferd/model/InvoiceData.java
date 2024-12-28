@@ -1,4 +1,4 @@
-package app.hopps.model;
+package app.hopps.zugferd.model;
 
 import org.mustangproject.Invoice;
 import org.mustangproject.ZUGFeRD.TransactionCalculator;
@@ -21,7 +21,7 @@ public record InvoiceData(
         TransactionCalculator tc = new TransactionCalculator(invoice);
         double prePaidAmount;
 
-        if(invoice.getTotalPrepaidAmount() == null) {
+        if (invoice.getTotalPrepaidAmount() == null) {
             prePaidAmount = 0;
         } else {
             prePaidAmount = invoice.getTotalPrepaidAmount().doubleValue();

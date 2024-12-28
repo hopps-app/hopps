@@ -1,4 +1,4 @@
-package app.hopps;
+package app.hopps.zugferd;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

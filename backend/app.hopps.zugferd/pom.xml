@@ -9,7 +9,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>zugferd-document-service</artifactId>
+    <artifactId>zugferd</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <name>Hopps ZugFerD Document Service</name>

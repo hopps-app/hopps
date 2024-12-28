@@ -1,6 +1,6 @@
-package app.hopps;
+package app.hopps.zugferd;
 
-import app.hopps.model.InvoiceData;
+import app.hopps.zugferd.model.InvoiceData;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
