@@ -85,7 +85,10 @@ public class AzureAiService {
     private byte[] fetchDocument(URL documentUrl) {
         try {
             FinRestClientImpl finRestClient = new FinRestClientImpl(documentUrl);
-            String accessToken = tokensHelper.getTokens(oidcClient).await().atMost(Duration.ofSeconds(3)).getAccessToken();
+            String accessToken = tokensHelper.getTokens(oidcClient)
+                    .await()
+                    .atMost(Duration.ofSeconds(3))
+                    .getAccessToken();
 
             return finRestClient.getDocumentBase64(accessToken);
         } catch (URISyntaxException e) {
