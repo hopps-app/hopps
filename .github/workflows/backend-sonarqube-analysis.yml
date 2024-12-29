@@ -5,12 +5,6 @@ on:
     paths:
       - backend/**
       - .github/workflows/backend-sonarqube-analysis.yml
-    branches: [ "main" ]
-  pull_request:
-    paths:
-      - backend/**
-      - .github/workflows/backend-sonarqube-analysis.yml
-    types: [ opened, reopened, synchronize ]
 
 jobs:
   build-and-analyse:
@@ -42,8 +36,14 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: mvn install parent
+        run: mvn -B -N clean install --file backend/pom.xml
+
+      - name: mvn install commons
+        run: mvn -B install --file backend/app.hopps.commons/pom.xml
+
       - name: mvn package
-        run: mvn -B clean verify --file backend/pom.xml
+        run: mvn -B verify --file backend/${{ matrix.sonar.folder }}/pom.xml
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
