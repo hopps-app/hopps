@@ -8,6 +8,7 @@ public class AddressHelper {
     }
 
     public static Address fromZugferd(Invoice invoice) {
-        return new Address(invoice.getOwnCountry(), invoice.getOwnZIP(), null, invoice.getOwnLocation(), invoice.getOwnStreet(), null);
+        return new Address(invoice.getOwnCountry(), invoice.getOwnZIP(), null, invoice.getOwnLocation(),
+                invoice.getOwnStreet(), null);
     }
 }
