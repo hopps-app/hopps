@@ -18,6 +18,7 @@ jobs:
           - "app.hopps.az-document-ai"
           - "app.hopps.fin"
           - "app.hopps.zugferd"
+          - "app.hopps.fin-narrator"
 
     steps:
       # Checkout the code
