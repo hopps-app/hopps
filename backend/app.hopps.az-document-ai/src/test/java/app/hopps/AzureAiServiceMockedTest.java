@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,11 +38,11 @@ class AzureAiServiceMockedTest {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("sample-receipt-01.json");
         ObjectMapper objectMapper = new ObjectMapper();
         AnalyzeResult mockAnalyzeResult = objectMapper.readValue(stream, AnalyzeResult.class);
-        when(azureDocumentConnector.getAnalyzeResult(anyString(), any(URL.class)))
+        when(azureDocumentConnector.getAnalyzeResult(anyString(), any(byte[].class)))
                 .thenReturn(mockAnalyzeResult);
     }
 
-    @Disabled
+    @Disabled("we currently don't know of a way to create an AnalyzeResult")
     @Test
     void shouldAnalyzeInvoiceAgainstMock() throws Exception {
 
