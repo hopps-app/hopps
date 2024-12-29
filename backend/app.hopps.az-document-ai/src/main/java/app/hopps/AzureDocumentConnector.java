@@ -10,8 +10,6 @@ import com.azure.core.util.polling.SyncPoller;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import java.net.URL;
-
 @ApplicationScoped
 public class AzureDocumentConnector {
 
@@ -26,7 +24,7 @@ public class AzureDocumentConnector {
                 .buildClient();
     }
 
-    public AnalyzeResult getAnalyzeResult(String modelId, URL imageUrl) {
+    public AnalyzeResult getAnalyzeResult(String modelId, byte[] imageBytes) {
         SyncPoller<AnalyzeResultOperation, AnalyzeResult> analyzeLayoutPoller = azureClient.beginAnalyzeDocument(
                 modelId,
                 null,
@@ -36,7 +34,7 @@ public class AzureDocumentConnector {
                 null,
                 null,
                 null,
-                new AnalyzeDocumentRequest().setUrlSource(imageUrl.toString()));
+                new AnalyzeDocumentRequest().setBase64Source(imageBytes));
 
         return analyzeLayoutPoller.getFinalResult();
     }
