@@ -75,7 +75,7 @@ describe('AuthService', () => {
     });
 
     it('should set auth user', async () => {
-        const userData = { name: 'John Doe', email: 'john.doe@example.com' };
+        const userData = { id: 'id', name: 'John Doe', email: 'john.doe@example.com' };
         vi.spyOn(authService, 'loadUserOrganisation').mockResolvedValue(undefined);
         await authService.setAuthUser(userData);
 

@@ -1,3 +1,5 @@
+import { pick } from 'lodash';
+
 import { KeycloakServiceProvider } from '@/services/auth/keycloakServiceProvider.ts';
 import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
 import { useStore } from '@/store/store.ts';
@@ -64,15 +66,8 @@ export class AuthService {
         return localStorage.getItem('AUTH_TOKEN_REFRESH') || undefined;
     }
 
-    async setAuthUser(userData: { name: string; email: string } | null) {
-        useStore.getState().setUser(
-            userData !== null
-                ? {
-                      name: userData.name,
-                      email: userData.email,
-                  }
-                : null
-        );
+    async setAuthUser(userData: { id: string; name: string; email: string } | null) {
+        useStore.getState().setUser(userData !== null ? pick(userData, ['id', 'name', 'email']) : null);
         await this.loadUserOrganisation();
         useStore.getState().setIsAuthenticated(!!userData);
     }
