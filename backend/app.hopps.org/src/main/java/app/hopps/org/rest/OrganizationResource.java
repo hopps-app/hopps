@@ -1,6 +1,7 @@
 package app.hopps.org.rest;
 
 import app.hopps.org.jpa.Member;
+import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
@@ -12,12 +13,15 @@ import jakarta.validation.Validator;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -28,6 +32,7 @@ import org.kie.kogito.process.ProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Map;
 
 @Path("/organization")
@@ -36,17 +41,18 @@ public class OrganizationResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationResource.class);
 
-    private final Validator validator;
-    private final Process<? extends Model> process;
-    private final OrganizationRepository organizationRepository;
+    @Inject
+    Validator validator;
 
     @Inject
-    public OrganizationResource(Validator validator, @Named("NewOrganization") Process<? extends Model> process,
-            OrganizationRepository organizationRepository) {
-        this.validator = validator;
-        this.process = process;
-        this.organizationRepository = organizationRepository;
-    }
+    @Named("NewOrganization")
+    Process<? extends Model> process;
+
+    @Inject
+    OrganizationRepository organizationRepository;
+
+    @Inject
+    MemberRepository memberRepository;
 
     @GET
     @Path("{slug}")
@@ -61,6 +67,29 @@ public class OrganizationResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.ok(organization).build();
+    }
+
+    @GET
+    @Path("/my")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get my organization", description = "Retrieves the details of an organization the current user is assigned to.")
+    @APIResponse(responseCode = "200", description = "Own organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
+    @APIResponse(responseCode = "404", description = "Organization not found for user")
+    public Organization getMyOrganization(@Context SecurityContext securityContext) {
+
+        String userName = securityContext.getUserPrincipal().getName();
+        Member me = memberRepository.findByEmail(userName);
+        if (me == null) {
+            throw new NotFoundException("Organization of User not found");
+        }
+
+        Collection<Organization> orgs = me.getOrganizations();
+        if (orgs.size() > 1) {
+            throw new IllegalStateException(
+                    "More than one organization is currently not implemented. User:  " + userName);
+        }
+
+        return orgs.stream().findFirst().orElseThrow();
     }
 
     @GET
