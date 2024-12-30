@@ -36,19 +36,19 @@ public class KafkaConnector {
 
     @Incoming("document-data-in")
     public void process(DocumentData documentData) throws URISyntaxException {
-        LOG.info("Received new document data");
+        LOG.info("{}: Received new document data", documentData.referenceKey());
         FinRestClientImpl restClient = new FinRestClientImpl(documentData.internalFinUrl());
 
         String accessToken = tokensHelper.getTokens(oidcClient).await().atMost(Duration.ofSeconds(3)).getAccessToken();
         // Process the incoming message payload and return an updated payload
         try (InputStream invoice = restClient.getDocument(accessToken)) {
-            LOG.info("Document successful downloaded");
+            LOG.info("{}: Document successful downloaded", documentData.referenceKey());
             InvoiceData invoiceData = zugFerdService.scanInvoice(documentData.referenceKey(), invoice);
-            LOG.info("Invoice scanned");
+            LOG.info("{}: Invoice scanned", documentData.referenceKey());
             emitter.send(invoiceData);
-            LOG.info("Invoice sent");
+            LOG.info("{}: Invoice sent", documentData.referenceKey());
         } catch (Exception e) {
-            LOG.error("Could not fetch or process document", e);
+            LOG.error("{}: Could not fetch or process document", documentData.referenceKey(), e);
         }
     }
 }

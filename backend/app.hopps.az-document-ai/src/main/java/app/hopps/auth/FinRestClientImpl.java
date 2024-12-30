@@ -16,6 +16,12 @@ public class FinRestClientImpl {
                 .build(FinRestClient.class);
     }
 
+    /**
+     * @param accessToken
+     *            without "Bearer "
+     *
+     * @return document in byte array
+     */
     public byte[] getDocumentBase64(String accessToken) {
         try (InputStream document = getDocument(accessToken)) {
             return document.readAllBytes();
@@ -24,7 +30,7 @@ public class FinRestClientImpl {
         }
     }
 
-    public InputStream getDocument(String accessToken) {
+    private InputStream getDocument(String accessToken) {
         return restClient.getDocument("Bearer " + accessToken);
     }
 }

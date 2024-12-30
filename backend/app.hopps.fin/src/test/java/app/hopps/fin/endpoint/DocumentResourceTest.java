@@ -23,6 +23,8 @@ import static io.restassured.RestAssured.given;
 @TestSecurity(authorizationEnabled = false)
 @TestHTTPEndpoint(DocumentResource.class)
 class DocumentResourceTest {
+    private static final String IMAGE_KEY = "imageKey";
+
     @Inject
     Flyway flyway;
 
@@ -42,7 +44,7 @@ class DocumentResourceTest {
             byte[] byteArray = IOUtils.toByteArray(zugferdInputStream);
 
             s3Client.putObject(PutObjectRequest.builder()
-                    .key("imageKey")
+                    .key(IMAGE_KEY)
                     .bucket(bucketName)
                     .build(), RequestBody.fromBytes(byteArray));
         } catch (Exception ignored) {
@@ -63,7 +65,7 @@ class DocumentResourceTest {
     void shouldGetFile() {
         given()
                 .when()
-                .get("{documentKey}", "imageKey")
+                .get("{documentKey}", IMAGE_KEY)
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode());
     }
