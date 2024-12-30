@@ -69,8 +69,8 @@ const InvoicesTable = ({ invoices }: Props) => {
                 filterParams: { items: getBommelFilterItems() },
                 flex: 1,
             },
-            { headerName: 'Creditor', field: 'creditor', filter: 'agTextColumnFilter', flex: 2 },
-            { headerName: 'Submitter', field: 'submitter', filter: 'agTextColumnFilter', flex: 2 },
+            // { headerName: 'Creditor', field: 'creditor', filter: 'agTextColumnFilter', flex: 2 },
+            // { headerName: 'Submitter', field: 'submitter', filter: 'agTextColumnFilter', flex: 2 },
             {
                 headerName: 'Amount',
                 field: 'amount',
