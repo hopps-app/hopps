@@ -15,6 +15,12 @@ public class FinRestClientImpl {
                 .build(FinRestClient.class);
     }
 
+    /**
+     * @param accessToken
+     *            without "Bearer "
+     *
+     * @return document
+     */
     public InputStream getDocument(String accessToken) {
         return restClient.getDocument("Bearer " + accessToken);
     }
