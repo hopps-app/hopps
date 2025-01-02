@@ -15,13 +15,12 @@ public class TransactionRecord {
     @Column(name = "bommel_id")
     private Long bommelId;
 
+    @Column(name = "document_key", nullable = false)
+    private String documentKey;
+
     // That's the only required common column in the kafka events
     @Column(nullable = false)
     private BigDecimal total;
-
-    // Common optional columns
-    @Column(name = "sub_total")
-    private BigDecimal subTotal;
 
     // invoice = invoice date
     // receipt = transaction time
@@ -59,20 +58,20 @@ public class TransactionRecord {
         this.bommelId = bommelId;
     }
 
+    public String getDocumentKey() {
+        return documentKey;
+    }
+
+    public void setDocumentKey(String documentKey) {
+        this.documentKey = documentKey;
+    }
+
     public BigDecimal getTotal() {
         return total;
     }
 
     public void setTotal(BigDecimal total) {
         this.total = total;
-    }
-
-    public BigDecimal getSubTotal() {
-        return subTotal;
-    }
-
-    public void setSubTotal(BigDecimal subTotal) {
-        this.subTotal = subTotal;
     }
 
     public Instant getTransactionTime() {

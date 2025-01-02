@@ -1,7 +1,6 @@
 package app.hopps.org.delegates;
 
 import app.hopps.org.jpa.Member;
-import app.hopps.org.jpa.MemberRespository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.validation.NonUniqueConstraintViolation;
@@ -9,8 +8,8 @@ import app.hopps.org.validation.NonUniqueConstraintViolation.NonUniqueConstraint
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
+import org.flywaydb.core.Flyway;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @QuarkusTest
-public class CreationValidationDelegateTests {
+class CreationValidationDelegateTests {
 
     @Inject
     CreationValidationDelegate delegate;
@@ -32,13 +31,12 @@ public class CreationValidationDelegateTests {
     OrganizationRepository organizationRepository;
 
     @Inject
-    MemberRespository memberRespository;
+    Flyway flyway;
 
     @BeforeEach
-    @Transactional
-    void setUp() {
-        organizationRepository.deleteAll();
-        memberRespository.deleteAll();
+    public void cleanDatabase() {
+        flyway.clean();
+        flyway.migrate();
     }
 
     @Test
@@ -109,8 +107,8 @@ public class CreationValidationDelegateTests {
     }
 
     @Test
-    @DisplayName("should validate valid data")
-    void shouldInvalidateUniqueness() throws NonUniqueConstraintViolationException {
+    @DisplayName("should invalidate non-unique slug")
+    void shouldInvalidateUniqueness() {
 
         // given
         Organization existingOrganization = new Organization();
@@ -119,6 +117,7 @@ public class CreationValidationDelegateTests {
         existingOrganization.setSlug("kegelclub-777");
 
         QuarkusTransaction.begin();
+        organizationRepository.deleteAll();
         organizationRepository.persist(existingOrganization);
         QuarkusTransaction.commit();
 

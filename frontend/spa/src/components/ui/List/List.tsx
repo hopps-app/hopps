@@ -28,7 +28,7 @@ const List: React.FC<ListProps> = ({ items, className, children }) => {
                     onClick={item.onClick}
                     className={cn(
                         'h-10 leading-10 px-4',
-                        item.active ? 'bg-accent' : null,
+                        item.active ? 'bg-accent border-l-4 border-primary' : 'pl-[calc(1rem+4px)]',
                         item.onClick ? 'hover:cursor-pointer hover:bg-accent hover:text-accent-foreground' : null
                     )}
                 />

@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -19,42 +18,41 @@ import java.util.Set;
 
 @Entity
 @Table(indexes = @Index(columnList = "parent_id"))
-@NamedQueries({
-        @NamedQuery(name = "Bommel.GetParentsRecursive", query = """
-                            with parents as (
-                                select n.parent.id as bommel
-                                from Bommel n
-                                where n.id = :startId
+@NamedQuery(name = "Bommel.GetParentsRecursive", query = """
+                    with parents as (
+                        select n.parent.id as bommel
+                        from Bommel n
+                        where n.id = :startId
 
-                                union
+                        union
 
-                                select n.parent.id as bommel
-                                from Bommel n
-                                join parents c on n.id = c.bommel
-                            ) cycle bommel set cycleMark using cyclePath
-                            select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
-                            from Bommel n
-                            join parents c on n.id = c.bommel
-                """),
-        @NamedQuery(name = "Bommel.GetChildrenRecursive", query = """
-                            with children_query as (
-                                select n.id as bommel
-                                from Bommel n
-                                where n.id = :startId
+                        select n.parent.id as bommel
+                        from Bommel n
+                        join parents c on n.id = c.bommel
+                    ) cycle bommel set cycleMark using cyclePath
+                    select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
+                    from Bommel n
+                    join parents c on n.id = c.bommel
+        """)
+@NamedQuery(name = "Bommel.GetChildrenRecursive", query = """
+                    with children_query as (
+                        select n.id as bommel
+                        from Bommel n
+                        where n.id = :startId
 
-                                union
+                        union
 
-                                select n.id as bommel
-                                from Bommel n
-                                join children_query c on n.parent.id = c.bommel
-                            ) cycle bommel set cycleMark using cyclePath
-                            select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
-                            from Bommel n
-                            join children_query c on n.id = c.bommel
-                            where n.id != :startId or cycleMark = true
-                """)
-})
+                        select n.id as bommel
+                        from Bommel n
+                        join children_query c on n.parent.id = c.bommel
+                    ) cycle bommel set cycleMark using cyclePath
+                    select n as bommel, cycleMark as cycleMark, cyclePath as cyclePath
+                    from Bommel n
+                    join children_query c on n.id = c.bommel
+                    where n.id != :startId or cycleMark = true
+        """)
 public class Bommel extends PanacheEntity {
+    public static final String DEFAULT_ROOT_BOMMEL_EMOJI = "\uD83C\uDF33"; // tree
 
     private String name;
     private String emoji;

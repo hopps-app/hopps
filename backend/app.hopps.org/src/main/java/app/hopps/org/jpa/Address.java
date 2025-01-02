@@ -1,14 +1,25 @@
 package app.hopps.org.jpa;
 
 import jakarta.persistence.Embeddable;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Embeddable
+@Schema(name = "Organization", description = "An example of a valid address")
 public class Address {
 
+    @Schema(examples = "Raketenstraße")
     private String street;
+
+    @Schema(examples = "42a")
     private String number;
+
+    @Schema(examples = "Raketenstadt")
     private String city;
+
+    @Schema(examples = "4242")
     private String plz;
+
+    @Schema(examples = "Hinterhaus")
     private String additionalLine;
 
     public Address() {

@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
-public class NewOrganizationInvalidateTest {
+class NewOrganizationInvalidateTest {
 
     @Inject
     @Named("NewOrganization")

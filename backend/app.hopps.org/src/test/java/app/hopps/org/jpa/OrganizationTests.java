@@ -35,7 +35,7 @@ class OrganizationTests {
     OrganizationRepository organizationRepository;
 
     @Inject
-    MemberRespository memberRespository;
+    MemberRepository memberRepository;
 
     @Inject
     Validator validator;
@@ -44,7 +44,7 @@ class OrganizationTests {
     @Transactional
     void setUp() {
         organizationRepository.deleteAll();
-        memberRespository.deleteAll();
+        memberRepository.deleteAll();
     }
 
     @Test
@@ -160,7 +160,7 @@ class OrganizationTests {
         QuarkusTransaction.commit();
 
         // then
-        assertThat(memberRespository.listAll(), hasSize(1));
+        assertThat(memberRepository.listAll(), hasSize(1));
     }
 
     @Test

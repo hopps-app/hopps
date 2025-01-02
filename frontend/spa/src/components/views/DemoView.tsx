@@ -31,7 +31,7 @@ function DemoView() {
     ]);
 
     const onClickTest = async () => {
-        await window.fetch('http://localhost:8080/bommel/root', {});
+        await window.fetch('http://localhost:8080/bommel/root/2', {});
     };
 
     return (

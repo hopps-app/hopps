@@ -43,11 +43,15 @@ spec:
           image: "{{ .Values.org.image.repository }}:{{ .Values.org.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.org.image.pullPolicy }}
           {{- with .Values.org.envFrom }}
-          envFrom: {{ toYaml . | nindent 8 }}
-                {{- end }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.org.service.port }}
+              protocol: TCP
+            - name: management
+              containerPort: 9000
               protocol: TCP
           livenessProbe:
             {{- toYaml .Values.org.livenessProbe | nindent 12 }}

@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-public class NewOrganizationTests {
+class NewOrganizationTests {
 
     @Inject
     @Named("NewOrganization")
@@ -45,7 +45,7 @@ public class NewOrganizationTests {
 
     @Test
     @DisplayName("should validate valid verein and owner")
-    public void shouldValidate() throws Exception {
+    void shouldValidate() throws Exception {
 
         // given
         Organization kegelclub = new Organization();

@@ -16,7 +16,7 @@ type Props = {
     hasChild: boolean;
     disableHover: boolean;
     onToggle: (id: NodeModel['id']) => void;
-    onEdit: (id: NodeModel['id'], text: string) => void;
+    onEdit: (node: OrganizationTreeNodeModel) => void;
     onDelete: (id: NodeModel['id']) => void;
 };
 
@@ -40,7 +40,7 @@ function OrganizationTreeNode(props: Props) {
         setEditValue(value);
     };
 
-    const onEmojiChaged = (value: string) => {
+    const onEmojiChanged = (value: string) => {
         setEmoji(value);
     };
 
@@ -54,7 +54,7 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onClickAcceptEdit = () => {
-        props.onEdit(id, editValue);
+        props.onEdit({ ...props.node, text: editValue, data: { ...props.node.data, emoji } });
         setIsEditing(false);
     };
 
@@ -98,12 +98,12 @@ function OrganizationTreeNode(props: Props) {
                 <div className="w-full">
                     {isEditing ? (
                         <div className="flex flex-row items-center w-full">
-                            <EmojiField value={emoji} className="py-0 px-1 h-8" onChange={onEmojiChaged} />
+                            <EmojiField value={emoji} className="py-0 px-1 h-8" onChange={onEmojiChanged} />
                             <TextField
                                 ref={textFieldRef}
                                 value={editValue}
                                 className="py-1 px-1 h-8 w-full"
-                                onChange={onEditValueChange}
+                                onValueChange={onEditValueChange}
                                 onKeyDown={onKeyDown}
                             />
                             <Button variant="link" className="px-1" icon="Check" onClick={onClickAcceptEdit} />

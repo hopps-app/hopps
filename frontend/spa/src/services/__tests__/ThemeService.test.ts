@@ -18,7 +18,7 @@ describe('ThemeService', () => {
     });
 
     it('should initialize with dark theme if localStorage has dark theme', () => {
-        localStorage.setItem('theme', Themes.dark);
+        localStorage.setItem('THEME', Themes.dark);
         service.init();
         expect(service.getTheme()).toBe(Themes.dark);
         expect(document.documentElement.classList.contains(Themes.dark)).toBe(true);

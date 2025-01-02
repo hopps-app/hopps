@@ -2,12 +2,12 @@ import { FaUser } from 'react-icons/fa';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useAuthStore } from '@/store/store.ts';
+import { useStore } from '@/store/store.ts';
 import authService from '@/services/auth/AuthService.ts';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 
 function UserMenu() {
-    const authStore = useAuthStore();
+    const authStore = useStore();
     const user = authStore.user;
 
     const navigate = useNavigate();
@@ -16,9 +16,7 @@ function UserMenu() {
         { type: 'separator' },
         { title: 'Profile', onClick: () => navigate('/settings/profile') },
         { title: 'Organization', onClick: () => navigate('/settings/organization') },
-        { type: 'separator' },
-        { title: 'GitHub', onClick: () => console.log('GitHub') },
-        { title: 'Support', onClick: () => console.log('Support') },
+        { title: 'Invoices', onClick: () => navigate('/settings/invoices') },
         { type: 'separator' },
         { title: 'Log out', onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)) },
     ]);

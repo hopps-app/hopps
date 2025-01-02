@@ -3,6 +3,42 @@
     "text1": "Try hopps for 14 days free of",
     "text2": "charge"
   },
+  "common": {
+    "refresh": "Refresh"
+  },
+  "header": {
+    "login": "Login",
+    "register": "Register"
+  },
+  "invoices": {
+    "loadFailed": "Failed to load invoices",
+    "noInvoices": "No invoices to show"
+  },
+  "organization": {
+    "registration": {
+      "failed": "Failed to register organization",
+      "header": "Register Organization",
+      "success": "Organisation successfully created"
+    },
+    "settings": {
+      "error": "Failed to load organization structure",
+      "saveError": "Failed to save setting",
+      "saved": "Settings successfully saved"
+    }
+  },
+  "profile": {
+    "settings": {
+      "language": "Language",
+      "theme": "Theme"
+    }
+  },
+  "settings": {
+    "menu": {
+      "invoices": "Invoices",
+      "organization": "Organization",
+      "profile": "Profile"
+    }
+  },
   "settingsPage": {
     "menu": "Menu"
   }

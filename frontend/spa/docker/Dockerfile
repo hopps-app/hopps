@@ -1,6 +1,16 @@
 # Use an official node image to build the React app
 FROM node:18 AS build
 
+# General
+ENV VITE_TITLE="VITE_TITLE_VALUE"
+ENV VITE_GENERAL_DATE_FORMAT="VITE_GENERAL_DATE_FORMAT_VALUE"
+ENV VITE_GENERAL_CURRENCY_SYMBOL_AFTER="VITE_GENERAL_CURRENCY_SYMBOL_AFTER_VALUE"
+ENV VITE_KEYCLOAK_URL="VITE_KEYCLOAK_URL_VALUE"
+ENV VITE_KEYCLOAK_REALM="VITE_KEYCLOAK_REALM_VALUE"
+ENV VITE_KEYCLOAK_CLIENT_ID="VITE_KEYCLOAK_CLIENT_ID_VALUE"
+ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
+ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
+
 # Set the working directory
 WORKDIR /app
 
@@ -31,6 +41,15 @@ RUN npm install express
 
 # Expose port 8080
 EXPOSE 8080
+COPY ../docker/replaceEnvs.sh ./replaceEnvs.sh
+COPY ../docker/startup.sh ./startup.sh
+
+# Make scripts executable
+RUN chmod +x ./replaceEnvs.sh
+RUN chmod +x ./startup.sh
+
+# add node user as owner
+RUN chown -R node:node /app
 
 # Start the server
-CMD ["node", "server.js"]
+CMD ["/bin/bash", "-c", "/app/startup.sh"]

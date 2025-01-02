@@ -49,7 +49,7 @@ azDocumentAi:
     type: ClusterIP
     annotations: {}
     labels: {}
-    port: 8100
+    port: 8080
   strategy: {}
     # type: Recreate
   autoscaling:
@@ -66,7 +66,6 @@ azDocumentAi:
   serviceAccount:
     create: true
     annotations: {}
-    # ToDo: make fallback name unique
     name: az-document-ai
     automount: false
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -86,35 +85,34 @@ azDocumentAi:
   tolerations: []
   # Affinity settings for controlling pod scheduling
   affinity: {}
-  # ToDo: enable when endpoints are available
-  livenessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 20
-  #  successThreshold: 1
-  #  timeoutSeconds: 2
-  readinessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 10
-  #  successThreshold: 1
-  #  timeoutSeconds: 1
-  startupProbe: {}
-    # initialDelaySeconds: 1
-    # periodSeconds: 5
-    # timeoutSeconds: 1
-    # successThreshold: 1
-    # failureThreshold: 1
-    # httpGet:
-    #   scheme: HTTP
-    #   path: /
-    #   port: http
+  livenessProbe:
+    httpGet:
+      path: /q/health/live
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 20
+    successThreshold: 1
+    timeoutSeconds: 2
+  readinessProbe:
+    httpGet:
+      path: /q/health/ready
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  startupProbe:
+    httpGet:
+      scheme: HTTP
+      path: /q/health/started
+      port: management
+    failureThreshold: 1
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 1
   volumes:
     - name: cache
       emptyDir: {}
@@ -202,36 +200,34 @@ fin:
   tolerations: []
   # Affinity settings for controlling pod scheduling
   affinity: {}
-  # ToDo: allow healhchecks to be disable
-  # ToDo: enable when endpoints are available
-  livenessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 20
-  #  successThreshold: 1
-  #  timeoutSeconds: 2
-  readinessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 10
-  #  successThreshold: 1
-  #  timeoutSeconds: 1
-  startupProbe: {}
-    # initialDelaySeconds: 1
-    # periodSeconds: 5
-    # timeoutSeconds: 1
-    # successThreshold: 1
-    # failureThreshold: 1
-    # httpGet:
-    #   scheme: HTTP
-    #   path: /
-  #   port: http
+  livenessProbe:
+    httpGet:
+      path: /q/health/live
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 20
+    successThreshold: 1
+    timeoutSeconds: 2
+  readinessProbe:
+    httpGet:
+      path: /q/health/ready
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  startupProbe:
+    httpGet:
+      scheme: HTTP
+      path: /q/health/started
+      port: management
+    failureThreshold: 1
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 1
   volumes:
     - name: cache
       emptyDir: {}
@@ -326,36 +322,34 @@ org:
   tolerations: []
   # Affinity settings for controlling pod scheduling
   affinity: {}
-  # ToDo: allow healhchecks to be disable
-  # ToDo: enable when endpoints are available
-  livenessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 20
-  #  successThreshold: 1
-  #  timeoutSeconds: 2
-  readinessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 10
-  #  successThreshold: 1
-  #  timeoutSeconds: 1
-  startupProbe: {}
-    # initialDelaySeconds: 1
-    # periodSeconds: 5
-    # timeoutSeconds: 1
-    # successThreshold: 1
-    # failureThreshold: 1
-    # httpGet:
-  #   scheme: HTTP
-  #   path: /
-  #   port: http
+  livenessProbe:
+    httpGet:
+      path: /q/health/live
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 20
+    successThreshold: 1
+    timeoutSeconds: 2
+  readinessProbe:
+    httpGet:
+      path: /q/health/ready
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  startupProbe:
+    httpGet:
+      scheme: HTTP
+      path: /q/health/started
+      port: management
+    failureThreshold: 1
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 1
   volumes:
     - name: cache
       emptyDir: {}
@@ -407,10 +401,6 @@ frontend:
         - ALL
     runAsNonRoot: true
     runAsUser: 1000
-    # ToDo: check if can be run with readonly root filesystem, following access is needed
-    # - /var/cache/nginx
-    # - /etc/nginx/config.d
-    # - /var/run/nginx.pid
     readOnlyRootFilesystem: false
     seccompProfile:
       type: RuntimeDefault
@@ -427,6 +417,7 @@ frontend:
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
+  # Note: not implemented for frontend yet
   serviceMonitor:
     enabled: false
     namespace: ~
@@ -453,43 +444,37 @@ frontend:
   # Tolerations settings for scheduling the pod based on node taints
   tolerations: []
   # Affinity settings for controlling pod scheduling
-  affinity: { }
-  # ToDo: allow healhchecks to be disable
-  # ToDo: enable when endpoints are available
-  livenessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 20
-  #  successThreshold: 1
-  #  timeoutSeconds: 2
-  readinessProbe: {}
-  #  failureThreshold: 3
-  #  httpGet:
-  #    path: /
-  #    port: http
-  #    scheme: HTTP
-  #  periodSeconds: 10
-  #  successThreshold: 1
-  #  timeoutSeconds: 1
-  startupProbe: {}
-    # initialDelaySeconds: 1
-    # periodSeconds: 5
-    # timeoutSeconds: 1
-    # successThreshold: 1
-  # failureThreshold: 1
-  # httpGet:
-  #   scheme: HTTP
-  #   path: /
-  #   port: http
-  volumes:
-    - name: cache
-      emptyDir: {}
-  volumeMounts:
-    - name: cache
-      mountPath: /var/cache/nginx
+  affinity: {}
+  livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /
+      port: http
+      scheme: HTTP
+    periodSeconds: 20
+    successThreshold: 1
+    timeoutSeconds: 2
+  readinessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /
+      port: http
+      scheme: HTTP
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  startupProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 5
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 1
+    httpGet:
+      scheme: HTTP
+      path: /
+      port: http
+  volumes: {}
+  volumeMounts: {}
 
 # external dependencies
 keycloak:
@@ -517,5 +502,4 @@ kafka-ui:
   #    tls:
   #      enabled: true
   #      secretName: kafka-tls
-  #    # ToDo: mask domain
   #    host: kafka-ui.<domain>
