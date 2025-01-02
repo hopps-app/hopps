@@ -1,22 +1,29 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
-import { useAuthStore } from '@/store/store.ts';
-import UserMenu from '@/layouts/default/UserMenu.tsx';
 import authService from '@/services/auth/AuthService.ts';
+import { useStore } from '@/store/store.ts';
+import UserMenu from '@/layouts/default/UserMenu.tsx';
 
 function Header() {
+    const { t } = useTranslation();
+    const navigate = useNavigate();
     const menuItems = [
         { url: '/', label: 'Home' },
         { url: '/demo', label: 'Demo' },
     ];
 
-    const appStore = useAuthStore();
+    const appStore = useStore();
     const isAuthenticated = appStore.isAuthenticated;
 
     const onClickLogin = () => {
         authService.login();
+    };
+
+    const onClickRegister = () => {
+        navigate('/register');
     };
 
     return (
@@ -59,9 +66,9 @@ function Header() {
                     ) : (
                         <div className="flex flex-row gap-5 items-center mt-0 ps-5">
                             <Button variant="link" className="px-0" onClick={onClickLogin}>
-                                Login
+                                {t('header.login')}
                             </Button>
-                            <Button>Jetzt testen</Button>
+                            <Button onClick={onClickRegister}>{t('header.register')}</Button>
                         </div>
                     )}
                 </div>

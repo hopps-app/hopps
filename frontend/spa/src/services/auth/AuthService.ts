@@ -1,6 +1,9 @@
+import { pick } from 'lodash';
+
 import { KeycloakServiceProvider } from '@/services/auth/keycloakServiceProvider.ts';
 import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
-import { useAuthStore } from '@/store/store.ts';
+import { useStore } from '@/store/store.ts';
+import apiService from '@/services/ApiService.ts';
 
 export class AuthService {
     private provider: AuthServiceProvider;
@@ -27,12 +30,27 @@ export class AuthService {
         this.stopTokenRefresh();
 
         this.setAuthTokens(undefined, undefined);
-        useAuthStore.getState().setIsAuthenticated(false);
-        useAuthStore.getState().setUser(null);
+        useStore.getState().setIsAuthenticated(false);
+        useStore.getState().setUser(null);
     }
 
     checkLogin() {
         return this.provider.checkLogin();
+    }
+
+    async loadUserOrganisation() {
+        const user = useStore.getState().user;
+
+        if (!user) {
+            useStore.getState().setOrganization(null);
+            return;
+        }
+
+        // todo replace with out using slug
+        const organisationSlug = 'test';
+        const organisation = await apiService.organization.getBySlug(organisationSlug);
+
+        useStore.getState().setOrganization(organisation);
     }
 
     setAuthTokens(token: string | undefined, refreshToken: string | undefined) {
@@ -48,24 +66,18 @@ export class AuthService {
         return localStorage.getItem('AUTH_TOKEN_REFRESH') || undefined;
     }
 
-    setAuthUser(userData: { name: string; email: string } | null) {
-        useAuthStore.getState().setIsAuthenticated(!!userData);
-        useAuthStore.getState().setUser(
-            userData !== null
-                ? {
-                      name: userData.name,
-                      email: userData.email,
-                  }
-                : null
-        );
+    async setAuthUser(userData: { id: string; name: string; email: string } | null) {
+        useStore.getState().setUser(userData !== null ? pick(userData, ['id', 'name', 'email']) : null);
+        await this.loadUserOrganisation();
+        useStore.getState().setIsAuthenticated(!!userData);
     }
 
     isAuthenticated() {
-        return useAuthStore.getState().isAuthenticated;
+        return useStore.getState().isAuthenticated;
     }
 
     setIsInitialized(value: boolean) {
-        useAuthStore.getState().setIsInitialized(value);
+        useStore.getState().setIsInitialized(value);
     }
 
     async refreshToken() {

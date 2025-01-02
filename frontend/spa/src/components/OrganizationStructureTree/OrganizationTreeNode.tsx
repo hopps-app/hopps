@@ -54,7 +54,7 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onClickAcceptEdit = () => {
-        props.onEdit({ ...props.node, text: editValue, data: { emoji } });
+        props.onEdit({ ...props.node, text: editValue, data: { ...props.node.data, emoji } });
         setIsEditing(false);
     };
 
@@ -103,7 +103,7 @@ function OrganizationTreeNode(props: Props) {
                                 ref={textFieldRef}
                                 value={editValue}
                                 className="py-1 px-1 h-8 w-full"
-                                onChange={onEditValueChange}
+                                onValueChange={onEditValueChange}
                                 onKeyDown={onKeyDown}
                             />
                             <Button variant="link" className="px-1" icon="Check" onClick={onClickAcceptEdit} />
