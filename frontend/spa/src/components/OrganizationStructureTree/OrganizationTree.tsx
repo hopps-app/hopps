@@ -1,6 +1,6 @@
 import { Tree, getBackendOptions, MultiBackend } from '@minoru/react-dnd-treeview';
 import { DndProvider } from 'react-dnd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import OrganizationTreeNode from '@/components/OrganizationStructureTree/OrganizationTreeNode.tsx';
 import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/OrganizationTreeDropPreview.tsx';
@@ -15,7 +15,7 @@ interface OrganizationStructureTreeProps {
 }
 
 function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProps) {
-    const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>(JSON.parse(JSON.stringify(tree)));
+    const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
 
     const handleDrop = (newTree: OrganizationTreeNodeModel[]) => {
@@ -23,7 +23,16 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
         onTreeChanged?.(newTree);
     };
     const onClickCreate = () => {
-        const newTree = [...treeData, { id: getMaxId(treeData) + 1, parent: 0, text: 'New item', droppable: true }];
+        const newTree = [
+            ...treeData,
+            {
+                id: getMaxId(treeData) + 1,
+                parent: 0,
+                text: 'New item',
+                droppable: true,
+                data: { emoji: '', isNew: true },
+            },
+        ];
         setTreeData(newTree);
         onTreeChanged?.(newTree);
     };
@@ -48,34 +57,42 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
         setIsDragging(false);
     };
 
+    useEffect(() => {
+        console.log('TREE PROP CHANGED', tree);
+
+        setTreeData(tree);
+    }, [tree]);
+
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
             <div>
-                <Tree
-                    tree={treeData}
-                    rootId={0}
-                    sort={false}
-                    dropTargetOffset={10}
-                    initialOpen={true}
-                    canDrop={(_, { dragSource, dropTargetId }) => {
-                        if (dragSource?.parent === dropTargetId) {
-                            return true;
-                        }
-                    }}
-                    render={(node, options) => (
-                        <OrganizationTreeNode node={node} onEdit={onEditNode} onDelete={onDeleteNode} disableHover={isDragging} {...options} />
-                    )}
-                    dragPreviewRender={(monitorProps) => <OrganizationTreeDropPreview monitorProps={monitorProps} />}
-                    placeholderRender={(node, { depth }) => <OrganizationTreePlaceholder node={node} depth={depth} />}
-                    onDrop={handleDrop}
-                    onDragStart={onDragStart}
-                    onDragEnd={onDragEnd}
-                    classes={{
-                        draggingSource: 'opacity-30',
-                        placeholder: 'relative',
-                        dropTarget: 'bg-accent',
-                    }}
-                />
+                {treeData.length ? (
+                    <Tree
+                        tree={treeData}
+                        rootId={0}
+                        sort={false}
+                        dropTargetOffset={10}
+                        initialOpen={true}
+                        canDrop={(_, { dragSource, dropTargetId }) => {
+                            if (dragSource?.parent === dropTargetId) {
+                                return true;
+                            }
+                        }}
+                        render={(node, options) => (
+                            <OrganizationTreeNode node={node} onEdit={onEditNode} onDelete={onDeleteNode} disableHover={isDragging} {...options} />
+                        )}
+                        dragPreviewRender={(monitorProps) => <OrganizationTreeDropPreview monitorProps={monitorProps} />}
+                        placeholderRender={(node, { depth }) => <OrganizationTreePlaceholder node={node} depth={depth} />}
+                        onDrop={handleDrop}
+                        onDragStart={onDragStart}
+                        onDragEnd={onDragEnd}
+                        classes={{
+                            draggingSource: 'opacity-30',
+                            placeholder: 'relative',
+                            dropTarget: 'bg-accent',
+                        }}
+                    />
+                ) : null}
                 <div className="text-center">
                     <Button variant="link" icon="Plus" onClick={onClickCreate}>
                         Add new

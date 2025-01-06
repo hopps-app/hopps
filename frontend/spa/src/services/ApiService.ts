@@ -1,17 +1,22 @@
 import { BommelService } from '@/services/api/BommelService.ts';
 import { InvoicesService } from '@/services/api/invoicesService.ts';
+import { OrganizationService } from '@/services/api/OrganizationService.ts';
 
 export class ApiService {
-    public baseUrl: string;
+    public orgUrl: string;
+    public finUrl: string;
 
     public bommel: BommelService;
     public invoices: InvoicesService;
+    public organization: OrganizationService;
 
     constructor() {
-        this.baseUrl = import.meta.env.VITE_API_URL || '';
+        this.orgUrl = import.meta.env.VITE_API_ORG_URL || '';
+        this.finUrl = import.meta.env.VITE_API_FIN_URL || '';
 
-        this.bommel = new BommelService(this.baseUrl);
-        this.invoices = new InvoicesService(this.baseUrl);
+        this.bommel = new BommelService(this.orgUrl);
+        this.invoices = new InvoicesService(this.finUrl);
+        this.organization = new OrganizationService(this.orgUrl);
     }
 }
 

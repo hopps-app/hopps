@@ -8,6 +8,7 @@ import NotFoundView from '@/components/views/NotFoundView.tsx';
 import SettingsView from '@/components/views/SettingsView.tsx';
 import AuthGuard from '@/guards/AuthGuard.tsx';
 import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
+import { RegisterOrganizationView } from '@/components/views/RegisterOrganizationView.tsx';
 
 function Layout() {
     return (
@@ -20,6 +21,7 @@ function Layout() {
                         <Routes>
                             <Route path="/" element={<HomeView />} />
                             <Route path="/demo" element={<DemoView />} />
+                            <Route path="/register" element={<RegisterOrganizationView />} />
                             <Route
                                 path="/settings/*"
                                 element={

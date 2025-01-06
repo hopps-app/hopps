@@ -1,10 +1,10 @@
 package app.hopps.fin;
 
+import app.hopps.commons.Address;
+import app.hopps.commons.InvoiceData;
+import app.hopps.commons.ReceiptData;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.model.Address;
-import app.hopps.fin.kafka.model.InvoiceData;
-import app.hopps.fin.kafka.model.ReceiptData;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -30,16 +30,26 @@ class DataHandlerTest {
     private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
 
     @Inject
-    DataHandler dataHandler;
+    ReceiptDataHandler receiptDataHandler;
 
     @Inject
     TransactionRecordRepository repository;
+
+    @Inject
+    InvoiceDataHandler invoiceDataHandler;
+
+    Long referenceKey;
 
     @BeforeEach
     @Transactional
     void setUp() {
         // although this test does not persist to db, other test might…
         repository.deleteAll();
+
+        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.TEN);
+        transactionRecord.setDocumentKey("randomKey");
+        repository.persist(transactionRecord);
+        referenceKey = transactionRecord.getId();
     }
 
     @Test
@@ -48,12 +58,13 @@ class DataHandlerTest {
 
         // given
         InvoiceData invoiceData = new InvoiceData(
+                referenceKey,
                 BigDecimal.valueOf(500),
                 LocalDate.now(),
                 "EUR");
 
         // when
-        dataHandler.processTransactionRecord(invoiceData);
+        invoiceDataHandler.handleData(invoiceData);
 
         // then
         assertEquals(1, repository.count());
@@ -66,6 +77,7 @@ class DataHandlerTest {
         // given
         LocalDate dueDate = LocalDate.now().plusDays(3);
         InvoiceData invoiceData = new InvoiceData(
+                referenceKey,
                 BigDecimal.valueOf(500),
                 LocalDate.now(),
                 "EUR",
@@ -77,7 +89,7 @@ class DataHandlerTest {
                 Optional.of(BigDecimal.valueOf(150)));
 
         // when
-        dataHandler.processTransactionRecord(invoiceData);
+        invoiceDataHandler.handleData(invoiceData);
 
         // then
         List<TransactionRecord> transactionRecords = repository.listAll();
@@ -94,10 +106,10 @@ class DataHandlerTest {
     void shouldWriteMinimalReceiptData() {
 
         // given
-        ReceiptData receiptData = new ReceiptData(BigDecimal.valueOf(100));
+        ReceiptData receiptData = new ReceiptData(referenceKey, BigDecimal.valueOf(100));
 
         // when
-        dataHandler.processTransactionRecord(receiptData);
+        receiptDataHandler.handleData(receiptData);
 
         // then
         assertEquals(1, repository.count());
@@ -110,13 +122,14 @@ class DataHandlerTest {
         LocalDateTime transactionTime = LocalDateTime.now();
 
         ReceiptData receiptData = new ReceiptData(
+                referenceKey,
                 BigDecimal.valueOf(100),
                 Optional.of("StoreName"),
                 Optional.of(address),
                 Optional.of(transactionTime));
 
         // when
-        dataHandler.processTransactionRecord(receiptData);
+        receiptDataHandler.handleData(receiptData);
 
         // then
         List<TransactionRecord> transactionRecords = repository.listAll();

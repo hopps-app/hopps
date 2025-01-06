@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { AuthService } from '@/services/auth/AuthService';
 import { AuthServiceProvider } from '../AuthServiceProvider';
-import { useAuthStore } from '@/store/store';
+import { useStore } from '@/store/store';
 
 vi.mock('@/services/auth/AuthServiceProvider');
-vi.mock('@/store/store', () => ({ useAuthStore: { getState: vi.fn() } }));
+vi.mock('@/store/store', () => ({ useStore: { getState: vi.fn() } }));
 
 describe('AuthService', () => {
     let authService: AuthService;
@@ -21,7 +21,7 @@ describe('AuthService', () => {
             refreshToken: vi.fn(),
         };
 
-        useAuthStore.getState.mockReturnValue({
+        useStore.getState.mockReturnValue({
             setIsAuthenticated: vi.fn(),
             setUser: vi.fn(),
         });
@@ -74,12 +74,13 @@ describe('AuthService', () => {
         expect(authService.getAuthRefreshToken()).toBe('refreshToken');
     });
 
-    it('should set auth user', () => {
-        const userData = { name: 'John Doe', email: 'john.doe@example.com' };
-        authService.setAuthUser(userData);
+    it('should set auth user', async () => {
+        const userData = { id: 'id', name: 'John Doe', email: 'john.doe@example.com' };
+        vi.spyOn(authService, 'loadUserOrganisation').mockResolvedValue(undefined);
+        await authService.setAuthUser(userData);
 
-        expect(useAuthStore.getState().setIsAuthenticated).toHaveBeenCalledWith(true);
-        expect(useAuthStore.getState().setUser).toHaveBeenCalledWith(userData);
+        expect(useStore.getState().setIsAuthenticated).toHaveBeenCalledWith(true);
+        expect(useStore.getState().setUser).toHaveBeenCalledWith(userData);
     });
 
     it('should call refresh token on provider', async () => {

@@ -32,13 +32,10 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
             this.authService.setAuthTokens(this.keycloak.token, this.keycloak.refreshToken);
 
             try {
-                const data = (await this.keycloak.loadUserInfo()) as {
-                    name: string;
-                    email: string;
-                };
-                this.authService.setAuthUser(data);
+                const data = (await this.keycloak.loadUserInfo()) as { id: string; name: string; email: string };
+                await this.authService.setAuthUser(data);
             } catch (e) {
-                this.authService.setAuthUser(null);
+                await this.authService.setAuthUser(null);
                 console.error('Failed to load user info', e);
             }
         }

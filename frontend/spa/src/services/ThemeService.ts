@@ -4,12 +4,13 @@ export enum Themes {
 }
 
 export class ThemeService {
-    private localStorageKey = 'theme';
+    private localStorageKey = 'THEME';
     private currentTheme: string = Themes.light;
 
     init() {
         const isDarkMode =
-            localStorage.theme === Themes.dark || (!(this.localStorageKey in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            localStorage[this.localStorageKey] === Themes.dark ||
+            (!(this.localStorageKey in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
         document.documentElement.classList.toggle(Themes.dark, isDarkMode);
         this.currentTheme = isDarkMode ? Themes.dark : Themes.light;

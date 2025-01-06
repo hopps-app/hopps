@@ -18,11 +18,11 @@ import java.util.Collection;
 public class Member extends PanacheEntity {
 
     @NotBlank
-    @Schema(examples = "Kim")
+    @Schema(examples = "Kim", description = "First Name of the Member")
     private String firstName;
 
     @NotBlank
-    @Schema(examples = "Rakete")
+    @Schema(examples = "Rakete", description = "Last Name of the Member")
     private String lastName;
 
     @NotBlank

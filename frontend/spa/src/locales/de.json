@@ -6,11 +6,38 @@
   "common": {
     "refresh": "Aktualisieren"
   },
+  "header": {
+    "login": "Login",
+    "register": "Registrieren"
+  },
   "invoices": {
+    "loadFailed": "Rechnungen konnten nicht geladen werden",
     "noInvoices": "Keine Rechnungen vorzulegen"
   },
-  "organizationSettings": {
-    "saved": "Organisationsstruktur erfolgreich gespeichert"
+  "organization": {
+    "registration": {
+      "failed": "Organisation konnte nicht registriert werden",
+      "header": "Organisation registrieren",
+      "success": "Organisation erfolgreich erstellt"
+    },
+    "settings": {
+      "error": "Organisationsstruktur konnte nicht geladen werden",
+      "saveError": "Einstellung konnte nicht gespeichert werden",
+      "saved": "Einstellungen erfolgreich gespeichert"
+    }
+  },
+  "profile": {
+    "settings": {
+      "language": "Sprache",
+      "theme": "Thema"
+    }
+  },
+  "settings": {
+    "menu": {
+      "invoices": "Rechnungen",
+      "organization": "Organisation",
+      "profile": "Profil"
+    }
   },
   "settingsPage": {
     "menu": "Speisekarte"

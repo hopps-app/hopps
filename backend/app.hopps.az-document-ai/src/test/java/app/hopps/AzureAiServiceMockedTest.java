@@ -1,6 +1,8 @@
 package app.hopps;
 
-import app.hopps.model.InvoiceData;
+import app.hopps.commons.DocumentData;
+import app.hopps.commons.DocumentType;
+import app.hopps.commons.InvoiceData;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.InjectMock;
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,19 +38,20 @@ class AzureAiServiceMockedTest {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("sample-receipt-01.json");
         ObjectMapper objectMapper = new ObjectMapper();
         AnalyzeResult mockAnalyzeResult = objectMapper.readValue(stream, AnalyzeResult.class);
-        when(azureDocumentConnector.getAnalyzeResult(anyString(), any(URL.class)))
+        when(azureDocumentConnector.getAnalyzeResult(anyString(), any(byte[].class)))
                 .thenReturn(mockAnalyzeResult);
     }
 
-    @Disabled
+    @Disabled("we currently don't know of a way to create an AnalyzeResult")
     @Test
     void shouldAnalyzeInvoiceAgainstMock() throws Exception {
 
         // given
         String url = "https://formrecognizer.appliedai.azure.com/documents/samples/prebuilt/receipt.png";
+        DocumentData documentData = new DocumentData(new URI(url).toURL(), -1L, DocumentType.INVOICE);
 
         // when
-        InvoiceData invoiceData = aiService.scanInvoice(new URI(url).toURL());
+        InvoiceData invoiceData = aiService.scanInvoice(documentData);
 
         // then
         assertNotNull(invoiceData);
