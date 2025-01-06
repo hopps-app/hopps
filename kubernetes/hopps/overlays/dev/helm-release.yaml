@@ -15,29 +15,19 @@ spec:
     azDocumentAi:
       image:
         tag: 239
-      #envFrom:
-      #  - secretRef:
-      #      name: az-document-ai
+      envFrom:
+        - secretRef:
+            name: az-document-ai
       envVars:
-        - name: app.hopps.az-document-ai.azure.endpoint
-          valueFrom:
-            secretKeyRef:
-              name: az-document-ai
-              key: app.hopps.az-document-ai.azure.endpoint
-        - name: app.hopps.az-document-ai.azure.key
-          valueFrom:
-            secretKeyRef:
-              name: az-document-ai
-              key: app.hopps.az-document-ai.azure.key
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         - name: kafka.bootstrap.servers
           value: hopps-kafka:9092
     org:
       image:
         tag: 239
-      #envFrom:
-      #  - secretRef:
-      #      name: org
+      envFrom:
+        - secretRef:
+            name: org
       envVars:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
@@ -58,22 +48,6 @@ spec:
             secretKeyRef:
               name: hopps-dev.org.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
-        # OIDC
-        - name: QUARKUS_OIDC_AUTH_SERVER_URL
-          valueFrom:
-            secretKeyRef:
-              name: org
-              key: QUARKUS_OIDC_AUTH_SERVER_URL
-        - name: QUARKUS_OIDC_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: org
-              key: QUARKUS_OIDC_CLIENT_ID
-        - name: QUARKUS_OIDC_CREDENTIALS_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: org
-              key: QUARKUS_OIDC_CREDENTIALS_SECRET
       ingress:
         enabled: true
         annotations:
@@ -94,9 +68,9 @@ spec:
     fin:
       image:
         tag: 239
-      #envFrom:
-      #  - secretRef:
-      #      name: fin
+      envFrom:
+        - secretRef:
+            name: fin
       envVars:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
@@ -117,22 +91,6 @@ spec:
             secretKeyRef:
               name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
-        # OIDC
-        - name: QUARKUS_OIDC_AUTH_SERVER_URL
-          valueFrom:
-            secretKeyRef:
-              name: fin
-              key: QUARKUS_OIDC_AUTH_SERVER_URL
-        - name: QUARKUS_OIDC_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: fin
-              key: QUARKUS_OIDC_CLIENT_ID
-        - name: QUARKUS_OIDC_CREDENTIALS_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: fin
-              key: QUARKUS_OIDC_CREDENTIALS_SECRET
         # kafka
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         - name: kafka.bootstrap.servers
@@ -162,21 +120,6 @@ spec:
             name: frontend
       podSecurityContext:
         fsGroup: 1000
-      securityContext:
-        allowPrivilegeEscalation: false
-        capabilities:
-          drop:
-            - ALL
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        # ToDo: check if can be run with readonly root filesystem, following access is needed
-        # - /var/cache/nginx
-        # - /etc/nginx/config.d
-        # - /var/run/nginx.pid
-        readOnlyRootFilesystem: false
-        seccompProfile:
-          type: RuntimeDefault
       ingress:
         enabled: true
         annotations:
@@ -252,8 +195,8 @@ spec:
       datastore:
         engine: postgres
         uriSecret: openfga
-        # needed, else the migration won't work
-        migrationType: "job"
+        # https://github.com/openfga/helm-charts/issues/100
+        migrationType: "initContainer"
       postgresql:
         enabled: false
     # use already available keycloak
