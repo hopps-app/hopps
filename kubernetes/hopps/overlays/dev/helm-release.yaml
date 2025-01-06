@@ -78,6 +78,8 @@ spec:
         enabled: true
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/rewrite-target: /
         ingressClassName: nginx
         path: /org
         hosts:
@@ -138,6 +140,8 @@ spec:
         enabled: true
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/rewrite-target: /
         ingressClassName: nginx
         path: /fin
         hosts:
