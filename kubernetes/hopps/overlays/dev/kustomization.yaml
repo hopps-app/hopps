@@ -6,7 +6,6 @@ resources:
   - namespace.yaml
   - helm-release.yaml
   - postgresql.yaml
-  - job.yaml
 # create all needed secrets with fix name
 generatorOptions:
   disableNameSuffixHash: true
