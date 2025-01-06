@@ -5,7 +5,7 @@ metadata:
 spec:
   teamId: "hopps"
   postgresql:
-    version: "16"
+    version: "17"
     parameters:
       # depending on application that can cause issues
       password_encryption: scram-sha-256

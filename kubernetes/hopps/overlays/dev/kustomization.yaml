@@ -13,23 +13,23 @@ generatorOptions:
 secretGenerator:
   - name: fin
     envs:
-      - fin-secret-encrypted.env
+      - secrets/fin-secret-encrypted.env
   - name: org
     envs:
-      - org-secret-encrypted.env
+      - secrets/org-secret-encrypted.env
   - name: az-document-ai
     envs:
-      - az-document-ai-secret-encrypted.env
+      - secrets/az-document-ai-secret-encrypted.env
   - name: frontend
     envs:
-      - frontend-secret-encrypted.env
+      - secrets/frontend-secret-encrypted.env
   - name: openfga
     envs:
-      - openfga-secret-encrypted.env
+      - secrets/openfga-secret-encrypted.env
   - name: postgres-operator-secret
     envs:
-      - postgres-cluster-secret-encrypted.env
+      - secrets/postgres-cluster-secret-encrypted.env
   # basic auth for kafka-ui
   - name: kafka-ui-auth
     envs:
-      - kafka-ui-secret-encrypted.env
+      - secrets/kafka-ui-secret-encrypted.env
