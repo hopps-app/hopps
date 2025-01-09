@@ -8,8 +8,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.time.ZoneOffset;
 
 @ApplicationScoped
-@SuppressWarnings("java:S3740")
 public class ReceiptDataHandler extends AbstractDataHandler {
+
     @Override
     protected void updateData(TransactionRecord transactionRecord, Data data) {
         if (data instanceof ReceiptData receiptData) {
