@@ -54,9 +54,10 @@ spec:
           cert-manager.io/cluster-issuer: letsencrypt-prod
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
-          nginx.ingress.kubernetes.io/rewrite-target: /
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
-        path: /org
+        path: /org(/|$)(.*)
+        pathType: ImplementationSpecific
         hosts:
           - api.${DOMAIN_2}
         tls:
@@ -101,9 +102,10 @@ spec:
           cert-manager.io/cluster-issuer: letsencrypt-prod
           nginx.ingress.kubernetes.io/enable-cors: "true"
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
-          nginx.ingress.kubernetes.io/rewrite-target: /
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
-        path: /fin
+        path: /fin(/|$)(.*)
+        pathType: ImplementationSpecific
         hosts:
           - api.${DOMAIN_2}
         tls:
