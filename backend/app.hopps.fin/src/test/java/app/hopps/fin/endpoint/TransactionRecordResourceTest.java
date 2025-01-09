@@ -1,5 +1,6 @@
 package app.hopps.fin.endpoint;
 
+import app.hopps.commons.DocumentType;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -38,12 +39,12 @@ class TransactionRecordResourceTest {
     void setup() {
         repository.deleteAll();
 
-        TransactionRecord withBommel = new TransactionRecord(BigDecimal.valueOf(50));
+        TransactionRecord withBommel = new TransactionRecord(BigDecimal.valueOf(50), DocumentType.INVOICE, "alice");
         withBommel.setDocumentKey("randomKey");
         withBommel.setBommelId(1L);
         repository.persist(withBommel);
 
-        TransactionRecord noBommel = new TransactionRecord(BigDecimal.valueOf(20));
+        TransactionRecord noBommel = new TransactionRecord(BigDecimal.valueOf(20), DocumentType.RECEIPT, "alice");
         noBommel.setDocumentKey("randomKey");
         repository.persist(noBommel);
     }

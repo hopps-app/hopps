@@ -1,6 +1,7 @@
 package app.hopps.fin;
 
 import app.hopps.commons.Address;
+import app.hopps.commons.DocumentType;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
 import app.hopps.fin.jpa.TransactionRecordRepository;
@@ -24,7 +25,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
-@TestSecurity(authorizationEnabled = false)
+@TestSecurity(user = "alice")
 class DataHandlerTest {
 
     private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
@@ -46,7 +47,7 @@ class DataHandlerTest {
         // although this test does not persist to db, other test might…
         repository.deleteAll();
 
-        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.TEN);
+        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.TEN, DocumentType.INVOICE, "alice");
         transactionRecord.setDocumentKey("randomKey");
         repository.persist(transactionRecord);
         referenceKey = transactionRecord.getId();
@@ -98,7 +99,7 @@ class DataHandlerTest {
         TransactionRecord transactionRecord = transactionRecords.getFirst();
         assertEquals("CustomerName", transactionRecord.getName());
         assertEquals(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant(), transactionRecord.getDueDate());
-        assertEquals("State", transactionRecord.getAddress().getState());
+        assertEquals("State", transactionRecord.getSender().getState());
     }
 
     @Test
@@ -137,7 +138,7 @@ class DataHandlerTest {
 
         TransactionRecord transactionRecord = transactionRecords.getFirst();
         assertEquals("StoreName", transactionRecord.getName());
-        assertEquals("City", transactionRecord.getAddress().getCity());
+        assertEquals("City", transactionRecord.getSender().getCity());
         assertEquals(transactionTime.atOffset(ZoneOffset.UTC).toInstant(), transactionRecord.getTransactionTime());
     }
 }

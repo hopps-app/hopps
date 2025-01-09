@@ -23,7 +23,7 @@ public class ReceiptDataHandler extends AbstractDataHandler {
 
         // Optional
         data.storeName().ifPresent(transactionRecord::setName);
-        data.storeAddress().ifPresent(addrees -> transactionRecord.setAddress(AddressHelper.convertToJpa(addrees)));
+        data.storeAddress().ifPresent(addrees -> transactionRecord.setSender(AddressHelper.convertToJpa(addrees)));
         data.transactionTime()
                 .ifPresent(
                         transactionTime -> transactionRecord
