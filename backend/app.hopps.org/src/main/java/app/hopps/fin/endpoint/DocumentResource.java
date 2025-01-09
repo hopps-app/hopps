@@ -1,6 +1,7 @@
 package app.hopps.fin.endpoint;
 
 import app.hopps.fin.S3Handler;
+import app.hopps.fin.bpmn.SubmitService;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import app.hopps.fin.kafka.DocumentProducer;
@@ -36,9 +37,6 @@ public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
 
     @Inject
-    DocumentProducer documentProducer;
-
-    @Inject
     S3Handler s3Handler;
 
     @Inject
@@ -46,6 +44,9 @@ public class DocumentResource {
 
     @Inject
     SecurityContext context;
+
+    @Inject
+    SubmitService submitService;
 
     @GET
     @Path("{documentKey}")
@@ -79,19 +80,19 @@ public class DocumentResource {
 
         s3Handler.saveFile(file);
 
-        // Save in database
+        // Save in a database
         TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, type,
                 context.getUserPrincipal().getName());
         transactionRecord.setDocumentKey(file.fileName());
         transactionRecord.setPrivatelyPaid(privatelyPaid);
         bommelId.ifPresent(transactionRecord::setBommelId);
 
-        persistTransactionRecord(transactionRecord);
+        String instanceId = submitService.submitDocument(null);
 
-        // Sent to kafka to process
-        documentProducer.sendToProcess(transactionRecord, type);
-
-        return Response.accepted().build();
+        // FIXME: Provide URL as body
+        return Response.accepted()
+                .entity(instanceId)
+                .build();
     }
 
     @Transactional

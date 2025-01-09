@@ -62,7 +62,8 @@ public class TransactionRecord {
     private BigDecimal amountDue;
     private String currencyCode;
 
-    protected TransactionRecord() {
+    public TransactionRecord() {
+        // no args
     }
 
     public TransactionRecord(BigDecimal total, DocumentType document, String uploader) {
