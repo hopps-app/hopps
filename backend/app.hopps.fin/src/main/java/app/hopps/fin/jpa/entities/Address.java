@@ -1,15 +1,26 @@
 package app.hopps.fin.jpa.entities;
 
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 
-@Embeddable
+@Entity(name = "trade_party")
+@SequenceGenerator(allocationSize = 1, name = "trade_party_sequence")
 public class Address {
+    @Id
+    @GeneratedValue(generator = "trade_party_sequence")
+    private long id;
+    private String city;
     private String country;
     private String state;
-    private String zipCode;
-    private String city;
     private String street;
     private String streetNumber;
+    private String zipCode;
+
+    public long getId() {
+        return id;
+    }
 
     public String getCountry() {
         return country;

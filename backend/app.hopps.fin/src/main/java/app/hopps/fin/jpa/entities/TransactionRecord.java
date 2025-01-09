@@ -1,6 +1,14 @@
 package app.hopps.fin.jpa.entities;
 
-import jakarta.persistence.*;
+import app.hopps.commons.DocumentType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,17 +26,31 @@ public class TransactionRecord {
     @Column(name = "document_key", nullable = false)
     private String documentKey;
 
+    @Column(nullable = false, updatable = false)
+    private String uploader;
+
     // That's the only required common column in the kafka events
     @Column(nullable = false)
     private BigDecimal total;
+
+    @Generated
+    @Column(name = "privately_paid")
+    @ColumnDefault("false")
+    private boolean privatelyPaid;
+
+    @Column(nullable = false)
+    private DocumentType document;
 
     // invoice = invoice date
     // receipt = transaction time
     @Column(name = "transaction_time")
     private Instant transactionTime;
 
-    @Embedded
-    private Address address;
+    @OneToOne
+    private Address sender;
+
+    @OneToOne
+    private Address recipient;
 
     private String name;
 
@@ -39,11 +61,13 @@ public class TransactionRecord {
     private BigDecimal amountDue;
     private String currencyCode;
 
-    public TransactionRecord() {
+    protected TransactionRecord() {
     }
 
-    public TransactionRecord(BigDecimal total) {
+    public TransactionRecord(BigDecimal total, DocumentType document, String uploader) {
         this.total = total;
+        this.document = document;
+        this.uploader = uploader;
     }
 
     public Long getId() {
@@ -82,12 +106,36 @@ public class TransactionRecord {
         this.transactionTime = transactionTime;
     }
 
-    public Address getAddress() {
-        return address;
+    public Address getSender() {
+        return sender;
     }
 
-    public void setAddress(Address address) {
-        this.address = address;
+    public void setSender(Address sender) {
+        this.sender = sender;
+    }
+
+    public boolean isPrivatelyPaid() {
+        return privatelyPaid;
+    }
+
+    public void setPrivatelyPaid(boolean privatelyPaid) {
+        this.privatelyPaid = privatelyPaid;
+    }
+
+    public DocumentType getDocument() {
+        return document;
+    }
+
+    public void setDocument(DocumentType document) {
+        this.document = document;
+    }
+
+    public Address getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(Address recipient) {
+        this.recipient = recipient;
     }
 
     public String getName() {
