@@ -36,7 +36,6 @@ import java.util.Collection;
 import java.util.Map;
 
 @Path("/organization")
-@Authenticated
 public class OrganizationResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(OrganizationResource.class);
@@ -56,6 +55,7 @@ public class OrganizationResource {
 
     @GET
     @Path("{slug}")
+    @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get organization", description = "Retrieves the details of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
@@ -71,6 +71,7 @@ public class OrganizationResource {
 
     @GET
     @Path("/my")
+    @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get my organization", description = "Retrieves the details of an organization the current user is assigned to.")
     @APIResponse(responseCode = "200", description = "Own organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
@@ -94,6 +95,7 @@ public class OrganizationResource {
 
     @GET
     @Path("{slug}/members")
+    @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
