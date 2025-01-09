@@ -15,8 +15,10 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -36,13 +38,15 @@ public class DocumentResource {
     private final DocumentProducer documentProducer;
     private final S3Handler s3Handler;
     private final TransactionRecordRepository repository;
+    private final SecurityContext context;
 
     @Inject
     public DocumentResource(DocumentProducer documentProducer, S3Handler s3Handler,
-            TransactionRecordRepository repository) {
+            TransactionRecordRepository repository, SecurityContext context) {
         this.documentProducer = documentProducer;
         this.s3Handler = s3Handler;
         this.repository = repository;
+        this.context = context;
     }
 
     @GET
@@ -68,18 +72,26 @@ public class DocumentResource {
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
             @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<DocumentType> type) {
+            @RestForm @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
+            @RestForm @PartType(MediaType.TEXT_PLAIN) DocumentType type) {
+        if (file == null || type == null) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
+        }
+
         s3Handler.saveFile(file);
 
         // Save in database
-        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO);
+        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, type,
+                context.getUserPrincipal().getName());
         transactionRecord.setDocumentKey(file.fileName());
+        transactionRecord.setPrivatelyPaid(privatelyPaid);
         bommelId.ifPresent(transactionRecord::setBommelId);
 
         persistTransactionRecord(transactionRecord);
 
         // Sent to kafka to process
-        documentProducer.sendToProcess(transactionRecord, type.orElse(DocumentType.INVOICE));
+        documentProducer.sendToProcess(transactionRecord, type);
 
         return Response.accepted().build();
     }
