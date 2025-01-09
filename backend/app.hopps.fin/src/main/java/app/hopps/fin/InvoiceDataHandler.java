@@ -2,8 +2,8 @@ package app.hopps.fin;
 
 import app.hopps.commons.Data;
 import app.hopps.commons.InvoiceData;
+import app.hopps.fin.jpa.entities.TradePartyHelper;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.model.TradePartyHelper;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.ZoneId;
@@ -12,6 +12,7 @@ import java.time.ZoneId;
 @SuppressWarnings("java:S3740")
 public class InvoiceDataHandler extends AbstractDataHandler {
     @Override
+
     protected void updateData(TransactionRecord transactionRecord, Data data) {
         if (data instanceof InvoiceData invoiceData) {
             handleInvoice(transactionRecord, invoiceData);

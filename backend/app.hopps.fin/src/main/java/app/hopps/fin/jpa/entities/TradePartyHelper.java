@@ -1,6 +1,5 @@
-package app.hopps.fin.kafka.model;
+package app.hopps.fin.jpa.entities;
 
-import app.hopps.fin.jpa.entities.TradeParty;
 
 public class TradePartyHelper {
     private TradePartyHelper() {

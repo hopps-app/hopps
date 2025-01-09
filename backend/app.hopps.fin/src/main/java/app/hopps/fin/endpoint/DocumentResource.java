@@ -2,9 +2,9 @@ package app.hopps.fin.endpoint;
 
 import app.hopps.commons.DocumentType;
 import app.hopps.fin.S3Handler;
+import app.hopps.fin.bpmn.SubmitService;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.DocumentProducer;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -35,27 +35,26 @@ import java.util.Optional;
 public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
 
-    private final DocumentProducer documentProducer;
-    private final S3Handler s3Handler;
-    private final TransactionRecordRepository repository;
-    private final SecurityContext context;
+    @Inject
+    S3Handler s3Handler;
 
     @Inject
-    public DocumentResource(DocumentProducer documentProducer, S3Handler s3Handler,
-            TransactionRecordRepository repository, SecurityContext context) {
-        this.documentProducer = documentProducer;
-        this.s3Handler = s3Handler;
-        this.repository = repository;
-        this.context = context;
-    }
+    TransactionRecordRepository repository;
+
+    @Inject
+    SecurityContext context;
+
+    @Inject
+    SubmitService submitService;
 
     @GET
     @Path("{documentKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public byte[] getDocumentByKey(@PathParam("documentKey") String documentKey) {
-        // TODO: How to verify that user has access? --> FGAC
-        // TODO: Set the media type header dynamic dependent on PNG, JPEG or PDF
-        // Go against the database get the bommel id then towards openfga?
+
+        // FIXME: How to verify that user has access? --> FGAC
+        // FIXME: Set the media type header dynamic dependent on PNG, JPEG or PDF
+
         try {
             return s3Handler.getFile(documentKey);
         } catch (NoSuchKeyException ignored) {
@@ -81,19 +80,19 @@ public class DocumentResource {
 
         s3Handler.saveFile(file);
 
-        // Save in database
+        // Save in a database
         TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, type,
                 context.getUserPrincipal().getName());
         transactionRecord.setDocumentKey(file.fileName());
         transactionRecord.setPrivatelyPaid(privatelyPaid);
         bommelId.ifPresent(transactionRecord::setBommelId);
 
-        persistTransactionRecord(transactionRecord);
+        String instanceId = submitService.submitDocument(null);
 
-        // Sent to kafka to process
-        documentProducer.sendToProcess(transactionRecord, type);
-
-        return Response.accepted().build();
+        // FIXME: Provide URL as body
+        return Response.accepted()
+                .entity(instanceId)
+                .build();
     }
 
     @Transactional
