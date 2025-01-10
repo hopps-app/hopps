@@ -12,6 +12,7 @@ function App() {
     useEffect(() => {
         themeService.init();
         languageService.init();
+
         authService.init().catch((e) => console.error('Failed to init authService:', e));
         emojiService.init().catch((e) => console.error('Failed to init emojiService:', e));
 

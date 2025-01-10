@@ -1,69 +1,59 @@
+import axios, { AxiosInstance } from 'axios';
+
 import { Bommel } from '@/services/api/types/Bommel.ts';
+import authService from '@/services/auth/AuthService.ts';
 
 export class BommelService {
-    constructor(private baseUrl: string) {}
+    private axiosInstance: AxiosInstance;
 
-    async getBommel(id: number) {
-        const response = await fetch(`${this.baseUrl}/bommel/${id}`, {
-            method: 'GET',
+    constructor(private baseUrl: string) {
+        this.axiosInstance = axios.create({
+            baseURL: this.baseUrl,
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authService.getAuthToken()}` },
         });
-        return (await response.json()) as Promise<Bommel>;
     }
 
-    async deleteBommel(id: number) {
-        await fetch(`${this.baseUrl}/bommel/${id}?recursive=true`, { method: 'DELETE' });
+    async getBommel(id: number): Promise<Bommel> {
+        const response = await this.axiosInstance.get<Bommel>(`/bommel/${id}`);
+        return response.data;
     }
 
-    async createBommel(data: Partial<Bommel>) {
-        const response = await fetch(`${this.baseUrl}/bommel`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
+    async deleteBommel(id: number): Promise<void> {
+        await this.axiosInstance.delete(`/bommel/${id}?recursive=true`, { headers: { 'Content-Type': 'application/json' } });
+    }
 
-        return response.json();
+    async createBommel(data: Partial<Bommel>): Promise<Bommel> {
+        const response = await this.axiosInstance.post<Bommel>('/bommel', data);
+        return response.data;
     }
 
     async createRootBommel(data: Partial<Bommel> & { organizationId: number }): Promise<Bommel> {
-        const response = await fetch(`${this.baseUrl}/bommel/root`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-        return response.status === 200 || response.status === 201 ? response.json() : undefined;
+        const response = await this.axiosInstance.post<Bommel>('/bommel/root', data);
+        return response.data;
     }
 
-    async getBommelChildren(id: string) {
-        const response = await fetch(`${this.baseUrl}/bommel/${id}/children`, {
-            method: 'GET',
-        });
-        return response.json();
+    async getBommelChildren(id: string): Promise<Bommel[]> {
+        const response = await this.axiosInstance.get<Bommel[]>(`/bommel/${id}/children`);
+        return response.data;
     }
 
     async getBommelChildrenRecursive(id: number): Promise<{ bommel: Bommel }[]> {
-        const response = await fetch(`${this.baseUrl}/bommel/${id}/children/recursive`, { method: 'GET' });
-        return response.json();
+        const response = await this.axiosInstance.get<{ bommel: Bommel }[]>(`/bommel/${id}/children/recursive`);
+        return response.data;
     }
 
     async getRootBommel(organisationId: number): Promise<Bommel> {
-        const response = await fetch(`${this.baseUrl}/bommel/root/${organisationId}`, { method: 'GET' });
-        return await response.json();
+        const response = await this.axiosInstance.get<Bommel>(`/bommel/root/${organisationId}`);
+        return response.data;
     }
 
-    async updateBommel(id: number, data: Partial<Bommel>) {
-        const response = await fetch(`${this.baseUrl}/bommel/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-        return response.json();
+    async updateBommel(id: number, data: Partial<Bommel>): Promise<Bommel> {
+        const response = await this.axiosInstance.put<Bommel>(`/bommel/${id}`, data);
+        return response.data;
     }
 
     async moveBommel(id: number, newParentId: number): Promise<Partial<Bommel>> {
-        const response = await fetch(`${this.baseUrl}/bommel/move/${id}/to/${newParentId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-        });
-        return await response.json();
+        const response = await this.axiosInstance.put<Partial<Bommel>>(`/bommel/move/${id}/to/${newParentId}`);
+        return response.data;
     }
 }

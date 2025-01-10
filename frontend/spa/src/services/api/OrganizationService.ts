@@ -1,3 +1,7 @@
+import axios, { AxiosInstance } from 'axios';
+
+import authService from '@/services/auth/AuthService.ts';
+
 type RegisterOrganizationPayload = {
     owner: {
         firstName: string;
@@ -22,30 +26,25 @@ type RegisterOrganizationPayload = {
 };
 
 export class OrganizationService {
-    constructor(private baseUrl: string) {}
+    private axiosInstance: AxiosInstance;
 
-    async registerOrganization(payload: RegisterOrganizationPayload): Promise<void> {
-        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization`;
-        await window.fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
+    constructor(private baseUrl: string) {
+        this.axiosInstance = axios.create({
+            baseURL: this.baseUrl,
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authService.getAuthToken()}` },
         });
     }
 
-    async getBySlug(slug: string) {
-        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/${slug}`;
-        const result = await window.fetch(url, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-        });
+    async registerOrganization(payload: RegisterOrganizationPayload): Promise<void> {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization`;
+        await axios.post(url, payload, { headers: { 'Content-Type': 'application/json' } });
+    }
 
-        const organisation = await result.json();
-        console.log(organisation);
+    async getCurrentOrganization() {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/my`;
+        const result = await this.axiosInstance.get(url);
 
-        return organisation;
+        return result.data;
     }
 
     createSlug(input: string): string {
