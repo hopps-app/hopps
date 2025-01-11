@@ -10,6 +10,7 @@ import org.eclipse.microprofile.reactive.messaging.spi.Connector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ class MailReceiverTest {
         InMemorySource<Mail> mailSender = connector.source("mail");
         mailSender.runOnVertxContext(true);
 
-        Mail mail = new Mail(new String[]{"info@hopps.de"}, MailTemplates.TEMP, Map.of("name", "Peter"));
+        Mail mail = new Mail(new String[] { "info@hopps.de" }, MailTemplates.TEMP, Map.of("name", "Peter"));
 
         // when
         mailSender.send(mail);
@@ -47,5 +48,25 @@ class MailReceiverTest {
         List<io.quarkus.mailer.Mail> mailsSentTo = mockMailbox.getMailsSentTo("info@hopps.de");
         assertEquals(1, mailsSentTo.size());
         assertEquals(1, mockMailbox.getTotalMessagesSent());
+    }
+
+    @Test
+    void shouldSendMultipleMailsParallel() {
+        // given
+        InMemorySource<Mail> mailSender = connector.source("mail");
+        mailSender.runOnVertxContext(true);
+
+        Mail mail = new Mail(new String[] { "info@hopps.de" }, MailTemplates.TEMP, Map.of("name", "Peter"));
+
+        // when
+        for (int i = 0; i < 500; i++) {
+            mailSender.send(mail);
+        }
+        await().atMost(Duration.ofSeconds(1)).until(() -> mockMailbox.getTotalMessagesSent() == 500);
+
+        // then
+        List<io.quarkus.mailer.Mail> mailsSentTo = mockMailbox.getMailsSentTo("info@hopps.de");
+        assertEquals(500, mailsSentTo.size());
+        assertEquals(500, mockMailbox.getTotalMessagesSent());
     }
 }

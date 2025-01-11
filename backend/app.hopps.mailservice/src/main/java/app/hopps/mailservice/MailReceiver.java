@@ -27,7 +27,8 @@ public class MailReceiver {
                 .invoke(throwable -> LOG.info("Mail could not be sent", throwable));
     }
 
-    private Function<Map<String, String>, MailTemplate.MailTemplateInstance> getTemplateByType(MailTemplates mailTemplates) {
+    private Function<Map<String, String>, MailTemplate.MailTemplateInstance> getTemplateByType(
+            MailTemplates mailTemplates) {
         return switch (mailTemplates) {
             case TEMP -> Templates::temp;
         };
