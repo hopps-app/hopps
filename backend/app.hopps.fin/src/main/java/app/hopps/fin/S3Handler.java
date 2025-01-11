@@ -1,5 +1,6 @@
 package app.hopps.fin;
 
+import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -30,6 +31,10 @@ public class S3Handler {
     @Inject
     public S3Handler(S3Client s3) {
         this.s3 = s3;
+    }
+
+    public InputStream getFile(TransactionRecord transactionRecord) {
+        return getFile(transactionRecord.getDocumentKey());
     }
 
     public InputStream getFile(String documentKey) {
