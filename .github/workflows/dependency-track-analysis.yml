@@ -19,6 +19,7 @@ jobs:
           - "app.hopps.fin"
           - "app.hopps.zugferd"
           - "app.hopps.fin-narrator"
+          - "app-hopps.mailservice"
 
     steps:
       # Checkout the code
