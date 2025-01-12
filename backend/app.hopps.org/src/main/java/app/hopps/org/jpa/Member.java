@@ -12,6 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Schema(name = "Member", description = "An example of a Hopps Member")
@@ -37,11 +38,15 @@ public class Member extends PanacheEntity {
 
     @JsonIgnore
     public Collection<Organization> getOrganizations() {
-        return organizations;
+        return Collections.unmodifiableCollection(organizations);
     }
 
-    public void setOrganizations(Collection<Organization> vereine) {
-        this.organizations = vereine;
+    public void setOrganizations(Collection<Organization> organizations) {
+        this.organizations = organizations;
+    }
+
+    public void addOrganization(Organization organization) {
+        this.organizations.add(organization);
     }
 
     public void setFirstName(String firstName) {

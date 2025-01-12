@@ -1,6 +1,11 @@
 package app.hopps.org.delegates;
 
-import app.hopps.org.jpa.*;
+import app.hopps.org.jpa.Bommel;
+import app.hopps.org.jpa.BommelRepository;
+import app.hopps.org.jpa.Member;
+import app.hopps.org.jpa.MemberRepository;
+import app.hopps.org.jpa.Organization;
+import app.hopps.org.jpa.OrganizationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -20,6 +25,9 @@ public class PersistOrganizationDelegate {
 
     @Transactional
     public void persistOrg(@Valid Organization organization, @Valid Member owner) {
+
+        owner.addOrganization(organization);
+
         memberRepository.persist(owner);
         organizationRepository.persist(organization);
 
