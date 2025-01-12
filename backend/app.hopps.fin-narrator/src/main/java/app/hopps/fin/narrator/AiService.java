@@ -6,7 +6,7 @@ import io.quarkiverse.langchain4j.RegisterAiService;
 
 import java.util.List;
 
-@RegisterAiService
+@RegisterAiService(modelName = "gpt-4o-mini")
 public interface AiService {
 
     @SystemMessage("""
