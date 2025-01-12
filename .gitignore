@@ -193,10 +193,3 @@ $RECYCLE.BIN/
 
 # Drawio
 *.drawio.bkp
-
-# helm
-./charts/hopps/charts
-
-# unencrypted secrets
-*decrypted.env
-age.agekey
