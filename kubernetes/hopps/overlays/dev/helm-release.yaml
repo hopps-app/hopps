@@ -14,7 +14,7 @@ spec:
   values:
     azDocumentAi:
       image:
-        tag: 239
+        tag: 343
       envFrom:
         - secretRef:
             name: az-document-ai
@@ -24,7 +24,7 @@ spec:
           value: hopps-kafka:9092
     org:
       image:
-        tag: 239
+        tag: 343
       envFrom:
         - secretRef:
             name: org
@@ -68,7 +68,7 @@ spec:
       enabled: false
     fin:
       image:
-        tag: 239
+        tag: 343
       envFrom:
         - secretRef:
             name: fin
