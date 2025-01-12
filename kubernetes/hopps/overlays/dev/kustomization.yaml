@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: hopps-dev
+resources:
+  - ../../base/hopps
+  - namespace.yaml
+  - helm-release.yaml
+  - postgresql.yaml
+# create all needed secrets with fix name
+generatorOptions:
+  disableNameSuffixHash: true
+secretGenerator:
+  - name: fin
+    envs:
+      - secrets/fin-secret-encrypted.env
+  - name: org
+    envs:
+      - secrets/org-secret-encrypted.env
+  - name: az-document-ai
+    envs:
+      - secrets/az-document-ai-secret-encrypted.env
+  - name: frontend
+    envs:
+      - secrets/frontend-secret-encrypted.env
+  - name: openfga
+    envs:
+      - secrets/openfga-secret-encrypted.env
+  - name: postgres-operator-secret
+    envs:
+      - secrets/postgres-cluster-secret-encrypted.env
+  # basic auth for kafka-ui
+  - name: kafka-ui-auth
+    envs:
+      - secrets/kafka-ui-secret-encrypted.env
