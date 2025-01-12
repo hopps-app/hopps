@@ -15,13 +15,13 @@
       "pending": false,
       "request": {
         "method": "GET",
-        "path": "/bommel/1"
+        "path": "/bommel/2"
       },
       "response": {
         "body": {
           "content": {
-            "emoji": "BommelEmoji",
-            "name": "BommelName"
+            "emoji": "\uD83D\uDC9A",
+            "name": "Gr\u00FCnes Herz e.V."
           },
           "contentType": "application/json",
           "encoded": false

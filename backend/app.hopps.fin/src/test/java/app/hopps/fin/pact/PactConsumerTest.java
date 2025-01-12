@@ -40,12 +40,12 @@ class PactConsumerTest {
         Map<String, String> headers = Map.of("Content-Type", MediaType.APPLICATION_JSON);
 
         PactDslJsonBody pactDslJsonBody = new PactDslJsonBody()
-                .stringValue("name", "BommelName")
-                .stringValue("emoji", "BommelEmoji");
+                .stringValue("name", "Grünes Herz e.V.")
+                .stringValue("emoji", "\uD83D\uDC9A");
 
         return builder
                 .uponReceiving("get bommel request")
-                .path("/bommel/1")
+                .path("/bommel/2")
                 .method("GET")
                 .willRespondWith()
                 .status(Response.Status.OK.getStatusCode())
@@ -57,9 +57,9 @@ class PactConsumerTest {
     @Test
     @PactTestFor(pactMethod = "createPact")
     void testConsumer() {
-        Bommel bommel = orgRestClient.getBommel(1L);
+        Bommel bommel = orgRestClient.getBommel(2L);
 
         assertNotNull(bommel);
-        assertEquals("BommelName", bommel.name());
+        assertEquals("Grünes Herz e.V.", bommel.name());
     }
 }

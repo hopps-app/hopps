@@ -60,7 +60,7 @@ values
 insert into Bommel (id, parent_id, name, emoji, responsibleMember_id)
 values
 -- gruenes-herz-ev (id=2)
-(2, null, 'Grünes Herz e.V.', null, null),
+(2, null, 'Grünes Herz e.V.', '💚', null),
 (3, 2, 'Fundraising & Spenden', null, null),
 (4, 2, 'Bildungs-Projekte', null, null),
 (5, 2, 'Naturschutz-Projekte', null, null),

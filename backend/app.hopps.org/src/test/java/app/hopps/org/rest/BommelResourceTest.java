@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
+@TestSecurity(user = "test")
 @TestHTTPEndpoint(BommelResource.class)
 class BommelResourceTest {
 
@@ -51,7 +52,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void shouldNotFindRoot() {
         Organization organization = resourceCreator.setupOrganization();
@@ -65,7 +65,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void shouldCreateRoot() {
         var organization = resourceCreator.setupOrganization();
@@ -98,7 +97,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void createBommelOnlyWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -145,7 +143,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void updateBommelOnlyWithWritePermsions() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -187,7 +184,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getBommelRequiresReadPermissions() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -217,7 +213,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void moveBommelWorksWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -245,7 +240,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void moveBommelFailsWithoutWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -268,7 +262,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getChildrenRecursiveReturnsAllChildren() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -304,7 +297,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getChildrenReturnsAllDirectChildren() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -323,7 +315,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void deleteBommelDoesntWorkWithReadPermissions() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -342,7 +333,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void deleteBommelWorksWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -361,7 +351,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getRootBommelTest() {
         // Arrange

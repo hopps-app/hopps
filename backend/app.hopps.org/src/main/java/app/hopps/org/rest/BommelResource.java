@@ -51,7 +51,8 @@ public class BommelResource {
 
     public BommelResource(
             @ConfigProperty(name = "quarkus.security.auth.enabled-in-dev-mode", defaultValue = "true") boolean devModeAuthEnabled) {
-        this.authEnabled = devModeAuthEnabled || !ConfigUtils.isProfileActive("dev");
+        boolean isDevOrTest = ConfigUtils.isProfileActive("dev") || ConfigUtils.isProfileActive("test");
+        this.authEnabled = devModeAuthEnabled || !isDevOrTest;
     }
 
     @GET
