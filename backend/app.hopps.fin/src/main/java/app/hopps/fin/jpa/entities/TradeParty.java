@@ -7,19 +7,31 @@ import jakarta.persistence.SequenceGenerator;
 
 @Entity(name = "trade_party")
 @SequenceGenerator(allocationSize = 1, name = "trade_party_sequence")
-public class Address {
+public class TradeParty {
     @Id
     @GeneratedValue(generator = "trade_party_sequence")
     private long id;
+    private String name;
     private String city;
     private String country;
     private String state;
     private String street;
-    private String streetNumber;
+    private String additionalAddress;
     private String zipCode;
+    private String taxID;
+    private String vatID;
+    private String description;
 
     public long getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getCountry() {
@@ -62,11 +74,35 @@ public class Address {
         this.street = street;
     }
 
-    public String getStreetNumber() {
-        return streetNumber;
+    public String getAdditionalAddress() {
+        return additionalAddress;
     }
 
-    public void setStreetNumber(String streetNumber) {
-        this.streetNumber = streetNumber;
+    public void setAdditionalAddress(String additionalAddress) {
+        this.additionalAddress = additionalAddress;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTaxID() {
+        return taxID;
+    }
+
+    public void setTaxID(String taxID) {
+        this.taxID = taxID;
+    }
+
+    public String getVatID() {
+        return vatID;
+    }
+
+    public void setVatID(String vatID) {
+        this.vatID = vatID;
     }
 }

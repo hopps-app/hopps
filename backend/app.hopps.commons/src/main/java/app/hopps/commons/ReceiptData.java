@@ -8,7 +8,7 @@ public record ReceiptData(
         Long referenceKey,
         BigDecimal total,
         Optional<String> storeName,
-        Optional<Address> storeAddress,
+        Optional<TradeParty> storeAddress,
         Optional<LocalDateTime> transactionTime) implements Data {
 
     public ReceiptData(Long referenceKey, BigDecimal total) {

@@ -47,10 +47,10 @@ public class TransactionRecord {
     private Instant transactionTime;
 
     @OneToOne
-    private Address sender;
+    private TradeParty sender;
 
     @OneToOne
-    private Address recipient;
+    private TradeParty recipient;
 
     private String name;
 
@@ -106,12 +106,18 @@ public class TransactionRecord {
         this.transactionTime = transactionTime;
     }
 
-    public Address getSender() {
+    public TradeParty getSender() {
         return sender;
     }
 
-    public void setSender(Address sender) {
-        this.sender = sender;
+    public void setSender(TradeParty address) {
+        this.sender = address;
+    }
+
+    public TradeParty getRecipient() {return recipient;}
+
+    public void setRecipient(TradeParty address) {
+        this.recipient = address;
     }
 
     public boolean isPrivatelyPaid() {
@@ -128,14 +134,6 @@ public class TransactionRecord {
 
     public void setDocument(DocumentType document) {
         this.document = document;
-    }
-
-    public Address getRecipient() {
-        return recipient;
-    }
-
-    public void setRecipient(Address recipient) {
-        this.recipient = recipient;
     }
 
     public String getName() {

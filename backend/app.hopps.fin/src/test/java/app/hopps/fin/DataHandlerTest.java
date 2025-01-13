@@ -1,6 +1,6 @@
 package app.hopps.fin;
 
-import app.hopps.commons.Address;
+import app.hopps.commons.TradeParty;
 import app.hopps.commons.DocumentType;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestSecurity(user = "alice")
 class DataHandlerTest {
 
-    private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
+    private static final TradeParty TRADE_PARTY = new TradeParty("Name","Country", "ZipCode", "State", "City", "Street", "AdditionalAddress");
 
     @Inject
     ReceiptDataHandler receiptDataHandler;
@@ -83,11 +83,13 @@ class DataHandlerTest {
                 LocalDate.now(),
                 "EUR",
                 Optional.of("CustomerName"),
-                Optional.of(address),
+                Optional.of(TRADE_PARTY),
                 Optional.of("pruchaseOrderNumber"),
                 Optional.of("invoiceId"),
                 Optional.of(dueDate),
-                Optional.of(BigDecimal.valueOf(150)));
+                Optional.of(BigDecimal.valueOf(150)),
+                null,
+                null);
 
         // when
         invoiceDataHandler.handleData(invoiceData);
@@ -99,7 +101,7 @@ class DataHandlerTest {
         TransactionRecord transactionRecord = transactionRecords.getFirst();
         assertEquals("CustomerName", transactionRecord.getName());
         assertEquals(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant(), transactionRecord.getDueDate());
-        assertEquals("State", transactionRecord.getSender().getState());
+        assertEquals("State", transactionRecord.getSender().getCountry());
     }
 
     @Test
@@ -126,7 +128,7 @@ class DataHandlerTest {
                 referenceKey,
                 BigDecimal.valueOf(100),
                 Optional.of("StoreName"),
-                Optional.of(address),
+                Optional.of(TRADE_PARTY),
                 Optional.of(transactionTime));
 
         // when
