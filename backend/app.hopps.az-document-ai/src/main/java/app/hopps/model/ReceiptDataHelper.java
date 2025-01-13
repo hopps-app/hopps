@@ -27,7 +27,7 @@ public class ReceiptDataHelper {
                 Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("MerchantAddress"))
                         .map(DocumentField::getValueAddress)
-                        .map(AddressHelper::fromAzure),
+                        .map(TradePartyHelper::fromAzure),
                 Optional.ofNullable(fields.get("TransactionDate"))
                         .map(DocumentField::getValueDate)
                         .map(t -> t.atTime(time)));
