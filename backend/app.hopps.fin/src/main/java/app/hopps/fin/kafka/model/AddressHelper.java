@@ -14,8 +14,7 @@ public class AddressHelper {
         addressJpa.setZipCode(address.postalCode());
         addressJpa.setState(address.state());
         addressJpa.setCity(address.city());
-        addressJpa.setStreet(address.road());
-        addressJpa.setStreetNumber(address.houseNumber());
+        addressJpa.setStreet(address.road() + " " + address.houseNumber());
         return addressJpa;
     }
 
@@ -26,7 +25,6 @@ public class AddressHelper {
         addressJpa.setState(null);
         addressJpa.setCity(tradeParty.getLocation());
         addressJpa.setStreet(tradeParty.getStreet());
-        addressJpa.setStreetNumber(null);
         return addressJpa;
     }
 }

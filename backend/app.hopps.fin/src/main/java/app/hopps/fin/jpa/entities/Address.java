@@ -15,7 +15,6 @@ public class Address {
     private String country;
     private String state;
     private String street;
-    private String streetNumber;
     private String zipCode;
 
     public long getId() {
@@ -60,13 +59,5 @@ public class Address {
 
     public void setStreet(String street) {
         this.street = street;
-    }
-
-    public String getStreetNumber() {
-        return streetNumber;
-    }
-
-    public void setStreetNumber(String streetNumber) {
-        this.streetNumber = streetNumber;
     }
 }
