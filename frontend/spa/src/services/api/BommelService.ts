@@ -1,16 +1,13 @@
-import axios, { AxiosInstance } from 'axios';
+import type { AxiosInstance } from 'axios';
 
 import { Bommel } from '@/services/api/types/Bommel.ts';
-import authService from '@/services/auth/AuthService.ts';
+import axiosService from '@/services/AxiosService.ts';
 
 export class BommelService {
     private axiosInstance: AxiosInstance;
 
     constructor(private baseUrl: string) {
-        this.axiosInstance = axios.create({
-            baseURL: this.baseUrl,
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authService.getAuthToken()}` },
-        });
+        this.axiosInstance = axiosService.create(this.baseUrl);
     }
 
     async getBommel(id: number): Promise<Bommel> {
@@ -19,7 +16,7 @@ export class BommelService {
     }
 
     async deleteBommel(id: number): Promise<void> {
-        await this.axiosInstance.delete(`/bommel/${id}?recursive=true`, { headers: { 'Content-Type': 'application/json' } });
+        await this.axiosInstance.delete(`/bommel/${id}?recursive=true`);
     }
 
     async createBommel(data: Partial<Bommel>): Promise<Bommel> {

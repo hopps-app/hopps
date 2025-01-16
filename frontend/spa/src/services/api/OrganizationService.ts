@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-import authService from '@/services/auth/AuthService.ts';
+import axiosService from '@/services/AxiosService.ts';
 
 type RegisterOrganizationPayload = {
     owner: {
@@ -29,15 +29,12 @@ export class OrganizationService {
     private axiosInstance: AxiosInstance;
 
     constructor(private baseUrl: string) {
-        this.axiosInstance = axios.create({
-            baseURL: this.baseUrl,
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authService.getAuthToken()}` },
-        });
+        this.axiosInstance = axiosService.create(this.baseUrl);
     }
 
     async registerOrganization(payload: RegisterOrganizationPayload): Promise<void> {
         const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization`;
-        await axios.post(url, payload, { headers: { 'Content-Type': 'application/json' } });
+        await axios.post(url, payload);
     }
 
     async getCurrentOrganization() {

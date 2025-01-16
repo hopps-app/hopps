@@ -45,8 +45,9 @@ function InvoicesView() {
 
     const reload = useCallback(async () => {
         setIsLoading(true);
+        await loadBommels().catch((e) => console.error(e));
+
         try {
-            await loadBommels();
             await loadInvoices();
         } catch (e) {
             console.error(e);

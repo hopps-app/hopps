@@ -15,7 +15,6 @@ export class ApiService {
         this.finUrl = import.meta.env.VITE_API_FIN_URL || '';
 
         this.bommel = new BommelService(this.orgUrl);
-
         this.invoices = new InvoicesService(this.finUrl);
         this.organization = new OrganizationService(this.orgUrl);
     }
