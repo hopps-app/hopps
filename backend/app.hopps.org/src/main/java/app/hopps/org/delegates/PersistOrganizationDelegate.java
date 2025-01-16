@@ -41,5 +41,8 @@ public class PersistOrganizationDelegate {
         memberRepository.persist(owner);
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
+
+        organization.setRootBommel(rootBommel);
+        organizationRepository.persist(organization);
     }
 }
