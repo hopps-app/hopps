@@ -1,4 +1,4 @@
-package app.hopps.mailservice;
+package app.hopps.commons.mail;
 
 public enum MailTemplates {
     TEMP
