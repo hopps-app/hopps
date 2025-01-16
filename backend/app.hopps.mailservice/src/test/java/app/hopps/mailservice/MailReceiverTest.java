@@ -1,5 +1,7 @@
 package app.hopps.mailservice;
 
+import app.hopps.commons.mail.Mail;
+import app.hopps.commons.mail.MailTemplates;
 import io.quarkus.mailer.MockMailbox;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;

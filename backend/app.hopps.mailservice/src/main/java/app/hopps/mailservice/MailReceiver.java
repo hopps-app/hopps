@@ -1,5 +1,7 @@
 package app.hopps.mailservice;
 
+import app.hopps.commons.mail.Mail;
+import app.hopps.commons.mail.MailTemplates;
 import io.quarkus.mailer.MailTemplate;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
