@@ -6,7 +6,6 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -116,6 +115,10 @@ public class Organization extends PanacheEntity {
 
     public void setMembers(Set<Member> members) {
         this.members = members;
+    }
+
+    public void addMember(Member member) {
+        this.members.add(member);
     }
 
     public Bommel getRootBommel() {

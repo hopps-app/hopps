@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @ApplicationScoped
+@SuppressWarnings("java:S6813")
 public class PersistOrganizationDelegate {
 
     @Inject
@@ -25,11 +26,7 @@ public class PersistOrganizationDelegate {
 
     @Transactional
     public void persistOrg(@Valid Organization organization, @Valid Member owner) {
-
         owner.addOrganization(organization);
-
-        memberRepository.persist(owner);
-        organizationRepository.persist(organization);
 
         Bommel rootBommel = new Bommel();
         rootBommel.setName(organization.getName());
@@ -38,6 +35,11 @@ public class PersistOrganizationDelegate {
         rootBommel.setEmoji(Bommel.DEFAULT_ROOT_BOMMEL_EMOJI);
         rootBommel.setResponsibleMember(owner);
 
+        organization.addMember(owner);
+        organization.setRootBommel(rootBommel);
+
+        memberRepository.persist(owner);
+        organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
     }
 }
