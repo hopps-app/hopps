@@ -1,5 +1,6 @@
 package app.hopps.fin;
 
+import app.hopps.commons.Data;
 import app.hopps.commons.DocumentType;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
@@ -23,7 +24,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @QuarkusTest
 @TestSecurity(user = "alice")
@@ -142,5 +145,32 @@ class DataHandlerTest {
         assertEquals("City", transactionRecord.getSender().getCity());
         assertEquals(transactionTime.atOffset(ZoneOffset.UTC).toInstant().truncatedTo(ChronoUnit.SECONDS),
                 transactionRecord.getTransactionTime().truncatedTo(ChronoUnit.SECONDS));
+    }
+
+    @Test
+    void shouldFailFindReferenceKey() {
+        // given
+        ReceiptData receiptData = new ReceiptData(
+                999L,
+                BigDecimal.valueOf(100),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
+
+        // when
+        assertThrows(IllegalStateException.class, () -> receiptDataHandler.handleData(receiptData));
+    }
+
+    @Test
+    void shouldNotHandleData() {
+        // given
+        RandData randData = new RandData(referenceKey);
+
+        // when
+        assertDoesNotThrow(() -> receiptDataHandler.handleData(randData));
+        assertDoesNotThrow(() -> invoiceDataHandler.handleData(randData));
+    }
+
+    record RandData(Long referenceKey) implements Data {
     }
 }

@@ -6,7 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Generated;
@@ -47,10 +47,10 @@ public class TransactionRecord {
     @Column(name = "transaction_time")
     private Instant transactionTime;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     private TradeParty sender;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     private TradeParty recipient;
 
     private String name;
@@ -97,6 +97,10 @@ public class TransactionRecord {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public String getUploader() {
+        return uploader;
     }
 
     public Instant getTransactionTime() {
