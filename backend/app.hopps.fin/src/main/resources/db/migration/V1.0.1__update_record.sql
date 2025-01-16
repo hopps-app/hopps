@@ -30,8 +30,6 @@ alter table TransactionRecord
     drop column if exists streetNumber,
     drop column if exists zipCode,
 
-    add constraint UKlu9j69deh9wh75pnlfeaxcvjf unique (recipient_id),
-    add constraint UKsvol64wdyce1cgdy4dfpbapa6 unique (sender_id),
     add constraint FKc9y0wdh9ohw1q55y03og58o3w foreign key (recipient_id) references trade_party,
     add constraint FK7yhrp9af6kbv73vcry7p4ot98 foreign key (sender_id) references trade_party
 ;

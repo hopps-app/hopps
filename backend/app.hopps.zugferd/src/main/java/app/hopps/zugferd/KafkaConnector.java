@@ -10,7 +10,6 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.mustangproject.Invoice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,7 @@ public class KafkaConnector {
 
     @Inject
     public KafkaConnector(ZugFerdService zugFerdService, @Channel("document-data-out") Emitter<InvoiceData> emitter,
-            OidcClient oidcClient) {
+                          OidcClient oidcClient) {
         this.zugFerdService = zugFerdService;
         this.emitter = emitter;
         this.oidcClient = oidcClient;
