@@ -6,7 +6,6 @@ import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +16,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.collection.IsIterableWithSize.iterableWithSize;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
@@ -84,11 +84,11 @@ class PersistOrganizationDelegateTests {
 
         // then
         assertThat(kevin.getOrganizations(), iterableWithSize(1));
+        assertThat(kegelclub.getMembers(), iterableWithSize(1));
     }
 
     @Test
-    @TestSecurity(user = "kevin")
-    void rootBommelShouldBeSaved() {
+    void rootBommelAndMemberShouldBeSaved() {
 
         // given
         Organization kegelclub = new Organization();
@@ -107,5 +107,6 @@ class PersistOrganizationDelegateTests {
         // then
         kegelclub = organizationRepository.findById(kegelclub.getId());
         assertNotNull(kegelclub.getRootBommel());
+        assertFalse(kegelclub.getMembers().isEmpty());
     }
 }
