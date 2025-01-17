@@ -16,6 +16,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.collection.IsIterableWithSize.iterableWithSize;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 class PersistOrganizationDelegateTests {
@@ -82,5 +84,29 @@ class PersistOrganizationDelegateTests {
 
         // then
         assertThat(kevin.getOrganizations(), iterableWithSize(1));
+        assertThat(kegelclub.getMembers(), iterableWithSize(1));
+    }
+
+    @Test
+    void rootBommelAndMemberShouldBeSaved() {
+
+        // given
+        Organization kegelclub = new Organization();
+        kegelclub.setName("Kegelklub 777");
+        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setSlug("kegelklub-777");
+
+        Member kevin = new Member();
+        kevin.setFirstName("Kevin");
+        kevin.setLastName("Kegelkönig");
+        kevin.setEmail("pinking777@gmail.com");
+
+        // when
+        persistOrganizationDelegate.persistOrg(kegelclub, kevin);
+
+        // then
+        kegelclub = organizationRepository.findById(kegelclub.getId());
+        assertNotNull(kegelclub.getRootBommel());
+        assertFalse(kegelclub.getMembers().isEmpty());
     }
 }

@@ -4,14 +4,20 @@ import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
-import app.hopps.org.rest.model.BommelInput;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
-import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.runtime.configuration.ConfigUtils;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
@@ -110,42 +116,6 @@ public class BommelResource {
         checkUserHasPermission(rootBommel.id, "read");
 
         return rootBommel;
-    }
-
-    @POST
-    @Path("/root")
-    @Transactional
-    @Operation(summary = "Create root-bommel for organization")
-    @APIResponse(responseCode = "201", description = "Bommel created and added to the organization as root", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
-    @APIResponse(responseCode = "400", description = """
-            <li> Organization not found
-            <li> Root-Bommel cannot have a parent
-            <li> Root-Bommel needs to have an organization
-            """, content = @Content(mediaType = MediaType.TEXT_PLAIN))
-    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
-    @APIResponse(responseCode = "409", description = "Organization has already one root set", content = @Content(mediaType = MediaType.TEXT_PLAIN))
-    public Response createRoot(BommelInput input) {
-        isUserLoggedIn();
-
-        Bommel bommel = input.toBommel();
-
-        // Set organization object or throw
-        orgRepo
-                .findByIdOptional(input.organizationId())
-                .ifPresentOrElse(bommel::setOrganization, () -> {
-                    throw new WebApplicationException(
-                            Response.status(Response.Status.BAD_REQUEST).entity("Invalid organization").build());
-                });
-        // set bommel parent if present
-        input.parentId()
-                .flatMap(parent -> bommelRepo.findByIdOptional(parent))
-                .ifPresent(bommel::setParent);
-
-        // TODO: Check that the user has write access to the bommels organization here.
-
-        bommelRepo.createRoot(bommel);
-        URI uri = URI.create("/bommel/" + bommel.id);
-        return Response.created(uri).entity(bommel).build();
     }
 
     @POST
@@ -249,15 +219,15 @@ public class BommelResource {
      */
     private void checkUserHasPermission(long bommelId, String relation) throws WebApplicationException {
         isUserLoggedIn();
-
-        var principal = securityContext.getUserPrincipal();
-
-        String username = principal == null ? "anonymous" : principal.getName();
-
-        var accessTuple = TupleKey.of("bommel:" + bommelId, relation, "user:" + username);
-        if (this.authEnabled && Boolean.FALSE.equals(authModelClient.check(accessTuple).await().indefinitely())) {
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
-        }
+        // FIXME implement this later after openfga is correctly implemented and has a schema
+        // var principal = securityContext.getUserPrincipal();
+        //
+        // String username = principal == null ? "anonymous" : principal.getName();
+        //
+        // var accessTuple = TupleKey.of("bommel:" + bommelId, relation, "user:" + username);
+        // if (this.authEnabled && Boolean.FALSE.equals(authModelClient.check(accessTuple).await().indefinitely())) {
+        // throw new WebApplicationException(Response.Status.FORBIDDEN);
+        // }
     }
 
     private Bommel throwOrGetBommel(Optional<Bommel> rootBommelOpt) {
