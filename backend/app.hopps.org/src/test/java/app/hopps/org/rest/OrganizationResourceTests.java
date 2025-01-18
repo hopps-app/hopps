@@ -23,7 +23,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.any;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 
 @QuarkusTest
 @TestSecurity(authorizationEnabled = false)
@@ -110,6 +113,7 @@ class OrganizationResourceTests {
                 .post()
                 .then()
                 .statusCode(202)
-                .body(any(String.class));
+                .body("id", any(String.class))
+                .body("error", nullValue());
     }
 }

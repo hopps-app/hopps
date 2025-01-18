@@ -5,6 +5,7 @@ import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
+import app.hopps.org.rest.model.CreateOrganizationResponse;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
@@ -18,6 +19,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -110,9 +112,11 @@ public class OrganizationResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new organization")
-    @APIResponse(responseCode = "201", description = "Creation started successfully", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "202", description = "Creation started successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateOrganizationResponse.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
+    @APIResponse(responseCode = "500", description = "Process failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateOrganizationResponse.class)))
     public Response create(NewOrganizationInput input) {
         Model model = process.createModel();
         Map<String, Object> newOrganizationParameters = input.toModel();
@@ -120,8 +124,16 @@ public class OrganizationResource {
         ProcessInstance<? extends Model> instance = process.createInstance(model);
         instance.start();
 
+        CreateOrganizationResponse createOrganizationResponse = new CreateOrganizationResponse(instance.id(),
+                instance.error().map(x -> x.errorCause().getCause().getMessage()).orElse(null));
+
+        if (instance.error().isPresent()) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(createOrganizationResponse).build());
+        }
+
         return Response.accepted()
-                .entity(instance.id())
+                .entity(createOrganizationResponse)
                 .build();
     }
 
