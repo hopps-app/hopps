@@ -19,4 +19,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.mustangproject</groupId>
+            <artifactId>validator</artifactId>
+            <version>2.15.2</version>
+            <classifier>shaded</classifier>
+        </dependency>
+    </dependencies>
+
 </project>

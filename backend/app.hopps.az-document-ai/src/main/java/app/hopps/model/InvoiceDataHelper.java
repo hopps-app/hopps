@@ -36,6 +36,8 @@ public class InvoiceDataHelper {
                         .map(DocumentField::getValueDate),
                 Optional.ofNullable(fields.get("AmountDue"))
                         .map(DocumentField::getValueCurrency)
-                        .map(t -> BigDecimal.valueOf(t.getAmount())));
+                        .map(t -> BigDecimal.valueOf(t.getAmount())),
+                null,
+                null);
     }
 }

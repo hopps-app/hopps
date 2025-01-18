@@ -14,7 +14,6 @@ public class AddressHelper {
                 value.getPostalCode(),
                 value.getState(),
                 value.getCity(),
-                value.getRoad(),
-                value.getHouseNumber());
+                value.getRoad() + " " + value.getHouseNumber());
     }
 }

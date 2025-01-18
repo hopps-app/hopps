@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestSecurity(user = "alice")
 class DataHandlerTest {
 
-    private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street", "StreetNumber");
+    private static final Address address = new Address("Country", "ZipCode", "State", "City", "Street");
 
     @Inject
     ReceiptDataHandler receiptDataHandler;
@@ -87,7 +87,9 @@ class DataHandlerTest {
                 Optional.of("pruchaseOrderNumber"),
                 Optional.of("invoiceId"),
                 Optional.of(dueDate),
-                Optional.of(BigDecimal.valueOf(150)));
+                Optional.of(BigDecimal.valueOf(150)),
+                null,
+                null);
 
         // when
         invoiceDataHandler.handleData(invoiceData);
@@ -99,7 +101,7 @@ class DataHandlerTest {
         TransactionRecord transactionRecord = transactionRecords.getFirst();
         assertEquals("CustomerName", transactionRecord.getName());
         assertEquals(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant(), transactionRecord.getDueDate());
-        assertEquals("State", transactionRecord.getSender().getState());
+        assertEquals("State", transactionRecord.getSender().getCountry());
     }
 
     @Test

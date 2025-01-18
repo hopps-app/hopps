@@ -9,7 +9,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Generated;
-
+import org.mustangproject.TradeParty;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -110,8 +110,14 @@ public class TransactionRecord {
         return sender;
     }
 
-    public void setSender(Address sender) {
-        this.sender = sender;
+    public void setSender(Address address) {
+        this.sender = address;
+    }
+
+    public Address getRecipient() {return recipient;}
+
+    public void setRecipient(Address address) {
+        this.recipient = address;
     }
 
     public boolean isPrivatelyPaid() {
@@ -128,14 +134,6 @@ public class TransactionRecord {
 
     public void setDocument(DocumentType document) {
         this.document = document;
-    }
-
-    public Address getRecipient() {
-        return recipient;
-    }
-
-    public void setRecipient(Address recipient) {
-        this.recipient = recipient;
     }
 
     public String getName() {
