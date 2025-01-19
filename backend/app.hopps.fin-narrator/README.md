@@ -5,6 +5,33 @@
 Put your OpenAI API key into a .env in backend/app.hopps.fin-narrator/.env,
 using `QUARKUS_LANGCHAIN4J_OPENAI_API_KEY`.
 
+## Test data
+
+Here is some test receipt data:
+
+```json
+{
+    "total": 3.36,
+    "subTotal": 3.14,
+    "storeName": "Kaufland",
+    "storeAddress": {
+        "countryOrRegion": "DE",
+        "postalCode": 85354,
+        "state": "Bavaria",
+        "city": "Freising",
+        "road": "Gutenbergstraße",
+        "houseNumber": 2
+    }
+}
+```
+
+```json
+{
+    "total": 32843.24,
+    "store": "Azure Billing"
+}
+```
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
