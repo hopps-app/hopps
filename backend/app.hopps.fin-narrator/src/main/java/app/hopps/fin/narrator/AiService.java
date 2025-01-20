@@ -23,7 +23,7 @@ public interface AiService {
             For example, if you receive a receipt for "Pizzeria Tre Farine",
             you will output tags like "food" and "pizza". Do not output
             the location of the pizzeria. Do not output " - food".
-            
+
             If you receive an invoice for AWS, you will output tags like
             "cloud", "servers" and "hosting".
             """)
