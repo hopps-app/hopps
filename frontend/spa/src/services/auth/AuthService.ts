@@ -3,7 +3,6 @@ import { pick } from 'lodash';
 import { KeycloakServiceProvider } from '@/services/auth/keycloakServiceProvider.ts';
 import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
 import { useStore } from '@/store/store.ts';
-import apiService from '@/services/ApiService.ts';
 
 export class AuthService {
     private provider: AuthServiceProvider;
@@ -22,6 +21,7 @@ export class AuthService {
     }
 
     login() {
+        window.localStorage.setItem('REDIRECT_AFTER_LOGIN', 'true');
         return this.provider.login();
     }
 
@@ -38,7 +38,19 @@ export class AuthService {
         return this.provider.checkLogin();
     }
 
+    onUserLogin() {
+        const isRedirectAfterLogin = window.localStorage.getItem('REDIRECT_AFTER_LOGIN') === 'true';
+        window.localStorage.removeItem('REDIRECT_AFTER_LOGIN');
+
+        if (isRedirectAfterLogin) {
+            window.setTimeout(() => {
+                window.location.href = '/';
+            }, 0);
+        }
+    }
+
     async loadUserOrganisation() {
+        const apiService = (await import('@/services/ApiService.ts')).default;
         const user = useStore.getState().user;
 
         if (!user) {
@@ -46,9 +58,7 @@ export class AuthService {
             return;
         }
 
-        // todo replace with out using slug
-        const organisationSlug = 'test';
-        const organisation = await apiService.organization.getBySlug(organisationSlug);
+        const organisation = await apiService.organization.getCurrentOrganization();
 
         useStore.getState().setOrganization(organisation);
     }

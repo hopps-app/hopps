@@ -43,7 +43,6 @@ function OrganizationSettingsView() {
             console.error(e);
             showError(t('organization.settings.saveError'));
         } finally {
-            console.log('Finally');
             setIsLoading(false);
         }
     };
@@ -75,8 +74,6 @@ function OrganizationSettingsView() {
             }
         });
     }, []);
-
-    console.log('RENDER', isLoading);
 
     return (
         <>

@@ -1,3 +1,7 @@
+import axios, { AxiosInstance } from 'axios';
+
+import axiosService from '@/services/AxiosService.ts';
+
 type RegisterOrganizationPayload = {
     owner: {
         firstName: string;
@@ -22,30 +26,22 @@ type RegisterOrganizationPayload = {
 };
 
 export class OrganizationService {
-    constructor(private baseUrl: string) {}
+    private axiosInstance: AxiosInstance;
+
+    constructor(private baseUrl: string) {
+        this.axiosInstance = axiosService.create(this.baseUrl);
+    }
 
     async registerOrganization(payload: RegisterOrganizationPayload): Promise<void> {
         const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization`;
-        await window.fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
+        await axios.post(url, payload);
     }
 
-    async getBySlug(slug: string) {
-        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/${slug}`;
-        const result = await window.fetch(url, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-        });
+    async getCurrentOrganization() {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/my`;
+        const result = await this.axiosInstance.get(url);
 
-        const organisation = await result.json();
-        console.log(organisation);
-
-        return organisation;
+        return result.data;
     }
 
     createSlug(input: string): string {
