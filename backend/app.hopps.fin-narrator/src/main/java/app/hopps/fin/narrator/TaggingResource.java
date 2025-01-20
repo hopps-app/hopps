@@ -56,8 +56,7 @@ public class TaggingResource {
         if (input.length() > maxInputLength) {
             throw new WebApplicationException(
                     "Max input length of " + maxInputLength + " chars reached",
-                    Response.Status.BAD_REQUEST
-            );
+                    Response.Status.BAD_REQUEST);
         }
 
         return aiService.tagReceiptOrInvoice(type, jsonData)
