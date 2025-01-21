@@ -58,8 +58,6 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
     };
 
     useEffect(() => {
-        console.log('TREE PROP CHANGED', tree);
-
         setTreeData(tree);
     }, [tree]);
 

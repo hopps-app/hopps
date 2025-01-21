@@ -1,0 +1,223 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hopps
+spec:
+  chart:
+    spec:
+      chart: hopps
+      sourceRef:
+        kind: HelmRepository
+        name: hopps
+      version: 0.0.4
+  interval: 1m0s
+  values:
+    azDocumentAi:
+      image:
+        tag: 370
+      envFrom:
+        - secretRef:
+            name: az-document-ai
+      envVars:
+        # ToDo: url should automatically be calculated, dependent on the name of the release-name
+        - name: kafka.bootstrap.servers
+          value: hopps-kafka:9092
+    org:
+      image:
+        tag: 370
+      envFrom:
+        - secretRef:
+            name: org
+      envVars:
+        # ToDo: url should automatically be calculated, dependent on the name of the release-name
+        # OpenFGA
+        - name: QUARKUS_OPENFGA_URL
+          value: http://hopps-openfga:8080
+        - name: QUARKUS_OPENFGA_STORE
+          value: hopps
+        # Database secrets
+        - name: quarkus.datasource.jdbc.url
+          value: jdbc:postgresql://postgres-cluster:5432/org?loggerLevel=OFF&sslmode=require
+        - name: quarkus.datasource.username
+          valueFrom:
+            secretKeyRef:
+              name: hopps-dev.org.postgres-cluster.credentials.postgresql.acid.zalan.do
+              key: username
+        - name: quarkus.datasource.password
+          valueFrom:
+            secretKeyRef:
+              name: hopps-dev.org.postgres-cluster.credentials.postgresql.acid.zalan.do
+              key: password
+      ingress:
+        enabled: true
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
+        ingressClassName: nginx
+        path: /org(/|$)(.*)
+        pathType: ImplementationSpecific
+        hosts:
+          - api.${DOMAIN_2}
+        tls:
+          - secretName: api-tls
+            hosts:
+              - api.${DOMAIN_2}
+    postgresql-org:
+      enabled: false
+    fin:
+      image:
+        tag: 370
+      envFrom:
+        - secretRef:
+            name: fin
+      envVars:
+        # ToDo: url should automatically be calculated, dependent on the name of the release-name
+        # OpenFGA
+        - name: QUARKUS_OPENFGA_URL
+          value: http://hopps-openfga:8080
+        - name: QUARKUS_OPENFGA_STORE
+          value: hopps
+        # Database secrets
+        - name: quarkus.datasource.jdbc.url
+          value: jdbc:postgresql://postgres-cluster:5432/fin?loggerLevel=OFF&sslmode=require
+        - name: quarkus.datasource.username
+          valueFrom:
+            secretKeyRef:
+              name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
+              key: username
+        - name: quarkus.datasource.password
+          valueFrom:
+            secretKeyRef:
+              name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
+              key: password
+        # kafka
+        # ToDo: url should automatically be calculated, dependent on the name of the release-name
+        - name: kafka.bootstrap.servers
+          value: hopps-kafka:9092
+      ingress:
+        enabled: true
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/rewrite-target: /$2
+        ingressClassName: nginx
+        path: /fin(/|$)(.*)
+        pathType: ImplementationSpecific
+        hosts:
+          - api.${DOMAIN_2}
+        tls:
+          - secretName: api-tls
+            hosts:
+              - api.${DOMAIN_2}
+    postgresql-fin:
+      enabled: false
+    frontend:
+      image:
+        tag: 194
+      envFrom:
+        - secretRef:
+            name: frontend
+      podSecurityContext:
+        fsGroup: 1000
+      ingress:
+        enabled: true
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+        ingressClassName: nginx
+        hosts:
+          - ${DOMAIN_2}
+        tls:
+          - secretName: frontend-tls
+            hosts:
+              - ${DOMAIN_2}
+    kafka:
+      controller:
+        replicaCount: 1
+        resourcesPreset: "none"
+      volumePermissions:
+        resourcesPreset: "none"
+      # disable authentication for kafka for now
+      listeners:
+        client:
+          protocol: PLAINTEXT
+    kafka-ui:
+      enabled: true
+      yamlApplicationConfig:
+        kafka:
+          clusters:
+            - name: yaml
+              # ToDo: url should automatically be calculated, dependent on the name of the release-name
+              bootstrapServers: hopps-kafka:9092
+        auth:
+          type: disabled
+        management:
+          health:
+            ldap:
+              enabled: false
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          # basic auth
+          nginx.ingress.kubernetes.io/auth-type: basic
+          nginx.ingress.kubernetes.io/auth-secret: kafka-ui-auth
+          nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - Kafka'
+          # configure oauth2-proxy security ToDo: waiting for keycloak GitHub integration for SSO
+          #nginx.ingress.kubernetes.io/auth-response-headers: x-auth-request-user, x-auth-request-email
+          #nginx.ingress.kubernetes.io/auth-signin: https://${OAUTH_PROXY_DOMAIN}/oauth2/start?rd=$scheme://$host$request_uri
+          #nginx.ingress.kubernetes.io/auth-url: https://${OAUTH_PROXY_DOMAIN}/oauth2/auth
+        tls:
+          enabled: true
+          secretName: kafka-tls
+        # ToDo: mask domain
+        host: kafka-ui.${DOMAIN_2}
+    openfga:
+      # ToDo: check why enabled attribute isn't working
+      #enabled: true
+      # only run one pod for now
+      replicaCount: 1
+      # configure securityContext
+      podSecurityContext:
+        fsGroup: 2000
+      securityContext:
+        capabilities:
+          drop:
+            - ALL
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+      # use postgresql-database
+      datastore:
+        engine: postgres
+        uriSecret: openfga
+        # https://github.com/openfga/helm-charts/issues/100
+        migrationType: "initContainer"
+      postgresql:
+        enabled: false
+    # use already available keycloak
+    keycloak:
+      enabled: true
+      resourcesPreset: "none"
+      postgresql:
+        enabled: false
+      externalDatabase:
+        host: postgres-cluster
+        database: keycloak
+        post: 5432
+        existingSecret: hopps-dev.keycloak.postgres-cluster.credentials.postgresql.acid.zalan.do
+        existingSecretUserKey: "username"
+        existingSecretPasswordKey: "password"
+      ingress:
+        enabled: true
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+        hostname: id.${DOMAIN_2}
+        ingressClassName: nginx
+        tls: true

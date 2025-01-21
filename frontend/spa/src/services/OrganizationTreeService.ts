@@ -35,7 +35,6 @@ export class OrganizationTreeService {
         }
 
         if (idsToDelete.length) {
-            console.log('IDs to delete:', idsToDelete);
             await Promise.allSettled(idsToDelete.map((id) => apiService.bommel.deleteBommel(id)));
         }
     }
@@ -101,7 +100,6 @@ export class OrganizationTreeService {
         if (!bommel.id) {
             // save new bommel
             bommel = await apiService.bommel.createBommel(bommel);
-            console.log('BOMMEL CREATED', bommel);
             node.data = { id: bommel.id, emoji: bommel.emoji || '' };
         } else {
             // update existing bommel
@@ -112,13 +110,9 @@ export class OrganizationTreeService {
             if (isChanged) {
                 const moveTo = isMoved ? bommel.parent?.id : undefined;
                 bommel = await apiService.bommel.updateBommel(bommel.id!, _.omit(bommel, ['parent', 'children']));
-                console.log('BOMMEL UPDATED', bommel);
                 if (isMoved && moveTo) {
                     await apiService.bommel.moveBommel(bommel.id!, moveTo);
-                    console.log('BOMMEL MOVED', bommel, 'to', moveTo);
                 }
-            } else {
-                console.log('BOMMEL UPDATE SKIPPED', bommel, original);
             }
         }
     }

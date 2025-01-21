@@ -43,6 +43,7 @@ export function OrganizationRegistrationForm(props: Props) {
                 owner: {
                     firstName: data.firstName,
                     lastName: data.lastName,
+
                     email: data.email,
                 },
                 organization: {
@@ -68,20 +69,21 @@ export function OrganizationRegistrationForm(props: Props) {
                 <TextField label="Organization name" {...register('organizationName')} error={errors.organizationName?.message} />
             </div>
             <div className="my-4">
-                <TextField label="Account First Name" {...register('firstName')} error={errors.firstName?.message} />
-            </div>
-            <div className="my-4">
-                <TextField label="Account Last Name" {...register('lastName')} error={errors.lastName?.message} />
+                <div className="flex flex-row gap-2">
+                    <TextField label="Account First Name" {...register('firstName')} error={errors.firstName?.message} />
+                    <TextField label="Account Last Name" {...register('lastName')} error={errors.lastName?.message} />
+                </div>
             </div>
             <div className="my-4">
                 <TextField label="Account email" {...register('email')} error={errors.email?.message} />
             </div>
             <div className="my-4">
-                <TextField label="Account password" type="password" {...register('password')} error={errors.password?.message} />
+                <div className="flex flex-row gap-2">
+                    <TextField label="Account password" type="password" {...register('password')} error={errors.password?.message} />
+                    <TextField label="Confirm password" type="password" {...register('passwordConfirm')} error={errors.passwordConfirm?.message} />
+                </div>
             </div>
-            <div className="my-4">
-                <TextField label="Confirm password" type="password" {...register('passwordConfirm')} error={errors.passwordConfirm?.message} />
-            </div>
+
             <hr />
             <div className="mt-2 text-center">
                 <Button type="submit">{t('header.register')}</Button>

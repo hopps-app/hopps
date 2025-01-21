@@ -1,8 +1,15 @@
+import { AxiosInstance } from 'axios';
+
 import { InvoicesTableData } from '@/components/InvoicesTable/types';
 import { TransactionRecord } from '@/services/api/types/TransactionRecord.ts';
+import axiosService from '@/services/AxiosService.ts';
 
 export class InvoicesService {
-    constructor(private baseUrl: string) {}
+    private axiosInstance: AxiosInstance;
+
+    constructor(private baseUrl: string) {
+        this.axiosInstance = axiosService.create(this.baseUrl);
+    }
 
     async getInvoices(): Promise<InvoicesTableData[]> {
         const transactions: TransactionRecord[] = [];
@@ -12,13 +19,11 @@ export class InvoicesService {
 
         while (true) {
             const url = `${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/all?page=${page}&size=${pageSize}`;
-            const response = await fetch(url, { method: 'GET' });
-            const data = (await response.json()) as TransactionRecord[];
+            const response = await this.axiosInstance.get<TransactionRecord[]>(url);
+            const data = response.data;
 
             if (Array.isArray(data)) {
-                data.forEach((transaction) => {
-                    transactions.push(transaction);
-                });
+                transactions.push(...data);
                 if (data.length < pageSize) {
                     break;
                 }
@@ -36,10 +41,4 @@ export class InvoicesService {
             date: transaction.transactionTime,
         }));
     }
-
-    // async getInvoicesByBommel(bommelId: number): Promise<InvoicesTableData[]> {
-    //     const url = `${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/all`;
-    //     const response = await fetch(url, { method: 'GET' });
-    //     return response.json();
-    // }
 }
