@@ -25,9 +25,11 @@ azDocumentAi:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:
@@ -141,9 +143,11 @@ fin:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:
@@ -263,9 +267,11 @@ org:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:
@@ -385,9 +391,11 @@ frontend:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:

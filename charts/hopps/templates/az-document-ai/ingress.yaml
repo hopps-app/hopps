@@ -1,6 +1,5 @@
 {{- if .Values.azDocumentAi.ingress.enabled -}}
 {{- $fullName := include "hopps.azDocumentAiFullname" . -}}
-{{- $ingressPath := .Values.azDocumentAi.ingress.path -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -29,15 +28,17 @@ spec:
 {{- end }}
   rules:
   {{- range .Values.azDocumentAi.ingress.hosts }}
-    - host: {{ . | quote }}
+    - host: {{ .host | quote }}
       http:
         paths:
-          - pathType: Prefix
-            path: {{ $ingressPath }}
+          {{- range .paths }}
+          - pathType: {{ .pathType}}
+            path: {{ .path }}
             backend:
               service:
                 name: {{ $fullName }}
                 port:
                   name: http
+          {{- end }}
   {{- end }}
 {{- end }}
