@@ -2,8 +2,8 @@
 
 ## Setup
 
-Put your OpenAI API key into a .env in backend/app.hopps.fin-narrator/.env,
-using `QUARKUS_LANGCHAIN4J_OPENAI_API_KEY`.
+Put your OpenAI API key into the [.env](.env),
+using `QUARKUS_LANGCHAIN4J_OPENAI_API_KEY=<your api key here>`.
 
 ## Test data
 
