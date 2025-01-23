@@ -219,7 +219,7 @@ class BommelTest {
     void allowOrganizationWithoutRoot() {
         Organization org = BommelTestResourceCreator.generateOrganization();
 
-        orgRepo.persist(org);
+        assertDoesNotThrow(() -> orgRepo.persist(org));
     }
 
     @Test
@@ -373,7 +373,7 @@ class BommelTest {
     void organizationsCanCoexist() throws URISyntaxException, MalformedURLException {
         resourceCreator.setupTwoTreesAndOrgs();
 
-        repo.ensureConsistency();
+        assertDoesNotThrow(() -> repo.ensureConsistency());
     }
 
     @Test
