@@ -17,14 +17,4 @@ public class AddressHelper {
         addressJpa.setStreet(address.street());
         return addressJpa;
     }
-
-    public static Address convertToJpa(TradeParty tradeParty) {
-        Address addressJpa = new Address();
-        addressJpa.setCountry(tradeParty.getCountry());
-        addressJpa.setZipCode(tradeParty.getZIP());
-        addressJpa.setState(null);
-        addressJpa.setCity(tradeParty.getLocation());
-        addressJpa.setStreet(tradeParty.getStreet());
-        return addressJpa;
-    }
 }
