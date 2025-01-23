@@ -3,7 +3,7 @@ package app.hopps.fin;
 import app.hopps.commons.Data;
 import app.hopps.commons.InvoiceData;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.model.AddressHelper;
+import app.hopps.fin.kafka.model.TradePartyHelper;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.ZoneId;
@@ -27,7 +27,7 @@ public class InvoiceDataHandler extends AbstractDataHandler {
 
         // Optional
         data.customerName().ifPresent(transactionRecord::setName);
-        data.billingAddress().ifPresent(address -> transactionRecord.setSender(AddressHelper.convertToJpa(address)));
+        data.billingAddress().ifPresent(address -> transactionRecord.setSender(TradePartyHelper.convertToJpa(address)));
         data.purchaseOrderNumber().ifPresent(transactionRecord::setOrderNumber);
         data.invoiceId().ifPresent(transactionRecord::setInvoiceId);
         data.dueDate()

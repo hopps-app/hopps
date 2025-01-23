@@ -9,7 +9,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Generated;
-import org.mustangproject.TradeParty;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -47,10 +47,10 @@ public class TransactionRecord {
     private Instant transactionTime;
 
     @OneToOne
-    private Address sender;
+    private TradeParty sender;
 
     @OneToOne
-    private Address recipient;
+    private TradeParty recipient;
 
     private String name;
 
@@ -106,17 +106,17 @@ public class TransactionRecord {
         this.transactionTime = transactionTime;
     }
 
-    public Address getSender() {
+    public TradeParty getSender() {
         return sender;
     }
 
-    public void setSender(Address address) {
+    public void setSender(TradeParty address) {
         this.sender = address;
     }
 
-    public Address getRecipient() {return recipient;}
+    public TradeParty getRecipient() {return recipient;}
 
-    public void setRecipient(Address address) {
+    public void setRecipient(TradeParty address) {
         this.recipient = address;
     }
 
