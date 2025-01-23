@@ -4,11 +4,15 @@
     "text2": "charge"
   },
   "common": {
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "upload": "Upload"
   },
   "header": {
     "login": "Login",
     "register": "Register"
+  },
+  "invoiceUpload": {
+    "title": "Upload invoice"
   },
   "invoices": {
     "loadFailed": "Failed to load invoices",
@@ -25,6 +29,9 @@
       "saveError": "Failed to save setting",
       "saved": "Settings successfully saved"
     }
+  },
+  "organizationTree": {
+    "createNode": "Add new"
   },
   "profile": {
     "settings": {

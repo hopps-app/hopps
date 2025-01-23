@@ -1,6 +1,7 @@
 import { Tree, getBackendOptions, MultiBackend } from '@minoru/react-dnd-treeview';
 import { DndProvider } from 'react-dnd';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import OrganizationTreeNode from '@/components/OrganizationStructureTree/OrganizationTreeNode.tsx';
 import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/OrganizationTreeDropPreview.tsx';
@@ -11,12 +12,19 @@ import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTre
 
 interface OrganizationStructureTreeProps {
     tree: OrganizationTreeNodeModel[];
+    editable?: boolean;
+    selectable?: boolean;
     onTreeChanged?: (tree: OrganizationTreeNodeModel[]) => void;
+    onSelect?: (id: number) => void;
 }
 
-function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProps) {
+function OrganizationTree({ tree, editable, selectable, onTreeChanged, onSelect }: OrganizationStructureTreeProps) {
+    const { t } = useTranslation();
     const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
+    const [selectedNode, setSelectedNode] = useState<OrganizationTreeNodeModel | null>(null);
+    const isEditable = editable ?? false;
+    const isSelectable = selectable ?? false;
 
     const handleDrop = (newTree: OrganizationTreeNodeModel[]) => {
         setTreeData(newTree);
@@ -41,6 +49,10 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
         const newTree = treeData.filter((node) => node.id !== id);
         setTreeData(newTree);
         onTreeChanged?.(newTree);
+    };
+    const onSelectNode = (node: OrganizationTreeNodeModel) => {
+        setSelectedNode(node);
+        onSelect?.(node.id as number);
     };
 
     const onEditNode = (node: OrganizationTreeNodeModel) => {
@@ -71,13 +83,25 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
                         sort={false}
                         dropTargetOffset={10}
                         initialOpen={true}
+                        canDrag={() => isEditable}
                         canDrop={(_, { dragSource, dropTargetId }) => {
+                            if (!isEditable) return false;
                             if (dragSource?.parent === dropTargetId) {
                                 return true;
                             }
                         }}
                         render={(node, options) => (
-                            <OrganizationTreeNode node={node} onEdit={onEditNode} onDelete={onDeleteNode} disableHover={isDragging} {...options} />
+                            <OrganizationTreeNode
+                                node={node}
+                                editable={isEditable}
+                                selectable={isSelectable}
+                                isSelected={node.id === selectedNode?.id}
+                                onEdit={onEditNode}
+                                onDelete={onDeleteNode}
+                                onSelect={onSelectNode}
+                                disableHover={isDragging}
+                                {...options}
+                            />
                         )}
                         dragPreviewRender={(monitorProps) => <OrganizationTreeDropPreview monitorProps={monitorProps} />}
                         placeholderRender={(node, { depth }) => <OrganizationTreePlaceholder node={node} depth={depth} />}
@@ -91,11 +115,13 @@ function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProp
                         }}
                     />
                 ) : null}
-                <div className="text-center">
-                    <Button variant="link" icon="Plus" onClick={onClickCreate}>
-                        Add new
-                    </Button>
-                </div>
+                {isEditable && (
+                    <div className="text-center">
+                        <Button variant="link" icon="Plus" onClick={onClickCreate}>
+                            {t('organizationTree.createNode')}
+                        </Button>
+                    </div>
+                )}
             </div>
         </DndProvider>
     );

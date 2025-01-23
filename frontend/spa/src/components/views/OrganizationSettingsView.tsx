@@ -90,7 +90,7 @@ function OrganizationSettingsView() {
             ) : (
                 <>
                     <h3>Structure:</h3>
-                    <OrganizationTree tree={tree} onTreeChanged={onTreeChanged} />
+                    <OrganizationTree tree={tree} editable={true} selectable={false} onTreeChanged={onTreeChanged} />
                 </>
             )}
         </>

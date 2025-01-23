@@ -4,11 +4,15 @@
     "text2": ""
   },
   "common": {
-    "refresh": "Оновити"
+    "refresh": "Оновити",
+    "upload": "Завантажити"
   },
   "header": {
     "login": "Увійти",
     "register": "Зареєструватися"
+  },
+  "invoiceUpload": {
+    "title": "Завантажити рахунок-фактуру"
   },
   "invoices": {
     "loadFailed": "Не вдалося завантажити рахунки-фактури",
@@ -25,6 +29,9 @@
       "saveError": "Не вдалося зберегти налаштування",
       "saved": "Налаштування успішно збережені"
     }
+  },
+  "organizationTree": {
+    "createNode": "Додати новий"
   },
   "profile": {
     "settings": {

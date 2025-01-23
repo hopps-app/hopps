@@ -12,7 +12,7 @@ function Header() {
     const navigate = useNavigate();
     const menuItems = [
         { url: '/', label: 'Home' },
-        { url: '/demo', label: 'Demo' },
+        { url: '/invoice-upload', label: 'Upload invoice' },
     ];
 
     const appStore = useStore();
