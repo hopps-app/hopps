@@ -13,11 +13,15 @@ type Props = {
     node: OrganizationTreeNodeModel;
     depth: number;
     isOpen: boolean;
+    isSelected: boolean;
     hasChild: boolean;
     disableHover: boolean;
+    editable: boolean;
+    selectable: boolean;
     onToggle: (id: NodeModel['id']) => void;
     onEdit: (node: OrganizationTreeNodeModel) => void;
     onDelete: (id: NodeModel['id']) => void;
+    onSelect: (node: OrganizationTreeNodeModel) => void;
 };
 
 const IDENT_SIZE = 32;
@@ -36,6 +40,8 @@ function OrganizationTreeNode(props: Props) {
         props.onToggle(props.node.id);
     };
 
+    const handleSelect = () => props.selectable && props.onSelect(props.node);
+
     const onEditValueChange = (value: string) => {
         setEditValue(value);
     };
@@ -45,6 +51,7 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onClickEdit = () => {
+        if (!props.editable) return;
         setEditValue(props.node.text);
         setIsEditing(true);
     };
@@ -81,10 +88,15 @@ function OrganizationTreeNode(props: Props) {
 
     return (
         <div
-            className={cn('h-10 leading-10', { 'hover:bg-accent': !props.disableHover })}
+            className={cn('h-10 leading-10', {
+                'hover:bg-accent': !props.disableHover && !props.isSelected,
+                'bg-primary': props.isSelected,
+                'text-primary-foreground': props.isSelected,
+            })}
             style={{ paddingInlineStart: indent }}
             onMouseEnter={() => setIsHover(true)}
             onMouseLeave={() => setIsHover(false)}
+            onClick={handleSelect}
             {...dragOverProps}
         >
             <div className="flex flex-row items-center">
@@ -118,7 +130,7 @@ function OrganizationTreeNode(props: Props) {
                             )}
                             {props.node.text}
                             <div className="flex-grow"></div>
-                            {isHover && (
+                            {isHover && props.editable && (
                                 <>
                                     <Button variant="link" className="px-1" icon="Pencil1" onClick={onClickEdit} />
                                     <Button variant="link" className="px-1" icon="Trash" onClick={onClickDelete} />
