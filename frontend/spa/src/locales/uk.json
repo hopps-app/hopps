@@ -5,12 +5,16 @@
   },
   "common": {
     "refresh": "Оновити",
+    "upload": "Завантажити",
     "addNew": "Додати новий"
   },
   "header": {
     "login": "Увійти",
     "logout": "Вийти",
     "register": "Зареєструватися"
+  },
+  "invoiceUpload": {
+    "title": "Завантажити рахунок-фактуру"
   },
   "invoices": {
     "loadFailed": "Не вдалося завантажити рахунки",
@@ -48,6 +52,9 @@
     "buttons": {
       "addNew": "Додати новий"
     }
+  },
+  "organizationTree": {
+    "createNode": "Додати новий"
   },
   "profile": {
     "settings": {

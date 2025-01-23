@@ -5,12 +5,16 @@
   },
   "common": {
     "refresh": "Aktualisieren",
+    "upload": "Hochladen",
     "addNew": "Neu hinzufügen"
   },
   "header": {
     "logout": "Abmelden",
     "login": "Anmelden",
     "register": "Registrieren"
+  },
+  "invoiceUpload": {
+    "title": "Rechnung hochladen"
   },
   "invoices": {
     "loadFailed": "Fehler beim Laden der Rechnungen",
@@ -48,6 +52,9 @@
     "buttons": {
       "addNew": "Neu hinzufügen"
     }
+  },
+  "organizationTree": {
+    "createNode": "Neu hinzufügen"
   },
   "profile": {
     "settings": {

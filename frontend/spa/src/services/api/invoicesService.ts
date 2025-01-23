@@ -48,4 +48,21 @@ export class InvoicesService {
 
         return response.data;
     }
+
+    async uploadInvoice(file: File, bommelId: number) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bommelId', bommelId + '');
+        //
+        // await this.axiosInstance.post(`${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/upload`, formData, {
+        //     headers: {
+        //         'Content-Type': 'multipart/form-data',
+        //     },
+        // });
+
+        // @todo remove after testing
+        return new Promise((resolve, reject) => {
+            setTimeout(reject, 2000);
+        });
+    }
 }

@@ -5,12 +5,16 @@
   },
   "common": {
     "refresh": "Refresh",
+    "upload": "Upload",
     "addNew": "Add new"
   },
   "header": {
     "logout": "Logout",
     "login": "Login",
     "register": "Register"
+  },
+  "invoiceUpload": {
+    "title": "Upload invoice"
   },
   "invoices": {
     "loadFailed": "Failed to load invoices",
@@ -48,6 +52,9 @@
     "buttons": {
       "addNew": "Add new"
     }
+  },
+  "organizationTree": {
+    "createNode": "Add new"
   },
   "profile": {
     "settings": {

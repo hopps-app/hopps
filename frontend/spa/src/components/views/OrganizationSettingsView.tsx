@@ -126,8 +126,17 @@ function OrganizationSettingsView() {
                 <div>{t('organization.settings.error')}</div>
             ) : (
                 <>
+                    <h3>Structure:</h3>
                     <h3>{t('organization.settings.structure')}:</h3>
-                    <OrganizationTree tree={tree} createNode={createTreeNode} updateNode={updateTreeNode} deleteNode={deleteTreeNode} moveNode={moveTreeNode} />
+                    <OrganizationTree
+                        tree={tree}
+                        editable={true}
+                        selectable={false}
+                        createNode={createTreeNode}
+                        updateNode={updateTreeNode}
+                        deleteNode={deleteTreeNode}
+                        moveNode={moveTreeNode}
+                    />
                 </>
             )}
         </>

@@ -11,17 +11,20 @@ import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTre
 
 interface OrganizationStructureTreeProps {
     tree: OrganizationTreeNodeModel[];
+    editable?: boolean;
+    selectable?: boolean;
     createNode?: () => Promise<OrganizationTreeNodeModel | undefined>;
     deleteNode?: (nodeId: number | string) => Promise<boolean>;
     updateNode?: (node: OrganizationTreeNodeModel) => Promise<boolean>;
     moveNode?: (node: OrganizationTreeNodeModel) => Promise<boolean>;
 }
 
-function OrganizationTree({ tree, createNode, deleteNode, updateNode, moveNode }: OrganizationStructureTreeProps) {
+function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, updateNode, moveNode }: OrganizationStructureTreeProps) {
     const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
-
-    const { t } = useTranslation();
+    const [selectedNode, setSelectedNode] = useState<OrganizationTreeNodeModel | null>(null);
+    const isEditable = editable ?? false;
+    const isSelectable = selectable ?? false;
 
     const handleDrop = async (newTree: OrganizationTreeNodeModel[]) => {
         let movedNode: OrganizationTreeNodeModel | null = null;
@@ -50,6 +53,10 @@ function OrganizationTree({ tree, createNode, deleteNode, updateNode, moveNode }
 
     const onDeleteNode = async (id: OrganizationTreeNodeModel['id']) => {
         await deleteNode?.(id);
+    };
+    const onSelectNode = (node: OrganizationTreeNodeModel) => {
+        setSelectedNode(node);
+        onSelect?.(node.id as number);
     };
 
     const onEditNode = async (node: OrganizationTreeNodeModel) => {
@@ -83,13 +90,25 @@ function OrganizationTree({ tree, createNode, deleteNode, updateNode, moveNode }
                         sort={false}
                         dropTargetOffset={10}
                         initialOpen={true}
+                        canDrag={() => isEditable}
                         canDrop={(_, { dragSource, dropTargetId }) => {
+                            if (!isEditable) return false;
                             if (dragSource?.parent === dropTargetId) {
                                 return true;
                             }
                         }}
                         render={(node, options) => (
-                            <OrganizationTreeNode node={node} onEdit={onEditNode} onDelete={onDeleteNode} disableHover={isDragging} {...options} />
+                            <OrganizationTreeNode
+                                node={node}
+                                editable={isEditable}
+                                selectable={isSelectable}
+                                isSelected={node.id === selectedNode?.id}
+                                onEdit={onEditNode}
+                                onDelete={onDeleteNode}
+                                onSelect={onSelectNode}
+                                disableHover={isDragging}
+                                {...options}
+                            />
                         )}
                         dragPreviewRender={(monitorProps) => <OrganizationTreeDropPreview monitorProps={monitorProps} />}
                         placeholderRender={(node, { depth }) => <OrganizationTreePlaceholder node={node} depth={depth} />}
@@ -103,11 +122,13 @@ function OrganizationTree({ tree, createNode, deleteNode, updateNode, moveNode }
                         }}
                     />
                 ) : null}
-                <div className="text-center">
-                    <Button variant="link" icon="Plus" onClick={onClickCreate}>
-                        {t('common.addNew')}
-                    </Button>
-                </div>
+                {isEditable && (
+                    <div className="text-center">
+                        <Button variant="link" icon="Plus" onClick={onClickCreate}>
+                            {t('organizationTree.createNode')}
+                        </Button>
+                    </div>
+                )}
             </div>
         </DndProvider>
     );
