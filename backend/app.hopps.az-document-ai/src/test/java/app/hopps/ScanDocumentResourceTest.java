@@ -5,7 +5,7 @@ import app.hopps.commons.DocumentData;
 import app.hopps.commons.DocumentType;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
-import app.hopps.model.ScanDocumentBody;
+import app.hopps.model.AnalyzeDocumentRequest;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -29,8 +29,8 @@ class ScanDocumentResourceTest {
 
     private static final String INVOICE_URL = "http://something.test/invoice";
     private static final String RECEIPT_URL = "http://something.test/receipt";
-    private static final ScanDocumentBody INVOICE_REQUEST_BODY = new ScanDocumentBody(INVOICE_URL);
-    private static final ScanDocumentBody RECEIPT_REQUEST_BODY = new ScanDocumentBody(RECEIPT_URL);
+    private static final AnalyzeDocumentRequest INVOICE_REQUEST_BODY = new AnalyzeDocumentRequest(INVOICE_URL);
+    private static final AnalyzeDocumentRequest RECEIPT_REQUEST_BODY = new AnalyzeDocumentRequest(RECEIPT_URL);
 
     @InjectMock
     AzureAiService azureAiServiceMock;
