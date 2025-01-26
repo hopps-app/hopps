@@ -8,7 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public record ScanDocumentBody(String documentUrl) {
+public record AnalyzeDocumentRequest(String documentUrl) {
     public URL parseDocumentUrl() throws WebApplicationException {
         try {
             return new URI(documentUrl).toURL();
