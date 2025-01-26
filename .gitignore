@@ -200,3 +200,8 @@ $RECYCLE.BIN/
 # unencrypted secrets
 *decrypted.env
 age.agekey
+
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
