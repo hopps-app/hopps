@@ -6,47 +6,56 @@ import OrganizationTreeNode from '@/components/OrganizationStructureTree/Organiz
 import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/OrganizationTreeDropPreview.tsx';
 import OrganizationTreePlaceholder from '@/components/OrganizationStructureTree/OrganizationTreePlaceholder.tsx';
 import Button from '@/components/ui/Button.tsx';
-import { getMaxId } from '@/components/OrganizationStructureTree/OrganizationTreeUtils';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 
 interface OrganizationStructureTreeProps {
     tree: OrganizationTreeNodeModel[];
-    onTreeChanged?: (tree: OrganizationTreeNodeModel[]) => void;
+    createNode?: () => Promise<OrganizationTreeNodeModel | undefined>;
+    deleteNode?: (nodeId: number | string) => Promise<boolean>;
+    updateNode?: (node: OrganizationTreeNodeModel) => Promise<boolean>;
+    moveNode?: (node: OrganizationTreeNodeModel) => Promise<boolean>;
 }
 
-function OrganizationTree({ tree, onTreeChanged }: OrganizationStructureTreeProps) {
+function OrganizationTree({ tree, createNode, deleteNode, updateNode, moveNode }: OrganizationStructureTreeProps) {
     const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
 
-    const handleDrop = (newTree: OrganizationTreeNodeModel[]) => {
-        setTreeData(newTree);
-        onTreeChanged?.(newTree);
+    const handleDrop = async (newTree: OrganizationTreeNodeModel[]) => {
+        let movedNode: OrganizationTreeNodeModel | null = null;
+
+        for (const node of newTree) {
+            const oldNode = treeData.find((n) => n.id === node.id);
+            if (!oldNode || oldNode.parent === node.parent) continue;
+
+            movedNode = node;
+            break;
+        }
+
+        if (movedNode) {
+            const result = await moveNode?.(movedNode);
+            if (!result) return;
+            setTreeData(newTree);
+        }
     };
-    const onClickCreate = () => {
-        const newTree = [
-            ...treeData,
-            {
-                id: getMaxId(treeData) + 1,
-                parent: 0,
-                text: 'New item',
-                droppable: true,
-                data: { emoji: '', isNew: true },
-            },
-        ];
-        setTreeData(newTree);
-        onTreeChanged?.(newTree);
+    const onClickCreate = async () => {
+        const node = await createNode?.();
+        if (node) {
+            const newTree = [...treeData, node];
+            setTreeData(newTree);
+        }
     };
 
-    const onDeleteNode = (id: OrganizationTreeNodeModel['id']) => {
-        const newTree = treeData.filter((node) => node.id !== id);
-        setTreeData(newTree);
-        onTreeChanged?.(newTree);
+    const onDeleteNode = async (id: OrganizationTreeNodeModel['id']) => {
+        await deleteNode?.(id);
     };
 
-    const onEditNode = (node: OrganizationTreeNodeModel) => {
+    const onEditNode = async (node: OrganizationTreeNodeModel) => {
         const newTree = treeData.map((item) => (item.id === node.id ? node : item));
+        const result = await updateNode?.(node);
+
+        if (!result) return;
+
         setTreeData(newTree);
-        onTreeChanged?.(newTree);
     };
 
     const onDragStart = () => {
