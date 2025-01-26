@@ -31,8 +31,12 @@ services:
       - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/realms/hopps/
       - QUARKUS_OPENFGA_URL=http://openfga:8080/
       - QUARKUS_S3_ENDPOINT_OVERRIDE=http://localstack:4566
+      - QUARKUS_S3_AWS_REGION=eu-central-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - APP_HOPPS_FIN_URL=http://fin
+      - quarkus.rest-client.org-service.uri=http://org:8080/
 
   fin-narrator:
     image: ghcr.io/hopps-app/hopps/fin-narrator:${TAG:-395}
