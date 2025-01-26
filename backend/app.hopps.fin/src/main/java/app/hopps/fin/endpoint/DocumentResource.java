@@ -71,9 +71,9 @@ public class DocumentResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) DocumentType type) {
+            @RestForm("bommelId") @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
+            @RestForm("privatelyPaid") @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
+            @RestForm("type") @PartType(MediaType.TEXT_PLAIN) DocumentType type) {
         if (file == null || type == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());

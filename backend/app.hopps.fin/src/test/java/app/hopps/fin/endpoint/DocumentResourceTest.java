@@ -1,5 +1,6 @@
 package app.hopps.fin.endpoint;
 
+import app.hopps.commons.DocumentType;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -20,7 +21,7 @@ import java.io.InputStream;
 import static io.restassured.RestAssured.given;
 
 @QuarkusTest
-@TestSecurity(authorizationEnabled = false)
+@TestSecurity(user = "peter")
 @TestHTTPEndpoint(DocumentResource.class)
 class DocumentResourceTest {
     private static final String IMAGE_KEY = "imageKey";
@@ -77,6 +78,7 @@ class DocumentResourceTest {
         given()
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .multiPart("file", "ZUGFeRD.pdf", zugferdInputStream)
+                .multiPart("type", DocumentType.INVOICE.toString())
                 .when()
                 .post()
                 .then()

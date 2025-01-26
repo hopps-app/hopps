@@ -19,10 +19,4 @@ public class ZugFerdService {
         Invoice invoice = zii.extractInvoice();
         return InvoiceDataHandler.fromZugferd(referenceKey, invoice);
     }
-
-    public Invoice getInvoice(Long referenceKey, InputStream stream)
-            throws XPathExpressionException, ParseException {
-        ZUGFeRDInvoiceImporter zii = new ZUGFeRDInvoiceImporter(stream);
-        return zii.extractInvoice();
-    }
 }

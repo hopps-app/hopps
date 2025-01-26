@@ -27,7 +27,11 @@ public class InvoiceDataHandler extends AbstractDataHandler {
 
         // Optional
         data.customerName().ifPresent(transactionRecord::setName);
-        data.billingAddress().ifPresent(address -> transactionRecord.setSender(TradePartyHelper.convertToJpa(address)));
+
+        data.sender().ifPresent(tradeParty -> transactionRecord.setSender(TradePartyHelper.convertToJpa(tradeParty)));
+        data.receiver()
+                .ifPresent(tradeParty -> transactionRecord.setRecipient(TradePartyHelper.convertToJpa(tradeParty)));
+
         data.purchaseOrderNumber().ifPresent(transactionRecord::setOrderNumber);
         data.invoiceId().ifPresent(transactionRecord::setInvoiceId);
         data.dueDate()

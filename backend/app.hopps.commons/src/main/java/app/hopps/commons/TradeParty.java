@@ -7,5 +7,8 @@ public record TradeParty(
         String state,
         String city,
         String street,
-        String additionalAddress) {
+        String additionalAddress,
+        String taxID,
+        String vatID,
+        String description) {
 }
