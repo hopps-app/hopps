@@ -1,6 +1,7 @@
 package app.hopps.fin.jpa.entities;
 
 import app.hopps.commons.DocumentType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,10 +47,10 @@ public class TransactionRecord {
     @Column(name = "transaction_time")
     private Instant transactionTime;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private TradeParty sender;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private TradeParty recipient;
 
     private String name;
@@ -114,7 +115,9 @@ public class TransactionRecord {
         this.sender = address;
     }
 
-    public TradeParty getRecipient() {return recipient;}
+    public TradeParty getRecipient() {
+        return recipient;
+    }
 
     public void setRecipient(TradeParty address) {
         this.recipient = address;

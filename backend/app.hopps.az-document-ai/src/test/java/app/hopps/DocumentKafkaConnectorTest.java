@@ -1,9 +1,9 @@
 package app.hopps;
 
-import app.hopps.commons.TradeParty;
 import app.hopps.commons.DocumentData;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
+import app.hopps.commons.TradeParty;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -76,12 +76,11 @@ class DocumentKafkaConnectorTest {
                 LocalDate.now(),
                 "EUR",
                 Optional.of("Test customer"),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
                 Optional.of(fakeAddress()),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
                 Optional.empty());
     }
 

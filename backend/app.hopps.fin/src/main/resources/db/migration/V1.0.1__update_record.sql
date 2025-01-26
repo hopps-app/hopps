@@ -2,13 +2,17 @@ create sequence trade_party_sequence start with 1 increment by 1;
 
 create table trade_party
 (
-    id           bigint not null,
-    city         varchar(255),
-    country      varchar(255),
-    state        varchar(255),
-    street       varchar(255),
-    streetNumber varchar(255),
-    zipCode      varchar(255),
+    id                bigint not null,
+    name              varchar(255),
+    city              varchar(255),
+    country           varchar(255),
+    state             varchar(255),
+    street            varchar(255),
+    additionalAddress varchar(255),
+    zipCode           varchar(255),
+    taxID             varchar(255),
+    vatID             varchar(255),
+    description       varchar(255),
     primary key (id)
 );
 

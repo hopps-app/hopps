@@ -25,9 +25,6 @@ public class InvoiceDataHelper {
                         .orElse("EUR"),
                 Optional.ofNullable(fields.get("CustomerName"))
                         .map(DocumentField::getValueString),
-                Optional.ofNullable(fields.get("BillingAddress"))
-                        .map(DocumentField::getValueAddress)
-                        .map(TradePartyHelper::fromAzure),
                 Optional.ofNullable(fields.get("PurchaseOrder"))
                         .map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("InvoiceId"))
@@ -37,7 +34,9 @@ public class InvoiceDataHelper {
                 Optional.ofNullable(fields.get("AmountDue"))
                         .map(DocumentField::getValueCurrency)
                         .map(t -> BigDecimal.valueOf(t.getAmount())),
-                null,
+                Optional.ofNullable(fields.get("BillingAddress"))
+                        .map(DocumentField::getValueAddress)
+                        .map(TradePartyHelper::fromAzure),
                 null);
     }
 }
