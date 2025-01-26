@@ -93,7 +93,10 @@ class DocumentKafkaConnectorTest {
                 "Bavaria",
                 "Pfaffenhofen",
                 "Bistumerweg",
-                "5");
+                "5",
+                null,
+                null,
+                null);
     }
 
 }

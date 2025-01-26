@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestSecurity(user = "alice")
 class DataHandlerTest {
 
-    private static final TradeParty TRADE_PARTY = new TradeParty("Name","Country", "ZipCode", "State", "City", "Street", "AdditionalAddress");
+    private static final TradeParty TRADE_PARTY = new TradeParty("Name","Country", "ZipCode", "State", "City", "Street", "AdditionalAddress", "TaxID", "VatID","Description");
 
     @Inject
     ReceiptDataHandler receiptDataHandler;
