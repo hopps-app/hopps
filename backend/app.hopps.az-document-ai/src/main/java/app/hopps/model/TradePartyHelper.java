@@ -16,6 +16,9 @@ public class TradePartyHelper {
                 value.getState(),
                 value.getCity(),
                 value.getRoad() + " " + value.getHouseNumber(),
-                value.getUnit());
+                value.getUnit(),
+                null,
+                null,
+                null);
     }
 }

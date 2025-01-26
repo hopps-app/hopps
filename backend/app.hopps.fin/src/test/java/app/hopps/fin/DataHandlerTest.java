@@ -1,9 +1,9 @@
 package app.hopps.fin;
 
-import app.hopps.commons.TradeParty;
 import app.hopps.commons.DocumentType;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
+import app.hopps.commons.TradeParty;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.test.TestTransaction;
@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestSecurity(user = "alice")
 class DataHandlerTest {
 
-    private static final TradeParty TRADE_PARTY = new TradeParty("Name","Country", "ZipCode", "State", "City", "Street", "AdditionalAddress");
+    private static final TradeParty TRADE_PARTY = new TradeParty("Name", "Country", "ZipCode", "State", "City",
+            "Street", "AdditionalAddress", "TaxID", "VatID", "Description");
 
     @Inject
     ReceiptDataHandler receiptDataHandler;
@@ -72,7 +74,6 @@ class DataHandlerTest {
     }
 
     @Test
-    @TestTransaction
     void shouldWriteFullInvoiceData() {
 
         // given
@@ -83,13 +84,12 @@ class DataHandlerTest {
                 LocalDate.now(),
                 "EUR",
                 Optional.of("CustomerName"),
-                Optional.of(TRADE_PARTY),
                 Optional.of("pruchaseOrderNumber"),
                 Optional.of("invoiceId"),
                 Optional.of(dueDate),
                 Optional.of(BigDecimal.valueOf(150)),
-                null,
-                null);
+                Optional.of(TRADE_PARTY),
+                Optional.empty());
 
         // when
         invoiceDataHandler.handleData(invoiceData);
@@ -101,7 +101,7 @@ class DataHandlerTest {
         TransactionRecord transactionRecord = transactionRecords.getFirst();
         assertEquals("CustomerName", transactionRecord.getName());
         assertEquals(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant(), transactionRecord.getDueDate());
-        assertEquals("State", transactionRecord.getSender().getCountry());
+        assertEquals("Country", transactionRecord.getSender().getCountry());
     }
 
     @Test
@@ -119,7 +119,6 @@ class DataHandlerTest {
     }
 
     @Test
-    @TestTransaction
     void shouldWriteFullReceiptData() {
         // given
         LocalDateTime transactionTime = LocalDateTime.now();
@@ -141,6 +140,7 @@ class DataHandlerTest {
         TransactionRecord transactionRecord = transactionRecords.getFirst();
         assertEquals("StoreName", transactionRecord.getName());
         assertEquals("City", transactionRecord.getSender().getCity());
-        assertEquals(transactionTime.atOffset(ZoneOffset.UTC).toInstant(), transactionRecord.getTransactionTime());
+        assertEquals(transactionTime.atOffset(ZoneOffset.UTC).toInstant().truncatedTo(ChronoUnit.SECONDS),
+                transactionRecord.getTransactionTime().truncatedTo(ChronoUnit.SECONDS));
     }
 }

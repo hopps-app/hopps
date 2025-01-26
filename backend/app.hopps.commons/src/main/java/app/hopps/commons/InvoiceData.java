@@ -10,7 +10,6 @@ public record InvoiceData(
         LocalDate invoiceDate,
         String currencyCode,
         Optional<String> customerName,
-        Optional<TradeParty> billingAddress,
         Optional<String> purchaseOrderNumber,
         Optional<String> invoiceId,
         Optional<LocalDate> dueDate,
@@ -19,7 +18,9 @@ public record InvoiceData(
         Optional<TradeParty> receiver) implements Data {
 
     public InvoiceData(Long referenceKey, BigDecimal total, LocalDate invoiceDate, String currencyCode) {
-        this(referenceKey, total, invoiceDate, currencyCode, Optional.empty(), Optional.empty(), Optional.empty(),
+        this(referenceKey, total, invoiceDate, currencyCode,
+                Optional.empty(),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
