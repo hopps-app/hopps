@@ -49,11 +49,12 @@ services:
   az-document-ai:
     image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-395}
     depends_on:
-      - kafka
+      - fin
+    ports:
+      - "8100:8080"
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - HOPPS_AZURE_DOCUMENT_AI_ENDPOINT=${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT:?Read README.md}
-      - HOPPS_AZURE_DOCUMENT_AI_KEY=${HOPPS_AZURE_DOCUMENT_AI_KEY:?Read README.md}
+      - HOPPS_AZURE_DOCUMENT_AI_ENDPOINT=${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT}
+      - HOPPS_AZURE_DOCUMENT_AI_KEY=${HOPPS_AZURE_DOCUMENT_AI_KEY}
 
   localstack:
     image: localstack/localstack

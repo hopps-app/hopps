@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class AzureAiService {
@@ -43,27 +44,31 @@ public class AzureAiService {
         this.oidcClient = oidcClient;
     }
 
-    public ReceiptData scanReceipt(DocumentData documentData) {
-        Document document = scanDocument(receiptModelId, documentData.internalFinUrl());
-        if (document == null) {
-            return null;
+    public Optional<ReceiptData> scanReceipt(DocumentData documentData) {
+        var document = scanDocument(receiptModelId, documentData.internalFinUrl());
+        if (document.isEmpty()) {
+            return Optional.empty();
         }
 
-        return ReceiptDataHelper.fromDocument(documentData.referenceKey(), document);
+        LOG.info("Scanned receipt: {}", document.get().getFields());
+
+        ReceiptData receiptData = ReceiptDataHelper.fromDocument(documentData.referenceKey(), document.get());
+        return Optional.of(receiptData);
     }
 
-    public InvoiceData scanInvoice(DocumentData documentData) {
-        Document document = scanDocument(invoiceModelId, documentData.internalFinUrl());
-        if (document == null) {
-            return null;
+    public Optional<InvoiceData> scanInvoice(DocumentData documentData) {
+        var document = scanDocument(invoiceModelId, documentData.internalFinUrl());
+        if (document.isEmpty()) {
+            return Optional.empty();
         }
 
-        LOG.info("Scanned document: {}", document.getFields());
+        LOG.info("Scanned invoice: {}", document.get().getFields());
 
-        return InvoiceDataHelper.fromDocument(documentData.referenceKey(), document);
+        InvoiceData invoiceData = InvoiceDataHelper.fromDocument(documentData.referenceKey(), document.get());
+        return Optional.of(invoiceData);
     }
 
-    private Document scanDocument(String modelId, URL documentUrl) {
+    private Optional<Document> scanDocument(String modelId, URL documentUrl) {
         LOG.info("(model={}) Starting scan of document: '{}'", modelId, documentUrl);
         byte[] documentBytes = fetchDocument(documentUrl);
 
@@ -72,14 +77,14 @@ public class AzureAiService {
 
         if (documents.isEmpty()) {
             LOG.error("Couldn't analyze document '{}'", documentUrl);
-            return null;
+            return Optional.empty();
         } else if (documents.size() > 1) {
             LOG.warn("Document analysis found {} documents, using first one", documents.size());
         }
 
         LOG.info("(model={}) Scan successfully completed for: '{}'", modelId, documentUrl);
 
-        return documents.getFirst();
+        return Optional.ofNullable(documents.getFirst());
     }
 
     private byte[] fetchDocument(URL documentUrl) {
