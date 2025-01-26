@@ -43,8 +43,7 @@ class ScanDocumentResourceTest {
         DocumentData acceptedDocument = new DocumentData(
                 URI.create(INVOICE_URL).toURL(),
                 -1L,
-                DocumentType.INVOICE
-        );
+                DocumentType.INVOICE);
 
         when(azureAiServiceMock.scanInvoice(Mockito.any()))
                 .thenReturn(Optional.empty());
@@ -58,10 +57,12 @@ class ScanDocumentResourceTest {
         var receivedData = given()
                 .body(INVOICE_REQUEST_BODY)
                 .contentType(ContentType.JSON)
-                .when().post("invoice")
+                .when()
+                .post("invoice")
                 .then()
                 .statusCode(200)
-                .extract().as(InvoiceData.class);
+                .extract()
+                .as(InvoiceData.class);
 
         // Assert
         assertEquals(invoiceData, receivedData);
@@ -75,8 +76,7 @@ class ScanDocumentResourceTest {
         DocumentData acceptedDocument = new DocumentData(
                 URI.create(RECEIPT_URL).toURL(),
                 -1L,
-                DocumentType.RECEIPT
-        );
+                DocumentType.RECEIPT);
 
         when(azureAiServiceMock.scanInvoice(Mockito.any()))
                 .thenReturn(Optional.empty());
@@ -90,10 +90,12 @@ class ScanDocumentResourceTest {
         var receivedData = given()
                 .body(RECEIPT_REQUEST_BODY)
                 .contentType(ContentType.JSON)
-                .when().post("receipt")
+                .when()
+                .post("receipt")
                 .then()
                 .statusCode(200)
-                .extract().as(ReceiptData.class);
+                .extract()
+                .as(ReceiptData.class);
 
         // Assert
         assertEquals(receiptData, receivedData);
@@ -108,7 +110,8 @@ class ScanDocumentResourceTest {
         // Act + Assert
         given().body(INVOICE_REQUEST_BODY)
                 .contentType(ContentType.JSON)
-                .when().post("invoice")
+                .when()
+                .post("invoice")
                 .then()
                 .statusCode(500);
     }
@@ -129,12 +132,11 @@ class ScanDocumentResourceTest {
 
     private static ReceiptData fakeReceiptData() {
         return new ReceiptData(
-            -1L,
+                -1L,
                 BigDecimal.valueOf(156.9),
                 Optional.of("AWS"),
                 Optional.of(fakeAddress()),
-                Optional.empty()
-        );
+                Optional.empty());
     }
 
     private static Address fakeAddress() {
@@ -144,8 +146,7 @@ class ScanDocumentResourceTest {
                 "Bavaria",
                 "Pfaffenhofen",
                 "Bistumerweg",
-                "5"
-        );
+                "5");
     }
 
 }
