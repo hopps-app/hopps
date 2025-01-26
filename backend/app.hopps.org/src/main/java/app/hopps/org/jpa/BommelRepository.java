@@ -36,6 +36,10 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     }
 
     public Organization getOrganization(Bommel base) throws WebApplicationException {
+        if (base.getOrganization() != null) {
+            return base.getOrganization();
+        }
+
         Optional<TreeSearchBommel> root = getParents(base).stream()
                 .filter(bommel -> bommel.bommel().getOrganization() != null)
                 .findAny();
