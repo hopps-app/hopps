@@ -35,9 +35,8 @@ public class ScanDocumentResource {
     public InvoiceData scanInvoice(ScanDocumentBody body) {
         DocumentData documentData = new DocumentData(body.parseDocumentUrl(), -1L, DocumentType.INVOICE);
         return aiService.scanInvoice(documentData)
-            .orElseThrow(() ->
-                    new WebApplicationException("Could not extract document", Response.Status.BAD_REQUEST)
-            );
+                .orElseThrow(
+                        () -> new WebApplicationException("Could not extract document", Response.Status.BAD_REQUEST));
     }
 
     @POST
@@ -48,9 +47,8 @@ public class ScanDocumentResource {
     public ReceiptData scanReceipt(ScanDocumentBody body) {
         DocumentData documentData = new DocumentData(body.parseDocumentUrl(), -1L, DocumentType.RECEIPT);
         return aiService.scanReceipt(documentData)
-            .orElseThrow(() ->
-                    new WebApplicationException("Could not extract document", Response.Status.BAD_REQUEST)
-            );
+                .orElseThrow(
+                        () -> new WebApplicationException("Could not extract document", Response.Status.BAD_REQUEST));
     }
 
 }
