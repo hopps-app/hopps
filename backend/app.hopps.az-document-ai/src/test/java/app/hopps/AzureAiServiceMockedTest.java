@@ -15,8 +15,10 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -51,9 +53,10 @@ class AzureAiServiceMockedTest {
         DocumentData documentData = new DocumentData(new URI(url).toURL(), -1L, DocumentType.INVOICE);
 
         // when
-        InvoiceData invoiceData = aiService.scanInvoice(documentData);
+        Optional<InvoiceData> invoiceData = aiService.scanInvoice(documentData);
 
         // then
         assertNotNull(invoiceData);
+        assertTrue(invoiceData.isPresent());
     }
 }

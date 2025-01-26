@@ -9,8 +9,10 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 class AzureAiServiceTest {
@@ -27,9 +29,10 @@ class AzureAiServiceTest {
         DocumentData documentData = new DocumentData(new URI(url).toURL(), -1L, DocumentType.INVOICE);
 
         // when
-        InvoiceData invoiceData = aiService.scanInvoice(documentData);
+        Optional<InvoiceData> invoiceData = aiService.scanInvoice(documentData);
 
         // then
         assertNotNull(invoiceData);
+        assertTrue(invoiceData.isPresent());
     }
 }
