@@ -3,7 +3,6 @@ package app.hopps.commons;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
-import org.mustangproject.TradeParty;
 
 public record InvoiceData(
         Long referenceKey,
@@ -11,7 +10,7 @@ public record InvoiceData(
         LocalDate invoiceDate,
         String currencyCode,
         Optional<String> customerName,
-        Optional<Address> billingAddress,
+        Optional<TradeParty> billingAddress,
         Optional<String> purchaseOrderNumber,
         Optional<String> invoiceId,
         Optional<LocalDate> dueDate,

@@ -7,15 +7,15 @@ public class TradePartyHelper {
         // only call the static method
     }
 
-    public static TradeParty convertToJpa(app.hopps.commons.Address address) {
+    public static TradeParty convertToJpa(app.hopps.commons.TradeParty tradeParty) {
         TradeParty addressJpa = new TradeParty();
         addressJpa.setName(null);
-        addressJpa.setCity(address.city());
-        addressJpa.setCountry(address.countryOrRegion());
-        addressJpa.setState(address.state());
-        addressJpa.setStreet(address.street());
+        addressJpa.setCity(tradeParty.city());
+        addressJpa.setCountry(tradeParty.countryOrRegion());
+        addressJpa.setState(tradeParty.state());
+        addressJpa.setStreet(tradeParty.street());
         addressJpa.setAdditionalAddress(null);
-        addressJpa.setZipCode(address.postalCode());
+        addressJpa.setZipCode(tradeParty.postalCode());
         addressJpa.setTaxID(null);
         addressJpa.setVatID(null);
         addressJpa.setDescription(null);

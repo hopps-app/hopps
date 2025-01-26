@@ -27,7 +27,7 @@ public class InvoiceDataHelper {
                         .map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("BillingAddress"))
                         .map(DocumentField::getValueAddress)
-                        .map(AddressHelper::fromAzure),
+                        .map(TradePartyHelper::fromAzure),
                 Optional.ofNullable(fields.get("PurchaseOrder"))
                         .map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("InvoiceId"))

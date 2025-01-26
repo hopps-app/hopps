@@ -33,11 +33,11 @@ public class InvoiceDataHandler {
                 invoice.getIssueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
                 invoice.getCurrency(),
                 Optional.ofNullable(invoice.getRecipient().getName()),
-                Optional.of(AddressHelper.fromZugferd(invoice)),
+                Optional.of(TradePartyHelper.fromZugferd(invoice)),
                 Optional.ofNullable(invoice.getReferenceNumber()),
                 Optional.ofNullable(invoice.getNumber()),
                 Optional.ofNullable(dueDate), Optional.of(amountDue),
-                Optional.of(invoice.getSender()),
-                Optional.of(recipient));
+                Optional.of(TradePartyHelper.fromTradeParty(invoice.getSender())),
+                Optional.of(TradePartyHelper.fromTradeParty(recipient)));
     }
 }

@@ -1,6 +1,6 @@
 package app.hopps;
 
-import app.hopps.commons.Address;
+import app.hopps.commons.TradeParty;
 import app.hopps.commons.DocumentData;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
@@ -80,11 +80,14 @@ class DocumentKafkaConnectorTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
                 Optional.empty());
     }
 
-    private static Address fakeAddress() {
-        return new Address(
+    private static TradeParty fakeAddress() {
+        return new TradeParty(
+                null,
                 "Germany",
                 "85276",
                 "Bavaria",
