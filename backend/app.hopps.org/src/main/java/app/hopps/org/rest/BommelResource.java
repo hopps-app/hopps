@@ -5,7 +5,6 @@ import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
-import io.quarkus.runtime.configuration.ConfigUtils;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -20,8 +19,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -47,18 +44,7 @@ public class BommelResource {
     OrganizationRepository orgRepo;
 
     @Inject
-    SecurityContext securityContext;
-
-    @Inject
     AuthorizationModelClient authModelClient;
-
-    // Auth is only disabled when in dev mode and auth has been disabled through the config property (see below)
-    boolean authEnabled;
-
-    public BommelResource(
-            @ConfigProperty(name = "quarkus.security.auth.enabled-in-dev-mode", defaultValue = "true") boolean devModeAuthEnabled) {
-        this.authEnabled = devModeAuthEnabled || !ConfigUtils.isProfileActive("dev");
-    }
 
     @GET
     @Path("/{id}/children")
@@ -199,18 +185,10 @@ public class BommelResource {
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public void deleteBommel(@PathParam("id") long id,
-            @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
+                             @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
         checkUserHasPermission(id, RELATION_WRITE);
         Bommel base = throwOrGetBommel(bommelRepo.findByIdOptional(id));
         bommelRepo.deleteBommel(base, recursive);
-    }
-
-    private void isUserLoggedIn() {
-        var principal = securityContext.getUserPrincipal();
-
-        if (principal == null && this.authEnabled) {
-            throw new WebApplicationException("User is not logged in", Response.Status.UNAUTHORIZED);
-        }
     }
 
     /**
@@ -218,7 +196,6 @@ public class BommelResource {
      * exception if anything goes wrong.
      */
     private void checkUserHasPermission(long bommelId, String relation) throws WebApplicationException {
-        isUserLoggedIn();
         // FIXME implement this later after openfga is correctly implemented and has a schema
         // var principal = securityContext.getUserPrincipal();
         //
