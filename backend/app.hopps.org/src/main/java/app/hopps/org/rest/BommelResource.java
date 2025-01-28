@@ -185,7 +185,7 @@ public class BommelResource {
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public void deleteBommel(@PathParam("id") long id,
-                             @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
+            @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
         checkUserHasPermission(id, RELATION_WRITE);
         Bommel base = throwOrGetBommel(bommelRepo.findByIdOptional(id));
         bommelRepo.deleteBommel(base, recursive);

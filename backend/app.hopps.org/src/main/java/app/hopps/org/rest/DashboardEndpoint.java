@@ -15,6 +15,7 @@ public class DashboardEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOpenTasks() {
         // FIXME: Go against the IndexDataHandler with GraphQL?
+        // unklar was hier genau gefetched werden muss. Sind aktuell keine Prozesse vorhanden die dies abbilden würden.
         return Response.ok().build();
     }
 
