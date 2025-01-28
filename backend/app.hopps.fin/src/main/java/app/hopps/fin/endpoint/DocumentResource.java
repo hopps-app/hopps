@@ -19,6 +19,8 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -69,20 +71,24 @@ public class DocumentResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
+    @APIResponse(responseCode = "202", description = "Document was uploaded and will be processed by ZUGFeRD or AI")
+    @APIResponse(responseCode = "400", description = "'file' or 'type' was not set")
+    @APIResponse(responseCode = "500", description = "Upload failed or type was not recognized")
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
             @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
             @RestForm("privatelyPaid") @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
-            @RestForm("type") @PartType(MediaType.TEXT_PLAIN) DocumentType type) throws IOException {
+            @Schema(implementation = DocumentType.class) @RestForm("type") @PartType(MediaType.TEXT_PLAIN) String type) throws IOException {
         if (file == null || type == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
         }
+        DocumentType documentType = DocumentType.getTypeByStringIgnoreCase(type);
 
         s3Handler.saveFile(file);
 
         // Save in database
-        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, type,
+        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, documentType,
                 context.getUserPrincipal().getName());
         transactionRecord.setDocumentKey(file.fileName());
         transactionRecord.setPrivatelyPaid(privatelyPaid);
@@ -91,7 +97,7 @@ public class DocumentResource {
         persistTransactionRecord(transactionRecord);
 
         // Sent to kafka to process
-        documentProducer.sendToProcess(transactionRecord, type);
+        documentProducer.sendToProcess(transactionRecord, documentType);
 
         return Response.accepted().build();
     }
