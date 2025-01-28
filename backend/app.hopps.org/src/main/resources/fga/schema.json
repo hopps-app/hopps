@@ -56,7 +56,33 @@
           "this": {}
         },
         "member": {
-          "this": {}
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "member"
+                  },
+                  "tupleset": {
+                    "relation": "parent"
+                  }
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "member"
+                  },
+                  "tupleset": {
+                    "relation": "organization"
+                  }
+                }
+              }
+            ]
+          }
         },
         "bommelWart": {
           "union": {
@@ -108,10 +134,6 @@
             "directly_related_user_types": [
               {
                 "type": "user"
-              },
-              {
-                "type": "organization",
-                "relation": "member"
               }
             ]
           },

@@ -75,9 +75,9 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         return possibleCycleBommels;
     }
 
-    public Optional<Bommel> getRootBommel(long orgId) {
-        return find("where organization.id = :org",
-                Map.of("org", orgId))
+    public Optional<Bommel> getRootBommel(String slug) {
+        return find("where organization.slug = :org",
+                Map.of("org", slug))
                         .firstResultOptional();
     }
 

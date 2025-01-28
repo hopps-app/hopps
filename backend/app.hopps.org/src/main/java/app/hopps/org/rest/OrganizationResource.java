@@ -7,6 +7,9 @@ import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
 import app.hopps.org.rest.model.CreateOrganizationResponse;
 import app.hopps.org.rest.model.NewOrganizationInput;
+import io.quarkiverse.zanzibar.annotations.FGAPathObject;
+import io.quarkiverse.zanzibar.annotations.FGARelation;
+import io.quarkiverse.zanzibar.annotations.FGAUserType;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -62,6 +65,9 @@ public class OrganizationResource {
     @Operation(summary = "Get organization", description = "Retrieves the details of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
+    @FGARelation("member")
+    @FGAUserType("user")
+    @FGAPathObject(param = "slug", type = "organization")
     public Response getOrganizationBySlug(@PathParam("slug") String slug) {
 
         Organization organization = organizationRepository.findBySlug(slug);
@@ -102,6 +108,9 @@ public class OrganizationResource {
     @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
+    @FGARelation("member")
+    @FGAUserType("user")
+    @FGAPathObject(param = "slug", type = "organization")
     public Response getOrganizationMembersBySlug(@PathParam("slug") String slug) {
         Organization organization = organizationRepository.findBySlug(slug);
         if (organization == null) {

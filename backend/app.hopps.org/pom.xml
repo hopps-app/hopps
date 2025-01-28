@@ -24,6 +24,7 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.19.2</quarkus.platform.version>
         <version.org.kie.kogito>10.0.0</version.org.kie.kogito>
+        <version.zanzibar>2.0.0</version.zanzibar>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>
@@ -128,6 +129,13 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
+        <!-- openfga -->
+        <dependency>
+            <groupId>io.quarkiverse.zanzibar</groupId>
+            <artifactId>quarkus-zanzibar-openfga</artifactId>
+            <version>${version.zanzibar}</version>
+        </dependency>
+
         <!-- kogito -->
         <dependency>
             <groupId>org.jbpm</groupId>
@@ -151,11 +159,6 @@
         </dependency>
 
         <!-- test -->
-        <dependency>
-            <groupId>io.quarkiverse.openfga</groupId>
-            <artifactId>quarkus-openfga-client</artifactId>
-            <version>2.3.0</version>
-        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>

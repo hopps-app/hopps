@@ -10,7 +10,9 @@ import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
-import io.quarkiverse.openfga.client.model.ConditionalTupleKey;
+import io.quarkiverse.openfga.client.model.RelObject;
+import io.quarkiverse.openfga.client.model.RelTupleDefinition;
+import io.quarkiverse.openfga.client.model.RelUser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -61,16 +63,23 @@ public class PersistOrganizationDelegate {
         slug = FgaHelper.sanitize(slug);
         email = FgaHelper.sanitize(email);
 
-        String fgaUser = FgaTypes.USER.getFgaName() + ":" + email;
-        String fgaOrganization = FgaTypes.ORGANIZATION.getFgaName() + ":" + slug;
-        String fgaBommel = FgaTypes.BOMMEL.getFgaName() + ":" + bommelId;
+        RelUser relUser = RelUser.of(FgaTypes.USER.getFgaName(), email);
+        RelObject relOrganizationObject = RelObject.of(FgaTypes.ORGANIZATION.getFgaName(), slug);
 
-        ConditionalTupleKey userToOrgTupleKey = ConditionalTupleKey.of(fgaOrganization,
-                FgaRelations.OWNER.getFgaName(),
-                fgaUser);
-        ConditionalTupleKey orgToBommelTupleKey = ConditionalTupleKey.of(fgaBommel,
-                FgaRelations.ORGANIZATION.getFgaName(),
-                fgaOrganization);
+        RelTupleDefinition userToOrgTupleKey = RelTupleDefinition.builder()
+                .user(relUser)
+                .object(relOrganizationObject)
+                .relation(FgaRelations.OWNER.getFgaName())
+                .build();
+
+        RelUser relOrganizationUser = RelUser.of(FgaTypes.ORGANIZATION.getFgaName(), slug);
+        RelObject relBommelObject = RelObject.of(FgaTypes.BOMMEL.getFgaName(), bommelId.toString());
+
+        RelTupleDefinition orgToBommelTupleKey = RelTupleDefinition.builder()
+                .user(relOrganizationUser)
+                .object(relBommelObject)
+                .relation(FgaRelations.ORGANIZATION.getFgaName())
+                .build();
 
         modelClient
                 .write(List.of(userToOrgTupleKey, orgToBommelTupleKey), Collections.emptyList())
