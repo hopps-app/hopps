@@ -8,11 +8,10 @@ type organization
     define owner: [user]
     define member: [user] or owner
 
-
 type bommel
   relations
     define organization: [organization]
     define parent: [bommel]
-    define member: [user, organization#member]
+    define member: [user] or member from parent or member from organization
 
     define bommelWart: [user] or owner from organization or bommelWart from parent
