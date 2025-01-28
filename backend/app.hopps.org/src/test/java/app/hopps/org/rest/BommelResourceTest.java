@@ -1,13 +1,15 @@
 package app.hopps.org.rest;
 
+import app.hopps.commons.fga.FgaRelations;
+import app.hopps.commons.fga.FgaTypes;
 import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.BommelTestResourceCreator;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
-import io.quarkiverse.openfga.client.AuthorizationModelClient;
-import io.quarkiverse.openfga.client.model.TupleKey;
+import io.quarkiverse.zanzibar.Relationship;
+import io.quarkiverse.zanzibar.RelationshipManager;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -17,7 +19,6 @@ import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -35,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
+@TestSecurity(user = "test")
 @TestHTTPEndpoint(BommelResource.class)
 class BommelResourceTest {
 
@@ -48,7 +50,7 @@ class BommelResourceTest {
     BommelTestResourceCreator resourceCreator;
 
     @InjectMock
-    AuthorizationModelClient authModelClient;
+    RelationshipManager relationshipManager;
 
     @BeforeEach
     @Transactional
@@ -56,29 +58,32 @@ class BommelResourceTest {
         orgRepo.deleteAll();
         bommelRepo.deleteAll();
 
-        Mockito.when(authModelClient.check(any(TupleKey.class)))
+        Mockito.when(relationshipManager.check(any(Relationship.class)))
                 .thenReturn(Uni.createFrom().item(false));
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void shouldNotFindRoot() {
         Organization organization = resourceCreator.setupOrganization();
 
+        Relationship relationship = new Relationship(FgaTypes.ORGANIZATION.getFgaName(), organization.getSlug(),
+                FgaRelations.MEMBER.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(relationship))
+                .thenReturn(Uni.createFrom().item(true));
+
         given()
                 .when()
-                .get("/root/{orgId}", organization.getId())
+                .get("/root/{slug}", organization.getSlug())
                 .then()
                 .statusCode(404)
                 .body(is("Bommel not found"));
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
-    @Disabled("Openfga is needed")
-    void createBommelOnlyWithWritePermissions() {
+    void shouldNotBeAllowedToCreateBommel() {
         var bommels = resourceCreator.setupSimpleTree();
         var parent = bommels.getLast();
 
@@ -91,23 +96,19 @@ class BommelResourceTest {
                 .statusCode(403);
 
         assertEquals(bommels.size(), bommelRepo.count());
+    }
+
+    @Test
+    @TestTransaction
+    void shouldBeAllowedToCreateBommel() {
+        var bommels = resourceCreator.setupSimpleTree();
+        var parent = bommels.getLast();
 
         // Give read permissions
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + parent.id, "read", "user:test")))
-                .thenReturn(Uni.createFrom().item(true));
+        Relationship relationship = new Relationship(FgaTypes.BOMMEL.getFgaName(), parent.id.toString(),
+                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
 
-        given()
-                .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
-                .contentType("application/json")
-                .when()
-                .post()
-                .then()
-                .statusCode(403);
-
-        assertEquals(bommels.size(), bommelRepo.count());
-
-        // Give write permissions
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + parent.id, "write", "user:test")))
+        Mockito.when(relationshipManager.check(relationship))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -123,10 +124,8 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
-    @Disabled("Openfga is needed")
-    void updateBommelOnlyWithWritePermsions() {
+    void shouldNotBeAllowedToUpdateBommel() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
@@ -139,9 +138,19 @@ class BommelResourceTest {
                 .statusCode(403);
 
         assertNotEquals("Test bommel", bommelRepo.findById(bommel.id).getName());
+    }
+
+    @Test
+    @TestTransaction
+    void shouldBeAllowedToUpdateBommel() {
+        var bommels = resourceCreator.setupSimpleTree();
+        var bommel = bommels.getLast();
 
         // Give write permissions
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + bommel.id, "write", "user:test")))
+        Relationship relationship = new Relationship(FgaTypes.BOMMEL.getFgaName(), bommel.id.toString(),
+                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(relationship))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -166,10 +175,21 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
-    @Disabled("Openfga is needed")
-    void getBommelRequiresReadPermissions() {
+    void shouldNotBeAllowedToFetchBommelById() {
+        var bommels = resourceCreator.setupSimpleTree();
+        var bommel = bommels.getLast();
+
+        given()
+                .when()
+                .get("/{id}", bommel.id)
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    @TestTransaction
+    void shouldBeAllowedToFetchBommelById() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
@@ -179,7 +199,10 @@ class BommelResourceTest {
                 .then()
                 .statusCode(403);
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + bommel.id, "read", "user:test")))
+        Relationship relationship = new Relationship(FgaTypes.BOMMEL.getFgaName(), bommel.id.toString(),
+                FgaRelations.MEMBER.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(relationship))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -197,17 +220,22 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void moveBommelWorksWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var child = bommels.getLast();
         var newParent = bommels.get(2);
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + child.id, "write", "user:test")))
+        Relationship oldBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), child.id.toString(),
+                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(oldBommel))
                 .thenReturn(Uni.createFrom().item(true));
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + newParent.id, "write", "user:test")))
+        Relationship newBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), newParent.id.toString(),
+                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(newBommel))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -225,16 +253,17 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
-    @Disabled("Openfga is needed")
-    void moveBommelFailsWithoutWritePermissions() {
+    void shouldFailMovingWithInsufficientPermission() {
         var bommels = resourceCreator.setupSimpleTree();
         var child = bommels.getLast();
         var oldParent = bommels.get(1);
         var newParent = bommels.get(2);
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + child.id, "write", "user:test")))
+        Relationship oldBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), child.id.toString(),
+                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(oldBommel))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -249,13 +278,15 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getChildrenRecursiveReturnsAllChildren() {
         var bommels = resourceCreator.setupSimpleTree();
         Bommel root = bommels.getFirst();
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + root.id, "read", "user:test")))
+        Relationship oldBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), root.id.toString(),
+                FgaRelations.MEMBER.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(oldBommel))
                 .thenReturn(Uni.createFrom().item(true));
 
         List<TreeSearchBommel> treeSearchChildren = given()
@@ -285,13 +316,15 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getChildrenReturnsAllDirectChildren() {
         var bommels = resourceCreator.setupSimpleTree();
         Bommel root = bommels.getFirst();
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + root.id, "read", "user:test")))
+        Relationship oldBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), root.id.toString(),
+                FgaRelations.MEMBER.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(oldBommel))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -304,14 +337,15 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
-    @Disabled("Openfga is needed")
-    void deleteBommelDoesntWorkWithReadPermissions() {
+    void shouldNotBeAbleToDeleteBommelAsMember() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + bommel.id, "read", "user:test")))
+        Relationship oldBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), bommel.id.toString(),
+                FgaRelations.MEMBER.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(oldBommel))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -324,13 +358,15 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void deleteBommelWorksWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + bommel.id, "write", "user:test")))
+        Relationship relationship = new Relationship(FgaTypes.BOMMEL.getFgaName(), bommel.id.toString(),
+                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(relationship))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -343,7 +379,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getRootBommelTest() {
         // Arrange
@@ -351,13 +386,16 @@ class BommelResourceTest {
         var organization = orgRepo.findAll().firstResult();
         var rootBommel = existingBommels.getFirst();
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + rootBommel.id, "read", "user:test")))
+        Relationship relationship = new Relationship(FgaTypes.ORGANIZATION.getFgaName(), organization.getSlug(),
+                FgaRelations.MEMBER.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+
+        Mockito.when(relationshipManager.check(relationship))
                 .thenReturn(Uni.createFrom().item(true));
 
         // Act
         given()
                 .when()
-                .get("/root/{orgId}", organization.getId())
+                .get("/root/{slug}", organization.getSlug())
                 .then()
                 .statusCode(200)
                 .body("id", is(rootBommel.id.intValue()))
