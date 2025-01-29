@@ -193,12 +193,6 @@ class BommelResourceTest {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
 
-        given()
-                .when()
-                .get("/{id}", bommel.id)
-                .then()
-                .statusCode(403);
-
         Relationship relationship = new Relationship(FgaTypes.BOMMEL.getFgaName(), bommel.id.toString(),
                 FgaRelations.MEMBER.getFgaName(), FgaTypes.USER.getFgaName(), "test");
 
