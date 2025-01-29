@@ -68,7 +68,8 @@ public class TransactionRecordResource {
         parameters.verifyOnlyOneIsActive();
         Page page = new Page(parameters.getPageIndex(), parameters.getPageSize());
 
-        if (parameters.getDetached().isPresent()) {
+        Optional<Boolean> detached = parameters.getDetached();
+        if (detached.isPresent() && Boolean.TRUE.equals(detached.get())) {
             // Records without bommelId have no permissions
             return repository.findWithoutBommel(page);
         }
@@ -79,8 +80,9 @@ public class TransactionRecordResource {
             verifyPermission(bommelId);
             return repository.findByBommelId(bommelId, page);
         } else {
+            boolean withDetachedBommels = detached.orElse(true);
             List<Long> accessibleBommels = fgaProxy.getAccessibleBommels(securityContext.getUserPrincipal().getName());
-            return repository.findAll(accessibleBommels).page(page).list();
+            return repository.findAll(accessibleBommels, withDetachedBommels).page(page).list();
         }
     }
 

@@ -1,9 +1,9 @@
-package app.hopps.org.rest;
+package app.hopps.fin.endpoint;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
-import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -13,20 +13,20 @@ import static io.restassured.RestAssured.given;
 @TestSecurity(user = "peter")
 class DashboardEndpointTest {
     @Test
-    void shouldGetOpenTasks() {
+    void shouldGetUnpaidInvoices() {
         given()
                 .when()
-                .get("tasks")
+                .get("unpaid")
                 .then()
-                .statusCode(Status.OK.getStatusCode());
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
-    void shouldGetMembers() {
+    void shouldGetYearsRevenue() {
         given()
                 .when()
-                .get("members")
+                .get("revenue")
                 .then()
-                .statusCode(Status.OK.getStatusCode());
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 }

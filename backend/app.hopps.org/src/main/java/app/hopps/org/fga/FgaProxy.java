@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 import static app.hopps.commons.fga.FgaHelper.sanitize;
@@ -113,5 +114,19 @@ public class FgaProxy {
                 .await()
                 .atMost(Duration.ofSeconds(3));
         LOG.info("What does this map contain? {}", map);
+    }
+
+    public List<Long> getAllMyBommels(String username) {
+        RelUser relUser = RelUser.of(FgaTypes.USER.getFgaName(), sanitize(username));
+
+        AuthorizationModelClient.ListObjectsFilter listObjectsFilter = AuthorizationModelClient.ListObjectsFilter
+                .byUser(relUser)
+                .relation(FgaRelations.BOMMELWART.getFgaName())
+                .objectType(FgaTypes.BOMMEL.getFgaName());
+
+        return authorizationModelClient.listObjects(listObjectsFilter)
+                .map(list -> list.stream().map(RelObject::getId).map(Long::parseLong).toList())
+                .await()
+                .atMost(Duration.ofSeconds(3));
     }
 }
