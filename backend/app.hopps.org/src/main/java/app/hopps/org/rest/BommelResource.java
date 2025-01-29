@@ -126,7 +126,6 @@ public class BommelResource {
     @APIResponse(responseCode = "400", description = "Bommel has no parent, cannot create root-bommel", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
-    @FGAIgnore
     public Response createBommel(Bommel bommel) {
         if (bommel.getParent() == null) {
             throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
