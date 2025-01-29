@@ -5,11 +5,17 @@ import app.hopps.org.jpa.Member;
 import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
+import io.quarkiverse.openfga.client.AuthorizationModelClient;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -34,12 +40,17 @@ class PersistOrganizationDelegateTests {
     @Inject
     MemberRepository memberRepository;
 
+    @InjectMock
+    AuthorizationModelClient authorizationModelClient;
+
     @BeforeEach
     @Transactional
     void cleanupDB() {
         organizationRepository.deleteAll();
         bommelRepository.deleteAll();
         memberRepository.deleteAll();
+
+        Mockito.when(authorizationModelClient.write()).thenReturn(Uni.createFrom().item(Map.of()));
     }
 
     @Test
