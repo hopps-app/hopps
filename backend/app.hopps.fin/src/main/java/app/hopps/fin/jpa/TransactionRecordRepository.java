@@ -18,7 +18,11 @@ public class TransactionRecordRepository implements PanacheRepository<Transactio
         return find("bommelId is null").page(page).list();
     }
 
-    public PanacheQuery<TransactionRecord> findAll(List<Long> accessibleBommels) {
-        return find("bommelId in (?1) or bommelId is null", accessibleBommels);
+    public PanacheQuery<TransactionRecord> findAll(List<Long> accessibleBommels, boolean withDetachedBommels) {
+        String sql = "bommelId in (?1)";
+        if (withDetachedBommels) {
+            sql += " or bommelId is null";
+        }
+        return find(sql, accessibleBommels);
     }
 }
