@@ -1,16 +1,14 @@
 package app.hopps.org.rest;
 
-import app.hopps.commons.fga.FgaRelations;
-import app.hopps.commons.fga.FgaTypes;
+import app.hopps.org.fga.FgaProxy;
 import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
-import io.quarkiverse.zanzibar.Relationship;
-import io.quarkiverse.zanzibar.RelationshipManager;
 import io.quarkiverse.zanzibar.annotations.FGAIgnore;
 import io.quarkiverse.zanzibar.annotations.FGAPathObject;
 import io.quarkiverse.zanzibar.annotations.FGARelation;
 import io.quarkiverse.zanzibar.annotations.FGAUserType;
+import io.quarkus.logging.Log;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -33,7 +31,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,14 +44,13 @@ public class BommelResource {
 
     private final BommelRepository bommelRepo;
     private final SecurityContext securityContext;
-    private final RelationshipManager relationshipManager;
+    private final FgaProxy fgaProxy;
 
     @Inject
-    public BommelResource(BommelRepository bommelRepo, SecurityContext securityContext,
-            RelationshipManager relationshipManager) {
+    public BommelResource(BommelRepository bommelRepo, SecurityContext securityContext, FgaProxy fgaProxy) {
         this.bommelRepo = bommelRepo;
         this.securityContext = securityContext;
-        this.relationshipManager = relationshipManager;
+        this.fgaProxy = fgaProxy;
     }
 
     @GET
@@ -133,9 +129,12 @@ public class BommelResource {
                     .build());
         }
 
-        checkUserHasPermission(bommel.getParent().id.toString(), FgaRelations.BOMMELWART);
+        fgaProxy.verifyEditorAccessToBommel(bommel.getParent().id, getUsername());
 
         Bommel insertBommel = bommelRepo.insertBommel(bommel);
+
+        fgaProxy.addBommel(insertBommel, insertBommel.getParent().id);
+
         URI uri = URI.create("/bommel/" + insertBommel.id + "/children");
         return Response.created(uri).entity(insertBommel).build();
     }
@@ -173,23 +172,40 @@ public class BommelResource {
     @APIResponse(responseCode = "404", description = "<li>Bommel not found <li>New parent bommel not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @FGAIgnore
     public Bommel moveBommel(@PathParam("id") long id, @PathParam("newParentId") long newParentId) {
-        checkUserHasPermission(String.valueOf(id), FgaRelations.BOMMELWART);
-        checkUserHasPermission(String.valueOf(newParentId), FgaRelations.BOMMELWART);
+        fgaProxy.verifyEditorAccessToBommel(id, getUsername());
+        fgaProxy.verifyEditorAccessToBommel(newParentId, getUsername());
 
-        Bommel base = bommelRepo.findById(id);
-        Bommel parent = bommelRepo.findById(newParentId);
+        Bommel bommel = bommelRepo.findById(id);
+        Bommel parentBommel = bommelRepo.findById(newParentId);
 
-        if (base == null) {
+        if (bommel == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.NOT_FOUND).entity("Base-Bommel not found").build());
         }
 
-        if (parent == null) {
+        if (parentBommel == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.NOT_FOUND).entity("Parent-Bommel not found").build());
         }
 
-        return bommelRepo.moveBommel(base, parent);
+        try {
+            Long oldParentId = bommel.getParent().id;
+            Bommel movedBommel = bommelRepo.moveBommel(bommel, parentBommel);
+
+            fgaProxy.addBommel(bommel, parentBommel.id);
+            fgaProxy.removeBommel(movedBommel, oldParentId);
+
+            return movedBommel;
+        } catch (Exception e) {
+            Log.warn("Moving failed!", e);
+            // Revert back the added Bommel
+            fgaProxy.removeBommel(bommel, parentBommel.id);
+            throw e;
+        }
+    }
+
+    private String getUsername() {
+        return securityContext.getUserPrincipal().getName();
     }
 
     @DELETE
@@ -197,6 +213,7 @@ public class BommelResource {
     @Transactional
     @Operation(summary = "Delete bommel")
     @APIResponse(responseCode = "204", description = "Bommel successfully deleted")
+    @APIResponse(responseCode = "400", description = "Root-Bommel cannot be deleted", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -205,27 +222,18 @@ public class BommelResource {
     @FGAPathObject(param = "id", type = "bommel")
     public void deleteBommel(@PathParam("id") long id,
             @QueryParam("recursive") @DefaultValue("false") boolean recursive) {
-        Bommel base = throwOrGetBommel(bommelRepo.findByIdOptional(id));
-        bommelRepo.deleteBommel(base, recursive);
-    }
+        Bommel bommel = throwOrGetBommel(bommelRepo.findByIdOptional(id));
 
-    /**
-     * Checks that the currently signed-in user can access this bommel with this relation. Throws a WebApplication
-     * exception if anything goes wrong.
-     */
-    private void checkUserHasPermission(String id, FgaRelations relation) throws WebApplicationException {
-        var principal = securityContext.getUserPrincipal();
-        String username = principal == null ? "anonymous" : principal.getName();
-
-        Relationship relationship = new Relationship(FgaTypes.BOMMEL.getFgaName(), id, relation.getFgaName(),
-                FgaTypes.USER.getFgaName(), username);
-
-        Boolean authenticated = relationshipManager.check(relationship).await().atMost(Duration.ofSeconds(3));
-        if (Boolean.TRUE.equals(authenticated)) {
-            return;
+        if (bommel.getParent() == null) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.BAD_REQUEST).entity("Root-Bommel cannot be deleted!").build());
         }
 
-        throw new WebApplicationException(Response.Status.FORBIDDEN);
+        bommelRepo.deleteBommel(bommel, recursive);
+
+        // TODO: Herausfinden was possiert bei dem recursive call bei panache.
+        // das macht beim fga updated probleme, da ich nicht weiß was ich löschen muss
+        fgaProxy.removeBommel(bommel);
     }
 
     private Bommel throwOrGetBommel(Optional<Bommel> rootBommelOpt) {
