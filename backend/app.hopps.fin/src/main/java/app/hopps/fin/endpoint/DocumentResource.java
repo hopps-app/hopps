@@ -19,6 +19,7 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.PartType;
@@ -54,6 +55,7 @@ public class DocumentResource {
     @GET
     @Path("{documentKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(deprecated = true, description = "DEPRECATED! Please use /{id}/document instead of /document/{documentKey}")
     public byte[] getDocumentByKey(@PathParam("documentKey") String documentKey) {
         // TODO: How to verify that user has access? --> FGAC
         // TODO: Set the media type header dynamic dependent on PNG, JPEG or PDF
