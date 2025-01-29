@@ -8,6 +8,12 @@ import app.hopps.org.jpa.BommelTestResourceCreator;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
+import io.quarkiverse.openfga.client.AuthorizationModelClient;
+import io.quarkiverse.openfga.client.model.RelObject;
+import io.quarkiverse.openfga.client.model.RelTupleDefinition;
+import io.quarkiverse.openfga.client.model.RelTupleKey;
+import io.quarkiverse.openfga.client.model.RelTupleKeyed;
+import io.quarkiverse.openfga.client.model.RelUser;
 import io.quarkiverse.zanzibar.Relationship;
 import io.quarkiverse.zanzibar.RelationshipManager;
 import io.quarkus.test.InjectMock;
@@ -23,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static io.restassured.RestAssured.given;
@@ -52,6 +59,9 @@ class BommelResourceTest {
     @InjectMock
     RelationshipManager relationshipManager;
 
+    @InjectMock
+    AuthorizationModelClient authorizationModelClient;
+
     @BeforeEach
     @Transactional
     void setup() {
@@ -59,6 +69,13 @@ class BommelResourceTest {
         bommelRepo.deleteAll();
 
         Mockito.when(relationshipManager.check(any(Relationship.class)))
+                .thenReturn(Uni.createFrom().item(false));
+
+        Mockito.when(authorizationModelClient.write(any(RelTupleDefinition.class)))
+                .thenReturn(Uni.createFrom().item(Map.of()));
+        Mockito.when(authorizationModelClient.delete(any(RelTupleDefinition.class)))
+                .thenReturn(Uni.createFrom().item(Map.of()));
+        Mockito.when(authorizationModelClient.check(any(RelTupleKeyed.class)))
                 .thenReturn(Uni.createFrom().item(false));
     }
 
@@ -105,10 +122,13 @@ class BommelResourceTest {
         var parent = bommels.getLast();
 
         // Give read permissions
-        Relationship relationship = new Relationship(FgaTypes.BOMMEL.getFgaName(), parent.id.toString(),
-                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+        RelTupleKey relTupleKey = RelTupleKey.builder()
+                .user(RelUser.of(FgaTypes.USER.getFgaName(), "test"))
+                .relation(FgaRelations.BOMMELWART.getFgaName())
+                .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), parent.id.toString()))
+                .build();
 
-        Mockito.when(relationshipManager.check(relationship))
+        Mockito.when(authorizationModelClient.check(relTupleKey))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -220,16 +240,22 @@ class BommelResourceTest {
         var child = bommels.getLast();
         var newParent = bommels.get(2);
 
-        Relationship oldBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), child.id.toString(),
-                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+        RelTupleKey oldBommelDefinition = RelTupleKey.builder()
+                .user(RelUser.of(FgaTypes.USER.getFgaName(), "test"))
+                .relation(FgaRelations.BOMMELWART.getFgaName())
+                .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), child.id.toString()))
+                .build();
 
-        Mockito.when(relationshipManager.check(oldBommel))
+        Mockito.when(authorizationModelClient.check(oldBommelDefinition))
                 .thenReturn(Uni.createFrom().item(true));
 
-        Relationship newBommel = new Relationship(FgaTypes.BOMMEL.getFgaName(), newParent.id.toString(),
-                FgaRelations.BOMMELWART.getFgaName(), FgaTypes.USER.getFgaName(), "test");
+        RelTupleKey newBommelDefinition = RelTupleKey.builder()
+                .user(RelUser.of(FgaTypes.USER.getFgaName(), "test"))
+                .relation(FgaRelations.BOMMELWART.getFgaName())
+                .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), newParent.id.toString()))
+                .build();
 
-        Mockito.when(relationshipManager.check(newBommel))
+        Mockito.when(authorizationModelClient.check(newBommelDefinition))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
