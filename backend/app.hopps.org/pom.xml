@@ -123,12 +123,6 @@
             <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>app.hopps</groupId>
-            <artifactId>commons</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-
         <!-- openfga -->
         <dependency>
             <groupId>io.quarkiverse.zanzibar</groupId>
@@ -189,12 +183,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-security</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>app.hopps</groupId>
-            <artifactId>commons</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
