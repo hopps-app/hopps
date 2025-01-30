@@ -17,9 +17,11 @@ interface OrganizationStructureTreeProps {
     deleteNode?: (nodeId: number | string) => Promise<boolean>;
     updateNode?: (node: OrganizationTreeNodeModel) => Promise<boolean>;
     moveNode?: (node: OrganizationTreeNodeModel) => Promise<boolean>;
+    onSelect?: (id: number) => void;
 }
 
-function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, updateNode, moveNode }: OrganizationStructureTreeProps) {
+function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, updateNode, moveNode, onSelect }: OrganizationStructureTreeProps) {
+    const { t } = useTranslation();
     const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedNode, setSelectedNode] = useState<OrganizationTreeNodeModel | null>(null);
