@@ -28,7 +28,7 @@ public class KafkaConnector {
 
     @Inject
     public KafkaConnector(ZugFerdService zugFerdService, @Channel("document-data-out") Emitter<InvoiceData> emitter,
-                          OidcClient oidcClient) {
+            OidcClient oidcClient) {
         this.zugFerdService = zugFerdService;
         this.emitter = emitter;
         this.oidcClient = oidcClient;
