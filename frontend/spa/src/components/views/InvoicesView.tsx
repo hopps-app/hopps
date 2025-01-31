@@ -27,7 +27,7 @@ function InvoicesView() {
             throw new Error('Organization not found');
         }
 
-        const rootBommel = await organizationTreeService.ensureRootBommelCreated(organization.id);
+        const rootBommel = await organizationTreeService.ensureRootBommelCreated(organization.slug);
         if (!rootBommel) {
             throw new Error('Root bommel not found');
         }
