@@ -24,11 +24,6 @@ export class BommelService {
         return response.data;
     }
 
-    async createRootBommel(data: Partial<Bommel> & { organizationId: number }): Promise<Bommel> {
-        const response = await this.axiosInstance.post<Bommel>('/bommel/root', data);
-        return response.data;
-    }
-
     async getBommelChildren(id: string): Promise<Bommel[]> {
         const response = await this.axiosInstance.get<Bommel[]>(`/bommel/${id}/children`);
         return response.data;
@@ -39,8 +34,8 @@ export class BommelService {
         return response.data;
     }
 
-    async getRootBommel(organisationId: number): Promise<Bommel> {
-        const response = await this.axiosInstance.get<Bommel>(`/bommel/root/${organisationId}`);
+    async getRootBommel(slug: string): Promise<Bommel> {
+        const response = await this.axiosInstance.get<Bommel>(`/bommel/root/${slug}`);
         return response.data;
     }
 
