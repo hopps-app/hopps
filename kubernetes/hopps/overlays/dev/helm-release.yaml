@@ -9,7 +9,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: hopps
-      version: 0.0.4
+      version: 0.1.0
   interval: 1m0s
   values:
     azDocumentAi:
@@ -56,10 +56,11 @@ spec:
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
           nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
-        path: /org(/|$)(.*)
-        pathType: ImplementationSpecific
         hosts:
-          - api.${DOMAIN_2}
+          - host: api.${DOMAIN_2}
+            paths:
+              - path: /org(/|$)(.*)
+                pathType: ImplementationSpecific
         tls:
           - secretName: api-tls
             hosts:
@@ -104,10 +105,11 @@ spec:
           nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
           nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
-        path: /fin(/|$)(.*)
-        pathType: ImplementationSpecific
         hosts:
-          - api.${DOMAIN_2}
+          - host: api.${DOMAIN_2}
+            paths:
+              - path: /fin(/|$)(.*)
+                pathType: ImplementationSpecific
         tls:
           - secretName: api-tls
             hosts:
@@ -128,7 +130,10 @@ spec:
           cert-manager.io/cluster-issuer: letsencrypt-prod
         ingressClassName: nginx
         hosts:
-          - ${DOMAIN_2}
+          - host: ${DOMAIN_2}
+            paths:
+              - path: /
+                pathType: Prefix
         tls:
           - secretName: frontend-tls
             hosts:
