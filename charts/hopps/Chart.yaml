@@ -15,19 +15,19 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.0.4
+version: 0.1.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "0.0.4"
+appVersion: "0.1.0"
 
 dependencies:
   - condition: keycloak.enabled
     name: keycloak
     # ToDo: make version controllable by dependabot
-    version: 24.1.0
+    version: 24.4.6
     repository: https://charts.bitnami.com/bitnami
   - condition: openfga.enabled
     name: openfga
@@ -41,16 +41,16 @@ dependencies:
     repository: https://provectus.github.io/kafka-ui-charts
   - condition: kafka.enabled
     name: kafka
-    version: 31.0.0
+    version: 31.2.0
     repository: https://charts.bitnami.com/bitnami
   - condition: postgresql-fin.enabled
-    alias: postgresql-fin
+    alias: postgresqlFin
     name: postgresql
-    version: 16.2.1
+    version: 16.4.5
     repository: https://charts.bitnami.com/bitnami
   - condition: postgresql-org.enabled
-    alias: postgresql-org
+    alias: postgresqlOrg
     name: postgresql
-    version: 16.2.1
+    version: 16.4.5
     repository: https://charts.bitnami.com/bitnami
 
