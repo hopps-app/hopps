@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import AgGridSetFilter from '@/components/AgGrid/agGridSetFilter';
 import { Bommel } from '@/services/api/types/Bommel.ts';
+import BommelCellRenderer from '@/components/InvoicesTable/BommelCellRenderer/BommelCellRenderer.tsx';
 
 interface Props {
     invoices: InvoicesTableData[];
@@ -26,6 +27,7 @@ const InvoicesTable = ({ invoices }: Props) => {
     const [rowData, setRowData] = useState<InvoicesTableData[]>([]);
     const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
     const [filteredData, setFilteredData] = useState<InvoicesTableData[]>(invoices);
+
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
 
@@ -68,6 +70,8 @@ const InvoicesTable = ({ invoices }: Props) => {
                 filter: AgGridSetFilter,
                 filterParams: { items: getBommelFilterItems() },
                 flex: 1,
+                cellStyle: { display: 'flex', alignItems: 'center' },
+                cellRenderer: BommelCellRenderer,
             },
             // { headerName: 'Creditor', field: 'creditor', filter: 'agTextColumnFilter', flex: 2 },
             // { headerName: 'Submitter', field: 'submitter', filter: 'agTextColumnFilter', flex: 2 },
