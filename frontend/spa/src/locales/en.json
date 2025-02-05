@@ -4,15 +4,34 @@
     "text2": "charge"
   },
   "common": {
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "addNew": "Add new"
   },
   "header": {
+    "logout": "Logout",
     "login": "Login",
     "register": "Register"
   },
   "invoices": {
     "loadFailed": "Failed to load invoices",
-    "noInvoices": "No invoices to show"
+    "noInvoices": "No invoices to show",
+    "assignPopover": {
+      "assign": "Assign",
+      "reassign": "Reassign",
+      "noBommels": "No available bommels",
+      "newBommel": "new Bommel",
+      "successAssign": "Successfully assigned!",
+      "failedAssign": "Failed to assign bommel!"
+    },
+    "summary": {
+      "totalFirstPart": "Total",
+      "invoicesPart": "invoices with sum"
+    },
+    "table": {
+      "date": "Date",
+      "bommel": "Bommel",
+      "amount": "Amount"
+    }
   },
   "organization": {
     "registration": {
@@ -23,7 +42,11 @@
     "settings": {
       "error": "Failed to load organization structure",
       "saveError": "Failed to save setting",
-      "saved": "Settings successfully saved"
+      "saved": "Settings successfully saved",
+      "structure": "Structure"
+    },
+    "buttons": {
+      "addNew": "Add new"
     }
   },
   "profile": {
@@ -34,6 +57,7 @@
   },
   "settings": {
     "menu": {
+      "account": "My Account",
       "invoices": "Invoices",
       "organization": "Organization",
       "profile": "Profile"
