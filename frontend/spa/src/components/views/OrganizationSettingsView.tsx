@@ -108,7 +108,7 @@ function OrganizationSettingsView() {
             return;
         }
 
-        organizationTreeService.ensureRootBommelCreated(organization.id).then((bommel) => {
+        organizationTreeService.ensureRootBommelCreated(organization.slug).then((bommel) => {
             if (bommel) {
                 setRootBommel(bommel);
             } else {
