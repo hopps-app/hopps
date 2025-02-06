@@ -33,6 +33,8 @@ jobs:
             directory: app.hopps.zugferd
           - label: fin-narrator
             directory: app.hopps.fin-narrator
+          - label: mail-service
+            directory: app.hopps.mailservice
 
     runs-on: ubuntu-latest
     steps:
