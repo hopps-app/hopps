@@ -40,7 +40,7 @@ class MailReceiverTest {
         InMemorySource<Mail> mailSender = connector.source("mail");
         mailSender.runOnVertxContext(true);
 
-        Mail mail = new Mail(new String[] { "info@hopps.de" }, MailTemplates.TEMP, Map.of("name", "Peter"));
+        Mail mail = new Mail(new String[] { "info@hopps.de" }, MailTemplates.EXAMPLE, Map.of("name", "Peter"));
 
         // when
         mailSender.send(mail);
@@ -58,7 +58,7 @@ class MailReceiverTest {
         InMemorySource<Mail> mailSender = connector.source("mail");
         mailSender.runOnVertxContext(true);
 
-        Mail mail = new Mail(new String[] { "info@hopps.de" }, MailTemplates.TEMP, Map.of("name", "Peter"));
+        Mail mail = new Mail(new String[] { "info@hopps.de" }, MailTemplates.EXAMPLE, Map.of("name", "Peter"));
 
         // when
         for (int i = 0; i < 500; i++) {
