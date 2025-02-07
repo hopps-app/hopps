@@ -70,7 +70,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                 filter: AgGridSetFilter,
                 filterParams: { items: getBommelFilterItems() },
                 flex: 1,
-                cellStyle: { display: 'flex', alignItems: 'center' },
+                cellStyle: { display: 'flex', alignItems: 'center', border: 'none' },
                 cellRenderer: BommelCellRenderer,
             },
             // { headerName: 'Creditor', field: 'creditor', filter: 'agTextColumnFilter', flex: 2 },

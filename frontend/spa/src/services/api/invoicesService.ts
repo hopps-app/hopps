@@ -41,4 +41,11 @@ export class InvoicesService {
             date: transaction.transactionTime,
         }));
     }
+
+    async reassignTransaction(bommelId: number, transactionId: number): Promise<any> {
+        const url = `${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/${transactionId}/bommel?bommelId=${bommelId}`;
+        const response = await this.axiosInstance.patch(url);
+
+        return response.data;
+    }
 }

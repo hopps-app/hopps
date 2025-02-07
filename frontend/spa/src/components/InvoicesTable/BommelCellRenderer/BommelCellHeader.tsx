@@ -7,9 +7,10 @@ import Button from '@/components/ui/Button';
 
 type BommelCellHeaderProps = {
     onSearch: (query: string) => void;
+    onClose: () => void;
 };
 
-const BommelCellHeader: FC<BommelCellHeaderProps> = ({ onSearch }) => {
+const BommelCellHeader: FC<BommelCellHeaderProps> = ({ onSearch, onClose }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +36,7 @@ const BommelCellHeader: FC<BommelCellHeaderProps> = ({ onSearch }) => {
                     <img src={searchIcon} alt="search" className="absolute top-2 right-2 w-4 h-4" />
                 )}
             </div>
-            <Button size={'icon'} className="hover:bg-[var(--separator)] bg-transparent w-8 h-8">
+            <Button onClick={onClose} size={'icon'} className="hover:bg-[var(--separator)] bg-transparent w-8 h-8">
                 <img src={closeIcon} alt="close" width={45} height={45} />
             </Button>
         </div>
