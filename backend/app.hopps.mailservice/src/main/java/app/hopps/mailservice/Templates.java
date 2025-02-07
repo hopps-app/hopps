@@ -11,5 +11,5 @@ class Templates {
         // static methods only
     }
 
-    public static native MailTemplate.MailTemplateInstance temp(Map<String, String> mapping);
+    public static native MailTemplate.MailTemplateInstance example(Map<String, String> mapping);
 }

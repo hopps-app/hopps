@@ -15,9 +15,9 @@ class MailTest {
 
     @Test
     void testToString() {
-        Mail mail = new Mail(new String[] { "info@hopps.de", "support@hopps.de" }, MailTemplates.TEMP, Map.of());
+        Mail mail = new Mail(new String[] { "info@hopps.de", "support@hopps.de" }, MailTemplates.EXAMPLE, Map.of());
 
-        String expected = "Mail{mailReceivers=[info@hopps.de, support@hopps.de], templateId=TEMP, variables={}}";
+        String expected = "Mail{mailReceivers=[info@hopps.de, support@hopps.de], templateId=EXAMPLE, variables={}}";
 
         String actual = mail.toString();
 
