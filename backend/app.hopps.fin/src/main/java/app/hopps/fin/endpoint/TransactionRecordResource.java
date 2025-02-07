@@ -94,7 +94,7 @@ public class TransactionRecordResource {
                         .build());
             }
 
-            throw clientWebApplicationException;
+            throw new WebApplicationException(clientWebApplicationException.getResponse());
         }
 
         TransactionRecord transactionRecord = byIdOptional.get();
