@@ -1,6 +1,8 @@
 package app.hopps.org.rest;
 
 import app.hopps.org.fga.FgaProxy;
+import app.hopps.org.kogito.DataIndexApi;
+import app.hopps.org.kogito.UserTaskInstanceArgument;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -15,11 +17,13 @@ import java.util.List;
 @Path("/dashboard")
 public class DashboardEndpoint {
     private final FgaProxy fgaProxy;
+    private final DataIndexApi dataIndexApi;
     private final SecurityContext securityContext;
 
     @Inject
-    public DashboardEndpoint(FgaProxy fgaProxy, SecurityContext securityContext) {
+    public DashboardEndpoint(FgaProxy fgaProxy, DataIndexApi dataIndexApi, SecurityContext securityContext) {
         this.fgaProxy = fgaProxy;
+        this.dataIndexApi = dataIndexApi;
         this.securityContext = securityContext;
     }
 
@@ -27,9 +31,7 @@ public class DashboardEndpoint {
     @Path("tasks")
     @Produces(MediaType.APPLICATION_JSON)
     public int getOpenTasks() {
-        // FIXME: Go against the IndexDataHandler with GraphQL?
-        // unklar was hier genau gefetched werden muss. Sind aktuell keine Prozesse vorhanden die dies abbilden würden.
-        return 0;
+        return dataIndexApi.getUserTaskInstances(new UserTaskInstanceArgument(List.of("Ready"))).size();
     }
 
     @GET
