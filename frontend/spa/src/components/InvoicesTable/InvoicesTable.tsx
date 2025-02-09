@@ -10,12 +10,10 @@ import { useTranslation } from 'react-i18next';
 
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import AgGridSetFilter from '@/components/AgGrid/agGridSetFilter';
-import { Bommel } from '@/services/api/types/Bommel.ts';
 import BommelCellRenderer from '@/components/InvoicesTable/BommelCellRenderer/BommelCellRenderer.tsx';
 
 interface Props {
     invoices: InvoicesTableData[];
-    bommels: Bommel[];
 }
 
 const InvoicesTable = ({ invoices }: Props) => {
