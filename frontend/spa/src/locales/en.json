@@ -4,7 +4,8 @@
     "text2": "charge"
   },
   "common": {
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "addNew": "Add new"
   },
   "header": {
     "login": "Login",
@@ -12,7 +13,13 @@
   },
   "invoices": {
     "loadFailed": "Failed to load invoices",
-    "noInvoices": "No invoices to show"
+    "noInvoices": "No invoices to show",
+    "assignPopover": {
+      "assign": "Assign",
+      "reassign": "Reassign",
+      "noBommels": "No available bommels",
+      "newBommel": "new Bommel"
+    }
   },
   "organization": {
     "registration": {

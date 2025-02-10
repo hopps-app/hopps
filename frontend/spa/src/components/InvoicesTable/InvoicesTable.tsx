@@ -68,17 +68,26 @@ const InvoicesTable = ({ invoices }: Props) => {
                 filter: AgGridSetFilter,
                 filterParams: { items: getBommelFilterItems() },
                 flex: 1,
-                cellStyle: { display: 'flex', alignItems: 'center', border: 'none' },
-                cellRenderer: BommelCellRenderer,
             },
             // { headerName: 'Creditor', field: 'creditor', filter: 'agTextColumnFilter', flex: 2 },
             // { headerName: 'Submitter', field: 'submitter', filter: 'agTextColumnFilter', flex: 2 },
             {
                 headerName: 'Amount',
+                headerClass: 'amount-header',
                 field: 'amount',
                 filter: 'agNumberColumnFilter',
                 flex: 1,
+                cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' },
                 valueFormatter: (params) => `${params.value}${currencySymbolAfter ? currencySymbolAfter : ''}`,
+            },
+            {
+                headerName: '',
+                filter: null,
+                filterParams: { items: getBommelFilterItems() },
+                flex: 1,
+                resizable: false,
+                cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' },
+                cellRenderer: BommelCellRenderer,
             },
         ];
     }
