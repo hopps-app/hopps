@@ -394,4 +394,36 @@ class BommelTest {
         repo.persist(child);
         assertThrows(QuarkusTransactionException.class, QuarkusTransaction::commit);
     }
+
+    @Test
+    @TestTransaction
+    void simpleGetOrganizationTest() {
+        // given
+        var bommels = resourceCreator.setupSimpleTree();
+        var expectedOrg = bommels.getFirst().getOrganization();
+        var bommel = bommels.get(1);
+
+        // when
+        var actualOrg = repo.getOrganization(bommel);
+
+        // then
+        assertNotNull(actualOrg);
+        assertEquals(expectedOrg.getId(), actualOrg.getId());
+    }
+
+    @Test
+    @TestTransaction
+    void getOrganizationOnRootTest() {
+        // given
+        var bommels = resourceCreator.setupSimpleTree();
+        var expectedOrg = bommels.getFirst().getOrganization();
+        var bommel = bommels.getFirst();
+
+        // when
+        var actualOrg = repo.getOrganization(bommel);
+
+        // then
+        assertNotNull(actualOrg);
+        assertEquals(expectedOrg.getId(), actualOrg.getId());
+    }
 }
