@@ -19,7 +19,9 @@
       "assign": "Assign",
       "reassign": "Reassign",
       "noBommels": "No available bommels",
-      "newBommel": "new Bommel"
+      "newBommel": "new Bommel",
+      "successAssign": "Successfully assigned!",
+      "failedAssign": "Failed to assign bommel!"
     },
     "summary": {
       "totalFirstPart": "Total",

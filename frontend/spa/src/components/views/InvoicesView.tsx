@@ -12,17 +12,17 @@ import { useStore } from '@/store/store.ts';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 function InvoicesView() {
-    const { showError } = useToast();
     const { t } = useTranslation();
+    const { showError } = useToast();
+
     const store = useStore();
+    const { loadBommels } = useBommelsStore();
 
     const [invoices, setInvoices] = useState<InvoicesTableData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
 
-    const { loadBommels } = useBommelsStore();
-
-    const loadInvoices = useCallback(async () => {
+    const loadInvoices = async () => {
         setInvoices([]);
         try {
             const invoices = await apiService.invoices.getInvoices();
@@ -32,22 +32,16 @@ function InvoicesView() {
             showError(t('invoices.loadFailed'));
             setIsError(true);
         }
-    }, [showError, t]);
+    };
 
     const reload = useCallback(async () => {
+        if (!store.organization) return;
+
         setIsLoading(true);
         setIsError(false);
 
-        const organization = store.organization;
-        if (!organization) {
-            console.error('Organization not found');
-            setIsError(true);
-            setIsLoading(false);
-            return;
-        }
-
         try {
-            await loadBommels(organization.id);
+            await loadBommels(store.organization.id);
             await loadInvoices();
         } catch (e) {
             console.error(e);
@@ -55,7 +49,7 @@ function InvoicesView() {
         }
 
         setIsLoading(false);
-    }, [store.organization, loadBommels, loadInvoices]);
+    }, [store.organization]);
 
     useEffect(() => {
         reload();

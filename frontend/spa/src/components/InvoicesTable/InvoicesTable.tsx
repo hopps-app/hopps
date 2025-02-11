@@ -17,19 +17,27 @@ interface Props {
 }
 
 const InvoicesTable = ({ invoices }: Props) => {
+    const { t, i18n } = useTranslation();
+
     const dateFormat = import.meta.env.VITE_GENERAL_DATE_FORMAT;
     const currencySymbolAfter = import.meta.env.VITE_GENERAL_CURRENCY_SYMBOL_AFTER;
 
-    const { t } = useTranslation();
     const [api, setApi] = useState<GridApi | null>(null);
     const [rowData, setRowData] = useState<InvoicesTableData[]>([]);
     const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
     const [filteredData, setFilteredData] = useState<InvoicesTableData[]>(invoices);
 
+    const formatNumber = (value: number) => {
+        return new Intl.NumberFormat(i18n.language, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(value);
+    };
+
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
 
-        return `${t('invoices.summary.totalFirstPart')} ${filteredData.length} ${t('invoices.summary.invoicesPart')} ${totalAmount}${currencySymbolAfter ? currencySymbolAfter : ''}`;
+        return `${t('invoices.summary.totalFirstPart')} ${filteredData.length} ${t('invoices.summary.invoicesPart')} ${formatNumber(totalAmount)}${currencySymbolAfter || ''}`;
     }, [filteredData, currencySymbolAfter]);
 
     const updateFilteredData = useCallback(() => {
@@ -76,8 +84,8 @@ const InvoicesTable = ({ invoices }: Props) => {
                 field: 'amount',
                 filter: 'agNumberColumnFilter',
                 flex: 1,
-                cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' },
-                valueFormatter: (params) => `${params.value}${currencySymbolAfter ? currencySymbolAfter : ''}`,
+                cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', paddingLeft: '4px' },
+                valueFormatter: (params) => `${formatNumber(params.value)}${currencySymbolAfter || ''}`,
             },
             {
                 headerName: '',

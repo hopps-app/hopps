@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 import { Bommel } from '@/services/api/types/Bommel';
 import Icon from '@/components/ui/Icon';
@@ -12,40 +12,44 @@ type BommelCellListPropsType = {
 
 const BommelCellList = ({ filteredBommels, reassignTransaction, currentBommelId, isPopoverVisible }: BommelCellListPropsType) => {
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+    const [inputMode, setInputMode] = useState<'mouse' | 'keyboard'>('mouse');
+
     const listRef = useRef<HTMLUListElement>(null);
     const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if (!filteredBommels.length) return;
+    const handleKeyDown = useCallback(
+        (event: KeyboardEvent) => {
+            if (!filteredBommels.length) return;
 
-        setFocusedIndex((prevIndex) => {
-            if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                return prevIndex === null ? 0 : Math.min(prevIndex + 1, filteredBommels.length - 1);
-            }
-            if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                return prevIndex === null ? filteredBommels.length - 1 : Math.max(prevIndex - 1, 0);
-            }
-            if (event.key === 'Enter' && prevIndex !== null) {
-                reassignTransaction(filteredBommels[prevIndex].id);
-                event.preventDefault();
+            setInputMode('keyboard');
+
+            setFocusedIndex((prevIndex) => {
+                const startIndex = prevIndex ?? 0;
+
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    return Math.min(startIndex + 1, filteredBommels.length - 1);
+                }
+                if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    return Math.max(startIndex - 1, 0);
+                }
+                if (event.key === 'Enter' && prevIndex !== null) {
+                    event.preventDefault();
+                    reassignTransaction(filteredBommels[prevIndex].id);
+                    return prevIndex;
+                }
                 return prevIndex;
-            }
-            return prevIndex;
-        });
-    };
-
-    useEffect(() => {
-        itemRefs.current = [];
-    }, [filteredBommels]);
+            });
+        },
+        [filteredBommels, reassignTransaction]
+    );
 
     useEffect(() => {
         if (!isPopoverVisible) return;
-
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [filteredBommels, isPopoverVisible, reassignTransaction]);
+    }, [isPopoverVisible, handleKeyDown]);
 
     useEffect(() => {
         if (focusedIndex !== null && itemRefs.current[focusedIndex]) {
@@ -56,20 +60,28 @@ const BommelCellList = ({ filteredBommels, reassignTransaction, currentBommelId,
         }
     }, [focusedIndex]);
 
+    const handleMouseMove = (index: number) => {
+        if (inputMode === 'keyboard') return; // Ignore mouse movement if using keyboard
+        setInputMode('mouse');
+        if (focusedIndex !== index) setFocusedIndex(index);
+    };
+
     return (
         <ul ref={listRef} className="w-full max-h-44 overflow-y-auto">
             {filteredBommels.map((bommel: Bommel, index) => {
                 const isActive = bommel.id === currentBommelId;
+                const isHighlighted = index === focusedIndex;
                 const getActiveBommel = () => {
                     if (isActive) return 'bg-[var(--hover-active)]';
-                    if (index === focusedIndex) return 'bg-[var(--hover-effect)]';
+                    if (isHighlighted) return 'bg-[var(--hover-effect)]';
                     return 'hover:bg-[var(--hover-effect)]';
                 };
+
                 return (
                     <li
                         key={bommel.id}
                         ref={(el) => (itemRefs.current[index] = el)}
-                        onMouseMove={() => setFocusedIndex(bommel.id)}
+                        onMouseMove={() => handleMouseMove(index)}
                         className={`w-full flex justify-between items-center py-2 pl-5 pr-5 border-b-[1px] border-b-[var(--separator)] last-of-type:border-none text-sm ${getActiveBommel()}`}
                     >
                         <button className="w-full text-start flex items-center focus:outline-none" onClick={() => reassignTransaction(bommel.id)}>

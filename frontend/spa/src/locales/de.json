@@ -19,7 +19,9 @@
       "assign": "Zuweisen",
       "reassign": "Neu zuweisen",
       "noBommels": "Keine verfügbaren Bommels",
-      "newBommel": "Neuer Bommel"
+      "newBommel": "Neuer Bommel",
+      "successAssign": "Erfolgreich zugewiesen!",
+      "failedAssign": "Fehler beim Zuweisen des Bommels!"
     },
     "summary": {
       "totalFirstPart": "Gesamt",

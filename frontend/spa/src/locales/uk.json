@@ -19,7 +19,9 @@
       "assign": "Призначити",
       "reassign": "Перепризначити",
       "noBommels": "Немає доступних боммелів",
-      "newBommel": "Новий Боммель"
+      "newBommel": "Новий Боммель",
+      "successAssign": "Успішно призначено!",
+      "failedAssign": "Не вдалося призначити боммель!"
     },
     "summary": {
       "totalFirstPart": "Всього",

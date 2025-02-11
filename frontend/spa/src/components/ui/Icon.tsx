@@ -14,7 +14,7 @@ function Icon({ icon, customSvg, ...props }: IconProps) {
     const IconComponent = icons[(icon + 'Icon') as keyof typeof icons];
 
     if (customSvg) {
-        return <span className={props.className}>{customSvg}</span>; // Render custom SVG
+        return <span className={props.className}>{customSvg}</span>;
     }
 
     if (!IconComponent) {
