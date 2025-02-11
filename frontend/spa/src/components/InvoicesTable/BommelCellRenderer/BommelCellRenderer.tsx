@@ -1,7 +1,7 @@
 import './BommelCellRenderer.scss';
 
 import { ICellRendererParams } from 'ag-grid-community';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { useTranslation } from 'react-i18next';
 
@@ -14,13 +14,12 @@ import BommelCellList from '@/components/InvoicesTable/BommelCellRenderer/Bommel
 import apiService from '@/services/ApiService';
 import { useToast } from '@/hooks/use-toast';
 
-const BommelCellRenderer = ({ value, data }: ICellRendererParams) => {
-    const { t } = useTranslation();
-    const { showError, showSuccess } = useToast();
-
+const BommelCellRenderer = ({ value, data, api }: ICellRendererParams) => {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const { t } = useTranslation();
+    const { showError, showSuccess } = useToast();
     const { allBommels, isLoading, setLoading } = useBommelsStore();
 
     const onPopoverOpenChange = (isOpen: boolean) => {
@@ -46,16 +45,36 @@ const BommelCellRenderer = ({ value, data }: ICellRendererParams) => {
     const reassignTransaction = async (bommelId: number) => {
         setLoading(true);
         try {
-            await apiService.invoices.reassignTransaction(bommelId, data.id);
-
-            showSuccess('Successfully assigned!');
+            if (data.bommelId !== bommelId) {
+                await apiService.invoices.reassignTransaction(bommelId, data.id);
+                showSuccess('Successfully assigned!');
+                await api.applyTransaction({
+                    update: [{ ...data, bommel: bommelId }],
+                });
+                onClosePopover();
+            }
         } catch (error) {
             showError('Failed to assign bommel!');
-            console.log(error);
+            console.error(error);
         } finally {
             setLoading(false);
         }
     };
+
+    const onKeyPressPopover = (event: KeyboardEvent) => {
+        if (event.key.toLowerCase() === 'a') {
+            event.preventDefault();
+            setIsPopoverVisible(true);
+        } else if (event.key === 'Escape') {
+            onClosePopover();
+        }
+    };
+
+    useEffect(() => {
+        document.addEventListener('keydown', onKeyPressPopover);
+
+        return () => document.removeEventListener('keydown', onKeyPressPopover);
+    });
 
     if (!value) {
         return (
@@ -71,7 +90,12 @@ const BommelCellRenderer = ({ value, data }: ICellRendererParams) => {
                     <div className="w-full flex flex-col justify-between h-44 items-start">
                         <LoadingOverlay isEnabled={isLoading} />
                         {filteredBommels.length ? (
-                            <BommelCellList reassignTransaction={reassignTransaction} filteredBommels={filteredBommels} />
+                            <BommelCellList
+                                reassignTransaction={reassignTransaction}
+                                filteredBommels={filteredBommels}
+                                currentBommelId={data.bommel}
+                                isPopoverVisible={isPopoverVisible}
+                            />
                         ) : (
                             <span className="px-2">{t('invoices.assignPopover.noBommels')}</span>
                         )}

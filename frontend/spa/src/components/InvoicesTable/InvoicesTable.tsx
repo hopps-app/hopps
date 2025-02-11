@@ -29,7 +29,7 @@ const InvoicesTable = ({ invoices }: Props) => {
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
 
-        return `Total ${filteredData.length} invoices with sum ${totalAmount}${currencySymbolAfter ? currencySymbolAfter : ''}`;
+        return `${t('invoices.summary.totalFirstPart')} ${filteredData.length} ${t('invoices.summary.invoicesPart')} ${totalAmount}${currencySymbolAfter ? currencySymbolAfter : ''}`;
     }, [filteredData, currencySymbolAfter]);
 
     const updateFilteredData = useCallback(() => {
@@ -55,24 +55,23 @@ const InvoicesTable = ({ invoices }: Props) => {
     function getColumnDefs(): ColDef<InvoicesTableData>[] {
         return [
             {
-                headerName: 'Date',
+                headerName: `${t('invoices.table.date')}`,
                 field: 'date',
                 filter: 'agDateColumnFilter',
                 width: 150,
                 flex: 1,
                 valueFormatter: (params) => moment(params.value).format(dateFormat),
             },
+
             {
-                headerName: 'Bommel',
+                headerName: `${t('invoices.table.bommel')}`,
                 field: 'bommel',
                 filter: AgGridSetFilter,
                 filterParams: { items: getBommelFilterItems() },
                 flex: 1,
             },
-            // { headerName: 'Creditor', field: 'creditor', filter: 'agTextColumnFilter', flex: 2 },
-            // { headerName: 'Submitter', field: 'submitter', filter: 'agTextColumnFilter', flex: 2 },
             {
-                headerName: 'Amount',
+                headerName: `${t('invoices.table.amount')}`,
                 headerClass: 'amount-header',
                 field: 'amount',
                 filter: 'agNumberColumnFilter',
@@ -88,6 +87,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                 resizable: false,
                 cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' },
                 cellRenderer: BommelCellRenderer,
+                cellRendererParams: { api },
             },
         ];
     }
@@ -113,6 +113,7 @@ const InvoicesTable = ({ invoices }: Props) => {
             <AgGridReact
                 rowData={rowData}
                 columnDefs={columnDefs}
+                getRowId={(params) => params.data.id?.toString()}
                 defaultColDef={{ filter: true, sortable: true, resizable: true }}
                 domLayout="autoHeight"
                 overlayNoRowsTemplate={t('invoices.noInvoices')}
