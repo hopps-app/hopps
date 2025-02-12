@@ -1,4 +1,4 @@
-package app.hopps;
+package app.hopps.az.document.ai;
 
 import app.hopps.commons.InvoiceData;
 import io.quarkus.test.junit.QuarkusTest;
