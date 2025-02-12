@@ -1,4 +1,4 @@
-package app.hopps.model;
+package app.hopps.az.document.ai.model;
 
 import app.hopps.commons.InvoiceData;
 import com.azure.ai.documentintelligence.models.AnalyzedDocument;

@@ -1,9 +1,9 @@
-package app.hopps;
+package app.hopps.az.document.ai;
 
+import app.hopps.az.document.ai.model.InvoiceDataHelper;
+import app.hopps.az.document.ai.model.ReceiptDataHelper;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
-import app.hopps.model.InvoiceDataHelper;
-import app.hopps.model.ReceiptDataHelper;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
 import com.azure.ai.documentintelligence.models.AnalyzedDocument;
 import jakarta.enterprise.context.ApplicationScoped;

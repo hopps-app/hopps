@@ -1,4 +1,4 @@
-package app.hopps;
+package app.hopps.az.document.ai;
 
 import app.hopps.commons.DocumentData;
 import app.hopps.commons.DocumentType;

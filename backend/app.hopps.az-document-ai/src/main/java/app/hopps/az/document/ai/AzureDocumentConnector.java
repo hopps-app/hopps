@@ -1,4 +1,4 @@
-package app.hopps;
+package app.hopps.az.document.ai;
 
 import com.azure.ai.documentintelligence.DocumentIntelligenceClient;
 import com.azure.ai.documentintelligence.DocumentIntelligenceClientBuilder;

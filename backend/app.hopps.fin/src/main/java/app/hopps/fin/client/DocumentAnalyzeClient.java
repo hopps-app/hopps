@@ -15,21 +15,25 @@ import org.jboss.resteasy.reactive.RestForm;
 public interface DocumentAnalyzeClient {
 
     /**
-     * @param transactionRecordId only for logging/observability purposes
-      */
+     * @param transactionRecordId
+     *            only for logging/observability purposes
+     */
     @POST
     @Path("/invoice")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    InvoiceData scanInvoice(@RestForm("document") byte[] body, @RestForm("transactionRecordId") long transactionRecordId);
+    InvoiceData scanInvoice(@RestForm("document") byte[] body,
+            @RestForm("transactionRecordId") long transactionRecordId);
 
     /**
-     * @param transactionRecordId only for logging/observability purposes
+     * @param transactionRecordId
+     *            only for logging/observability purposes
      */
     @POST
     @Path("/receipt")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    ReceiptData scanReceipt(@RestForm("document") byte[] body, @RestForm("transactionRecordId") long transactionRecordId);
+    ReceiptData scanReceipt(@RestForm("document") byte[] body,
+            @RestForm("transactionRecordId") long transactionRecordId);
 
 }
