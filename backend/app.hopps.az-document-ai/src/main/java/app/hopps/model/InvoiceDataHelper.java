@@ -1,7 +1,7 @@
 package app.hopps.model;
 
 import app.hopps.commons.InvoiceData;
-import com.azure.ai.documentintelligence.models.Document;
+import com.azure.ai.documentintelligence.models.AnalyzedDocument;
 import com.azure.ai.documentintelligence.models.DocumentField;
 
 import java.math.BigDecimal;
@@ -13,11 +13,11 @@ public class InvoiceDataHelper {
         // only call the static method
     }
 
-    public static InvoiceData fromDocument(Long referenceKey, Document document) {
+    public static InvoiceData fromDocument(AnalyzedDocument document) {
         Map<String, DocumentField> fields = document.getFields();
 
         return new InvoiceData(
-                referenceKey,
+                -1L,
                 BigDecimal.valueOf(fields.get("InvoiceTotal").getValueCurrency().getAmount()),
                 fields.get("InvoiceDate").getValueDate(),
                 Optional.ofNullable(fields.get("CurrencyCode"))

@@ -1,6 +1,6 @@
 package app.hopps.model;
 
-import com.azure.ai.documentintelligence.models.Document;
+import com.azure.ai.documentintelligence.models.AnalyzedDocument;
 import com.azure.ai.documentintelligence.models.DocumentField;
 
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ public class ReceiptDataHelper {
         // only call the static method
     }
 
-    public static app.hopps.commons.ReceiptData fromDocument(Long referenceKey, Document document) {
+    public static app.hopps.commons.ReceiptData fromDocument(AnalyzedDocument document) {
         Map<String, DocumentField> fields = document.getFields();
 
         DocumentField transactionTime = fields.get("TransactionTime");
@@ -22,7 +22,7 @@ public class ReceiptDataHelper {
                 : LocalTime.parse(transactionTime.getValueTime());
 
         return new app.hopps.commons.ReceiptData(
-                referenceKey,
+                -1L,
                 BigDecimal.valueOf(fields.get("Total").getValueCurrency().getAmount()),
                 Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("MerchantAddress"))
