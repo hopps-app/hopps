@@ -1,4 +1,4 @@
-package app.hopps.model;
+package app.hopps.az.document.ai.model;
 
 import com.azure.ai.documentintelligence.models.AnalyzedDocument;
 import com.azure.ai.documentintelligence.models.DocumentField;
