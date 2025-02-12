@@ -53,8 +53,7 @@ public class S3HandlerTest {
         var resp = lowLevels3Client.listObjects(
                 ListObjectsRequest.builder()
                         .bucket(bucketName)
-                        .build()
-        );
+                        .build());
 
         assertEquals(1, resp.contents().size());
         assertDoesNotThrow(() -> s3Handler.getFile(file.fileName()));
@@ -72,8 +71,7 @@ public class S3HandlerTest {
                 DeleteObjectRequest.builder()
                         .bucket(bucketName)
                         .key(file.fileName())
-                        .build()
-        );
+                        .build());
 
         // when + then
         assertDoesNotThrow(() -> s3Handler.getFile(file.fileName()));
@@ -93,15 +91,13 @@ public class S3HandlerTest {
 
     private void deleteAllObjects() {
         var objects = lowLevels3Client.listObjects(
-                ListObjectsRequest.builder().bucket(bucketName).build()
-        );
+                ListObjectsRequest.builder().bucket(bucketName).build());
         for (var object : objects.contents()) {
             lowLevels3Client.deleteObject(
                     DeleteObjectRequest.builder()
                             .bucket(bucketName)
                             .key(object.key())
-                            .build()
-            );
+                            .build());
         }
     }
 
