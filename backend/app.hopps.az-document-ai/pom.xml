@@ -78,19 +78,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-oidc-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-client-jackson</artifactId>
-        </dependency>
         <!-- third party -->
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-ai-documentintelligence</artifactId>
-            <version>1.0.0-beta.4</version>
+            <version>1.0.0</version>
         </dependency>
         <!-- test -->
         <dependency>

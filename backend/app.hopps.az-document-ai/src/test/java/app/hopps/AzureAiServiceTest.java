@@ -1,14 +1,15 @@
 package app.hopps;
 
-import app.hopps.commons.DocumentData;
-import app.hopps.commons.DocumentType;
 import app.hopps.commons.InvoiceData;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,14 +23,13 @@ class AzureAiServiceTest {
 
     @Test
     @Tag("azure")
-    void shouldAnalyzeInvoiceAgainstAzure() throws Exception {
-
+    void shouldAnalyzeInvoiceAgainstAzure() throws URISyntaxException {
         // given
-        String url = "https://formrecognizer.appliedai.azure.com/documents/samples/prebuilt/receipt.png";
-        DocumentData documentData = new DocumentData(new URI(url).toURL(), -1L, DocumentType.INVOICE);
+        URL imageResource = getClass().getClassLoader().getResource("receipt.png");
+        Path imagePath = Paths.get(imageResource.toURI());
 
         // when
-        Optional<InvoiceData> invoiceData = aiService.scanInvoice(documentData);
+        Optional<InvoiceData> invoiceData = aiService.scanInvoice(imagePath, "receipt.png");
 
         // then
         assertNotNull(invoiceData);
