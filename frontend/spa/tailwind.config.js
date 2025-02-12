@@ -53,6 +53,9 @@ export default {
                     5: 'hsl(var(--chart-5))',
                 },
             },
+            fontFamily:{
+                reddit: ['"Reddit Sans"', 'sans-serif'],
+            }
         },
     },
     plugins: [require('tailwindcss-animate')],

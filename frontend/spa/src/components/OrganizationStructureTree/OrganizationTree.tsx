@@ -1,6 +1,7 @@
 import { Tree, getBackendOptions, MultiBackend } from '@minoru/react-dnd-treeview';
 import { DndProvider } from 'react-dnd';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import OrganizationTreeNode from '@/components/OrganizationStructureTree/OrganizationTreeNode.tsx';
 import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/OrganizationTreeDropPreview.tsx';
@@ -19,6 +20,8 @@ interface OrganizationStructureTreeProps {
 function OrganizationTree({ tree, createNode, deleteNode, updateNode, moveNode }: OrganizationStructureTreeProps) {
     const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
+
+    const { t } = useTranslation();
 
     const handleDrop = async (newTree: OrganizationTreeNodeModel[]) => {
         let movedNode: OrganizationTreeNodeModel | null = null;
@@ -102,7 +105,7 @@ function OrganizationTree({ tree, createNode, deleteNode, updateNode, moveNode }
                 ) : null}
                 <div className="text-center">
                     <Button variant="link" icon="Plus" onClick={onClickCreate}>
-                        Add new
+                        {t('common.addNew')}
                     </Button>
                 </div>
             </div>

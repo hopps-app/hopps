@@ -5,12 +5,17 @@ export type RadixIcons = RemoveIconSuffix<keyof typeof icons>;
 
 export interface IconProps {
     icon: RadixIcons;
+    customSvg?: React.ReactNode;
     size?: number | 'sm' | 'md' | 'lg';
     className?: string;
 }
 
-function Icon({ icon, ...props }: IconProps) {
+function Icon({ icon, customSvg, ...props }: IconProps) {
     const IconComponent = icons[(icon + 'Icon') as keyof typeof icons];
+
+    if (customSvg) {
+        return <span className={props.className}>{customSvg}</span>;
+    }
 
     if (!IconComponent) {
         console.error(`Icon "${icon}" not found`);
