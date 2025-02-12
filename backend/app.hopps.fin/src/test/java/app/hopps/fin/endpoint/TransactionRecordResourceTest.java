@@ -41,7 +41,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 @QuarkusTest
 @ConnectWireMock
-@TestSecurity(user = "peter", roles = "user")
+@TestSecurity(user = "bob", roles = "user")
 @TestHTTPEndpoint(TransactionRecordResource.class)
 class TransactionRecordResourceTest {
     @Inject
@@ -113,7 +113,7 @@ class TransactionRecordResourceTest {
     @Test
     void shouldFetchAllByBommel() {
         RelTupleKey relTupleKey = RelTupleKey.builder()
-                .user(RelUser.of(FgaTypes.USER.getFgaName(), "test"))
+                .user(RelUser.of(FgaTypes.USER.getFgaName(), "bob"))
                 .relation(FgaRelations.MEMBER.getFgaName())
                 .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
                 .build();
@@ -171,7 +171,7 @@ class TransactionRecordResourceTest {
                                 .withJsonBody(objectNode)));
 
         RelTupleKey relTupleKey = RelTupleKey.builder()
-                .user(RelUser.of(FgaTypes.USER.getFgaName(), "test"))
+                .user(RelUser.of(FgaTypes.USER.getFgaName(), "bob"))
                 .relation(FgaRelations.MEMBER.getFgaName())
                 .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
                 .build();
@@ -202,6 +202,15 @@ class TransactionRecordResourceTest {
         objectNode
                 .put("name", "BommelName")
                 .put("emoji", "BommelEmoji");
+
+        RelTupleKey relTupleKey = RelTupleKey.builder()
+                .user(RelUser.of(FgaTypes.USER.getFgaName(), "bob"))
+                .relation(FgaRelations.MEMBER.getFgaName())
+                .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
+                .build();
+
+        Mockito.when(authorizationModelClient.check(relTupleKey))
+                .thenReturn(Uni.createFrom().item(true));
 
         wireMock.register(
                 get(urlPathMatching("/bommel/1"))
@@ -238,7 +247,7 @@ class TransactionRecordResourceTest {
                                 .withStatus(500)));
 
         RelTupleKey relTupleKey = RelTupleKey.builder()
-                .user(RelUser.of(FgaTypes.USER.getFgaName(), "test"))
+                .user(RelUser.of(FgaTypes.USER.getFgaName(), "bob"))
                 .relation(FgaRelations.MEMBER.getFgaName())
                 .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
                 .build();
