@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -52,7 +52,7 @@ public class DocumentResource {
     @GET
     @Path("{documentKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public InputStream getDocumentByKey(@PathParam("documentKey") String documentKey) {
+    public byte[] getDocumentByKey(@PathParam("documentKey") String documentKey) {
         // TODO: How to verify that user has access? --> FGAC
         // TODO: Set the media type header dynamic dependent on PNG, JPEG or PDF
         // Go against the database get the bommel id then towards openfga?
@@ -71,9 +71,9 @@ public class DocumentResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
-            @RestForm("bommelId") @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
+            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
             @RestForm("privatelyPaid") @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
-            @RestForm("type") @PartType(MediaType.TEXT_PLAIN) DocumentType type) {
+            @RestForm("type") @PartType(MediaType.TEXT_PLAIN) DocumentType type) throws IOException {
         if (file == null || type == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());

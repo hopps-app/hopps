@@ -1,11 +1,8 @@
 package app.hopps;
 
 import app.hopps.commons.Address;
-import app.hopps.commons.DocumentData;
-import app.hopps.commons.DocumentType;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
-import app.hopps.model.AnalyzeDocumentRequest;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -14,8 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -26,37 +21,27 @@ import static org.mockito.Mockito.when;
 @QuarkusTest
 @TestHTTPEndpoint(ScanDocumentResource.class)
 class ScanDocumentResourceTest {
-
-    private static final String INVOICE_URL = "http://something.test/invoice";
-    private static final String RECEIPT_URL = "http://something.test/receipt";
-    private static final AnalyzeDocumentRequest INVOICE_REQUEST_BODY = new AnalyzeDocumentRequest(INVOICE_URL);
-    private static final AnalyzeDocumentRequest RECEIPT_REQUEST_BODY = new AnalyzeDocumentRequest(RECEIPT_URL);
+    private static final String INVOICE_REQUEST_BODY = "fake invoice data here";
+    private static final String RECEIPT_REQUEST_BODY = "fake receipt data here";
 
     @InjectMock
     AzureAiService azureAiServiceMock;
 
     @Test
-    void invoiceScanWorks() throws MalformedURLException {
+    void invoiceScanWorks() {
         // Arrange
         InvoiceData invoiceData = fakeInvoiceData();
 
-        DocumentData acceptedDocument = new DocumentData(
-                URI.create(INVOICE_URL).toURL(),
-                -1L,
-                DocumentType.INVOICE);
-
-        when(azureAiServiceMock.scanInvoice(Mockito.any()))
-                .thenReturn(Optional.empty());
-        when(azureAiServiceMock.scanReceipt(Mockito.any()))
-                .thenReturn(Optional.empty());
-
-        when(azureAiServiceMock.scanInvoice(acceptedDocument))
+        when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
                 .thenReturn(Optional.of(invoiceData));
+        when(azureAiServiceMock.scanReceipt(Mockito.any(), Mockito.anyString()))
+                .thenReturn(Optional.empty());
 
         // Act
         var receivedData = given()
-                .body(INVOICE_REQUEST_BODY)
-                .contentType(ContentType.JSON)
+                .multiPart("document", INVOICE_REQUEST_BODY)
+                .multiPart("documentName", "invoice.png")
+                .contentType(ContentType.MULTIPART)
                 .when()
                 .post("invoice")
                 .then()
@@ -69,27 +54,20 @@ class ScanDocumentResourceTest {
     }
 
     @Test
-    void receiptScanWorks() throws MalformedURLException {
+    void receiptScanWorks() {
         // Arrange
         ReceiptData receiptData = fakeReceiptData();
 
-        DocumentData acceptedDocument = new DocumentData(
-                URI.create(RECEIPT_URL).toURL(),
-                -1L,
-                DocumentType.RECEIPT);
-
-        when(azureAiServiceMock.scanInvoice(Mockito.any()))
+        when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
                 .thenReturn(Optional.empty());
-        when(azureAiServiceMock.scanReceipt(Mockito.any()))
-                .thenReturn(Optional.empty());
-
-        when(azureAiServiceMock.scanReceipt(acceptedDocument))
+        when(azureAiServiceMock.scanReceipt(Mockito.any(), Mockito.anyString()))
                 .thenReturn(Optional.of(receiptData));
 
         // Act
         var receivedData = given()
-                .body(RECEIPT_REQUEST_BODY)
-                .contentType(ContentType.JSON)
+                .multiPart("document", RECEIPT_REQUEST_BODY)
+                .multiPart("documentName", "receipt.png")
+                .contentType(ContentType.MULTIPART)
                 .when()
                 .post("receipt")
                 .then()
@@ -104,12 +82,14 @@ class ScanDocumentResourceTest {
     @Test
     void azureFailureIsPropagatedAsInternalServerError() {
         // Arrange
-        when(azureAiServiceMock.scanInvoice(Mockito.any()))
+        when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
                 .thenThrow(new RuntimeException());
 
         // Act + Assert
-        given().body(INVOICE_REQUEST_BODY)
-                .contentType(ContentType.JSON)
+        given()
+                .multiPart("document", INVOICE_REQUEST_BODY)
+                .multiPart("documentName", "invoice.png")
+                .contentType(ContentType.MULTIPART)
                 .when()
                 .post("invoice")
                 .then()

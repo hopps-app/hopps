@@ -1,5 +1,9 @@
 package app.hopps.fin;
 
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.CacheName;
+import io.quarkus.cache.CacheResult;
+import io.quarkus.cache.CaffeineCache;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -17,42 +21,52 @@ import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
 public class S3Handler {
     private static final Logger LOG = LoggerFactory.getLogger(S3Handler.class);
 
     private final S3Client s3;
+    private final Cache documentCache;
 
     @ConfigProperty(name = "app.hopps.fin.bucket.name")
     String bucketName;
 
     @Inject
-    public S3Handler(S3Client s3) {
+    public S3Handler(S3Client s3, @CacheName("document-cache") Cache documentCache) {
         this.s3 = s3;
+        this.documentCache = documentCache;
     }
 
-    public InputStream getFile(TransactionRecord transactionRecord) {
+    public byte[] getFile(TransactionRecord transactionRecord) {
         return getFile(transactionRecord.getDocumentKey());
     }
 
-    public InputStream getFile(String documentKey) {
+    @CacheResult(cacheName = "document-cache")
+    public byte[] getFile(String documentKey) {
         var object = s3.getObjectAsBytes(GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(documentKey)
                 .build());
 
         LOG.info("Content-Type of downloaded image: {}", object.response().contentType());
-        return object.asInputStream();
+        return object.asByteArray();
     }
 
-    public void saveFile(FileUpload file) {
+    public void saveFile(FileUpload file) throws IOException {
+        byte[] fileContents = Files.readAllBytes(file.uploadedFile());
+
         s3.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(file.fileName())
                 .contentType(file.contentType())
-                .build(), RequestBody.fromFile(file.uploadedFile()));
+                .build(), RequestBody.fromBytes(fileContents));
+
+        documentCache.as(CaffeineCache.class)
+                .put(file.fileName(), CompletableFuture.completedFuture(fileContents));
     }
 
     void setup(@Observes StartupEvent ev) {

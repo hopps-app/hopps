@@ -1,24 +1,18 @@
 package app.hopps;
 
-import app.hopps.auth.FinRestClientImpl;
-import app.hopps.commons.DocumentData;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
 import app.hopps.model.InvoiceDataHelper;
 import app.hopps.model.ReceiptDataHelper;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
-import com.azure.ai.documentintelligence.models.Document;
-import io.quarkus.oidc.client.OidcClient;
-import io.quarkus.oidc.client.runtime.TokensHelper;
+import com.azure.ai.documentintelligence.models.AnalyzedDocument;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.time.Duration;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,69 +29,50 @@ public class AzureAiService {
     @ConfigProperty(name = "app.hopps.az-document-ai.azure.receiptModelId")
     String receiptModelId;
 
-    private final OidcClient oidcClient;
-    private final TokensHelper tokensHelper = new TokensHelper();
-
     @Inject
-    public AzureAiService(AzureDocumentConnector azureDocumentConnector, OidcClient oidcClient) {
+    public AzureAiService(AzureDocumentConnector azureDocumentConnector) {
         this.azureDocumentConnector = azureDocumentConnector;
-        this.oidcClient = oidcClient;
     }
 
-    public Optional<ReceiptData> scanReceipt(DocumentData documentData) {
-        var document = scanDocument(receiptModelId, documentData.internalFinUrl());
+    public Optional<ReceiptData> scanReceipt(Path documentData, String documentName) {
+        var document = scanDocument(receiptModelId, documentData, documentName);
         if (document.isEmpty()) {
             return Optional.empty();
         }
 
         LOG.info("Scanned receipt: {}", document.get().getFields());
 
-        ReceiptData receiptData = ReceiptDataHelper.fromDocument(documentData.referenceKey(), document.get());
+        ReceiptData receiptData = ReceiptDataHelper.fromDocument(document.get());
         return Optional.of(receiptData);
     }
 
-    public Optional<InvoiceData> scanInvoice(DocumentData documentData) {
-        var document = scanDocument(invoiceModelId, documentData.internalFinUrl());
+    public Optional<InvoiceData> scanInvoice(Path documentData, String documentName) {
+        var document = scanDocument(invoiceModelId, documentData, documentName);
         if (document.isEmpty()) {
             return Optional.empty();
         }
 
         LOG.info("Scanned invoice: {}", document.get().getFields());
 
-        InvoiceData invoiceData = InvoiceDataHelper.fromDocument(documentData.referenceKey(), document.get());
+        InvoiceData invoiceData = InvoiceDataHelper.fromDocument(document.get());
         return Optional.of(invoiceData);
     }
 
-    private Optional<Document> scanDocument(String modelId, URL documentUrl) {
-        LOG.info("(model={}) Starting scan of document: '{}'", modelId, documentUrl);
-        byte[] documentBytes = fetchDocument(documentUrl);
+    private Optional<AnalyzedDocument> scanDocument(String modelId, Path document, String documentName) {
+        LOG.info("(model={}) Starting scan of document: '{}'", modelId, documentName);
 
-        AnalyzeResult analyzeLayoutResult = azureDocumentConnector.getAnalyzeResult(modelId, documentBytes);
-        List<Document> documents = analyzeLayoutResult.getDocuments();
+        AnalyzeResult analyzeLayoutResult = azureDocumentConnector.getAnalyzeResult(modelId, document);
+        List<AnalyzedDocument> documents = analyzeLayoutResult.getDocuments();
 
         if (documents.isEmpty()) {
-            LOG.error("Couldn't analyze document '{}'", documentUrl);
+            LOG.error("Couldn't analyze document '{}'", documentName);
             return Optional.empty();
         } else if (documents.size() > 1) {
-            LOG.warn("Document analysis found {} documents, using first one", documents.size());
+            LOG.warn("Document analysis for '{}' found {} documents, using first one", documentName, documents.size());
         }
 
-        LOG.info("(model={}) Scan successfully completed for: '{}'", modelId, documentUrl);
+        LOG.info("(model={}) Scan successfully completed for: '{}'", modelId, documentName);
 
         return Optional.ofNullable(documents.getFirst());
-    }
-
-    private byte[] fetchDocument(URL documentUrl) {
-        try {
-            FinRestClientImpl finRestClient = new FinRestClientImpl(documentUrl);
-            String accessToken = tokensHelper.getTokens(oidcClient)
-                    .await()
-                    .atMost(Duration.ofSeconds(3))
-                    .getAccessToken();
-
-            return finRestClient.getDocumentBase64(accessToken);
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException("Couldn't fetch document", e);
-        }
     }
 }
