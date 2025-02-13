@@ -1,0 +1,17 @@
+meta {
+  name: Upload Document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/document
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: 
+  bommelId: 
+  type: 
+}

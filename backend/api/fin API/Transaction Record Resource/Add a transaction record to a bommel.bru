@@ -1,0 +1,19 @@
+meta {
+  name: Add a transaction record to a bommel
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/:id/bommel
+  body: none
+  auth: none
+}
+
+params:query {
+  ~bommelId: 
+}
+
+params:path {
+  id: 
+}
