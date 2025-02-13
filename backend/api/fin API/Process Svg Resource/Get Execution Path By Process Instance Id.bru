@@ -1,0 +1,16 @@
+meta {
+  name: Get Execution Path By Process Instance Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/svg/processes/:processId/instances/:processInstanceId
+  body: none
+  auth: none
+}
+
+params:path {
+  processId: 
+  processInstanceId: 
+}
