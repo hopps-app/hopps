@@ -1,0 +1,169 @@
+{
+  "consumer": {
+    "name": "fin"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "app.hopps.fin.pact.ScanDocumentPactConsumerTest.testInvoiceScanning()",
+        "text": [
+
+        ]
+      },
+      "description": "Invoice scan",
+      "key": "dbcb2b82",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": "LS1IRjdjV25LeDBDNFYxUVlPcDJ4dklSVk9KVnVIVDANCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZG9jdW1lbnQiOyBmaWxlbmFtZT0iZG9jdW1lbnQiDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQp7Im5hbWUiOiAidGVzdCJ9DQotLUhGN2NXbkt4MEM0VjFRWU9wMnh2SVJWT0pWdUhUMA0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJ0cmFuc2FjdGlvblJlY29yZElkIg0KQ29udGVudC1UeXBlOiB0ZXh0L3BsYWluOyBjaGFyc2V0PVVURi04DQoNCjMyDQotLUhGN2NXbkt4MEM0VjFRWU9wMnh2SVJWT0pWdUhUMC0tDQo=",
+          "contentType": "multipart/form-data; boundary=HF7cWnKx0C4V1QYOp2xvIRVOJVuHT0; charset=ISO-8859-1",
+          "contentTypeHint": "DEFAULT",
+          "encoded": "base64"
+        },
+        "headers": {
+          "Content-Type": [
+            "multipart/form-data"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "multipart/form-data;(\\s*charset=[^;]*;)?\\s*boundary=.*"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/document/scan/invoice"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "amountDue": null,
+            "billingAddress": null,
+            "currencyCode": "EUR",
+            "customerName": null,
+            "dueDate": null,
+            "invoiceDate": [
+              2024,
+              10,
+              26
+            ],
+            "invoiceId": null,
+            "purchaseOrderNumber": null,
+            "referenceKey": -1,
+            "total": 0.5
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "status": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "statusCode",
+                "status": "success"
+              }
+            ]
+          }
+        },
+        "status": 200
+      },
+      "transport": "https",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "app.hopps.fin.pact.ScanDocumentPactConsumerTest.testReceiptScanning()",
+        "text": [
+
+        ]
+      },
+      "description": "Receipt scan",
+      "key": "c1daa9a9",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": "LS1HWHhKLXlPR3MxMHBOLWFGUGVIUHROalFNeFc2RFprdC1McXJQTg0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJkb2N1bWVudCI7IGZpbGVuYW1lPSJkb2N1bWVudCINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCnsibmFtZSI6ICJ0ZXN0In0NCi0tR1h4Si15T0dzMTBwTi1hRlBlSFB0TmpRTXhXNkRaa3QtTHFyUE4NCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idHJhbnNhY3Rpb25SZWNvcmRJZCINCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOA0KDQozMg0KLS1HWHhKLXlPR3MxMHBOLWFGUGVIUHROalFNeFc2RFprdC1McXJQTi0tDQo=",
+          "contentType": "multipart/form-data; boundary=GXxJ-yOGs10pN-aFPeHPtNjQMxW6DZkt-LqrPN; charset=ISO-8859-1",
+          "contentTypeHint": "DEFAULT",
+          "encoded": "base64"
+        },
+        "headers": {
+          "Content-Type": [
+            "multipart/form-data"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "multipart/form-data;(\\s*charset=[^;]*;)?\\s*boundary=.*"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/document/scan/receipt"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "referenceKey": -1,
+            "storeAddress": null,
+            "storeName": null,
+            "total": 0.5,
+            "transactionTime": null
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "status": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "statusCode",
+                "status": "success"
+              }
+            ]
+          }
+        },
+        "status": 200
+      },
+      "transport": "https",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.11"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "az-document-ai"
+  }
+}
