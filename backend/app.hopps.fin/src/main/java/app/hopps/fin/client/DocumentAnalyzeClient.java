@@ -8,6 +8,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 
 @RegisterRestClient(configKey = "document-analysis")
@@ -22,8 +23,9 @@ public interface DocumentAnalyzeClient {
     @Path("/invoice")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    InvoiceData scanInvoice(@RestForm("document") byte[] body,
-            @RestForm("transactionRecordId") long transactionRecordId);
+    InvoiceData scanInvoice(
+            @RestForm @PartType(MediaType.APPLICATION_OCTET_STREAM) byte[] document,
+            @RestForm long transactionRecordId);
 
     /**
      * @param transactionRecordId
@@ -33,7 +35,8 @@ public interface DocumentAnalyzeClient {
     @Path("/receipt")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    ReceiptData scanReceipt(@RestForm("document") byte[] body,
-            @RestForm("transactionRecordId") long transactionRecordId);
+    ReceiptData scanReceipt(
+            @RestForm @PartType(MediaType.APPLICATION_OCTET_STREAM) byte[] document,
+            @RestForm long transactionRecordId);
 
 }
