@@ -1,0 +1,15 @@
+meta {
+  name: Get Source File By Process Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/management/processes/:processId/source
+  body: none
+  auth: none
+}
+
+params:path {
+  processId: 
+}

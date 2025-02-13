@@ -1,0 +1,15 @@
+meta {
+  name: Generates a list of tags for this invoice
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/fin-narrator/tag/invoice
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
