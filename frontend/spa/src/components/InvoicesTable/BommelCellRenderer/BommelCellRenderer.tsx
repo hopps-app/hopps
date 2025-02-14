@@ -1,6 +1,6 @@
 import './BommelCellRenderer.scss';
 import { ICellRendererParams } from 'ag-grid-community';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { debounce } from 'lodash';
 import { useTranslation } from 'react-i18next';
 
@@ -13,7 +13,7 @@ import BommelCellList from '@/components/InvoicesTable/BommelCellRenderer/Bommel
 import apiService from '@/services/ApiService';
 import { useToast } from '@/hooks/use-toast';
 
-const BommelCellRenderer = ({ data, api }: ICellRendererParams) => {
+const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
 
@@ -63,7 +63,7 @@ const BommelCellRenderer = ({ data, api }: ICellRendererParams) => {
 
     const onKeyPressPopover = useCallback(
         (event: KeyboardEvent) => {
-            if (event.key.toLowerCase() === 'a' && !isPopoverVisible) {
+            if (node.isHovered() && event.key.toLowerCase() === 'a' && !isPopoverVisible) {
                 event.preventDefault();
                 setIsPopoverVisible(true);
             } else if (event.key === 'Escape') {
@@ -114,4 +114,4 @@ const BommelCellRenderer = ({ data, api }: ICellRendererParams) => {
     );
 };
 
-export default BommelCellRenderer;
+export default memo(BommelCellRenderer);

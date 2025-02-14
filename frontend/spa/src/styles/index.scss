@@ -34,7 +34,7 @@
         --secondary-foreground: #FFFFFF;
         --separator: #E5E5E5;
         --font-color: #000000;
-        --font-family: "Public Sans", sans-serif;
+        --font-family: "Reddit Sans", reddit;
         --body-background: #f5EEFA;
         --muted: #888888;
         --popover: #FFFFFF;
@@ -58,7 +58,7 @@
         --secondary-foreground: #FFFFFF;
         --separator: #3f145d;
         --font-color: #FFFFFF;
-        --font-family: "Public Sans", sans-serif;
+        --font-family: "Reddit Sans", reddit;
         --body-background: #1C0C28;
         --muted: #888888;
         --popover: #FFFFFF;
@@ -77,5 +77,5 @@
 body {
     background: var(--body-background);
     color: var(--font-color);
-    font-family: "Reddit Sans";
+    font-family: var(--font-family);
 }

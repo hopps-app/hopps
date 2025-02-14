@@ -4,7 +4,7 @@ import './InvoicesTable.scss';
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import { ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
+import { CellMouseOverEvent, ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 
@@ -33,6 +33,11 @@ const InvoicesTable = ({ invoices }: Props) => {
             maximumFractionDigits: 2,
         }).format(value);
     };
+
+    useEffect(() => {
+        setRowData(invoices);
+        setColumnDefs(getColumnDefs());
+    }, [invoices]);
 
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
@@ -95,7 +100,6 @@ const InvoicesTable = ({ invoices }: Props) => {
                 resizable: false,
                 cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' },
                 cellRenderer: BommelCellRenderer,
-                cellRendererParams: { api },
             },
         ];
     }
@@ -104,17 +108,17 @@ const InvoicesTable = ({ invoices }: Props) => {
         updateFilteredData();
     }, [updateFilteredData]);
 
+    const onRowHover = (event: CellMouseOverEvent<InvoicesTableData>) => {
+        if (!event.data) return;
+        api?.refreshCells({ force: true });
+    };
+
     const onGridReady = useCallback(
         (event: GridReadyEvent) => {
             setApi(event.api);
         },
         [setApi]
     );
-
-    useEffect(() => {
-        setRowData(invoices);
-        setColumnDefs(getColumnDefs());
-    }, [invoices]);
 
     const Grid = useMemo(
         () => (
@@ -129,6 +133,7 @@ const InvoicesTable = ({ invoices }: Props) => {
                 onRowDataUpdated={updateFilteredData}
                 onFirstDataRendered={updateFilteredData}
                 onFilterChanged={onFilterChanged}
+                onCellMouseOver={onRowHover}
             />
         ),
         [rowData, columnDefs, onFilterChanged]
