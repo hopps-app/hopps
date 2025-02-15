@@ -1,5 +1,15 @@
 .invoices-table {
+
+
   .ag-root-wrapper {
     border: none;
+    border-radius: 15px 15px 0px 0px;
+  }
+
+  .amount-header {
+    &>.ag-header-cell-comp-wrapper .ag-cell-label-container .ag-header-cell-label {
+      display: flex;
+      justify-content: center;
+    }
   }
 }

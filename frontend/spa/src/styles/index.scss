@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -28,11 +29,12 @@
         --primary: #9955CC;
         --primary-active: #b54ffb;
         --primary-foreground: #FFFFFF;
+        --hover-active: #DAC1EC;
         --secondary: #000000;
         --secondary-foreground: #FFFFFF;
         --separator: #E5E5E5;
         --font-color: #000000;
-        --font-family: "Public Sans", sans-serif;
+        --font-family: "Reddit Sans", reddit;
         --body-background: #f5EEFA;
         --muted: #888888;
         --popover: #FFFFFF;
@@ -41,17 +43,22 @@
         --accent-foreground: #4a4a4a;
         --destructive: #aa0000;
         --destructive-foreground: #ffffff;
+        --border-line: #A7A7A7;
+        --hover-effect: #F5F5F5;
+        --radius: 8px;
+        --font: 16px;
     }
 
     .dark {
         --primary: #9955CC;
         --primary-active: #b54ffb;
         --primary-foreground: #FFFFFF;
+        --hover-active: #F5EEFA;
         --secondary: #000000;
         --secondary-foreground: #FFFFFF;
         --separator: #3f145d;
         --font-color: #FFFFFF;
-        --font-family: "Public Sans", sans-serif;
+        --font-family: "Reddit Sans", reddit;
         --body-background: #1C0C28;
         --muted: #888888;
         --popover: #FFFFFF;
@@ -60,10 +67,15 @@
         --accent-foreground: #FFFFFF;
         --destructive: #aa0000;
         --destructive-foreground: #ffffff;
+        --hover-effect: #1a1a1a;
+        --border-line: #585858;
+        --radius: 8px;
+        --font: 16px;
     }
 }
 
 body {
     background: var(--body-background);
     color: var(--font-color);
+    font-family: var(--font-family);
 }
