@@ -1,0 +1,23 @@
+{{- if .Values.finNarrator.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "hopps.finNarratorFullname" . }}
+  namespace: {{ .Values.finNarrator.serviceMonitor.namespace }}
+  labels:
+    {{- include "hopps.finNarratorLabels" . | nindent 4 }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "hopps.finNarratorSelectorLabels" . | nindent 6 }}
+  jobLabel: {{ include "hopps.finNarratorFullname" . }}
+  endpoints:
+    - port: management
+      path: /q/metrics
+      interval: {{ .Values.finNarrator.serviceMonitor.scrapeInterval }}
+      scrapeTimeout: {{ .Values.finNarrator.serviceMonitor.scrapeTimeout }}
+{{- end }}

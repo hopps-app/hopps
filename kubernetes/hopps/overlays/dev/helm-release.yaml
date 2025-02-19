@@ -114,8 +114,20 @@ spec:
           - secretName: api-tls
             hosts:
               - api.${DOMAIN_2}
+              -
     postgresql-fin:
       enabled: false
+
+    finNarrator:
+      image:
+        tag: 370
+      envVars:
+        - name: quarkus.langchain4j.openai.api-key
+          valueFrom:
+            secretKeyRef:
+              name: # todo
+              key: # todo
+
     frontend:
       image:
         tag: 194
