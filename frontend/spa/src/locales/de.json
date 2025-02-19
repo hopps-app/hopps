@@ -1,29 +1,52 @@
 {
   "banner": {
-    "text1": "Testen Sie hopps 14 Tage",
-    "text2": "kostenlos"
+    "text1": "Teste Hopps 14 Tage kostenlos",
+    "text2": "ohne Verpflichtung"
   },
   "common": {
-    "refresh": "Aktualisieren"
+    "refresh": "Aktualisieren",
+    "addNew": "Neu hinzufügen"
   },
   "header": {
-    "login": "Login",
+    "logout": "Abmelden",
+    "login": "Anmelden",
     "register": "Registrieren"
   },
   "invoices": {
-    "loadFailed": "Rechnungen konnten nicht geladen werden",
-    "noInvoices": "Keine Rechnungen vorzulegen"
+    "loadFailed": "Fehler beim Laden der Rechnungen",
+    "noInvoices": "Keine Rechnungen zum Anzeigen",
+    "assignPopover": {
+      "assign": "Zuweisen",
+      "reassign": "Neu zuweisen",
+      "noBommels": "Keine verfügbaren Bommels",
+      "newBommel": "Neuer Bommel",
+      "successAssign": "Erfolgreich zugewiesen!",
+      "failedAssign": "Fehler beim Zuweisen des Bommels!"
+    },
+    "summary": {
+      "totalFirstPart": "Gesamt",
+      "invoicesPart": "Rechnungen mit Summe"
+    },
+    "table": {
+      "date": "Datum",
+      "bommel": "Bommel",
+      "amount": "Betrag"
+    }
   },
   "organization": {
     "registration": {
-      "failed": "Organisation konnte nicht registriert werden",
+      "failed": "Fehler bei der Registrierung der Organisation",
       "header": "Organisation registrieren",
       "success": "Organisation erfolgreich erstellt"
     },
     "settings": {
-      "error": "Organisationsstruktur konnte nicht geladen werden",
-      "saveError": "Einstellung konnte nicht gespeichert werden",
-      "saved": "Einstellungen erfolgreich gespeichert"
+      "error": "Fehler beim Laden der Organisationsstruktur",
+      "saveError": "Fehler beim Speichern der Einstellungen",
+      "saved": "Einstellungen erfolgreich gespeichert",
+      "structure": "Struktur"
+    },
+    "buttons": {
+      "addNew": "Neu hinzufügen"
     }
   },
   "profile": {
@@ -34,12 +57,13 @@
   },
   "settings": {
     "menu": {
+      "account": "Mein Konto",
       "invoices": "Rechnungen",
       "organization": "Organisation",
       "profile": "Profil"
     }
   },
   "settingsPage": {
-    "menu": "Speisekarte"
+    "menu": "Menü"
   }
 }

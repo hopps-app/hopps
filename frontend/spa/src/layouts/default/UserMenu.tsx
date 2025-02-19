@@ -1,6 +1,7 @@
 import { FaUser } from 'react-icons/fa';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { useStore } from '@/store/store.ts';
 import authService from '@/services/auth/AuthService.ts';
@@ -9,16 +10,17 @@ import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx
 function UserMenu() {
     const authStore = useStore();
     const user = authStore.user;
+    const { t } = useTranslation();
 
     const navigate = useNavigate();
     const [menuItems] = useState<DropdownMenuItem[]>([
-        { type: 'label', title: 'My Account' },
+        { type: 'label', title: `${t('settings.menu.profile')}` },
         { type: 'separator' },
-        { title: 'Profile', onClick: () => navigate('/settings/profile') },
-        { title: 'Organization', onClick: () => navigate('/settings/organization') },
-        { title: 'Invoices', onClick: () => navigate('/settings/invoices') },
+        { title: `${t('settings.menu.profile')}`, onClick: () => navigate('/settings/profile') },
+        { title: `${t('settings.menu.organization')}`, onClick: () => navigate('/settings/organization') },
+        { title: `${t('settings.menu.invoices')}`, onClick: () => navigate('/settings/invoices') },
         { type: 'separator' },
-        { title: 'Log out', onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)) },
+        { title: `${t('header.logout')}`, onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)) },
     ]);
 
     return (

@@ -5,9 +5,9 @@ import { TransactionRecord } from '@/services/api/types/TransactionRecord.ts';
 import axiosService from '@/services/AxiosService.ts';
 
 export class InvoicesService {
-    private axiosInstance: AxiosInstance;
+    private readonly axiosInstance: AxiosInstance;
 
-    constructor(private baseUrl: string) {
+    constructor(private readonly baseUrl: string) {
         this.axiosInstance = axiosService.create(this.baseUrl);
     }
 
@@ -40,5 +40,12 @@ export class InvoicesService {
             bommel: transaction.bommelId,
             date: transaction.transactionTime,
         }));
+    }
+
+    async reassignTransaction(bommelId: number, transactionId: number): Promise<unknown> {
+        const url = `${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/${transactionId}/bommel?bommelId=${bommelId}`;
+        const response = await this.axiosInstance.patch(url);
+
+        return response.data;
     }
 }
