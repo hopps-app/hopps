@@ -31,6 +31,6 @@ public interface AiService {
 
             {jsonData}
             """)
-    List<String> tagReceiptOrInvoice(String inputType, JsonObject jsonData);
+    List<String> tagDocument(String inputType, JsonObject jsonData);
 
 }
