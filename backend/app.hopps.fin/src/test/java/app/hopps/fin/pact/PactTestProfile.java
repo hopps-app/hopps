@@ -9,6 +9,8 @@ public class PactTestProfile implements QuarkusTestProfile {
     public Map<String, String> getConfigOverrides() {
         return Map.of(
                 "quarkus.rest-client.org-service.uri", "http://localhost:${app.hopps.fin.pact.port}",
-                "app.hopps.fin.pact.port", "57852");
+                "quarkus.rest-client.fin-narrator.uri", "http://localhost:${app.hopps.fin-narrator.pact.port}",
+                "app.hopps.fin.pact.port", "57852",
+                "app.hopps.fin-narrator.pact.port", "57853");
     }
 }

@@ -64,7 +64,7 @@ public class TaggingResource {
                     Response.Status.BAD_REQUEST);
         }
 
-        return aiService.tagReceiptOrInvoice(type, jsonData)
+        return aiService.tagDocument(type, jsonData)
                 .stream()
                 .map(in -> in.replaceFirst("^ - ", ""))
                 .map(String::trim)
