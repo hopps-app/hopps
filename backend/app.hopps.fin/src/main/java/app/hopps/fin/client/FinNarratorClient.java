@@ -20,7 +20,7 @@ public interface FinNarratorClient {
     List<String> tagInvoice(Data jsonData);
 
     @POST
-    @Path("invoice")
+    @Path("receipt")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     List<String> tagReceipt(Data jsonData);
