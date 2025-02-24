@@ -40,7 +40,7 @@ class ScanDocumentResourceTest {
         // Act
         var receivedData = given()
                 .multiPart("document", INVOICE_REQUEST_BODY)
-                .multiPart("documentName", "invoice.png")
+                .multiPart("transactionRecordId", "32")
                 .contentType(ContentType.MULTIPART)
                 .when()
                 .post("invoice")
@@ -66,7 +66,7 @@ class ScanDocumentResourceTest {
         // Act
         var receivedData = given()
                 .multiPart("document", RECEIPT_REQUEST_BODY)
-                .multiPart("documentName", "receipt.png")
+                .multiPart("transactionRecordId", "32")
                 .contentType(ContentType.MULTIPART)
                 .when()
                 .post("receipt")
@@ -88,7 +88,7 @@ class ScanDocumentResourceTest {
         // Act + Assert
         given()
                 .multiPart("document", INVOICE_REQUEST_BODY)
-                .multiPart("documentName", "invoice.png")
+                .multiPart("transactionRecordId", "32")
                 .contentType(ContentType.MULTIPART)
                 .when()
                 .post("invoice")

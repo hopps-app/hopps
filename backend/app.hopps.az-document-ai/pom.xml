@@ -101,12 +101,6 @@
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.pact</groupId>
-            <artifactId>quarkus-pact-provider</artifactId>
-            <version>1.5.0</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
