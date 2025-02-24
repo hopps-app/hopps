@@ -7,7 +7,7 @@
       "enabled": true,
       "secret": "mysecret",
       "protocol": "openid-connect",
-      "publicClient": false,
+      "publicClient": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true,
       "redirectUris": [
