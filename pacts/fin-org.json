@@ -5,7 +5,7 @@
   "interactions": [
     {
       "comments": {
-        "testname": "app.hopps.fin.pact.PactConsumerTest.testConsumer()",
+        "testname": "app.hopps.fin.pact.OrgPactConsumerTest.testConsumer()",
         "text": [
 
         ]
