@@ -4,6 +4,7 @@ vars {
   fin_baseUrl: http://localhost:8102
   fin_narrator_baseUrl: http://localhost:8775
   az_doc_ai_baseUrl: http://localhost:8100
-  keycloak_client: quarkus-app
+  keycloak_client: account
   keycloak_realm: quarkus
+  keycloak_redirect_url: {{keycloak_url}}/realms/{{keycloak_realm}}/account/
 }
