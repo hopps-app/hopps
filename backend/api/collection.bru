@@ -8,9 +8,9 @@ auth {
 
 auth:oauth2 {
   grant_type: authorization_code
-  callback_url: http://localhost:5173/
-  authorization_url: {{keycloak_url}}/realms/{{keycloak_client}}/protocol/openid-connect/auth
-  access_token_url: {{keycloak_url}}/realms/{{keycloak_client}}/protocol/openid-connect/token
+  callback_url: {{keycloak_redirect_url}}
+  authorization_url: {{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/auth
+  access_token_url: {{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token
   client_id: {{keycloak_client}}
   client_secret: 
   scope: 
