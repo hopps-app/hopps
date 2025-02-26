@@ -1,8 +1,8 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.commons.Address;
 import app.hopps.commons.InvoiceData;
 import app.hopps.commons.ReceiptData;
+import app.hopps.commons.TradeParty;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -101,13 +101,7 @@ class ScanDocumentResourceTest {
                 0L,
                 BigDecimal.valueOf(135.0),
                 LocalDate.now(),
-                "EUR",
-                Optional.of("Test customer"),
-                Optional.of(fakeAddress()),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+                "EUR");
     }
 
     private static ReceiptData fakeReceiptData() {
@@ -119,14 +113,18 @@ class ScanDocumentResourceTest {
                 Optional.empty());
     }
 
-    private static Address fakeAddress() {
-        return new Address(
+    private static TradeParty fakeAddress() {
+        return new TradeParty(
+                "AWS",
                 "Germany",
                 "85276",
                 "Bavaria",
                 "Pfaffenhofen",
                 "Bistumerweg",
-                "5");
+                "5",
+                "taxid",
+                "vatid",
+                "Amazon Web Services");
     }
 
 }
