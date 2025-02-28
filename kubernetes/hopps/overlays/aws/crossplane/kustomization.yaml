@@ -7,4 +7,3 @@ resources:
   - helm-repository.yaml
   - helm-release.yaml
   - aws-secret-encrypted.yaml
-  - aws-providerconfig.yaml

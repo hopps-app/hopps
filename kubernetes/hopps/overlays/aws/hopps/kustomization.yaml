@@ -4,3 +4,4 @@ namespace: hopps
 resources:
   - rds/
   - namespace.yaml
+  - aws-providerconfig.yaml
