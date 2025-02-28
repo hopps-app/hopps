@@ -1,0 +1,24 @@
+apiVersion: database.aws.crossplane.io/v1beta1
+kind: RDSInstance
+metadata:
+  name: my-postgresql-db
+spec:
+  forProvider:
+    region: eu-central-1 # Wähle die gewünschte Region
+    dbInstanceClass: db.t3.micro  # Free-Tier kompatibel
+    masterUsername: admin
+    masterUserPasswordSecretRef:
+      name: db-secret
+      namespace: default
+      key: password
+    allocatedStorage: 20  # Minimum für Free-Tier
+    engine: postgres
+    engineVersion: "17.4-R1"  # Oder eine unterstützte Free-Tier Version
+    publiclyAccessible: false
+    storageType: gp2
+    skipFinalSnapshot: true  # Verhindert Kosten durch Snapshot-Speicherung
+  writeConnectionSecretToRef:
+    name: db-conn-secret
+    namespace: hopps
+  providerConfigRef:
+    name: aws-provider
