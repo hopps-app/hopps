@@ -15,7 +15,7 @@ class ExcelResourceTest {
     void getExcelFile() {
         given()
                 .when()
-                .get("{bommelId}", 1)
+                .get()
                 .then()
                 .statusCode(200)
                 .contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
