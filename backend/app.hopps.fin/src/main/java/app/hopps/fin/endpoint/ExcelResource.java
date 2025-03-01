@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Currency;
 import java.util.List;
 
@@ -61,7 +62,7 @@ public class ExcelResource {
 
     @GET
     @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public byte[] getExport() {
+    public Response getExport() {
         List<TransactionRecord> records = transactionRecordRepository.listAll();
 
         try (XSSFWorkbook xssfWorkbook = new XSSFWorkbook()) {
@@ -109,7 +110,13 @@ public class ExcelResource {
             try (bos) {
                 xssfWorkbook.write(bos);
             }
-            return bos.toByteArray();
+
+            String format = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm").format(LocalDateTime.now());
+
+            return Response.ok()
+                    .entity(bos.toByteArray())
+                    .header("Content-Disposition", "attachment; filename=\"hopps-" + format + ".xlsx\"")
+                    .build();
         } catch (IOException ioException) {
             LOG.error("Could not convert XSSFWorkbook to bytearray", ioException);
             throw new InternalServerErrorException(Response.status(500).entity("Exporting excel failed!").build());
