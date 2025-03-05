@@ -3,16 +3,20 @@ package app.hopps.fin.endpoint;
 import app.hopps.fin.excel.ExcelColumn;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -42,18 +46,35 @@ public class ExcelResource {
             new ExcelColumn("Order number", TransactionRecord::getOrderNumber),
             new ExcelColumn("Type", t -> t.getDocument().name()),
             new ExcelColumn("Uploader", TransactionRecord::getUploader),
-            // Transaction Time/Date
             new ExcelColumn("Transaction time", t -> handleLocalDateTime(t.getTransactionTime())),
-            // Total
-            new ExcelColumn("Total", t -> buildCurrencyString(t.getTotal(), t.getCurrencyCode())),
-            // Amount due
-            new ExcelColumn("Amount due", t -> buildCurrencyString(t.getAmountDue(), t.getCurrencyCode())),
-            // Due Time/Date
+            new ExcelColumn("Total", t -> transformBigDecimal(t.getTotal())),
+            new ExcelColumn("Amount due", t -> transformBigDecimal(t.getAmountDue())),
             new ExcelColumn("Due date", t -> handleLocalDate(t.getDueDate())),
-            new ExcelColumn("Name", TransactionRecord::getName),
             new ExcelColumn("Invoice Id", TransactionRecord::getInvoiceId),
             new ExcelColumn("Privately paid", TransactionRecord::isPrivatelyPaid),
-            new ExcelColumn("Bommel ID", TransactionRecord::getBommelId));
+            new ExcelColumn("Bommel ID", TransactionRecord::getBommelId),
+            new ExcelColumn("Bommel name", TransactionRecord::getName),
+
+            // Sender
+            new ExcelColumn("S. Name", t -> t.getSender().getName()),
+            new ExcelColumn("S. Tax ID", t -> t.getSender().getTaxID()),
+            new ExcelColumn("S. VAT ID", t -> t.getSender().getVatID()),
+            new ExcelColumn("S. Description", t -> t.getSender().getDescription()),
+            new ExcelColumn("S. Street", t -> t.getSender().getStreet()),
+            new ExcelColumn("S. Zip code", t -> t.getSender().getZipCode()),
+            new ExcelColumn("S. City", t -> t.getSender().getCity()),
+            new ExcelColumn("S. State", t -> t.getSender().getState()),
+            new ExcelColumn("S. Country", t -> t.getSender().getCountry()),
+            // Receiver
+            new ExcelColumn("R. Name", t -> t.getRecipient().getName()),
+            new ExcelColumn("R. Tax ID", t -> t.getRecipient().getTaxID()),
+            new ExcelColumn("R. VAT ID", t -> t.getRecipient().getVatID()),
+            new ExcelColumn("R. Description", t -> t.getRecipient().getDescription()),
+            new ExcelColumn("R. Street", t -> t.getRecipient().getStreet()),
+            new ExcelColumn("R. Zip code", t -> t.getRecipient().getZipCode()),
+            new ExcelColumn("R. City", t -> t.getRecipient().getCity()),
+            new ExcelColumn("R. State", t -> t.getRecipient().getState()),
+            new ExcelColumn("R. Country", t -> t.getRecipient().getCountry()));
 
     @Inject
     public ExcelResource(TransactionRecordRepository transactionRecordRepository) {
@@ -61,9 +82,10 @@ public class ExcelResource {
     }
 
     @GET
+    @Path("{bommelId}")
     @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public Response getExport() {
-        List<TransactionRecord> records = transactionRecordRepository.listAll();
+    public Response getExport(@PathParam("bommelId") Long bommelId) {
+        List<TransactionRecord> records = transactionRecordRepository.findByBommelId(bommelId, new Page(9999));
 
         try (XSSFWorkbook xssfWorkbook = new XSSFWorkbook()) {
 
@@ -101,10 +123,15 @@ public class ExcelResource {
                 }
             }
 
+            createSumRow(sheet, records, xssfWorkbook);
+
             // AutoSizeColumns
             for (int i = 0; i < EXCEL_COLUMNS.size(); i++) {
                 sheet.autoSizeColumn(i);
             }
+
+            String colReference = header.getCell(EXCEL_COLUMNS.size() - 1).getReference();
+            sheet.setAutoFilter(CellRangeAddress.valueOf("A1:" + colReference + "1"));
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             try (bos) {
@@ -121,6 +148,29 @@ public class ExcelResource {
             LOG.error("Could not convert XSSFWorkbook to bytearray", ioException);
             throw new InternalServerErrorException(Response.status(500).entity("Exporting excel failed!").build());
         }
+    }
+
+    private void createSumRow(XSSFSheet sheet, List<TransactionRecord> records, XSSFWorkbook xssfWorkbook) {
+        XSSFRow sumRow = sheet.createRow(records.size() + 1);
+
+        XSSFCell totalCell = sumRow.createCell(4);
+        handleNumericCell(xssfWorkbook, totalCell, 1, records.size());
+
+        XSSFCell amountDueCell = sumRow.createCell(5);
+        handleNumericCell(xssfWorkbook, amountDueCell, 1, records.size());
+    }
+
+    private void handleNumericCell(XSSFWorkbook xssfWorkbook, XSSFCell cell, int firstRow, int lastRow) {
+        String reference = cell.getReference();
+        // Remove the row number
+        int length = String.valueOf(cell.getRowIndex()).length();
+        reference = reference.substring(0, reference.length() - length);
+
+        // Add one, because it starts at 1 instead of 0
+        cell.setCellFormula(String.format("SUM(%s%d:%s%d)", reference, firstRow + 1, reference, lastRow + 1));
+        // Now evaluate
+        XSSFFormulaEvaluator formulaEvaluator = xssfWorkbook.getCreationHelper().createFormulaEvaluator();
+        formulaEvaluator.evaluateFormulaCell(cell);
     }
 
     private void handleLocalDateCell(XSSFWorkbook wb, LocalDate val, XSSFCell cell) {
@@ -157,6 +207,13 @@ public class ExcelResource {
         return instant
                 .atOffset(ZoneOffset.UTC)
                 .toLocalDate();
+    }
+
+    private static Double transformBigDecimal(BigDecimal amount) {
+        if (amount == null) {
+            return 0d;
+        }
+        return amount.setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
     private static String buildCurrencyString(BigDecimal amount, String currencyCode) {
