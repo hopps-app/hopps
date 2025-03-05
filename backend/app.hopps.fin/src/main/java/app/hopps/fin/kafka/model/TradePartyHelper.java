@@ -9,7 +9,7 @@ public class TradePartyHelper {
 
     public static TradeParty convertToJpa(app.hopps.commons.TradeParty tradeParty) {
         TradeParty addressJpa = new TradeParty();
-        addressJpa.setName(null);
+        addressJpa.setName(tradeParty.name());
         addressJpa.setCity(tradeParty.city());
         addressJpa.setCountry(tradeParty.countryOrRegion());
         addressJpa.setState(tradeParty.state());
