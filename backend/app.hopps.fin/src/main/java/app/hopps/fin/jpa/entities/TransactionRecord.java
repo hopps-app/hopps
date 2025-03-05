@@ -112,6 +112,9 @@ public class TransactionRecord {
     }
 
     public TradeParty getSender() {
+        if (sender == null) {
+            return new TradeParty();
+        }
         return sender;
     }
 
@@ -120,6 +123,9 @@ public class TransactionRecord {
     }
 
     public TradeParty getRecipient() {
+        if (recipient == null) {
+            return new TradeParty();
+        }
         return recipient;
     }
 

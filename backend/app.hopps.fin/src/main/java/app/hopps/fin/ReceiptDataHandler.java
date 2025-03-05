@@ -22,8 +22,9 @@ public class ReceiptDataHandler extends AbstractDataHandler {
         transactionRecord.setTotal(data.total());
 
         // Optional
-        data.storeName().ifPresent(transactionRecord::setName);
         data.storeAddress().ifPresent(addrees -> transactionRecord.setSender(TradePartyHelper.convertToJpa(addrees)));
+        // TODO: Should this be on the sender?
+        data.storeName().ifPresent(transactionRecord::setName);
         data.transactionTime()
                 .ifPresent(
                         transactionTime -> transactionRecord
