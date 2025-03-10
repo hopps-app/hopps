@@ -1,19 +1,33 @@
 package app.hopps.org.delegates;
 
+import app.hopps.commons.fga.FgaHelper;
+import app.hopps.commons.fga.FgaRelations;
+import app.hopps.commons.fga.FgaTypes;
 import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.Member;
 import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
+import io.quarkiverse.openfga.client.AuthorizationModelClient;
+import io.quarkiverse.openfga.client.model.RelObject;
+import io.quarkiverse.openfga.client.model.RelTupleDefinition;
+import io.quarkiverse.openfga.client.model.RelUser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+
 @ApplicationScoped
 @SuppressWarnings("java:S6813")
 public class PersistOrganizationDelegate {
+
+    @Inject
+    AuthorizationModelClient modelClient;
 
     @Inject
     OrganizationRepository organizationRepository;
@@ -41,5 +55,35 @@ public class PersistOrganizationDelegate {
         memberRepository.persist(owner);
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
+
+        updateFga(organization.getSlug(), owner.getEmail(), rootBommel.id);
+    }
+
+    private void updateFga(String slug, String email, Long bommelId) {
+        slug = FgaHelper.sanitize(slug);
+        email = FgaHelper.sanitize(email);
+
+        RelUser relUser = RelUser.of(FgaTypes.USER.getFgaName(), email);
+        RelObject relOrganizationObject = RelObject.of(FgaTypes.ORGANIZATION.getFgaName(), slug);
+
+        RelTupleDefinition userToOrgTupleKey = RelTupleDefinition.builder()
+                .user(relUser)
+                .object(relOrganizationObject)
+                .relation(FgaRelations.OWNER.getFgaName())
+                .build();
+
+        RelUser relOrganizationUser = RelUser.of(FgaTypes.ORGANIZATION.getFgaName(), slug);
+        RelObject relBommelObject = RelObject.of(FgaTypes.BOMMEL.getFgaName(), bommelId.toString());
+
+        RelTupleDefinition orgToBommelTupleKey = RelTupleDefinition.builder()
+                .user(relOrganizationUser)
+                .object(relBommelObject)
+                .relation(FgaRelations.ORGANIZATION.getFgaName())
+                .build();
+
+        modelClient
+                .write(List.of(userToOrgTupleKey, orgToBommelTupleKey), Collections.emptyList())
+                .await()
+                .atMost(Duration.ofSeconds(3));
     }
 }

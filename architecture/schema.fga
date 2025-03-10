@@ -1,0 +1,17 @@
+model
+  schema 1.1
+
+type user
+
+type organization
+  relations
+    define owner: [user]
+    define member: [user] or owner
+
+type bommel
+  relations
+    define organization: [organization]
+    define parent: [bommel]
+    define member: [user] or member from parent or member from organization
+
+    define bommelWart: [user] or owner from organization or bommelWart from parent
