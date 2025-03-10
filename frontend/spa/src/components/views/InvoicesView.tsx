@@ -41,7 +41,7 @@ function InvoicesView() {
         setIsError(false);
 
         try {
-            await loadBommels(store.organization.id);
+            await loadBommels(store.organization.slug);
             await loadInvoices();
         } catch (e) {
             console.error(e);
@@ -57,13 +57,13 @@ function InvoicesView() {
 
     return (
         <>
-            <LoadingOverlay isEnabled={isLoading} />
+            <LoadingOverlay isEnabled={isLoading}/>
             <SettingsPageHeader>
                 <Button onClick={reload} disabled={isLoading}>
                     {t('common.refresh')}
                 </Button>
             </SettingsPageHeader>
-            {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices} />}
+            {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices}/>}
         </>
     );
 }
