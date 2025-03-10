@@ -8,7 +8,7 @@ export type BommelsState = {
 };
 
 export type BommelActions = {
-    loadBommels: (organizationId: number) => Promise<void>;
+    loadBommels: (organizationSlug: string) => Promise<void>;
     setLoading: (value: boolean) => void;
     reload: () => Promise<void>;
 };

@@ -12,11 +12,11 @@ export const useBommelsStore = create<BommelsState & BommelActions>()(
             isLoading: false,
             isError: false,
 
-            loadBommels: async (organizationId: number) => {
+            loadBommels: async (organizationSlug: string) => {
                 set({ isLoading: true, isError: false });
 
                 try {
-                    const root = await organizationTreeService.ensureRootBommelCreated(organizationId);
+                    const root = await organizationTreeService.ensureRootBommelCreated(organizationSlug);
                     if (!root) throw new Error('Root bommel not found');
 
                     const fetchedBommels = await organizationTreeService.getOrganizationBommels(root.id);
@@ -36,8 +36,8 @@ export const useBommelsStore = create<BommelsState & BommelActions>()(
 
             reload: async () => {
                 const { rootBommel } = useBommelsStore.getState();
-                if (rootBommel) {
-                    await useBommelsStore.getState().loadBommels(rootBommel.id);
+                if (rootBommel?.organization?.slug) {
+                    await useBommelsStore.getState().loadBommels(rootBommel.organization?.slug);
                 }
             },
         };

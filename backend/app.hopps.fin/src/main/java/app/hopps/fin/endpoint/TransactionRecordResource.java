@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,7 +88,7 @@ public class TransactionRecordResource {
     @GET
     @Path("/{id}/document")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public InputStream getDocumentByKey(@PathParam("id") Long transactionId) {
+    public byte[] getDocumentByKey(@PathParam("id") Long transactionId) {
         TransactionRecord transactionRecord = getTransactionRecordAndVerify(transactionId);
 
         String documentKey = transactionRecord.getDocumentKey();

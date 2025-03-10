@@ -25,7 +25,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import wiremock.com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import wiremock.com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -38,6 +37,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @ConnectWireMock
@@ -68,7 +69,7 @@ class TransactionRecordResourceTest {
         noBommel.setDocumentKey("randomKey");
         repository.persist(noBommel);
 
-        Mockito.when(authorizationModelClient.check(Mockito.any(RelTupleKeyed.class)))
+        when(authorizationModelClient.check(any(RelTupleKeyed.class)))
                 .thenReturn(Uni.createFrom().item(false));
     }
 
@@ -76,7 +77,7 @@ class TransactionRecordResourceTest {
     void shouldFetchAll() {
         RelObject relObject = RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1");
 
-        Mockito.when(authorizationModelClient.listObjects(Mockito.any()))
+        when(authorizationModelClient.listObjects(any()))
                 .thenReturn(Uni.createFrom().item(List.of(relObject)));
 
         given()
@@ -118,7 +119,7 @@ class TransactionRecordResourceTest {
                 .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
                 .build();
 
-        Mockito.when(authorizationModelClient.check(relTupleKey))
+        when(authorizationModelClient.check(relTupleKey))
                 .thenReturn(Uni.createFrom().item(true));
 
         given()
@@ -176,7 +177,7 @@ class TransactionRecordResourceTest {
                 .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
                 .build();
 
-        Mockito.when(authorizationModelClient.check(relTupleKey))
+        when(authorizationModelClient.check(relTupleKey))
                 .thenReturn(Uni.createFrom().item(true));
 
         // when
@@ -209,7 +210,7 @@ class TransactionRecordResourceTest {
                 .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
                 .build();
 
-        Mockito.when(authorizationModelClient.check(relTupleKey))
+        when(authorizationModelClient.check(relTupleKey))
                 .thenReturn(Uni.createFrom().item(true));
 
         wireMock.register(
@@ -252,7 +253,7 @@ class TransactionRecordResourceTest {
                 .object(RelObject.of(FgaTypes.BOMMEL.getFgaName(), "1"))
                 .build();
 
-        Mockito.when(authorizationModelClient.check(relTupleKey))
+        when(authorizationModelClient.check(relTupleKey))
                 .thenReturn(Uni.createFrom().item(true));
 
         // when
