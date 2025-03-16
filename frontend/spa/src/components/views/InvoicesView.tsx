@@ -57,7 +57,7 @@ function InvoicesView() {
 
     return (
         <>
-            <LoadingOverlay isEnabled={isLoading}/>
+            <LoadingOverlay isEnabled={isLoading} />
             <SettingsPageHeader>
                 <Button onClick={reload} disabled={isLoading}>
                     {t('common.refresh')}
