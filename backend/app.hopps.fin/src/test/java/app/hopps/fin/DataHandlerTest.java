@@ -78,7 +78,6 @@ class DataHandlerTest {
 
     @Test
     void shouldWriteFullInvoiceData() {
-
         // given
         LocalDate dueDate = LocalDate.now().plusDays(3);
         InvoiceData invoiceData = new InvoiceData(
@@ -87,7 +86,7 @@ class DataHandlerTest {
                 LocalDate.now(),
                 "EUR",
                 Optional.of("CustomerName"),
-                Optional.of("pruchaseOrderNumber"),
+                Optional.of("purchaseOrderNumber"),
                 Optional.of("invoiceId"),
                 Optional.of(dueDate),
                 Optional.of(BigDecimal.valueOf(150)),

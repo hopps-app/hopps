@@ -16,3 +16,4 @@ VALUES (25.0, 1, '2024-12-18T14:00:00.000000Z', 'dummy1', null, 'EUR',
 ;
 
 select setval('transaction_sequence', 5, true);
+select setval('trade_party_sequence', 2, true);
