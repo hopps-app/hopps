@@ -80,7 +80,8 @@ public class DocumentResource {
             @RestForm("file") FileUpload file,
             @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
             @RestForm("privatelyPaid") @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
-            @Schema(implementation = DocumentType.class) @RestForm("type") @PartType(MediaType.TEXT_PLAIN) String type) throws IOException {
+            @Schema(implementation = DocumentType.class) @RestForm("type") @PartType(MediaType.TEXT_PLAIN) String type)
+            throws IOException {
         if (file == null || type == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
