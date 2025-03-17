@@ -4,7 +4,6 @@ import app.hopps.org.jpa.Bommel;
 import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.jpa.TreeSearchBommel;
-import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkus.runtime.configuration.ConfigUtils;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
@@ -49,8 +48,8 @@ public class BommelResource {
     @Inject
     SecurityContext securityContext;
 
-    @Inject
-    AuthorizationModelClient authModelClient;
+//    @Inject
+//    AuthorizationModelClient authModelClient;
 
     // Auth is only disabled when in dev mode and auth has been disabled through the config property (see below)
     boolean authEnabled;

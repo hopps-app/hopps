@@ -5,7 +5,8 @@ import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
-import app.hopps.org.rest.model.CreateOrganizationResponse;
+import app.hopps.org.rest.model.ProcessResponse;
+import app.hopps.org.rest.model.InviteMemberInput;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
@@ -48,6 +49,10 @@ public class OrganizationResource {
     @Inject
     @Named("NewOrganization")
     Process<? extends Model> process;
+
+    @Inject
+    @Named("AddMember")
+    Process<? extends Model> addMemberProcess;
 
     @Inject
     OrganizationRepository organizationRepository;
@@ -114,9 +119,9 @@ public class OrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new organization")
-    @APIResponse(responseCode = "202", description = "Creation started successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateOrganizationResponse.class)))
+    @APIResponse(responseCode = "202", description = "Creation started successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ProcessResponse.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
-    @APIResponse(responseCode = "500", description = "Process failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateOrganizationResponse.class)))
+    @APIResponse(responseCode = "500", description = "Process failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ProcessResponse.class)))
     public Response create(NewOrganizationInput input) {
         Model model = process.createModel();
         Map<String, Object> newOrganizationParameters = input.toModel();
@@ -124,16 +129,16 @@ public class OrganizationResource {
         ProcessInstance<? extends Model> instance = process.createInstance(model);
         instance.start();
 
-        CreateOrganizationResponse createOrganizationResponse = new CreateOrganizationResponse(instance.id(),
+        ProcessResponse processResponse = new ProcessResponse(instance.id(),
                 instance.error().map(x -> x.errorCause().getCause().getMessage()).orElse(null));
 
         if (instance.error().isPresent()) {
             throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(createOrganizationResponse).build());
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(processResponse).build());
         }
 
         return Response.accepted()
-                .entity(createOrganizationResponse)
+                .entity(processResponse)
                 .build();
     }
 
@@ -159,4 +164,34 @@ public class OrganizationResource {
 
         return result;
     }
+
+    @POST
+    @Path("{slug}/member")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+//    @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
+//    @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
+    @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
+    public Response inviteMemberToOrganisation(@PathParam("slug") String slug, InviteMemberInput input) {
+        Model model = addMemberProcess.createModel();
+        Map<String, Object> inviteMemberParameters = input.toModel(slug);
+        model.fromMap(inviteMemberParameters);
+        ProcessInstance<? extends Model> instance = addMemberProcess.createInstance(model);
+        instance.start();
+
+        ProcessResponse processResponse = new ProcessResponse(instance.id(),
+                instance.error().map(x -> x.errorCause().getCause().getMessage()).orElse(null));
+
+        if (instance.error().isPresent()) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(processResponse).build());
+        }
+
+        return Response.accepted()
+                .entity(processResponse)
+                .build();
+    }
+
+
 }
