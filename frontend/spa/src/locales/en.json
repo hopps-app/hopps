@@ -6,7 +6,13 @@
   "common": {
     "refresh": "Refresh",
     "upload": "Upload",
-    "addNew": "Add new"
+    "addNew": "Add new",
+    "close": "Close",
+    "search": "Search",
+    "noItems": "No items to show",
+    "goBack": "Back",
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "header": {
     "logout": "Logout",
@@ -14,7 +20,23 @@
     "register": "Register"
   },
   "invoiceUpload": {
-    "title": "Upload invoice"
+    "title": "Upload new Invoice",
+    "assign": "Assign to",
+    "chooseFile": "Choose file",
+    "upload": "Upload",
+    "uploadFailed": "Failed to upload invoice",
+    "uploadSuccess": "Invoice successfully uploaded",
+    "dragDrop": "Drag & Drop files here",
+    "fileType": "PDF or JPG file",
+    "dragFile": "Drop the files here...",
+    "fileTooLarge": "File is too large, maximum size 5MB",
+    "totalTooLarge": "Total file size exceeds the 20MB limit.",
+    "maxFilesExceeded": "Maximum of 10 files allowed.",
+    "selectBommel": "Select bommel",
+    "privately": "Privately paid",
+    "invoice": "Invoice",
+    "receipt": "Receipt",
+    "docType": "Transaction type"
   },
   "invoices": {
     "loadFailed": "Failed to load invoices",
@@ -32,9 +54,11 @@
       "invoicesPart": "invoices with sum"
     },
     "table": {
+      "newInvoice": "new Invoice",
       "date": "Date",
       "bommel": "Bommel",
-      "amount": "Amount"
+      "amount": "Amount",
+      "name": "Name"
     }
   },
   "organization": {

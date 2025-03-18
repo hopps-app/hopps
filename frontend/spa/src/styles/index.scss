@@ -37,6 +37,7 @@
         --font-family: "Reddit Sans", reddit;
         --body-background: #f5EEFA;
         --muted: #888888;
+        --border: #797979;
         --popover: #FFFFFF;
         --popover-foreground: #000000;
         --accent: #f1f1f1;
@@ -47,6 +48,7 @@
         --hover-effect: #F5F5F5;
         --radius: 8px;
         --font: 16px;
+        --btn-radius: 10px;
     }
 
     .dark {
@@ -61,6 +63,7 @@
         --font-family: "Reddit Sans", reddit;
         --body-background: #1C0C28;
         --muted: #888888;
+        --border: #797979;
         --popover: #FFFFFF;
         --popover-foreground: #000000;
         --accent: #3b1951;
@@ -71,6 +74,7 @@
         --border-line: #585858;
         --radius: 8px;
         --font: 16px;
+        --btn-radius: 10px;
     }
 }
 

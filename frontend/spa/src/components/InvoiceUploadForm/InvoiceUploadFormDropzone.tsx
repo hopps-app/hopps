@@ -1,26 +1,39 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import './styles/InvoiceuploadFormDropzone.scss';
+
+import { FC, useCallback, useEffect, useState } from 'react';
 import { FileWithPath, useDropzone } from 'react-dropzone';
+import { useTranslation } from 'react-i18next';
 
+import save from '@/assets/save.svg';
 import { cn } from '@/lib/utils.ts';
+import Button from '@/components/ui/Button.tsx';
+import { useToast } from '@/hooks/use-toast';
 
-interface Props {
+type InvoiceUploadFormDropzoneProps = {
     onFilesChanged: (file: FileWithPath[]) => void;
-}
+};
 
-const InvoiceUploadFormDropzone: React.FC<Props> = (props: Props) => {
+const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFilesChanged }) => {
+    const { t } = useTranslation();
+    const { showError } = useToast();
+
     const [isHighlightDrop, setIsHighlightDrop] = useState(false);
 
     const onDrop = useCallback(() => {
         setIsHighlightDrop(false);
     }, []);
+
     const onDragEnter = useCallback(() => {
         setIsHighlightDrop(true);
     }, []);
+
     const onDragLeave = useCallback(() => {
         setIsHighlightDrop(false);
     }, []);
+
     const onDragOver = useCallback(() => {}, []);
-    const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
+
+    const { getRootProps, getInputProps, isDragActive, acceptedFiles, fileRejections } = useDropzone({
         accept: {
             'image/png': ['.png'],
             'image/jpeg': ['.jpeg', '.jpg'],
@@ -31,23 +44,36 @@ const InvoiceUploadFormDropzone: React.FC<Props> = (props: Props) => {
         onDragLeave,
         onDragOver,
         onDrop,
+        maxSize: 5000000,
     });
-    const isAnyFileSelected = acceptedFiles.length > 0;
 
     useEffect(() => {
-        props.onFilesChanged(acceptedFiles);
+        onFilesChanged([...acceptedFiles]);
     }, [acceptedFiles]);
+
+    useEffect(() => {
+        if (fileRejections.length > 0) {
+            fileRejections.forEach(({ errors }) => {
+                errors.forEach(() => showError(t('invoiceUpload.fileTooLarge')));
+            });
+        }
+    }, [fileRejections]);
 
     function getDropzoneText() {
         if (isDragActive) {
-            return <p>Drop the files here...</p>;
+            return <p>{t('invoiceUpload.dragFile')}</p>;
         }
 
-        if (isAnyFileSelected) {
-            return <p>{acceptedFiles[0].name}</p>;
-        }
-
-        return <p>Drag 'n' drop some files here, or click to select files</p>;
+        return (
+            <div className="flex flex-col gap-2 items-center">
+                <img src={save} alt="save" width="83" height="83" />
+                <p className="text-[var(--border)]">
+                    <b className="font-bold text-xl">{t('invoiceUpload.dragDrop')}</b> <br />{' '}
+                    <span className="text-xs font-medium">{t('invoiceUpload.fileType')}</span>
+                </p>
+                <Button className="min-w-28 px-5 py-2 flex rounded-[0.625rem] items-center h-8 text-md">{t('invoiceUpload.chooseFile')}</Button>
+            </div>
+        );
     }
 
     const DropzoneText = getDropzoneText();
@@ -55,11 +81,11 @@ const InvoiceUploadFormDropzone: React.FC<Props> = (props: Props) => {
     return (
         <div
             {...getRootProps()}
-            className={cn('flex flex-col justify-center border-4 border-dashed border-gray-400 p-6 rounded-md text-center min-h-72', {
-                'border-primary': isHighlightDrop,
+            className={cn('border-2 border-dashed border-gray-600 rounded-lg flex flex-col justify-center items-center dropzone text-center min-h-72 w-full', {
+                'border-gray-400': isHighlightDrop,
             })}
         >
-            <input {...getInputProps()} />
+            <input {...getInputProps()} type="file" />
             {DropzoneText}
         </div>
     );

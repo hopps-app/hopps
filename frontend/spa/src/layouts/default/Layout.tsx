@@ -22,7 +22,7 @@ function Layout() {
                 {isBannerVisible && <Banner />}
                 <div className="flex flex-col mx-auto size-full" style={{ maxWidth: 1360, padding: '0 40px' }}>
                     <Header />
-                    <div className="min-h-[calc(100vh-80px)]">
+                    <div className="min-h-[calc(100vh-80px)] pb-9">
                         <Routes>
                             <Route path="/" element={<HomeView />} />
                             <Route path="/demo" element={<DemoView />} />

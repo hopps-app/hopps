@@ -4,9 +4,9 @@ import * as _ from 'lodash';
 import { Label } from './Label.tsx';
 import { BaseSelect, SelectItem, SelectContent, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/shadecn/BaseSelect.tsx';
 
-interface SelectItem {
+export interface SelectItem {
     label: string;
-    value: string;
+    value: string | number;
 }
 
 interface SelectProps {
@@ -24,10 +24,10 @@ function Select(props: SelectProps) {
     const [isOpened, setIsOpened] = useState(false);
 
     return (
-        <div className={`grid w-full max-w-sm items-center gap-1.5 ${className}`}>
+        <div className={`grid w-full items-center gap-1.5 ${className}`}>
             {label && <Label htmlFor={id}>{label}</Label>}
             <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} onOpenChange={setIsOpened} {...otherProps}>
-                <SelectTrigger className={'w-[180px]' + (isOpened ? ' rounded ring-2 ring-primary' : '')}>
+                <SelectTrigger className={isOpened ? ' rounded ring-2 ring-primary' : ''}>
                     <SelectValue placeholder={placeholder || 'Select'} className="placeholder:text-muted" />
                 </SelectTrigger>
                 <SelectContent>

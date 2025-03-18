@@ -1,22 +1,25 @@
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
-import './InvoicesTable.scss';
+import './styles/InvoicesTable.scss';
 
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { AgGridReact } from 'ag-grid-react';
 import { CellMouseOverEvent, ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
+import { AgGridReact } from 'ag-grid-react';
 import moment from 'moment';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import AgGridSetFilter from '@/components/AgGrid/agGridSetFilter';
 import BommelCellRenderer from '@/components/InvoicesTable/BommelCellRenderer/BommelCellRenderer.tsx';
+import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
+import InvoiceUploadForm from '@/components/InvoiceUploadForm/InvoiceUploadForm.tsx';
+import InvoiceTableHeader from './InvoiceTableHeader';
 
 interface Props {
     invoices: InvoicesTableData[];
+    reload: () => void;
 }
 
-const InvoicesTable = ({ invoices }: Props) => {
+const InvoicesTable = ({ invoices, reload }: Props) => {
     const { t, i18n } = useTranslation();
 
     const dateFormat = import.meta.env.VITE_GENERAL_DATE_FORMAT;
@@ -26,6 +29,8 @@ const InvoicesTable = ({ invoices }: Props) => {
     const [rowData, setRowData] = useState<InvoicesTableData[]>([]);
     const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
     const [filteredData, setFilteredData] = useState<InvoicesTableData[]>(invoices);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isUploadInvoice, setIsUploadInvoice] = useState(false);
 
     const formatNumber = (value: number) => {
         return new Intl.NumberFormat(i18n.language, {
@@ -38,6 +43,10 @@ const InvoicesTable = ({ invoices }: Props) => {
         setRowData(invoices);
         setColumnDefs(getColumnDefs());
     }, [invoices]);
+
+    useEffect(() => {
+        api?.setGridOption('quickFilterText', searchQuery);
+    }, [searchQuery]);
 
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
@@ -68,14 +77,18 @@ const InvoicesTable = ({ invoices }: Props) => {
     function getColumnDefs(): ColDef<InvoicesTableData>[] {
         return [
             {
-                headerName: `${t('invoices.table.date')}`,
-                field: 'date',
+                headerName: `${t('invoices.table.name')}`,
+                field: 'name',
                 filter: 'agDateColumnFilter',
-                width: 150,
                 flex: 1,
-                valueFormatter: (params) => moment(params.value).format(dateFormat),
             },
-
+            {
+                headerName: `Id`,
+                field: 'id',
+                filter: AgGridSetFilter,
+                filterParams: { items: getBommelFilterItems() },
+                flex: 1,
+            },
             {
                 headerName: `${t('invoices.table.bommel')}`,
                 field: 'bommel',
@@ -89,8 +102,16 @@ const InvoicesTable = ({ invoices }: Props) => {
                 field: 'amount',
                 filter: 'agNumberColumnFilter',
                 flex: 1,
-                cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', paddingLeft: '4px' },
+                cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', border: 'none', paddingLeft: '4px' },
                 valueFormatter: (params) => `${formatNumber(params.value)}${currencySymbolAfter || ''}`,
+            },
+            {
+                headerName: `${t('invoices.table.date')}`,
+                field: 'date',
+                filter: 'agDateColumnFilter',
+                width: 150,
+                flex: 1,
+                valueFormatter: (params) => moment(params.value).format(dateFormat),
             },
             {
                 headerName: '',
@@ -120,6 +141,13 @@ const InvoicesTable = ({ invoices }: Props) => {
         [setApi]
     );
 
+    const onUploadInvoiceChange = () => {
+        setIsUploadInvoice(!isUploadInvoice);
+        if (isUploadInvoice) {
+            reload();
+        }
+    };
+
     const Grid = useMemo(
         () => (
             <AgGridReact
@@ -140,10 +168,20 @@ const InvoicesTable = ({ invoices }: Props) => {
     );
 
     return (
-        <div className="invoices-table ag-theme-quartz w-full">
-            {Grid}
-            <div className="h-10 leading-10 text-right font-semibold">{summary}</div>
-        </div>
+        <>
+            {isUploadInvoice ? (
+                <InvoiceUploadForm onUploadInvoiceChange={onUploadInvoiceChange} />
+            ) : (
+                <div className="invoices-wrapper  w-full flex flex-col gap-2">
+                    <InvoiceTableHeader onUploadInvoiceChange={onUploadInvoiceChange} setSearchQuery={setSearchQuery} />
+
+                    <div className="invoices-table ag-theme-quartz w-full">
+                        {Grid}
+                        <div className="h-10 leading-10 text-right font-semibold">{summary}</div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 
