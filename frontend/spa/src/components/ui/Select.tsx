@@ -33,8 +33,7 @@ function Select(props: SelectProps) {
                 <SelectContent>
                     <SelectGroup>
                         {items.map((item) => (
-                            <SelectItem key={item.value} value={item.value}>
-                                {' '}
+                            <SelectItem key={item.value} value={String(item.value)}>
                                 {item.label}
                             </SelectItem>
                         ))}

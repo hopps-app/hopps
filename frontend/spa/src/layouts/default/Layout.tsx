@@ -10,7 +10,6 @@ import AuthGuard from '@/guards/AuthGuard.tsx';
 import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
 import { RegisterOrganizationView } from '@/components/views/RegisterOrganizationView.tsx';
 import { useStore } from '@/store/store.ts';
-import InvoiceUploadView from '@/components/views/InvoiceUploadView.tsx';
 
 function Layout() {
     const authStore = useStore();
@@ -27,14 +26,6 @@ function Layout() {
                             <Route path="/" element={<HomeView />} />
                             <Route path="/demo" element={<DemoView />} />
                             <Route path="/register" element={<RegisterOrganizationView />} />
-                            <Route
-                                path="/invoice-upload"
-                                element={
-                                    <AuthGuard>
-                                        <InvoiceUploadView />
-                                    </AuthGuard>
-                                }
-                            />
                             <Route
                                 path="/settings/*"
                                 element={

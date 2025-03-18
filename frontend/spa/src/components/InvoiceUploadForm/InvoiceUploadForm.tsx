@@ -141,16 +141,13 @@ const InvoiceUploadForm: FC<InvoiceUploadFormType> = ({ onUploadInvoiceChange })
 
             showSuccess('All files uploaded successfully');
             clearState();
+            onUploadInvoiceChange();
         } catch (e) {
             console.error(e);
             showError('Failed to upload invoices');
         } finally {
             setIsUploading(false);
         }
-    };
-
-    const onClickCancel = () => {
-        onUploadInvoiceChange();
     };
 
     const onClickRemoveSelected = (indexCurrent: number) => {
@@ -211,7 +208,7 @@ const InvoiceUploadForm: FC<InvoiceUploadFormType> = ({ onUploadInvoiceChange })
                 </div>
             </div>
 
-            <InvoiceUploadFormAction onCancel={onClickCancel} onUpload={uploadInvoices} isValid={isValidUpload} />
+            <InvoiceUploadFormAction onCancel={onUploadInvoiceChange} onUpload={uploadInvoices} isValid={isValidUpload} />
         </div>
     );
 };

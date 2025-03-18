@@ -1,6 +1,6 @@
 import { BommelService } from '@/services/api/BommelService.ts';
 import { OrganizationService } from '@/services/api/OrganizationService.ts';
-import { InvoicesService } from '@/services/api/InvoicesService';
+import { InvoicesService } from '@/services/api/invoicesService';
 
 export class ApiService {
     public orgUrl: string;

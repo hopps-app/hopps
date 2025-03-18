@@ -8,7 +8,7 @@ import Progress from '@/components/ui/Progress.tsx';
 interface ListItemProps {
     title: string;
     icon?: RadixIcons;
-    iconSize?: string;
+    iconSize?: number | 'md' | 'sm' | 'lg' | undefined;
     index: number;
     active?: boolean;
     onClick?: () => void;
@@ -33,7 +33,7 @@ const ListItem: React.FC<ListItemProps> = ({ title, icon, iconSize, active, onCl
 
                 {isRemovableListItem && (
                     <Button
-                        onClick={() => onClickRemove(index)}
+                        onClick={() => onClickRemove && onClickRemove(index)}
                         className="min-w-[25px] bg-transparent p-0 flex items-center h-6 text-xs text-[var(--font-color) hover:text-[var(--primary-foreground)]"
                         icon="Cross2"
                     />

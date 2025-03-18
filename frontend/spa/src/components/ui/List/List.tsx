@@ -9,7 +9,7 @@ type ListItemType = {
     id: string;
     title: string;
     icon?: RadixIcons;
-    iconSize?: string;
+    iconSize?: number | 'md' | 'sm' | 'lg' | undefined;
     active?: boolean;
     onClick?: () => void;
     progress?: number;
@@ -18,7 +18,7 @@ type ListItemType = {
 interface ListProps {
     items: ListItemType[];
     isRemovableListItem?: boolean;
-    onClickRemove?: (id: number | string) => void;
+    onClickRemove?: (id: number) => void;
     className?: string;
     children?: React.ReactNode;
 }
@@ -39,9 +39,8 @@ const List: React.FC<ListProps> = ({ items, className, children, isRemovableList
                         onClick={item.onClick}
                         onClickRemove={onClickRemove}
                         index={index}
-                        isRemovableListItem={isRemovableListItem}
+                        isRemovableListItem={isRemovableListItem ?? false}
                         progress={item.progress}
-                        isLoading={item.progress !== undefined && item.progress < 100}
                         className={cn(
                             'h-10 leading-10 px-4 ',
                             item.active ? 'bg-accent border-l-4 border-primary' : 'pl-[calc(1rem+4px)]',
