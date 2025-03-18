@@ -28,6 +28,9 @@ secretGenerator:
   - name: postgres-operator-secret
     envs:
       - secrets/postgres-cluster-secret-encrypted.env
+  - name: openai-api-key
+    envs:
+      - secrets/openai-api-key-encrypted.env
   # basic auth for kafka-ui
   - name: kafka-ui-auth
     envs:
