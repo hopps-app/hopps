@@ -44,7 +44,7 @@ function EmojiField(props: EmojiFieldProps) {
                             props.className
                         )}
                     >
-                        <div className="text-muted">{selectedEmoji ? <Emoji emoji={selectedEmoji} /> : <span className="px-[10px]"></span>}</div>
+                        <div className="text-muted">{selectedEmoji ? <Emoji emoji={selectedEmoji} /> : <span className="px-[var(--btn-radius)]"></span>}</div>
                         <SelectPrimitive.Icon asChild>
                             <CaretSortIcon className="h-4 w-4 opacity-50" />
                         </SelectPrimitive.Icon>

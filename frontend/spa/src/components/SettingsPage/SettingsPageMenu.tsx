@@ -12,7 +12,8 @@ interface SettingsPageMenuProps {
 }
 
 function SettingsPageMenu({ items, activeTab, onChange }: SettingsPageMenuProps) {
-    const listItems = items.map((item) => ({
+    const listItems = items.map((item, index) => ({
+        id: item.title + index,
         title: item.title,
         onClick: () => onChange(item.value),
         active: activeTab === item.value,

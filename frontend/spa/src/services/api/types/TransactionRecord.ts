@@ -18,3 +18,10 @@ export type TransactionRecord = {
     amountDue: number;
     currencyCode: string;
 };
+
+export enum Transaction {
+    INVOICE = 'INVOICE',
+    RECEIPT = 'RECEIPT',
+}
+
+export type TransactionType = Transaction | string;

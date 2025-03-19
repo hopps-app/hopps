@@ -1,17 +1,16 @@
-import './BommelCellRenderer.scss';
+import './styles/BommelCellRenderer.scss';
 import { ICellRendererParams } from 'ag-grid-community';
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
-import { debounce } from 'lodash';
 import { useTranslation } from 'react-i18next';
 
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';
 import Button from '@/components/ui/Button.tsx';
-import BommelCellHeader from '@/components/InvoicesTable/BommelCellRenderer/BommelCellHeader.tsx';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import BommelCellList from '@/components/InvoicesTable/BommelCellRenderer/BommelCellList';
 import apiService from '@/services/ApiService';
 import { useToast } from '@/hooks/use-toast';
+import SearchField from '@/components/ui/SearchField/SearchField';
 
 const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
     const { t } = useTranslation();
@@ -25,13 +24,6 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
     const onPopoverOpenChange = (isOpen: boolean) => {
         setIsPopoverVisible(isOpen);
     };
-
-    const debouncedSearch = useCallback(
-        debounce((query) => {
-            setSearchQuery(query);
-        }, 300),
-        [setSearchQuery]
-    );
 
     const filteredBommels = useMemo(() => {
         if (!searchQuery) return allBommels;
@@ -86,8 +78,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="assign-popover">
-                <BommelCellHeader onSearch={debouncedSearch} onClose={onClosePopover} />
-
+                <SearchField onSearch={setSearchQuery} onClose={onClosePopover} />
                 <div className="w-full flex flex-col justify-between h-44 items-start">
                     <LoadingOverlay isEnabled={isLoading} />
                     {filteredBommels.length ? (
@@ -103,7 +94,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
                     <div className="w-full border-t-[1px] border-t-[var(--separator)] border-solid">
                         <Button
                             icon="Plus"
-                            className="mt-2 max-w-32 rounded-[10px] bg-transparent hover:bg-[var(--accent)]  border-[1px] border-solid border-[var(--border-line)] text-xs text-[var(--border-line)] ml-5 max-h-6"
+                            className="mt-2 max-w-32 rounded-[var(--btn-radius)] bg-transparent hover:bg-[var(--accent)]  border-[1px] border-solid border-[var(--border-line)] text-xs text-[var(--border-line)] ml-5 max-h-6"
                         >
                             {t('invoices.assignPopover.newBommel')}
                         </Button>

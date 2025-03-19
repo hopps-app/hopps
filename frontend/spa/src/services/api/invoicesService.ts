@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios';
 
 import { InvoicesTableData } from '@/components/InvoicesTable/types';
-import { TransactionRecord } from '@/services/api/types/TransactionRecord.ts';
+import { TransactionRecord, TransactionType } from '@/services/api/types/TransactionRecord.ts';
 import axiosService from '@/services/AxiosService.ts';
 
 export class InvoicesService {
@@ -38,6 +38,7 @@ export class InvoicesService {
             id: transaction.id,
             amount: transaction.total,
             bommel: transaction.bommelId,
+            name: transaction.name,
             date: transaction.transactionTime,
         }));
     }
@@ -47,5 +48,22 @@ export class InvoicesService {
         const response = await this.axiosInstance.patch(url);
 
         return response.data;
+    }
+
+    async uploadInvoice(file: File, bommelId: number, type: TransactionType, privatelyPaid: boolean) {
+        if (!(file instanceof File)) return;
+
+        const formData = new FormData();
+
+        formData.append('file', file);
+        formData.append('bommelId', String(bommelId));
+        formData.append('type', type);
+        formData.append('privatelyPaid', String(privatelyPaid));
+
+        return await this.axiosInstance.post(`${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/document`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
     }
 }

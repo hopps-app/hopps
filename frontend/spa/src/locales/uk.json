@@ -5,12 +5,37 @@
   },
   "common": {
     "refresh": "Оновити",
-    "addNew": "Додати новий"
+    "upload": "Завантажити",
+    "addNew": "Додати новий",
+    "close": "Закрити",
+    "noItems": "Немає елементів для відображення",
+    "search": "Пошук"
   },
   "header": {
     "login": "Увійти",
     "logout": "Вийти",
     "register": "Зареєструватися"
+  },
+  "invoiceUpload": {
+    "title": "Завантажити новий рахунок-фактуру",
+    "assign": "Призначити до",
+    "chooseFile": "Виберіть файл",
+    "upload": "Завантажити",
+    "uploadFailed": "Не вдалося завантажити рахунок-фактуру",
+    "uploadSuccess": "Рахунок-фактура успішно завантажено",
+    "dragDrop": "Перетягніть файли сюди",
+    "dragFile": "Перетягніть файли сюди...",
+    "fileTooLarge": "Файл завеликий, максимальний розмір 5MB",
+    "totalTooLarge": "Загальний розмір файлів перевищує ліміт у 20MB.",
+    "maxFilesExceeded": "Дозволено не більше 10 файлів.",
+    "selectBommel": "Обрати боммель",
+    "goBack": "Назад",
+    "cancel": "Скасувати",
+    "save": "Зберегти",
+    "privately": "Оплачено приватно",
+    "invoice": "Рахунок",
+    "receipt": "Квитанція",
+    "docType": "Тип квитанції"
   },
   "invoices": {
     "loadFailed": "Не вдалося завантажити рахунки",
@@ -28,9 +53,11 @@
       "invoicesPart": "рахунки на суму"
     },
     "table": {
+      "newInvoice": "Новий рахунок",
       "date": "Дата",
       "bommel": "Боммель",
-      "amount": "Сума"
+      "amount": "Сума",
+      "name": "Ім’я"
     }
   },
   "organization": {
@@ -48,6 +75,9 @@
     "buttons": {
       "addNew": "Додати новий"
     }
+  },
+  "organizationTree": {
+    "createNode": "Додати новий"
   },
   "profile": {
     "settings": {

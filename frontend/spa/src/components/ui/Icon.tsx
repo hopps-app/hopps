@@ -8,9 +8,10 @@ export interface IconProps {
     customSvg?: React.ReactNode;
     size?: number | 'sm' | 'md' | 'lg';
     className?: string;
+    color?: string;
 }
 
-function Icon({ icon, customSvg, ...props }: IconProps) {
+function Icon({ icon, color, customSvg, ...props }: IconProps) {
     const IconComponent = icons[(icon + 'Icon') as keyof typeof icons];
 
     if (customSvg) {
@@ -37,7 +38,7 @@ function Icon({ icon, customSvg, ...props }: IconProps) {
         size.height = 36;
     }
 
-    return <IconComponent {...props} {...size} />;
+    return <IconComponent {...props} {...size} color={color} />;
 }
 
 export default Icon;

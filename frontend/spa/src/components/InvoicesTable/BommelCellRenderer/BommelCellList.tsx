@@ -61,7 +61,7 @@ const BommelCellList = ({ filteredBommels, reassignTransaction, currentBommelId,
     }, [focusedIndex]);
 
     const handleMouseMove = (index: number) => {
-        if (inputMode === 'keyboard') return; // Ignore mouse movement if using keyboard
+        if (inputMode === 'keyboard') return;
         setInputMode('mouse');
         if (focusedIndex !== index) setFocusedIndex(index);
     };
@@ -73,7 +73,7 @@ const BommelCellList = ({ filteredBommels, reassignTransaction, currentBommelId,
                 const isHighlighted = index === focusedIndex;
                 const getActiveBommel = () => {
                     if (isActive) return 'bg-[var(--hover-active)]';
-                    if (isHighlighted) return 'bg-[var(--hover-effect)]';
+                    if (isHighlighted) return 'bg-[var(--hover-effect)] text-[var(--font-color)]';
                     return 'hover:bg-[var(--hover-effect)]';
                 };
 
@@ -82,7 +82,7 @@ const BommelCellList = ({ filteredBommels, reassignTransaction, currentBommelId,
                         key={bommel.id}
                         ref={(el) => (itemRefs.current[index] = el)}
                         onMouseMove={() => handleMouseMove(index)}
-                        className={`w-full flex justify-between items-center py-2 pl-5 pr-5 border-b-[1px] border-b-[var(--separator)] last-of-type:border-none text-sm ${getActiveBommel()}`}
+                        className={`w-full flex justify-between items-center py-2 pl-5 pr-5 border-b-[1px] border-b-[var(--separator)] last-of-type:border-none text-sm hover:text-[var(--font-color)] ${getActiveBommel()}`}
                     >
                         <button className="w-full text-start flex items-center focus:outline-none" onClick={() => reassignTransaction(bommel.id)}>
                             <span>{bommel.name}</span>
