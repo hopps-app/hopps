@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hopps.finNarratorFullname" . }}
+  labels:
+    {{- include "hopps.finNarratorLabels" . | nindent 4 }}
+spec:
+  {{- if not .Values.finNarrator.autoscaling.enabled }}
+  replicas: {{ .Values.finNarrator.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hopps.finNarratorSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.finNarrator.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hopps.finNarratorSelectorLabels" . | nindent 8 }}
+        {{- with .Values.finNarrator.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.finNarrator.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.finNarrator.serviceAccount.create }}
+      serviceAccountName: {{ .Values.finNarrator.serviceAccount.name | default (include "hopps.finNarratorFullname" .) }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.finNarrator.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- if .Values.finNarrator.envVars }}
+          env:
+            {{- toYaml .Values.finNarrator.envVars | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.finNarrator.securityContext | nindent 12 }}
+          image: "{{ .Values.finNarrator.image.repository }}:{{ .Values.finNarrator.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.finNarrator.image.pullPolicy }}
+          {{- with .Values.finNarrator.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.finNarrator.service.port }}
+              protocol: TCP
+            - name: management
+              containerPort: 9000
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.finNarrator.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.finNarrator.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.finNarrator.resources | nindent 12 }}
+          {{- with .Values.finNarrator.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.finNarrator.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.finNarrator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.finNarrator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.finNarrator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
