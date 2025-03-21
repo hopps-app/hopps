@@ -83,7 +83,7 @@ public class OrganizationResource {
         String userName = securityContext.getUserPrincipal().getName();
         Member me = memberRepository.findByEmail(userName);
         if (me == null) {
-            throw new NotFoundException("Organization of User not found");
+            throw new NotFoundException("User not found in database");
         }
 
         Collection<Organization> orgs = me.getOrganizations();
@@ -92,7 +92,9 @@ public class OrganizationResource {
                     "More than one organization is currently not implemented. User:  " + userName);
         }
 
-        return orgs.stream().findFirst().orElseThrow();
+        return orgs.stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Organization of user not found"));
     }
 
     @GET
