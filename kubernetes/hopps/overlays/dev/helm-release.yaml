@@ -97,6 +97,9 @@ spec:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         - name: kafka.bootstrap.servers
           value: hopps-kafka:9092
+        # fin-narrator
+        - name: HOPPS_FIN_NARRATOR_SERVICE_URL
+          value: http://hopps-fin-narrator:8080/
       ingress:
         enabled: true
         annotations:
