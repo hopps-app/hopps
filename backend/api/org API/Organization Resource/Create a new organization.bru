@@ -1,0 +1,36 @@
+meta {
+  name: Create a new organization
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/organization
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "owner": {
+      "email": "",
+      "firstName": "",
+      "lastName": ""
+    },
+    "newPassword": "",
+    "organization": {
+      "name": "",
+      "slug": "",
+      "type": "",
+      "website": "",
+      "profilePicture": "",
+      "address": {
+        "street": "",
+        "number": "",
+        "city": "",
+        "plz": "",
+        "additionalLine": ""
+      }
+    }
+  }
+}
