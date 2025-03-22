@@ -26,8 +26,8 @@ public class ExcelHelper {
             new ExcelColumn("Type", t -> t.getDocument().name()),
             new ExcelColumn("Uploader", TransactionRecord::getUploader),
             new ExcelColumn("Transaction time", t -> handleLocalDateTime(t.getTransactionTime())),
-            new ExcelColumn("Total", t -> transformBigDecimal(t.getTotal())),
-            new ExcelColumn("Amount due", t -> transformBigDecimal(t.getAmountDue())),
+            new ExcelColumn("Total", t -> transformBigDecimal(t.getTotal()), true),
+            new ExcelColumn("Amount due", t -> transformBigDecimal(t.getAmountDue()), true),
             new ExcelColumn("Due date", t -> handleLocalDate(t.getDueDate())),
             new ExcelColumn("Invoice Id", TransactionRecord::getInvoiceId),
             new ExcelColumn("Privately paid", TransactionRecord::isPrivatelyPaid),
@@ -77,15 +77,27 @@ public class ExcelHelper {
             return;
         }
 
+        String currencyCode = records.getFirst().getCurrencyCode();
         XSSFRow sumRow = sheet.createRow(records.size() + 1);
 
-        // TODO: Should not be a index of column
-        XSSFCell totalCell = sumRow.createCell(4);
-        handleNumericCell(xssfWorkbook, totalCell, records.size());
+        for (int i = 0; i < EXCEL_COLUMNS.size(); i++) {
+            ExcelColumn excelColumn = EXCEL_COLUMNS.get(i);
+            if (!excelColumn.monetary()) {
+                continue;
+            }
 
-        // TODO: Should not be a index of column
-        XSSFCell amountDueCell = sumRow.createCell(5);
-        handleNumericCell(xssfWorkbook, amountDueCell, records.size());
+            XSSFCell cell = sumRow.createCell(i);
+            XSSFCellStyle monetaryCellFormat = createMonetaryCellFormat(xssfWorkbook, currencyCode);
+            cell.setCellStyle(monetaryCellFormat);
+            handleNumericCell(xssfWorkbook, cell, records.size());
+        }
+    }
+
+    public static void handleMoney(XSSFWorkbook wb, Double val, String currencyCode, XSSFCell cell) {
+        XSSFCellStyle cellStyle = createMonetaryCellFormat(wb, currencyCode);
+        cell.setCellStyle(cellStyle);
+
+        cell.setCellValue(val);
     }
 
     // Private stuff
@@ -124,21 +136,6 @@ public class ExcelHelper {
         return amount.setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    private static String buildCurrencyString(BigDecimal amount, String currencyCode) {
-        if (amount == null) {
-            return "";
-        }
-
-        String amountStringify = amount.setScale(2, RoundingMode.HALF_UP).toString();
-        String symbolFromCode = getSymbolFromCode(currencyCode);
-
-        return String.format("%s %s", amountStringify, symbolFromCode);
-    }
-
-    private static String getSymbolFromCode(String currencyCode) {
-        return Currency.getInstance(currencyCode).getSymbol();
-    }
-
     private static void handleNumericCell(XSSFWorkbook xssfWorkbook, XSSFCell cell, int lastRow) {
         String reference = cell.getReference();
         // Remove the row number
@@ -150,5 +147,11 @@ public class ExcelHelper {
         // Now evaluate
         XSSFFormulaEvaluator formulaEvaluator = xssfWorkbook.getCreationHelper().createFormulaEvaluator();
         formulaEvaluator.evaluateFormulaCell(cell);
+    }
+
+    private static XSSFCellStyle createMonetaryCellFormat(XSSFWorkbook wb, String currencyCode) {
+        XSSFCellStyle cellStyle = wb.createCellStyle();
+        cellStyle.setDataFormat(wb.createDataFormat().getFormat("#.## " + Currency.getInstance(currencyCode).getSymbol()));
+        return cellStyle;
     }
 }
