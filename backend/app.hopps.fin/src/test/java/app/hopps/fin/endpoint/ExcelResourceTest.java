@@ -28,7 +28,7 @@ class ExcelResourceTest {
                 .body()
                 .asByteArray();
 
-        File file = new File("src/test/resources/excel.xlsx");
+        File file = new File("target/bommels.xlsx");
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             IOUtils.write(byteArray, fileOutputStream);
