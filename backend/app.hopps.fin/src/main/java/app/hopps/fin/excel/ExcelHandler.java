@@ -1,5 +1,7 @@
 package app.hopps.fin.excel;
 
+import app.hopps.fin.client.Bommel;
+import app.hopps.fin.client.OrgRestClient;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.panache.common.Page;
@@ -12,12 +14,16 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static app.hopps.fin.excel.ExcelHelper.EXCEL_COLUMNS;
 import static app.hopps.fin.excel.ExcelHelper.buildHeaderRow;
@@ -29,10 +35,12 @@ public class ExcelHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ExcelHandler.class);
 
     private final TransactionRecordRepository transactionRecordRepository;
+    private final OrgRestClient orgRestClient;
 
     @Inject
-    public ExcelHandler(TransactionRecordRepository transactionRecordRepository) {
+    public ExcelHandler(TransactionRecordRepository transactionRecordRepository, @RestClient OrgRestClient orgRestClient) {
         this.transactionRecordRepository = transactionRecordRepository;
+        this.orgRestClient = orgRestClient;
     }
 
     public void updateExcel(XSSFWorkbook xssfWorkbook, Long bommelId) {
@@ -40,6 +48,13 @@ public class ExcelHandler {
 
         XSSFSheet sheet = xssfWorkbook.createSheet("TransactionRecords");
         XSSFRow header = buildHeaderRow(xssfWorkbook, sheet);
+
+        Map<Long, String> bommelIdToNameMap = new HashMap<>();
+        // TODO: Get a set of bommelIds and then get the names into a map
+        records.stream().map(TransactionRecord::getBommelId).collect(Collectors.toSet()).forEach(id -> {
+            Bommel bommel = orgRestClient.getBommel(id);
+            bommelIdToNameMap.put(id, bommel.name());
+        });
 
         for (int i = 1; i <= records.size(); i++) {
             TransactionRecord transactionRecord = records.get(i - 1);
@@ -49,11 +64,17 @@ public class ExcelHandler {
             for (int j = 0; j < EXCEL_COLUMNS.size(); j++) {
                 ExcelColumn excelColumn = EXCEL_COLUMNS.get(j);
                 Object transactionValue = excelColumn.value().apply(transactionRecord);
-                if (transactionValue == null) {
+
+                XSSFCell cell = row.createCell(j);
+
+                if ("bommelName".equals(excelColumn.headerKey())) {
+                    cell.setCellValue(bommelIdToNameMap.get(transactionRecord.getBommelId()));
                     continue;
                 }
 
-                XSSFCell cell = row.createCell(j);
+                if (transactionValue == null) {
+                    continue;
+                }
 
                 // setCellValue cannot work with Object.class
                 switch (transactionValue) {
