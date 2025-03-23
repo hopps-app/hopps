@@ -31,8 +31,8 @@ public class ExcelHelper {
             new ExcelColumn("Due date", t -> handleLocalDate(t.getDueDate())),
             new ExcelColumn("Invoice Id", TransactionRecord::getInvoiceId),
             new ExcelColumn("Privately paid", TransactionRecord::isPrivatelyPaid),
-            new ExcelColumn("Bommel ID", TransactionRecord::getBommelId),
-            new ExcelColumn("Bommel name", TransactionRecord::getName),
+            new ExcelColumn("bommelId", TransactionRecord::getBommelId),
+            new ExcelColumn("bommelName", t -> null),
 
             // Sender
             new ExcelColumn("S. Name", t -> t.getSender().getName()),
