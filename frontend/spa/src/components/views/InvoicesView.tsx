@@ -41,7 +41,7 @@ function InvoicesView() {
         setIsError(false);
 
         try {
-            await loadBommels(store.organization.id);
+            await loadBommels(store.organization.slug);
             await loadInvoices();
         } catch (e) {
             console.error(e);
