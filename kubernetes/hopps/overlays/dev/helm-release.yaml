@@ -100,6 +100,9 @@ spec:
         # fin-narrator
         - name: HOPPS_FIN_NARRATOR_SERVICE_URL
           value: http://hopps-fin-narrator:8080/
+        # az-document-ai
+        - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
+          value: http://hopps-az-document-ai:8080/
       ingress:
         enabled: true
         annotations:
