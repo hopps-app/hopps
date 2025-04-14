@@ -1,0 +1,21 @@
+meta {
+  name: Create bommel
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/bommel
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "",
+    "emoji": "",
+    "responsibleMember": {
+      "id": ""
+    }
+  }
+}

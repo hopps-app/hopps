@@ -1,0 +1,22 @@
+meta {
+  name: Migrate All Instances
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/management/processes/:processId/migrate
+  body: json
+  auth: none
+}
+
+params:path {
+  processId: 
+}
+
+body:json {
+  {
+    "targetProcessId": "",
+    "targetProcessVersion": ""
+  }
+}
