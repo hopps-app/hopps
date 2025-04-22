@@ -100,6 +100,7 @@ services:
       KEYCLOAK_EXTRA_ARGS: "--import-realm --hostname-backchannel-dynamic true"
     volumes:
       - ./keycloak_default_realm.json:/opt/bitnami/keycloak/data/import/keycloak.default.realm.json
+      - ../../frontend/keycloak-theme/dist_keycloak/keycloak-theme-for-kc-22-to-25.jar:/opt/keycloak/providers
 
   # OpenFGA
   openfga:
