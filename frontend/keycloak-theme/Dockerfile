@@ -1,3 +1,5 @@
+ARG KEYCLOAK_VERSION=26.2.1
+
 # Build stage
 FROM node:lts-alpine AS builder
 
@@ -16,8 +18,6 @@ RUN pnpm install
 
 # Build the application
 RUN npm run build-keycloak-theme
-
-ARG KEYCLOAK_VERSION=26.2.1
 # Keycloak
 FROM keycloak/keycloak:${KEYCLOAK_VERSION}
 
