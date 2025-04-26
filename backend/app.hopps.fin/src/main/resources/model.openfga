@@ -1,0 +1,23 @@
+model
+  schema 1.1
+
+type user
+
+type organisation
+    relations
+        define owner: [user]
+        define member: [user] or owner
+
+type bommel
+    relations
+        define bommelwart: [user]
+        define parent: [bommel]
+        define has: [organisation]
+        define can_see: member from has
+        define can_modify: bommelwart or can_modify from parent or owner from has
+
+type transaction_record
+    relations
+        define assigned_to: [bommel]
+        define created_by: [user]
+        define can_see: created_by or can_modify from assigned_to
