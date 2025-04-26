@@ -63,7 +63,7 @@ function InvoicesView() {
                     {t('common.refresh')}
                 </Button>
             </SettingsPageHeader>
-            {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices} />}
+            {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices} reload={reload} />}
         </>
     );
 }

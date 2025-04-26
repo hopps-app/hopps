@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hopps
+spec:
+  chart:
+    spec:
+      chart: hopps
+      sourceRef:
+        kind: HelmRepository
+        name: hopps
+      version: 0.1.0
+  interval: 1m0s
+  values:
+    openfga:
+      # ToDo: check why enabled attribute isn't working
+      enabled: true
+      #enabled: true
+      # only run one pod for now
+      replicaCount: 1
+      # use postgresql-database
+      datastore:
+        engine: postgres
+        uriSecret: openfga
+        # https://github.com/openfga/helm-charts/issues/100
+        migrationType: "initContainer"
+      postgresql:
+        enabled: false

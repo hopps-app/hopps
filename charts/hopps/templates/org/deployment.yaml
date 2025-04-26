@@ -23,9 +23,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.org.imagePullSecrets }}
+      {{- if or .Values.global.imagePullSecrets .Values.org.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+        {{- toYaml .Values.org.imagePullSecrets | nindent 8 }}
       {{- end }}
       {{- if .Values.org.serviceAccount.create }}
       serviceAccountName: {{ .Values.org.serviceAccount.name | default (include "hopps.orgFullname" .) }}
@@ -34,9 +35,15 @@ spec:
         {{- toYaml .Values.org.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- if .Values.org.envVars }}
+          {{- if or .Values.org.envVars .Values.openfgaEnabled }}
           env:
+            {{- if .Values.org.envVars }}
             {{- toYaml .Values.org.envVars | nindent 12 }}
+            {{- end }}
+            {{- if .Values.openfgaEnabled }}
+            - name: QUARKUS_OPENFGA_URL
+              value: http://{{ .Release.Name }}-openfga:8080
+            {{- end }}
           {{- end }}
           securityContext:
             {{- toYaml .Values.org.securityContext | nindent 12 }}

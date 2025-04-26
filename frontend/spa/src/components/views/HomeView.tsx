@@ -2,7 +2,7 @@ import Button from '@/components/ui/Button.tsx';
 
 function HomeView() {
     return (
-        <div>
+        <div className="pt-16">
             <div className="flex flex-row">
                 <div className="flex-shrink-0 w-1/2 pr-32 flex flex-col gap-6 justify-center">
                     <h1 className="font-normal text-5xl">Finanzen, Belege und Ausgaben einfach verwalten</h1>

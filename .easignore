@@ -1,0 +1,12 @@
+# Ignore everything by default
+**
+
+# Allow the mobile directory
+!mobile
+!mobile/**
+
+# Optional: still ignore any hidden files in the repo root, except those in mobile
+.*
+!mobile/.*
+
+node_modules

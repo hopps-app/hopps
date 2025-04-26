@@ -41,6 +41,27 @@ public class CreateUserInKeycloak {
         UsersResource usersResource = realmResource.users();
         RoleRepresentation ownerRole = createOwnerRole(realmResource, ownerRoleName);
 
+        UserRepresentation userRepresentation = getUserRepresentation(user, newPassword);
+        Response response = usersResource.create(userRepresentation);
+
+        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+            String body = response.readEntity(String.class);
+            throw new WebApplicationException("Could not create user, body: " + body, response);
+        }
+
+        response.close();
+
+        // Assign a user to the owner role
+        UserRepresentation createdUser = usersResource.search(userRepresentation.getUsername())
+                .getFirst();
+
+        usersResource.get(createdUser.getId())
+                .roles()
+                .realmLevel()
+                .add(List.of(ownerRole));
+    }
+
+    private static UserRepresentation getUserRepresentation(Member user, String newPassword) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setEnabled(true);
         userRepresentation.setFirstName(user.getFirstName());
@@ -53,24 +74,7 @@ public class CreateUserInKeycloak {
         credential.setValue(newPassword);
         credential.setTemporary(false);
         userRepresentation.setCredentials(List.of(credential));
-
-        Response response = usersResource.create(userRepresentation);
-
-        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-            String body = response.readEntity(String.class);
-            throw new WebApplicationException("Could not create user, body: " + body, response);
-        }
-
-        response.close();
-
-        // Assign user to the owner role
-        UserRepresentation createdUser = usersResource.search(userRepresentation.getUsername())
-                .getFirst();
-
-        usersResource.get(createdUser.getId())
-                .roles()
-                .realmLevel()
-                .add(List.of(ownerRole));
+        return userRepresentation;
     }
 
     private RoleRepresentation createOwnerRole(RealmResource realmResource, String ownerRoleName) {

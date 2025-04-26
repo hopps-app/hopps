@@ -5,12 +5,37 @@
   },
   "common": {
     "refresh": "Aktualisieren",
-    "addNew": "Neu hinzufügen"
+    "upload": "Hochladen",
+    "addNew": "Neu hinzufügen",
+    "close": "Schließen",
+    "noItems": "Keine Elemente zum Anzeigen",
+    "search": "Suche",
+    "goBack": "Zurück",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
   },
   "header": {
     "logout": "Abmelden",
     "login": "Anmelden",
     "register": "Registrieren"
+  },
+  "invoiceUpload": {
+    "title": "Neue Rechnung hochladen",
+    "assign": "Zuweisen zu",
+    "chooseFile": "Datei auswählen",
+    "upload": "Hochladen",
+    "uploadFailed": "Fehler beim Hochladen der Rechnung",
+    "uploadSuccess": "Rechnung erfolgreich hochgeladen",
+    "dragDrop": "Ziehen & Ablegen von Dateien hier",
+    "dragFile": "Dateien hier ablegen...",
+    "fileTooLarge": "Datei ist zu groß, maximale Größe 5MB",
+    "totalTooLarge":"Die gesamte Dateigröße überschreitet das Limit von 20MB.",
+    "maxFilesExceeded": "Es sind maximal 10 Dateien erlaubt.",
+    "selectBommel": "Bommel wählen",
+    "privately": "Privat bezahlt",
+    "invoice": "Rechnung",
+    "receipt": "Quittung",
+    "docType": "Art des Vorgangs"
   },
   "invoices": {
     "loadFailed": "Fehler beim Laden der Rechnungen",
@@ -28,9 +53,11 @@
       "invoicesPart": "Rechnungen mit Summe"
     },
     "table": {
+      "newInvoice": "Neue Rechnung",
       "date": "Datum",
       "bommel": "Bommel",
-      "amount": "Betrag"
+      "amount": "Betrag",
+      "name": "Name"
     }
   },
   "organization": {
@@ -48,6 +75,9 @@
     "buttons": {
       "addNew": "Neu hinzufügen"
     }
+  },
+  "organizationTree": {
+    "createNode": "Neu hinzufügen"
   },
   "profile": {
     "settings": {

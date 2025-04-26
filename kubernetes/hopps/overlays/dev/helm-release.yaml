@@ -14,25 +14,18 @@ spec:
   values:
     azDocumentAi:
       image:
-        tag: 370
+        tag: 531
       envFrom:
         - secretRef:
             name: az-document-ai
-      envVars:
-        # ToDo: url should automatically be calculated, dependent on the name of the release-name
-        - name: kafka.bootstrap.servers
-          value: hopps-kafka:9092
     org:
       image:
-        tag: 370
+        tag: 531
       envFrom:
         - secretRef:
             name: org
       envVars:
-        # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
-        - name: QUARKUS_OPENFGA_URL
-          value: http://hopps-openfga:8080
         - name: QUARKUS_OPENFGA_STORE
           value: hopps
         # Database secrets
@@ -53,7 +46,7 @@ spec:
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
           nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}, http://localhost:5173"
           nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
         hosts:
@@ -69,15 +62,13 @@ spec:
       enabled: false
     fin:
       image:
-        tag: 370
+        tag: 531
       envFrom:
         - secretRef:
             name: fin
       envVars:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
-        - name: QUARKUS_OPENFGA_URL
-          value: http://hopps-openfga:8080
         - name: QUARKUS_OPENFGA_STORE
           value: hopps
         # Database secrets
@@ -93,16 +84,12 @@ spec:
             secretKeyRef:
               name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
-        # kafka
-        # ToDo: url should automatically be calculated, dependent on the name of the release-name
-        - name: kafka.bootstrap.servers
-          value: hopps-kafka:9092
       ingress:
         enabled: true
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
           nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}, http://localhost:5173"
           nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
         hosts:
@@ -114,11 +101,23 @@ spec:
           - secretName: api-tls
             hosts:
               - api.${DOMAIN_2}
+              -
     postgresql-fin:
       enabled: false
+
+    finNarrator:
+      image:
+        tag: 531
+      envVars:
+        - name: quarkus.langchain4j.openai.api-key
+          valueFrom:
+            secretKeyRef:
+              name: openai-api-key
+              key: apikey
+
     frontend:
       image:
-        tag: 194
+        tag: 269
       envFrom:
         - secretRef:
             name: frontend
@@ -180,32 +179,6 @@ spec:
           secretName: kafka-tls
         # ToDo: mask domain
         host: kafka-ui.${DOMAIN_2}
-    openfga:
-      # ToDo: check why enabled attribute isn't working
-      #enabled: true
-      # only run one pod for now
-      replicaCount: 1
-      # configure securityContext
-      podSecurityContext:
-        fsGroup: 2000
-      securityContext:
-        capabilities:
-          drop:
-            - ALL
-        readOnlyRootFilesystem: true
-        runAsNonRoot: true
-        runAsUser: 1000
-        seccompProfile:
-          type: RuntimeDefault
-        allowPrivilegeEscalation: false
-      # use postgresql-database
-      datastore:
-        engine: postgres
-        uriSecret: openfga
-        # https://github.com/openfga/helm-charts/issues/100
-        migrationType: "initContainer"
-      postgresql:
-        enabled: false
     # use already available keycloak
     keycloak:
       enabled: true
@@ -223,6 +196,8 @@ spec:
         enabled: true
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "http://localhost:5173"
         hostname: id.${DOMAIN_2}
         ingressClassName: nginx
         tls: true
