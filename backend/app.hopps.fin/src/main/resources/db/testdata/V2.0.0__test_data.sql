@@ -2,6 +2,8 @@ INSERT INTO trade_party(id, city, country, street, zipCode)
 VALUES (1, 'Pfaffenhofen an der Ilm', 'Deutschland', 'Joseph-Fraunhofer-Straße 21', '85276')
 ;
 
+select setval('trade_party_SEQ', 2, true);
+
 INSERT INTO TransactionRecord (total, id, transaction_time, document_key, name, orderNumber, currencyCode, uploader,
                                privately_paid, document, sender_id)
 VALUES (25.0, 1, '2024-12-18T14:00:00.000000Z', 'dummy1', 'hagebaumarkt & Gartencenter', null, 'EUR',
@@ -10,4 +12,4 @@ VALUES (25.0, 1, '2024-12-18T14:00:00.000000Z', 'dummy1', 'hagebaumarkt & Garten
         'emanuel_urban@domain.none', false, 0, 1)
 ;
 
-select setval('transaction_sequence', 3, true);
+select setval('transactionrecord_SEQ', 3, true);

@@ -1,4 +1,4 @@
-create sequence trade_party_sequence start with 1 increment by 1;
+create sequence trade_party_SEQ start with 1 increment by 50;
 
 create table trade_party
 (
