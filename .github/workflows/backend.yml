@@ -6,16 +6,15 @@ on:
       - backend/**
       - .github/workflows/backend.yml
     branches: [ "**" ]
-    tags: [ 'org-*.*.*' ]
+    tags: [ 'hopps-*.*.*' ]
 
 env:
   BASE_IMAGE_NAME: ghcr.io/hopps-app/hopps
 
   # prefix which needs to be in front of version tags
-  VERSION_TAG_PREFIX: 'org-'
+  VERSION_TAG_PREFIX: 'hopps-'
 
-# FIXME: This builds and pushes every backend service anytime a change is made
-# inside 'backend/**'
+# FIXME: This builds and pushes every backend service anytime a change is made inside 'backend/**'
 
 jobs:
   build-code-and-container:
