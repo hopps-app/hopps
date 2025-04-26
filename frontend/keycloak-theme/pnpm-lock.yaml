@@ -109,7 +109,7 @@ importers:
         specifier: ^5.2.2
         version: 5.8.2
       vite:
-        specifier: ^5.0.8
+        specifier: ^5.2.14
         version: 5.4.17(@types/node@22.14.0)
 
 packages:
