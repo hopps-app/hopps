@@ -4,7 +4,6 @@ namespace: hopps-dev
 resources:
   - ../../base/hopps
   - namespace.yaml
-  - helm-release.yaml
   - postgresql.yaml
 # patch files matching the environment
 patches:
