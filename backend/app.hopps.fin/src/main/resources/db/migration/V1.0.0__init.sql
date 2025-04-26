@@ -1,4 +1,4 @@
-create sequence transaction_sequence start with 1 increment by 1;
+create sequence TransactionRecord_SEQ start with 1 increment by 50;
 
 create table TransactionRecord
 (

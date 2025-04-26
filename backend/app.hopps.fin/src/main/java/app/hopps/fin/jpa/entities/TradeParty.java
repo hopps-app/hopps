@@ -3,13 +3,11 @@ package app.hopps.fin.jpa.entities;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 
 @Entity(name = "trade_party")
-@SequenceGenerator(allocationSize = 1, name = "trade_party_sequence")
 public class TradeParty {
     @Id
-    @GeneratedValue(generator = "trade_party_sequence")
+    @GeneratedValue
     private long id;
     private String name;
     private String city;

@@ -7,7 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Generated;
 
@@ -15,10 +14,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@SequenceGenerator(allocationSize = 1, name = "transaction_sequence")
 public class TransactionRecord {
     @Id
-    @GeneratedValue(generator = "transaction_sequence")
+    @GeneratedValue
     private Long id;
 
     @Column(name = "bommel_id")
