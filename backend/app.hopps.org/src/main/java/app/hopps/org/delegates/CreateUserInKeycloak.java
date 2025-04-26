@@ -41,19 +41,7 @@ public class CreateUserInKeycloak {
         UsersResource usersResource = realmResource.users();
         RoleRepresentation ownerRole = createOwnerRole(realmResource, ownerRoleName);
 
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setEnabled(true);
-        userRepresentation.setFirstName(user.getFirstName());
-        userRepresentation.setLastName(user.getLastName());
-        userRepresentation.setEmail(user.getEmail());
-        userRepresentation.setUsername(user.getEmail());
-
-        CredentialRepresentation credential = new CredentialRepresentation();
-        credential.setType(CredentialRepresentation.PASSWORD);
-        credential.setValue(newPassword);
-        credential.setTemporary(false);
-        userRepresentation.setCredentials(List.of(credential));
-
+        UserRepresentation userRepresentation = getUserRepresentation(user, newPassword);
         Response response = usersResource.create(userRepresentation);
 
         if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
@@ -71,6 +59,22 @@ public class CreateUserInKeycloak {
                 .roles()
                 .realmLevel()
                 .add(List.of(ownerRole));
+    }
+
+    private static UserRepresentation getUserRepresentation(Member user, String newPassword) {
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setEnabled(true);
+        userRepresentation.setFirstName(user.getFirstName());
+        userRepresentation.setLastName(user.getLastName());
+        userRepresentation.setEmail(user.getEmail());
+        userRepresentation.setUsername(user.getEmail());
+
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(newPassword);
+        credential.setTemporary(false);
+        userRepresentation.setCredentials(List.of(credential));
+        return userRepresentation;
     }
 
     private RoleRepresentation createOwnerRole(RealmResource realmResource, String ownerRoleName) {
