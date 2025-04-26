@@ -19,7 +19,7 @@ class ZugFerdResourceTest {
     @Test
     void shouldReadZugFerd() {
 
-        // given
+        // prepare
         URL resourceUrl = getClass().getClassLoader().getResource("MustangGnuaccountingBeispielRE-20170509_505.pdf");
         assertNotNull(resourceUrl, "Test file not found in classpath");
         File testFile = new File(resourceUrl.getFile());
@@ -39,7 +39,7 @@ class ZugFerdResourceTest {
     @Test
     void shouldNotReadNonZugferd() {
 
-        // given
+        // prepare
         URL resourceUrl = getClass().getClassLoader().getResource("wacky-widgets.pdf");
         assertNotNull(resourceUrl, "Test file not found in classpath");
         File testFile = new File(resourceUrl.getFile());
@@ -52,6 +52,6 @@ class ZugFerdResourceTest {
                 .when()
                 .post()
                 .then()
-                .statusCode(422);
+                .statusCode(422); // 422: Unprocessable Entity
     }
 }
