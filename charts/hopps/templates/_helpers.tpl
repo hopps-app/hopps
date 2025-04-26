@@ -226,3 +226,32 @@ frontend fully qualified name
 {{- define "hopps.frontendFullname" -}}
 {{- printf "%s-frontend" (include "hopps.fullname" .) -}}
 {{- end -}}
+
+{{/*
+zugferd labels
+*/}}
+{{- define "hopps.zugferdLabels" -}}
+{{ include "hopps.commonLabels" . }}
+{{ include "hopps.zugferdSelectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
+{{- end -}}
+{{/*
+zugferd selector labels
+*/}}
+{{- define "hopps.zugferdSelectorLabels" -}}
+{{ include "hopps.commonSelectorLabels" . }}
+app.kubernetes.io/name: {{ printf "%s-zugferd" (include "hopps.name" .) }}
+app.kubernetes.io/component: zugferd
+{{- end -}}
+{{/*
+zugferd name
+*/}}
+{{- define "hopps.zugferdName" -}}
+{{- printf "%s-zugferd" (include "hopps.name" .) -}}
+{{- end -}}
+{{/*
+zugferd fully qualified name
+*/}}
+{{- define "hopps.zugferdFullname" -}}
+{{- printf "%s-zugferd" (include "hopps.fullname" .) -}}
+{{- end -}}
