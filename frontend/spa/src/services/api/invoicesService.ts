@@ -60,7 +60,7 @@ export class InvoicesService {
         formData.append('type', type);
         formData.append('privatelyPaid', String(privatelyPaid));
 
-        return await this.axiosInstance.post(`${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/document`, formData, {
+        return await this.axiosInstance.post(`${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/transaction-record`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
