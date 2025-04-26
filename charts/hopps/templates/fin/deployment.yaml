@@ -49,10 +49,14 @@ spec:
             {{- end }}
             # fin-narrator
             - name: HOPPS_FIN_NARRATOR_SERVICE_URL
-              value: http://{{ .Release.Name }}-fin-narrator:8080/
+              value: http://{{ .Release.Name }}-fin-narrator:{{ .Values.fin.service.port }}/
             # az-document-ai
             - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
-              value: http://{{ .Release.Name }}-az-document-ai:8080/
+              value: http://{{ .Release.Name }}-az-document-ai:{{ .Values.azDocumentAi.service.port }}/
+            # zugferd
+            # ToDo: replace environment variable when the name is known
+            - name: HOPPS_ZUGFERD
+              value: http://{{ .Release.Name }}-zugferd:{{ .Values.zugferd.service.port }}/
           securityContext:
             {{- toYaml .Values.fin.securityContext | nindent 12 }}
           image: "{{ .Values.fin.image.repository }}:{{ .Values.fin.image.tag | default .Chart.AppVersion }}"
