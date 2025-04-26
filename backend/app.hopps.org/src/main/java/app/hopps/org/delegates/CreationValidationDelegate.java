@@ -4,18 +4,23 @@ import app.hopps.org.jpa.Member;
 import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
+import app.hopps.org.validation.InvitationValidationConstraintViolation;
 import app.hopps.org.validation.NonUniqueConstraintViolation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @ApplicationScoped
 public class CreationValidationDelegate {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CreationValidationDelegate.class);
 
     @Inject
     Validator validator;
@@ -65,6 +70,19 @@ public class CreationValidationDelegate {
 
         if (!nonUniqueConstraintViolations.isEmpty()) {
             throw new NonUniqueConstraintViolation.NonUniqueConstraintViolationException(nonUniqueConstraintViolations);
+        }
+    }
+
+    public void validateInvitation(String invitedEmail, String orgSlug) throws Exception {
+        Set<InvitationValidationConstraintViolation> invitationValidationConstraintViolations = new HashSet<>();
+
+        boolean orgExists = organizationRepository.findBySlug(orgSlug) != null;
+        if(!orgExists) {
+            invitationValidationConstraintViolations.add(new InvitationValidationConstraintViolation("slug", null));
+        }
+
+        if(!invitationValidationConstraintViolations.isEmpty()) {
+            throw new InvitationValidationConstraintViolation.InvitationValidationConstraintViolationException(invitationValidationConstraintViolations);
         }
     }
 }

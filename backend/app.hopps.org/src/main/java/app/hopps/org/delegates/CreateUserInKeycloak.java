@@ -90,4 +90,21 @@ public class CreateUserInKeycloak {
         }
         return ownerRole;
     }
+
+    public boolean checkUserExistence(String email) throws Exception {
+        RealmResource realmResource = keycloak.realm(realmName);
+        UsersResource usersResource = realmResource.users();
+
+        System.out.println("to be queried email: " + email);
+
+        usersResource.list().stream().forEach(u -> System.out.println(u.getUsername() + ", " + u.getFirstName() + ", " + u.getEmail()));
+
+        List<UserRepresentation> users = usersResource.searchByEmail(email, true);
+
+        if(users.size() > 1) {
+            throw new Exception("More than one user found matching the email " + email);
+        }
+
+        return !users.isEmpty();
+    }
 }

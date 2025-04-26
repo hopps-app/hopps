@@ -170,8 +170,6 @@ public class OrganizationResource {
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-//    @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
-//    @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response inviteMemberToOrganisation(@PathParam("slug") String slug, InviteMemberInput input) {
         Model model = addMemberProcess.createModel();
