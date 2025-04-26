@@ -23,9 +23,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.fin.imagePullSecrets }}
+      {{- if or .Values.global.imagePullSecrets .Values.fin.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+        {{- toYaml .Values.fin.imagePullSecrets | nindent 8 }}
       {{- end }}
       {{- if .Values.fin.serviceAccount.create }}
       serviceAccountName: {{ .Values.fin.serviceAccount.name | default (include "hopps.finFullname" .) }}
@@ -34,10 +35,24 @@ spec:
         {{- toYaml .Values.fin.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- if .Values.fin.envVars }}
           env:
+            {{- if .Values.fin.envVars }}
             {{- toYaml .Values.fin.envVars | nindent 12 }}
-          {{- end }}
+            {{- end }}
+            {{- if .Values.openfgaEnabled }}
+            - name: QUARKUS_OPENFGA_URL
+              value: http://{{ .Release.Name }}-openfga:8080
+            {{- end }}
+            {{- if .Values.kafka.enabled }}
+            - name: kafka.bootstrap.servers
+              value: {{ .Release.Name }}-kafka:9092
+            {{- end }}
+            # fin-narrator
+            - name: HOPPS_FIN_NARRATOR_SERVICE_URL
+              value: http://{{ .Release.Name }}-fin-narrator:8080/
+            # az-document-ai
+            - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
+              value: http://{{ .Release.Name }}-az-document-ai:8080/
           securityContext:
             {{- toYaml .Values.fin.securityContext | nindent 12 }}
           image: "{{ .Values.fin.image.repository }}:{{ .Values.fin.image.tag | default .Chart.AppVersion }}"

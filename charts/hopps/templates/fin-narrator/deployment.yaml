@@ -23,9 +23,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.finNarrator.imagePullSecrets }}
+      {{- if or .Values.global.imagePullSecrets .Values.finNarrator.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+        {{- toYaml .Values.finNarrator.imagePullSecrets | nindent 8 }}
       {{- end }}
       {{- if .Values.finNarrator.serviceAccount.create }}
       serviceAccountName: {{ .Values.finNarrator.serviceAccount.name | default (include "hopps.finNarratorFullname" .) }}

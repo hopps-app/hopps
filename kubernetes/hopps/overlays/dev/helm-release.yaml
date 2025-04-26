@@ -18,10 +18,6 @@ spec:
       envFrom:
         - secretRef:
             name: az-document-ai
-      envVars:
-        # ToDo: url should automatically be calculated, dependent on the name of the release-name
-        - name: kafka.bootstrap.servers
-          value: hopps-kafka:9092
     org:
       image:
         tag: 531
@@ -29,10 +25,7 @@ spec:
         - secretRef:
             name: org
       envVars:
-        # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
-        - name: QUARKUS_OPENFGA_URL
-          value: http://hopps-openfga:8080
         - name: QUARKUS_OPENFGA_STORE
           value: hopps
         # Database secrets
@@ -76,8 +69,6 @@ spec:
       envVars:
         # ToDo: url should automatically be calculated, dependent on the name of the release-name
         # OpenFGA
-        - name: QUARKUS_OPENFGA_URL
-          value: http://hopps-openfga:8080
         - name: QUARKUS_OPENFGA_STORE
           value: hopps
         # Database secrets
@@ -93,16 +84,6 @@ spec:
             secretKeyRef:
               name: hopps-dev.fin.postgres-cluster.credentials.postgresql.acid.zalan.do
               key: password
-        # kafka
-        # ToDo: url should automatically be calculated, dependent on the name of the release-name
-        - name: kafka.bootstrap.servers
-          value: hopps-kafka:9092
-        # fin-narrator
-        - name: HOPPS_FIN_NARRATOR_SERVICE_URL
-          value: http://hopps-fin-narrator:8080/
-        # az-document-ai
-        - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
-          value: http://hopps-az-document-ai:8080/
       ingress:
         enabled: true
         annotations:
@@ -198,32 +179,6 @@ spec:
           secretName: kafka-tls
         # ToDo: mask domain
         host: kafka-ui.${DOMAIN_2}
-    openfga:
-      # ToDo: check why enabled attribute isn't working
-      #enabled: true
-      # only run one pod for now
-      replicaCount: 1
-      # configure securityContext
-      podSecurityContext:
-        fsGroup: 2000
-      securityContext:
-        capabilities:
-          drop:
-            - ALL
-        readOnlyRootFilesystem: true
-        runAsNonRoot: true
-        runAsUser: 1000
-        seccompProfile:
-          type: RuntimeDefault
-        allowPrivilegeEscalation: false
-      # use postgresql-database
-      datastore:
-        engine: postgres
-        uriSecret: openfga
-        # https://github.com/openfga/helm-charts/issues/100
-        migrationType: "initContainer"
-      postgresql:
-        enabled: false
     # use already available keycloak
     keycloak:
       enabled: true

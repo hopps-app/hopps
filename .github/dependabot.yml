@@ -8,3 +8,7 @@ updates:
     directory: "/frontend"
     schedule:
       interval: "daily"
+  - package-ecosystem: "helm"
+    directory: "/charts"
+    schedule:
+      interval: "daily"

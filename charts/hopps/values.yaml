@@ -1,12 +1,11 @@
 global:
-  test: value
+  imagePullSecrets: []
 
 nameOverride: ""
 fullnameOverride: ""
 
 azDocumentAi:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
@@ -125,8 +124,6 @@ azDocumentAi:
 
 fin:
   replicaCount: 1
-  # ToDo: should also be globally configurable
-  # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
     # ToDo: should also be globally configurable
@@ -249,7 +246,6 @@ postgresqlFin:
 
 finNarrator:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
@@ -368,7 +364,6 @@ finNarrator:
 
 org:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
@@ -492,7 +487,6 @@ postgresqlOrg:
 
 frontend:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
@@ -607,6 +601,26 @@ frontend:
 
 # external dependencies
 keycloak:
+  enabled: false
+
+# openfga enabled needs to be outside of openfga, as the values.schema of openfga doesn't allow this field
+openfgaEnabled: false
+openfga:
+  # configure securityContext
+  podSecurityContext:
+    fsGroup: 2000
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+    allowPrivilegeEscalation: false
+
+kafka:
   enabled: false
 
 kafka-ui:
