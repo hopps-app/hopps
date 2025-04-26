@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" id="_sAzC0ATHED6IsrcT1J-I9Q" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" id="_yBuEoAThED6IsrcT1J-I9Q" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
   <bpmn2:itemDefinition id="_memberIdItem" structureRef="java.lang.Long"/>
   <bpmn2:itemDefinition id="_transactionRecordItem" structureRef="app.hopps.fin.jpa.entities.TransactionRecord"/>
   <bpmn2:itemDefinition id="_privatelyPaidItem" structureRef="Boolean"/>
   <bpmn2:itemDefinition id="_4421BFCC-248A-4409-9D2B-B83F91838F91_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_4421BFCC-248A-4409-9D2B-B83F91838F91_OutMessageType" structureRef=""/>
+  <bpmn2:itemDefinition id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_InMessageType" structureRef=""/>
+  <bpmn2:itemDefinition id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_OutMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_84754185-E2AF-4F5E-83D2-FECF43243F05_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_84754185-E2AF-4F5E-83D2-FECF43243F05_OutMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="__9E750D3B-AAEB-4231-9434-233E6C72ECC7_SkippableInputXItem" structureRef="Object"/>
@@ -21,13 +23,21 @@
   <bpmn2:itemDefinition id="__9E750D3B-AAEB-4231-9434-233E6C72ECC7_NotCompletedNotifyInputXItem" structureRef="Object"/>
   <bpmn2:itemDefinition id="_B6B2C1B4-C08F-4BBD-8AD9-6DE852334DC6_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_B6B2C1B4-C08F-4BBD-8AD9-6DE852334DC6_OutMessageType" structureRef=""/>
-  <bpmn2:error id="_8982026D-20E7-454C-AED8-3AB87B8DA1F1"/>
+  <bpmn2:error id="_B93FE9DA-88B8-4BA6-980A-92EB366FA15C"/>
   <bpmn2:message id="_4421BFCC-248A-4409-9D2B-B83F91838F91_InMessage" itemRef="_4421BFCC-248A-4409-9D2B-B83F91838F91_InMessageType"/>
   <bpmn2:message id="_4421BFCC-248A-4409-9D2B-B83F91838F91_OutMessage" itemRef="_4421BFCC-248A-4409-9D2B-B83F91838F91_OutMessageType"/>
   <bpmn2:interface id="_4421BFCC-248A-4409-9D2B-B83F91838F91_ServiceInterface" name="app.hopps.fin.delegates.NoopDelegate" implementationRef="app.hopps.fin.delegates.NoopDelegate">
     <bpmn2:operation id="_4421BFCC-248A-4409-9D2B-B83F91838F91_ServiceOperation" name="noop" implementationRef="noop">
       <bpmn2:inMessageRef>_4421BFCC-248A-4409-9D2B-B83F91838F91_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_4421BFCC-248A-4409-9D2B-B83F91838F91_OutMessage</bpmn2:outMessageRef>
+    </bpmn2:operation>
+  </bpmn2:interface>
+  <bpmn2:message id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_InMessage" itemRef="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_InMessageType"/>
+  <bpmn2:message id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_OutMessage" itemRef="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_OutMessageType"/>
+  <bpmn2:interface id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_ServiceInterface" name="app.hopps.fin.delegates.NoopDelegate" implementationRef="app.hopps.fin.delegates.NoopDelegate">
+    <bpmn2:operation id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_ServiceOperation" name="noop" implementationRef="noop">
+      <bpmn2:inMessageRef>_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_InMessage</bpmn2:inMessageRef>
+      <bpmn2:outMessageRef>_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_OutMessage</bpmn2:outMessageRef>
     </bpmn2:operation>
   </bpmn2:interface>
   <bpmn2:message id="_84754185-E2AF-4F5E-83D2-FECF43243F05_InMessage" itemRef="_84754185-E2AF-4F5E-83D2-FECF43243F05_InMessageType"/>
@@ -46,8 +56,8 @@
       <bpmn2:outMessageRef>_B6B2C1B4-C08F-4BBD-8AD9-6DE852334DC6_OutMessage</bpmn2:outMessageRef>
     </bpmn2:operation>
   </bpmn2:interface>
-  <bpmn2:collaboration id="_E4D5ACD7-23AA-4F54-B665-25E36E4E88EE" name="Default Collaboration">
-    <bpmn2:participant id="_B9B2C517-C485-48B5-8557-6DCCBA8781D0" name="Pool Participant" processRef="Submit"/>
+  <bpmn2:collaboration id="_49B0E571-E259-426D-8C61-A34FC0541211" name="Default Collaboration">
+    <bpmn2:participant id="_0F8FB3C4-270B-4828-9575-D71F539D6C23" name="Pool Participant" processRef="Submit"/>
   </bpmn2:collaboration>
   <bpmn2:process id="Submit" drools:packageName="app.hopps.fin.bpmn" drools:version="1.0" drools:adHoc="false" name="Einreichen" isExecutable="true" processType="Public">
     <bpmn2:extensionElements>
@@ -63,10 +73,10 @@
     <bpmn2:sequenceFlow id="_C7F4CB75-86CD-4BDB-85A3-C062E56F4FB7" sourceRef="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2" targetRef="_3BA3C5BF-1A54-4E5A-8D75-D5A6CCCBAD14"/>
     <bpmn2:sequenceFlow id="_249F71F7-12D0-4EC5-8683-A49F39A15A25" sourceRef="_4421BFCC-248A-4409-9D2B-B83F91838F91" targetRef="_3BA3C5BF-1A54-4E5A-8D75-D5A6CCCBAD14"/>
     <bpmn2:sequenceFlow id="_C8AD447D-BD65-4A0A-98BC-F57E275C5917" sourceRef="_A2A748D6-7BC5-4AB5-86F0-EAD785DA620E" targetRef="_4421BFCC-248A-4409-9D2B-B83F91838F91"/>
-    <bpmn2:sequenceFlow id="_8F0EA509-AF91-48F7-B174-E3C5C9A487E5" name="Pixelbild" sourceRef="_6BA82E60-0BBA-4AC3-9F26-9D9993B92D3A" targetRef="_A2A748D6-7BC5-4AB5-86F0-EAD785DA620E">
+    <bpmn2:sequenceFlow id="_8F0EA509-AF91-48F7-B174-E3C5C9A487E5" name="Pixel Image" sourceRef="_6BA82E60-0BBA-4AC3-9F26-9D9993B92D3A" targetRef="_A2A748D6-7BC5-4AB5-86F0-EAD785DA620E">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Pixelbild]]></drools:metaValue>
+          <drools:metaValue><![CDATA[Pixel Image]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" language="http://www.jboss.org/drools/rule"><![CDATA[false]]></bpmn2:conditionExpression>
@@ -86,27 +96,27 @@
       <bpmn2:incoming>_8F0EA509-AF91-48F7-B174-E3C5C9A487E5</bpmn2:incoming>
       <bpmn2:outgoing>_C8AD447D-BD65-4A0A-98BC-F57E275C5917</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
-    <bpmn2:endEvent id="_DA2EA310-7066-46FF-BB88-70DFA3289F1C" name="Beleg ist eingereicht">
+    <bpmn2:endEvent id="_DA2EA310-7066-46FF-BB88-70DFA3289F1C" name="TransactionRecord is submitted">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Beleg ist eingereicht]]></drools:metaValue>
+          <drools:metaValue><![CDATA[TransactionRecord is submitted]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_E19F582F-4B08-416F-9659-032C98356993</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:serviceTask id="_B6B2C1B4-C08F-4BBD-8AD9-6DE852334DC6" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.fin.delegates.NoopDelegate" drools:serviceoperation="noop" name="Persistieren" implementation="Java" operationRef="_B6B2C1B4-C08F-4BBD-8AD9-6DE852334DC6_ServiceOperation">
+    <bpmn2:serviceTask id="_B6B2C1B4-C08F-4BBD-8AD9-6DE852334DC6" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.fin.delegates.NoopDelegate" drools:serviceoperation="noop" name="Persist as TransactionRecord" implementation="Java" operationRef="_B6B2C1B4-C08F-4BBD-8AD9-6DE852334DC6_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Persistieren]]></drools:metaValue>
+          <drools:metaValue><![CDATA[Persist as TransactionRecord]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_DCD2ADA9-18AF-49BC-937E-AFED5CBDA602</bpmn2:incoming>
       <bpmn2:outgoing>_E19F582F-4B08-416F-9659-032C98356993</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:userTask id="_9E750D3B-AAEB-4231-9434-233E6C72ECC7" name="AI und Tags bestätigen">
+    <bpmn2:userTask id="_9E750D3B-AAEB-4231-9434-233E6C72ECC7" name="Confirm">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[AI und Tags bestätigen]]></drools:metaValue>
+          <drools:metaValue><![CDATA[Confirm]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_D044CE38-93C1-47BF-B7FE-8EF6D06EB067</bpmn2:incoming>
@@ -134,10 +144,10 @@
         </bpmn2:assignment>
       </bpmn2:dataInputAssociation>
     </bpmn2:userTask>
-    <bpmn2:serviceTask id="_84754185-E2AF-4F5E-83D2-FECF43243F05" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.fin.delegates.NoopDelegate" drools:serviceoperation="noop" name="Tags ermitteln" implementation="Java" operationRef="_84754185-E2AF-4F5E-83D2-FECF43243F05_ServiceOperation">
+    <bpmn2:serviceTask id="_84754185-E2AF-4F5E-83D2-FECF43243F05" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.fin.delegates.NoopDelegate" drools:serviceoperation="noop" name="Determine Tags" implementation="Java" operationRef="_84754185-E2AF-4F5E-83D2-FECF43243F05_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Tags ermitteln]]></drools:metaValue>
+          <drools:metaValue><![CDATA[Determine Tags]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_E8488208-0FB4-4DF3-97C1-EBCA0093FC83</bpmn2:incoming>
@@ -148,19 +158,19 @@
       <bpmn2:incoming>_C7F4CB75-86CD-4BDB-85A3-C062E56F4FB7</bpmn2:incoming>
       <bpmn2:outgoing>_E8488208-0FB4-4DF3-97C1-EBCA0093FC83</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
-    <bpmn2:callActivity id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2" drools:independent="false" drools:waitForCompletion="true" name="Erkennen mit ZugFerD" calledElement="ZugFerD">
+    <bpmn2:serviceTask id="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.fin.delegates.NoopDelegate" drools:serviceoperation="noop" name="Recognize with ZugFerD" implementation="Java" operationRef="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Erkennen mit ZugFerD]]></drools:metaValue>
+          <drools:metaValue><![CDATA[Recognize with ZugFerD]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_A725B7B3-39C9-4449-A410-A55589DC6268</bpmn2:incoming>
       <bpmn2:outgoing>_C7F4CB75-86CD-4BDB-85A3-C062E56F4FB7</bpmn2:outgoing>
-    </bpmn2:callActivity>
-    <bpmn2:serviceTask id="_4421BFCC-248A-4409-9D2B-B83F91838F91" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.fin.delegates.NoopDelegate" drools:serviceoperation="noop" name="Erkennen mit AZ Doc AI" implementation="Java" operationRef="_4421BFCC-248A-4409-9D2B-B83F91838F91_ServiceOperation">
+    </bpmn2:serviceTask>
+    <bpmn2:serviceTask id="_4421BFCC-248A-4409-9D2B-B83F91838F91" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.fin.delegates.NoopDelegate" drools:serviceoperation="noop" name="Recognize with AZ Doc AI" implementation="Java" operationRef="_4421BFCC-248A-4409-9D2B-B83F91838F91_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Erkennen mit AZ Doc AI]]></drools:metaValue>
+          <drools:metaValue><![CDATA[Recognize with AZ Doc AI]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_C8AD447D-BD65-4A0A-98BC-F57E275C5917</bpmn2:incoming>
@@ -171,17 +181,17 @@
       <bpmn2:outgoing>_A725B7B3-39C9-4449-A410-A55589DC6268</bpmn2:outgoing>
       <bpmn2:outgoing>_8F0EA509-AF91-48F7-B174-E3C5C9A487E5</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
-    <bpmn2:startEvent id="_617F858A-0FC0-4036-A066-A3D3E027F25E" name="Beleg einreichen">
+    <bpmn2:startEvent id="_617F858A-0FC0-4036-A066-A3D3E027F25E" name="Submit Document">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Beleg einreichen]]></drools:metaValue>
+          <drools:metaValue><![CDATA[Submit Document]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:outgoing>_BBF6C336-823D-46D9-A05C-32C64EF08FB7</bpmn2:outgoing>
     </bpmn2:startEvent>
     <bpmn2:boundaryEvent id="_A6EC2530-7608-4417-8CFF-3BC7AB10796B" drools:dockerinfo="126^-27.9864864864865|" drools:boundaryca="true" attachedToRef="_FA5834E7-25A4-4333-8019-B5AE50DDC2E2">
       <bpmn2:outgoing>_E76E468F-DF0F-4423-86BB-CC18D48D7A87</bpmn2:outgoing>
-      <bpmn2:errorEventDefinition errorRef="_8982026D-20E7-454C-AED8-3AB87B8DA1F1"/>
+      <bpmn2:errorEventDefinition errorRef="_B93FE9DA-88B8-4BA6-980A-92EB366FA15C"/>
     </bpmn2:boundaryEvent>
   </bpmn2:process>
   <bpmndi:BPMNDiagram>
@@ -385,7 +395,7 @@
         </bpsim:Scenario>
       </bpsim:BPSimData>
     </bpmn2:extensionElements>
-    <bpmn2:source>_sAzC0ATHED6IsrcT1J-I9Q</bpmn2:source>
-    <bpmn2:target>_sAzC0ATHED6IsrcT1J-I9Q</bpmn2:target>
+    <bpmn2:source>_yBuEoAThED6IsrcT1J-I9Q</bpmn2:source>
+    <bpmn2:target>_yBuEoAThED6IsrcT1J-I9Q</bpmn2:target>
   </bpmn2:relationship>
 </bpmn2:definitions>
