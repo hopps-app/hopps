@@ -8,8 +8,8 @@ import { InvoicesTableData } from '@/components/InvoicesTable/types';
 import { Transaction } from '@/services/api/types/TransactionRecord.ts';
 
 const provider = new PactV3({
-    consumer: 'InvoicesConsumer',
-    provider: 'InvoicesProvider',
+    consumer: 'spa',
+    provider: 'fin',
     port: 1234,
     dir: path.resolve(process.cwd(), '../../pacts'),
     logLevel: 'error',
