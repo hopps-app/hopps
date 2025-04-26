@@ -21,7 +21,7 @@ class OrganizationResourceAuthorizedTests {
     Flyway flyway;
 
     @BeforeEach
-    public void cleanDatabase() {
+    void cleanDatabase() {
         flyway.clean();
         flyway.migrate();
     }

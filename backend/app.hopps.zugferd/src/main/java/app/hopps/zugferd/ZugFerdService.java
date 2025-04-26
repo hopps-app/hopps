@@ -15,6 +15,7 @@ public class ZugFerdService {
 
     public InvoiceData scanInvoice(Long referenceKey, InputStream stream)
             throws XPathExpressionException, ParseException {
+
         ZUGFeRDInvoiceImporter zii = new ZUGFeRDInvoiceImporter(stream);
         Invoice invoice = zii.extractInvoice();
         return InvoiceDataHandler.fromZugferd(referenceKey, invoice);
