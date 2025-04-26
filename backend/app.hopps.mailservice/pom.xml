@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>mailservice</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Mail-Service</name>
     <description>Internal mail-service</description>

@@ -9,7 +9,6 @@
     </parent>
 
     <artifactId>az-document-ai</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Hopps Azure Document AI</name>
     <description>Microservice which uses OCR/AI to extract data from documents (invoices/receipts).</description>
