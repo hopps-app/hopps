@@ -63,7 +63,7 @@ public class CreateUserInKeycloak {
 
         response.close();
 
-        // Assign user to the owner role
+        // Assign a user to the owner role
         UserRepresentation createdUser = usersResource.search(userRepresentation.getUsername())
                 .getFirst();
 

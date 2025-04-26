@@ -97,8 +97,8 @@ public class OrganizationResource {
         return orgs.stream()
                 .findFirst()
                 .orElseThrow(() -> new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
-                    .entity("Organization of user not found in database")
-                    .build()));
+                        .entity("Organization of user not found in database")
+                        .build()));
     }
 
     @GET
