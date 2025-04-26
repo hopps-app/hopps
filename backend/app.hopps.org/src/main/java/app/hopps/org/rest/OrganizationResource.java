@@ -83,7 +83,9 @@ public class OrganizationResource {
         String userName = securityContext.getUserPrincipal().getName();
         Member me = memberRepository.findByEmail(userName);
         if (me == null) {
-            throw new NotFoundException("User not found in database");
+            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
+                    .entity("User not found in database")
+                    .build());
         }
 
         Collection<Organization> orgs = me.getOrganizations();
@@ -94,7 +96,9 @@ public class OrganizationResource {
 
         return orgs.stream()
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException("Organization of user not found"));
+                .orElseThrow(() -> new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
+                    .entity("Organization of user not found in database")
+                    .build()));
     }
 
     @GET
