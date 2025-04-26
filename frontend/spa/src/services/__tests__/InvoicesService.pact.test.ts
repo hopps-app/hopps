@@ -1,9 +1,11 @@
-import { PactV3, V3MockServer } from '@pact-foundation/pact';
+import { MatchersV3, PactV3, V3MockServer } from '@pact-foundation/pact';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
+import fs from 'fs';
 
 import { InvoicesService } from '@/services/api/invoicesService';
 import { InvoicesTableData } from '@/components/InvoicesTable/types';
+import { Transaction } from '@/services/api/types/TransactionRecord.ts';
 
 const provider = new PactV3({
     consumer: 'InvoicesConsumer',
@@ -119,5 +121,49 @@ describe('InvoicesService Pact tests', () => {
             const invoices = await invoicesService.getInvoices();
             expect(invoices).toEqual(expectedInvoices);
         });
+    });
+
+    it('uploadInvoice', async () => {
+        const fileName = 'test.pdf';
+        const filePath = path.resolve(__dirname, `./${fileName}`);
+        const fileBuffer = fs.readFileSync(filePath);
+        const testFile = new File([fileBuffer], fileName, { type: 'application/pdf' });
+        const formDataFieldKey = 'file';
+
+        const bommelId = 123;
+        const documentType = Transaction.INVOICE;
+        const privatelyPaid = false;
+
+        const formData = new FormData();
+        formData.append(formDataFieldKey, testFile);
+        formData.append('bommelId', String(bommelId));
+        formData.append('type', documentType);
+        formData.append('privatelyPaid', String(privatelyPaid));
+
+        return provider
+            .given('provider is ready to accept invoice uploads')
+            .uponReceiving('a request to upload an invoice')
+            .withRequestMultipartFileUpload(
+                {
+                    method: 'POST',
+                    path: '/transaction-record',
+                },
+                'application/pdf',
+                filePath,
+                formDataFieldKey
+            )
+            .willRespondWith({
+                status: 202,
+                headers: { 'Content-Type': 'application/json' },
+                body: {
+                    instanceId: MatchersV3.uuid(),
+                },
+            })
+            .executeTest(async (server: V3MockServer) => {
+                import.meta.env.VITE_INVOICES_SERVICE_URL = '';
+                invoicesService = new InvoicesService(server.url);
+                const response = await invoicesService.uploadInvoice(testFile, bommelId, documentType, privatelyPaid);
+                expect(response!.status).toEqual(202);
+            });
     });
 });
