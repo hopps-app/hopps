@@ -3,14 +3,14 @@ name: frontend
 on:
   push:
     paths:
-      - frontend/**
+      - frontend/spa/**
       - .github/workflows/frontend.yml
     branches: [ "**" ]
     tags:
       - 'spa-*.*.*'
   pull_request:
     paths:
-      - frontend/**
+      - frontend/spa/**
       - .github/workflows/frontend.yml
     branches:
       - main
