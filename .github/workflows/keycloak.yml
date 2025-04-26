@@ -53,6 +53,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.baseDirectory }}
-          file: ${{ matrix.baseDirectory }}/docker/Dockerfile
+          file: ${{ matrix.baseDirectory }}/Dockerfile
           push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
           tags: ghcr.io/${{ github.repository }}/hopps-keycloak:${{ env.VERSION }}
