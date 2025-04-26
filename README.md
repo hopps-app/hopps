@@ -12,6 +12,7 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 
 ![Frontend](https://github.com/hopps-app/hopps/actions/workflows/frontend.yml/badge.svg)
 ![Backend](https://github.com/hopps-app/hopps/actions/workflows/backend.yml/badge.svg)
+![Keycloak](https://github.com/hopps-app/hopps/actions/workflows/keycloak.yml/badge.svg)
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-vereine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-vereine)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
