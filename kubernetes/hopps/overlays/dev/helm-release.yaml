@@ -53,7 +53,7 @@ spec:
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
           nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}, http://localhost:5173"
           nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
         hosts:
@@ -108,7 +108,7 @@ spec:
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
           nginx.ingress.kubernetes.io/enable-cors: "true"
-          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "https://${DOMAIN_2}, http://localhost:5173"
           nginx.ingress.kubernetes.io/rewrite-target: /$2
         ingressClassName: nginx
         hosts:
@@ -241,6 +241,8 @@ spec:
         enabled: true
         annotations:
           cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/enable-cors: "true"
+          nginx.ingress.kubernetes.io/cors-allow-origin: "http://localhost:5173"
         hostname: id.${DOMAIN_2}
         ingressClassName: nginx
         tls: true
