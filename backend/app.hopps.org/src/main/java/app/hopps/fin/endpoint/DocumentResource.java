@@ -49,6 +49,9 @@ public class DocumentResource {
     @Inject
     SubmitService submitService;
 
+    @Inject
+    SecurityContext securityContext;
+
     @GET
     @Path("{documentKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -89,9 +92,14 @@ public class DocumentResource {
         transactionRecord.setPrivatelyPaid(privatelyPaid);
         bommelId.ifPresent(transactionRecord::setBommelId);
 
-        String instanceId = submitService.submitDocument(null);
+        SubmitService.DocumentSubmissionRequest request = new SubmitService.DocumentSubmissionRequest(
+                documentKey.toString(),
+                bommelId,
+                Optional.of(type),
+                privatelyPaid,
+                securityContext.getUserPrincipal().getName());
+        String instanceId = submitService.submitDocument(request);
 
-        // FIXME: Provide URL as body
         return Response.accepted()
                 .entity(instanceId)
                 .build();
