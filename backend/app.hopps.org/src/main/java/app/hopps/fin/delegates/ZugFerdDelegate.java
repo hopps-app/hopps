@@ -1,5 +1,7 @@
 package app.hopps.fin.delegates;
 
+import app.hopps.commons.InvoiceData;
+import app.hopps.fin.S3Handler;
 import app.hopps.fin.client.ZugFerdClient;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -13,7 +15,13 @@ public class ZugFerdDelegate {
     @RestClient
     ZugFerdClient zugFerdClient;
 
-    public void recognize(TransactionRecord transactionRecord) {
-        return zugFerdClient.uploadDocument(file, referenceId);
+    @Inject
+    S3Handler s3Handler;
+
+    public InvoiceData recognize(TransactionRecord transactionRecord) {
+        String documentKey = transactionRecord.getDocumentKey();
+        byte[] fileAsBytes = s3Handler.getFile(documentKey);
+        Long referenceKey = -1L; // not persisted yet, no ID yet
+        return zugFerdClient.uploadDocument(fileAsBytes, referenceKey);
     }
 }

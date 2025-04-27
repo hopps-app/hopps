@@ -14,39 +14,36 @@ import java.util.Map;
 import java.util.Optional;
 
 @ApplicationScoped
-public class SubmitService
-{
-	@Inject
-	@Named("Submit")
-	Process<? extends Model> submitProcess;
+public class SubmitService {
+    @Inject
+    @Named("Submit")
+    Process<? extends Model> submitProcess;
 
-	public String submitDocument(DocumentSubmissionRequest request)
-	{
-		TransactionRecord transactionRecord = new TransactionRecord();
-		transactionRecord.setDocumentKey(request.documentKey);
-		request.bommelId.ifPresent(transactionRecord::setBommelId);
+    public String submitDocument(DocumentSubmissionRequest request) {
+        TransactionRecord transactionRecord = new TransactionRecord();
+        transactionRecord.setDocumentKey(request.documentKey);
+        request.bommelId.ifPresent(transactionRecord::setBommelId);
 
-		// FIXME: Type is unhandled
+        // FIXME: Type is unhandled
 
-		Model model = submitProcess.createModel();
+        Model model = submitProcess.createModel();
 
-		Map<String, Object> params = new HashMap<>();
-		params.put("privatelyPaid", request.privatelyPaid);
-		params.put("transactionRecord", transactionRecord);
+        Map<String, Object> params = new HashMap<>();
+        params.put("privatelyPaid", request.privatelyPaid);
+        params.put("transactionRecord", transactionRecord);
 
-		model.fromMap(params);
-		ProcessInstance<? extends Model> instance = submitProcess.createInstance(model);
+        model.fromMap(params);
+        ProcessInstance<? extends Model> instance = submitProcess.createInstance(model);
         instance.start();
         return instance.id();
-	}
+    }
 
-	public record DocumentSubmissionRequest(
-		String documentKey,
-		Optional<Long> bommelId,
-		Optional<DocumentType> type,
-		boolean privatelyPaid,
-        String submitterUserName
-    )
-	{
-	}
+    public record DocumentSubmissionRequest(
+            String documentKey,
+            Optional<Long> bommelId,
+            Optional<DocumentType> type,
+            boolean privatelyPaid,
+            String submitterUserName
+    ) {
+    }
 }
