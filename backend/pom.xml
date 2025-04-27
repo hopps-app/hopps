@@ -27,8 +27,8 @@
 
     <scm>
         <url>https://github.com/hopps-app/hopps</url>
-        <connection>git@github.com:hopps-app/hopps.git</connection>
-        <developerConnection>git@github.com:hopps-app/hopps.git</developerConnection>
+        <connection>scm:git:git@github.com:hopps-app/hopps.git</connection>
+        <developerConnection>scm:git:git@github.com:hopps-app/hopps.git</developerConnection>
     </scm>
 
     <issueManagement>
