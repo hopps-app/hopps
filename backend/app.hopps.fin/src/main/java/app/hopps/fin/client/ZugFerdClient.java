@@ -14,6 +14,5 @@ public interface ZugFerdClient {
     @POST
     InvoiceData uploadDocument(
             @RestForm("file") byte[] file,
-            @RestForm @PartType(MediaType.TEXT_PLAIN)
-            Long referenceId);
+            @RestForm @PartType(MediaType.TEXT_PLAIN) Long referenceId);
 }

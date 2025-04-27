@@ -15,6 +15,7 @@ import java.util.Optional;
 
 @ApplicationScoped
 public class SubmitService {
+
     @Inject
     @Named("Submit")
     Process<? extends Model> submitProcess;
@@ -43,7 +44,6 @@ public class SubmitService {
             Optional<Long> bommelId,
             Optional<DocumentType> type,
             boolean privatelyPaid,
-            String submitterUserName
-    ) {
+            String submitterUserName) {
     }
 }

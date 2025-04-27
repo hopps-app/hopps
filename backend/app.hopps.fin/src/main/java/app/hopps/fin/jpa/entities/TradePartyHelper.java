@@ -1,6 +1,5 @@
 package app.hopps.fin.jpa.entities;
 
-
 public class TradePartyHelper {
     private TradePartyHelper() {
         // only call the static method
