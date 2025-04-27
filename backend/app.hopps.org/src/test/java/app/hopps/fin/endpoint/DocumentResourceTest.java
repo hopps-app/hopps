@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.InputStream;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
 @TestSecurity(user = "peter")
@@ -73,7 +74,9 @@ class DocumentResourceTest {
 
     @Test
     void shouldUploadFile() {
+
         InputStream zugferdInputStream = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(zugferdInputStream);
 
         given()
                 .contentType(MediaType.MULTIPART_FORM_DATA)
