@@ -99,10 +99,6 @@ public class CreateUserInKeycloak {
         RealmResource realmResource = keycloak.realm(realmName);
         UsersResource usersResource = realmResource.users();
 
-        System.out.println("to be queried email: " + email);
-
-        usersResource.list().stream().forEach(u -> System.out.println(u.getUsername() + ", " + u.getFirstName() + ", " + u.getEmail()));
-
         List<UserRepresentation> users = usersResource.searchByEmail(email, true);
 
         if(users.size() > 1) {

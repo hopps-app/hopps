@@ -30,9 +30,10 @@ public class MailReceiver {
     }
 
     private Function<Map<String, String>, MailTemplate.MailTemplateInstance> getTemplateByType(
-            MailTemplates mailTemplates) {
-        return switch (mailTemplates) {
+            MailTemplates mailTemplate) {
+        return switch (mailTemplate) {
             case EXAMPLE -> Templates::example;
+            case INVITE_MEMBER -> Templates::inviteMember;
         };
     }
 }

@@ -1,5 +1,6 @@
 package app.hopps.commons.mail;
 
 public enum MailTemplates {
-    EXAMPLE
+    EXAMPLE,
+    INVITE_MEMBER
 }

@@ -11,6 +11,10 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 @ApplicationScoped
 @SuppressWarnings("java:S6813")
 public class PersistOrganizationDelegate {
@@ -41,5 +45,18 @@ public class PersistOrganizationDelegate {
         memberRepository.persist(owner);
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
+    }
+
+    public void checkUserToOrgMapping(String email, String orgSlug) throws Exception {
+        Member member = memberRepository.findByEmail(email);
+
+        Optional<Organization> org = member.getOrganizations()
+            .stream()
+            .filter(o -> o.getSlug().equals(orgSlug))
+            .findFirst();
+
+        if (org.isPresent()) {
+            throw new Exception("member already assigned to organization");
+        }
     }
 }

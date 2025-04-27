@@ -49,8 +49,6 @@ public class InviteMemberTests {
         member.setLastName("Kim");
         member.setFirstName("Jong");
 
-        instance.workItems().forEach(x -> System.out.println(x.getName() + "; " + x.getParameters().get("NodeName")));
-
         WorkItem workItem = instance
                 .workItems()
                 .stream()
@@ -60,6 +58,7 @@ public class InviteMemberTests {
 
         instance.completeWorkItem(workItem.getId(), Map.of());
 
+
         assertEquals(KogitoProcessInstance.STATE_COMPLETED, instance.status());
     }
 
@@ -68,15 +67,13 @@ public class InviteMemberTests {
     void shouldTestExistingMember() {
         Model model = addMemberProcess.createModel();
         Map<String, Object> parameters = Map.of(
-                "email", "bob@alice.com",
+                "email", "h1978@company.none",
                 "slug", "gruenes-herz-ev"
         );
         model.fromMap(parameters);
 
         ProcessInstance<? extends Model> instance = addMemberProcess.createInstance(model);
         instance.start();
-
-        instance.workItems().forEach(x -> System.out.println(x.getName() + "; " + x.getParameters().get("NodeName")));
 
         WorkItem workItem = instance
                 .workItems()
@@ -90,9 +87,19 @@ public class InviteMemberTests {
         assertEquals(KogitoProcessInstance.STATE_COMPLETED, instance.status());
     }
 
-//    @Test
-//    @DisplayName("should fail because the email is not valid")
-//    void shouldFailBecauseOfEmail() {
-//
-//    }
+    @Test
+    @DisplayName("should fail because the org does not exist")
+    void shouldFailBecauseOrgUnknown() {
+        Model model = addMemberProcess.createModel();
+        Map<String, Object> parameters = Map.of(
+                "email", "test@hopps.cloud",
+                "slug", "unknown_org"
+        );
+        model.fromMap(parameters);
+
+        ProcessInstance<? extends Model> instance = addMemberProcess.createInstance(model);
+        instance.start();
+
+        assertEquals(KogitoProcessInstance.STATE_ERROR, instance.status());
+    }
 }
