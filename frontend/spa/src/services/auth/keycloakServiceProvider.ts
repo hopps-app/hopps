@@ -59,7 +59,7 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
     }
 
     isAuthenticated(): boolean {
-        return this.keycloak?.isTokenExpired() || false;
+        return this.keycloak?.authenticated === true && !this.keycloak.isTokenExpired();
     }
 
     async refreshToken() {

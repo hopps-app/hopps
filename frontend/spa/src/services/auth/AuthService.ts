@@ -39,16 +39,18 @@ export class AuthService {
     }
 
     onUserLogin() {
-        const isRedirectAfterLogin = window.localStorage.getItem('REDIRECT_AFTER_LOGIN') === 'true';
-        window.localStorage.removeItem('REDIRECT_AFTER_LOGIN');
-
-        if (isRedirectAfterLogin) {
-            window.setTimeout(() => {
-                window.location.href = '/';
-            }, 0);
-        }
+        // TODO
+        // const isRedirectAfterLogin = window.localStorage.getItem('REDIRECT_AFTER_LOGIN') === 'true';
+        // window.localStorage.removeItem('REDIRECT_AFTER_LOGIN');
+        //
+        // if (isRedirectAfterLogin) {
+        //     window.setTimeout(() => {
+        //         window.location.href = '/';
+        //     }, 0);
+        // }
     }
 
+    // TODO eigener Service
     async loadUserOrganisation() {
         const apiService = (await import('@/services/ApiService.ts')).default;
         const user = useStore.getState().user;
@@ -77,9 +79,10 @@ export class AuthService {
     }
 
     async setAuthUser(userData: { id: string; name: string; email: string } | null) {
-        useStore.getState().setUser(userData !== null ? pick(userData, ['id', 'name', 'email']) : null);
-        await this.loadUserOrganisation();
         useStore.getState().setIsAuthenticated(!!userData);
+        useStore.getState().setUser(userData !== null ? pick(userData, ['id', 'name', 'email']) : null);
+        // TODO
+        // await this.loadUserOrganisation();
     }
 
     isAuthenticated() {
