@@ -4,7 +4,7 @@
 
     <groupId>app.hopps</groupId>
     <artifactId>hopps</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -27,7 +27,7 @@
         <url>https://github.com/hopps-app/hopps</url>
         <connection>scm:git:git@github.com:hopps-app/hopps.git</connection>
         <developerConnection>scm:git:git@github.com:hopps-app/hopps.git</developerConnection>
-      <tag>hopps-1.0.0</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <issueManagement>
