@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 @Authenticated
 @Path("/document")
@@ -78,12 +79,13 @@ public class DocumentResource {
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
         }
 
-        s3Handler.saveFile(file);
+        UUID documentKey = UUID.randomUUID();
+        s3Handler.saveFile(documentKey.toString(), file);
 
         // Save in a database
         TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, type,
                 context.getUserPrincipal().getName());
-        transactionRecord.setDocumentKey(file.fileName());
+        transactionRecord.setDocumentKey(documentKey.toString());
         transactionRecord.setPrivatelyPaid(privatelyPaid);
         bommelId.ifPresent(transactionRecord::setBommelId);
 

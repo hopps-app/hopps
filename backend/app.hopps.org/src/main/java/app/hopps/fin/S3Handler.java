@@ -57,12 +57,12 @@ public class S3Handler {
         return object.asByteArray();
     }
 
-    public void saveFile(FileUpload file) throws IOException {
+    public void saveFile(String documentKey, FileUpload file) throws IOException {
         byte[] fileContents = Files.readAllBytes(file.uploadedFile());
 
         s3.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(file.fileName())
+                .key(documentKey)
                 .contentType(file.contentType())
                 .build(), RequestBody.fromBytes(fileContents));
 
