@@ -11,7 +11,6 @@
     </parent>
 
     <artifactId>org</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Org</name>
     <description>Microservice for Organizations and their Members</description>
