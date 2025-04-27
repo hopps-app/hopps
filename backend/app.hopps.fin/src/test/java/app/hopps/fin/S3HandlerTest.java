@@ -19,9 +19,10 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
-public class S3HandlerTest {
+class S3HandlerTest {
 
     @Inject
     S3Handler s3Handler;
@@ -42,12 +43,13 @@ public class S3HandlerTest {
         assertDoesNotThrow(() -> s3Handler.setup(null));
     }
 
+    @Test
     void saveFileTest() throws URISyntaxException, IOException {
         // given
         FileUpload file = getMockedFileUpload();
 
         // when
-        s3Handler.saveFile(file);
+        s3Handler.saveFile("019676cf-46cf-71be-803d-1011e05e0840", file);
 
         // then
         var resp = lowLevels3Client.listObjects(
@@ -56,7 +58,7 @@ public class S3HandlerTest {
                         .build());
 
         assertEquals(1, resp.contents().size());
-        assertDoesNotThrow(() -> s3Handler.getFile(file.fileName()));
+        assertDoesNotThrow(() -> s3Handler.getFile("019676cf-46cf-71be-803d-1011e05e0840"));
     }
 
     @Test
@@ -65,12 +67,12 @@ public class S3HandlerTest {
         // save a file and then delete it from the s3,
         // this way getFile throws an error if it tries accessing the s3 again.
         FileUpload file = getMockedFileUpload();
-        s3Handler.saveFile(file);
+        s3Handler.saveFile("019676d0-19ec-704d-b746-b77353e2209f", file);
 
         lowLevels3Client.deleteObject(
                 DeleteObjectRequest.builder()
                         .bucket(bucketName)
-                        .key(file.fileName())
+                        .key("019676d0-19ec-704d-b746-b77353e2209f")
                         .build());
 
         // when + then
@@ -82,9 +84,9 @@ public class S3HandlerTest {
         Path filePath = Paths.get(fileUrl.toURI());
 
         FileUpload fileUpload = Mockito.mock(FileUpload.class);
-        Mockito.when(fileUpload.uploadedFile()).thenReturn(filePath);
-        Mockito.when(fileUpload.fileName()).thenReturn("ZUGFeRD.pdf");
-        Mockito.when(fileUpload.contentType()).thenReturn("application/pdf");
+        when(fileUpload.uploadedFile()).thenReturn(filePath);
+        when(fileUpload.fileName()).thenReturn("ZUGFeRD.pdf");
+        when(fileUpload.contentType()).thenReturn("application/pdf");
 
         return fileUpload;
     }
@@ -100,5 +102,4 @@ public class S3HandlerTest {
                             .build());
         }
     }
-
 }
