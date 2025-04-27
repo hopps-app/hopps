@@ -27,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
 public class S3Handler {
+
     private static final Logger LOG = LoggerFactory.getLogger(S3Handler.class);
 
     private final S3Client s3;
