@@ -14,6 +14,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <scm>
+        <url>https://github.com/hopps-app/hopps</url>
+        <connection>scm:git:git@github.com:hopps-app/hopps.git</connection>
+        <developerConnection>scm:git:git@github.com:hopps-app/hopps.git</developerConnection>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
