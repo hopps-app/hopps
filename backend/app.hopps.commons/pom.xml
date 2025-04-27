@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>app.hopps</groupId>
@@ -16,8 +17,8 @@
         <url>https://github.com/hopps-app/hopps</url>
         <connection>scm:git:git@github.com:hopps-app/hopps.git</connection>
         <developerConnection>scm:git:git@github.com:hopps-app/hopps.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -34,12 +35,12 @@
         </dependency>
     </dependencies>
 
-    <repositories>
+    <distributionManagement>
         <repository>
             <id>github</id>
-            <name>GitHub Packages</name>
+            <name>GitHub OWNER Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/hopps-app/hopps</url>
         </repository>
-    </repositories>
+    </distributionManagement>
 
 </project>
