@@ -17,16 +17,35 @@ function Layout() {
                 <div className="flex flex-col mx-auto size-full" style={{ maxWidth: 1360, padding: '0 40px' }}>
                     <Header />
                     <div className="min-h-[calc(100vh-80px)] pb-9">
-                        <AuthGuard>
-                            <Routes>
-                                <Route path="/" element={<HomeView />} />
-                                <Route path="/demo" element={<DemoView />} />
-                                <Route path="/register" element={<RegisterOrganizationView />} />
-                                <Route path="/settings/*" element={<SettingsView />} />
-                                <Route path="/invoices" element={<InvoicesView />} />
-                                <Route path="*" element={<NotFoundView />} />
-                            </Routes>
-                        </AuthGuard>
+                        <Routes>
+                            <Route path="/" element={<HomeView />} />
+                            <Route path="/demo" element={<DemoView />} />
+                            <Route
+                                path="/register"
+                                element={
+                                    <AuthGuard>
+                                        <RegisterOrganizationView />
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/settings/*"
+                                element={
+                                    <AuthGuard>
+                                        <SettingsView />
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
+                                path="/invoices"
+                                element={
+                                    <AuthGuard>
+                                        <InvoicesView />
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route path="*" element={<NotFoundView />} />
+                        </Routes>
                     </div>
                 </div>
             </Router>
