@@ -33,12 +33,18 @@ public class MailDelegate {
         Boolean memberDoesExist = (Boolean) data.get("memberDoesExist");
         String orgSlug = (String) data.get("slug");
 
-        String acceptInviteURL = String.format(
-            "https://hopps.cloud/acceptInvite?pid=%s&asMember=%s&exists=%s",
-            URLEncoder.encode(kogitoProcessContext.getProcessInstance().getId(), StandardCharsets.UTF_8),
-            URLEncoder.encode(invitedEmail, StandardCharsets.UTF_8),
-            URLEncoder.encode(memberDoesExist.toString(), StandardCharsets.UTF_8)
-        );
+        String acceptInviteURL = memberDoesExist
+                ? String.format(
+                    "https://hopps.cloud/acceptInvite?pid=%s&email=%s",
+                    URLEncoder.encode(kogitoProcessContext.getProcessInstance().getId(), StandardCharsets.UTF_8),
+                    URLEncoder.encode(invitedEmail, StandardCharsets.UTF_8)
+                )
+                : String.format(
+                    "https://hopps.cloud/registerAndAcceptInvite?pid=%s&email=%s",
+                    URLEncoder.encode(kogitoProcessContext.getProcessInstance().getId(), StandardCharsets.UTF_8),
+                    URLEncoder.encode(invitedEmail, StandardCharsets.UTF_8)
+                 );
+
 
         Organization org = organizationRepository.findBySlug(orgSlug);
 

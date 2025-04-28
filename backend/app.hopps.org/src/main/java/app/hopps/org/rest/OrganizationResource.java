@@ -176,6 +176,7 @@ public class OrganizationResource {
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @APIResponse(responseCode = "202", description = "Invitation started successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ProcessResponse.class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response inviteMemberToOrganisation(@PathParam("slug") String slug, InviteMemberInput input) {
         Model model = addMemberProcess.createModel();

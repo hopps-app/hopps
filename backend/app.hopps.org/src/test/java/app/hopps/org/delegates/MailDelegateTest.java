@@ -8,6 +8,8 @@ import org.kie.kogito.internal.process.runtime.KogitoProcessContext;
 import org.kie.kogito.internal.process.runtime.KogitoProcessInstance;
 import org.mockito.Mockito;
 
+import java.util.Map;
+
 @QuarkusTest
 public class MailDelegateTest {
     @Inject
@@ -20,14 +22,12 @@ public class MailDelegateTest {
         KogitoProcessContext context = Mockito.mock(KogitoProcessContext.class);
         KogitoProcessInstance processInstance = Mockito.mock(KogitoProcessInstance.class);
 
+        Mockito.when(context.getContextData()).thenReturn(Map.of("email", "test@test.test", "memberDoesExist", true));
         Mockito.when(context.getProcessInstance()).thenReturn(processInstance);
         Mockito.when(processInstance.getId()).thenReturn("mocked-process-id");
 
-        mailDelegate.inviteMemberSlim(
-                "matthias.raimann82@gmail.com",
-                context
-        );
+        mailDelegate.inviteMember(context);
 
-        Thread.sleep(2000);
+//        Putting things on kafka can not be tested. Can test be deleted?
     }
 }
