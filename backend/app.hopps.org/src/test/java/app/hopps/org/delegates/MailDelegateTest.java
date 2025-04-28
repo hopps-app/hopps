@@ -26,7 +26,7 @@ public class MailDelegateTest {
         Mockito.when(context.getProcessInstance()).thenReturn(processInstance);
         Mockito.when(processInstance.getId()).thenReturn("mocked-process-id");
 
-        mailDelegate.inviteMember(context);
+        mailDelegate.inviteMember(true, "test@test.test", "gruenes-herz-ev", context);
 
 //        Putting things on kafka can not be tested. Can test be deleted?
     }

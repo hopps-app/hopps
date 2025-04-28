@@ -4,9 +4,9 @@ import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
+import app.hopps.org.rest.model.MemberInput;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import app.hopps.org.rest.model.OrganizationInput;
-import app.hopps.org.rest.model.OwnerInput;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -23,10 +23,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.any;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @TestSecurity(authorizationEnabled = false)
@@ -102,7 +99,7 @@ class OrganizationResourceTests {
         OrganizationInput organizationInput = new OrganizationInput("Schützenverein", "schuetzenverein",
                 Organization.TYPE.EINGETRAGENER_VEREIN, URI.create("https://hopps.cloud").toURL(),
                 URI.create("https://hopps.cloud").toURL(), null);
-        OwnerInput ownerInput = new OwnerInput("info@op-paf.de", "Test", "User");
+        MemberInput ownerInput = new MemberInput("info@op-paf.de", "Test", "User");
         NewOrganizationInput newOrganizationInput = new NewOrganizationInput(ownerInput, "testPassword",
                 organizationInput);
 

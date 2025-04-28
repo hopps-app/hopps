@@ -34,6 +34,7 @@ public class MailReceiver {
         return switch (mailTemplate) {
             case EXAMPLE -> Templates::example;
             case INVITE_MEMBER -> Templates::inviteMember;
+            case CONFIRM_ORG_JOINING -> Templates::confirmOrgJoining;
         };
     }
 }

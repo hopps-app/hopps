@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public record NewOrganizationInput(@NotNull OwnerInput owner, @NotNull String newPassword,
-        @NotNull OrganizationInput organization) {
+public record NewOrganizationInput(@NotNull MemberInput owner, @NotNull String newPassword,
+                                   @NotNull OrganizationInput organization) {
 
     public Map<String, Object> toModel() {
         Map<String, Object> parameters = new HashMap<>();

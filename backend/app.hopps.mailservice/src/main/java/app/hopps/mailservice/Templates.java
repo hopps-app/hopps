@@ -14,4 +14,6 @@ class Templates {
     public static native MailTemplate.MailTemplateInstance example(Map<String, String> mapping);
 
     public static native MailTemplate.MailTemplateInstance inviteMember(Map<String, String> mapping);
+
+    public static native MailTemplate.MailTemplateInstance confirmOrgJoining(Map<String, String> mapping);
 }

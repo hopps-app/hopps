@@ -1,7 +1,7 @@
 package app.hopps.org.bpmn;
 
-import app.hopps.org.delegates.NoopDelegate;
 import app.hopps.org.jpa.Member;
+import app.hopps.org.jpa.MemberRepository;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -13,14 +13,11 @@ import org.kie.kogito.internal.process.runtime.KogitoProcessInstance;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessInstance;
 import org.kie.kogito.process.WorkItem;
+import org.mockito.Mockito;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.util.Optional;
 
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
 public class InviteMemberTests {
@@ -29,7 +26,7 @@ public class InviteMemberTests {
     Process<? extends Model> addMemberProcess;
 
     @InjectMock
-    NoopDelegate noopDelegate;
+    MemberRepository memberRepository;
 
     @Test
     @DisplayName("should run through non existing member path")
@@ -45,9 +42,12 @@ public class InviteMemberTests {
         instance.start();
 
         Member member = new Member();
-        member.setEmail("test@test.com");
+        member.setEmail("test@hopps.cloud");
         member.setLastName("Kim");
         member.setFirstName("Jong");
+
+        Mockito.when(memberRepository.findByEmail("test@hopps.cloud")).thenReturn(member);
+        Mockito.doNothing().when(memberRepository).persist(member);
 
         WorkItem workItem = instance
                 .workItems()
@@ -56,8 +56,8 @@ public class InviteMemberTests {
                 .findFirst()
                 .orElseThrow();
 
-        instance.completeWorkItem(workItem.getId(), Map.of());
 
+        instance.completeWorkItem(workItem.getId(), Map.of());
 
         assertEquals(KogitoProcessInstance.STATE_COMPLETED, instance.status());
     }
@@ -74,6 +74,7 @@ public class InviteMemberTests {
 
         ProcessInstance<? extends Model> instance = addMemberProcess.createInstance(model);
         instance.start();
+
 
         WorkItem workItem = instance
                 .workItems()

@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import org.kie.kogito.internal.process.runtime.KogitoProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +44,9 @@ public class CreationValidationDelegate {
     }
 
     /**
-     * @param organization
-     *            The Organization to be validated if the slug is already taken
-     * @param owner
-     *            The owner to be validated if the email is already registered
-     *
-     * @throws Exception
-     *             if validation fails. It is intentionally java.lang.Exception, as Kogito cannot handle anything else
+     * @param organization The Organization to be validated if the slug is already taken
+     * @param owner        The owner to be validated if the email is already registered
+     * @throws Exception if validation fails. It is intentionally java.lang.Exception, as Kogito cannot handle anything else
      */
     public void validateUniqueness(Organization organization, Member owner) throws Exception {
 
@@ -73,15 +70,15 @@ public class CreationValidationDelegate {
         }
     }
 
-    public void validateInvitation(String invitedEmail, String orgSlug) throws Exception {
+    public void validateInvitation(String slug, KogitoProcessContext context) throws Exception {
         Set<InvitationValidationConstraintViolation> invitationValidationConstraintViolations = new HashSet<>();
 
-        boolean orgExists = organizationRepository.findBySlug(orgSlug) != null;
-        if(!orgExists) {
+        boolean orgExists = organizationRepository.findBySlug(slug) != null;
+        if (!orgExists) {
             invitationValidationConstraintViolations.add(new InvitationValidationConstraintViolation("slug", null));
         }
 
-        if(!invitationValidationConstraintViolations.isEmpty()) {
+        if (!invitationValidationConstraintViolations.isEmpty()) {
             throw new InvitationValidationConstraintViolation.InvitationValidationConstraintViolationException(invitationValidationConstraintViolations);
         }
     }

@@ -1,11 +1,15 @@
 package app.hopps.org.rest;
 
+import app.hopps.org.delegates.CreateUserInKeycloak;
 import app.hopps.org.jpa.Member;
+import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
+import app.hopps.org.rest.model.InvitationConfirmation;
 import io.quarkus.security.Authenticated;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -38,8 +42,14 @@ public class MemberResource {
     }
 
     @Inject
+    public CreateUserInKeycloak createUserInKeycloak;
+
+    @Inject
+    MemberRepository memberRepository;
+
+    @Inject
     @Named("AddMember")
-    Process<Map<String, Object>> addMemberProcess;
+    public Process<? extends Model> addMemberProcess;
 
     @POST
     @Path(("validate"))
@@ -72,34 +82,34 @@ public class MemberResource {
     @APIResponse(responseCode = "200", description = "Invitation accepted successful")
     @APIResponse(responseCode = "400", description = "Missing or bad data")
     @APIResponse(responseCode = "404", description = "Resource not found")
-    public Response confirmInvitation(@Nullable Member member, @QueryParam("pid") String pid) {
+    @Transactional
+    public Response confirmInvitation(@Nullable InvitationConfirmation invitationConfirmation, @QueryParam("pid") String pid) {
         try {
-            ProcessInstance<Map<String, Object>> currentProcess = addMemberProcess.instances()
+            ProcessInstance<? extends Model> currentProcess = addMemberProcess.instances()
                     .stream()
                     .filter(p -> p.id().equals(pid))
                     .findFirst()
                     .orElseThrow();
 
-            if(currentProcess.status() != ProcessInstance.STATE_ACTIVE) {
+            if (currentProcess.status() != ProcessInstance.STATE_ACTIVE) {
                 return Response.status(400, "The invitation is not valid anymore").build();
             }
 
             Map<String, Object> processData = (Map<String, Object>) currentProcess.variables();
 
-            if((Boolean) processData.get("memberDoesExist")) {
-                WorkItem wi = currentProcess
-                        .workItems(p -> p.getNode().getName().equals("accept invite"))
-                        .stream()
-                        .findFirst()
-                        .orElseThrow();
-
-                currentProcess.completeWorkItem(wi.getId(), Map.of());
-
-                return Response.ok().build();
-            } else {
-                if(member == null) {
+            if (!((Boolean) processData.get("memberDoesExist"))) {
+                if (invitationConfirmation == null) {
                     throw new BadRequestException();
                 }
+
+                if (!invitationConfirmation.invitedMember().email().equals(processData.get("email"))) {
+                    throw new BadRequestException();
+                }
+
+                Member member = new Member();
+                member.setFirstName(invitationConfirmation.invitedMember().firstName());
+                member.setLastName(invitationConfirmation.invitedMember().lastName());
+                member.setEmail(invitationConfirmation.invitedMember().email());
 
                 ValidationResult result = RestValidator.forCandidate(member)
                         .with(validator)
@@ -110,11 +120,24 @@ public class MemberResource {
                     throw new BadRequestException(response);
                 }
 
-                processData.put("member", member);
-                currentProcess.updateVariables(processData);
+                createUserInKeycloak.createUserInKeycloak(member, invitationConfirmation.newPassword());
+                memberRepository.persist(member);
 
                 return Response.ok().build();
             }
+
+            WorkItem wi = currentProcess
+                    .workItems(p -> p.getNode().getName().equals((Boolean) processData.get("memberDoesExist")
+                            ? "accept invite"
+                            : "input user data and accept invite"
+                    ))
+                    .stream()
+                    .findFirst()
+                    .orElseThrow();
+
+            currentProcess.completeWorkItem(wi.getId(), Map.of());
+
+            return Response.ok().build();
         } catch (NoSuchElementException e) {
             throw new NotFoundException();
         }

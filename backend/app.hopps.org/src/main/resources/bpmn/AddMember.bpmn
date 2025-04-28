@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" id="_7LPIMAYxED65zqWUxX8hnQ" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" id="_KqHssAZhED6Uvsftt1T3-w" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
   <bpmn2:itemDefinition id="_memberDoesExistItem" structureRef="Boolean"/>
   <bpmn2:itemDefinition id="_emailItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_slugItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_memberItem" structureRef="app.hopps.org.jpa.Member"/>
   <bpmn2:itemDefinition id="_newPasswordItem" structureRef="String"/>
-  <bpmn2:itemDefinition id="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_InMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_InMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__0C69C323-9673-4E0F-AF7D-A773B57BA1A2_memberInputXItem" structureRef="app.hopps.org.jpa.Member"/>
-  <bpmn2:itemDefinition id="__0C69C323-9673-4E0F-AF7D-A773B57BA1A2_newPasswordInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_22487D47-DDBA-4679-A2A6-4847254B285A_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_22487D47-DDBA-4679-A2A6-4847254B285A_OutMessageType" structureRef=""/>
+  <bpmn2:itemDefinition id="__22487D47-DDBA-4679-A2A6-4847254B285A_memberDoesExistInputXItem" structureRef="Boolean"/>
+  <bpmn2:itemDefinition id="__22487D47-DDBA-4679-A2A6-4847254B285A_emailInputXItem" structureRef="String"/>
+  <bpmn2:itemDefinition id="__22487D47-DDBA-4679-A2A6-4847254B285A_slugInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_OutMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="__A0E85E87-8F97-47CD-A148-EC0BC3769514_emailInputXItem" structureRef="String"/>
-  <bpmn2:itemDefinition id="__A0E85E87-8F97-47CD-A148-EC0BC3769514_orgSlugInputXItem" structureRef="String"/>
+  <bpmn2:itemDefinition id="__A0E85E87-8F97-47CD-A148-EC0BC3769514_slugInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_FC42FC1E-8334-4174-AD10-C5FD9803B734_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_FC42FC1E-8334-4174-AD10-C5FD9803B734_OutMessageType" structureRef=""/>
+  <bpmn2:itemDefinition id="__FC42FC1E-8334-4174-AD10-C5FD9803B734_memberDoesExistInputXItem" structureRef="Boolean"/>
+  <bpmn2:itemDefinition id="__FC42FC1E-8334-4174-AD10-C5FD9803B734_emailInputXItem" structureRef="String"/>
+  <bpmn2:itemDefinition id="__FC42FC1E-8334-4174-AD10-C5FD9803B734_slugInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="__71DC5944-364D-4428-9E21-5CB8D50080C7_SkippableInputXItem" structureRef="Object"/>
   <bpmn2:itemDefinition id="__71DC5944-364D-4428-9E21-5CB8D50080C7_PriorityInputXItem" structureRef="Object"/>
   <bpmn2:itemDefinition id="__71DC5944-364D-4428-9E21-5CB8D50080C7_CommentInputXItem" structureRef="Object"/>
@@ -45,34 +45,21 @@
   <bpmn2:itemDefinition id="__47BD09D6-9B4F-4772-811A-3BACC6E19781_NotCompletedNotifyInputXItem" structureRef="Object"/>
   <bpmn2:itemDefinition id="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__2254F31E-D2E7-4E7A-8899-F2F1B06D7253_invitedMailInputXItem" structureRef="String"/>
-  <bpmn2:itemDefinition id="__2254F31E-D2E7-4E7A-8899-F2F1B06D7253_orgSlugInputXItem" structureRef="String"/>
+  <bpmn2:itemDefinition id="__2254F31E-D2E7-4E7A-8899-F2F1B06D7253_slugInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_OutMessageType" structureRef=""/>
+  <bpmn2:itemDefinition id="__EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_slugInputXItem" structureRef="String"/>
+  <bpmn2:itemDefinition id="__EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_emailInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_invitedEmailInputXItem" structureRef="String"/>
+  <bpmn2:itemDefinition id="__A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_emailInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="__A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ResultOutputXItem" structureRef="Boolean"/>
   <bpmn2:itemDefinition id="_FCD1BC9A-F174-4B70-B4F4-4C21B9889C7E_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_FCD1BC9A-F174-4B70-B4F4-4C21B9889C7E_OutMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_OutMessageType" structureRef=""/>
-  <bpmn2:message id="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_InMessage" itemRef="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_InMessageType"/>
-  <bpmn2:message id="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_OutMessage" itemRef="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_OutMessageType"/>
-  <bpmn2:interface id="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_ServiceInterface" name="app.hopps.org.delegates.NoopDelegate" implementationRef="app.hopps.org.delegates.NoopDelegate">
-    <bpmn2:operation id="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_ServiceOperation" name="noop" implementationRef="noop">
-      <bpmn2:inMessageRef>_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_InMessage</bpmn2:inMessageRef>
-      <bpmn2:outMessageRef>_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_OutMessage</bpmn2:outMessageRef>
-    </bpmn2:operation>
-  </bpmn2:interface>
-  <bpmn2:message id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_InMessage" itemRef="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_InMessageType"/>
-  <bpmn2:message id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_OutMessage" itemRef="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_OutMessageType"/>
-  <bpmn2:interface id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_ServiceInterface" name="app.hopps.org.delegates.CreateUserInKeycloak" implementationRef="app.hopps.org.delegates.CreateUserInKeycloak">
-    <bpmn2:operation id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_ServiceOperation" name="createUserInKeycloak" implementationRef="createUserInKeycloak">
-      <bpmn2:inMessageRef>_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_InMessage</bpmn2:inMessageRef>
-      <bpmn2:outMessageRef>_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_OutMessage</bpmn2:outMessageRef>
-    </bpmn2:operation>
-  </bpmn2:interface>
+  <bpmn2:itemDefinition id="__CE35F148-C7EF-4B41-8EE3-8242283BFA80_emailInputXItem" structureRef="String"/>
+  <bpmn2:itemDefinition id="__CE35F148-C7EF-4B41-8EE3-8242283BFA80_slugInputXItem" structureRef="String"/>
   <bpmn2:message id="_22487D47-DDBA-4679-A2A6-4847254B285A_InMessage" itemRef="_22487D47-DDBA-4679-A2A6-4847254B285A_InMessageType"/>
   <bpmn2:message id="_22487D47-DDBA-4679-A2A6-4847254B285A_OutMessage" itemRef="_22487D47-DDBA-4679-A2A6-4847254B285A_OutMessageType"/>
   <bpmn2:interface id="_22487D47-DDBA-4679-A2A6-4847254B285A_ServiceInterface" name="app.hopps.org.delegates.MailDelegate" implementationRef="app.hopps.org.delegates.MailDelegate">
@@ -83,7 +70,7 @@
   </bpmn2:interface>
   <bpmn2:message id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_InMessage" itemRef="_A0E85E87-8F97-47CD-A148-EC0BC3769514_InMessageType"/>
   <bpmn2:message id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_OutMessage" itemRef="_A0E85E87-8F97-47CD-A148-EC0BC3769514_OutMessageType"/>
-  <bpmn2:interface id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_ServiceInterface" name="app.hopps.org.delegates.PersistOrganizationDelegate" implementationRef="app.hopps.org.delegates.PersistOrganizationDelegate">
+  <bpmn2:interface id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_ServiceInterface" name="app.hopps.org.delegates.AssignUserToOrg" implementationRef="app.hopps.org.delegates.AssignUserToOrg">
     <bpmn2:operation id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_ServiceOperation" name="checkUserToOrgMapping" implementationRef="checkUserToOrgMapping">
       <bpmn2:inMessageRef>_A0E85E87-8F97-47CD-A148-EC0BC3769514_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_A0E85E87-8F97-47CD-A148-EC0BC3769514_OutMessage</bpmn2:outMessageRef>
@@ -109,15 +96,15 @@
   </bpmn2:interface>
   <bpmn2:message id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_InMessage" itemRef="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_InMessageType"/>
   <bpmn2:message id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_OutMessage" itemRef="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_OutMessageType"/>
-  <bpmn2:interface id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_ServiceInterface" name="app.hopps.org.delegates.NoopDelegate" implementationRef="app.hopps.org.delegates.NoopDelegate">
-    <bpmn2:operation id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_ServiceOperation" name="noop" implementationRef="noop">
+  <bpmn2:interface id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_ServiceInterface" name="app.hopps.org.delegates.MailDelegate" implementationRef="app.hopps.org.delegates.MailDelegate">
+    <bpmn2:operation id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_ServiceOperation" name="confirmOrgJoining" implementationRef="confirmOrgJoining">
       <bpmn2:inMessageRef>_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_OutMessage</bpmn2:outMessageRef>
     </bpmn2:operation>
   </bpmn2:interface>
   <bpmn2:message id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_InMessage" itemRef="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_InMessageType"/>
   <bpmn2:message id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_OutMessage" itemRef="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_OutMessageType"/>
-  <bpmn2:interface id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ServiceInterface" name="app.hopps.org.delegates.CreateUserInKeycloak" implementationRef="app.hopps.org.delegates.CreateUserInKeycloak">
+  <bpmn2:interface id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ServiceInterface" name="app.hopps.org.delegates.CheckKeycloakUserExistency" implementationRef="app.hopps.org.delegates.CheckKeycloakUserExistency">
     <bpmn2:operation id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ServiceOperation" name="checkUserExistence" implementationRef="checkUserExistence">
       <bpmn2:inMessageRef>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_OutMessage</bpmn2:outMessageRef>
@@ -133,14 +120,14 @@
   </bpmn2:interface>
   <bpmn2:message id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_InMessage" itemRef="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_InMessageType"/>
   <bpmn2:message id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_OutMessage" itemRef="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_OutMessageType"/>
-  <bpmn2:interface id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_ServiceInterface" name="app.hopps.org.delegates.NoopDelegate" implementationRef="app.hopps.org.delegates.NoopDelegate">
-    <bpmn2:operation id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_ServiceOperation" name="noop" implementationRef="noop">
+  <bpmn2:interface id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_ServiceInterface" name="app.hopps.org.delegates.AssignUserToOrg" implementationRef="app.hopps.org.delegates.AssignUserToOrg">
+    <bpmn2:operation id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_ServiceOperation" name="assignUserToOrg" implementationRef="assignUserToOrg">
       <bpmn2:inMessageRef>_CE35F148-C7EF-4B41-8EE3-8242283BFA80_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_CE35F148-C7EF-4B41-8EE3-8242283BFA80_OutMessage</bpmn2:outMessageRef>
     </bpmn2:operation>
   </bpmn2:interface>
-  <bpmn2:collaboration id="_DAEBBE06-5A70-4F3C-90EC-87EF28C284FD" name="Default Collaboration">
-    <bpmn2:participant id="_D60C570E-2799-48E3-94FF-C37BB71733C3" name="Pool Participant" processRef="AddMember"/>
+  <bpmn2:collaboration id="_E87FF199-AB57-42F9-8DB7-7B617722AEAD" name="Default Collaboration">
+    <bpmn2:participant id="_9C6A286D-2131-4AB9-9ADE-ED011D56AA80" name="Pool Participant" processRef="AddMember"/>
   </bpmn2:collaboration>
   <bpmn2:process id="AddMember" drools:packageName="app.hopps.org" drools:version="1.0" drools:adHoc="false" name="AddMember" isExecutable="true" processType="Public">
     <bpmn2:extensionElements>
@@ -187,49 +174,65 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>_247EE502-E3CF-46A2-985E-0910300B4A31</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:serviceTask id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.NoopDelegate" drools:serviceoperation="noop" name="Map User to Organisation" implementation="Java" operationRef="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_ServiceOperation">
+    <bpmn2:serviceTask id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.AssignUserToOrg" drools:serviceoperation="assignUserToOrg" name="map user to organisation" implementation="Java" operationRef="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Map User to Organisation]]></drools:metaValue>
+          <drools:metaValue><![CDATA[map user to organisation]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_8A3A67E9-40E3-4BB9-80C7-68ECAD3A99EB</bpmn2:incoming>
       <bpmn2:outgoing>_796F789B-81A6-4264-B82F-D2E58B41EF07</bpmn2:outgoing>
+      <bpmn2:ioSpecification>
+        <bpmn2:dataInput id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_emailInputX" drools:dtype="String" itemSubjectRef="__CE35F148-C7EF-4B41-8EE3-8242283BFA80_emailInputXItem" name="email"/>
+        <bpmn2:dataInput id="_CE35F148-C7EF-4B41-8EE3-8242283BFA80_slugInputX" drools:dtype="String" itemSubjectRef="__CE35F148-C7EF-4B41-8EE3-8242283BFA80_slugInputXItem" name="slug"/>
+        <bpmn2:inputSet>
+          <bpmn2:dataInputRefs>_CE35F148-C7EF-4B41-8EE3-8242283BFA80_emailInputX</bpmn2:dataInputRefs>
+          <bpmn2:dataInputRefs>_CE35F148-C7EF-4B41-8EE3-8242283BFA80_slugInputX</bpmn2:dataInputRefs>
+        </bpmn2:inputSet>
+      </bpmn2:ioSpecification>
+      <bpmn2:dataInputAssociation>
+        <bpmn2:sourceRef>email</bpmn2:sourceRef>
+        <bpmn2:targetRef>_CE35F148-C7EF-4B41-8EE3-8242283BFA80_emailInputX</bpmn2:targetRef>
+      </bpmn2:dataInputAssociation>
+      <bpmn2:dataInputAssociation>
+        <bpmn2:sourceRef>slug</bpmn2:sourceRef>
+        <bpmn2:targetRef>_CE35F148-C7EF-4B41-8EE3-8242283BFA80_slugInputX</bpmn2:targetRef>
+      </bpmn2:dataInputAssociation>
     </bpmn2:serviceTask>
-    <bpmn2:endEvent id="_E32A143E-9693-42EB-9005-A492C4FA1412" name="Invitation outdated">
+    <bpmn2:endEvent id="_E32A143E-9693-42EB-9005-A492C4FA1412" name="invitation outdated">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Invitation outdated]]></drools:metaValue>
+          <drools:metaValue><![CDATA[invitation outdated]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_780D8FB7-673C-455E-AF72-8069B2B5DEF6</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:endEvent id="_120000EB-7740-4679-AF9F-82DE544BDA13" name="Reminder sent">
+    <bpmn2:endEvent id="_120000EB-7740-4679-AF9F-82DE544BDA13" name="reminder sent">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Reminder sent]]></drools:metaValue>
+          <drools:metaValue><![CDATA[reminder sent]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_D84816D2-45DB-44A1-9989-9DFB8057E9ED</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:serviceTask id="_FCD1BC9A-F174-4B70-B4F4-4C21B9889C7E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.NoopDelegate" drools:serviceoperation="noop" name="Send Reminder" implementation="Java" operationRef="_FCD1BC9A-F174-4B70-B4F4-4C21B9889C7E_ServiceOperation">
+    <bpmn2:serviceTask id="_FCD1BC9A-F174-4B70-B4F4-4C21B9889C7E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.NoopDelegate" drools:serviceoperation="noop" name="send reminder" implementation="Java" operationRef="_FCD1BC9A-F174-4B70-B4F4-4C21B9889C7E_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Send Reminder]]></drools:metaValue>
+          <drools:metaValue><![CDATA[send reminder]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_31C06840-032B-4DB9-B26C-905B616D71BA</bpmn2:incoming>
       <bpmn2:outgoing>_D84816D2-45DB-44A1-9989-9DFB8057E9ED</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:endEvent id="_C7EA4AB6-047C-45F3-9416-971E22FACEC7" name="Invitation not valid">
+    <bpmn2:endEvent id="_C7EA4AB6-047C-45F3-9416-971E22FACEC7" name="invitation not valid">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Invitation not valid]]></drools:metaValue>
+          <drools:metaValue><![CDATA[invitation not valid]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_6DF6AC24-7F00-4CC6-A6D0-AD4E08164C5F</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:serviceTask id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CreateUserInKeycloak" drools:serviceoperation="checkUserExistence" name="check if keycloak user exists" implementation="Java" operationRef="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ServiceOperation">
+    <bpmn2:serviceTask id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CheckKeycloakUserExistency" drools:serviceoperation="checkUserExistence" name="check if keycloak user exists" implementation="Java" operationRef="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
           <drools:metaValue><![CDATA[check if keycloak user exists]]></drools:metaValue>
@@ -238,10 +241,10 @@
       <bpmn2:incoming>_3B6B1C0A-0D59-4CB1-8E9C-32DF2C8422E0</bpmn2:incoming>
       <bpmn2:outgoing>_798D3312-3D3E-40B2-91D2-DAB66532A8C7</bpmn2:outgoing>
       <bpmn2:ioSpecification>
-        <bpmn2:dataInput id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_invitedEmailInputX" drools:dtype="String" itemSubjectRef="__A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_invitedEmailInputXItem" name="invitedEmail"/>
+        <bpmn2:dataInput id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_emailInputX" drools:dtype="String" itemSubjectRef="__A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_emailInputXItem" name="email"/>
         <bpmn2:dataOutput id="_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ResultOutputX" drools:dtype="Boolean" itemSubjectRef="__A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ResultOutputXItem" name="Result"/>
         <bpmn2:inputSet>
-          <bpmn2:dataInputRefs>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_invitedEmailInputX</bpmn2:dataInputRefs>
+          <bpmn2:dataInputRefs>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_emailInputX</bpmn2:dataInputRefs>
         </bpmn2:inputSet>
         <bpmn2:outputSet>
           <bpmn2:dataOutputRefs>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ResultOutputX</bpmn2:dataOutputRefs>
@@ -249,21 +252,37 @@
       </bpmn2:ioSpecification>
       <bpmn2:dataInputAssociation>
         <bpmn2:sourceRef>email</bpmn2:sourceRef>
-        <bpmn2:targetRef>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_invitedEmailInputX</bpmn2:targetRef>
+        <bpmn2:targetRef>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_emailInputX</bpmn2:targetRef>
       </bpmn2:dataInputAssociation>
       <bpmn2:dataOutputAssociation>
         <bpmn2:sourceRef>_A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_ResultOutputX</bpmn2:sourceRef>
         <bpmn2:targetRef>memberDoesExist</bpmn2:targetRef>
       </bpmn2:dataOutputAssociation>
     </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.NoopDelegate" drools:serviceoperation="noop" name="Confirm Organisation Joining" implementation="Java" operationRef="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_ServiceOperation">
+    <bpmn2:serviceTask id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.MailDelegate" drools:serviceoperation="confirmOrgJoining" name="confirm organisation joining" implementation="Java" operationRef="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Confirm Organisation Joining]]></drools:metaValue>
+          <drools:metaValue><![CDATA[confirm organisation joining]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_796F789B-81A6-4264-B82F-D2E58B41EF07</bpmn2:incoming>
       <bpmn2:outgoing>_2EC91251-D8EB-4A29-8606-775ADB97492C</bpmn2:outgoing>
+      <bpmn2:ioSpecification>
+        <bpmn2:dataInput id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_slugInputX" drools:dtype="String" itemSubjectRef="__EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_slugInputXItem" name="slug"/>
+        <bpmn2:dataInput id="_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_emailInputX" drools:dtype="String" itemSubjectRef="__EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_emailInputXItem" name="email"/>
+        <bpmn2:inputSet>
+          <bpmn2:dataInputRefs>_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_slugInputX</bpmn2:dataInputRefs>
+          <bpmn2:dataInputRefs>_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_emailInputX</bpmn2:dataInputRefs>
+        </bpmn2:inputSet>
+      </bpmn2:ioSpecification>
+      <bpmn2:dataInputAssociation>
+        <bpmn2:sourceRef>slug</bpmn2:sourceRef>
+        <bpmn2:targetRef>_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_slugInputX</bpmn2:targetRef>
+      </bpmn2:dataInputAssociation>
+      <bpmn2:dataInputAssociation>
+        <bpmn2:sourceRef>email</bpmn2:sourceRef>
+        <bpmn2:targetRef>_EC37AD8C-80B7-484E-92F7-5F3E19E0F50C_emailInputX</bpmn2:targetRef>
+      </bpmn2:dataInputAssociation>
     </bpmn2:serviceTask>
     <bpmn2:endEvent id="_AA5EA8F5-18D9-4D2B-8AA9-9B1A781B1D01" name="added member to org">
       <bpmn2:extensionElements>
@@ -273,35 +292,29 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>_2EC91251-D8EB-4A29-8606-775ADB97492C</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:serviceTask id="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CreationValidationDelegate" drools:serviceoperation="validateInvitation" name="Validate Invitation Constraints" implementation="Java" operationRef="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_ServiceOperation">
+    <bpmn2:serviceTask id="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CreationValidationDelegate" drools:serviceoperation="validateInvitation" name="validate invitation constraints" implementation="Java" operationRef="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Validate Invitation Constraints]]></drools:metaValue>
+          <drools:metaValue><![CDATA[validate invitation constraints]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:incoming>_349E82E2-D56C-495F-8EA3-94593FDB5DB0</bpmn2:incoming>
       <bpmn2:outgoing>_3B6B1C0A-0D59-4CB1-8E9C-32DF2C8422E0</bpmn2:outgoing>
       <bpmn2:ioSpecification>
-        <bpmn2:dataInput id="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_invitedMailInputX" drools:dtype="String" itemSubjectRef="__2254F31E-D2E7-4E7A-8899-F2F1B06D7253_invitedMailInputXItem" name="invitedMail"/>
-        <bpmn2:dataInput id="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_orgSlugInputX" drools:dtype="String" itemSubjectRef="__2254F31E-D2E7-4E7A-8899-F2F1B06D7253_orgSlugInputXItem" name="orgSlug"/>
+        <bpmn2:dataInput id="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_slugInputX" drools:dtype="String" itemSubjectRef="__2254F31E-D2E7-4E7A-8899-F2F1B06D7253_slugInputXItem" name="slug"/>
         <bpmn2:inputSet>
-          <bpmn2:dataInputRefs>_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_invitedMailInputX</bpmn2:dataInputRefs>
-          <bpmn2:dataInputRefs>_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_orgSlugInputX</bpmn2:dataInputRefs>
+          <bpmn2:dataInputRefs>_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_slugInputX</bpmn2:dataInputRefs>
         </bpmn2:inputSet>
       </bpmn2:ioSpecification>
       <bpmn2:dataInputAssociation>
-        <bpmn2:sourceRef>email</bpmn2:sourceRef>
-        <bpmn2:targetRef>_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_invitedMailInputX</bpmn2:targetRef>
-      </bpmn2:dataInputAssociation>
-      <bpmn2:dataInputAssociation>
         <bpmn2:sourceRef>slug</bpmn2:sourceRef>
-        <bpmn2:targetRef>_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_orgSlugInputX</bpmn2:targetRef>
+        <bpmn2:targetRef>_2254F31E-D2E7-4E7A-8899-F2F1B06D7253_slugInputX</bpmn2:targetRef>
       </bpmn2:dataInputAssociation>
     </bpmn2:serviceTask>
-    <bpmn2:startEvent id="_51667E44-B345-4354-A498-52BC16B30C12" name="Invite new Member">
+    <bpmn2:startEvent id="_51667E44-B345-4354-A498-52BC16B30C12" name="invite new Member">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
-          <drools:metaValue><![CDATA[Invite new Member]]></drools:metaValue>
+          <drools:metaValue><![CDATA[invite new Member]]></drools:metaValue>
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:outgoing>_349E82E2-D56C-495F-8EA3-94593FDB5DB0</bpmn2:outgoing>
@@ -318,24 +331,32 @@
       <bpmn2:property id="newPassword" itemSubjectRef="_newPasswordItem" name="newPassword"/>
       <bpmn2:sequenceFlow id="_32DDBA2D-ABB4-4E95-8EFC-82693E427885" sourceRef="_D164A34B-7DD6-4A05-806C-27E0A55EA262" targetRef="_E3431C88-0D98-4DF9-83A0-C8DB988DAA7D"/>
       <bpmn2:sequenceFlow id="_737EB997-2D3B-4540-BA44-4494F2E560A3" sourceRef="_47BD09D6-9B4F-4772-811A-3BACC6E19781" targetRef="_D164A34B-7DD6-4A05-806C-27E0A55EA262"/>
+      <bpmn2:sequenceFlow id="_40420F02-16F1-4B1C-962F-374344743ACF" sourceRef="_71DC5944-364D-4428-9E21-5CB8D50080C7" targetRef="_D164A34B-7DD6-4A05-806C-27E0A55EA262"/>
       <bpmn2:sequenceFlow id="_AE38221B-587E-4A73-9827-56C91CA9B7F4" sourceRef="_FC42FC1E-8334-4174-AD10-C5FD9803B734" targetRef="_71DC5944-364D-4428-9E21-5CB8D50080C7"/>
-      <bpmn2:sequenceFlow id="_FA99EF01-5534-49A5-9246-84450C721A2E" sourceRef="_0BB8D17A-7540-47A0-B6CA-365DB2A67631" targetRef="_FC42FC1E-8334-4174-AD10-C5FD9803B734">
+      <bpmn2:sequenceFlow id="_FA99EF01-5534-49A5-9246-84450C721A2E" name="member does not exist" sourceRef="_0BB8D17A-7540-47A0-B6CA-365DB2A67631" targetRef="_FC42FC1E-8334-4174-AD10-C5FD9803B734">
+        <bpmn2:extensionElements>
+          <drools:metaData name="elementname">
+            <drools:metaValue><![CDATA[member does not exist]]></drools:metaValue>
+          </drools:metaData>
+        </bpmn2:extensionElements>
         <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" language="http://www.java.com/java"><![CDATA[memberDoesExist != true]]></bpmn2:conditionExpression>
       </bpmn2:sequenceFlow>
-      <bpmn2:sequenceFlow id="_5CE2CFEF-2093-4625-BFD3-0A5B01E617C1" sourceRef="_0BB8D17A-7540-47A0-B6CA-365DB2A67631" targetRef="_A0E85E87-8F97-47CD-A148-EC0BC3769514">
+      <bpmn2:sequenceFlow id="_5CE2CFEF-2093-4625-BFD3-0A5B01E617C1" name="member does exist" sourceRef="_0BB8D17A-7540-47A0-B6CA-365DB2A67631" targetRef="_A0E85E87-8F97-47CD-A148-EC0BC3769514">
+        <bpmn2:extensionElements>
+          <drools:metaData name="elementname">
+            <drools:metaValue><![CDATA[member does exist]]></drools:metaValue>
+          </drools:metaData>
+        </bpmn2:extensionElements>
         <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" language="http://www.java.com/java"><![CDATA[memberDoesExist == true]]></bpmn2:conditionExpression>
       </bpmn2:sequenceFlow>
       <bpmn2:sequenceFlow id="_6CB53464-A140-4FF0-A9C8-9960E536D4E8" sourceRef="_E0026359-2E75-44DE-B4D3-44DA23E5774B" targetRef="_0BB8D17A-7540-47A0-B6CA-365DB2A67631"/>
       <bpmn2:sequenceFlow id="_FFF687CB-B50E-4379-96D1-681732571E86" sourceRef="_22487D47-DDBA-4679-A2A6-4847254B285A" targetRef="_47BD09D6-9B4F-4772-811A-3BACC6E19781"/>
       <bpmn2:sequenceFlow id="_D7B8A9E8-EBF2-4A04-AF94-9EBA45E48B0D" sourceRef="_A0E85E87-8F97-47CD-A148-EC0BC3769514" targetRef="_22487D47-DDBA-4679-A2A6-4847254B285A"/>
-      <bpmn2:sequenceFlow id="_EFED1C75-CCC3-44A3-815B-D923C23DE182" sourceRef="_71DC5944-364D-4428-9E21-5CB8D50080C7" targetRef="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2"/>
-      <bpmn2:sequenceFlow id="_170B8FEB-984F-4FC7-8289-3DCC8CA195B0" sourceRef="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502" targetRef="_D164A34B-7DD6-4A05-806C-27E0A55EA262"/>
-      <bpmn2:sequenceFlow id="_FFEB2F65-8F0A-43F6-9C16-A73B435AF50D" sourceRef="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2" targetRef="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502"/>
       <bpmn2:endEvent id="_E3431C88-0D98-4DF9-83A0-C8DB988DAA7D">
         <bpmn2:incoming>_32DDBA2D-ABB4-4E95-8EFC-82693E427885</bpmn2:incoming>
       </bpmn2:endEvent>
       <bpmn2:exclusiveGateway id="_D164A34B-7DD6-4A05-806C-27E0A55EA262" drools:dg="_F2EDA7AE-F5F5-483A-800E-4CAB330BB7C3" gatewayDirection="Converging">
-        <bpmn2:incoming>_170B8FEB-984F-4FC7-8289-3DCC8CA195B0</bpmn2:incoming>
+        <bpmn2:incoming>_40420F02-16F1-4B1C-962F-374344743ACF</bpmn2:incoming>
         <bpmn2:incoming>_737EB997-2D3B-4540-BA44-4494F2E560A3</bpmn2:incoming>
         <bpmn2:outgoing>_32DDBA2D-ABB4-4E95-8EFC-82693E427885</bpmn2:outgoing>
       </bpmn2:exclusiveGateway>
@@ -377,7 +398,7 @@
           </drools:metaData>
         </bpmn2:extensionElements>
         <bpmn2:incoming>_AE38221B-587E-4A73-9827-56C91CA9B7F4</bpmn2:incoming>
-        <bpmn2:outgoing>_EFED1C75-CCC3-44A3-815B-D923C23DE182</bpmn2:outgoing>
+        <bpmn2:outgoing>_40420F02-16F1-4B1C-962F-374344743ACF</bpmn2:outgoing>
         <bpmn2:ioSpecification>
           <bpmn2:dataInput id="_71DC5944-364D-4428-9E21-5CB8D50080C7_TaskNameInputX" drools:dtype="Object" itemSubjectRef="__71DC5944-364D-4428-9E21-5CB8D50080C7_TaskNameInputXItem" name="TaskName"/>
           <bpmn2:dataInput id="_71DC5944-364D-4428-9E21-5CB8D50080C7_SkippableInputX" drools:dtype="Object" itemSubjectRef="__71DC5944-364D-4428-9E21-5CB8D50080C7_SkippableInputXItem" name="Skippable"/>
@@ -409,8 +430,30 @@
         </bpmn2:extensionElements>
         <bpmn2:incoming>_FA99EF01-5534-49A5-9246-84450C721A2E</bpmn2:incoming>
         <bpmn2:outgoing>_AE38221B-587E-4A73-9827-56C91CA9B7F4</bpmn2:outgoing>
+        <bpmn2:ioSpecification>
+          <bpmn2:dataInput id="_FC42FC1E-8334-4174-AD10-C5FD9803B734_memberDoesExistInputX" drools:dtype="Boolean" itemSubjectRef="__FC42FC1E-8334-4174-AD10-C5FD9803B734_memberDoesExistInputXItem" name="memberDoesExist"/>
+          <bpmn2:dataInput id="_FC42FC1E-8334-4174-AD10-C5FD9803B734_emailInputX" drools:dtype="String" itemSubjectRef="__FC42FC1E-8334-4174-AD10-C5FD9803B734_emailInputXItem" name="email"/>
+          <bpmn2:dataInput id="_FC42FC1E-8334-4174-AD10-C5FD9803B734_slugInputX" drools:dtype="String" itemSubjectRef="__FC42FC1E-8334-4174-AD10-C5FD9803B734_slugInputXItem" name="slug"/>
+          <bpmn2:inputSet>
+            <bpmn2:dataInputRefs>_FC42FC1E-8334-4174-AD10-C5FD9803B734_memberDoesExistInputX</bpmn2:dataInputRefs>
+            <bpmn2:dataInputRefs>_FC42FC1E-8334-4174-AD10-C5FD9803B734_emailInputX</bpmn2:dataInputRefs>
+            <bpmn2:dataInputRefs>_FC42FC1E-8334-4174-AD10-C5FD9803B734_slugInputX</bpmn2:dataInputRefs>
+          </bpmn2:inputSet>
+        </bpmn2:ioSpecification>
+        <bpmn2:dataInputAssociation>
+          <bpmn2:sourceRef>memberDoesExist</bpmn2:sourceRef>
+          <bpmn2:targetRef>_FC42FC1E-8334-4174-AD10-C5FD9803B734_memberDoesExistInputX</bpmn2:targetRef>
+        </bpmn2:dataInputAssociation>
+        <bpmn2:dataInputAssociation>
+          <bpmn2:sourceRef>email</bpmn2:sourceRef>
+          <bpmn2:targetRef>_FC42FC1E-8334-4174-AD10-C5FD9803B734_emailInputX</bpmn2:targetRef>
+        </bpmn2:dataInputAssociation>
+        <bpmn2:dataInputAssociation>
+          <bpmn2:sourceRef>slug</bpmn2:sourceRef>
+          <bpmn2:targetRef>_FC42FC1E-8334-4174-AD10-C5FD9803B734_slugInputX</bpmn2:targetRef>
+        </bpmn2:dataInputAssociation>
       </bpmn2:serviceTask>
-      <bpmn2:serviceTask id="_A0E85E87-8F97-47CD-A148-EC0BC3769514" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.PersistOrganizationDelegate" drools:serviceoperation="checkUserToOrgMapping" name="check if member already assigned to org" implementation="Java" operationRef="_A0E85E87-8F97-47CD-A148-EC0BC3769514_ServiceOperation">
+      <bpmn2:serviceTask id="_A0E85E87-8F97-47CD-A148-EC0BC3769514" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.AssignUserToOrg" drools:serviceoperation="checkUserToOrgMapping" name="check if member already assigned to org" implementation="Java" operationRef="_A0E85E87-8F97-47CD-A148-EC0BC3769514_ServiceOperation">
         <bpmn2:extensionElements>
           <drools:metaData name="elementname">
             <drools:metaValue><![CDATA[check if member already assigned to org]]></drools:metaValue>
@@ -420,10 +463,10 @@
         <bpmn2:outgoing>_D7B8A9E8-EBF2-4A04-AF94-9EBA45E48B0D</bpmn2:outgoing>
         <bpmn2:ioSpecification>
           <bpmn2:dataInput id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_emailInputX" drools:dtype="String" itemSubjectRef="__A0E85E87-8F97-47CD-A148-EC0BC3769514_emailInputXItem" name="email"/>
-          <bpmn2:dataInput id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_orgSlugInputX" drools:dtype="String" itemSubjectRef="__A0E85E87-8F97-47CD-A148-EC0BC3769514_orgSlugInputXItem" name="orgSlug"/>
+          <bpmn2:dataInput id="_A0E85E87-8F97-47CD-A148-EC0BC3769514_slugInputX" drools:dtype="String" itemSubjectRef="__A0E85E87-8F97-47CD-A148-EC0BC3769514_slugInputXItem" name="slug"/>
           <bpmn2:inputSet>
             <bpmn2:dataInputRefs>_A0E85E87-8F97-47CD-A148-EC0BC3769514_emailInputX</bpmn2:dataInputRefs>
-            <bpmn2:dataInputRefs>_A0E85E87-8F97-47CD-A148-EC0BC3769514_orgSlugInputX</bpmn2:dataInputRefs>
+            <bpmn2:dataInputRefs>_A0E85E87-8F97-47CD-A148-EC0BC3769514_slugInputX</bpmn2:dataInputRefs>
           </bpmn2:inputSet>
         </bpmn2:ioSpecification>
         <bpmn2:dataInputAssociation>
@@ -432,7 +475,7 @@
         </bpmn2:dataInputAssociation>
         <bpmn2:dataInputAssociation>
           <bpmn2:sourceRef>slug</bpmn2:sourceRef>
-          <bpmn2:targetRef>_A0E85E87-8F97-47CD-A148-EC0BC3769514_orgSlugInputX</bpmn2:targetRef>
+          <bpmn2:targetRef>_A0E85E87-8F97-47CD-A148-EC0BC3769514_slugInputX</bpmn2:targetRef>
         </bpmn2:dataInputAssociation>
       </bpmn2:serviceTask>
       <bpmn2:exclusiveGateway id="_0BB8D17A-7540-47A0-B6CA-365DB2A67631" drools:dg="_F2EDA7AE-F5F5-483A-800E-4CAB330BB7C3" gatewayDirection="Diverging">
@@ -451,40 +494,28 @@
         </bpmn2:extensionElements>
         <bpmn2:incoming>_D7B8A9E8-EBF2-4A04-AF94-9EBA45E48B0D</bpmn2:incoming>
         <bpmn2:outgoing>_FFF687CB-B50E-4379-96D1-681732571E86</bpmn2:outgoing>
-      </bpmn2:serviceTask>
-      <bpmn2:serviceTask id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CreateUserInKeycloak" drools:serviceoperation="createUserInKeycloak" name="Create User in Keycloak" implementation="Java" operationRef="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_ServiceOperation">
-        <bpmn2:extensionElements>
-          <drools:metaData name="elementname">
-            <drools:metaValue><![CDATA[Create User in Keycloak]]></drools:metaValue>
-          </drools:metaData>
-        </bpmn2:extensionElements>
-        <bpmn2:incoming>_EFED1C75-CCC3-44A3-815B-D923C23DE182</bpmn2:incoming>
-        <bpmn2:outgoing>_FFEB2F65-8F0A-43F6-9C16-A73B435AF50D</bpmn2:outgoing>
         <bpmn2:ioSpecification>
-          <bpmn2:dataInput id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_memberInputX" drools:dtype="app.hopps.org.jpa.Member" itemSubjectRef="__0C69C323-9673-4E0F-AF7D-A773B57BA1A2_memberInputXItem" name="member"/>
-          <bpmn2:dataInput id="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_newPasswordInputX" drools:dtype="String" itemSubjectRef="__0C69C323-9673-4E0F-AF7D-A773B57BA1A2_newPasswordInputXItem" name="newPassword"/>
+          <bpmn2:dataInput id="_22487D47-DDBA-4679-A2A6-4847254B285A_memberDoesExistInputX" drools:dtype="Boolean" itemSubjectRef="__22487D47-DDBA-4679-A2A6-4847254B285A_memberDoesExistInputXItem" name="memberDoesExist"/>
+          <bpmn2:dataInput id="_22487D47-DDBA-4679-A2A6-4847254B285A_emailInputX" drools:dtype="String" itemSubjectRef="__22487D47-DDBA-4679-A2A6-4847254B285A_emailInputXItem" name="email"/>
+          <bpmn2:dataInput id="_22487D47-DDBA-4679-A2A6-4847254B285A_slugInputX" drools:dtype="String" itemSubjectRef="__22487D47-DDBA-4679-A2A6-4847254B285A_slugInputXItem" name="slug"/>
           <bpmn2:inputSet>
-            <bpmn2:dataInputRefs>_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_memberInputX</bpmn2:dataInputRefs>
-            <bpmn2:dataInputRefs>_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_newPasswordInputX</bpmn2:dataInputRefs>
+            <bpmn2:dataInputRefs>_22487D47-DDBA-4679-A2A6-4847254B285A_memberDoesExistInputX</bpmn2:dataInputRefs>
+            <bpmn2:dataInputRefs>_22487D47-DDBA-4679-A2A6-4847254B285A_emailInputX</bpmn2:dataInputRefs>
+            <bpmn2:dataInputRefs>_22487D47-DDBA-4679-A2A6-4847254B285A_slugInputX</bpmn2:dataInputRefs>
           </bpmn2:inputSet>
         </bpmn2:ioSpecification>
         <bpmn2:dataInputAssociation>
-          <bpmn2:sourceRef>member</bpmn2:sourceRef>
-          <bpmn2:targetRef>_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_memberInputX</bpmn2:targetRef>
+          <bpmn2:sourceRef>memberDoesExist</bpmn2:sourceRef>
+          <bpmn2:targetRef>_22487D47-DDBA-4679-A2A6-4847254B285A_memberDoesExistInputX</bpmn2:targetRef>
         </bpmn2:dataInputAssociation>
         <bpmn2:dataInputAssociation>
-          <bpmn2:sourceRef>newPassword</bpmn2:sourceRef>
-          <bpmn2:targetRef>_0C69C323-9673-4E0F-AF7D-A773B57BA1A2_newPasswordInputX</bpmn2:targetRef>
+          <bpmn2:sourceRef>email</bpmn2:sourceRef>
+          <bpmn2:targetRef>_22487D47-DDBA-4679-A2A6-4847254B285A_emailInputX</bpmn2:targetRef>
         </bpmn2:dataInputAssociation>
-      </bpmn2:serviceTask>
-      <bpmn2:serviceTask id="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.NoopDelegate" drools:serviceoperation="noop" name="Create JPA entity" implementation="Java" operationRef="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502_ServiceOperation">
-        <bpmn2:extensionElements>
-          <drools:metaData name="elementname">
-            <drools:metaValue><![CDATA[Create JPA entity]]></drools:metaValue>
-          </drools:metaData>
-        </bpmn2:extensionElements>
-        <bpmn2:incoming>_FFEB2F65-8F0A-43F6-9C16-A73B435AF50D</bpmn2:incoming>
-        <bpmn2:outgoing>_170B8FEB-984F-4FC7-8289-3DCC8CA195B0</bpmn2:outgoing>
+        <bpmn2:dataInputAssociation>
+          <bpmn2:sourceRef>slug</bpmn2:sourceRef>
+          <bpmn2:targetRef>_22487D47-DDBA-4679-A2A6-4847254B285A_slugInputX</bpmn2:targetRef>
+        </bpmn2:dataInputAssociation>
       </bpmn2:serviceTask>
     </bpmn2:subProcess>
     <bpmn2:boundaryEvent id="_1E15C003-A032-4AA0-B7E4-B8D29917D895" drools:dockerinfo="126^70.75949367088607|" drools:boundaryca="true" attachedToRef="_2254F31E-D2E7-4E7A-8899-F2F1B06D7253">
@@ -521,98 +552,84 @@
   <bpmndi:BPMNDiagram>
     <bpmndi:BPMNPlane bpmnElement="AddMember">
       <bpmndi:BPMNShape id="shape__1018B209-FA10-4658-8E14-62A41A7B2527" bpmnElement="_1018B209-FA10-4658-8E14-62A41A7B2527" isExpanded="true">
-        <dc:Bounds height="839.5669330669334" width="1567.4285714285709" x="1868.5714285714291" y="917"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="shape__C9BA79F1-6F4E-453B-A9AC-1830F4B82502" bpmnElement="_C9BA79F1-6F4E-453B-A9AC-1830F4B82502">
-        <dc:Bounds height="102" width="154" x="2676" y="1345"/>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="shape__0C69C323-9673-4E0F-AF7D-A773B57BA1A2" bpmnElement="_0C69C323-9673-4E0F-AF7D-A773B57BA1A2">
-        <dc:Bounds height="102" width="154" x="2448" y="1345"/>
+        <dc:Bounds height="839.5669330669334" width="1567.4285714285709" x="1883.5714285714291" y="932"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__22487D47-DDBA-4679-A2A6-4847254B285A" bpmnElement="_22487D47-DDBA-4679-A2A6-4847254B285A">
-        <dc:Bounds height="102" width="154" x="2208.7142857142862" y="1041"/>
+        <dc:Bounds height="102" width="154" x="2223.7142857142862" y="1056"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__E0026359-2E75-44DE-B4D3-44DA23E5774B" bpmnElement="_E0026359-2E75-44DE-B4D3-44DA23E5774B">
-        <dc:Bounds height="56" width="56" x="1898.2857142857147" y="1209"/>
+        <dc:Bounds height="56" width="56" x="1913.2857142857147" y="1224"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__0BB8D17A-7540-47A0-B6CA-365DB2A67631" bpmnElement="_0BB8D17A-7540-47A0-B6CA-365DB2A67631">
-        <dc:Bounds height="56" width="56" x="2029.2857142857147" y="1209"/>
+        <dc:Bounds height="56" width="56" x="2044.2857142857147" y="1224"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__A0E85E87-8F97-47CD-A148-EC0BC3769514" bpmnElement="_A0E85E87-8F97-47CD-A148-EC0BC3769514">
-        <dc:Bounds height="102" width="154" x="1980" y="1041"/>
+        <dc:Bounds height="102" width="154" x="1995" y="1056"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__FC42FC1E-8334-4174-AD10-C5FD9803B734" bpmnElement="_FC42FC1E-8334-4174-AD10-C5FD9803B734">
-        <dc:Bounds height="102" width="154" x="1980" y="1339"/>
+        <dc:Bounds height="102" width="154" x="1995" y="1354"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__71DC5944-364D-4428-9E21-5CB8D50080C7" bpmnElement="_71DC5944-364D-4428-9E21-5CB8D50080C7">
-        <dc:Bounds height="102" width="154" x="2208.285714285715" y="1345"/>
+        <dc:Bounds height="102" width="154" x="2223" y="1358"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__47BD09D6-9B4F-4772-811A-3BACC6E19781" bpmnElement="_47BD09D6-9B4F-4772-811A-3BACC6E19781">
-        <dc:Bounds height="102" width="154" x="2436.2857142857147" y="1041"/>
+        <dc:Bounds height="102" width="154" x="2451.2857142857147" y="1056"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__D164A34B-7DD6-4A05-806C-27E0A55EA262" bpmnElement="_D164A34B-7DD6-4A05-806C-27E0A55EA262">
-        <dc:Bounds height="56" width="56" x="3070" y="1209"/>
+        <dc:Bounds height="56" width="56" x="3085" y="1224"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__E3431C88-0D98-4DF9-83A0-C8DB988DAA7D" bpmnElement="_E3431C88-0D98-4DF9-83A0-C8DB988DAA7D">
-        <dc:Bounds height="56" width="56" x="3212.2857142857147" y="1209"/>
+        <dc:Bounds height="56" width="56" x="3227.2857142857147" y="1224"/>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="edge_shape__0C69C323-9673-4E0F-AF7D-A773B57BA1A2_to_shape__C9BA79F1-6F4E-453B-A9AC-1830F4B82502" bpmnElement="_FFEB2F65-8F0A-43F6-9C16-A73B435AF50D">
-        <di:waypoint x="2525" y="1396"/>
-        <di:waypoint x="2676" y="1396"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="edge_shape__C9BA79F1-6F4E-453B-A9AC-1830F4B82502_to_shape__D164A34B-7DD6-4A05-806C-27E0A55EA262" bpmnElement="_170B8FEB-984F-4FC7-8289-3DCC8CA195B0">
-        <di:waypoint x="2753" y="1396"/>
-        <di:waypoint x="3098" y="1396.0023608318045"/>
-        <di:waypoint x="3098" y="1265"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="edge_shape__71DC5944-364D-4428-9E21-5CB8D50080C7_to_shape__0C69C323-9673-4E0F-AF7D-A773B57BA1A2" bpmnElement="_EFED1C75-CCC3-44A3-815B-D923C23DE182">
-        <di:waypoint x="2285.285714285715" y="1396"/>
-        <di:waypoint x="2448" y="1396"/>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__A0E85E87-8F97-47CD-A148-EC0BC3769514_to_shape__22487D47-DDBA-4679-A2A6-4847254B285A" bpmnElement="_D7B8A9E8-EBF2-4A04-AF94-9EBA45E48B0D">
-        <di:waypoint x="2057" y="1092"/>
-        <di:waypoint x="2208.7142857142862" y="1092"/>
+        <di:waypoint x="2072" y="1107"/>
+        <di:waypoint x="2223.7142857142862" y="1107"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__22487D47-DDBA-4679-A2A6-4847254B285A_to_shape__47BD09D6-9B4F-4772-811A-3BACC6E19781" bpmnElement="_FFF687CB-B50E-4379-96D1-681732571E86">
-        <di:waypoint x="2285.7142857142862" y="1092"/>
-        <di:waypoint x="2436.2857142857147" y="1092"/>
+        <di:waypoint x="2300.7142857142862" y="1107"/>
+        <di:waypoint x="2451.2857142857147" y="1107"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__E0026359-2E75-44DE-B4D3-44DA23E5774B_to_shape__0BB8D17A-7540-47A0-B6CA-365DB2A67631" bpmnElement="_6CB53464-A140-4FF0-A9C8-9960E536D4E8">
-        <di:waypoint x="1926.2857142857147" y="1237"/>
-        <di:waypoint x="2057.2857142857147" y="1237"/>
+        <di:waypoint x="1941.2857142857147" y="1252"/>
+        <di:waypoint x="2072.2857142857147" y="1252"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__0BB8D17A-7540-47A0-B6CA-365DB2A67631_to_shape__A0E85E87-8F97-47CD-A148-EC0BC3769514" bpmnElement="_5CE2CFEF-2093-4625-BFD3-0A5B01E617C1">
-        <di:waypoint x="2057.2857142857147" y="1237"/>
-        <di:waypoint x="2057" y="1143"/>
+        <di:waypoint x="2072.2857142857147" y="1252"/>
+        <di:waypoint x="2072" y="1158"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__0BB8D17A-7540-47A0-B6CA-365DB2A67631_to_shape__FC42FC1E-8334-4174-AD10-C5FD9803B734" bpmnElement="_FA99EF01-5534-49A5-9246-84450C721A2E">
-        <di:waypoint x="2057.2857142857147" y="1237"/>
-        <di:waypoint x="2057" y="1390"/>
+        <di:waypoint x="2072.2857142857147" y="1252"/>
+        <di:waypoint x="2072" y="1405"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__FC42FC1E-8334-4174-AD10-C5FD9803B734_to_shape__71DC5944-364D-4428-9E21-5CB8D50080C7" bpmnElement="_AE38221B-587E-4A73-9827-56C91CA9B7F4">
-        <di:waypoint x="2057" y="1390"/>
-        <di:waypoint x="2208.285714285715" y="1396"/>
+        <di:waypoint x="2072" y="1405"/>
+        <di:waypoint x="2223" y="1409"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="edge_shape__71DC5944-364D-4428-9E21-5CB8D50080C7_to_shape__D164A34B-7DD6-4A05-806C-27E0A55EA262" bpmnElement="_40420F02-16F1-4B1C-962F-374344743ACF">
+        <di:waypoint x="2300" y="1409"/>
+        <di:waypoint x="3113" y="1409"/>
+        <di:waypoint x="3113" y="1280"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__47BD09D6-9B4F-4772-811A-3BACC6E19781_to_shape__D164A34B-7DD6-4A05-806C-27E0A55EA262" bpmnElement="_737EB997-2D3B-4540-BA44-4494F2E560A3">
-        <di:waypoint x="2513.2857142857147" y="1092"/>
-        <di:waypoint x="3098" y="1092"/>
-        <di:waypoint x="3098" y="1209"/>
+        <di:waypoint x="2528.2857142857147" y="1107"/>
+        <di:waypoint x="3113" y="1107"/>
+        <di:waypoint x="3113" y="1224"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__D164A34B-7DD6-4A05-806C-27E0A55EA262_to_shape__E3431C88-0D98-4DF9-83A0-C8DB988DAA7D" bpmnElement="_32DDBA2D-ABB4-4E95-8EFC-82693E427885">
-        <di:waypoint x="3098" y="1237"/>
-        <di:waypoint x="3240.2857142857147" y="1237"/>
+        <di:waypoint x="3113" y="1252"/>
+        <di:waypoint x="3255.2857142857147" y="1252"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="shape__1E15C003-A032-4AA0-B7E4-B8D29917D895" bpmnElement="_1E15C003-A032-4AA0-B7E4-B8D29917D895">
         <dc:Bounds height="56" width="56" x="1466" y="1343.759493670886"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__84601DB1-9DAE-41A6-9DB2-1856EA245D53" bpmnElement="_84601DB1-9DAE-41A6-9DB2-1856EA245D53">
-        <dc:Bounds height="56" width="56" x="3085.19390209247" y="1728.5669330669334"/>
+        <dc:Bounds height="56" width="56" x="3100.19390209247" y="1743.5669330669334"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__96BD3801-0DFA-4BFC-A587-A7809E44B4AD" bpmnElement="_96BD3801-0DFA-4BFC-A587-A7809E44B4AD">
-        <dc:Bounds height="56" width="56" x="2916.485689962634" y="1728.5669330669334"/>
+        <dc:Bounds height="56" width="56" x="2931.485689962634" y="1743.5669330669334"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__671C37AB-E040-4EC0-8A34-59781056A25A" bpmnElement="_671C37AB-E040-4EC0-8A34-59781056A25A">
-        <dc:Bounds height="56" width="56" x="5261.571428571429" y="2410.8753564268027"/>
+        <dc:Bounds height="56" width="56" x="5276.571428571429" y="2425.8753564268027"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="shape__51667E44-B345-4354-A498-52BC16B30C12" bpmnElement="_51667E44-B345-4354-A498-52BC16B30C12">
         <dc:Bounds height="56" width="56" x="1181" y="1296"/>
@@ -652,23 +669,23 @@
         <di:waypoint x="1494" y="1482"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__84601DB1-9DAE-41A6-9DB2-1856EA245D53_to_shape__E32A143E-9693-42EB-9005-A492C4FA1412" bpmnElement="_780D8FB7-673C-455E-AF72-8069B2B5DEF6">
-        <di:waypoint x="3113.19390209247" y="1784.5669330669334"/>
+        <di:waypoint x="3128.19390209247" y="1799.5669330669334"/>
         <di:waypoint x="3198" y="1815.5767324861145"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__96BD3801-0DFA-4BFC-A587-A7809E44B4AD_to_shape__FCD1BC9A-F174-4B70-B4F4-4C21B9889C7E" bpmnElement="_31C06840-032B-4DB9-B26C-905B616D71BA">
-        <di:waypoint x="2944.485689962634" y="1756.5669330669334"/>
+        <di:waypoint x="2959.485689962634" y="1771.5669330669334"/>
         <di:waypoint x="2932" y="1867"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__671C37AB-E040-4EC0-8A34-59781056A25A_to_shape__244105D8-2883-445D-88CA-36BA0007EB6E" bpmnElement="_247EE502-E3CF-46A2-985E-0910300B4A31">
-        <di:waypoint x="5289.571428571429" y="2438.8753564268027"/>
+        <di:waypoint x="5304.571428571429" y="2453.8753564268027"/>
         <di:waypoint x="3552" y="1650"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__A2E7B4F0-5765-4E45-A6C8-C63869E48C8E_to_shape__1018B209-FA10-4658-8E14-62A41A7B2527" bpmnElement="_798D3312-3D3E-40B2-91D2-DAB66532A8C7">
         <di:waypoint x="1679" y="1324"/>
-        <di:waypoint x="1868.5714285714291" y="1336.7834665334667"/>
+        <di:waypoint x="1883.5714285714291" y="1351.7834665334667"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__1018B209-FA10-4658-8E14-62A41A7B2527_to_shape__CE35F148-C7EF-4B41-8EE3-8242283BFA80" bpmnElement="_8A3A67E9-40E3-4BB9-80C7-68ECAD3A99EB">
-        <di:waypoint x="2652.2857142857147" y="1336.7834665334667"/>
+        <di:waypoint x="2667.2857142857147" y="1351.7834665334667"/>
         <di:waypoint x="3481" y="1329"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__51667E44-B345-4354-A498-52BC16B30C12_to_shape__2254F31E-D2E7-4E7A-8899-F2F1B06D7253" bpmnElement="_349E82E2-D56C-495F-8EA3-94593FDB5DB0">
@@ -808,7 +825,7 @@
         </bpsim:Scenario>
       </bpsim:BPSimData>
     </bpmn2:extensionElements>
-    <bpmn2:source>_7LPIMAYxED65zqWUxX8hnQ</bpmn2:source>
-    <bpmn2:target>_7LPIMAYxED65zqWUxX8hnQ</bpmn2:target>
+    <bpmn2:source>_KqHssAZhED6Uvsftt1T3-w</bpmn2:source>
+    <bpmn2:target>_KqHssAZhED6Uvsftt1T3-w</bpmn2:target>
   </bpmn2:relationship>
 </bpmn2:definitions>
