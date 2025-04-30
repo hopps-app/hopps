@@ -1,7 +1,7 @@
 package app.hopps.fin.delegates;
 
-import app.hopps.commons.DocumentType;
-import app.hopps.commons.InvoiceData;
+import app.hopps.fin.model.DocumentType;
+import app.hopps.fin.model.InvoiceData;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.quarkiverse.wiremock.devservice.ConnectWireMock;
 import io.quarkus.test.junit.QuarkusTest;

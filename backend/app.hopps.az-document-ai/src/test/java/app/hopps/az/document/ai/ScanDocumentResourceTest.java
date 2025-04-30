@@ -1,8 +1,8 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.commons.InvoiceData;
-import app.hopps.commons.ReceiptData;
-import app.hopps.commons.TradeParty;
+import app.hopps.az.document.ai.model.InvoiceData;
+import app.hopps.az.document.ai.model.ReceiptData;
+import app.hopps.az.document.ai.model.TradeParty;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
