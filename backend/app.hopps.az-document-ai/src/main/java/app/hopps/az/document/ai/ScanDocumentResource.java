@@ -1,7 +1,7 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.commons.InvoiceData;
-import app.hopps.commons.ReceiptData;
+import app.hopps.az.document.ai.model.InvoiceData;
+import app.hopps.az.document.ai.model.ReceiptData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;

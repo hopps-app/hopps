@@ -13,7 +13,7 @@ public class ReceiptDataHelper {
         // only call the static method
     }
 
-    public static app.hopps.commons.ReceiptData fromDocument(AnalyzedDocument document) {
+    public static ReceiptData fromDocument(AnalyzedDocument document) {
         Map<String, DocumentField> fields = document.getFields();
 
         DocumentField transactionTime = fields.get("TransactionTime");
@@ -21,7 +21,7 @@ public class ReceiptDataHelper {
         LocalTime time = transactionTime == null ? LocalTime.MIDNIGHT
                 : LocalTime.parse(transactionTime.getValueTime());
 
-        return new app.hopps.commons.ReceiptData(
+        return new ReceiptData(
                 -1L,
                 BigDecimal.valueOf(fields.get("Total").getValueCurrency().getAmount()),
                 Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),

@@ -1,8 +1,8 @@
 package app.hopps.fin.kafka;
 
-import app.hopps.commons.DocumentData;
-import app.hopps.commons.DocumentType;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import app.hopps.fin.model.DocumentData;
+import app.hopps.fin.model.DocumentType;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.Channel;

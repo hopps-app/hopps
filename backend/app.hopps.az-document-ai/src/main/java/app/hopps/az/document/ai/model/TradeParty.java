@@ -1,4 +1,4 @@
-package app.hopps.commons;
+package app.hopps.az.document.ai.model;
 
 public record TradeParty(
         String name,

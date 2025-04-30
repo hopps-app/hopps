@@ -1,10 +1,10 @@
 package app.hopps.fin.delegates;
 
-import app.hopps.commons.Data;
-import app.hopps.commons.DocumentType;
 import app.hopps.fin.S3Handler;
 import app.hopps.fin.client.DocumentAnalyzeClient;
 import app.hopps.fin.jpa.TransactionRecordRepository;
+import app.hopps.fin.model.Data;
+import app.hopps.fin.model.DocumentType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;

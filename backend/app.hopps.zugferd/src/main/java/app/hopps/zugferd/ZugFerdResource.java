@@ -1,6 +1,6 @@
 package app.hopps.zugferd;
 
-import app.hopps.commons.InvoiceData;
+import app.hopps.zugferd.model.InvoiceData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;

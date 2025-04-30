@@ -48,9 +48,6 @@ jobs:
       - name: mvn install parent
         run: mvn -B -N clean install --file backend/pom.xml
 
-      - name: mvn install commons
-        run: mvn -B install --file backend/app.hopps.commons/pom.xml
-
       # only build relevant service
       - name: mvn package
         run: mvn -B clean package --file backend/${{ matrix.service.directory }}/pom.xml

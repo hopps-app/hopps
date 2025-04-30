@@ -1,4 +1,4 @@
-package app.hopps.commons.mail;
+package app.hopps.mailservice.model;
 
 import java.util.Arrays;
 import java.util.Map;

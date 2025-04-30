@@ -1,9 +1,8 @@
 package app.hopps.fin;
 
-import app.hopps.commons.Data;
-import app.hopps.commons.ReceiptData;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.model.TradePartyHelper;
+import app.hopps.fin.model.Data;
+import app.hopps.fin.model.ReceiptData;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.ZoneOffset;
@@ -23,7 +22,7 @@ public class ReceiptDataHandler extends AbstractDataHandler {
 
         // Optional
         data.storeName().ifPresent(transactionRecord::setName);
-        data.storeAddress().ifPresent(addrees -> transactionRecord.setSender(TradePartyHelper.convertToJpa(addrees)));
+        data.storeAddress().ifPresent(transactionRecord::setSender);
         data.transactionTime()
                 .ifPresent(
                         transactionTime -> transactionRecord

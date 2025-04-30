@@ -1,4 +1,4 @@
-package app.hopps.commons;
+package app.hopps.fin.model;
 
 import java.net.URL;
 
