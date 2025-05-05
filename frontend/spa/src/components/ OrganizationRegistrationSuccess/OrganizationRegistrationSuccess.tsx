@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import authService from '@/services/auth/AuthService.ts';
 import Button from '@/components/ui/Button.tsx';
 import CheckmarkIcon from '@/components/ OrganizationRegistrationSuccess/CheckmarkIcon.tsx';
+import authService from '@/services/auth/keycloakServiceProvider.ts';
 
 export function OrganizationRegistrationSuccess() {
     const { t } = useTranslation();

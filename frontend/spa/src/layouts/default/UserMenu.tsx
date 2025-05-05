@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { useStore } from '@/store/store.ts';
-import authService from '@/services/auth/AuthService.ts';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
+import authService from '@/services/auth/keycloakServiceProvider.ts';
 
 function UserMenu() {
     const authStore = useStore();
