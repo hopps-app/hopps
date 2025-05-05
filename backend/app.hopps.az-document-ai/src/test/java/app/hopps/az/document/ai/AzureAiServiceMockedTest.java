@@ -1,7 +1,5 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.commons.DocumentData;
-import app.hopps.commons.DocumentType;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.InjectMock;
@@ -13,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Path;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +43,7 @@ class AzureAiServiceMockedTest {
     void shouldAnalyzeInvoiceAgainstMock() throws Exception {
         // given
         String url = "https://formrecognizer.appliedai.azure.com/documents/samples/prebuilt/receipt.png";
-        DocumentData documentData = new DocumentData(new URI(url).toURL(), -1L, DocumentType.INVOICE);
+        // DocumentData documentData = new DocumentData(new URI(url).toURL(), -1L, DocumentType.INVOICE);
 
         // when
 

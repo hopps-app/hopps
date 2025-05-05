@@ -1,7 +1,5 @@
 package app.hopps.zugferd.model;
 
-import app.hopps.commons.TradeParty;
-
 public class TradePartyHelper {
 
     private TradePartyHelper() {

@@ -1,4 +1,4 @@
-package app.hopps.commons;
+package app.hopps.az.document.ai.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -9,9 +9,6 @@ public record ReceiptData(
         BigDecimal total,
         Optional<String> storeName,
         Optional<TradeParty> storeAddress,
-        Optional<LocalDateTime> transactionTime) implements Data {
+        Optional<LocalDateTime> transactionTime) {
 
-    public ReceiptData(Long referenceKey, BigDecimal total) {
-        this(referenceKey, total, Optional.empty(), Optional.empty(), Optional.empty());
-    }
 }

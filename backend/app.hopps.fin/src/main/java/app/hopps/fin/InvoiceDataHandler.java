@@ -1,9 +1,8 @@
 package app.hopps.fin;
 
-import app.hopps.commons.Data;
-import app.hopps.commons.InvoiceData;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.model.TradePartyHelper;
+import app.hopps.fin.model.Data;
+import app.hopps.fin.model.InvoiceData;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.ZoneId;
@@ -28,9 +27,8 @@ public class InvoiceDataHandler extends AbstractDataHandler {
         // Optional
         data.customerName().ifPresent(transactionRecord::setName);
 
-        data.sender().ifPresent(tradeParty -> transactionRecord.setSender(TradePartyHelper.convertToJpa(tradeParty)));
-        data.receiver()
-                .ifPresent(tradeParty -> transactionRecord.setRecipient(TradePartyHelper.convertToJpa(tradeParty)));
+        data.sender().ifPresent(transactionRecord::setSender);
+        data.receiver().ifPresent(transactionRecord::setRecipient);
 
         data.purchaseOrderNumber().ifPresent(transactionRecord::setOrderNumber);
         data.invoiceId().ifPresent(transactionRecord::setInvoiceId);

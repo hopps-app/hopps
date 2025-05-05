@@ -1,4 +1,4 @@
-package app.hopps.commons;
+package app.hopps.az.document.ai.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,7 +15,7 @@ public record InvoiceData(
         Optional<LocalDate> dueDate,
         Optional<BigDecimal> amountDue,
         Optional<TradeParty> sender,
-        Optional<TradeParty> receiver) implements Data {
+        Optional<TradeParty> receiver) {
 
     public InvoiceData(Long referenceKey, BigDecimal total, LocalDate invoiceDate, String currencyCode) {
         this(referenceKey, total, invoiceDate, currencyCode,

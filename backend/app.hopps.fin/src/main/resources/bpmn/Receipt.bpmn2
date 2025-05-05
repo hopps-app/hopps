@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" xmlns:xsi="xsi" id="_HpSzkKgoED23jekKhZfL8g" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
-  <bpmn2:itemDefinition id="_receiptDataItem" structureRef="app.hopps.commons.ReceiptData"/>
-  <bpmn2:itemDefinition id="__036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputXItem" structureRef="app.hopps.commons.ReceiptData"/>
-  <bpmn2:itemDefinition id="receiptsType" structureRef="app.hopps.commons.ReceiptData"/>
-  <bpmn2:itemDefinition id="_8EE97152-762F-4670-B913-9509CD82F5CF" structureRef=""/>
-  <bpmn2:itemDefinition id="_1B28D653-94C4-402E-8D6A-A59A6DB08AD7" structureRef=""/>
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" xmlns:xsi="xsi" id="_1pkY0AfFED6lsLd_W1Onmg" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
+  <bpmn2:itemDefinition id="_receiptDataItem" structureRef="app.hopps.fin.model.ReceiptData"/>
+  <bpmn2:itemDefinition id="__036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputXItem" structureRef="app.hopps.fin.model.ReceiptData"/>
+  <bpmn2:itemDefinition id="receiptsType" structureRef="app.hopps.fin.model.ReceiptData"/>
+  <bpmn2:itemDefinition id="_41855547-E2E5-4811-99AE-5AC01C73BE31" structureRef=""/>
+  <bpmn2:itemDefinition id="_B6D7250C-6FC8-4754-ACA2-526D44F2DE7B" structureRef=""/>
   <bpmn2:itemDefinition id="_6E7D9C6F-770E-47B7-B796-5168BC924588_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_6E7D9C6F-770E-47B7-B796-5168BC924588_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__6E7D9C6F-770E-47B7-B796-5168BC924588_recordConverterInputXItem" structureRef="app.hopps.commons.ReceiptData"/>
-  <bpmn2:message id="_HpTaoKgoED23jekKhZfL8g" itemRef="receiptsType" name="receipts"/>
+  <bpmn2:itemDefinition id="__6E7D9C6F-770E-47B7-B796-5168BC924588_recordConverterInputXItem" structureRef="app.hopps.fin.model.ReceiptData"/>
+  <bpmn2:message id="_1plm8AfFED6lsLd_W1Onmg" itemRef="receiptsType" name="receipts"/>
   <bpmn2:message id="_6E7D9C6F-770E-47B7-B796-5168BC924588_InMessage" itemRef="_6E7D9C6F-770E-47B7-B796-5168BC924588_InMessageType"/>
   <bpmn2:message id="_6E7D9C6F-770E-47B7-B796-5168BC924588_OutMessage" itemRef="_6E7D9C6F-770E-47B7-B796-5168BC924588_OutMessageType"/>
   <bpmn2:interface id="_6E7D9C6F-770E-47B7-B796-5168BC924588_ServiceInterface" name="app.hopps.fin.ReceiptDataHandler" implementationRef="app.hopps.fin.ReceiptDataHandler">
@@ -17,8 +17,8 @@
       <bpmn2:outMessageRef>_6E7D9C6F-770E-47B7-B796-5168BC924588_OutMessage</bpmn2:outMessageRef>
     </bpmn2:operation>
   </bpmn2:interface>
-  <bpmn2:collaboration id="_27919916-B1A8-4434-97AA-992DF430E485" name="Default Collaboration">
-    <bpmn2:participant id="_A59CE629-56E7-45F1-80C4-46E655DFD949" name="Pool Participant" processRef="Receipt"/>
+  <bpmn2:collaboration id="_BAF414FF-E4A5-4F8B-B887-D9C6D8A4DC2A" name="Default Collaboration">
+    <bpmn2:participant id="_5752A954-6888-410B-AC04-7210491A8780" name="Pool Participant" processRef="Receipt"/>
   </bpmn2:collaboration>
   <bpmn2:process id="Receipt" drools:packageName="app.hopps.fin" drools:version="1.0" drools:adHoc="false" name="Receipt" isExecutable="true" processType="Private">
     <bpmn2:property id="receiptData" itemSubjectRef="_receiptDataItem" name="receiptData"/>
@@ -33,7 +33,7 @@
       <bpmn2:incoming>_912F7B9C-B4BB-4A55-A851-DE098BDB99B8</bpmn2:incoming>
       <bpmn2:outgoing>_0002AB4F-396D-4A33-9225-135C828D282E</bpmn2:outgoing>
       <bpmn2:ioSpecification>
-        <bpmn2:dataInput id="_6E7D9C6F-770E-47B7-B796-5168BC924588_recordConverterInputX" drools:dtype="app.hopps.commons.ReceiptData" itemSubjectRef="__6E7D9C6F-770E-47B7-B796-5168BC924588_recordConverterInputXItem" name="recordConverter"/>
+        <bpmn2:dataInput id="_6E7D9C6F-770E-47B7-B796-5168BC924588_recordConverterInputX" drools:dtype="app.hopps.fin.model.ReceiptData" itemSubjectRef="__6E7D9C6F-770E-47B7-B796-5168BC924588_recordConverterInputXItem" name="recordConverter"/>
         <bpmn2:inputSet>
           <bpmn2:dataInputRefs>_6E7D9C6F-770E-47B7-B796-5168BC924588_recordConverterInputX</bpmn2:dataInputRefs>
         </bpmn2:inputSet>
@@ -58,7 +58,7 @@
         </drools:metaData>
       </bpmn2:extensionElements>
       <bpmn2:outgoing>_912F7B9C-B4BB-4A55-A851-DE098BDB99B8</bpmn2:outgoing>
-      <bpmn2:dataOutput id="_036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputX" drools:dtype="app.hopps.commons.ReceiptData" itemSubjectRef="__036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputXItem" name="event"/>
+      <bpmn2:dataOutput id="_036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputX" drools:dtype="app.hopps.fin.model.ReceiptData" itemSubjectRef="__036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputXItem" name="event"/>
       <bpmn2:dataOutputAssociation>
         <bpmn2:sourceRef>_036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputX</bpmn2:sourceRef>
         <bpmn2:targetRef>receiptData</bpmn2:targetRef>
@@ -66,7 +66,7 @@
       <bpmn2:outputSet>
         <bpmn2:dataOutputRefs>_036A863B-3535-4A47-8FE8-9A362B12DA05_eventOutputX</bpmn2:dataOutputRefs>
       </bpmn2:outputSet>
-      <bpmn2:messageEventDefinition drools:msgref="receipts" messageRef="_HpTaoKgoED23jekKhZfL8g"/>
+      <bpmn2:messageEventDefinition drools:msgref="receipts" messageRef="_1plm8AfFED6lsLd_W1Onmg"/>
     </bpmn2:startEvent>
   </bpmn2:process>
   <bpmndi:BPMNDiagram>
@@ -118,7 +118,7 @@
         </bpsim:Scenario>
       </bpsim:BPSimData>
     </bpmn2:extensionElements>
-    <bpmn2:source>_HpSzkKgoED23jekKhZfL8g</bpmn2:source>
-    <bpmn2:target>_HpSzkKgoED23jekKhZfL8g</bpmn2:target>
+    <bpmn2:source>_1pkY0AfFED6lsLd_W1Onmg</bpmn2:source>
+    <bpmn2:target>_1pkY0AfFED6lsLd_W1Onmg</bpmn2:target>
   </bpmn2:relationship>
 </bpmn2:definitions>

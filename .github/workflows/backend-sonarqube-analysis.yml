@@ -45,9 +45,6 @@ jobs:
       - name: mvn install parent
         run: mvn -B -N clean install --file backend/pom.xml
 
-      - name: mvn install commons
-        run: mvn -B install --file backend/app.hopps.commons/pom.xml
-
       - name: mvn package
         run: mvn -B verify --file backend/${{ matrix.sonar.folder }}/pom.xml
 
