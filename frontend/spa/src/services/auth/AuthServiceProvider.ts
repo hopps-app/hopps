@@ -1,7 +1,5 @@
-import type { AuthService } from '@/services/auth/AuthService.ts';
-
 export interface AuthServiceProvider {
-    init(authService: AuthService): Promise<void>;
+    init(): Promise<void>;
 
     login(): Promise<void>;
 
@@ -12,4 +10,6 @@ export interface AuthServiceProvider {
     isAuthenticated(): boolean;
 
     refreshToken(refreshToken: string): void;
+
+    getAuthToken(): string | undefined;
 }

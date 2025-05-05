@@ -1,11 +1,10 @@
-import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
-import authService from '@/services/auth/AuthService.ts';
-import { useStore } from '@/store/store.ts';
+import authService from '@/services/auth/keycloakServiceProvider.ts';
 
 function Header() {
     const { t } = useTranslation();
@@ -15,8 +14,8 @@ function Header() {
         { url: '/demo', label: 'Demo' },
     ];
 
-    const appStore = useStore();
-    const isAuthenticated = appStore.isAuthenticated;
+    const isAuthenticated = authService.isAuthenticated();
+    console.log(isAuthenticated, authService.getAuthToken());
 
     const onClickLogin = () => {
         authService.login();

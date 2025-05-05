@@ -1,11 +1,11 @@
 import { PersonIcon } from '@radix-ui/react-icons';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
-import authService from '@/services/auth/AuthService.ts';
 import { useStore } from '@/store/store.ts';
+import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
+import authService from '@/services/auth/keycloakServiceProvider.ts';
 
 function UserMenu() {
     const authStore = useStore();

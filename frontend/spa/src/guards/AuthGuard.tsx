@@ -1,8 +1,8 @@
 import { ReactNode, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import authService from '@/services/auth/AuthService.ts';
 import { useStore } from '@/store/store.ts';
+import authService from '@/services/auth/keycloakServiceProvider.ts';
 
 interface AuthGuardProps {
     children: ReactNode;
