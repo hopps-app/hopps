@@ -3,22 +3,26 @@ import Keycloak from 'keycloak-js';
 import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
 
 export class KeycloakServiceProvider implements AuthServiceProvider {
-    private keycloak: Keycloak | null = null;
+    private keycloak: Keycloak;
 
-    async init() {
+    constructor() {
         this.keycloak = new Keycloak({
             url: import.meta.env.VITE_KEYCLOAK_URL,
             realm: import.meta.env.VITE_KEYCLOAK_REALM,
             clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
         });
+    }
 
+    async init() {
+        console.log('init');
         let isSuccessInit = false;
         try {
-            isSuccessInit = await this.keycloak?.init({
+            isSuccessInit = await this.keycloak.init({
                 enableLogging: true,
                 onLoad: 'check-sso',
                 silentCheckSsoRedirectUri: `${location.origin}/silent-check-sso.html`,
             });
+            console.log(isSuccessInit);
         } catch (error) {
             console.error('Failed to initialize adapter:', error);
         }
@@ -33,22 +37,21 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
     }
 
     async login() {
-        return await this.keycloak?.login();
+        return await this.keycloak.login();
     }
 
     async logout() {
-        await this.keycloak?.logout();
+        await this.keycloak.logout();
     }
 
     async checkLogin() {
-        this.keycloak?.updateToken(5).catch(() => {
+        this.keycloak.updateToken(5).catch(() => {
             console.error('Failed to refresh token or user is not authenticated');
         });
     }
 
     isAuthenticated(): boolean {
-        console.log('t', this.keycloak);
-        return this.keycloak?.authenticated === true && !this.keycloak.isTokenExpired();
+        return this.keycloak.authenticated === true && !this.keycloak.isTokenExpired();
     }
 
     async refreshToken() {
@@ -66,7 +69,7 @@ export class KeycloakServiceProvider implements AuthServiceProvider {
     }
 
     getAuthToken() {
-        return this.keycloak?.token;
+        return this.keycloak.token;
     }
 }
 
