@@ -1,5 +1,7 @@
 import Keycloak from 'keycloak-js';
 
+import { useStore } from '@/store/store';
+import { User } from '../api/types/User';
 
 export class KeycloakServiceProvider {
     private keycloak: Keycloak;
@@ -10,10 +12,32 @@ export class KeycloakServiceProvider {
             realm: import.meta.env.VITE_KEYCLOAK_REALM,
             clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
         });
+
+        this.keycloak.onAuthSuccess = () => this.updateAuthState(true);
+        this.keycloak.onAuthLogout = () => this.updateAuthState(false);
+    }
+
+    private updateAuthState(authenticated: boolean) {
+        useStore.getState().setIsAuthenticated(authenticated);
+
+        if (authenticated) {
+            this.loadUserInfo();
+        } else {
+            useStore.getState().setUser(null);
+            useStore.getState().setOrganization(null);
+        }
+    }
+
+    async loadUserInfo() {
+        try {
+            const userData = await this.keycloak.loadUserInfo();
+            useStore.getState().setUser(userData as User);
+        } catch (e) {
+            console.error('Failed to load user info', e);
+        }
     }
 
     async init() {
-        console.log('init');
         let isSuccessInit = false;
         try {
             isSuccessInit = await this.keycloak.init({
@@ -21,18 +45,20 @@ export class KeycloakServiceProvider {
                 onLoad: 'check-sso',
                 silentCheckSsoRedirectUri: `${location.origin}/silent-check-sso.html`,
             });
-            console.log(isSuccessInit);
+
+            useStore.getState().setIsInitialized(true);
+            useStore.getState().setIsAuthenticated(this.keycloak.authenticated || false);
+
+            if (isSuccessInit && this.isAuthenticated()) {
+                await this.loadUserInfo();
+            }
         } catch (error) {
             console.error('Failed to initialize adapter:', error);
+            useStore.getState().setIsInitialized(true);
+            useStore.getState().setIsAuthenticated(false);
         }
 
-        if (isSuccessInit) {
-            try {
-                const data = (await this.keycloak.loadUserInfo()) as { id: string; name: string; email: string };
-            } catch (e) {
-                console.error('Failed to load user info', e);
-            }
-        }
+        return isSuccessInit;
     }
 
     async login() {

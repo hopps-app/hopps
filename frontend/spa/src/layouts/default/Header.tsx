@@ -5,17 +5,17 @@ import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
 import authService from '@/services/auth/keycloakServiceProvider.ts';
+import { useStore } from '@/store/store';
 
 function Header() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { isAuthenticated } = useStore();
+
     const menuItems = [
         { url: '/', label: 'Home' },
         { url: '/demo', label: 'Demo' },
     ];
-
-    const isAuthenticated = authService.isAuthenticated();
-    console.log(isAuthenticated, authService.getAuthToken());
 
     const onClickLogin = () => {
         authService.login();
