@@ -14,7 +14,7 @@ export class KeycloakServiceProvider {
         });
 
         this.keycloak.onAuthSuccess = () => this.updateAuthState(true);
-        this.keycloak.onAuthLogout = () => this.updateAuthState(false);
+        // this.keycloak.onAuthLogout = () => this.updateAuthState(false);
     }
 
     private updateAuthState(authenticated: boolean) {
@@ -46,8 +46,7 @@ export class KeycloakServiceProvider {
                 silentCheckSsoRedirectUri: `${location.origin}/silent-check-sso.html`,
             });
 
-            useStore.getState().setIsInitialized(true);
-            useStore.getState().setIsAuthenticated(this.keycloak.authenticated || false);
+            useStore.getState().setIsAuthenticated(this.isAuthenticated());
 
             if (isSuccessInit && this.isAuthenticated()) {
                 await this.loadUserInfo();
@@ -76,6 +75,11 @@ export class KeycloakServiceProvider {
     }
 
     isAuthenticated(): boolean {
+        console.log('Authentication check:', {
+            authenticated: this.keycloak.authenticated,
+            tokenExpired: this.keycloak.isTokenExpired(),
+            hasToken: !!this.keycloak.token,
+        });
         return this.keycloak.authenticated === true && !this.keycloak.isTokenExpired();
     }
 
