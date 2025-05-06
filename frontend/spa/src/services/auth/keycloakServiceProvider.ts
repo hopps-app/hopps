@@ -1,8 +1,7 @@
 import Keycloak from 'keycloak-js';
 
-import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
 
-export class KeycloakServiceProvider implements AuthServiceProvider {
+export class KeycloakServiceProvider {
     private keycloak: Keycloak;
 
     constructor() {
