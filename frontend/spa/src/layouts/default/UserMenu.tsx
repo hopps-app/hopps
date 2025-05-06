@@ -8,13 +8,12 @@ import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx
 import authService from '@/services/auth/keycloakServiceProvider.ts';
 
 function UserMenu() {
-    const authStore = useStore();
-    const user = authStore.user;
+    const { user, isAuthenticated } = useStore();
     const { t } = useTranslation();
-
     const navigate = useNavigate();
+
     const [menuItems] = useState<DropdownMenuItem[]>([
-        { type: 'label', title: `${t('settings.menu.profile')}` },
+        { type: 'label', title: user?.name || t('settings.menu.profile') },
         { type: 'separator' },
         { title: `${t('settings.menu.profile')}`, onClick: () => navigate('/settings/profile') },
         { title: `${t('settings.menu.organization')}`, onClick: () => navigate('/settings/organization') },
@@ -24,7 +23,7 @@ function UserMenu() {
     ]);
 
     return (
-        authStore.isInitialized && (
+        isAuthenticated && (
             <div>
                 <DropdownMenu items={menuItems} className="w-56">
                     <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
