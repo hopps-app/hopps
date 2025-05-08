@@ -14,7 +14,7 @@ export class KeycloakServiceProvider {
         });
 
         this.keycloak.onAuthSuccess = () => this.updateAuthState(true);
-        // this.keycloak.onAuthLogout = () => this.updateAuthState(false);
+        this.keycloak.onAuthLogout = () => this.updateAuthState(false);
     }
 
     private updateAuthState(authenticated: boolean) {
@@ -44,6 +44,7 @@ export class KeycloakServiceProvider {
                 enableLogging: true,
                 onLoad: 'check-sso',
                 silentCheckSsoRedirectUri: `${location.origin}/silent-check-sso.html`,
+                checkLoginIframe: false, // needs to be false, otherwise the iframe triggers onAuthLogout after 5 seconds
             });
 
             useStore.getState().setIsAuthenticated(this.isAuthenticated());
