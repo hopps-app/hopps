@@ -46,7 +46,7 @@ jobs:
             TAG=$(git describe --tags --exact-match)
             echo "VERSION=${TAG}-keycloak-${KEYCLOAK_VERSION}" >> $GITHUB_ENV
           else
-            echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+            echo "VERSION=${GITHUB_RUN_NUMBER}-keycloak-${KEYCLOAK_VERSION}" >> $GITHUB_ENV
           fi
 
       - name: Build and push Docker image
