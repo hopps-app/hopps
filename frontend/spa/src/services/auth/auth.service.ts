@@ -77,14 +77,10 @@ export class AuthService {
     }
 
     async refreshToken() {
-        if (!this.keycloak) {
-            throw new Error('No refresh token available');
-        }
         try {
-            const refreshed = await this.keycloak.updateToken(5);
-            // TODO
+            await this.keycloak.updateToken(5);
         } catch (e) {
-            console.error(e);
+            console.error('Failed to refresh token:', e);
         }
     }
 
