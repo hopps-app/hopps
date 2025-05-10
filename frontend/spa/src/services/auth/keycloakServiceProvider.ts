@@ -43,7 +43,6 @@ export class KeycloakServiceProvider {
             isSuccessInit = await this.keycloak.init({
                 enableLogging: true,
                 onLoad: 'check-sso',
-                silentCheckSsoRedirectUri: `${location.origin}/silent-check-sso.html`,
                 checkLoginIframe: false, // needs to be false, otherwise the iframe triggers onAuthLogout after 5 seconds
             });
 
