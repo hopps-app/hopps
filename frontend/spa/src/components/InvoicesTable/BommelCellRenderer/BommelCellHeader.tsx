@@ -2,8 +2,8 @@ import { FC, useState } from 'react';
 
 import closeIcon from '@/assets/close.svg';
 import searchIcon from '@/assets/search.svg';
-import TextField from '@/components/ui/TextField';
 import Button from '@/components/ui/Button';
+import TextField from '@/components/ui/TextField';
 
 type BommelCellHeaderProps = {
     onSearch: (query: string) => void;

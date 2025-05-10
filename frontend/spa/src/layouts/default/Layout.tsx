@@ -1,15 +1,15 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import Header from './Header.tsx';
-import HomeView from '@/components/views/HomeView.tsx';
+import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
 import DemoView from '@/components/views/DemoView.tsx';
-import Banner from './Banner.tsx';
+import HomeView from '@/components/views/HomeView.tsx';
 import NotFoundView from '@/components/views/NotFoundView.tsx';
+import { RegisterOrganizationView } from '@/components/views/RegisterOrganizationView.tsx';
 import SettingsView from '@/components/views/SettingsView.tsx';
 import AuthGuard from '@/guards/AuthGuard.tsx';
-import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
-import { RegisterOrganizationView } from '@/components/views/RegisterOrganizationView.tsx';
 import { useStore } from '@/store/store.ts';
+import Banner from './Banner.tsx';
+import Header from './Header.tsx';
 
 function Layout() {
     const authStore = useStore();

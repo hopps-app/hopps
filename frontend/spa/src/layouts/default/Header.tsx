@@ -1,11 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router-dom';
 
 import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
+import UserMenu from '@/layouts/default/UserMenu.tsx';
 import authService from '@/services/auth/AuthService.ts';
 import { useStore } from '@/store/store.ts';
-import UserMenu from '@/layouts/default/UserMenu.tsx';
 
 function Header() {
     const { t } = useTranslation();

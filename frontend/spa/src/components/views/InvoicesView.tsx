@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import InvoicesTable from '../InvoicesTable/InvoicesTable';
+import InvoicesTable from '@/components/InvoicesTable/InvoicesTable';
+import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import Button from '@/components/ui/Button.tsx';
-import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
-import apiService from '@/services/ApiService.ts';
-import { useToast } from '@/hooks/use-toast.ts';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
-import { useStore } from '@/store/store.ts';
+import { useToast } from '@/hooks/use-toast.ts';
+import apiService from '@/services/ApiService.ts';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store.ts';
 
 function InvoicesView() {
     const { t } = useTranslation();
