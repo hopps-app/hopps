@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AuthService } from '@/services/auth/AuthService';
-import { useStore } from '@/store/store';
+import { AuthService } from '@/services/auth/auth.service.ts';
 import { AuthServiceProvider } from '../AuthServiceProvider';
+import { useStore } from '@/store/store';
 
 vi.mock('@/services/auth/AuthServiceProvider');
 vi.mock('@/store/store', () => ({ useStore: { getState: vi.fn() } }));

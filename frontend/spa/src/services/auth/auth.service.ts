@@ -3,7 +3,7 @@ import Keycloak from 'keycloak-js';
 import { useStore } from '@/store/store';
 import { User } from '../api/types/User';
 
-export class KeycloakServiceProvider {
+export class AuthService {
     private keycloak: Keycloak;
 
     constructor() {
@@ -24,7 +24,6 @@ export class KeycloakServiceProvider {
             this.loadUserInfo();
         } else {
             useStore.getState().setUser(null);
-            useStore.getState().setOrganization(null);
         }
     }
 
@@ -53,7 +52,6 @@ export class KeycloakServiceProvider {
             }
         } catch (error) {
             console.error('Failed to initialize adapter:', error);
-            useStore.getState().setIsInitialized(true);
             useStore.getState().setIsAuthenticated(false);
         }
 
@@ -102,5 +100,5 @@ export class KeycloakServiceProvider {
     }
 }
 
-const authService = new KeycloakServiceProvider();
+const authService = new AuthService();
 export default authService;
