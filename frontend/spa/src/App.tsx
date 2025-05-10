@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import Layout from '@/layouts/default/Layout.tsx';
 import themeService from '@/services/ThemeService.ts';
@@ -8,8 +8,7 @@ import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
 
 function App() {
-    const [isInitialized, setIsInitialized] = useState(false);
-
+    const { isInitialized, setIsInitialized } = useStore();
     const loadUserOrganisation = async () => {
         const apiService = (await import('@/services/ApiService.ts')).default;
         const user = useStore.getState().user;
@@ -31,11 +30,9 @@ function App() {
         authService
             .init()
             .then(async (success) => {
-                console.log('Auth service initialized:', {
-                    success,
-                    isAuthenticated: authService.isAuthenticated(),
-                });
-                await loadUserOrganisation();
+                if (success) {
+                    await loadUserOrganisation();
+                }
             })
             .catch((e) => console.error('Failed to init authService:', e));
         emojiService.init().catch((e) => console.error('Failed to init emojiService:', e));
