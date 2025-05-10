@@ -1,8 +1,8 @@
 import { FC } from 'react';
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/shadecn/Tooltip';
 import Button from '@/components/ui/Button';
 import { RadixIcons } from '@/components/ui/Icon';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/shadecn/Tooltip';
 
 type TooltipButtonPropsType = {
     text: string;

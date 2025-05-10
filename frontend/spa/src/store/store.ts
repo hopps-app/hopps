@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { User } from '@/services/api/types/User.ts';
 import { Organization } from '@/services/api/types/Organization.ts';
+import { User } from '@/services/api/types/User.ts';
 
 type AuthState = {
     isAuthenticated: boolean;

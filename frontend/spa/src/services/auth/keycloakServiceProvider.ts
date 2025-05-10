@@ -1,7 +1,7 @@
 import Keycloak from 'keycloak-js';
 
-import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
 import { AuthService } from '@/services/auth/AuthService.ts';
+import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
 
 export class KeycloakServiceProvider implements AuthServiceProvider {
     private keycloak: Keycloak | null = null;

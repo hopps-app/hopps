@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import themeService, { Themes } from '@/services/ThemeService.ts';
-import Radio from '@/components/ui/Radio.tsx';
 import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
+import Radio from '@/components/ui/Radio.tsx';
 import Select from '@/components/ui/Select.tsx';
 import languageService from '@/services/LanguageService.ts';
+import themeService, { Themes } from '@/services/ThemeService.ts';
 
 function ProfileSettingsView() {
     const { t } = useTranslation();

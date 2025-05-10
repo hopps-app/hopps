@@ -1,14 +1,14 @@
 'use client';
 
-import { Check, ChevronsUpDown, Trash2 } from 'lucide-react';
-import { FC, useCallback, useState } from 'react';
+import { CheckIcon, ChevronDownIcon, TrashIcon } from '@radix-ui/react-icons';
+import { FC, memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { cn } from '@/lib/utils';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
-import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { cn } from '@/lib/utils';
 import { Bommel } from '@/services/api/types/Bommel';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 type InvoiceUploadFormBommelSelectorprops = {
     onChange: (id: number | null) => void;
@@ -51,7 +51,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                         )}
                     >
                         <span>{selectedBommel ? selectedBommel?.name : t('invoiceUpload.selectBommel')}</span>
-                        {!selectedBommel && <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
+                        {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
                     </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
@@ -63,7 +63,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                                 {allBommels.map((bommel) => (
                                     <CommandItem key={bommel.id} value={bommel.name} onSelect={(currentValue) => onBommelSelected(currentValue)}>
                                         {bommel.name}
-                                        <Check className={cn('ml-auto', selectedBommel?.name === bommel.name ? 'opacity-100' : 'opacity-0')} />
+                                        <CheckIcon className={cn('ml-auto', selectedBommel?.name === bommel.name ? 'opacity-100' : 'opacity-0')} />
                                     </CommandItem>
                                 ))}
                             </CommandGroup>
@@ -73,11 +73,11 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
             </Popover>
             {selectedBommel && (
                 <button onClick={onDeselectBommel} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500">
-                    <Trash2 className="w-4 h-4" />
+                    <TrashIcon className="w-4 h-4" />
                 </button>
             )}
         </div>
     );
 };
 
-export default InvoiceUploadFormBommelSelector;
+export default memo(InvoiceUploadFormBommelSelector);

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 
-import { Bommel } from '@/services/api/types/Bommel';
 import Icon from '@/components/ui/Icon';
+import { Bommel } from '@/services/api/types/Bommel';
 
 type BommelCellListPropsType = {
     filteredBommels: Bommel[];

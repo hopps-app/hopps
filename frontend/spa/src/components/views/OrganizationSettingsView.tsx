@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
-import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
-import { useStore } from '@/store/store.ts';
-import { Bommel } from '@/services/api/types/Bommel.ts';
-import organizationTreeService from '@/services/OrganizationTreeService.ts';
-import apiService from '@/services/ApiService.ts';
+import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
+import { Bommel } from '@/services/api/types/Bommel.ts';
+import apiService from '@/services/ApiService.ts';
+import organizationTreeService from '@/services/OrganizationTreeService.ts';
+import { useStore } from '@/store/store.ts';
 
 function OrganizationSettingsView() {
     const { t } = useTranslation();
@@ -35,6 +35,7 @@ function OrganizationSettingsView() {
                 children: [],
                 parent: { id: rootBommel!.id },
             });
+
             return organizationTreeService.bommelsToTreeNodes([node], rootBommel!.id)[0];
         } catch (e) {
             console.error(e);
@@ -69,8 +70,9 @@ function OrganizationSettingsView() {
         } catch (e) {
             console.error(e);
             showError('Failed to move bommel.');
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
 
         return isSuccess;
     };
@@ -84,8 +86,9 @@ function OrganizationSettingsView() {
         } catch (e) {
             console.error(e);
             showError('Failed to delete.');
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
         return false;
     };
 

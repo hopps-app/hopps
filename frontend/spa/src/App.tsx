@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import Layout from '@/layouts/default/Layout.tsx';
-import themeService from '@/services/ThemeService.ts';
 import authService from '@/services/auth/AuthService';
 import emojiService from '@/services/EmojiService';
 import languageService from '@/services/LanguageService.ts';
+import themeService from '@/services/ThemeService.ts';
 
 function App() {
     const [isInitialized, setIsInitialized] = useState(false);

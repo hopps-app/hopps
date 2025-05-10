@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ListItem from '@/components/ui/List/ListItem.tsx';
 import { RadixIcons } from '@/components/ui/Icon.tsx';
+import ListItem from '@/components/ui/List/ListItem.tsx';
 import { cn } from '@/lib/utils.ts';
 
 type ListItemType = {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import languageService from '@/services/LanguageService';
 import i18n from '@/i18n.ts';
+import languageService from '@/services/LanguageService';
 
 describe('LanguageService', () => {
     beforeEach(() => {

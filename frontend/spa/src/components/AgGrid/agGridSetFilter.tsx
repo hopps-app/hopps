@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { CheckedState } from '@radix-ui/react-checkbox';
 import { IDoesFilterPassParams, IAfterGuiAttachedParams } from 'ag-grid-community';
 import { CustomFilterProps, useGridFilter } from 'ag-grid-react';
 import * as _ from 'lodash';
-import { CheckedState } from '@radix-ui/react-checkbox';
+import { useState, useCallback, useEffect } from 'react';
 
 import { Checkbox } from '@/components/ui/shadecn/Checkbox.tsx';
 

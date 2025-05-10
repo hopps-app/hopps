@@ -1,7 +1,7 @@
 import { pick } from 'lodash';
 
-import { KeycloakServiceProvider } from '@/services/auth/keycloakServiceProvider.ts';
 import { AuthServiceProvider } from '@/services/auth/AuthServiceProvider.ts';
+import { KeycloakServiceProvider } from '@/services/auth/keycloakServiceProvider.ts';
 import { useStore } from '@/store/store.ts';
 
 export class AuthService {
