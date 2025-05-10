@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useStore } from '@/store/store.ts';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
-import authService from '@/services/auth/keycloakServiceProvider.ts';
+import authService from '@/services/auth/auth.service.ts';
 
 function UserMenu() {
     const { user, isAuthenticated } = useStore();

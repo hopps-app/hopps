@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-import authService from '@/services/auth/keycloakServiceProvider.ts';
+import authService from '@/services/auth/auth.service.ts';
 
 export class AxiosService {
     create(baseUrl: string) {

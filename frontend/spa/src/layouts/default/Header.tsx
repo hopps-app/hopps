@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
-import authService from '@/services/auth/keycloakServiceProvider.ts';
+import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store';
 
 function Header() {
