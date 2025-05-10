@@ -19,12 +19,9 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
     const [isInvoicesQuantityLimit, setIsInvoicesQuantityLimit] = useState(false);
 
     const invoiceUploadSchema = z.object({
-        bommelId: z
-            .number()
-            .nullable()
-            .refine((val) => val !== null, {
-                message: 'Please select a Bommel',
-            }),
+        bommelId: z.number().refine((val) => val !== null, {
+            message: 'Please select a Bommel',
+        }),
         documentType: z.string().refine((val) => ['INVOICE', 'RECEIPT'].includes(val), {
             message: 'Please select a document type',
         }),
@@ -33,6 +30,12 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
 
     type InvoiceUploadFormFields = z.infer<typeof invoiceUploadSchema>;
 
+    const defaultValues: InvoiceUploadFormFields = {
+        bommelId: 0 as number,
+        documentType: '',
+        isPrivatelyPaid: false,
+    };
+
     const {
         setValue,
         watch,
@@ -40,11 +43,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         formState: { errors },
     } = useForm<InvoiceUploadFormFields>({
         resolver: zodResolver(invoiceUploadSchema),
-        defaultValues: {
-            bommelId: null,
-            documentType: '',
-            isPrivatelyPaid: false,
-        },
+        defaultValues,
     });
 
     const selectedBommelId = watch('bommelId');
@@ -67,7 +66,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
     const clearState = () => {
         setSelectedFiles([]);
         setValue('documentType', '');
-        setValue('bommelId', null as unknown as InvoiceUploadFormFields['bommelId']);
+        setValue('bommelId', 0);
         setValue('isPrivatelyPaid', false);
     };
 
