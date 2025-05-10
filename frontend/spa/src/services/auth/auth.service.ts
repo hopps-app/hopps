@@ -73,11 +73,6 @@ export class AuthService {
     }
 
     isAuthenticated(): boolean {
-        console.log('Authentication check:', {
-            authenticated: this.keycloak.authenticated,
-            tokenExpired: this.keycloak.isTokenExpired(),
-            hasToken: !!this.keycloak.token,
-        });
         return this.keycloak.authenticated === true && !this.keycloak.isTokenExpired();
     }
 
@@ -87,11 +82,9 @@ export class AuthService {
         }
         try {
             const refreshed = await this.keycloak.updateToken(5);
-            if (refreshed) {
-            }
+            // TODO
         } catch (e) {
             console.error(e);
-            throw new Error('Failed to refresh the token, or the session has expired');
         }
     }
 
