@@ -24,20 +24,22 @@ function App() {
     };
 
     useEffect(() => {
-        themeService.init();
-        languageService.init();
+        const initApp = async () => {
+            try {
+                themeService.init();
+                languageService.init();
+                await emojiService.init();
 
-        authService
-            .init()
-            .then(async (success) => {
-                if (success) {
+                const success = await authService.init();
+                if (success && authService.isAuthenticated()) {
                     await loadUserOrganisation();
                 }
-            })
-            .catch((e) => console.error('Failed to init authService:', e));
-        emojiService.init().catch((e) => console.error('Failed to init emojiService:', e));
-
-        setIsInitialized(true);
+                setIsInitialized(true);
+            } catch (e) {
+                console.error('Failed to init authService:', e);
+            }
+        };
+        initApp();
     }, []);
 
     return isInitialized ? <Layout /> : null;
