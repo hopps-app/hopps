@@ -63,7 +63,7 @@ export class AuthService {
     }
 
     async logout() {
-        await this.keycloak.logout();
+        await this.keycloak.logout({ redirectUri: 'https://hopps.cloud/' });
     }
 
     async checkLogin() {
