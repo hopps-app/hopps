@@ -1,7 +1,7 @@
 import Picker from '@emoji-mart/react';
-import { useState } from 'react';
 import { CaretSortIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
+import { useState } from 'react';
 
 import Emoji from '@/components/ui/Emoji.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';

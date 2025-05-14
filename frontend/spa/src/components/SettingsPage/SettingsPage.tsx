@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
+import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
 import SettingsPageMenu from '@/components/SettingsPage/SettingsPageMenu.tsx';
 import Icon from '@/components/ui/Icon.tsx';
-import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
 import { ActiveTabContext } from '@/context/ActiveTabContext.ts';
 
 interface SettingsPageProps {

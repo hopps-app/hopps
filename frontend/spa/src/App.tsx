@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
 import Layout from '@/layouts/default/Layout.tsx';
-import themeService from '@/services/ThemeService.ts';
+import authService from '@/services/auth/AuthService';
 import emojiService from '@/services/EmojiService';
 import languageService from '@/services/LanguageService.ts';
-import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
+import themeService from '@/services/ThemeService.ts';
 
 function App() {
     const { isInitialized, setIsInitialized } = useStore();

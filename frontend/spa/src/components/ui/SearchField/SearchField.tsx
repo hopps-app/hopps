@@ -1,10 +1,10 @@
-import React, { FC, useCallback, useState } from 'react';
 import { debounce } from 'lodash';
+import React, { FC, useCallback, useState } from 'react';
 
 import closeIcon from '@/assets/close.svg';
 import searchIcon from '@/assets/search.svg';
-import TextField from '@/components/ui/TextField';
 import Button from '@/components/ui/Button';
+import TextField from '@/components/ui/TextField';
 
 type SearchFieldPropsType = {
     onSearch: (query: string) => void;

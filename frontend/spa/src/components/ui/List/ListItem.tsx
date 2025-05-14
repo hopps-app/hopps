@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import './styles/ListItem.scss';
-import Icon, { RadixIcons } from '@/components/ui/Icon.tsx';
 import Button from '@/components/ui/Button.tsx';
+import Icon, { RadixIcons } from '@/components/ui/Icon.tsx';
 import Progress from '@/components/ui/Progress.tsx';
 
 interface ListItemProps {
@@ -20,7 +20,7 @@ interface ListItemProps {
 
 const ListItem: React.FC<ListItemProps> = ({ title, icon, iconSize, active, onClick, className, onClickRemove, isRemovableListItem, index, progress = 0 }) => {
     const truncatedTitle = React.useMemo(() => {
-        return title.length > 40 ? `${title.substring(0, 40)}...` : title;
+        return title.length > 30 ? `${title.substring(0, 30)}...` : title;
     }, [title]);
 
     return (
