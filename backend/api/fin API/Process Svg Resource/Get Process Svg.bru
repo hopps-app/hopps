@@ -1,0 +1,15 @@
+meta {
+  name: Get Process Svg
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/svg/processes/:processId
+  body: none
+  auth: none
+}
+
+params:path {
+  processId: 
+}
