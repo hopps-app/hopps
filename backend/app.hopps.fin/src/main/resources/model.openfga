@@ -1,6 +1,11 @@
 model
   schema 1.1
 
+# when you modify this, you also need to modify/generate auth-model.json
+# accordingly. Otherwise, your changes will have no effect.
+# You can generate the json either with the openfga CLI or with the sandbox:
+# https://play.fga.dev/sandbox/
+
 type user
 
 type organisation
@@ -12,12 +17,13 @@ type bommel
     relations
         define bommelwart: [user]
         define parent: [bommel]
-        define has: [organisation]
-        define can_see: member from has
-        define can_modify: bommelwart or can_modify from parent or owner from has
+        define part_of: [organisation]
+        define can_see: member from part_of or can_see from parent
+        define can_modify: bommelwart or owner from part_of or can_modify from parent
 
 type transaction_record
     relations
         define assigned_to: [bommel]
         define created_by: [user]
         define can_see: created_by or can_modify from assigned_to
+        define can_modify: can_modify from assigned_to
