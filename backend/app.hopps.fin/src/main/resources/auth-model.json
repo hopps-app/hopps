@@ -1,0 +1,234 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "user",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "organisation",
+      "relations": {
+        "member": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "owner"
+                }
+              }
+            ]
+          }
+        },
+        "owner": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "member": {
+            "directly_related_user_types": [
+              {
+                "type": "user",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          },
+          "owner": {
+            "directly_related_user_types": [
+              {
+                "type": "user",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          }
+        },
+        "module": "",
+        "source_info": null
+      }
+    },
+    {
+      "type": "bommel",
+      "relations": {
+        "bommelwart": {
+          "this": {}
+        },
+        "can_modify": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "bommelwart"
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "parent"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "can_modify"
+                  }
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "has"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "owner"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "can_see": {
+          "tupleToUserset": {
+            "tupleset": {
+              "object": "",
+              "relation": "has"
+            },
+            "computedUserset": {
+              "object": "",
+              "relation": "member"
+            }
+          }
+        },
+        "has": {
+          "this": {}
+        },
+        "parent": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bommelwart": {
+            "directly_related_user_types": [
+              {
+                "type": "user",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          },
+          "can_modify": {
+            "directly_related_user_types": [],
+            "module": "",
+            "source_info": null
+          },
+          "can_see": {
+            "directly_related_user_types": [],
+            "module": "",
+            "source_info": null
+          },
+          "has": {
+            "directly_related_user_types": [
+              {
+                "type": "organisation",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          },
+          "parent": {
+            "directly_related_user_types": [
+              {
+                "type": "bommel",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          }
+        },
+        "module": "",
+        "source_info": null
+      }
+    },
+    {
+      "type": "transaction_record",
+      "relations": {
+        "assigned_to": {
+          "this": {}
+        },
+        "can_see": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "object": "",
+                  "relation": "created_by"
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "tupleset": {
+                    "object": "",
+                    "relation": "assigned_to"
+                  },
+                  "computedUserset": {
+                    "object": "",
+                    "relation": "can_modify"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "created_by": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "assigned_to": {
+            "directly_related_user_types": [
+              {
+                "type": "bommel",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          },
+          "can_see": {
+            "directly_related_user_types": [],
+            "module": "",
+            "source_info": null
+          },
+          "created_by": {
+            "directly_related_user_types": [
+              {
+                "type": "user",
+                "condition": ""
+              }
+            ],
+            "module": "",
+            "source_info": null
+          }
+        },
+        "module": "",
+        "source_info": null
+      }
+    }
+  ],
+  "conditions": {}
+}
