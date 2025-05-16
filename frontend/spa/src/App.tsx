@@ -36,7 +36,7 @@ function App() {
                 }
                 setIsInitialized(true);
             } catch (e) {
-                console.error('Failed to init authService:', e);
+                console.error('App initialisation failed:', e);
             }
         };
         initApp();
