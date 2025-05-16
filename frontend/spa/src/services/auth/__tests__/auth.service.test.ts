@@ -15,7 +15,7 @@ type MockKeycloak = {
     token: string;
     onAuthSuccess: (() => void) | null;
     onAuthLogout: (() => void) | null;
-    onAuthError: ((error: any) => void) | null;
+    onAuthError: ((error: unknown) => void) | null;
 };
 
 // Mock Keycloak class
