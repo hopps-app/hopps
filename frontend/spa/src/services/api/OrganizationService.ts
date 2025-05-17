@@ -1,34 +1,12 @@
 import axios, { AxiosInstance } from 'axios';
 
 import axiosService from '@/services/AxiosService.ts';
-
-type RegisterOrganizationPayload = {
-    owner: {
-        firstName: string;
-        lastName: string;
-        email: string;
-    };
-    newPassword: string;
-    organization: {
-        profilePicture?: string;
-        website?: string;
-        address?: {
-            number?: string;
-            city?: string;
-            additionalLine?: string;
-            street?: string;
-            plz?: string;
-        };
-        name: string;
-        type: 'EINGETRAGENER_VEREIN';
-        slug: string;
-    };
-};
+import { OrganizationConfirmationPayload, RegisterOrganizationPayload } from '@/services/api/types/Organization';
 
 export class OrganizationService {
-    private axiosInstance: AxiosInstance;
+    readonly axiosInstance: AxiosInstance;
 
-    constructor(private baseUrl: string) {
+    constructor(readonly baseUrl: string) {
         this.axiosInstance = axiosService.create(this.baseUrl);
     }
 
@@ -47,9 +25,19 @@ export class OrganizationService {
     createSlug(input: string): string {
         return input
             .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+            .replace(/[^a-z0-9\s-]/g, '')
             .trim()
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .replace(/-+/g, '-'); // Replace multiple hyphens with a single hyphen
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-');
+    }
+
+    async inviteOrganizationMember(email: string, slug: string) {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/${slug}/member`;
+        await this.axiosInstance.post(url, { email });
+    }
+
+    async confirmOrganizationInvitation(inviteId: number, payload: OrganizationConfirmationPayload) {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/join/${inviteId}`;
+        await this.axiosInstance.post(url, payload || undefined);
     }
 }

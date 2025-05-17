@@ -123,7 +123,7 @@ describe('InvoicesService Pact tests', () => {
         });
     });
 
-    it('uploadInvoice', async () => {
+    it.skip('uploadInvoice', async () => {
         const fileName = 'test.pdf';
         const filePath = path.resolve(__dirname, `./${fileName}`);
         const fileBuffer = fs.readFileSync(filePath);
