@@ -24,18 +24,20 @@ public class MailDelegate {
     OrganizationRepository organizationRepository;
 
     public void inviteMember(boolean memberDoesExist, String email, String slug, KogitoProcessContext kogitoProcessContext) {
-        String acceptInviteURL = memberDoesExist
-                ? String.format(
-                "https://hopps.cloud/acceptInvite?pid=%s&email=%s",
-                URLEncoder.encode(kogitoProcessContext.getProcessInstance().getId(), StandardCharsets.UTF_8),
-                URLEncoder.encode(email, StandardCharsets.UTF_8)
-        )
-                : String.format(
-                "https://hopps.cloud/registerAndAcceptInvite?pid=%s&email=%s",
-                URLEncoder.encode(kogitoProcessContext.getProcessInstance().getId(), StandardCharsets.UTF_8),
-                URLEncoder.encode(email, StandardCharsets.UTF_8)
+        Map<String, String> params = Map.of(
+                "email", email,
+                "register", !memberDoesExist + "",
+                "slug", slug,
+                "pid", kogitoProcessContext.getProcessInstance().getId()
         );
+        StringBuilder acceptInviteURL = new StringBuilder("https://hopps.cloud/organization/join?");
 
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            acceptInviteURL.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
+            acceptInviteURL.append("=");
+            acceptInviteURL.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
+            acceptInviteURL.append("&");
+        }
 
         Organization org = organizationRepository.findBySlug(slug);
 
@@ -44,7 +46,7 @@ public class MailDelegate {
                 MailTemplates.INVITE_MEMBER,
                 Map.of(
                         "orgName", org.getName(),
-                        "acceptInviteURL", acceptInviteURL
+                        "acceptInviteURL", acceptInviteURL.toString()
                 )
         );
 

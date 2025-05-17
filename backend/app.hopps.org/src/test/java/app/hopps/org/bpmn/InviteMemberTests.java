@@ -2,10 +2,11 @@ package app.hopps.org.bpmn;
 
 import app.hopps.org.jpa.Member;
 import app.hopps.org.jpa.MemberRepository;
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.kie.kogito.Model;
@@ -13,7 +14,6 @@ import org.kie.kogito.internal.process.runtime.KogitoProcessInstance;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessInstance;
 import org.kie.kogito.process.WorkItem;
-import org.mockito.Mockito;
 
 import java.util.Map;
 
@@ -25,8 +25,17 @@ public class InviteMemberTests {
     @Named("AddMember")
     Process<? extends Model> addMemberProcess;
 
-    @InjectMock
+    @Inject
     MemberRepository memberRepository;
+
+    @Inject
+    Flyway flyway;
+
+    @BeforeEach
+    void setup() throws Exception {
+        flyway.clean();
+        flyway.migrate();
+    }
 
     @Test
     @DisplayName("should run through non existing member path")
@@ -46,9 +55,6 @@ public class InviteMemberTests {
         member.setLastName("Kim");
         member.setFirstName("Jong");
 
-        Mockito.when(memberRepository.findByEmail("test@hopps.cloud")).thenReturn(member);
-        Mockito.doNothing().when(memberRepository).persist(member);
-
         WorkItem workItem = instance
                 .workItems()
                 .stream()
@@ -56,8 +62,7 @@ public class InviteMemberTests {
                 .findFirst()
                 .orElseThrow();
 
-
-        instance.completeWorkItem(workItem.getId(), Map.of());
+        instance.completeWorkItem(workItem.getId(), Map.of("member", member));
 
         assertEquals(KogitoProcessInstance.STATE_COMPLETED, instance.status());
     }
