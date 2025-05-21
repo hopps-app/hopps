@@ -17,6 +17,7 @@
     "sbom": "cdxgen -o bom.json"
   },
   "dependencies": {
+    "@hopps/hopps-api-client": "*",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "@hookform/resolvers": "^3.9.1",

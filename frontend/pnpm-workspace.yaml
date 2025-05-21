@@ -1,0 +1,4 @@
+packages:
+  - 'spa'
+  - 'mobile'
+  - 'hopps-api-client'
