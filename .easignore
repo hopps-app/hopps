@@ -2,11 +2,11 @@
 **
 
 # Allow the mobile directory
-!mobile
-!mobile/**
+!frontend/mobile
+!frontend/mobile/**
 
-# Optional: still ignore any hidden files in the repo root, except those in mobile
+# Optional: still ignore any hidden files in the repo root, except those in frontend/mobile
 .*
-!mobile/.*
+!frontend/mobile/.*
 
 node_modules
