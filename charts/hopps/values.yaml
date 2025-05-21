@@ -703,7 +703,7 @@ keycloak:
   image:
     # use our keycloak image to provide hopps theme
     repository: ghcr.io/hopps-app/hopps/hopps-keycloak
-    tag: 7
+    tag: 18-keycloak-26.2.1
   securityContext:
     runAsUser: 1000
     runAsNonRoot: true
