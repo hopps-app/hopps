@@ -700,6 +700,20 @@ frontend:
 # external dependencies
 keycloak:
   enabled: false
+  image:
+    # use our keycloak image to provide hopps theme
+    repository: ghcr.io/hopps-app/hopps/hopps-keycloak
+    tag: 7
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
+    seccompProfile:
+      type: RuntimeDefault
 
 # openfga enabled needs to be outside of openfga, as the values.schema of openfga doesn't allow this field
 openfgaEnabled: false
