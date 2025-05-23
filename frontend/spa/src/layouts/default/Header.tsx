@@ -1,22 +1,21 @@
-import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
-import authService from '@/services/auth/AuthService.ts';
-import { useStore } from '@/store/store.ts';
+import authService from '@/services/auth/auth.service.ts';
+import { useStore } from '@/store/store';
 
 function Header() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { isAuthenticated } = useStore();
+
     const menuItems = [
         { url: '/', label: 'Home' },
         { url: '/demo', label: 'Demo' },
     ];
-
-    const appStore = useStore();
-    const isAuthenticated = appStore.isAuthenticated;
 
     const onClickLogin = () => {
         authService.login();

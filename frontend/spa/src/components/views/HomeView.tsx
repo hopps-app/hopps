@@ -1,6 +1,19 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import Button from '@/components/ui/Button.tsx';
+import { useStore } from '@/store/store.ts';
 
 function HomeView() {
+    const { isAuthenticated, isInitialized } = useStore();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isInitialized && isAuthenticated) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, isInitialized]);
+
     return (
         <div className="pt-16">
             <div className="flex flex-row">
