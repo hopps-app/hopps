@@ -1,0 +1,17 @@
+meta {
+  name: Trigger Node Instance Id
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/management/processes/:processId/instances/:processInstanceId/nodes/:nodeId
+  body: none
+  auth: none
+}
+
+params:path {
+  nodeId: 
+  processId: 
+  processInstanceId: 
+}

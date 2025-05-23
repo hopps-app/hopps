@@ -1,0 +1,15 @@
+meta {
+  name: Fetch a bommel by its id
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/bommel/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 3
+}

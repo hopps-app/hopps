@@ -1,0 +1,16 @@
+meta {
+  name: Cancel Process Instance Id
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/management/processes/:processId/instances/:processInstanceId
+  body: none
+  auth: none
+}
+
+params:path {
+  processId: 
+  processInstanceId: 
+}

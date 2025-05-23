@@ -1,7 +1,7 @@
 import { PersonIcon } from '@radix-ui/react-icons';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { useStore } from '@/store/store.ts';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
