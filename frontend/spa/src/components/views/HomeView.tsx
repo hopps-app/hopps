@@ -10,7 +10,7 @@ function HomeView() {
 
     useEffect(() => {
         if (isInitialized && isAuthenticated) {
-            navigate('/invoices');
+            navigate('/dashboard');
         }
     }, [isAuthenticated, isInitialized]);
 

@@ -9,6 +9,7 @@ import AuthGuard from '@/guards/AuthGuard.tsx';
 import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
 import { RegisterOrganizationView } from '@/components/views/RegisterOrganizationView.tsx';
 import InvoicesView from '@/components/views/InvoicesView.tsx';
+import DashboardView from '@/components/views/DashboardView.tsx';
 
 function Layout() {
     return (
@@ -20,6 +21,14 @@ function Layout() {
                         <Routes>
                             <Route path="/" element={<HomeView />} />
                             <Route path="/demo" element={<DemoView />} />
+                            <Route
+                                path="/dashboard"
+                                element={
+                                    <AuthGuard>
+                                        <DashboardView />
+                                    </AuthGuard>
+                                }
+                            />
                             <Route
                                 path="/register"
                                 element={
