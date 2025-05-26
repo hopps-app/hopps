@@ -52,4 +52,10 @@ export class OrganizationService {
             .replace(/\s+/g, '-') // Replace spaces with hyphens
             .replace(/-+/g, '-'); // Replace multiple hyphens with a single hyphen
     }
+
+    async getOrganizationMembers(slug: string) {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/${slug}/members`;
+        const result = await this.axiosInstance.get(url);
+        return result.data;
+    }
 }

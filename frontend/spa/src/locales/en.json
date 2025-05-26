@@ -91,10 +91,19 @@
       "account": "My Account",
       "invoices": "Invoices",
       "organization": "Organization",
-      "profile": "Profile"
+      "profile": "Profile",
+      "users": "User Management"
     }
   },
   "settingsPage": {
     "menu": "Menu"
+  },
+  "users": "Users",
+  "userManagement": {
+    "user": "User",
+    "role": "Role",
+    "actions": "Actions",
+    "addUser": "Add User",
+    "you": "You"
   }
 }

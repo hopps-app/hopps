@@ -8,6 +8,7 @@ import OrganizationSettingsView from '@/components/views/OrganizationSettingsVie
 import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
 import languageService from '@/services/LanguageService.ts';
 import InvoicesView from './InvoicesView';
+import OrganisationUserSettingsView from '@/components/views/OrganisationUserSettingsView';
 
 function SettingsView() {
     const { t } = useTranslation();
@@ -21,6 +22,7 @@ function SettingsView() {
             { title: t('settings.menu.profile'), value: 'profile', icon: 'Avatar' },
             { title: t('settings.menu.organization'), value: 'organization', icon: 'Backpack' },
             { title: t('settings.menu.invoices'), value: 'invoices', icon: 'Archive' },
+            { title: t('settings.menu.users'), value: 'users', icon: 'Person' },
         ]);
     }, [languageService.getLanguage()]);
 
@@ -40,6 +42,7 @@ function SettingsView() {
             {activeTab === 'profile' && <ProfileSettingsView />}
             {activeTab === 'organization' && <OrganizationSettingsView />}
             {activeTab === 'invoices' && <InvoicesView />}
+            {activeTab === 'users' && <OrganisationUserSettingsView />}
         </SettingsPage>
     );
 }
