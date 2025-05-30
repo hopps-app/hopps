@@ -59,9 +59,11 @@ const OrganisationUserSettingsView = () => {
                                         <button className="hover:text-primary">
                                             <Icon icon="Pencil1" />
                                         </button>
-                                        <button className="hover:text-destructive">
-                                            <Icon icon="Trash" />
-                                        </button>
+                                        {user?.email !== member.email && (
+                                            <button className="hover:text-destructive">
+                                                <Icon icon="Trash" />
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
