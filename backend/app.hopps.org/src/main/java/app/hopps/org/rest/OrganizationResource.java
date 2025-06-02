@@ -9,6 +9,7 @@ import app.hopps.org.rest.model.InviteMemberInput;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import app.hopps.org.rest.model.ProcessResponse;
 import io.quarkus.security.Authenticated;
+import jakarta.annotation.Nonnull;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.validation.Validator;

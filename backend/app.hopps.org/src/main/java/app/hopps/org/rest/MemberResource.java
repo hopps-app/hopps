@@ -18,6 +18,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.jboss.resteasy.reactive.RestPath;
 import org.kie.kogito.Model;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessInstance;
@@ -75,7 +76,7 @@ public class MemberResource {
     }
 
     @POST
-    @Path(("invitation/accept"))
+    @Path(("/invitation/accept/{pid}"))
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Confirms the invitation to an organization")
@@ -83,7 +84,7 @@ public class MemberResource {
     @APIResponse(responseCode = "400", description = "Missing or bad data")
     @APIResponse(responseCode = "404", description = "Resource not found")
     @Transactional
-    public Response confirmInvitation(@Nullable InvitationConfirmation invitationConfirmation, @QueryParam("pid") String pid) {
+    public Response confirmInvitation(@Nullable InvitationConfirmation invitationConfirmation, @RestPath String pid) {
         try {
             ProcessInstance<? extends Model> currentProcess = addMemberProcess.instances()
                     .stream()

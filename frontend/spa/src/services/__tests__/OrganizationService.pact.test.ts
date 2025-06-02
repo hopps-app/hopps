@@ -1,54 +1,43 @@
 import path from 'path';
-import { describe, it, beforeAll, afterAll, afterEach, beforeEach } from 'vitest';
-import { Pact, Matchers } from '@pact-foundation/pact';
+import { describe, it } from 'vitest';
+import { PactV3 as Pact, MatchersV3 as Matchers, V3MockServer } from '@pact-foundation/pact';
+import { fromProviderState } from '@pact-foundation/pact/src/v3/matchers'; // 👈 import directly
 
-import { OrganizationService } from '@/services/api/OrganizationService'; // 👈 import directly
+import { OrganizationService } from '@/services/api/OrganizationService';
 
 const { like, string } = Matchers;
 
 const provider = new Pact({
     dir: path.resolve(process.cwd(), '../../pacts'),
-    consumer: 'OrganizationServiceConsumer',
-    provider: 'OrganizationServiceProvider',
+    consumer: 'spa',
+    provider: 'org-invite',
     host: '127.0.0.1',
     port: 1234,
     logLevel: 'debug',
 });
 
 describe('OrganizationService - inviteOrganizationMember', () => {
-    let organizationServiceProvider: OrganizationService;
-
-    const basePath = 'http://127.0.0.1:1234';
-
-    beforeAll(() => provider.setup());
-    afterAll(() => provider.finalize());
-
-    beforeEach(() => {
-        organizationServiceProvider = new OrganizationService(basePath);
-    });
-
-    afterEach(() => provider.verify());
-
     it('sends an invite to a member for a given organization slug', async () => {
-        const email = 'test@example.com';
-        const slug = organizationServiceProvider.createSlug('organization-name');
+        const email = 'test@hopps.cloud';
+        const slug = 'gruenes-herz-ev';
 
-        await provider.addInteraction({
-            state: `Organization ${slug} exists`,
-            uponReceiving: 'a request to invite a member',
-            withRequest: {
+        await provider
+            .given(`Organization ${slug} exists`)
+            .uponReceiving('a request to invite a member')
+            .withRequest({
                 method: 'POST',
                 path: `/organization/${slug}/member`,
                 body: {
                     email: like(email),
                 },
-            },
-            willRespondWith: {
+            })
+            .willRespondWith({
                 status: 202,
-            },
-        });
-
-        await organizationServiceProvider.inviteOrganizationMember(email, slug);
+            })
+            .executeTest(async (mockserver: V3MockServer) => {
+                const organizationServiceProvider = new OrganizationService(mockserver.url);
+                await organizationServiceProvider.inviteOrganizationMember(email, slug);
+            });
     });
 
     it('confirms invitation for organization with id 1', async () => {
@@ -57,24 +46,45 @@ describe('OrganizationService - inviteOrganizationMember', () => {
             lastName: 'Doe',
         };
 
-        const bodyPayload = Matchers.like({
-            firstName: string(payload.firstName),
-            lastName: string(payload.lastName),
-        });
+        // const bodyPayload = Matchers.like({
+        //     firstName: string(payload.firstName),
+        //     lastName: string(payload.lastName),
+        // });
 
-        await provider.addInteraction({
-            state: `Organization exists`,
-            uponReceiving: 'a request to confirm invitation',
-            withRequest: {
+        // /organization/join/{invite_process_instance_id}
+        // await provider.addInteraction({
+        //     states: [{
+        //         description: `Member was invited before`, parameters: {}
+        //     }],
+        //     uponReceiving: 'a request to confirm invitation',
+        //     withRequest: {
+        //         method: 'POST',
+        //         // @ts-expect-error the returned object extends matcher (compiler muted).
+        //         path: fromProviderState('/member/invitation/accept/${pid}', '/member/invitation/accept/running-process-instance-id'),
+        //         body: bodyPayload || undefined,
+        //     },
+        //     willRespondWith: {
+        //         status: 201,
+        //     },
+        // });
+
+        await provider
+            .given('Member was invited before', { pid: 'test_process_id' })
+            .uponReceiving('a request to confirm invitation')
+            .withRequest({
                 method: 'POST',
-                path: Matchers.regex({ generate: '/organization/join/1', matcher: '/organization/join/[0-9]+' }),
-                body: bodyPayload || undefined,
-            },
-            willRespondWith: {
+                path: fromProviderState('/member/invitation/accept/${pid}', '/member/invitation/accept/test_process_id'),
+                body: like({
+                    firstName: string(payload.firstName),
+                    lastName: string(payload.lastName),
+                }),
+            })
+            .willRespondWith({
                 status: 201,
-            },
-        });
-
-        await organizationServiceProvider.confirmOrganizationInvitation(1, payload);
+            })
+            .executeTest(async (mockserver: V3MockServer) => {
+                const organizationServiceProvider = new OrganizationService(mockserver.url);
+                await organizationServiceProvider.confirmOrganizationInvitation('test_process_id', payload);
+            });
     });
 });

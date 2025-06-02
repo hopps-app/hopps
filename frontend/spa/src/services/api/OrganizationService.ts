@@ -36,8 +36,8 @@ export class OrganizationService {
         await this.axiosInstance.post(url, { email });
     }
 
-    async confirmOrganizationInvitation(inviteId: number, payload: OrganizationConfirmationPayload) {
-        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/join/${inviteId}`;
+    async confirmOrganizationInvitation(inviteId: string, payload: OrganizationConfirmationPayload) {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/member/invitation/accept/${inviteId}`;
         await this.axiosInstance.post(url, payload || undefined);
     }
 }

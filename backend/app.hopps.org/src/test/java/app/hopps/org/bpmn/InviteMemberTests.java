@@ -26,9 +26,6 @@ public class InviteMemberTests {
     Process<? extends Model> addMemberProcess;
 
     @Inject
-    MemberRepository memberRepository;
-
-    @Inject
     Flyway flyway;
 
     @BeforeEach

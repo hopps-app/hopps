@@ -1,0 +1,122 @@
+{
+  "consumer": {
+    "name": "spa"
+  },
+  "interactions": [
+    {
+      "description": "a request to confirm invitation",
+      "providerStates": [
+        {
+          "name": "Member was invited before",
+          "params": {
+            "pid": "test_process_id"
+          }
+        }
+      ],
+      "request": {
+        "body": {
+          "firstName": "John",
+          "lastName": "Doe"
+        },
+        "generators": {
+          "path": {
+            "expression": "/member/invitation/accept/${pid}",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.firstName": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.lastName": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        },
+        "method": "POST",
+        "path": "/member/invitation/accept/test_process_id"
+      },
+      "response": {
+        "status": 201
+      }
+    },
+    {
+      "description": "a request to invite a member",
+      "providerStates": [
+        {
+          "name": "Organization gruenes-herz-ev exists"
+        }
+      ],
+      "request": {
+        "body": {
+          "email": "test@hopps.cloud"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/organization/gruenes-herz-ev/member"
+      },
+      "response": {
+        "status": 202
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "13.2.0"
+    },
+    "pactRust": {
+      "ffi": "0.4.22",
+      "models": "1.2.3"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "org-invite"
+  }
+}
