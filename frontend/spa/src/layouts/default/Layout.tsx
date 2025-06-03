@@ -8,7 +8,6 @@ import SettingsView from '@/components/views/SettingsView.tsx';
 import AuthGuard from '@/guards/AuthGuard.tsx';
 import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
 import { RegisterOrganizationView } from '@/components/views/RegisterOrganizationView.tsx';
-import InvoicesView from '@/components/views/InvoicesView.tsx';
 import DashboardView from '@/components/views/DashboardView.tsx';
 
 function Layout() {
@@ -21,6 +20,7 @@ function Layout() {
                         <Routes>
                             <Route path="/" element={<HomeView />} />
                             <Route path="/demo" element={<DemoView />} />
+                            <Route path="/register" element={<RegisterOrganizationView />} />
                             <Route
                                 path="/dashboard"
                                 element={
@@ -30,26 +30,10 @@ function Layout() {
                                 }
                             />
                             <Route
-                                path="/register"
-                                element={
-                                    <AuthGuard>
-                                        <RegisterOrganizationView />
-                                    </AuthGuard>
-                                }
-                            />
-                            <Route
                                 path="/settings/*"
                                 element={
                                     <AuthGuard>
                                         <SettingsView />
-                                    </AuthGuard>
-                                }
-                            />
-                            <Route
-                                path="/invoices"
-                                element={
-                                    <AuthGuard>
-                                        <InvoicesView />
                                     </AuthGuard>
                                 }
                             />
