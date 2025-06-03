@@ -29,7 +29,7 @@ public class InviteMemberTests {
     Flyway flyway;
 
     @BeforeEach
-    void setup() throws Exception {
+    void setup() {
         flyway.clean();
         flyway.migrate();
     }
