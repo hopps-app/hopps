@@ -1,5 +1,5 @@
 # Use an official node image to build the React app
-FROM node:18 AS build
+FROM node:22 AS build
 
 # General
 ENV VITE_TITLE="VITE_TITLE_VALUE"
