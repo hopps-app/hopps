@@ -27,7 +27,7 @@ COPY .. .
 RUN pnpm run build
 
 # Use an official node image to serve the React app
-FROM node:18
+FROM node:22
 
 # Set the working directory
 WORKDIR /app
