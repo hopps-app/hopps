@@ -36,8 +36,8 @@ WORKDIR /app
 COPY --from=build /app/dist ./build
 COPY ../docker/node/server.js .
 
-# Install express
-RUN npm install express
+# Install express and path-to-regexp explicitly
+RUN npm install express@5.1.0
 
 # Expose port 8080
 EXPOSE 8080
@@ -52,4 +52,4 @@ RUN chmod +x ./startup.sh
 RUN chown -R node:node /app
 
 # Start the server
-CMD ["/bin/bash", "-c", "/app/startup.sh"]
+CMD ["sh", "./startup.sh"]
