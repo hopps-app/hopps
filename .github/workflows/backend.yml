@@ -24,16 +24,23 @@ jobs:
         service:
           - label: fin
             directory: app.hopps.fin
+            serviceName: fin
           - label: org
             directory: app.hopps.org
+            serviceName: org
           - label: az-document-ai
             directory: app.hopps.az-document-ai
+            serviceName: azDocumentAi
           - label: zugferd
             directory: app.hopps.zugferd
+            serviceName: zugferd
           - label: fin-narrator
             directory: app.hopps.fin-narrator
+            serviceName: finNarrator
           - label: mail-service
             directory: app.hopps.mailservice
+            serviceName: mailService
+
 
     runs-on: ubuntu-latest
     steps:
@@ -83,3 +90,21 @@ jobs:
           # don't push dependabot branches
           push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
           tags: ${{ steps.meta.outputs.tags }} # tags from the docker/metadata-action
+
+      - name: Trigger deploy workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.TECHNICAL_USER_PAT }}
+          script: |
+            const result = await github.rest.actions.createWorkflowDispatch({
+              owner: 'hopps-app',
+              repo: 'hopps.cloud',
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+              inputs: {
+                "environment": "dev",
+                "new-tag": "${{ github.run_number }}",
+                "service-name": "${{ matrix.service.serviceName }}"
+              }
+            })
+            console.log(result);
