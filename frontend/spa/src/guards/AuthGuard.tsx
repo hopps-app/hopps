@@ -1,7 +1,7 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 
-import authService from '@/services/auth/AuthService.ts';
 import { useStore } from '@/store/store.ts';
+import authService from '@/services/auth/auth.service.ts';
 
 interface AuthGuardProps {
     children: ReactNode;
@@ -10,9 +10,9 @@ interface AuthGuardProps {
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     const { isInitialized, isAuthenticated } = useStore();
 
-    useEffect(() => {}, [isInitialized]);
-
-    if (!isInitialized) return null;
+    if (!isInitialized) {
+        return null;
+    }
 
     if (!isAuthenticated) {
         authService.login();

@@ -48,6 +48,8 @@ services:
 
   az-document-ai:
     image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-395}
+    ports:
+      - "8100:8080"
     depends_on:
       - fin
     ports:

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { OrganizationRegistrationForm } from '@/components/Forms/OrganizationRegistrationForm/OrganizationRegistrationForm.tsx';
 import { OrganizationRegistrationSuccess } from '@/components/ OrganizationRegistrationSuccess/OrganizationRegistrationSuccess.tsx';
+import { OrganizationRegistrationForm } from '@/components/Forms/OrganizationRegistrationForm/OrganizationRegistrationForm.tsx';
 
 export function RegisterOrganizationView() {
     const [isShowSuccess, setIsShowSuccess] = useState(false);

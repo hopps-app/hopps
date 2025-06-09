@@ -141,12 +141,12 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
         [setApi]
     );
 
-    const onUploadInvoiceChange = () => {
+    const onUploadInvoiceChange = useCallback(() => {
         setIsUploadInvoice(!isUploadInvoice);
         if (isUploadInvoice) {
             reload();
         }
-    };
+    }, [isUploadInvoice]);
 
     const Grid = useMemo(
         () => (

@@ -3,14 +3,14 @@ name: Dependency Track for frontend
 on:
   push:
     paths:
-      - frontend/**
+      - frontend/spa/**
       - .github/workflows/frontend-dependency-track.yaml
     branches: [ "**" ]
     tags:
       - 'spa-*.*.*'
   pull_request:
     paths:
-      - frontend/**
+      - frontend/spa/**
       - .github/workflows/frontend-dependency-track.yaml
     branches:
       - main

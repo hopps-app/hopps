@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
 import { NodeModel, useDragOver } from '@minoru/react-dnd-treeview';
+import React, { useState, useRef, useEffect } from 'react';
 
+import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
+import Button from '@/components/ui/Button.tsx';
+import Emoji from '@/components/ui/Emoji.tsx';
+import EmojiField from '@/components/ui/EmojiField.tsx';
 import Icon from '@/components/ui/Icon.tsx';
 import TextField from '@/components/ui/TextField.tsx';
-import Button from '@/components/ui/Button.tsx';
 import { cn } from '@/lib/utils.ts';
-import EmojiField from '@/components/ui/EmojiField.tsx';
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
-import Emoji from '@/components/ui/Emoji.tsx';
 
 type Props = {
     node: OrganizationTreeNodeModel;

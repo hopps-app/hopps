@@ -1,13 +1,13 @@
 import { Tree, getBackendOptions, MultiBackend } from '@minoru/react-dnd-treeview';
-import { DndProvider } from 'react-dnd';
 import { useEffect, useState } from 'react';
+import { DndProvider } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 
-import OrganizationTreeNode from '@/components/OrganizationStructureTree/OrganizationTreeNode.tsx';
 import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/OrganizationTreeDropPreview.tsx';
+import OrganizationTreeNode from '@/components/OrganizationStructureTree/OrganizationTreeNode.tsx';
+import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import OrganizationTreePlaceholder from '@/components/OrganizationStructureTree/OrganizationTreePlaceholder.tsx';
 import Button from '@/components/ui/Button.tsx';
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 
 interface OrganizationStructureTreeProps {
     tree: OrganizationTreeNodeModel[];
