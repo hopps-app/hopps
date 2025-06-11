@@ -5,8 +5,8 @@ import { OrganisationService } from './services/OrganisationService';
 export interface ApiServiceOptions {
     orgBaseUrl: string;
     finBaseUrl: string;
-    getAccessToken: () => string | Promise<string>;
-    getRefreshToken: () => Promise<void>;
+    getAccessToken?: () => string | Promise<string> | Promise<undefined>;
+    getRefreshToken?: () => string | Promise<string>;
 }
 
 export class ApiService {
@@ -15,7 +15,7 @@ export class ApiService {
     public organization: OrganisationService;
 
     constructor(options: ApiServiceOptions) {
-        const {orgBaseUrl, finBaseUrl, getAccessToken, getRefreshToken} = options;
+        const { orgBaseUrl, finBaseUrl, getAccessToken, getRefreshToken } = options;
         if (!finBaseUrl || orgBaseUrl === '') {
             throw new Error('baseUrl for hopps api service is missing.');
         }
@@ -23,12 +23,12 @@ export class ApiService {
             throw new Error('baseUrl for hopps api service is missing.');
         }
 
-        this.bommel = new BommelService({baseURL: orgBaseUrl, getAccessToken, getRefreshToken  });
-        this.invoices = new InvoicesService({baseURL: finBaseUrl, getAccessToken, getRefreshToken  });
-        this.organization = new OrganisationService({baseURL: orgBaseUrl, getAccessToken, getRefreshToken  });
+        this.bommel = new BommelService({ baseURL: orgBaseUrl, getAccessToken: (getAccessToken ? getAccessToken :  () => ''), getRefreshToken: (getRefreshToken ? getRefreshToken :  () => '') });
+        this.invoices = new InvoicesService({ baseURL: finBaseUrl, getAccessToken: (getAccessToken ? getAccessToken :  () => ''), getRefreshToken: (getRefreshToken ? getRefreshToken :  () => '') });
+        this.organization = new OrganisationService({ baseURL: orgBaseUrl, getAccessToken: (getAccessToken ? getAccessToken :  () => ''), getRefreshToken: (getRefreshToken ? getRefreshToken :  () => '') });
     }
 }
 
-const createApiService = (options: ApiServiceOptions) => {
+export const createApiService = (options: ApiServiceOptions) => {
     return new ApiService(options);
-}
+};
