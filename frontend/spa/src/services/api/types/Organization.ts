@@ -1,4 +1,4 @@
-import { Bommel } from '@/services/api/types/Bommel.ts';
+import { Bommel } from '@hopps/api-client';
 
 export type Organization = {
     id: number;
