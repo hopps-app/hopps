@@ -1,5 +1,5 @@
-import { ApiService } from './ApiService';
+import { ApiService, createApiService, ApiServiceOptions } from './ApiService';
 
 
 
-export { ApiService };
+export { ApiService, createApiService, ApiServiceOptions };
