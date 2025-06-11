@@ -8,7 +8,7 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-export class Client {
+export class Bommel_ResourceClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -468,6 +468,17 @@ export class Client {
         }
         return Promise.resolve<TreeSearchBommel[]>(null as any);
     }
+}
+
+export class Process_Instance_Management_ResourceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
 
     /**
      * Get Processes
@@ -489,45 +500,6 @@ export class Client {
     }
 
     protected processProcesses(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Source File By Uri
-     * @param uri (optional) 
-     * @return OK
-     */
-    sources(uri: string | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/sources?";
-        if (uri === null)
-            throw new Error("The parameter 'uri' cannot be null.");
-        else if (uri !== undefined)
-            url_ += "uri=" + encodeURIComponent("" + uri) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSources(_response);
-        });
-    }
-
-    protected processSources(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1037,6 +1009,56 @@ export class Client {
         }
         return Promise.resolve<void>(null as any);
     }
+}
+
+export class Source_Files_ResourceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
+
+    /**
+     * Get Source File By Uri
+     * @param uri (optional) 
+     * @return OK
+     */
+    sources(uri: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/management/processes/sources?";
+        if (uri === null)
+            throw new Error("The parameter 'uri' cannot be null.");
+        else if (uri !== undefined)
+            url_ += "uri=" + encodeURIComponent("" + uri) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSources(_response);
+        });
+    }
+
+    protected processSources(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 
     /**
      * Get Source File By Process Id
@@ -1122,6 +1144,17 @@ export class Client {
         }
         return Promise.resolve<SourceFile[]>(null as any);
     }
+}
+
+export class Member_ResourceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
 
     /**
      * Validates the member input
@@ -1179,6 +1212,17 @@ export class Client {
         }
         return Promise.resolve<ValidationResult>(null as any);
     }
+}
+
+export class Quarkus_Topics_Information_ResourceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
 
     /**
      * Get Topics
@@ -1212,6 +1256,17 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+}
+
+export class Organization_ResourceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -1481,6 +1536,17 @@ export class Client {
         }
         return Promise.resolve<Member[]>(null as any);
     }
+}
+
+export class Process_Svg_ResourceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
 
     /**
      * Get Process Svg
@@ -1626,6 +1692,13 @@ export class Bommel implements IBommel {
         }
         return data;
     }
+
+    clone(): Bommel {
+        const json = this.toJSON();
+        let result = new Bommel();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface IBommel {
@@ -1682,6 +1755,13 @@ export class CreateOrganizationResponse implements ICreateOrganizationResponse {
         data["id"] = this.id;
         data["error"] = this.error;
         return data;
+    }
+
+    clone(): CreateOrganizationResponse {
+        const json = this.toJSON();
+        let result = new CreateOrganizationResponse();
+        result.init(json);
+        return result;
     }
 }
 
@@ -1755,6 +1835,13 @@ export class Member implements IMember {
         }
         return data;
     }
+
+    clone(): Member {
+        const json = this.toJSON();
+        let result = new Member();
+        result.init(json);
+        return result;
+    }
 }
 
 /** An example of a Hopps Member */
@@ -1820,6 +1907,13 @@ export class NewOrganizationInput implements INewOrganizationInput {
         data["organization"] = this.organization ? this.organization.toJSON() : <any>undefined;
         return data;
     }
+
+    clone(): NewOrganizationInput {
+        const json = this.toJSON();
+        let result = new NewOrganizationInput();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface INewOrganizationInput {
@@ -1876,6 +1970,13 @@ export class NewOrganizationModelInput implements INewOrganizationModelInput {
         data["newPassword"] = this.newPassword;
         return data;
     }
+
+    clone(): NewOrganizationModelInput {
+        const json = this.toJSON();
+        let result = new NewOrganizationModelInput();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface INewOrganizationModelInput {
@@ -1925,6 +2026,13 @@ export class NewOrganizationModelOutput implements INewOrganizationModelOutput {
         }
         data["id"] = this.id;
         return data;
+    }
+
+    clone(): NewOrganizationModelOutput {
+        const json = this.toJSON();
+        let result = new NewOrganizationModelOutput();
+        result.init(json);
+        return result;
     }
 }
 
@@ -1986,6 +2094,13 @@ export class Organization implements IOrganization {
         data["plz"] = this.plz;
         data["additionalLine"] = this.additionalLine;
         return data;
+    }
+
+    clone(): Organization {
+        const json = this.toJSON();
+        let result = new Organization();
+        result.init(json);
+        return result;
     }
 }
 
@@ -2073,6 +2188,13 @@ export class Organization1 implements IOrganization1 {
         data["profilePicture"] = this.profilePicture;
         return data;
     }
+
+    clone(): Organization1 {
+        const json = this.toJSON();
+        let result = new Organization1();
+        result.init(json);
+        return result;
+    }
 }
 
 /** An example of a Hopps Organization, i.e. Verein */
@@ -2145,6 +2267,13 @@ export class OrganizationInput implements IOrganizationInput {
         data["address"] = this.address ? this.address.toJSON() : <any>undefined;
         return data;
     }
+
+    clone(): OrganizationInput {
+        const json = this.toJSON();
+        let result = new OrganizationInput();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface IOrganizationInput {
@@ -2204,6 +2333,13 @@ export class OwnerInput implements IOwnerInput {
         data["lastName"] = this.lastName;
         return data;
     }
+
+    clone(): OwnerInput {
+        const json = this.toJSON();
+        let result = new OwnerInput();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface IOwnerInput {
@@ -2257,6 +2393,13 @@ export class ProcessMigrationSpec implements IProcessMigrationSpec {
         data["targetProcessVersion"] = this.targetProcessVersion;
         return data;
     }
+
+    clone(): ProcessMigrationSpec {
+        const json = this.toJSON();
+        let result = new ProcessMigrationSpec();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface IProcessMigrationSpec {
@@ -2305,6 +2448,13 @@ export class SourceFile implements ISourceFile {
         }
         data["uri"] = this.uri;
         return data;
+    }
+
+    clone(): SourceFile {
+        const json = this.toJSON();
+        let result = new SourceFile();
+        result.init(json);
+        return result;
     }
 }
 
@@ -2376,6 +2526,13 @@ export class TaskModel implements ITaskModel {
         data["results"] = this.results;
         return data;
     }
+
+    clone(): TaskModel {
+        const json = this.toJSON();
+        let result = new TaskModel();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface ITaskModel {
@@ -2441,6 +2598,13 @@ export class TreeSearchBommel implements ITreeSearchBommel {
         }
         return data;
     }
+
+    clone(): TreeSearchBommel {
+        const json = this.toJSON();
+        let result = new TreeSearchBommel();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface ITreeSearchBommel {
@@ -2498,6 +2662,13 @@ export class ValidationResult implements IValidationResult {
         }
         return data;
     }
+
+    clone(): ValidationResult {
+        const json = this.toJSON();
+        let result = new ValidationResult();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface IValidationResult {
@@ -2549,6 +2720,13 @@ export class Violation implements IViolation {
         data["message"] = this.message;
         return data;
     }
+
+    clone(): Violation {
+        const json = this.toJSON();
+        let result = new Violation();
+        result.init(json);
+        return result;
+    }
 }
 
 export interface IViolation {
@@ -2559,7 +2737,7 @@ export interface IViolation {
 }
 
 export class ApiException extends Error {
-    message: string;
+    override message: string;
     status: number;
     response: string;
     headers: { [key: string]: any; };
