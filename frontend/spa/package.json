@@ -16,8 +16,13 @@
     "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o",
     "sbom": "cdxgen -o bom.json"
   },
+  "pnpm": {
+    "overrides": {
+      "@hopps/api-client": "workspace:*"
+    }
+  },
   "dependencies": {
-    "@hopps/api-client": "workspace:*",
+    "@hopps/api-client": "1.0.0",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "@hookform/resolvers": "^3.9.1",
