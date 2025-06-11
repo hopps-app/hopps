@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
-import { AxiosServiceOptions, createAxiosService } from '../AxiosService';
+import { FetchInstance, FetchServiceOptions, createFetchService } from '../FetchService';
+import { Organization } from './OrgService';
 
 type RegisterOrganizationPayload = {
     owner: {
@@ -25,19 +25,19 @@ type RegisterOrganizationPayload = {
 };
 
 export class OrganisationService {
-    private axiosInstance: AxiosInstance;
+    private fetchInstance: FetchInstance;
 
-    constructor(options: AxiosServiceOptions) {
-        this.axiosInstance = createAxiosService(options)
+    constructor(options: FetchServiceOptions) {
+        this.fetchInstance = createFetchService(options)
     }
 
     async registerOrganization(payload: RegisterOrganizationPayload): Promise<void> {
-        await axios.post('/organization', payload);
+        await this.fetchInstance.post('/organization', payload);
     }
 
-    async getCurrentOrganization() {
-        const result = await this.axiosInstance.get('/organization/my');
-        return result.data;
+    async getCurrentOrganization() : Promise<Organization>{
+        const result = await this.fetchInstance.get('/organization/my');
+        return result.data as Organization;
     }
 
     createSlug(input: string): string {
