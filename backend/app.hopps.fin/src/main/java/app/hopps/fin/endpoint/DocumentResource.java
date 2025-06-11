@@ -1,6 +1,7 @@
 package app.hopps.fin.endpoint;
 
 import app.hopps.fin.S3Handler;
+import app.hopps.fin.bpmn.SubmitService;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import app.hopps.fin.kafka.DocumentProducer;
@@ -29,14 +30,12 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 @Authenticated
 @Path("/document")
 public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
-
-    @Inject
-    DocumentProducer documentProducer;
 
     @Inject
     S3Handler s3Handler;
@@ -46,6 +45,12 @@ public class DocumentResource {
 
     @Inject
     SecurityContext context;
+
+    @Inject
+    SubmitService submitService;
+
+    @Inject
+    SecurityContext securityContext;
 
     @GET
     @Path("{documentKey}")
@@ -77,21 +82,27 @@ public class DocumentResource {
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
         }
 
-        s3Handler.saveFile(file);
+        UUID documentKey = UUID.randomUUID();
+        s3Handler.saveFile(documentKey.toString(), file);
 
-        // Save in database
+        // Save in a database
         TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, type,
                 context.getUserPrincipal().getName());
-        transactionRecord.setDocumentKey(file.fileName());
+        transactionRecord.setDocumentKey(documentKey.toString());
         transactionRecord.setPrivatelyPaid(privatelyPaid);
         bommelId.ifPresent(transactionRecord::setBommelId);
 
-        persistTransactionRecord(transactionRecord);
+        SubmitService.DocumentSubmissionRequest request = new SubmitService.DocumentSubmissionRequest(
+                documentKey.toString(),
+                bommelId,
+                Optional.of(type),
+                privatelyPaid,
+                securityContext.getUserPrincipal().getName());
+        String instanceId = submitService.submitDocument(request);
 
-        // Sent to kafka to process
-        documentProducer.sendToProcess(transactionRecord, type);
-
-        return Response.accepted().build();
+        return Response.accepted()
+                .entity(instanceId)
+                .build();
     }
 
     @Transactional

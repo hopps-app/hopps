@@ -10,7 +10,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import org.flywaydb.core.Flyway;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -142,6 +142,6 @@ class CreationValidationDelegateTests {
         NonUniqueConstraintViolation onlyViolation = exception.getViolations().stream().findFirst().orElseThrow();
         assertEquals("slug", onlyViolation.field());
         assertThat(onlyViolation.getMessage(), is("must be unique"));
-        assertThat(onlyViolation.root(), IsInstanceOf.instanceOf(Organization.class));
+        assertThat(onlyViolation.root(), instanceOf(Organization.class));
     }
 }
