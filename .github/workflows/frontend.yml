@@ -83,6 +83,8 @@ jobs:
 
       - name: Trigger deploy workflow
         uses: actions/github-script@v7
+        # only trigger deployment on main
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github-token: ${{ secrets.TECHNICAL_USER_PAT }}
           script: |
