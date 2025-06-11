@@ -1,0 +1,16 @@
+meta {
+  name: Upload and process ZUGFeRD invoice
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/zugferd
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: 
+  referenceId: 
+}
