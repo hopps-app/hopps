@@ -1,0 +1,218 @@
+{
+  "schema_version": "1.1",
+  "type_definitions": [
+    {
+      "type": "user",
+      "relations": {},
+      "metadata": null
+    },
+    {
+      "type": "organisation",
+      "relations": {
+        "owner": {
+          "this": {}
+        },
+        "member": {
+          "union": {
+            "child": [
+              {
+                "this": {}
+              },
+              {
+                "computedUserset": {
+                  "relation": "owner"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "owner": {
+            "directly_related_user_types": [
+              {
+                "type": "user"
+              }
+            ]
+          },
+          "member": {
+            "directly_related_user_types": [
+              {
+                "type": "user"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "bommel",
+      "relations": {
+        "bommelwart": {
+          "this": {}
+        },
+        "parent": {
+          "this": {}
+        },
+        "part_of": {
+          "this": {}
+        },
+        "can_see": {
+          "union": {
+            "child": [
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "member"
+                  },
+                  "tupleset": {
+                    "relation": "part_of"
+                  }
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "can_see"
+                  },
+                  "tupleset": {
+                    "relation": "parent"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "can_modify": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "relation": "bommelwart"
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "owner"
+                  },
+                  "tupleset": {
+                    "relation": "part_of"
+                  }
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "can_modify"
+                  },
+                  "tupleset": {
+                    "relation": "parent"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "bommelwart": {
+            "directly_related_user_types": [
+              {
+                "type": "user"
+              }
+            ]
+          },
+          "parent": {
+            "directly_related_user_types": [
+              {
+                "type": "bommel"
+              }
+            ]
+          },
+          "part_of": {
+            "directly_related_user_types": [
+              {
+                "type": "organisation"
+              }
+            ]
+          },
+          "can_see": {
+            "directly_related_user_types": []
+          },
+          "can_modify": {
+            "directly_related_user_types": []
+          }
+        }
+      }
+    },
+    {
+      "type": "transaction_record",
+      "relations": {
+        "assigned_to": {
+          "this": {}
+        },
+        "created_by": {
+          "this": {}
+        },
+        "can_see": {
+          "union": {
+            "child": [
+              {
+                "computedUserset": {
+                  "relation": "created_by"
+                }
+              },
+              {
+                "tupleToUserset": {
+                  "computedUserset": {
+                    "relation": "can_modify"
+                  },
+                  "tupleset": {
+                    "relation": "assigned_to"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "can_modify": {
+          "tupleToUserset": {
+            "computedUserset": {
+              "relation": "can_modify"
+            },
+            "tupleset": {
+              "relation": "assigned_to"
+            }
+          }
+        }
+      },
+      "metadata": {
+        "relations": {
+          "assigned_to": {
+            "directly_related_user_types": [
+              {
+                "type": "bommel"
+              }
+            ]
+          },
+          "created_by": {
+            "directly_related_user_types": [
+              {
+                "type": "user"
+              }
+            ]
+          },
+          "can_see": {
+            "directly_related_user_types": []
+          },
+          "can_modify": {
+            "directly_related_user_types": []
+          }
+        }
+      }
+    }
+  ]
+}
