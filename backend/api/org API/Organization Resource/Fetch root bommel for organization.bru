@@ -1,0 +1,15 @@
+meta {
+  name: Fetch root bommel for organization
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/organization/:slug/bommels/root
+  body: none
+  auth: inherit
+}
+
+params:path {
+  slug: kaeltekrieger
+}

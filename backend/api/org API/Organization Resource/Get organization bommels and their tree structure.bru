@@ -1,0 +1,15 @@
+meta {
+  name: Get organization bommels and their tree structure
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/organization/:slug/bommels
+  body: none
+  auth: inherit
+}
+
+params:path {
+  slug: kaeltekrieger
+}
