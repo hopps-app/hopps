@@ -1,7 +1,7 @@
 import Keycloak from 'keycloak-js';
+import { User } from '@hopps/api-client/dist/types/User.ts';
 
 import { useStore } from '@/store/store';
-import { User } from '@hopps/api-client/dist/types/User.ts';
 
 export class AuthService {
     private keycloak: Keycloak;
