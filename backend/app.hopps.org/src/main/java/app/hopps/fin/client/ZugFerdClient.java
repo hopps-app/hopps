@@ -1,6 +1,6 @@
 package app.hopps.fin.client;
 
-import app.hopps.commons.InvoiceData;
+import app.hopps.fin.model.InvoiceData;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;

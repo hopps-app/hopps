@@ -1,7 +1,7 @@
 package app.hopps.fin.bpmn;
 
-import app.hopps.commons.DocumentType;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import app.hopps.fin.model.DocumentType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
