@@ -9,6 +9,7 @@ import authService from '@/services/auth/auth.service.ts';
 
 function App() {
     const { isInitialized, setIsInitialized } = useStore();
+    // const queryClient = useQueryClient();
     const loadUserOrganisation = async () => {
         const apiService = (await import('@/services/ApiService.ts')).default;
         const user = useStore.getState().user;
@@ -42,7 +43,11 @@ function App() {
         initApp();
     }, []);
 
-    return isInitialized ? <Layout /> : null;
+    return isInitialized ? (
+        // <QueryClientProvider client={queryClient}>
+        <Layout />
+    ) : // </QueryClientProvider>
+    null;
 }
 
 export default App;

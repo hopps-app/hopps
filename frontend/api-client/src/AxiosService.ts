@@ -2,8 +2,8 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosRequestHeade
 
 export interface AxiosServiceOptions {
     baseURL: string;
-    getAccessToken: () => string | Promise<string> | Promise<undefined>;
-    getRefreshToken: () => string | Promise<string>;
+    getAccessToken: () => string | undefined;
+    getRefreshToken: () => string | undefined;
 }
 
 export const createAxiosService = (options: AxiosServiceOptions): AxiosInstance => {
@@ -29,7 +29,7 @@ export const createAxiosService = (options: AxiosServiceOptions): AxiosInstance 
         async (error: AxiosError) => {
             if (error.response?.status === 401) {
                 try {
-                    await options.getRefreshToken();
+                    options.getRefreshToken();
                     return api.request(error.config as AxiosRequestConfig);
                 } catch (refreshError) {
                     return Promise.reject(refreshError);

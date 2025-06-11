@@ -67,7 +67,7 @@
       "templateDirectory": null,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "./src/services/OrgService.ts",
+      "output": "src/services/OrgService.ts",
       "newLineBehavior": "LF"
     }
   }

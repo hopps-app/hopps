@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import organizationTreeService from '@/services/OrganizationTreeService';
+import organizationTreeService from '@/services/OrganisationTreeService.ts';
 import { BommelActions, BommelsState } from '@/store/bommels/types';
 
 export const useBommelsStore = create<BommelsState & BommelActions>()(
