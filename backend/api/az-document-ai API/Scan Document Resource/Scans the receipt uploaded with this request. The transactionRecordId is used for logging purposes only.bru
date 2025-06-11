@@ -1,0 +1,16 @@
+meta {
+  name: Scans the receipt uploaded with this request. The transactionRecordId is used for logging purposes only.
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/az-document-ai/document/scan/receipt
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  document: 
+  transactionRecordId: 
+}
