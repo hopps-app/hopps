@@ -1,15 +1,16 @@
 import * as _ from 'lodash';
+import { Bommel, IBommel } from '@hopps/api-client';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
-import { Bommel } from '@/services/api/types/Bommel.ts';
+// import { Bommel } from '@/services/api/types/Bommel.ts';
 import apiService from '@/services/ApiService.ts';
 
-export class OrganizationTreeService {
+export class OrganisationTreeService {
     async getOrganizationBommels(rootBommelId: number): Promise<Bommel[]> {
-        const items = await apiService.bommel.getBommelChildrenRecursive(rootBommelId);
-        const bommelsWithDepth: (Bommel & { depth: number })[] = [];
+        const items = await apiService.bommel.recursive(rootBommelId);
+        const bommelsWithDepth: (IBommel & { depth: number })[] = [];
 
-        items.forEach((item) => {
+        items.map((item) => {
             bommelsWithDepth.push({ ...item.bommel, depth: 0 });
         });
 
@@ -17,12 +18,12 @@ export class OrganizationTreeService {
 
         return (
             bommelsWithDepth.map((item) => {
-                return _.omit(item, 'depth');
+                return new Bommel(_.omit(item, 'depth'));
             }) || []
         );
     }
 
-    bommelsToTreeNodes(bommels: Bommel[], rootBommelId: number): OrganizationTreeNodeModel[] {
+    bommelsToTreeNodes(bommels: Bommel[], rootBommelId?: number): OrganizationTreeNodeModel[] {
         return bommels.map((bommel) => {
             return this.bommelToTreeNode(bommel, bommel.parent?.id && bommel.parent.id !== rootBommelId ? bommel.parent.id : 0);
         });
@@ -32,9 +33,9 @@ export class OrganizationTreeService {
         const node: OrganizationTreeNodeModel = {
             id: bommel.id!,
             parent: parentId || 0,
-            text: bommel.name,
+            text: bommel.name ?? '',
             droppable: true,
-            data: { emoji: bommel.emoji, id: bommel.id },
+            data: { emoji: bommel.emoji ?? '', id: bommel.id },
         };
 
         return node;
@@ -42,17 +43,19 @@ export class OrganizationTreeService {
 
     async ensureRootBommelCreated(organizationId: number): Promise<Bommel> {
         const loadRootBommel = async () => {
-            return await apiService.bommel.getRootBommel(organizationId);
+            return await apiService.bommel.root(organizationId);
         };
 
         const createRootBommel = async () => {
-            return await apiService.bommel.createRootBommel({
-                organizationId,
-                name: 'root',
-                emoji: '',
-                children: [],
-                parent: undefined,
-            });
+            return await apiService.bommel.bommelPOST(
+                new Bommel({
+                    organizationId,
+                    name: 'root',
+                    emoji: '',
+                    children: [],
+                    parent: undefined,
+                })
+            );
         };
 
         try {
@@ -69,5 +72,5 @@ export class OrganizationTreeService {
     }
 }
 
-const organizationTreeService = new OrganizationTreeService();
+const organizationTreeService = new OrganisationTreeService();
 export default organizationTreeService;
