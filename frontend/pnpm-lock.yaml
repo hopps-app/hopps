@@ -12,10 +12,6 @@ importers:
   .: {}
 
   api-client:
-    dependencies:
-      axios:
-        specifier: ^1.9.0
-        version: 1.9.0
     devDependencies:
       '@pact-foundation/pact':
         specifier: ^13.2.0
