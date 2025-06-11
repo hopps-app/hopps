@@ -1,9 +1,12 @@
 package app.hopps.org.rest;
 
+import app.hopps.org.jpa.Bommel;
+import app.hopps.org.jpa.BommelRepository;
 import app.hopps.org.jpa.Member;
 import app.hopps.org.jpa.MemberRepository;
 import app.hopps.org.jpa.Organization;
 import app.hopps.org.jpa.OrganizationRepository;
+import app.hopps.org.jpa.TreeSearchBommel;
 import app.hopps.org.rest.RestValidator.ValidationResult;
 import app.hopps.org.rest.model.CreateOrganizationResponse;
 import app.hopps.org.rest.model.NewOrganizationInput;
@@ -34,8 +37,11 @@ import org.kie.kogito.process.ProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Path("/organization")
 public class OrganizationResource {
@@ -54,6 +60,9 @@ public class OrganizationResource {
 
     @Inject
     MemberRepository memberRepository;
+
+    @Inject
+    BommelRepository bommelRepository;
 
     @GET
     @Path("{slug}")
@@ -108,12 +117,52 @@ public class OrganizationResource {
     @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
     @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
-    public Response getOrganizationMembersBySlug(@PathParam("slug") String slug) {
+    public Set<Member> getOrganizationMembersBySlug(@PathParam("slug") String slug) {
         Organization organization = organizationRepository.findBySlug(slug);
         if (organization == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException();
         }
-        return Response.ok(organization.getMembers()).build();
+        return organization.getMembers();
+    }
+
+    @GET
+    @Path("{slug}/bommels")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get organization bommels and their tree structure", description = "Retrieves the bommels of an organization using the unique slug identifier. Internally it grabs the root bommel and recursively gets its children. See /bommel/{id}/children/recursive for details.")
+    @APIResponse(responseCode = "200", description = "Bommels retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
+    @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
+    public List<TreeSearchBommel> getOrganizationBommelsBySlug(@PathParam("slug") String slug) {
+        Organization organization = organizationRepository.findBySlug(slug);
+        if (organization == null) {
+            throw new NotFoundException();
+        }
+
+        Bommel root = organization.getRootBommel();
+        TreeSearchBommel rootTreeSearch = new TreeSearchBommel(root, false, List.of(root.id));
+
+        var children = bommelRepository.getChildrenRecursive(root);
+
+        var allBommels = new ArrayList<>(children);
+        allBommels.addFirst(rootTreeSearch);
+
+        return allBommels;
+    }
+
+    @GET
+    @Path("/{slug}/bommels/root")
+    @Operation(summary = "Fetch root bommel for organization")
+    @APIResponse(responseCode = "200", description = "root bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = "Organization not found for provided slug", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public Bommel getRootBommel(@PathParam("slug") String slug) {
+        Organization organization = organizationRepository.findBySlug(slug);
+        if (organization == null) {
+            throw new NotFoundException();
+        }
+
+        return organization.getRootBommel();
     }
 
     @POST
