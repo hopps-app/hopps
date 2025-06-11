@@ -25,7 +25,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm
 
 # Install dependencies
-RUN pnpm install
+RUN pnpm install --no-frozen-lockfile
 
 # Build the React app
 RUN pnpm run build
