@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-
-import { Organization } from '@/services/api/types/Organization.ts';
-import { User } from '@/services/api/types/User.ts';
+import { Organization, User } from '@hopps/api-client';
 
 type AuthState = {
     isAuthenticated: boolean;

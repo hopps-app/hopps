@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Bommel } from '@hopps/api-client';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
-import { Bommel } from '@/services/api/types/Bommel.ts';
 import apiService from '@/services/ApiService.ts';
-import organizationTreeService from '@/services/OrganizationTreeService.ts';
+import organizationTreeService from '@/services/OrganisationTreeService.ts';
 import { useStore } from '@/store/store.ts';
 
 function OrganizationSettingsView() {
@@ -29,12 +29,14 @@ function OrganizationSettingsView() {
 
     const createTreeNode = async () => {
         try {
-            const node = await apiService.bommel.createBommel({
-                name: 'New item',
-                emoji: 'grey_question',
-                children: [],
-                parent: { id: rootBommel!.id },
-            });
+            const node = await apiService.bommel.bommelPOST(
+                new Bommel({
+                    name: 'New item',
+                    emoji: 'grey_question',
+                    children: [],
+                    parent: new Bommel({ id: rootBommel!.id }),
+                })
+            );
 
             return organizationTreeService.bommelsToTreeNodes([node], rootBommel!.id)[0];
         } catch (e) {
@@ -46,11 +48,14 @@ function OrganizationSettingsView() {
         let isSuccess = false;
 
         try {
-            await apiService.bommel.updateBommel(node.id as number, {
-                name: node.text,
-                emoji: node.data?.emoji,
-                parent: { id: node.parent as number },
-            });
+            await apiService.bommel.bommelPUT(
+                node.id as number,
+                new Bommel({
+                    name: node.text,
+                    emoji: node.data?.emoji,
+                    parent: new Bommel({ id: node.parent as number }),
+                })
+            );
             isSuccess = true;
         } catch (e) {
             console.error(e);
@@ -65,7 +70,7 @@ function OrganizationSettingsView() {
         setIsLoading(true);
         try {
             const parent = node.parent ? node.parent : rootBommel!.id;
-            await apiService.bommel.moveBommel(node.id as number, parent as number);
+            await apiService.bommel.to(node.id as number, parent as number);
             isSuccess = true;
         } catch (e) {
             console.error(e);
@@ -80,7 +85,7 @@ function OrganizationSettingsView() {
     const deleteTreeNode = async (id: string | number) => {
         setIsLoading(true);
         try {
-            await apiService.bommel.deleteBommel(id as number);
+            await apiService.bommel.bommelDELETE(id as number, false);
             await loadTree();
             return true;
         } catch (e) {

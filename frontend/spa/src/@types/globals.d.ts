@@ -17,6 +17,7 @@ declare global {
     const onTestFinished: (typeof import('vitest'))['onTestFinished'];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare namespace JSX {
     interface IntrinsicElements {
         'em-emoji': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & { id: string };

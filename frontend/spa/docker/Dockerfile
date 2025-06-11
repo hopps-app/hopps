@@ -11,20 +11,26 @@ ENV VITE_KEYCLOAK_CLIENT_ID="VITE_KEYCLOAK_CLIENT_ID_VALUE"
 ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
 ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
 
+ARG USE_WORKSPACES=false
+
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY ../package.json pnpm-lock.yaml ./
+# Kopieren Sie zuerst nur die Package-Dateien
+COPY package.json pnpm-lock.yaml ./
+
+# Install pnpm globally
+RUN npm install -g pnpm
 
 # Install dependencies
-RUN npm install -g pnpm && pnpm install
+RUN pnpm install
 
-# Copy the rest of the application code
-COPY .. .
+# Dann den Rest des Codes kopieren
+COPY . .
 
 # Build the React app
 RUN pnpm run build
+
 
 # Use an official node image to serve the React app
 FROM node:22

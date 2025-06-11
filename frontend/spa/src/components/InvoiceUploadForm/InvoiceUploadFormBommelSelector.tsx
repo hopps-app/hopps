@@ -3,15 +3,15 @@
 import { CheckIcon, ChevronDownIcon, TrashIcon } from '@radix-ui/react-icons';
 import { FC, memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Bommel } from '@hopps/api-client';
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
 import { cn } from '@/lib/utils';
-import { Bommel } from '@/services/api/types/Bommel';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 type InvoiceUploadFormBommelSelectorprops = {
-    onChange: (id: number | null) => void;
+    onChange: (id: number | null | undefined) => void;
 };
 
 const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> = ({ onChange }) => {
@@ -23,7 +23,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
 
     const onBommelSelected = useCallback(
         (currentValue: string) => {
-            const searchedBommel = allBommels.find((bomm) => bomm.name.toLowerCase() === currentValue.toLowerCase()) || null;
+            const searchedBommel = allBommels.find((bomm) => bomm?.name?.toLowerCase() === currentValue.toLowerCase()) || null;
 
             if (searchedBommel) {
                 setSelectedBommel(searchedBommel);
