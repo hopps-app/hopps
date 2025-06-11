@@ -151,7 +151,10 @@ public class OrganizationResource {
 
     @GET
     @Path("/{slug}/bommels/root")
-    @Operation(summary = "Fetch root bommel for organization")
+    @Operation(summary = "Fetch root bommel for organization", description = """
+            Fetches the root bommel for this organization (specified by its slug). Note that the /bommel/root/{orgId} endpoint exists,
+            and does the same thing. You should prefer this endpoint, the other one will get deprecated/deleted.
+            """)
     @APIResponse(responseCode = "200", description = "root bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
