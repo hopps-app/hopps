@@ -13,8 +13,6 @@ ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
 
 ARG USE_WORKSPACES=false
 
-RUN apt-get update && apt-get install -y jq
-
 # Set the working directory
 WORKDIR /app
 
@@ -22,11 +20,6 @@ COPY .. .
 
 # Copy package.json and lockfile
 COPY package.json pnpm-lock.yaml ./
-
-# Remove overrides if USE_WORKSPACES is false
-RUN if [ "$USE_WORKSPACES" = "false" ]; then \
-      jq 'del(.pnpm.overrides)' package.json > package.tmp.json && mv package.tmp.json package.json; \
-    fi
 
 # Install pnpm globally
 RUN npm install -g pnpm
