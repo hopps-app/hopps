@@ -1,12 +1,11 @@
-import { AxiosInstance } from 'axios';
-import { AxiosServiceOptions, createAxiosService } from '../AxiosService';
+import { FetchInstance, FetchServiceOptions, createFetchService } from '../FetchService';
 import { TransactionRecord, TransactionType } from '../types/TransactionRecord';
 
 export class InvoicesService {
-    private readonly axiosInstance: AxiosInstance;
+    private readonly fetchInstance: FetchInstance;
 
-    constructor(options: AxiosServiceOptions) {
-        this.axiosInstance = createAxiosService(options)
+    constructor(options: FetchServiceOptions) {
+        this.fetchInstance = createFetchService(options)
     }
 
     async getInvoices(): Promise<any[]> {
@@ -17,7 +16,7 @@ export class InvoicesService {
 
         while (true) {
             const url = `/all?page=${page}&size=${pageSize}`;
-            const response = await this.axiosInstance.get<TransactionRecord[]>(url);
+            const response = await this.fetchInstance.get<TransactionRecord[]>(url);
             const data = response.data;
 
             if (Array.isArray(data)) {
@@ -43,7 +42,7 @@ export class InvoicesService {
 
     async reassignTransaction(bommelId: number, transactionId: number): Promise<unknown> {
         const url = `/${transactionId}/bommel?bommelId=${bommelId}`;
-        const response = await this.axiosInstance.patch(url);
+        const response = await this.fetchInstance.patch(url);
 
         return response.data;
     }
@@ -58,7 +57,7 @@ export class InvoicesService {
         formData.append('type', type);
         formData.append('privatelyPaid', String(privatelyPaid));
 
-        return await this.axiosInstance.post(`/transaction-record`, formData, {
+        return await this.fetchInstance.post(`/transaction-record`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },

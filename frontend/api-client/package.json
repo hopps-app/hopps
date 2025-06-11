@@ -1,13 +1,18 @@
 {
   "name": "@hopps/api-client",
   "description": "The hopps API client library",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/**/*"
   ],
-  "keywords": ["hopps", "buchhaltung", "api", "client"],
+  "keywords": [
+    "hopps",
+    "buchhaltung",
+    "api",
+    "client"
+  ],
   "author": "Open Project e.V.",
   "license": "MIT",
   "scripts": {
