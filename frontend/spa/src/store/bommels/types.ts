@@ -1,4 +1,4 @@
-import { Bommel } from '@/services/api/types/Bommel';
+import { Bommel } from '@hopps/api-client';
 
 export type BommelsState = {
     rootBommel: Bommel | null;

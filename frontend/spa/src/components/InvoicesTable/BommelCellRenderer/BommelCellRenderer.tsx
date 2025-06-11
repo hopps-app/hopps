@@ -27,7 +27,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
 
     const filteredBommels = useMemo(() => {
         if (!searchQuery) return allBommels;
-        return allBommels.filter((bommel) => bommel.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        return allBommels.filter((bommel) => bommel?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [searchQuery, allBommels]);
 
     const onClosePopover = () => {
@@ -83,7 +83,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
                     <LoadingOverlay isEnabled={isLoading} />
                     {filteredBommels.length ? (
                         <BommelCellList
-                            reassignTransaction={reassignTransaction}
+                            reassignTransaction={async (a) => a && (await reassignTransaction(a))}
                             filteredBommels={filteredBommels}
                             currentBommelId={data.bommel}
                             isPopoverVisible={isPopoverVisible}
