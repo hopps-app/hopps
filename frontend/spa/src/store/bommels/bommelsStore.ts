@@ -18,6 +18,7 @@ export const useBommelsStore = create<BommelsState & BommelActions>()(
                 try {
                     const root = await organizationTreeService.ensureRootBommelCreated(organizationId);
                     if (!root) throw new Error('Root bommel not found');
+                    if (!root.id) throw new Error('Root bommel id not found');
 
                     const fetchedBommels = await organizationTreeService.getOrganizationBommels(root.id);
 
@@ -36,7 +37,7 @@ export const useBommelsStore = create<BommelsState & BommelActions>()(
 
             reload: async () => {
                 const { rootBommel } = useBommelsStore.getState();
-                if (rootBommel) {
+                if (rootBommel && rootBommel.id) {
                     await useBommelsStore.getState().loadBommels(rootBommel.id);
                 }
             },

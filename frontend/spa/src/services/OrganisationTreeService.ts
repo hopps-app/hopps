@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import { Bommel, IBommel } from '@hopps/api-client';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
-// import { Bommel } from '@/services/api/types/Bommel.ts';
 import apiService from '@/services/ApiService.ts';
 
 export class OrganisationTreeService {

@@ -16,9 +16,7 @@ ARG USE_WORKSPACES=false
 # Set the working directory
 WORKDIR /app
 
-COPY .. .
-
-# Copy package.json and lockfile
+# Kopieren Sie zuerst nur die Package-Dateien
 COPY package.json pnpm-lock.yaml ./
 
 # Install pnpm globally
@@ -27,8 +25,12 @@ RUN npm install -g pnpm
 # Install dependencies
 RUN pnpm install --no-frozen-lockfile
 
+# Dann den Rest des Codes kopieren
+COPY . .
+
 # Build the React app
 RUN pnpm run build
+
 
 # Use an official node image to serve the React app
 FROM node:22
