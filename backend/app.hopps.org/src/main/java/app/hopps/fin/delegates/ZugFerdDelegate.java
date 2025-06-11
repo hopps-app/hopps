@@ -1,9 +1,9 @@
 package app.hopps.fin.delegates;
 
-import app.hopps.commons.InvoiceData;
 import app.hopps.fin.S3Handler;
 import app.hopps.fin.client.ZugFerdClient;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import app.hopps.fin.model.InvoiceData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
