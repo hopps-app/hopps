@@ -2,8 +2,8 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosRequestHeade
 
 export interface AxiosServiceOptions {
     baseURL: string;
-    getAccessToken: () => string | Promise<string>;
-    getRefreshToken: () => Promise<void>;  // Optionale Refresh-Logik
+    getAccessToken: () => string | Promise<string> | Promise<undefined>;
+    getRefreshToken: () => string | Promise<string>;
 }
 
 export const createAxiosService = (options: AxiosServiceOptions): AxiosInstance => {
