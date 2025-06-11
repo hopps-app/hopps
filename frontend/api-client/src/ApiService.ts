@@ -1,4 +1,3 @@
-import { BommelService } from './services/BommelService';
 import { InvoicesService } from './services/InvoicesService';
 import { OrganisationService } from './services/OrganisationService';
 import { Bommel_ResourceClient } from './services/OrgService';
@@ -13,7 +12,6 @@ export interface ApiServiceOptions {
 
 export class ApiService {
     private authenticatedHttpClient: AuthenticatedHttpClient;
-    // public bommel: BommelService;
     public invoices: InvoicesService;
     public organization: OrganisationService;
     public bommel: Bommel_ResourceClient;

@@ -1,5 +1,6 @@
 import { FC, memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Transaction } from '@hopps/api-client';
 
 import { useUploadForm } from '@/components/InvoiceUploadForm/hooks/useUploadForm';
 import InvoiceUploadFormAction from '@/components/InvoiceUploadForm/InvoiceUploadFormAction';
@@ -10,7 +11,6 @@ import List from '@/components/ui/List/List';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import Select, { SelectItem } from '@/components/ui/Select';
 import { Checkbox } from '@/components/ui/shadecn/Checkbox';
-import { Transaction } from '@/services/api/types/TransactionRecord';
 
 const InvoiceUploadForm: FC<InvoiceUploadType> = ({ onUploadInvoiceChange }) => {
     const { t } = useTranslation();
