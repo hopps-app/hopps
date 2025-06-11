@@ -28,7 +28,7 @@ import authService from '@/services/auth/auth.service.ts';
 const apiService: ApiService = createApiService({
     orgBaseUrl: import.meta.env.VITE_API_ORG_URL || '',
     finBaseUrl: import.meta.env.VITE_API_FIN_URL || '',
-    getAccessToken: authService.getAuthToken,
-    getRefreshToken: authService.refreshToken,
+    getAccessToken: () => authService.getAuthToken(),
+    getRefreshToken: () => authService.refreshToken(),
 });
 export default apiService;

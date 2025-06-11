@@ -1,10 +1,18 @@
 {
   "name": "@hopps/api-client",
+  "description": "The hopps API client library",
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "keywords": ["hopps", "buchhaltung", "api", "client"],
+  "author": "Open Project e.V.",
+  "license": "MIT",
   "scripts": {
     "build": "tsc --build",
+    "publish": "npm publish --access=public",
     "generate:org-service": "nswag openapi2tsclient /input:../../backend/app.hopps.org//target/openapi/openapi.json /output:./src/services/OrgService.ts",
     "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o"
   },
