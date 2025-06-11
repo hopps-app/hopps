@@ -103,7 +103,11 @@ public class BommelResource {
 
     @GET
     @Path("/root/{orgId}")
-    @Operation(summary = "Fetch root-bommel for organization")
+    @Operation(summary = "Fetch root-bommel for organization", description = """
+            This endpoint is a duplicate of /organization/{slug}/bommels/root.
+            If possible you should prefer the other endpoint, this one will be
+            deprecated/deleted.
+            """)
     @APIResponse(responseCode = "200", description = "Root-Bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
