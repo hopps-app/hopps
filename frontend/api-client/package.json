@@ -1,10 +1,11 @@
 {
-  "name": "@hopps/hopps-api-client",
+  "name": "@hopps/api-client",
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc --build",
+    "generate:org-service": "nswag openapi2tsclient /input:../../backend/app.hopps.org//target/openapi/openapi.json /output:./src/services/OrgService.ts",
     "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o"
   },
   "dependencies": {
@@ -15,6 +16,7 @@
     "@pact-foundation/pact-node": "^10.18.0",
     "@pact-foundation/pact-web": "^9.18.1",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.2"
+    "vitest": "^3.1.2",
+    "nswag": "^14.4.0"
   }
 }
