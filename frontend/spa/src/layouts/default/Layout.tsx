@@ -32,9 +32,9 @@ function Layout() {
                             <Route
                                 path="/register"
                                 element={
-                                    <AuthGuard>
+                                    
                                         <RegisterOrganizationView />
-                                    </AuthGuard>
+                                    
                                 }
                             />
                             <Route

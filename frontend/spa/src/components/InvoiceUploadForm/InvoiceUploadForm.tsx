@@ -74,8 +74,7 @@ const InvoiceUploadForm: FC<InvoiceUploadType> = ({ onUploadInvoiceChange }) => 
                             {errors.bommelId && <p className="text-red-500 font-medium text-xs">{errors.bommelId.message}</p>}
                             <div className="flex flex-col gap-2">
                                 <h6 className="text-sm font-medium">{t('invoiceUpload.docType')}</h6>
-                                <Select className="h-16 rounded-2xl" value={documentType} onValueChanged={onDocumentTypeChange} items={transactionTypes} />
-                                {errors.documentType && <p className="text-red-500 font-medium text-xs">{errors.documentType.message}</p>}
+                                <Select className="h-16 rounded-2xl" value={documentType} onValueChanged={onDocumentTypeChange} items={transactionTypes} error={errors.documentType?.message} />
                             </div>
                             <div className="flex items-center space-x-2">
                                 <Checkbox checked={isPrivatelyPaid} onCheckedChange={handleCheckboxChange} id="privatelyPaid" />

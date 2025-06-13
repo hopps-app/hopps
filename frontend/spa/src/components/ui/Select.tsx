@@ -16,10 +16,11 @@ interface SelectProps {
     label?: string;
     placeholder?: string;
     className?: string;
+    error?: string;
 }
 
 function Select(props: SelectProps) {
-    const { value, items, onValueChanged, label, placeholder, className, ...otherProps } = props;
+    const { value, error, items, onValueChanged, label, placeholder, className, ...otherProps } = props;
     const [id] = useState(_.uniqueId('select-'));
     const [isOpened, setIsOpened] = useState(false);
 
@@ -27,7 +28,7 @@ function Select(props: SelectProps) {
         <div className={`grid w-full items-center gap-1.5 ${className}`}>
             {label && <Label htmlFor={id}>{label}</Label>}
             <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} onOpenChange={setIsOpened} {...otherProps}>
-                <SelectTrigger className={isOpened ? ' rounded ring-2 ring-primary' : ''}>
+                <SelectTrigger className={isOpened ? 'rounded ring-2 ring-primary' : 'rounded-md'}>
                     <SelectValue placeholder={placeholder || 'Select'} className="placeholder:text-muted" />
                 </SelectTrigger>
                 <SelectContent>
@@ -40,6 +41,11 @@ function Select(props: SelectProps) {
                     </SelectGroup>
                 </SelectContent>
             </BaseSelect>
+            {error && (
+                <div className="absolute bottom-0 right-0 text-destructive text-xs px-4 translate-y-2.5">
+                  {error}
+                </div>
+            )}
         </div>
     );
 }
