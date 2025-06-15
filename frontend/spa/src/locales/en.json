@@ -104,6 +104,11 @@
     "role": "Role",
     "actions": "Actions",
     "addUser": "Add User",
-    "you": "You"
+    "you": "You",
+    "inviteUserDialog": {
+      "inviteUser": "Invite User",
+      "email": "Email",
+      "sendInvitation": "Send Invitation"
+    }
   }
 }

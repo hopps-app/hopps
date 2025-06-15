@@ -6,6 +6,8 @@ import apiService from '@/services/ApiService';
 import Button from '@/components/ui/Button';
 import Icon from '@/components/ui/Icon';
 import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader';
+import { InviteUserForm } from '@/components/Forms/InviteUserForm/InviteUserForm';
+import { Dialog, DialogContent } from '@/components/ui/Dialog';
 
 type Member = {
     id: string;
@@ -20,6 +22,7 @@ const OrganisationUserSettingsView = () => {
     const organization = useStore((state) => state.organization);
     const user = useStore((state) => state.user);
     const [members, setMembers] = useState<Member[]>([]);
+    const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchMembers = async () => {
@@ -33,6 +36,16 @@ const OrganisationUserSettingsView = () => {
         };
         fetchMembers();
     }, [organization]);
+
+    const handleInviteSuccess = () => {
+        setIsInviteDialogOpen(false);
+        if (organization?.slug) {
+            apiService.organization
+                .getOrganizationMembers(organization.slug)
+                .then(setMembers)
+                .catch(() => setMembers([]));
+        }
+    };
 
     return (
         <>
@@ -71,11 +84,17 @@ const OrganisationUserSettingsView = () => {
                     </table>
                 </div>
                 <div className="mt-8">
-                    <Button icon="Plus" className="bg-primary text-white" style={{ background: '#8e5be8' }}>
+                    <Button icon="Plus" className="bg-primary text-white" style={{ background: '#8e5be8' }} onClick={() => setIsInviteDialogOpen(true)}>
                         {t('userManagement.addUser')}
                     </Button>
                 </div>
             </div>
+
+            <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+                <DialogContent>
+                    <InviteUserForm onSuccess={handleInviteSuccess} onCancel={() => setIsInviteDialogOpen(false)} />
+                </DialogContent>
+            </Dialog>
         </>
     );
 };
