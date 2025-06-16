@@ -40,8 +40,6 @@ public class AzureAiService {
             return Optional.empty();
         }
 
-        LOG.info("Scanned receipt: {}", document.get().getFields());
-
         ReceiptData receiptData = ReceiptDataHelper.fromDocument(document.get());
         return Optional.of(receiptData);
     }
@@ -51,8 +49,6 @@ public class AzureAiService {
         if (document.isEmpty()) {
             return Optional.empty();
         }
-
-        LOG.info("Scanned invoice: {}", document.get().getFields());
 
         InvoiceData invoiceData = InvoiceDataHelper.fromDocument(document.get());
         return Optional.of(invoiceData);
