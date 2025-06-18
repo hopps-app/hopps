@@ -18,10 +18,11 @@ interface DatePickerProps {
   label?: string;
   value?: Date;
   className?: string;
+  placeholder?: string;
   onChange?: (value: Date) => void;
 }
 
-function DatePicker({ label, value, className, onChange }: DatePickerProps) {
+function DatePicker({ label, value, className, placeholder, onChange }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
   const formattedDate = value ? format(value, "dd.MM.yyyy") : "Please select"; // Display date in a user-readable format
 
@@ -46,10 +47,11 @@ function DatePicker({ label, value, className, onChange }: DatePickerProps) {
           <Calendar
             mode="single"
             selected={value}
-            month={value}
+            defaultMonth={value}
             captionLayout="dropdown"
             onSelect={(selectedDate) => {
               if (!selectedDate) return;
+              //setDate(selectedDate);
               onChange?.(selectedDate);
               setOpen(false);
             }}
