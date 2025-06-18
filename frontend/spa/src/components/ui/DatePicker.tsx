@@ -24,7 +24,7 @@ interface DatePickerProps {
 
 function DatePicker({ label, value, className, placeholder, onChange }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
-  const formattedDate = value ? format(value, "dd.MM.yyyy") : "Please select"; // Display date in a user-readable format
+  const formattedDate = value ? format(value, "dd.MM.yyyy") : placeholder; // Display date in a user-readable format
 
   return (
     <div className="relative grid w-full items-center gap-1.5">
