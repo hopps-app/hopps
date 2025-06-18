@@ -10,6 +10,7 @@ interface TextFieldProps {
     placeholder?: string;
     type?: 'text' | 'password';
     name?: string;
+    required?: boolean;
     error?: string;
     appendIcon?: string;
     className?: string;
@@ -25,7 +26,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
 
     return (
         <div className="relative grid w-full items-center gap-1.5">
-            {props.label && <Label htmlFor={id}>{props.label}</Label>}
+            {props.label && <Label htmlFor={id}>{props.label} {props.required  && <span style={{ color: 'red' }}>*</span> }</Label>}
             <div className="relative flex items-center">
                 <BaseInput
                     id={id}
