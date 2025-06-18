@@ -85,15 +85,67 @@
       "theme": "Thema"
     }
   },
+  "organizationDetails": {
+    "headings": {
+      "generalInfo": "Allgemeine Informationen",
+      "contactInfo": "Kontaktinformationen"
+    },
+    "form": {
+      "organizationName": { 
+        "label": "Name der Organisation"
+      },
+      "street": {
+        "label": "Straße"
+      },
+      "postalCode": {
+        "label": "Postleitzahl"
+      },
+      "city": {
+        "label": "Stadt"
+      },
+      "country": {
+        "label": "Land"
+      },
+      "dateOfFoundation": {
+        "label": "Gründungsdatum"
+      },
+      "registrationCourt": {
+        "label": "Registergericht"
+      },
+      "registrationNumber": {
+        "label": "Handelsregisternummer"
+      },
+      "taxId": {
+        "label": "Steuernummer"
+      },
+      "organizationEmail": {
+        "label": "E-Mail der Organisation",
+        "placeholder": "info@ihre-organisation.org"
+      },
+      "phoneNumber": {
+        "label": "Telefonnummer",
+        "placeholder": "+49 123456789"
+      },
+      "website": {
+        "label": "Webseite",
+        "placeholder": "https://www.organisation.de"
+      }
+    }
+  },
   "settings": {
     "menu": {
       "account": "Mein Konto",
       "invoices": "Rechnungen",
       "organization": "Organisation",
-      "profile": "Profil"
+      "profile": "Profil",
+      "organizationDetails": "Vereinsdaten"
     }
   },
   "settingsPage": {
     "menu": "Menü"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich.",
+    "invalid": "Bitte geben Sie einen gültigen Wert ein."
   }
 }

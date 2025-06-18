@@ -22,7 +22,7 @@ function SettingsView() {
             { title: t('settings.menu.profile'), value: 'profile', icon: 'Avatar' },
             { title: t('settings.menu.organization'), value: 'organization', icon: 'Backpack' },
             { title: t('settings.menu.invoices'), value: 'invoices', icon: 'Archive' },
-            { title: 'Data', value: 'data', icon: 'FileText' }, // TODO: pick right icon
+            { title: t('settings.menu.organizationDetails'), value: 'data', icon: 'FileText' }, // TODO: pick right icon
         ]);
     }, [languageService.getLanguage()]);
 

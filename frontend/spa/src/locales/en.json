@@ -86,15 +86,67 @@
       "theme": "Theme"
     }
   },
+  "organizationDetails": {
+    "headings": {
+      "generalInfo": "General Info",
+      "contactInfo": "Contact Info"
+    },
+    "form": {
+      "organizationName": { 
+        "label": "Organization Name"
+      },
+      "street": {
+        "label": "Street"
+      },
+      "postalCode": {
+        "label": "Postal Code"
+      },
+      "city": {
+        "label": "City"
+      },
+      "country": {
+        "label": "Country"
+      },
+      "dateOfFoundation": {
+        "label": "Date of Foundation"
+      },
+      "registrationCourt": {
+        "label": "Registration Court"
+      },
+      "registrationNumber": {
+        "label": "Registration Number"
+      },
+      "taxId": {
+        "label": "Tax ID"
+      },
+      "organizationEmail": {
+        "label": "Organization Email",
+        "placeholder": "info@your-organization.org"
+      },
+      "phoneNumber": {
+        "label": "Phone Number",
+        "placeholder": "+49 123456789"
+      },
+      "website": {
+        "label": "Website",
+        "placeholder": "https://www.organization.com"
+      }
+    }
+  },
   "settings": {
     "menu": {
       "account": "My Account",
       "invoices": "Invoices",
       "organization": "Organization",
-      "profile": "Profile"
+      "profile": "Profile",
+      "organizationDetails": "Organization Details"
     }
   },
   "settingsPage": {
     "menu": "Menu"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalid": "Please enter a valid value."
   }
 }
