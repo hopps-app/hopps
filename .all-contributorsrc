@@ -9,12 +9,13 @@
   "contributorsPerLine": 7,
   "contributors": [
     {
-      "login": "schitcrafter",
+      "login": "byte-sized-emi",
       "name": "Emilia Jaser",
       "avatar_url": "https://avatars.githubusercontent.com/u/58911293?v=4",
-      "profile": "https://github.com/schitcrafter",
+      "profile": "https://github.com/byte-sized-emi",
       "contributions": [
-        "tool"
+        "tool",
+        "code"
       ]
     },
     {
