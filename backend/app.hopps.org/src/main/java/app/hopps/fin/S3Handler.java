@@ -1,10 +1,10 @@
 package app.hopps.fin;
 
+import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheName;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.cache.CaffeineCache;
-import app.hopps.fin.jpa.entities.TransactionRecord;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;

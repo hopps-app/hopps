@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
+// FIXME: Change this to trade_party
 @Entity(name = "trade_party")
 public class TradeParty {
     @Id

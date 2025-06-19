@@ -19,6 +19,8 @@ public class TransactionRecord {
     @GeneratedValue
     private Long id;
 
+    // NOTE: Maybe change this to reference the bommel directly,
+    //       instead of storing a Long
     @Column(name = "bommel_id")
     private Long bommelId;
 

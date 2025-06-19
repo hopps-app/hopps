@@ -1,8 +1,8 @@
 package app.hopps.fin.endpoint;
 
-import app.hopps.fin.client.OrgRestClient;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import app.hopps.org.jpa.BommelRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
@@ -16,7 +16,6 @@ import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -24,8 +23,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.resteasy.reactive.ClientWebApplicationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,14 +30,12 @@ import java.util.Optional;
 @Authenticated
 @Path("")
 public class TransactionRecordResource {
-    private final TransactionRecordRepository repository;
-    private final OrgRestClient orgRestClient;
 
     @Inject
-    public TransactionRecordResource(TransactionRecordRepository repository, @RestClient OrgRestClient orgRestClient) {
-        this.repository = repository;
-        this.orgRestClient = orgRestClient;
-    }
+    TransactionRecordRepository repository;
+
+    @Inject
+    BommelRepository bommelRepository;
 
     @GET
     @Path("/all")
@@ -62,9 +57,12 @@ public class TransactionRecordResource {
         }
     }
 
+    // NOTE: This could be changed to {id}/bommel/{bommelId} to make it more obvious
+    //       that bommelId is a required parameter.
+    // NOTE: Maybe add an endpoint to bommel that also does this?
     @PATCH
     @Transactional
-    @Path("{id}/bommel")
+    @Path("{id}/bommel/")
     @Operation(summary = "Add a transaction record to a bommel", description = "Attaches an transaction record to a bommel item")
     @APIResponse(responseCode = "200", description = "Specified transaction record was attached to bommel")
     @APIResponse(responseCode = "404", description = "Specified transaction record id was not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
@@ -80,22 +78,14 @@ public class TransactionRecordResource {
                     .build());
         }
 
-        try {
-            // Just check if bommel is available
-            orgRestClient.getBommel(bommelId);
-        } catch (ClientWebApplicationException clientWebApplicationException) {
-            int status = clientWebApplicationException.getResponse().getStatus();
-
-            if (status == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new WebApplicationException(Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .type(MediaType.TEXT_PLAIN)
-                        .entity("Bommel not found")
-                        .build());
-            }
-
-            throw new WebApplicationException(clientWebApplicationException.getResponse());
-        }
+        // TODO: Check that user has write permissions to bommel here
+        // TODO: OpenFGA
+        var maybeBommel = bommelRepository.findByIdOptional(bommelId);
+        maybeBommel.orElseThrow(() -> new BadRequestException(Response
+                .status(Response.Status.BAD_REQUEST)
+                .type(MediaType.TEXT_PLAIN)
+                .entity("Bommel not found")
+                .build()));
 
         TransactionRecord transactionRecord = byIdOptional.get();
         transactionRecord.setBommelId(bommelId);
