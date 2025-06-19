@@ -1,6 +1,6 @@
 package app.hopps.fin.jpa.entities;
 
-import app.hopps.commons.DocumentType;
+import app.hopps.fin.model.DocumentType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

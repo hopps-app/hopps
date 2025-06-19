@@ -1,0 +1,80 @@
+name: keycloak
+env:
+  KEYCLOAK_VERSION: "26.2.1"
+
+on:
+  push:
+    paths:
+      - frontend/keycloak-theme/**
+      - .github/workflows/keycloak.yml
+    branches: [ "**" ]
+    tags:
+      - '*.*.*'
+  pull_request:
+    paths:
+      - frontend/keycloak-theme/**
+      - .github/workflows/keycloak.yml
+    branches:
+      - main
+
+jobs:
+  build:
+    # Verhindert doppelte Ausführung bei PRs
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        baseDirectory: [ "frontend/keycloak-theme" ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine Docker image tag
+        id: get-version
+        run: |
+          if git describe --tags --exact-match 2>/dev/null; then
+            TAG=$(git describe --tags --exact-match)
+            echo "VERSION=${TAG}-keycloak-${KEYCLOAK_VERSION}" >> $GITHUB_ENV
+          else
+            echo "VERSION=${GITHUB_RUN_NUMBER}-keycloak-${KEYCLOAK_VERSION}" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.baseDirectory }}
+          file: ${{ matrix.baseDirectory }}/Dockerfile
+          push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
+          tags: ghcr.io/${{ github.repository }}/hopps-keycloak:${{ env.VERSION }}
+
+      - name: Trigger deploy workflow
+        uses: actions/github-script@v7
+        # only trigger deployment on main
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github-token: ${{ secrets.TECHNICAL_USER_PAT }}
+          script: |
+            const result = await github.rest.actions.createWorkflowDispatch({
+              owner: 'hopps-app',
+              repo: 'hopps.cloud',
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+              inputs: {
+                "environment": "dev",
+                "new-tag": "${{ env.VERSION }}",
+                "service-name": "keycloak"
+              }
+            })
+            console.log(result);

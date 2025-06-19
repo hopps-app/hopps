@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "fin API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

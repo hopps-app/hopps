@@ -1,8 +1,8 @@
 package app.hopps.fin;
 
-import app.hopps.commons.Data;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import app.hopps.fin.model.Data;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 

@@ -110,6 +110,15 @@
         "code",
         "infra"
       ]
+    },
+    {
+      "login": "pweimann",
+      "name": "Paul Weimann",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49559453?v=4",
+      "profile": "https://github.com/pweimann",
+      "contributions": [
+        "code"
+      ]
     }
   ]
 }

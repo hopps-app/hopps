@@ -1,13 +1,13 @@
 import './styles/InvoiceuploadFormDropzone.scss';
 
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, memo, useCallback, useEffect, useState } from 'react';
 import { FileWithPath, useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
 import save from '@/assets/save.svg';
-import { cn } from '@/lib/utils.ts';
 import Button from '@/components/ui/Button.tsx';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils.ts';
 
 type InvoiceUploadFormDropzoneProps = {
     onFilesChanged: (file: FileWithPath[]) => void;
@@ -81,9 +81,12 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
     return (
         <div
             {...getRootProps()}
-            className={cn('border-2 border-dashed border-gray-600 rounded-lg flex flex-col justify-center items-center dropzone text-center min-h-72 w-full', {
-                'border-gray-400': isHighlightDrop,
-            })}
+            className={cn(
+                'border-2 border-dashed border-gray-600 rounded-lg flex flex-col justify-center items-center dropzone text-center min-h-72 w-full flex-1',
+                {
+                    'border-gray-400': isHighlightDrop,
+                }
+            )}
         >
             <input {...getInputProps()} type="file" />
             {DropzoneText}
@@ -91,4 +94,4 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
     );
 };
 
-export default InvoiceUploadFormDropzone;
+export default memo(InvoiceUploadFormDropzone);

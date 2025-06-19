@@ -3,14 +3,14 @@ import { ICellRendererParams } from 'ag-grid-community';
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useBommelsStore } from '@/store/bommels/bommelsStore';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';
+import BommelCellList from '@/components/InvoicesTable/BommelCellRenderer/BommelCellList';
 import Button from '@/components/ui/Button.tsx';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
-import BommelCellList from '@/components/InvoicesTable/BommelCellRenderer/BommelCellList';
-import apiService from '@/services/ApiService';
-import { useToast } from '@/hooks/use-toast';
 import SearchField from '@/components/ui/SearchField/SearchField';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';
+import { useToast } from '@/hooks/use-toast';
+import apiService from '@/services/ApiService';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
     const { t } = useTranslation();
@@ -27,7 +27,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
 
     const filteredBommels = useMemo(() => {
         if (!searchQuery) return allBommels;
-        return allBommels.filter((bommel) => bommel.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        return allBommels.filter((bommel) => bommel?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [searchQuery, allBommels]);
 
     const onClosePopover = () => {
@@ -83,7 +83,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
                     <LoadingOverlay isEnabled={isLoading} />
                     {filteredBommels.length ? (
                         <BommelCellList
-                            reassignTransaction={reassignTransaction}
+                            reassignTransaction={async (a) => a && (await reassignTransaction(a))}
                             filteredBommels={filteredBommels}
                             currentBommelId={data.bommel}
                             isPopoverVisible={isPopoverVisible}

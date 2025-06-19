@@ -1,6 +1,6 @@
 package app.hopps.fin.endpoint;
 
-import app.hopps.commons.DocumentType;
+import app.hopps.fin.model.DocumentType;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;

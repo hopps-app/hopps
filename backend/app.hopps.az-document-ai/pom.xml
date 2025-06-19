@@ -5,11 +5,10 @@
     <parent>
         <groupId>app.hopps</groupId>
         <artifactId>hopps</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>az-document-ai</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Hopps Azure Document AI</name>
     <description>Microservice which uses OCR/AI to extract data from documents (invoices/receipts).</description>
@@ -23,8 +22,9 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.19.2</quarkus.platform.version>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.5.2</surefire-plugin.version>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/jacoco-report/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <surefire-plugin.version>3.5.3</surefire-plugin.version>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/jacoco-report/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencyManagement>
@@ -40,11 +40,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>app.hopps</groupId>
-            <artifactId>commons</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
         <!-- quarkus -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -153,7 +148,8 @@
                 </executions>
                 <configuration>
                     <systemPropertyVariables>
-                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner
+                        </native.image.path>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <!--suppress UnresolvedMavenProperty -->
                         <maven.home>${maven.home}</maven.home>

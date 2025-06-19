@@ -1,6 +1,5 @@
 package app.hopps.az.document.ai.model;
 
-import app.hopps.commons.TradeParty;
 import com.azure.ai.documentintelligence.models.AddressValue;
 
 public class TradePartyHelper {

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-import SettingsPage from '@/components/SettingsPage/SettingsPage.tsx';
-import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
-import OrganizationSettingsView from '@/components/views/OrganizationSettingsView.tsx';
 import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
-import InvoicesView from './InvoicesView';
+import SettingsPage from '@/components/SettingsPage/SettingsPage.tsx';
+import OrganizationSettingsView from '@/components/views/OrganizationSettingsView.tsx';
+import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
 import languageService from '@/services/LanguageService.ts';
+import InvoicesView from './InvoicesView';
 
 function SettingsView() {
     const { t } = useTranslation();

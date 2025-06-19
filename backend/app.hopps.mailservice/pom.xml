@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>app.hopps</groupId>
         <artifactId>hopps</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>mailservice</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Mail-Service</name>
     <description>Internal mail-service</description>
@@ -24,7 +21,7 @@
         <quarkus.platform.version>3.19.2</quarkus.platform.version>
         <version.org.kie.kogito>10.0.0</version.org.kie.kogito>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.5.2</surefire-plugin.version>
+        <surefire-plugin.version>3.5.3</surefire-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.build.directory}/jacoco-report/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
@@ -50,11 +47,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>app.hopps</groupId>
-            <artifactId>commons</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
         <!-- quarkus -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -121,7 +113,7 @@
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.19.1</version>
+            <version>4.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

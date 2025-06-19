@@ -1,10 +1,10 @@
 package app.hopps.fin.endpoint;
 
-import app.hopps.commons.DocumentType;
 import app.hopps.fin.S3Handler;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import app.hopps.fin.kafka.DocumentProducer;
+import app.hopps.fin.model.DocumentType;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -35,19 +35,17 @@ import java.util.Optional;
 public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
 
-    private final DocumentProducer documentProducer;
-    private final S3Handler s3Handler;
-    private final TransactionRecordRepository repository;
-    private final SecurityContext context;
+    @Inject
+    DocumentProducer documentProducer;
 
     @Inject
-    public DocumentResource(DocumentProducer documentProducer, S3Handler s3Handler,
-            TransactionRecordRepository repository, SecurityContext context) {
-        this.documentProducer = documentProducer;
-        this.s3Handler = s3Handler;
-        this.repository = repository;
-        this.context = context;
-    }
+    S3Handler s3Handler;
+
+    @Inject
+    TransactionRecordRepository repository;
+
+    @Inject
+    SecurityContext context;
 
     @GET
     @Path("{documentKey}")

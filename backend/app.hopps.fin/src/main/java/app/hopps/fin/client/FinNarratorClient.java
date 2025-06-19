@@ -1,6 +1,6 @@
 package app.hopps.fin.client;
 
-import app.hopps.commons.Data;
+import app.hopps.fin.model.Data;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;

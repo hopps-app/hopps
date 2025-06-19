@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { Bommel } from '@hopps/api-client';
 
-import { Bommel } from '@/services/api/types/Bommel';
 import Icon from '@/components/ui/Icon';
 
 type BommelCellListPropsType = {
     filteredBommels: Bommel[];
-    reassignTransaction: (bommelId: number) => void;
+    reassignTransaction: (bommelId: number | undefined) => void;
     currentBommelId: number | null;
     isPopoverVisible: boolean;
 };

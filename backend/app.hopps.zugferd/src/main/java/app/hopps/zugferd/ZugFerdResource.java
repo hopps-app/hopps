@@ -1,6 +1,6 @@
 package app.hopps.zugferd;
 
-import app.hopps.commons.InvoiceData;
+import app.hopps.zugferd.model.InvoiceData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -41,15 +41,14 @@ public class ZugFerdResource {
     })
     public InvoiceData uploadDocument(
             @RestForm("file") @Schema(type = SchemaType.OBJECT, format = "binary") FileUpload file,
-            @RestForm @PartType(MediaType.TEXT_PLAIN)
-            @Schema(description = "Reference ID for the invoice", examples = "12345") Long referenceId)
+            @RestForm @PartType(MediaType.TEXT_PLAIN) @Schema(description = "Reference ID for the invoice", examples = "12345") Long referenceId)
             throws IOException {
 
         try (InputStream stream = file.uploadedFile().toFile().toPath().toUri().toURL().openStream()) {
             try {
                 return service.scanInvoice(referenceId, stream);
             } catch (ParseException | XPathExpressionException e) {
-                throw new WebApplicationException("Could not parse PDF", e, 422); //422: Unprocessable Entity
+                throw new WebApplicationException("Could not parse PDF", e, 422); // 422: Unprocessable Entity
             }
         }
     }

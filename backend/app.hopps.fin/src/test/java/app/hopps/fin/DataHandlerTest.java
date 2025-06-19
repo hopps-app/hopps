@@ -1,12 +1,12 @@
 package app.hopps.fin;
 
-import app.hopps.commons.Data;
-import app.hopps.commons.DocumentType;
-import app.hopps.commons.InvoiceData;
-import app.hopps.commons.ReceiptData;
-import app.hopps.commons.TradeParty;
 import app.hopps.fin.jpa.TransactionRecordRepository;
+import app.hopps.fin.jpa.entities.TradeParty;
 import app.hopps.fin.jpa.entities.TransactionRecord;
+import app.hopps.fin.model.Data;
+import app.hopps.fin.model.DocumentType;
+import app.hopps.fin.model.InvoiceData;
+import app.hopps.fin.model.ReceiptData;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -24,16 +24,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 @TestSecurity(user = "alice")
 class DataHandlerTest {
-
-    private static final TradeParty TRADE_PARTY = new TradeParty("Name", "Country", "ZipCode", "State", "City",
-            "Street", "AdditionalAddress", "TaxID", "VatID", "Description");
 
     @Inject
     ReceiptDataHandler receiptDataHandler;
@@ -91,7 +86,7 @@ class DataHandlerTest {
                 Optional.of("invoiceId"),
                 Optional.of(dueDate),
                 Optional.of(BigDecimal.valueOf(150)),
-                Optional.of(TRADE_PARTY),
+                Optional.of(getTradeParty()),
                 Optional.empty());
 
         // when
@@ -130,7 +125,7 @@ class DataHandlerTest {
                 referenceKey,
                 BigDecimal.valueOf(100),
                 Optional.of("StoreName"),
-                Optional.of(TRADE_PARTY),
+                Optional.of(getTradeParty()),
                 Optional.of(transactionTime));
 
         // when
@@ -172,5 +167,19 @@ class DataHandlerTest {
     }
 
     record RandData(Long referenceKey) implements Data {
+    }
+
+    private static TradeParty getTradeParty() {
+        var tradeParty = new TradeParty();
+        tradeParty.setName("Name");
+        tradeParty.setCountry("Country");
+        tradeParty.setZipCode("ZipCode");
+        tradeParty.setState("State");
+        tradeParty.setCity("City");
+        tradeParty.setAdditionalAddress("AdditionalAddress");
+        tradeParty.setTaxID("TaxID");
+        tradeParty.setVatID("VatID");
+        tradeParty.setDescription("Description");
+        return tradeParty;
     }
 }

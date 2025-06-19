@@ -1,7 +1,7 @@
 package app.hopps.fin.client;
 
-import app.hopps.commons.InvoiceData;
-import app.hopps.commons.ReceiptData;
+import app.hopps.fin.model.InvoiceData;
+import app.hopps.fin.model.ReceiptData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;

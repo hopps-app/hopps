@@ -1,24 +1,19 @@
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import Header from './Header.tsx';
-import HomeView from '@/components/views/HomeView.tsx';
 import DemoView from '@/components/views/DemoView.tsx';
-import Banner from './Banner.tsx';
+import HomeView from '@/components/views/HomeView.tsx';
 import NotFoundView from '@/components/views/NotFoundView.tsx';
 import SettingsView from '@/components/views/SettingsView.tsx';
 import AuthGuard from '@/guards/AuthGuard.tsx';
 import { Toaster } from '@/components/ui/shadecn/Toaster.tsx';
 import { RegisterOrganizationView } from '@/components/views/RegisterOrganizationView.tsx';
-import { useStore } from '@/store/store.ts';
+import DashboardView from '@/components/views/DashboardView.tsx';
 
 function Layout() {
-    const authStore = useStore();
-    const isBannerVisible = !authStore.user;
-
     return (
         <>
             <Router>
-                {isBannerVisible && <Banner />}
                 <div className="flex flex-col mx-auto size-full" style={{ maxWidth: 1360, padding: '0 40px' }}>
                     <Header />
                     <div className="min-h-[calc(100vh-80px)] pb-9">
@@ -27,6 +22,14 @@ function Layout() {
                             <Route path="/demo" element={<DemoView />} />
                             <Route path="/register" element={<RegisterOrganizationView />} />
                             <Route
+                                path="/dashboard"
+                                element={
+                                    <AuthGuard>
+                                        <DashboardView />
+                                    </AuthGuard>
+                                }
+                            />
+                            <Route
                                 path="/settings/*"
                                 element={
                                     <AuthGuard>
@@ -34,7 +37,6 @@ function Layout() {
                                     </AuthGuard>
                                 }
                             />
-
                             <Route path="*" element={<NotFoundView />} />
                         </Routes>
                     </div>

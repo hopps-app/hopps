@@ -1,0 +1,14 @@
+{
+  "name": "hopps-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "pnpm": {
+    "overrides": {
+      "@hopps/api-client": "workspace:*"
+    }
+  },
+  "workspaces": [
+    "spa",
+    "api-client"
+  ]
+}

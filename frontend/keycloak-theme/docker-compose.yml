@@ -1,6 +1,7 @@
 services:
     keycloak:
-        image: quay.io/keycloak/keycloak:latest
+        #image: quay.io/keycloak/keycloak:latest
+        build: .
         container_name: keycloak
         ports:
             - "8090:8080"
@@ -9,7 +10,7 @@ services:
             KC_BOOTSTRAP_ADMIN_PASSWORD: admin
         volumes:
             - keycloak_data:/opt/keycloak/data
-            - ./dist_keycloak/keycloak-theme-for-kc-22-to-25.jar:/opt/keycloak/providers/keycloak-theme.jar
+            #- ./dist_keycloak/keycloak-theme-for-kc-22-to-25.jar:/opt/keycloak/providers/keycloak-theme.jar
         command:
             - start-dev
             - --http-port=8080

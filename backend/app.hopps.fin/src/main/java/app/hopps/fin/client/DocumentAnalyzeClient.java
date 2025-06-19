@@ -1,7 +1,7 @@
 package app.hopps.fin.client;
 
-import app.hopps.commons.InvoiceData;
-import app.hopps.commons.ReceiptData;
+import app.hopps.fin.model.InvoiceData;
+import app.hopps.fin.model.ReceiptData;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;

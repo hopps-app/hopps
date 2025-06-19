@@ -1,6 +1,6 @@
 package app.hopps.zugferd;
 
-import app.hopps.commons.InvoiceData;
+import app.hopps.zugferd.model.InvoiceData;
 import app.hopps.zugferd.model.InvoiceDataHandler;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.mustangproject.Invoice;

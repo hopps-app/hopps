@@ -1,6 +1,5 @@
 package app.hopps.zugferd.model;
 
-import app.hopps.commons.InvoiceData;
 import org.mustangproject.Invoice;
 import org.mustangproject.TradeParty;
 import org.mustangproject.ZUGFeRD.TransactionCalculator;

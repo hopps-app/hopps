@@ -12,6 +12,7 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 
 ![Frontend](https://github.com/hopps-app/hopps/actions/workflows/frontend.yml/badge.svg)
 ![Backend](https://github.com/hopps-app/hopps/actions/workflows/backend.yml/badge.svg)
+![Keycloak](https://github.com/hopps-app/hopps/actions/workflows/keycloak.yml/badge.svg)
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-vereine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-vereine)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
@@ -52,6 +53,7 @@ unter [hub.docker.com/r/apache/incubator-kie-kogito-data-index-ephemeral/tags](h
       <td align="center" valign="top" width="14.28%"><a href="http://www.nachhilfe-paf.de"><img src="https://avatars.githubusercontent.com/u/119429802?v=4?s=100" width="100px;" alt="Simon Krumböck"/><br /><sub><b>Simon Krumböck</b></sub></a><br /><a href="#projectManagement-sk2675" title="Project Management">📆</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/3thr3n"><img src="https://avatars.githubusercontent.com/u/33932819?v=4?s=100" width="100px;" alt="3thr3n"/><br /><sub><b>3thr3n</b></sub></a><br /><a href="#code-3thr3n" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/98jan"><img src="https://avatars.githubusercontent.com/u/46779261?v=4?s=100" width="100px;" alt="Jan"/><br /><sub><b>Jan</b></sub></a><br /><a href="#code-98jan" title="Code">💻</a> <a href="#infra-98jan" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pweimann"><img src="https://avatars.githubusercontent.com/u/49559453?v=4?s=100" width="100px;" alt="Paul Weimann"/><br /><sub><b>Paul Weimann</b></sub></a><br /><a href="#code-pweimann" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
