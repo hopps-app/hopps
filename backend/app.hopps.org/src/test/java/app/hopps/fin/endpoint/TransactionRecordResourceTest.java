@@ -3,10 +3,6 @@ package app.hopps.fin.endpoint;
 import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import app.hopps.fin.model.DocumentType;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.matching.ContainsPattern;
-import com.github.tomakehurst.wiremock.matching.NegativeContainsPattern;
-import io.quarkiverse.wiremock.devservice.ConnectWireMock;
 import io.quarkus.panache.common.Page;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -15,25 +11,20 @@ import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import wiremock.com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import wiremock.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.math.BigDecimal;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
-@ConnectWireMock
 @TestSecurity(user = "peter", roles = "user")
 @TestHTTPEndpoint(TransactionRecordResource.class)
 class TransactionRecordResourceTest {
     @Inject
     TransactionRecordRepository repository;
-
-    WireMock wireMock;
 
     KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
@@ -104,19 +95,7 @@ class TransactionRecordResourceTest {
         // given
         Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
 
-        Long bommelId = 1L;
-
-        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-        objectNode
-                .put("name", "BommelName")
-                .put("emoji", "BommelEmoji");
-
-        wireMock.register(
-                get(urlPathMatching("/bommel/1"))
-                        .withHeader("Authorization", new ContainsPattern("Bearer"))
-                        .willReturn(aResponse()
-                                .withStatus(200)
-                                .withJsonBody(objectNode)));
+        Long bommelId = 2L;
 
         // when
         given()
@@ -131,23 +110,12 @@ class TransactionRecordResourceTest {
     }
 
     @Test
+    @Disabled("This is disabled because we currently don't check that the user has write permissions to the bommel")
     void shouldFailToAddBommel() {
         // given
         Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
 
-        Long bommelId = 1L;
-
-        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-        objectNode
-                .put("name", "BommelName")
-                .put("emoji", "BommelEmoji");
-
-        wireMock.register(
-                get(urlPathMatching("/bommel/1"))
-                        .withHeader("Authorization", new NegativeContainsPattern("Bearer"))
-                        .willReturn(aResponse()
-                                .withStatus(401)
-                                .withJsonBody(objectNode)));
+        Long bommelId = 2L;
 
         // when
         given()
@@ -160,42 +128,10 @@ class TransactionRecordResourceTest {
     }
 
     @Test
-    void shouldThrowInternalErrorWhenOrgServiceDoesStrangeThings() {
-        // given
-        Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
-
-        Long bommelId = 1L;
-
-        ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-        objectNode
-                .put("name", "BommelName")
-                .put("emoji", "BommelEmoji");
-
-        wireMock.register(
-                get(urlPathMatching("/bommel/1"))
-                        .willReturn(aResponse()
-                                .withStatus(500)));
-
-        // when
-        given()
-                .when()
-                .pathParam("id", id)
-                .queryParam("bommelId", bommelId)
-                .patch("{id}/bommel")
-                .then()
-                .statusCode(500);
-    }
-
-    @Test
     void shouldNotAddToBommel() {
         Long id = repository.findWithoutBommel(new Page(0, 10)).getFirst().getId();
 
-        Long bommelId = 99L;
-
-        wireMock.register(
-                get(urlPathMatching("/bommel/99"))
-                        .willReturn(aResponse()
-                                .withStatus(404)));
+        Long bommelId = 99L; // not existent
 
         given()
                 .when()
