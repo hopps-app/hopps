@@ -45,12 +45,6 @@ dependencies:
     # ToDo: make version controllable by dependabot
     version: 31.2.0
     repository: https://charts.bitnami.com/bitnami
-  - condition: postgresql-fin.enabled
-    alias: postgresqlFin
-    name: postgresql
-    # ToDo: make version controllable by dependabot
-    version: 16.4.5
-    repository: https://charts.bitnami.com/bitnami
   - condition: postgresql-org.enabled
     alias: postgresqlOrg
     name: postgresql

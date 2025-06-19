@@ -22,9 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         service:
-          - label: fin
-            directory: app.hopps.fin
-            serviceName: fin
           - label: org
             directory: app.hopps.org
             serviceName: org
@@ -40,7 +37,6 @@ jobs:
           - label: mail-service
             directory: app.hopps.mailservice
             serviceName: mailService
-
 
     runs-on: ubuntu-latest
     steps:
