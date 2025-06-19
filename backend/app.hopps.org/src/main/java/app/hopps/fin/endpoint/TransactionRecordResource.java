@@ -58,7 +58,7 @@ public class TransactionRecordResource {
     }
 
     // NOTE: This could be changed to {id}/bommel/{bommelId} to make it more obvious
-    //       that bommelId is a required parameter.
+    // that bommelId is a required parameter.
     // NOTE: Maybe add an endpoint to bommel that also does this?
     @PATCH
     @Transactional
