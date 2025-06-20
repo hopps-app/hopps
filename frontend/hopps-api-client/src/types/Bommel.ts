@@ -1,4 +1,5 @@
-import { User } from '@/services/api/types/User.ts';
+import { User } from './User';
+
 
 export type Bommel = {
     id: number;

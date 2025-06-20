@@ -1,13 +1,13 @@
 import type { AxiosInstance } from 'axios';
+import { AxiosServiceOptions, createAxiosService } from '../AxiosService';
+import { Bommel } from '../types/Bommel';
 
-import { Bommel } from '@/services/api/types/Bommel.ts';
-import axiosService from '@/services/AxiosService.ts';
 
 export class BommelService {
     private axiosInstance: AxiosInstance;
 
-    constructor(private baseUrl: string) {
-        this.axiosInstance = axiosService.create(this.baseUrl);
+    constructor(options: AxiosServiceOptions) {
+        this.axiosInstance = createAxiosService(options)
     }
 
     async getBommel(id: number): Promise<Bommel> {

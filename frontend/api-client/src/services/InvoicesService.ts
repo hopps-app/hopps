@@ -1,25 +1,22 @@
-import { AxiosInstance } from 'axios';
-
-import { InvoicesTableData } from '@/components/InvoicesTable/types';
-import { TransactionRecord, TransactionType } from '@/services/api/types/TransactionRecord.ts';
-import axiosService from '@/services/AxiosService.ts';
+import { FetchInstance, FetchServiceOptions, createFetchService } from '../FetchService';
+import { TransactionRecord, TransactionType } from '../types/TransactionRecord';
 
 export class InvoicesService {
-    private readonly axiosInstance: AxiosInstance;
+    private readonly fetchInstance: FetchInstance;
 
-    constructor(private readonly baseUrl: string) {
-        this.axiosInstance = axiosService.create(this.baseUrl);
+    constructor(options: FetchServiceOptions) {
+        this.fetchInstance = createFetchService(options)
     }
 
-    async getInvoices(): Promise<InvoicesTableData[]> {
+    async getInvoices(): Promise<any[]> {
         const transactions: TransactionRecord[] = [];
         const pageSize = 100;
 
         let page = 0;
 
         while (true) {
-            const url = `${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/all?page=${page}&size=${pageSize}`;
-            const response = await this.axiosInstance.get<TransactionRecord[]>(url);
+            const url = `/all?page=${page}&size=${pageSize}`;
+            const response = await this.fetchInstance.get<TransactionRecord[]>(url);
             const data = response.data;
 
             if (Array.isArray(data)) {
@@ -44,8 +41,8 @@ export class InvoicesService {
     }
 
     async reassignTransaction(bommelId: number, transactionId: number): Promise<unknown> {
-        const url = `${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/${transactionId}/bommel?bommelId=${bommelId}`;
-        const response = await this.axiosInstance.patch(url);
+        const url = `/${transactionId}/bommel?bommelId=${bommelId}`;
+        const response = await this.fetchInstance.patch(url);
 
         return response.data;
     }
@@ -60,7 +57,7 @@ export class InvoicesService {
         formData.append('type', type);
         formData.append('privatelyPaid', String(privatelyPaid));
 
-        return await this.axiosInstance.post(`${import.meta.env.VITE_INVOICES_SERVICE_URL || this.baseUrl}/transaction-record`, formData, {
+        return await this.fetchInstance.post(`/transaction-record`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },

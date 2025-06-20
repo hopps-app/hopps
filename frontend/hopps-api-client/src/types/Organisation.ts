@@ -1,6 +1,7 @@
-import { Bommel } from '@/services/api/types/Bommel.ts';
+import { Bommel } from './Bommel';
 
-export type Organization = {
+
+export type Organisation = {
     id: number;
     name: string;
     slug: string;
