@@ -147,6 +147,6 @@
   },
   "validation": {
     "required": "This field is required.",
-    "invalid": "Please enter a valid value."
+    "valid": "Please enter a valid value."
   }
 }

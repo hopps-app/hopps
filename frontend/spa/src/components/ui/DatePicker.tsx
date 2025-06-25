@@ -51,7 +51,6 @@ function DatePicker({ label, value, className, placeholder, onChange }: DatePick
             captionLayout="dropdown"
             onSelect={(selectedDate) => {
               if (!selectedDate) return;
-              //setDate(selectedDate);
               onChange?.(selectedDate);
               setOpen(false);
             }}

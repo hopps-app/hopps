@@ -8,7 +8,7 @@ import OrganizationSettingsView from '@/components/views/OrganizationSettingsVie
 import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
 import languageService from '@/services/LanguageService.ts';
 import InvoicesView from './InvoicesView';
-import DataView from './DataSettingsView';
+import OrganizationDetailsSettingsView from './OrganizationDetailsSettingsView';
 
 function SettingsView() {
     const { t } = useTranslation();
@@ -42,7 +42,7 @@ function SettingsView() {
             {activeTab === 'profile' && <ProfileSettingsView />}
             {activeTab === 'organization' && <OrganizationSettingsView />}
             {activeTab === 'invoices' && <InvoicesView />}
-            {activeTab === 'data' && <DataView />}
+            {activeTab === 'data' && <OrganizationDetailsSettingsView />}
         </SettingsPage>
     );
 }
