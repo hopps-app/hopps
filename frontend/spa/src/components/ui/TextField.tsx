@@ -3,6 +3,7 @@ import React, { useState, forwardRef } from 'react';
 
 import { BaseInput } from '@/components/ui/shadecn/BaseInput.tsx';
 import { Label } from './Label.tsx';
+import { cn } from '@/lib/utils.ts';
 
 interface TextFieldProps {
     label?: string;
@@ -25,7 +26,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
     const [id] = useState(_.uniqueId('text-field-'));
 
     return (
-        <div className="relative grid w-full items-center gap-1.5">
+        <div className={cn("relative grid items-center gap-1.5", props.className)}>
             {props.label && <Label htmlFor={id}>{props.label} {props.required  && <span style={{ color: 'red' }}>*</span> }</Label>}
             <div className="relative flex items-center">
                 <BaseInput
@@ -34,7 +35,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     type={props.type || 'text'}
                     placeholder={props.placeholder || ''}
                     value={props.value}
-                    className={props.className}
+                    className="h-11"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                         props.onChange?.(event);
                         props.onValueChange?.(event.target.value);

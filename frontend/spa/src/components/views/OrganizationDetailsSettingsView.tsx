@@ -52,9 +52,9 @@ function OrganizationDetailsSettingsView() {
                         <div className="flex flex-col gap-6">
                             <TextField label={t('organizationDetails.form.organizationName.label')} {...register('organizationName')} error={errors.organizationName?.message} required />
                             <TextField label={t('organizationDetails.form.street.label')} {...register('street')} error={errors.street?.message}/>
-                            <div className="flex">
-                                <TextField label={t('organizationDetails.form.postalCode.label')} {...register('postalCode')} error={errors.postalCode?.message} className="w-40"/>
-                                <TextField label={t('organizationDetails.form.city.label')} {...register('city')} error={errors.city?.message} className="w-64"/>
+                            <div className="flex gap-6">
+                                <TextField label={t('organizationDetails.form.postalCode.label')} {...register('postalCode')} error={errors.postalCode?.message}  className="basis-1/3"/>
+                                <TextField label={t('organizationDetails.form.city.label')} {...register('city')} error={errors.city?.message}  className="basis-2/3"/>
                             </div>
                             <Select 
                                 label={t('organizationDetails.form.country.label')}
@@ -71,7 +71,7 @@ function OrganizationDetailsSettingsView() {
                             />
                         </div>
                         <div className="flex flex-col gap-6">
-                             <DatePicker 
+                            <DatePicker 
                                 label={t('organizationDetails.form.dateOfFoundation.label')} 
                                 value={watchDateOfFoundation}
                                 placeholder="dd.mm.yyyy"
