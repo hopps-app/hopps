@@ -38,7 +38,7 @@ function DemoView() {
         <div>
             <h1 className="text-center">Demo page</h1>
 
-            <Button onClick={onClickTest}>TEst</Button>
+            <Button onClick={onClickTest}>Test</Button>
 
             <div className="my-4">
                 <h2 className="text-center">Buttons:</h2>
