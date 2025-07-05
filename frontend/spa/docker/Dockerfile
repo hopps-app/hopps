@@ -1,5 +1,5 @@
 # Use an official node image to build the React app
-FROM node:18 AS build
+FROM node:22 AS build
 
 # General
 ENV VITE_TITLE="VITE_TITLE_VALUE"
@@ -27,7 +27,7 @@ COPY .. .
 RUN pnpm run build
 
 # Use an official node image to serve the React app
-FROM node:18
+FROM node:22
 
 # Set the working directory
 WORKDIR /app
@@ -36,8 +36,8 @@ WORKDIR /app
 COPY --from=build /app/dist ./build
 COPY ../docker/node/server.js .
 
-# Install express
-RUN npm install express
+# Install express and path-to-regexp explicitly
+RUN npm install express@5.1.0
 
 # Expose port 8080
 EXPOSE 8080
@@ -52,4 +52,4 @@ RUN chmod +x ./startup.sh
 RUN chown -R node:node /app
 
 # Start the server
-CMD ["/bin/bash", "-c", "/app/startup.sh"]
+CMD ["sh", "./startup.sh"]
