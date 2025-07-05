@@ -9,12 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
 
-const schema = z.object({
-    email: z.string().email('Invalid email address'),
-});
-
-type FormFields = z.infer<typeof schema>;
-
 type Props = {
     onSuccess: () => void;
     onCancel: () => void;
@@ -24,6 +18,12 @@ export function InviteUserForm({ onSuccess, onCancel }: Props) {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
     const organization = useStore((state) => state.organization);
+
+    const schema = z.object({
+        email: z.string().email(t('userManagement.inviteUserDialog.errors.invalidEmail')),
+    });
+
+    type FormFields = z.infer<typeof schema>;
 
     const { register, handleSubmit, formState } = useForm<FormFields>({
         mode: 'onBlur',
@@ -51,7 +51,7 @@ export function InviteUserForm({ onSuccess, onCancel }: Props) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <h2 className="text-lg font-semibold">{t('userManagement.inviteUserDialog.inviteUser')}</h2>
 
-            <TextField label={t('userManagement.inviteUserDialog.email')} {...register('email')} error={errors.email?.message} />
+            <TextField label={t('userManagement.inviteUserDialog.email')} {...register('email')} error={errors.email?.message} auto-complete="off" />
 
             <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={onCancel}>

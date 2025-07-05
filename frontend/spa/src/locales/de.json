@@ -29,7 +29,7 @@
     "dragDrop": "Ziehen & Ablegen von Dateien hier",
     "dragFile": "Dateien hier ablegen...",
     "fileTooLarge": "Datei ist zu groß, maximale Größe 5MB",
-    "totalTooLarge":"Die gesamte Dateigröße überschreitet das Limit von 20MB.",
+    "totalTooLarge": "Die gesamte Dateigröße überschreitet das Limit von 20MB.",
     "maxFilesExceeded": "Es sind maximal 10 Dateien erlaubt.",
     "selectBommel": "Bommel wählen",
     "privately": "Privat bezahlt",
@@ -95,5 +95,21 @@
   },
   "settingsPage": {
     "menu": "Menü"
+  },
+  "users": "Benutzer",
+  "userManagement": {
+    "user": "Benutzer",
+    "role": "Rolle",
+    "actions": "Aktionen",
+    "addUser": "Benutzer hinzufügen",
+    "you": "Du",
+    "inviteUserDialog": {
+      "inviteUser": "Benutzer einladen",
+      "email": "E-Mail",
+      "sendInvitation": "Einladung senden",
+      "errors": {
+        "invalidEmail": "Ungültige E-Mail-Adresse"
+      }
+    }
   }
 }

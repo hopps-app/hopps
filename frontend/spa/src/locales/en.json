@@ -108,7 +108,10 @@
     "inviteUserDialog": {
       "inviteUser": "Invite User",
       "email": "Email",
-      "sendInvitation": "Send Invitation"
+      "sendInvitation": "Send Invitation",
+      "errors": {
+        "invalidEmail": "Invalid email address"
+      }
     }
   }
 }
