@@ -1,11 +1,11 @@
 meta {
-  name: Get organization members
+  name: Invite Member
   type: http
-  seq: 5
+  seq: 6
 }
 
 get {
-  url: {{org_baseUrl}}/organization/:slug/members
+  url: {{org_baseUrl}}/organization/:slug/invite
   body: none
   auth: none
 }
