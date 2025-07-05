@@ -2,6 +2,10 @@ import axios, { AxiosInstance } from 'axios';
 
 import axiosService from '@/services/AxiosService.ts';
 
+type InviteUser = {
+    email: string;
+};
+
 type RegisterOrganizationPayload = {
     owner: {
         firstName: string;
@@ -56,6 +60,12 @@ export class OrganizationService {
     async getOrganizationMembers(slug: string) {
         const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/${slug}/members`;
         const result = await this.axiosInstance.get(url);
+        return result.data;
+    }
+
+    async inviteUser(slug: string, payload: InviteUser) {
+        const url = `${import.meta.env.VITE_ORGANIZATION_SERVICE_URL || this.baseUrl}/organization/${slug}/invite`;
+        const result = await axios.post(url, payload);
         return result.data;
     }
 }
