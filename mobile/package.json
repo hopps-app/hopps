@@ -15,7 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@babel/runtime": "^7.26.0",
+    "@babel/runtime": "^7.27.1",
     "@expo/vector-icons": "^14.0.2",
     "@react-native/assets-registry": "^0.76.3",
     "@react-navigation/native": "^7.0.0",
@@ -23,7 +23,7 @@
     "@rn-primitives/portal": "^1.1.0",
     "@rn-primitives/slot": "^1.1.0",
     "@rn-primitives/types": "^1.1.0",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "axios-auth-refresh": "^3.3.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
