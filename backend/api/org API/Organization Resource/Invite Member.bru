@@ -6,10 +6,16 @@ meta {
 
 get {
   url: {{org_baseUrl}}/organization/:slug/invite
-  body: none
+  body: json
   auth: none
 }
 
 params:path {
   slug: resichefs-boxen-verein
+}
+
+body:json {
+  {
+    email: "your-email@test.de"
+  }
 }
