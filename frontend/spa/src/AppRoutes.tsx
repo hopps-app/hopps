@@ -28,8 +28,8 @@ export default function AppRoutes() {
             >
                 <Route path="/dashboard/*" element={<DashboardView />} />
                 <Route path="/settings/*" element={<SettingsView />} />
+                <Route path="*" element={<NotFoundView />} />
             </Route>
-
             <Route path="*" element={<NotFoundView />} />
         </Routes>
     );
