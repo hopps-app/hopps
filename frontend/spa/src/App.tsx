@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 
-import Layout from '@/layouts/default/Layout.tsx';
 import emojiService from '@/services/EmojiService';
 import languageService from '@/services/LanguageService.ts';
 import { useStore } from '@/store/store.ts';
 import themeService from '@/services/ThemeService.ts';
 import authService from '@/services/auth/auth.service.ts';
+import AppRoutes from './AppRoutes';
 
 function App() {
     const { isInitialized, setIsInitialized } = useStore();
@@ -42,7 +43,11 @@ function App() {
         initApp();
     }, []);
 
-    return isInitialized ? <Layout /> : null;
+    return isInitialized ? (
+        <BrowserRouter>
+            <AppRoutes />
+        </BrowserRouter>
+    ) : null;
 }
 
 export default App;
