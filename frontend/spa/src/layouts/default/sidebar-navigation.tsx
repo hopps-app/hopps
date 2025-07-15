@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@radix-ui/react-dialog';
 import Icon from '@/components/ui/Icon';
 import { menuConfig, MenuItem } from './menu-config';
 
-const SIDEBAR_WIDTH = 'w-[134px]';
+const SIDEBAR_WIDTH = 'w-32';
 const ROUNDED = 'rounded-[20px]';
 
 const SidebarNavigation: React.FC = () => {
@@ -29,46 +29,55 @@ const SidebarNavigation: React.FC = () => {
         }
     };
 
-    const renderMenu = (items: MenuItem[], isSub = false) => (
-        <ul className={isSub ? 'bg-violet-50 pl-2' : 'bg-white'}>
-            {items.map((item) => {
-                const isActive = item.path && location.pathname.startsWith(item.path) && (!item.children || expanded === item.id);
-                return (
-                    <li
-                        key={item.id}
-                        onClick={() => handleMenuClick(item)}
-                        className={`
+    const renderMenuItem = (item: MenuItem, isSub = false) => {
+        const isActive = item.path && location.pathname.startsWith(item.path) && (!item.children || expanded === item.id);
+        return (
+            <li
+                key={item.id}
+                onClick={() => handleMenuClick(item)}
+                className={`
               flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED} font-semibold text-xl'
-              ${isActive ? 'bg-purple-200 text-black' : 'text-gray-500 hover:bg-violet-50'}
-              ${isSub ? 'pl-6' : ''}
-              transition-colors
-            `}
-                    >
-                        <Icon icon={item.icon} size={isSub ? 24 : 40} />
-                        <span className="text-xs leading-tight mt-1">{item.label}</span>
-                    </li>
-                );
-            })}
-        </ul>
-    );
+          ${isActive ? 'bg-purple-200 text-black' : 'hover:bg-violet-50 text-gray-500'}
+          ${isSub ? 'pl-6' : ''}
+          transition-all duration-200
+        `}
+            >
+                <Icon icon={item.icon} size={isSub ? 18 : 22} />
+                <span className="text-xs leading-tight mt-1">{item.label}</span>
+            </li>
+        );
+    };
 
+    // Desktop sidebar with sliding submenu
     const sidebar = (
-        <aside className={`hidden sm:flex flex-col h-full ${SIDEBAR_WIDTH} border-r border-violet-200 bg-white ${ROUNDED}`}>
-            <div className="flex flex-col items-center py-6">
-                <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
-                <span className="text-primary font-bold text-3xl mb-2">hopps</span>
-            </div>
-            <nav className="flex-1 flex flex-col gap-2 mt-2">
-                {menuConfig.map((item) => (
-                    <div key={item.id}>
-                        <div>{renderMenu([item])}</div>
-                        {item.children && expanded === item.id && <div className="ml-2 border-l-2 border-violet-100">{renderMenu(item.children, true)}</div>}
+        <div className="hidden sm:flex relative">
+            <aside className={`flex flex-col h-full ${SIDEBAR_WIDTH} border-r border-violet-200 bg-white ${ROUNDED}`}>
+                <div className="flex flex-col items-center py-6">
+                    <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
+                    <span className="text-primary font-bold text-3xl mb-2">hopps</span>
+                </div>
+                <nav className="flex-1 flex flex-col gap-2 mt-2">
+                    {menuConfig.map((item) => (
+                        <div key={item.id}>
+                            <ul className="bg-white">{renderMenuItem(item)}</ul>
+                        </div>
+                    ))}
+                </nav>
+            </aside>
+
+            {/* Sliding submenu panel */}
+            {expanded && (
+                <div className={`absolute ${ROUNDED} left-full top-0 h-full bg-violet-50 border-r border-violet-200 shadow-lg animate-slide-in-right`}>
+                    <div className="p-4">
+                        <h3 className="text-sm font-semibold text-violet-700 mb-4 px-2">{menuConfig.find((item) => item.id === expanded)?.label}</h3>
+                        <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderMenuItem(child, true))}</ul>
                     </div>
-                ))}
-            </nav>
-        </aside>
+                </div>
+            )}
+        </div>
     );
 
+    // Mobile drawer using Dialog
     const mobileSidebar = (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -85,9 +94,11 @@ const SidebarNavigation: React.FC = () => {
                     <nav className="flex-1 flex flex-col gap-2 mt-2">
                         {menuConfig.map((item) => (
                             <div key={item.id}>
-                                <div>{renderMenu([item])}</div>
+                                <ul className="bg-white">{renderMenuItem(item)}</ul>
                                 {item.children && expanded === item.id && (
-                                    <div className="ml-2 border-l-2 border-violet-100">{renderMenu(item.children, true)}</div>
+                                    <div className="ml-2 border-l-2 border-violet-100">
+                                        <ul className="bg-violet-50 pl-2">{item.children.map((child) => renderMenuItem(child, true))}</ul>
+                                    </div>
                                 )}
                             </div>
                         ))}
