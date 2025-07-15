@@ -39,12 +39,42 @@ const SidebarNavigation: React.FC = () => {
         }
     };
 
+    const handleMenuHover = (item: MenuItem) => {
+        if (item.children) {
+            if (expanded && expanded !== item.id) {
+                // Switch to different submenu
+                setExpanded(item.id);
+            } else if (!expanded) {
+                // Open submenu on first hover
+                setExpanded(item.id);
+            }
+        } else if (expanded) {
+            // Close submenu if hovering over item without children
+            setIsClosing(true);
+            setTimeout(() => {
+                setExpanded(null);
+                setIsClosing(false);
+            }, 150);
+        }
+    };
+
+    const handleSidebarLeave = () => {
+        if (expanded) {
+            setIsClosing(true);
+            setTimeout(() => {
+                setExpanded(null);
+                setIsClosing(false);
+            }, 150);
+        }
+    };
+
     const renderMenuItem = (item: MenuItem) => {
         const isActive = item.path && location.pathname.startsWith(item.path) && (!item.children || expanded === item.id);
         return (
             <li
                 key={item.id}
                 onClick={() => handleMenuClick(item)}
+                onMouseEnter={() => handleMenuHover(item)}
                 className={`
               flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
           ${isActive ? 'bg-purple-200 text-black' : 'hover:bg-violet-50 text-gray-500'}
@@ -73,7 +103,7 @@ const SidebarNavigation: React.FC = () => {
     };
 
     const sidebar = (
-        <div className="hidden sm:flex relative">
+        <div className="hidden sm:flex relative" onMouseLeave={handleSidebarLeave}>
             <aside className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-white ${ROUNDED_R}`}>
                 <div className="flex flex-col items-center py-6">
                     <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
@@ -92,7 +122,7 @@ const SidebarNavigation: React.FC = () => {
                 <div
                     className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-violet-50 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
-                    <div className="p-4">
+                    <div className="p-4 pt-40">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
                     </div>
                 </div>
