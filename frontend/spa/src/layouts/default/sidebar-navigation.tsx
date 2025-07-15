@@ -13,6 +13,7 @@ const SidebarNavigation: React.FC = () => {
     const navigate = useNavigate();
     const [open, setOpen] = React.useState(false);
     const [expanded, setExpanded] = React.useState<string | null>(null);
+    const [isClosing, setIsClosing] = React.useState(false);
 
     // Expand parent if current route matches a submenu
     React.useEffect(() => {
@@ -22,7 +23,15 @@ const SidebarNavigation: React.FC = () => {
 
     const handleMenuClick = (item: MenuItem | SubMenuItem) => {
         if (item.children) {
-            setExpanded(expanded === item.id ? null : item.id);
+            if (expanded === item.id) {
+                setIsClosing(true);
+                setTimeout(() => {
+                    setExpanded(null);
+                    setIsClosing(false);
+                }, 150);
+            } else {
+                setExpanded(item.id);
+            }
         } else if (item.path) {
             navigate(item.path);
             setOpen(false);
@@ -80,7 +89,7 @@ const SidebarNavigation: React.FC = () => {
 
             {expanded && (
                 <div
-                    className={`absolute ${ROUNDED} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-violet-50 border-r border-violet-200 shadow-lg animate-in slide-in-from-left`}
+                    className={`absolute ${ROUNDED} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-violet-50 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
                     <div className="p-4">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
