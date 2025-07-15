@@ -8,6 +8,8 @@ export type MenuItem = {
     children?: Omit<MenuItem, 'icon'>[];
 };
 
+export type SubMenuItem = Omit<MenuItem, 'icon'>;
+
 export const menuConfig: MenuItem[] = [
     {
         id: 'dashboard',
