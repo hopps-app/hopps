@@ -6,7 +6,8 @@ import Icon from '@/components/ui/Icon';
 import { menuConfig, MenuItem, SubMenuItem } from './menu-config';
 
 const SIDEBAR_WIDTH = 'w-32';
-const ROUNDED = 'rounded-r-[20px]';
+const ROUNDED_R = 'rounded-r-[20px]';
+const ROUNDED = 'rounded-[20px]';
 
 const SidebarNavigation: React.FC = () => {
     const location = useLocation();
@@ -62,7 +63,7 @@ const SidebarNavigation: React.FC = () => {
                 key={item.id}
                 onClick={() => handleMenuClick(item)}
                 className={`
-              flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED} font-semibold text-xl pl-6 transition-all duration-200'
+              flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED_R} font-semibold text-xl pl-6 transition-all duration-200'
           ${isActive ? 'font-bold text-black' : 'hover:bg-violet-50 text-gray-500'}
         `}
             >
@@ -73,7 +74,7 @@ const SidebarNavigation: React.FC = () => {
 
     const sidebar = (
         <div className="hidden sm:flex relative">
-            <aside className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-white ${ROUNDED}`}>
+            <aside className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-white ${ROUNDED_R}`}>
                 <div className="flex flex-col items-center py-6">
                     <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
                     <span className="text-primary font-bold text-3xl mb-2">hopps</span>
@@ -89,7 +90,7 @@ const SidebarNavigation: React.FC = () => {
 
             {expanded && (
                 <div
-                    className={`absolute ${ROUNDED} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-violet-50 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-violet-50 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
                     <div className="p-4">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
