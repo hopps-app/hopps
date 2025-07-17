@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@hopps/api-client': workspace:*
-
 importers:
 
   .: {}
@@ -96,7 +93,7 @@ importers:
         version: 17.0.6(expo@52.0.46(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@expo/metro-runtime@4.0.1(react-native@0.76.3(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@types/react@18.3.23)(encoding@0.1.13)(react@18.3.1)))(encoding@0.1.13)(graphql@14.7.0)(react-native@0.76.3(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@types/react@18.3.23)(encoding@0.1.13)(react@18.3.1))(react@18.3.1))(react-native@0.76.3(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@types/react@18.3.23)(encoding@0.1.13)(react@18.3.1))
       expo-router:
         specifier: ~4.0.9
-        version: 4.0.21(64ac0cfd3725cfb6332ed045c7acb75f)
+        version: 4.0.21(o4brj5uygrzeurj5orvrpjx2pu)
       expo-secure-store:
         specifier: ~14.0.1
         version: 14.0.1(expo@52.0.46(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@expo/metro-runtime@4.0.1(react-native@0.76.3(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@types/react@18.3.23)(encoding@0.1.13)(react@18.3.1)))(encoding@0.1.13)(graphql@14.7.0)(react-native@0.76.3(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@types/react@18.3.23)(encoding@0.1.13)(react@18.3.1))(react@18.3.1))
@@ -192,8 +189,8 @@ importers:
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.57.0(react@18.3.1))
       '@hopps/api-client':
-        specifier: workspace:*
-        version: link:../api-client
+        specifier: 1.0.3
+        version: 1.0.3
       '@minoru/react-dnd-treeview':
         specifier: ^3.4.4
         version: 3.5.2(dnd-core@16.0.1)(react-dnd@16.0.1(@types/node@22.15.31)(@types/react@18.3.23)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1687,6 +1684,9 @@ packages:
     peerDependencies:
       react-hook-form: ^7.0.0
 
+  '@hopps/api-client@1.0.3':
+    resolution: {integrity: sha512-Eh6ipw/D96Y1lZ7M8a2Wb78o1G397Webf+rQK0KjqlY8EeSWKP5YxFzgAAuT2kutv8JDm99qTX2djZZ154orlQ==}
+
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
     engines: {node: '>=18.18.0'}
@@ -1929,12 +1929,10 @@ packages:
   '@pact-foundation/pact-core@15.2.1':
     resolution: {integrity: sha512-IhWwc026bqffjHAVjOfVnDzmhRlr7FBVrLeg/pKjhrcIi0Z/bWahU0u3LEKKctnMkICSH4nAVTYZEg3kUNTxag==}
     engines: {node: '>=16'}
-    cpu: [x64, ia32, arm64]
     os: [darwin, linux, win32]
 
   '@pact-foundation/pact-node@10.18.0':
     resolution: {integrity: sha512-q6b/q0/IbuDSub2rL2pB/Zu5340vWGN+nUIk9I9HhJwbN/xOBv2yK2mve5ygTUUiKFNn4/1M9/YJ8ze/P5Etrw==}
-    cpu: [x64, ia32, arm64]
     os: [darwin, linux, win32]
     hasBin: true
 
@@ -10966,6 +10964,8 @@ snapshots:
     dependencies:
       react-hook-form: 7.57.0(react@18.3.1)
 
+  '@hopps/api-client@1.0.3': {}
+
   '@humanfs/core@0.19.1': {}
 
   '@humanfs/node@0.16.6':
@@ -15052,7 +15052,7 @@ snapshots:
     dependencies:
       invariant: 2.2.4
 
-  expo-router@4.0.21(64ac0cfd3725cfb6332ed045c7acb75f):
+  expo-router@4.0.21(o4brj5uygrzeurj5orvrpjx2pu):
     dependencies:
       '@expo/metro-runtime': 4.0.1(react-native@0.76.3(@babel/core@7.27.4)(@babel/preset-env@7.27.2(@babel/core@7.27.4))(@types/react@18.3.23)(encoding@0.1.13)(react@18.3.1))
       '@expo/server': 0.5.3
