@@ -4,7 +4,7 @@
   "version": "0.0.1-alpha",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsc --project tsconfig.dev.json && vite",
     "build": "tsc -b tsconfig.app.json && vite build",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
