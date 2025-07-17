@@ -98,6 +98,12 @@ input[type="password"] {
     outline: none;
     font-size: 14px;
 }
+.pf-c-form-control[aria-invalid="true"] {
+    background-image: none !important;
+    background-color: #ffe6e6;
+    border-color: #aa0000 !important; 
+    box-shadow: none !important;
+  }
 .pf-c-input-group {
     position: relative;
 }
