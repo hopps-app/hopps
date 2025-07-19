@@ -26,7 +26,7 @@ function UserMenu() {
         isAuthenticated && (
             <div>
                 <DropdownMenu items={menuItems} className="w-56">
-                    <div className="flex flex-row items-center gap-1 p-1 text-black dark:text-white rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
+                    <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
                         <div className="flex-shrink-0">
                             <PersonIcon className="w-4 h-4" />
                         </div>

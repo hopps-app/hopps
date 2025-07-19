@@ -77,7 +77,7 @@ const SidebarNavigation: React.FC = () => {
                 onMouseEnter={() => handleMenuHover(item)}
                 className={`
               flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
-          ${isActive ? 'bg-purple-200 text-black' : 'hover:bg-violet-50 text-gray-500'}
+          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
         `}
             >
                 <Icon icon={item.icon} size={22} />
@@ -104,7 +104,9 @@ const SidebarNavigation: React.FC = () => {
 
     const sidebar = (
         <div className="hidden sm:flex relative" onMouseLeave={handleSidebarLeave}>
-            <aside className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-white ${ROUNDED_R}`}>
+            <aside
+                className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}
+            >
                 <div className="flex flex-col items-center py-6">
                     <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
                     <span className="text-primary font-bold text-3xl mb-2">hopps</span>
@@ -112,7 +114,7 @@ const SidebarNavigation: React.FC = () => {
                 <nav className="flex-1 flex flex-col gap-2 mt-2">
                     {menuConfig.map((item) => (
                         <div key={item.id}>
-                            <ul className="bg-white">{renderMenuItem(item)}</ul>
+                            <ul>{renderMenuItem(item)}</ul>
                         </div>
                     ))}
                 </nav>
