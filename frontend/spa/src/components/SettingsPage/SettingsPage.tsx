@@ -23,7 +23,7 @@ function SettingsPage({ activeTab, menu, children, onActiveTabChanged }: Setting
 
     return (
         <ActiveTabContext.Provider value={{ activeTab: activeItem, setActiveTab: onActiveTabChanged }}>
-            <div className="settings-page flex flex-row bg-white dark:bg-black/20 rounded-[30px] shadow min-h-[calc(100vh-260px)] pb-5">
+            <div className="settings-page flex flex-row bg-background-secondary rounded-[30px] shadow min-h-[calc(100vh-260px)] pb-5">
                 <div className="settings-page__nav flex-shrink-0 w-[150px] md:w-[300px] border-0 border-r-2 border-r-separator">
                     <div className="px-4 pt-4">
                         <h1 className="flex flex-row gap-2 h-10 items-center">
