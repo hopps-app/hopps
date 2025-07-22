@@ -1,12 +1,10 @@
 package app.hopps.org.rest;
 
-import app.hopps.org.jpa.BommelRepository;
-import app.hopps.org.jpa.MemberRepository;
-import app.hopps.org.jpa.Organization;
-import app.hopps.org.jpa.OrganizationRepository;
+import app.hopps.org.jpa.*;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import app.hopps.org.rest.model.OrganizationInput;
 import app.hopps.org.rest.model.OwnerInput;
+import app.hopps.org.rest.model.UpdateOrganizationInput;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -21,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.sql.Date;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.any;
@@ -44,6 +43,8 @@ class OrganizationResourceTests {
 
     @Inject
     BommelRepository bommelRepository;
+    @Inject
+    OrganizationResource organizationResource;
 
     @BeforeEach
     public void cleanDatabase() {
@@ -116,4 +117,47 @@ class OrganizationResourceTests {
                 .body("id", any(String.class))
                 .body("error", nullValue());
     }
+
+    @Test
+    void shouldUpdateExistingOrganization(){
+
+        Organization org = organizationRepository.findBySlug("gruenes-herz-ev");
+        Address adr = org.getAddress();
+
+        // alter adress
+        adr.setCity(adr.getCity() + "_altered");
+        adr.setNumber(adr.getNumber() + 1);
+        adr.setPlz(adr.getPlz() + "_altered");
+        adr.setStreet(adr.getStreet() + "_altered");
+        adr.setAdditionalLine(adr.getAdditionalLine() + "_altered");
+
+        //alter Organization
+        org.setName(org.getName() + "_altered");
+        org.setAddress(adr);
+        org.setFoundationDate(new Date(System.currentTimeMillis()));
+        org.setRegistrationCourt(org.getRegistrationCourt() + "_altered");
+        org.setRegistrationNumber(org.getRegistrationNumber() + "_altered");
+        org.setTaxId(org.getTaxId() + "_altered");
+
+        UpdateOrganizationInput updateOrganizationInput = new UpdateOrganizationInput(
+            org.getName(),
+            org.getAddress(),
+            org.getFoundationDate(),
+            org.getRegistrationCourt(),
+            org.getRegistrationNumber(),
+            org.getTaxId()
+        );
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(updateOrganizationInput)
+                .when()
+                .put("/organizations/gruenes-herz-ev")
+                .then()
+                .statusCode(200);
+
+        assert(organizationRepository.findBySlug("gruenes-herz-ev").equals(org));
+
+    }
+
 }

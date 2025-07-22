@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Pattern;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.net.URL;
+import java.sql.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,6 +49,18 @@ public class Organization extends PanacheEntity {
 
     @Schema(examples = "https://example.com/avatar.png")
     private URL profilePicture;
+
+    @Schema(examples = "01.02.2003")
+    private Date foundationDate;
+
+    @Schema(examples = "Amtsgericht Pfaffenhofen")
+    private String registrationCourt;
+
+    @Schema(examples = "1")
+    private String registrationNumber;
+
+    @Schema(examples = "46531254")
+    private String taxId;
 
     public Organization() {
         // no args constructor
@@ -141,5 +154,36 @@ public class Organization extends PanacheEntity {
         // for now, we will only support e.V.
 
         public abstract String getDisplayString();
+    }
+
+    public Date getFoundationDate() {
+        return foundationDate;
+    }
+
+    public void setFoundationDate(Date foundationDate) {
+        this.foundationDate = foundationDate;
+    }
+    public void setRegistrationCourt(String registerCourt) {
+        this.registrationCourt = registerCourt;
+    }
+
+    public String getRegistrationCourt() {
+        return registrationCourt;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
+
+    public String getTaxId() {
+        return taxId;
+    }
+
+    public void setTaxId(String taxId) {
+        this.taxId = taxId;
     }
 }

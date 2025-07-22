@@ -7,19 +7,12 @@ import app.hopps.org.jpa.OrganizationRepository;
 import app.hopps.org.rest.RestValidator.ValidationResult;
 import app.hopps.org.rest.model.CreateOrganizationResponse;
 import app.hopps.org.rest.model.NewOrganizationInput;
+import app.hopps.org.rest.model.UpdateOrganizationInput;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.validation.Validator;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -164,5 +157,28 @@ public class OrganizationResource {
         }
 
         return result;
+    }
+
+    @PUT
+    @Path("{slug}")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Update Organization by slug")
+    public Response updateOrganizationBySlug(@PathParam("slug") String slug, UpdateOrganizationInput updateOrganizationInput) {
+        Organization organization = organizationRepository.findBySlug(slug);
+        if (organization == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        organization.setName(updateOrganizationInput.organizationName());
+        organization.setAddress(updateOrganizationInput.address());
+        organization.setFoundationDate(updateOrganizationInput.foundationDate());
+        organization.setRegistrationCourt(updateOrganizationInput.registerCourt());
+        organization.setRegistrationNumber(updateOrganizationInput.registerNumber());
+        organization.setTaxId(updateOrganizationInput.taxId());
+
+        organization.persist();
+
+        return Response.ok().build();
     }
 }
