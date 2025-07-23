@@ -138,37 +138,6 @@ org fully qualified name
 {{- printf "%s-org" (include "hopps.fullname" .) -}}
 {{- end -}}
 
-
-{{/*
-fin labels
-*/}}
-{{- define "hopps.finLabels" -}}
-{{ include "hopps.commonLabels" . }}
-{{ include "hopps.finSelectorLabels" . }}
-app.kubernetes.io/version: {{ .Chart.AppVersion }}
-{{- end -}}
-{{/*
-fin selector labels
-*/}}
-{{- define "hopps.finSelectorLabels" -}}
-{{ include "hopps.commonSelectorLabels" . }}
-app.kubernetes.io/name: {{ printf "%s-fin" (include "hopps.name" .) }}
-app.kubernetes.io/component: fin
-{{- end -}}
-{{/*
-fin name
-*/}}
-{{- define "hopps.finName" -}}
-{{- printf "%s-fin" (include "hopps.name" .) -}}
-{{- end -}}
-{{/*
-fin fully qualified name
-*/}}
-{{- define "hopps.finFullname" -}}
-{{- printf "%s-fin" (include "hopps.fullname" .) -}}
-{{- end -}}
-
-
 {{/*
 fin-narrator labels
 */}}

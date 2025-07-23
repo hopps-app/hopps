@@ -1,8 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: hopps
-spec:
-  interval: 1h
-  url: oci://ghcr.io/hopps-app/hopps
-  type: oci

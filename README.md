@@ -18,20 +18,6 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-fin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-fin)
 
-## Caveats
-
-### Docker Image für Kogito Data Index
-
-Die Dev Services von Kogito benötigen das Docker Image `apache/incubator-kie-kogito-data-index-ephemeral:main`. Leider
-wird das Image aber nur als `apache/incubator-kie-kogito-data-index-ephemeral:main-$TIMESTAMP` gepusht. Daher muss es
-lokal gepullt und umbenannt werden:
-
-    docker pull apache/incubator-kie-kogito-data-index-ephemeral:main-20240818
-    docker tag apache/incubator-kie-kogito-data-index-ephemeral:main-20240818 apache/incubator-kie-kogito-data-index-ephemeral:main
-
-Die jeweils aktuelle Version mit dem aktuellen Tag findet man
-unter [hub.docker.com/r/apache/incubator-kie-kogito-data-index-ephemeral/tags](https://hub.docker.com/r/apache/incubator-kie-kogito-data-index-ephemeral/tags).
-
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

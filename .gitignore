@@ -200,3 +200,5 @@ $RECYCLE.BIN/
 # unencrypted secrets
 *decrypted.env
 age.agekey
+
+node_modules
