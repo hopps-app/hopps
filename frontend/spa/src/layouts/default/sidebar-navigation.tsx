@@ -114,12 +114,17 @@ const SidebarNavigation: React.FC = () => {
                     <span className="text-primary font-bold text-3xl mb-2">hopps</span>
                 </div>
                 <nav className="flex-1 flex flex-col gap-2 mt-2">
-                    {menuConfig.map((item) => (
-                        <div key={item.id}>
-                            <ul>{renderMenuItem(item)}</ul>
-                        </div>
-                    ))}
+                    {menuConfig
+                        .filter((item) => item.id !== 'admin')
+                        .map((item) => (
+                            <div key={item.id}>
+                                <ul>{renderMenuItem(item)}</ul>
+                            </div>
+                        ))}
                 </nav>
+                <div className="mt-auto mb-4">
+                    <ul>{renderMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
+                </div>
             </aside>
 
             {expanded && (
