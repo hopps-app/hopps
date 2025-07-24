@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTrigger } from '@radix-ui/react-dialog';
+import { useTranslation } from 'react-i18next';
 
 import Icon from '@/components/ui/Icon';
 import { menuConfig, MenuItem, SubMenuItem } from './menu-config';
@@ -12,6 +13,7 @@ const ROUNDED = 'rounded-[20px]';
 const SidebarNavigation: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [open, setOpen] = React.useState(false);
     const [expanded, setExpanded] = React.useState<string | null>(null);
     const [isClosing, setIsClosing] = React.useState(false);
@@ -81,7 +83,7 @@ const SidebarNavigation: React.FC = () => {
         `}
             >
                 <Icon icon={item.icon} size={22} />
-                <span className="text-xs leading-tight mt-1">{item.label}</span>
+                <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
             </li>
         );
     };
@@ -97,7 +99,7 @@ const SidebarNavigation: React.FC = () => {
           ${isActive ? 'font-bold text-black' : 'text-gray-500'}
         `}
             >
-                <span className="text-xs leading-tight mt-1">{item.label}</span>
+                <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
             </li>
         );
     };
