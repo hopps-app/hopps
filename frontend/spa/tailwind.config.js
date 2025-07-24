@@ -48,6 +48,31 @@ export default {
                 'hover-active': 'var(--hover-active)',
                 'hover-effect': 'var(--hover-effect)',
                 'background-secondary': 'var(--background-secondary)',
+                // Purple color scale
+                purple: {
+                    50: 'var(--purple-50)',
+                    100: 'var(--purple-100)',
+                    200: 'var(--purple-200)',
+                    300: 'var(--purple-300)',
+                    400: 'var(--purple-400)',
+                    500: 'var(--purple-500)',
+                    600: 'var(--purple-600)',
+                    700: 'var(--purple-700)',
+                    800: 'var(--purple-800)',
+                    900: 'var(--purple-900)',
+                    950: 'var(--purple-950)',
+                },
+                // Grey color scale
+                grey: {
+                    black: 'var(--grey-black)',
+                    900: 'var(--grey-900)',
+                    800: 'var(--grey-800)',
+                    700: 'var(--grey-700)',
+                    600: 'var(--grey-600)',
+                    500: 'var(--grey-500)',
+                    400: 'var(--grey-400)',
+                    white: 'var(--grey-white)',
+                },
                 chart: {
                     1: 'hsl(var(--chart-1))',
                     2: 'hsl(var(--chart-2))',
@@ -56,7 +81,7 @@ export default {
                     5: 'hsl(var(--chart-5))',
                 },
             },
-            fontFamily:{
+            fontFamily: {
                 reddit: ['"Reddit Sans"', 'sans-serif'],
             }
         },
