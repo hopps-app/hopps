@@ -122,7 +122,7 @@ const SidebarNavigation: React.FC = () => {
 
             {expanded && (
                 <div
-                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-violet-50 dark:bg-accent border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-violet-50 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
                     <div className="p-4 pt-40">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
