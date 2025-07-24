@@ -96,5 +96,17 @@
   },
   "settingsPage": {
     "menu": "Menu"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "receipts": "Receipts",
+    "new-receipt": "New Receipts",
+    "expense": "Expense",
+    "intake": "Intake",
+    "structure": "Bommel structure",
+    "admin": "Admin",
+    "ngo-details": "Ngo Details",
+    "user-access": "User Access Controls",
+    "categories": "Categories"
   }
 }

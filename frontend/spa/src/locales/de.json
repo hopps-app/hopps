@@ -29,7 +29,7 @@
     "dragDrop": "Ziehen & Ablegen von Dateien hier",
     "dragFile": "Dateien hier ablegen...",
     "fileTooLarge": "Datei ist zu groß, maximale Größe 5MB",
-    "totalTooLarge":"Die gesamte Dateigröße überschreitet das Limit von 20MB.",
+    "totalTooLarge": "Die gesamte Dateigröße überschreitet das Limit von 20MB.",
     "maxFilesExceeded": "Es sind maximal 10 Dateien erlaubt.",
     "selectBommel": "Bommel wählen",
     "privately": "Privat bezahlt",
@@ -95,5 +95,17 @@
   },
   "settingsPage": {
     "menu": "Menü"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "receipts": "Belege",
+    "new-receipt": "Hinzufügen",
+    "expense": "Ausgabe",
+    "intake": "Einnahme",
+    "structure": "Bommel Struktur",
+    "admin": "Admin",
+    "ngo-details": "NGO Details",
+    "user-access": "Benutzerrechte",
+    "categories": "Kategorien"
   }
 }
