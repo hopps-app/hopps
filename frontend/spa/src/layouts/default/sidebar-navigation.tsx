@@ -17,6 +17,17 @@ const SidebarNavigation: React.FC = () => {
     const [open, setOpen] = React.useState(false);
     const [expanded, setExpanded] = React.useState<string | null>(null);
     const [isClosing, setIsClosing] = React.useState(false);
+    const [isWideScreen, setIsWideScreen] = React.useState(false);
+    const [pinnedSubmenu, setPinnedSubmenu] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const checkScreenWidth = () => {
+            setIsWideScreen(window.innerWidth > 1400);
+        };
+
+        checkScreenWidth();
+        window.addEventListener('resize', checkScreenWidth);
+    }, []);
 
     // Expand parent if current route matches a submenu
     React.useEffect(() => {
@@ -26,16 +37,27 @@ const SidebarNavigation: React.FC = () => {
 
     const handleMenuClick = (item: MenuItem | SubMenuItem) => {
         if (item.children) {
-            if (expanded === item.id) {
-                setIsClosing(true);
-                setTimeout(() => {
-                    setExpanded(null);
-                    setIsClosing(false);
-                }, 150);
+            if (isWideScreen) {
+                if (pinnedSubmenu === item.id) {
+                    setPinnedSubmenu(null);
+                } else {
+                    setPinnedSubmenu(item.id);
+                    setExpanded(item.id);
+                }
             } else {
-                setExpanded(item.id);
+                if (expanded === item.id) {
+                    setIsClosing(true);
+                    setTimeout(() => {
+                        setExpanded(null);
+                        setIsClosing(false);
+                    }, 150);
+                } else {
+                    setExpanded(item.id);
+                }
             }
         } else if (item.path) {
+            setPinnedSubmenu(null);
+            setExpanded(null);
             navigate(item.path);
             setOpen(false);
         }
@@ -44,14 +66,11 @@ const SidebarNavigation: React.FC = () => {
     const handleMenuHover = (item: MenuItem) => {
         if (item.children) {
             if (expanded && expanded !== item.id) {
-                // Switch to different submenu
                 setExpanded(item.id);
             } else if (!expanded) {
-                // Open submenu on first hover
                 setExpanded(item.id);
             }
-        } else if (expanded) {
-            // Close submenu if hovering over item without children
+        } else if (expanded && (!isWideScreen || !pinnedSubmenu)) {
             setIsClosing(true);
             setTimeout(() => {
                 setExpanded(null);
@@ -61,6 +80,11 @@ const SidebarNavigation: React.FC = () => {
     };
 
     const handleSidebarLeave = () => {
+        if (isWideScreen && pinnedSubmenu) {
+            setExpanded(pinnedSubmenu);
+            return;
+        }
+
         if (expanded) {
             setIsClosing(true);
             setTimeout(() => {
@@ -71,7 +95,7 @@ const SidebarNavigation: React.FC = () => {
     };
 
     const renderMenuItem = (item: MenuItem) => {
-        const isActive = item.path && location.pathname.startsWith(item.path) && (!item.children || expanded === item.id);
+        const isActive = location.pathname.indexOf(item.path) > -1;
         return (
             <li
                 key={item.id}
@@ -89,7 +113,7 @@ const SidebarNavigation: React.FC = () => {
     };
 
     const renderSubMenuItem = (item: SubMenuItem) => {
-        const isActive = item.path && location.pathname.startsWith(item.path) && (!item.children || expanded === item.id);
+        const isActive = location.pathname.indexOf(item.path) > -1;
         return (
             <li
                 key={item.id}
@@ -129,7 +153,7 @@ const SidebarNavigation: React.FC = () => {
 
             {expanded && (
                 <div
-                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-32 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-44 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
                     <div className="p-4 pt-40">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
