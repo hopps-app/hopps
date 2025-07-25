@@ -78,7 +78,7 @@ const SidebarNavigation: React.FC = () => {
                 onClick={() => handleMenuClick(item)}
                 onMouseEnter={() => handleMenuHover(item)}
                 className={`
-              flex flex-col items-center justify-center gap-1 p-4 mb-12 cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
+              flex flex-col items-center justify-center gap-1 p-4 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
           ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
         `}
             >
