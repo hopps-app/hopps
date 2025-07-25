@@ -4,7 +4,7 @@ export type MenuItem = {
     id: string;
     label: string;
     icon: RadixIcons;
-    path?: string;
+    path: string;
     children?: Omit<MenuItem, 'icon'>[];
 };
 
