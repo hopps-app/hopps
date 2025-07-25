@@ -105,7 +105,7 @@ const SidebarNavigation: React.FC = () => {
     };
 
     const sidebar = (
-        <div className="hidden sm:flex relative" onMouseLeave={handleSidebarLeave}>
+        <div className="hidden sm:flex fixed left-0 top-0 h-screen" onMouseLeave={handleSidebarLeave}>
             <aside
                 className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}
             >
