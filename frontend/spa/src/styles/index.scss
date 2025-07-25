@@ -26,7 +26,6 @@
 
 @layer base {
     :root {
-        // Purple color scale (Light Mode)
         --purple-50: #F5EEFA;
         --purple-100: #ECE0F6;
         --purple-200: #DAC1EC;
@@ -39,7 +38,6 @@
         --purple-900: #391851;
         --purple-950: #1C0C28;
 
-        // Grey color scale
         --grey-black: #000000;
         --grey-900: #4E4E4E;
         --grey-800: #797979;
@@ -49,7 +47,6 @@
         --grey-400: #F5F5F5;
         --grey-white: #FFFFFF;
 
-        // Existing variables
         --primary: var(--purple-500);
         --primary-active: #b54ffb;
         --primary-foreground: var(--grey-white);
@@ -77,7 +74,6 @@
     }
 
     .dark {
-        // Purple color scale (Dark Mode)
         --purple-50: #1C0C28;
         --purple-100: #391851;
         --purple-200: #552479;
@@ -90,7 +86,6 @@
         --purple-900: #ECE0F6;
         --purple-950: #F5EEFA;
 
-        // Grey color scale (same for dark mode)
         --grey-black: #000000;
         --grey-900: #4E4E4E;
         --grey-800: #797979;
@@ -100,7 +95,6 @@
         --grey-400: #F5F5F5;
         --grey-white: #FFFFFF;
 
-        // Existing variables
         --primary: var(--purple-500);
         --primary-active: #b54ffb;
         --primary-foreground: var(--grey-white);
