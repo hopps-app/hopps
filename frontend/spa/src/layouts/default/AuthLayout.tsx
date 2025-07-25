@@ -5,7 +5,7 @@ import UserMenu from '@/layouts/default/UserMenu.tsx';
 
 export default function AuthLayout() {
     return (
-        <div className="flex h-screen w-screen bg-background">
+        <div className="flex h-screen bg-background">
             <SidebarNavigation />
             <div className="container mx-auto py-8">
                 <header className="flex justify-end pb-5">
