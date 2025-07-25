@@ -14,7 +14,7 @@ const SidebarNavigation: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [open, setOpen] = React.useState(false);
+    const [isMobileOpen, setIsMobileOpen] = React.useState(false);
     const [expanded, setExpanded] = React.useState<string | null>(null);
     const [isClosing, setIsClosing] = React.useState(false);
     const [isWideScreen, setIsWideScreen] = React.useState(false);
@@ -50,7 +50,7 @@ const SidebarNavigation: React.FC = () => {
                     setTimeout(() => {
                         setExpanded(null);
                         setIsClosing(false);
-                    }, 150);
+                    }, 280);
                 } else {
                     setExpanded(item.id);
                 }
@@ -59,7 +59,7 @@ const SidebarNavigation: React.FC = () => {
             setPinnedSubmenu(null);
             setExpanded(null);
             navigate(item.path);
-            setOpen(false);
+            handleMobileMenuClose();
         }
     };
 
@@ -75,7 +75,7 @@ const SidebarNavigation: React.FC = () => {
             setTimeout(() => {
                 setExpanded(null);
                 setIsClosing(false);
-            }, 150);
+            }, 280);
         }
     };
 
@@ -90,8 +90,16 @@ const SidebarNavigation: React.FC = () => {
             setTimeout(() => {
                 setExpanded(null);
                 setIsClosing(false);
-            }, 150);
+            }, 280);
         }
+    };
+
+    const handleMobileMenuClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsMobileOpen(false);
+            setIsClosing(false);
+        }, 280);
     };
 
     const renderMenuItem = (item: MenuItem) => {
@@ -153,7 +161,7 @@ const SidebarNavigation: React.FC = () => {
 
             {expanded && (
                 <div
-                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-44 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-44 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
                     <div className="p-4 pt-40">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
@@ -163,34 +171,47 @@ const SidebarNavigation: React.FC = () => {
         </div>
     );
 
-    // TODO
     const mobileSidebar = (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={isMobileOpen} onOpenChange={setIsMobileOpen}>
             <DialogTrigger asChild>
                 <button className="sm:hidden fixed top-4 left-4 z-50 bg-white rounded-full shadow p-2 border border-violet-200">
-                    <Icon icon="HamburgerMenu" size={24} />
+                    <Icon icon={isMobileOpen ? 'Cross1' : 'HamburgerMenu'} size={24} />
                 </button>
             </DialogTrigger>
-            <DialogContent className="fixed inset-0 z-40 flex p-0 bg-transparent border-none" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                <div className={`${SIDEBAR_WIDTH} bg-white h-full shadow-xl animate-in slide-in-from-left`}>
-                    <div className="flex flex-col items-center py-6">
+            <DialogContent className="fixed inset-0 z-40 flex p-0 bg-transparent border-none" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                <div
+                    className={`relative w-[55vw] max-w-xs h-full bg-background-secondary shadow-xl flex flex-col animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                >
+                    <button
+                        className="absolute top-4 left-4 z-50 bg-white rounded-full shadow p-2 border border-violet-200"
+                        onClick={handleMobileMenuClose}
+                        aria-label="Close menu"
+                    >
+                        <Icon icon="Cross1" size={24} />
+                    </button>
+                    <div className="flex flex-col items-center py-8">
                         <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
-                        <span className="text-violet-700 font-bold text-lg mb-2">hopps</span>
+                        <span className="text-primary font-bold text-3xl mb-2">hopps</span>
                     </div>
                     <nav className="flex-1 flex flex-col gap-2 mt-2">
-                        {menuConfig.map((item) => (
-                            <div key={item.id}>
-                                <ul className="bg-white">{renderMenuItem(item)}</ul>
-                                {item.children && expanded === item.id && (
-                                    <div className="ml-2 border-l-2 border-violet-100">
-                                        <ul className="bg-violet-50 pl-2">{item.children.map((child) => renderSubMenuItem(child))}</ul>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                        {menuConfig
+                            .filter((item) => item.id !== 'admin')
+                            .map((item) => (
+                                <div key={item.id}>
+                                    <ul>{renderMenuItem(item)}</ul>
+                                    {item.children && expanded === item.id && (
+                                        <div className="ml-2 border-l-2 border-violet-100">
+                                            <ul className="bg-violet-50 pl-2">{item.children.map((child) => renderSubMenuItem(child))}</ul>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                     </nav>
+                    <div className="mt-auto mb-4">
+                        <ul>{renderMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
+                    </div>
                 </div>
-                <div className="flex-1" onClick={() => setOpen(false)} />
+                <div className="flex-1" onClick={handleMobileMenuClose} />
             </DialogContent>
         </Dialog>
     );
