@@ -10,6 +10,7 @@ import AppRoutes from './AppRoutes';
 
 function App() {
     const { isInitialized, setIsInitialized } = useStore();
+    // const queryClient = useQueryClient();
     const loadUserOrganisation = async () => {
         const apiService = (await import('@/services/ApiService.ts')).default;
         const user = useStore.getState().user;
