@@ -19,6 +19,7 @@ const SidebarNavigation: React.FC = () => {
     const [isClosing, setIsClosing] = React.useState(false);
     const [isWideScreen, setIsWideScreen] = React.useState(false);
     const [pinnedSubmenu, setPinnedSubmenu] = React.useState<string | null>(null);
+    const [mobileSubmenuStack, setMobileSubmenuStack] = React.useState<string[]>([]);
 
     React.useEffect(() => {
         const checkScreenWidth = () => {
@@ -99,7 +100,28 @@ const SidebarNavigation: React.FC = () => {
         setTimeout(() => {
             setIsMobileOpen(false);
             setIsClosing(false);
+            setMobileSubmenuStack([]);
         }, 280);
+    };
+
+    const handleMobileSubmenuEnter = (menuId: string) => {
+        setMobileSubmenuStack([...mobileSubmenuStack, menuId]);
+    };
+
+    const handleMobileSubmenuBack = () => {
+        const newStack = [...mobileSubmenuStack];
+        newStack.pop();
+        setMobileSubmenuStack(newStack);
+    };
+
+    const handleMobileMenuClick = (item: MenuItem | SubMenuItem) => {
+        if (item.children && mobileSubmenuStack.length === 0) {
+            // Enter submenu
+            handleMobileSubmenuEnter(item.id);
+        } else if (item.path) {
+            navigate(item.path);
+            handleMobileMenuClose();
+        }
     };
 
     const renderMenuItem = (item: MenuItem) => {
@@ -132,6 +154,42 @@ const SidebarNavigation: React.FC = () => {
         `}
             >
                 <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
+            </li>
+        );
+    };
+
+    const renderMobileMenuItem = (item: MenuItem) => {
+        const isActive = location.pathname.indexOf(item.path) > -1;
+        return (
+            <li
+                key={item.id}
+                onClick={() => handleMobileMenuClick(item)}
+                className={`
+              flex items-center justify-between gap-3 p-4 cursor-pointer select-none ${ROUNDED} font-semibold text-lg transition-all duration-200
+          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
+        `}
+            >
+                <div className="flex items-center gap-3">
+                    <Icon icon={item.icon} size={20} />
+                    <span>{t(item.label)}</span>
+                </div>
+                {item.children && <Icon icon="ArrowRight" size={16} className="text-gray-400" />}
+            </li>
+        );
+    };
+
+    const renderMobileSubMenuItem = (item: SubMenuItem) => {
+        const isActive = location.pathname.indexOf(item.path) > -1;
+        return (
+            <li
+                key={item.id}
+                onClick={() => handleMobileMenuClick(item)}
+                className={`
+              flex items-center gap-3 p-4 cursor-pointer select-none ${ROUNDED} font-medium text-base transition-all duration-200
+          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
+        `}
+            >
+                <span>{t(item.label)}</span>
             </li>
         );
     };
@@ -180,7 +238,7 @@ const SidebarNavigation: React.FC = () => {
             </DialogTrigger>
             <DialogContent className="fixed inset-0 z-40 flex p-0 bg-transparent border-none" style={{ background: 'rgba(0,0,0,0.4)' }}>
                 <div
-                    className={`relative w-[55vw] max-w-xs h-full bg-background-secondary shadow-xl flex flex-col animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                    className={`relative w-[90vw] max-w-xs h-full bg-background-secondary shadow-xl flex flex-col animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
                     <button
                         className="absolute top-4 left-4 z-50 bg-white rounded-full shadow p-2 border border-violet-200"
@@ -194,22 +252,42 @@ const SidebarNavigation: React.FC = () => {
                         <span className="text-primary font-bold text-3xl mb-2">hopps</span>
                     </div>
                     <nav className="flex-1 flex flex-col gap-2 mt-2">
-                        {menuConfig
-                            .filter((item) => item.id !== 'admin')
-                            .map((item) => (
-                                <div key={item.id}>
-                                    <ul>{renderMenuItem(item)}</ul>
-                                    {item.children && expanded === item.id && (
-                                        <div className="ml-2 border-l-2 border-violet-100">
-                                            <ul className="bg-violet-50 pl-2">{item.children.map((child) => renderSubMenuItem(child))}</ul>
+                        {mobileSubmenuStack.length === 0 ? (
+                            <>
+                                {menuConfig
+                                    .filter((item) => item.id !== 'admin')
+                                    .map((item) => (
+                                        <ul key={item.id}>{renderMobileMenuItem(item)}</ul>
+                                    ))}
+                            </>
+                        ) : (
+                            <>
+                                <ul>
+                                    <li
+                                        onClick={handleMobileSubmenuBack}
+                                        className="flex items-center justify-between gap-3 p-4 cursor-pointer select-none rounded-[20px] font-semibold text-lg transition-all duration-200 hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Icon icon="ArrowLeft" size={20} />
+                                            <span>{t('Main Menu')}</span>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                    </li>
+                                </ul>
+
+                                {(() => {
+                                    const currentMenuId = mobileSubmenuStack[mobileSubmenuStack.length - 1];
+                                    const currentMenu = menuConfig.find((item) => item.id === currentMenuId);
+                                    return currentMenu?.children?.map((child) => <ul key={child.id}>{renderMobileSubMenuItem(child)}</ul>);
+                                })()}
+                            </>
+                        )}
                     </nav>
-                    <div className="mt-auto mb-4">
-                        <ul>{renderMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
-                    </div>
+
+                    {mobileSubmenuStack.length === 0 && (
+                        <div className="mt-auto mb-4">
+                            <ul>{renderMobileMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
+                        </div>
+                    )}
                 </div>
                 <div className="flex-1" onClick={handleMobileMenuClose} />
             </DialogContent>
