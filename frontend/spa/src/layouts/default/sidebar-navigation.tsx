@@ -20,6 +20,7 @@ const SidebarNavigation: React.FC = () => {
     const [isWideScreen, setIsWideScreen] = React.useState(false);
     const [pinnedSubmenu, setPinnedSubmenu] = React.useState<string | null>(null);
     const [mobileSubmenuStack, setMobileSubmenuStack] = React.useState<string[]>([]);
+    const [isMobileFading, setIsMobileFading] = React.useState(false);
 
     React.useEffect(() => {
         const checkScreenWidth = () => {
@@ -105,13 +106,21 @@ const SidebarNavigation: React.FC = () => {
     };
 
     const handleMobileSubmenuEnter = (menuId: string) => {
-        setMobileSubmenuStack([...mobileSubmenuStack, menuId]);
+        setIsMobileFading(true);
+        setTimeout(() => {
+            setMobileSubmenuStack([...mobileSubmenuStack, menuId]);
+            setIsMobileFading(false);
+        }, 300);
     };
 
     const handleMobileSubmenuBack = () => {
-        const newStack = [...mobileSubmenuStack];
-        newStack.pop();
-        setMobileSubmenuStack(newStack);
+        setIsMobileFading(true);
+        setTimeout(() => {
+            const newStack = [...mobileSubmenuStack];
+            newStack.pop();
+            setMobileSubmenuStack(newStack);
+            setIsMobileFading(false);
+        }, 300);
     };
 
     const handleMobileMenuClick = (item: MenuItem | SubMenuItem) => {
@@ -251,7 +260,7 @@ const SidebarNavigation: React.FC = () => {
                         <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
                         <span className="text-primary font-bold text-3xl mb-2">hopps</span>
                     </div>
-                    <nav className="flex-1 flex flex-col gap-2 mt-2">
+                    <nav className={`flex-1 flex flex-col gap-2 mt-2 duration-300 ${isMobileFading ? 'opacity-0' : 'opacity-100'}`}>
                         {mobileSubmenuStack.length === 0 ? (
                             <>
                                 {menuConfig
@@ -284,7 +293,7 @@ const SidebarNavigation: React.FC = () => {
                     </nav>
 
                     {mobileSubmenuStack.length === 0 && (
-                        <div className="mt-auto mb-4">
+                        <div className={`mt-auto mb-4 transition-opacity duration-300 ${isMobileFading ? 'opacity-0' : 'opacity-100'}`}>
                             <ul>{renderMobileMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
                         </div>
                     )}
