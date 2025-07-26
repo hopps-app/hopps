@@ -6,7 +6,7 @@ import Icon from '@/components/ui/Icon';
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem, SubMenuItem } from './shared/types';
 
-const SIDEBAR_WIDTH = 'w-32';
+const SIDEBAR_WIDTH = 'w-28';
 const ROUNDED_R = 'rounded-r-[20px]';
 const ROUNDED = 'rounded-[20px]';
 
@@ -120,7 +120,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
     };
 
     return (
-        <div className="hidden sm:flex fixed left-0 top-0 h-screen" onMouseLeave={handleSidebarLeave}>
+        <div className="fixed left-0 top-0 h-screen" onMouseLeave={handleSidebarLeave}>
             <aside
                 className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}
             >
