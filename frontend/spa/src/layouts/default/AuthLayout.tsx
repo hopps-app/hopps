@@ -7,8 +7,9 @@ export default function AuthLayout() {
     return (
         <div className="flex h-screen bg-background">
             <SidebarNavigation />
-            <div className="flex-1 flex justify-center ml-0 sm:ml-28 bg-red-900">
-                <div className="w-full max-w-[1360px] px-4 py-8 bg-white">
+            {/*the desktop-sidebar component has w-28 */}
+            <div className={`flex-1 flex justify-center ml-0 sm:ml-28`}>
+                <div className="w-full max-w-[1360px] px-4 py-8">
                     <header className="flex justify-end pb-5">
                         <UserMenu />
                     </header>
