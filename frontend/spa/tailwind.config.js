@@ -48,7 +48,6 @@ export default {
                 'hover-active': 'var(--hover-active)',
                 'hover-effect': 'var(--hover-effect)',
                 'background-secondary': 'var(--background-secondary)',
-                // Purple color scale
                 purple: {
                     50: 'var(--purple-50)',
                     100: 'var(--purple-100)',
@@ -62,7 +61,6 @@ export default {
                     900: 'var(--purple-900)',
                     950: 'var(--purple-950)',
                 },
-                // Grey color scale
                 grey: {
                     black: 'var(--grey-black)',
                     900: 'var(--grey-900)',
