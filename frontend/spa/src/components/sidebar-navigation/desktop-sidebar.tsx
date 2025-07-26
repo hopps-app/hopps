@@ -6,7 +6,6 @@ import Icon from '@/components/ui/Icon';
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem, SubMenuItem } from './shared/types';
 
-const SIDEBAR_WIDTH = 'w-28';
 const ROUNDED_R = 'rounded-r-[20px]';
 const ROUNDED = 'rounded-[20px]';
 
@@ -93,8 +92,8 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
                 onClick={() => handleMenuClick(item)}
                 onMouseEnter={() => handleMenuHover(item)}
                 className={`
-              flex flex-col items-center justify-center gap-1 p-4 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
-          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
+              flex flex-col items-center justify-center text-center gap-1 p-4 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
+          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-500 dark:text-gray-200'}
         `}
             >
                 <Icon icon={item.icon} size={22} />
@@ -110,8 +109,8 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
                 key={item.id}
                 onClick={() => handleMenuClick(item)}
                 className={`
-              flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED_R} font-semibold text-xl pl-6 transition-all duration-200'
-          ${isActive ? 'font-bold text-black' : 'text-gray-500'}
+              flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED_R} hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl pl-6 transition-all duration-200'
+          ${isActive ? 'font-bold text-black' : 'dark:text-grey-400'}
         `}
             >
                 <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
@@ -120,10 +119,8 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
     };
 
     return (
-        <div className="fixed left-0 top-0 h-screen" onMouseLeave={handleSidebarLeave}>
-            <aside
-                className={`flex flex-col h-full ${SIDEBAR_WIDTH} z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}
-            >
+        <div className="flex fixed z-10 left-0 top-0 h-screen" onMouseLeave={handleSidebarLeave}>
+            <aside className={`flex flex-col h-full w-28 z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}>
                 <div className="flex flex-col items-center py-6">
                     <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
                     <span className="text-primary font-bold text-3xl mb-2">hopps</span>
