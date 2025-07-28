@@ -50,7 +50,7 @@ spec:
             {{- end }}
             - # fin-narrator
             - name: HOPPS_FIN_NARRATOR_SERVICE_URL
-              value: http://{{ .Release.Name }}-fin-narrator:{{ .Values.fin.service.port }}/
+              value: http://{{ .Release.Name }}-fin-narrator:{{ .Values.finNarrator.service.port }}/
             - # az-document-ai
             - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
               value: http://{{ .Release.Name }}-az-document-ai:{{ .Values.azDocumentAi.service.port }}/
