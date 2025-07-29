@@ -42,7 +42,11 @@ spec:
               value: {{ .Release.Name }}-kafka:9092
             {{- end }}
             {{- if .Values.org.envVars }}
-            {{- toYaml .Values.org.envVars | nindent 12 }}
+            {{- range .Values.org.envVars }}
+            {{- if . }}
+            - {{- toYaml . | nindent 4 }}
+            {{- end }}
+            {{- end }}
             {{- end }}
             {{- if .Values.openfgaEnabled }}
             - name: QUARKUS_OPENFGA_URL
