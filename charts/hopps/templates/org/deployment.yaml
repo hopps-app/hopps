@@ -52,14 +52,14 @@ spec:
             - name: QUARKUS_OPENFGA_URL
               value: http://{{ .Release.Name }}-openfga:8080
             {{- end }}
-            - # fin-narrator
+            # fin-narrator
             - name: HOPPS_FIN_NARRATOR_SERVICE_URL
               value: http://{{ .Release.Name }}-fin-narrator:{{ .Values.finNarrator.service.port }}/
-            - # az-document-ai
+            # az-document-ai
             - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
               value: http://{{ .Release.Name }}-az-document-ai:{{ .Values.azDocumentAi.service.port }}/
-            - # zugferd
-            - # ToDo: replace environment variable when the name is known
+            # zugferd
+            # ToDo: replace environment variable when the name is known
             - name: HOPPS_ZUGFERD
               value: http://{{ .Release.Name }}-zugferd:{{ .Values.zugferd.service.port }}/
           {{- end }}
