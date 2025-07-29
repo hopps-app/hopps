@@ -35,7 +35,6 @@ spec:
         {{- toYaml .Values.org.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- if or .Values.org.envVars .Values.openfgaEnabled }}
           env:
             {{- if .Values.kafka.enabled }}
             - name: kafka.bootstrap.servers
@@ -55,10 +54,8 @@ spec:
             - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
               value: http://{{ .Release.Name }}-az-document-ai:{{ .Values.azDocumentAi.service.port }}/
             # zugferd
-            # ToDo: replace environment variable when the name is known
             - name: HOPPS_ZUGFERD
               value: http://{{ .Release.Name }}-zugferd:{{ .Values.zugferd.service.port }}/
-          {{- end }}
           securityContext:
             {{- toYaml .Values.org.securityContext | nindent 12 }}
           image: "{{ .Values.org.image.repository }}:{{ .Values.org.image.tag | default .Chart.AppVersion }}"
