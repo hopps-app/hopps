@@ -44,7 +44,7 @@ spec:
             {{- if .Values.org.envVars }}
             {{- range .Values.org.envVars }}
             {{- if . }}
-            - {{- toYaml . | nindent 4 }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- end }}
             {{- end }}
