@@ -39,7 +39,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
 
         setLoading(true);
         try {
-            await apiService.invoices.reassignTransaction(bommelId, data.id);
+            await apiService.transactionRecord.bommelPATCH(bommelId, data.id);
             showSuccess(`${t('invoices.assignPopover.successAssign')}`);
             await api.applyTransaction({
                 update: [{ ...data, bommel: bommelId }],
