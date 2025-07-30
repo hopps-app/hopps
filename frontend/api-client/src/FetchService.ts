@@ -104,7 +104,3 @@ export const createFetchService = (options: FetchServiceOptions): FetchInstance 
         }
     };
 };
-
-// For backward compatibility, export the old names as well
-export type AxiosServiceOptions = FetchServiceOptions;
-export const createAxiosService = createFetchService;

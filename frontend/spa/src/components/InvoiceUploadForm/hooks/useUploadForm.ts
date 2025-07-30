@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FileWithPath } from 'react-dropzone';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { TransactionType } from '@hopps/api-client/dist/types/TransactionRecord.ts';
+import { DocumentType } from '@hopps/api-client';
 
 import { InvoiceUploadType } from '@/components/InvoiceUploadForm/types/index';
 import { useToast } from '@/hooks/use-toast.ts';
@@ -146,7 +146,19 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         setIsUploading(true);
         try {
             if (selectedBommelId) {
-                await Promise.all(selectedFiles.map((file) => apiService.invoices.uploadInvoice(file, selectedBommelId, documentType, isPrivatelyPaid)));
+                await Promise.all(
+                    selectedFiles.map((file) =>
+                        apiService.document.documentPOST(
+                            {
+                                data: file,
+                                fileName: file.name,
+                            },
+                            selectedBommelId,
+                            isPrivatelyPaid,
+                            documentType as DocumentType
+                        )
+                    )
+                );
             }
             showSuccess('All files uploaded successfully');
             clearState();
@@ -174,8 +186,9 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         setValue('isPrivatelyPaid', !isPrivatelyPaid);
     };
 
-    const onDocumentTypeChange = (value: TransactionType) => {
-        setValue('documentType', value);
+    const onDocumentTypeChange = (value: string) => {
+        console.log(value);
+        setValue('documentType', value as DocumentType);
     };
 
     const isValidUpload = useMemo(

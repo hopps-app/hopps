@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TransactionRecord } from '@hopps/api-client';
 
 import InvoicesTable from '@/components/InvoicesTable/InvoicesTable';
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
@@ -10,6 +11,36 @@ import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store.ts';
+
+async function getInvoices(): Promise<InvoicesTableData[]> {
+    const transactions: TransactionRecord[] = [];
+    const pageSize = 100;
+
+    let page = 0;
+
+    while (true) {
+        const data = await apiService.transactionRecord.all(undefined, false, page, pageSize);
+
+        if (Array.isArray(data)) {
+            transactions.push(...data);
+            if (data.length < pageSize) {
+                break;
+            }
+        } else {
+            break;
+        }
+
+        page++;
+    }
+
+    return transactions.map((transaction) => ({
+        id: transaction.id,
+        amount: transaction.total,
+        bommel: transaction.bommelId,
+        name: transaction.name,
+        date: transaction.transactionTime ? new Date(transaction.transactionTime).toLocaleString() : '',
+    }));
+}
 
 function InvoicesView() {
     const { t } = useTranslation();
@@ -25,7 +56,7 @@ function InvoicesView() {
     const loadInvoices = async () => {
         setInvoices([]);
         try {
-            const invoices = await apiService.invoices.getInvoices();
+            const invoices = await getInvoices();
             setInvoices(invoices);
         } catch (e) {
             console.error(e);
