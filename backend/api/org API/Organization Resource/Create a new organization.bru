@@ -7,29 +7,29 @@ meta {
 post {
   url: {{baseUrl}}/organization
   body: json
-  auth: none
+  auth: inherit
 }
 
 body:json {
   {
     "owner": {
-      "email": "",
-      "firstName": "",
-      "lastName": ""
+      "email": "test@test.com",
+      "firstName": "emilia",
+      "lastName": "jaser"
     },
-    "newPassword": "",
+    "newPassword": "password",
     "organization": {
-      "name": "",
-      "slug": "",
-      "type": "",
-      "website": "",
+      "name": "string",
+      "slug": "string",
+      "type": "EINGETRAGENER_VEREIN",
+      "website": "https://byte-sized.fyi/",
       "profilePicture": "",
       "address": {
-        "street": "",
-        "number": "",
-        "city": "",
-        "plz": "",
-        "additionalLine": ""
+        "street": "Raketenstraße",
+        "number": "42a",
+        "city": "Raketenstadt",
+        "plz": "4242",
+        "additionalLine": "Hinterhaus"
       }
     }
   }

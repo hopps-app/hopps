@@ -1,7 +1,3 @@
-headers {
-  Authorization: Bearer {{access_token_set_by_collection_script}}
-}
-
 auth {
   mode: oauth2
 }
@@ -11,15 +7,16 @@ auth:oauth2 {
   callback_url: {{keycloak_redirect_url}}
   authorization_url: {{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/auth
   access_token_url: {{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token
+  refresh_token_url: 
   client_id: {{keycloak_client}}
   client_secret: 
   scope: 
   state: 
   pkce: true
-}
-
-script:post-response {
-  if(req.getAuthMode() == 'oauth2' && res.body.access_token) {
-      bru.setVar('access_token_set_by_collection_script', res.body.access_token);
-  }
+  credentials_placement: body
+  credentials_id: credentials
+  token_placement: header
+  token_header_prefix: 
+  auto_fetch_token: true
+  auto_refresh_token: false
 }
