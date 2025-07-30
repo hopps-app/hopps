@@ -19,7 +19,7 @@ export class AuthenticatedHttpClient {
     // Attach the current token
     init.headers = {
       ...init.headers,
-      Authorization: `Bearer ${this.config.getAccessToken?.()}`
+      ...(this.config.getAccessToken && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
     };
 
     let response = await fetch(url, init);
@@ -30,7 +30,7 @@ export class AuthenticatedHttpClient {
         // Retry the request with a new token
         init.headers = {
           ...init.headers,
-          Authorization: `Bearer ${this.config.getAccessToken?.()}`
+          ...(this.config.getAccessToken && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
         };
         response = await fetch(url, init);
       }
