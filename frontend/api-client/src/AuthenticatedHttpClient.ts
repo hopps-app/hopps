@@ -17,10 +17,13 @@ export class AuthenticatedHttpClient {
 
   async fetch(url: string, init: RequestInit): Promise<Response> {
     // Attach the current token
+    console.log('test')
     init.headers = {
       ...init.headers,
-      ...(this.config.getAccessToken && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
+      ...(this.config.getAccessToken() && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
     };
+
+    console.log("headers", init.headers);
 
     let response = await fetch(url, init);
 
@@ -30,7 +33,7 @@ export class AuthenticatedHttpClient {
         // Retry the request with a new token
         init.headers = {
           ...init.headers,
-          ...(this.config.getAccessToken && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
+          ...(this.config.getAccessToken() && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
         };
         response = await fetch(url, init);
       }
