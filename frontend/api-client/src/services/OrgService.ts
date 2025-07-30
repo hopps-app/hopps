@@ -8,14 +8,87 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-export class Bommel_ResourceClient {
+export class Client {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
+    }
+
+    /**
+     * Get all transaction records
+     * @param bommelId (optional) Fetch all transaction records which are connected to the bommel
+     * @param detached (optional) Fetch all transaction records which are not connected to any bommel
+     * @param page (optional) Current page you want to display, starts with 0
+     * @param size (optional) 
+     * @return List of transaction records, empty list if none are available
+     */
+    all(bommelId: number | undefined, detached: boolean | undefined, page: number | undefined, size: number | undefined): Promise<TransactionRecord[]> {
+        let url_ = this.baseUrl + "/all?";
+        if (bommelId === null)
+            throw new Error("The parameter 'bommelId' cannot be null.");
+        else if (bommelId !== undefined)
+            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+        if (detached === null)
+            throw new Error("The parameter 'detached' cannot be null.");
+        else if (detached !== undefined)
+            url_ += "detached=" + encodeURIComponent("" + detached) + "&";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (size === null)
+            throw new Error("The parameter 'size' cannot be null.");
+        else if (size !== undefined)
+            url_ += "size=" + encodeURIComponent("" + size) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAll(_response);
+        });
+    }
+
+    protected processAll(response: Response): Promise<TransactionRecord[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TransactionRecord.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TransactionRecord[]>(null as any);
     }
 
     /**
@@ -468,16 +541,121 @@ export class Bommel_ResourceClient {
         }
         return Promise.resolve<TreeSearchBommel[]>(null as any);
     }
-}
 
-export class Process_Instance_Management_ResourceClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+    /**
+     * Upload Document
+     * @param file (optional) 
+     * @param bommelId (optional) 
+     * @param privatelyPaid (optional) 
+     * @param type (optional) 
+     * @return OK
+     */
+    documentPOST(file: FileParameter | undefined, bommelId: number | null | undefined, privatelyPaid: boolean | undefined, type: DocumentType | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/document";
+        url_ = url_.replace(/[?&]$/, "");
 
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+        if (bommelId !== null && bommelId !== undefined)
+            content_.append("bommelId", bommelId.toString());
+        if (privatelyPaid === null || privatelyPaid === undefined)
+            throw new Error("The parameter 'privatelyPaid' cannot be null.");
+        else
+            content_.append("privatelyPaid", privatelyPaid.toString());
+        if (type === null || type === undefined)
+            throw new Error("The parameter 'type' cannot be null.");
+        else
+            content_.append("type", type.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentPOST(_response);
+        });
+    }
+
+    protected processDocumentPOST(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Get Document By Key
+     * @return OK
+     */
+    documentGET(documentKey: string): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/document/{documentKey}";
+        if (documentKey === undefined || documentKey === null)
+            throw new Error("The parameter 'documentKey' must be defined.");
+        url_ = url_.replace("{documentKey}", encodeURIComponent("" + documentKey));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentGET(_response);
+        });
+    }
+
+    protected processDocumentGET(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
     }
 
     /**
@@ -500,6 +678,45 @@ export class Process_Instance_Management_ResourceClient {
     }
 
     protected processProcesses(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Get Source File By Uri
+     * @param uri (optional) 
+     * @return OK
+     */
+    sources(uri: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/management/processes/sources?";
+        if (uri === null)
+            throw new Error("The parameter 'uri' cannot be null.");
+        else if (uri !== undefined)
+            url_ += "uri=" + encodeURIComponent("" + uri) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSources(_response);
+        });
+    }
+
+    protected processSources(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1009,56 +1226,6 @@ export class Process_Instance_Management_ResourceClient {
         }
         return Promise.resolve<void>(null as any);
     }
-}
-
-export class Source_Files_ResourceClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
-    }
-
-    /**
-     * Get Source File By Uri
-     * @param uri (optional) 
-     * @return OK
-     */
-    sources(uri: string | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/sources?";
-        if (uri === null)
-            throw new Error("The parameter 'uri' cannot be null.");
-        else if (uri !== undefined)
-            url_ += "uri=" + encodeURIComponent("" + uri) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSources(_response);
-        });
-    }
-
-    protected processSources(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
 
     /**
      * Get Source File By Process Id
@@ -1144,17 +1311,6 @@ export class Source_Files_ResourceClient {
         }
         return Promise.resolve<SourceFile[]>(null as any);
     }
-}
-
-export class Member_ResourceClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
-    }
 
     /**
      * Validates the member input
@@ -1212,17 +1368,6 @@ export class Member_ResourceClient {
         }
         return Promise.resolve<ValidationResult>(null as any);
     }
-}
-
-export class Quarkus_Topics_Information_ResourceClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
-    }
 
     /**
      * Get Topics
@@ -1256,17 +1401,6 @@ export class Quarkus_Topics_Information_ResourceClient {
             });
         }
         return Promise.resolve<void>(null as any);
-    }
-}
-
-export class Organization_ResourceClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -1536,17 +1670,6 @@ export class Organization_ResourceClient {
         }
         return Promise.resolve<Member[]>(null as any);
     }
-}
-
-export class Process_Svg_ResourceClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
-    }
 
     /**
      * Get Process Svg
@@ -1624,6 +1747,64 @@ export class Process_Svg_ResourceClient {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    /**
+     * Add a transaction record to a bommel
+     * @param bommelId (optional) 
+     * @return Specified transaction record was attached to bommel
+     */
+    bommelPATCH(id: number, bommelId: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/{id}/bommel?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (bommelId === null)
+            throw new Error("The parameter 'bommelId' cannot be null.");
+        else if (bommelId !== undefined)
+            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PATCH",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBommelPATCH(_response);
+        });
+    }
+
+    protected processBommelPATCH(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Specified transaction record id was not found", status, _responseText, _headers);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bommel was not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class Bommel implements IBommel {
@@ -1692,13 +1873,6 @@ export class Bommel implements IBommel {
         }
         return data;
     }
-
-    clone(): Bommel {
-        const json = this.toJSON();
-        let result = new Bommel();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface IBommel {
@@ -1756,18 +1930,204 @@ export class CreateOrganizationResponse implements ICreateOrganizationResponse {
         data["error"] = this.error;
         return data;
     }
-
-    clone(): CreateOrganizationResponse {
-        const json = this.toJSON();
-        let result = new CreateOrganizationResponse();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface ICreateOrganizationResponse {
     id?: string;
     error?: string;
+
+    [key: string]: any;
+}
+
+export enum DocumentType {
+    RECEIPT = "RECEIPT",
+    INVOICE = "INVOICE",
+}
+
+export class InvoiceData implements IInvoiceData {
+    referenceKey?: number;
+    total?: number;
+    invoiceDate?: Date;
+    currencyCode?: string;
+    customerName?: string | undefined;
+    purchaseOrderNumber?: string | undefined;
+    invoiceId?: string | undefined;
+    dueDate?: DueDate;
+    amountDue?: number | undefined;
+    sender?: Sender;
+    receiver?: Receiver;
+
+    [key: string]: any;
+
+    constructor(data?: IInvoiceData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.referenceKey = _data["referenceKey"];
+            this.total = _data["total"];
+            this.invoiceDate = _data["invoiceDate"] ? new Date(_data["invoiceDate"].toString()) : <any>undefined;
+            this.currencyCode = _data["currencyCode"];
+            this.customerName = _data["customerName"];
+            this.purchaseOrderNumber = _data["purchaseOrderNumber"];
+            this.invoiceId = _data["invoiceId"];
+            this.dueDate = _data["dueDate"];
+            this.amountDue = _data["amountDue"];
+            this.sender = _data["sender"];
+            this.receiver = _data["receiver"];
+        }
+    }
+
+    static fromJS(data: any): InvoiceData {
+        data = typeof data === 'object' ? data : {};
+        let result = new InvoiceData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["referenceKey"] = this.referenceKey;
+        data["total"] = this.total;
+        data["invoiceDate"] = this.invoiceDate ? formatDate(this.invoiceDate) : <any>undefined;
+        data["currencyCode"] = this.currencyCode;
+        data["customerName"] = this.customerName;
+        data["purchaseOrderNumber"] = this.purchaseOrderNumber;
+        data["invoiceId"] = this.invoiceId;
+        data["dueDate"] = this.dueDate;
+        data["amountDue"] = this.amountDue;
+        data["sender"] = this.sender;
+        data["receiver"] = this.receiver;
+        return data;
+    }
+}
+
+export interface IInvoiceData {
+    referenceKey?: number;
+    total?: number;
+    invoiceDate?: Date;
+    currencyCode?: string;
+    customerName?: string | undefined;
+    purchaseOrderNumber?: string | undefined;
+    invoiceId?: string | undefined;
+    dueDate?: DueDate;
+    amountDue?: number | undefined;
+    sender?: Sender;
+    receiver?: Receiver;
+
+    [key: string]: any;
+}
+
+export class InvoiceModelInput implements IInvoiceModelInput {
+    invoiceData?: InvoiceData;
+
+    [key: string]: any;
+
+    constructor(data?: IInvoiceModelInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.invoiceData = _data["invoiceData"] ? InvoiceData.fromJS(_data["invoiceData"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): InvoiceModelInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new InvoiceModelInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["invoiceData"] = this.invoiceData ? this.invoiceData.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IInvoiceModelInput {
+    invoiceData?: InvoiceData;
+
+    [key: string]: any;
+}
+
+export class InvoiceModelOutput implements IInvoiceModelOutput {
+    id?: string;
+    invoiceData?: InvoiceData;
+
+    [key: string]: any;
+
+    constructor(data?: IInvoiceModelOutput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.invoiceData = _data["invoiceData"] ? InvoiceData.fromJS(_data["invoiceData"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): InvoiceModelOutput {
+        data = typeof data === 'object' ? data : {};
+        let result = new InvoiceModelOutput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["invoiceData"] = this.invoiceData ? this.invoiceData.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IInvoiceModelOutput {
+    id?: string;
+    invoiceData?: InvoiceData;
 
     [key: string]: any;
 }
@@ -1835,13 +2195,6 @@ export class Member implements IMember {
         }
         return data;
     }
-
-    clone(): Member {
-        const json = this.toJSON();
-        let result = new Member();
-        result.init(json);
-        return result;
-    }
 }
 
 /** An example of a Hopps Member */
@@ -1907,13 +2260,6 @@ export class NewOrganizationInput implements INewOrganizationInput {
         data["organization"] = this.organization ? this.organization.toJSON() : <any>undefined;
         return data;
     }
-
-    clone(): NewOrganizationInput {
-        const json = this.toJSON();
-        let result = new NewOrganizationInput();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface INewOrganizationInput {
@@ -1970,13 +2316,6 @@ export class NewOrganizationModelInput implements INewOrganizationModelInput {
         data["newPassword"] = this.newPassword;
         return data;
     }
-
-    clone(): NewOrganizationModelInput {
-        const json = this.toJSON();
-        let result = new NewOrganizationModelInput();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface INewOrganizationModelInput {
@@ -2026,13 +2365,6 @@ export class NewOrganizationModelOutput implements INewOrganizationModelOutput {
         }
         data["id"] = this.id;
         return data;
-    }
-
-    clone(): NewOrganizationModelOutput {
-        const json = this.toJSON();
-        let result = new NewOrganizationModelOutput();
-        result.init(json);
-        return result;
     }
 }
 
@@ -2094,13 +2426,6 @@ export class Organization implements IOrganization {
         data["plz"] = this.plz;
         data["additionalLine"] = this.additionalLine;
         return data;
-    }
-
-    clone(): Organization {
-        const json = this.toJSON();
-        let result = new Organization();
-        result.init(json);
-        return result;
     }
 }
 
@@ -2188,13 +2513,6 @@ export class Organization1 implements IOrganization1 {
         data["profilePicture"] = this.profilePicture;
         return data;
     }
-
-    clone(): Organization1 {
-        const json = this.toJSON();
-        let result = new Organization1();
-        result.init(json);
-        return result;
-    }
 }
 
 /** An example of a Hopps Organization, i.e. Verein */
@@ -2267,13 +2585,6 @@ export class OrganizationInput implements IOrganizationInput {
         data["address"] = this.address ? this.address.toJSON() : <any>undefined;
         return data;
     }
-
-    clone(): OrganizationInput {
-        const json = this.toJSON();
-        let result = new OrganizationInput();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface IOrganizationInput {
@@ -2333,13 +2644,6 @@ export class OwnerInput implements IOwnerInput {
         data["lastName"] = this.lastName;
         return data;
     }
-
-    clone(): OwnerInput {
-        const json = this.toJSON();
-        let result = new OwnerInput();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface IOwnerInput {
@@ -2393,18 +2697,175 @@ export class ProcessMigrationSpec implements IProcessMigrationSpec {
         data["targetProcessVersion"] = this.targetProcessVersion;
         return data;
     }
-
-    clone(): ProcessMigrationSpec {
-        const json = this.toJSON();
-        let result = new ProcessMigrationSpec();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface IProcessMigrationSpec {
     targetProcessId?: string;
     targetProcessVersion?: string;
+
+    [key: string]: any;
+}
+
+export class ReceiptData implements IReceiptData {
+    referenceKey?: number;
+    total?: number;
+    storeName?: string | undefined;
+    storeAddress?: StoreAddress;
+    transactionTime?: TransactionTime;
+
+    [key: string]: any;
+
+    constructor(data?: IReceiptData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.referenceKey = _data["referenceKey"];
+            this.total = _data["total"];
+            this.storeName = _data["storeName"];
+            this.storeAddress = _data["storeAddress"];
+            this.transactionTime = _data["transactionTime"];
+        }
+    }
+
+    static fromJS(data: any): ReceiptData {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReceiptData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["referenceKey"] = this.referenceKey;
+        data["total"] = this.total;
+        data["storeName"] = this.storeName;
+        data["storeAddress"] = this.storeAddress;
+        data["transactionTime"] = this.transactionTime;
+        return data;
+    }
+}
+
+export interface IReceiptData {
+    referenceKey?: number;
+    total?: number;
+    storeName?: string | undefined;
+    storeAddress?: StoreAddress;
+    transactionTime?: TransactionTime;
+
+    [key: string]: any;
+}
+
+export class ReceiptModelInput implements IReceiptModelInput {
+    receiptData?: ReceiptData;
+
+    [key: string]: any;
+
+    constructor(data?: IReceiptModelInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.receiptData = _data["receiptData"] ? ReceiptData.fromJS(_data["receiptData"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): ReceiptModelInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReceiptModelInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["receiptData"] = this.receiptData ? this.receiptData.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IReceiptModelInput {
+    receiptData?: ReceiptData;
+
+    [key: string]: any;
+}
+
+export class ReceiptModelOutput implements IReceiptModelOutput {
+    id?: string;
+    receiptData?: ReceiptData;
+
+    [key: string]: any;
+
+    constructor(data?: IReceiptModelOutput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.receiptData = _data["receiptData"] ? ReceiptData.fromJS(_data["receiptData"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): ReceiptModelOutput {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReceiptModelOutput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["receiptData"] = this.receiptData ? this.receiptData.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IReceiptModelOutput {
+    id?: string;
+    receiptData?: ReceiptData;
 
     [key: string]: any;
 }
@@ -2448,13 +2909,6 @@ export class SourceFile implements ISourceFile {
         }
         data["uri"] = this.uri;
         return data;
-    }
-
-    clone(): SourceFile {
-        const json = this.toJSON();
-        let result = new SourceFile();
-        result.init(json);
-        return result;
     }
 }
 
@@ -2526,13 +2980,6 @@ export class TaskModel implements ITaskModel {
         data["results"] = this.results;
         return data;
     }
-
-    clone(): TaskModel {
-        const json = this.toJSON();
-        let result = new TaskModel();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface ITaskModel {
@@ -2543,6 +2990,202 @@ export interface ITaskModel {
     phaseStatus?: string;
     parameters?: any;
     results?: any;
+
+    [key: string]: any;
+}
+
+export class TradeParty implements ITradeParty {
+    id?: number;
+    name?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    zipCode?: string;
+    street?: string;
+    additionalAddress?: string;
+    taxID?: string;
+    vatID?: string;
+    description?: string;
+
+    [key: string]: any;
+
+    constructor(data?: ITradeParty) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.country = _data["country"];
+            this.state = _data["state"];
+            this.city = _data["city"];
+            this.zipCode = _data["zipCode"];
+            this.street = _data["street"];
+            this.additionalAddress = _data["additionalAddress"];
+            this.taxID = _data["taxID"];
+            this.vatID = _data["vatID"];
+            this.description = _data["description"];
+        }
+    }
+
+    static fromJS(data: any): TradeParty {
+        data = typeof data === 'object' ? data : {};
+        let result = new TradeParty();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["country"] = this.country;
+        data["state"] = this.state;
+        data["city"] = this.city;
+        data["zipCode"] = this.zipCode;
+        data["street"] = this.street;
+        data["additionalAddress"] = this.additionalAddress;
+        data["taxID"] = this.taxID;
+        data["vatID"] = this.vatID;
+        data["description"] = this.description;
+        return data;
+    }
+}
+
+export interface ITradeParty {
+    id?: number;
+    name?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    zipCode?: string;
+    street?: string;
+    additionalAddress?: string;
+    taxID?: string;
+    vatID?: string;
+    description?: string;
+
+    [key: string]: any;
+}
+
+export class TransactionRecord implements ITransactionRecord {
+    id?: number;
+    bommelId?: number;
+    documentKey?: string;
+    uploader?: string;
+    total?: number;
+    privatelyPaid?: boolean;
+    document?: DocumentType;
+    transactionTime?: Date;
+    sender?: TradeParty;
+    recipient?: TradeParty;
+    name?: string;
+    orderNumber?: string;
+    invoiceId?: string;
+    dueDate?: Date;
+    amountDue?: number;
+    currencyCode?: string;
+
+    [key: string]: any;
+
+    constructor(data?: ITransactionRecord) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.bommelId = _data["bommelId"];
+            this.documentKey = _data["documentKey"];
+            this.uploader = _data["uploader"];
+            this.total = _data["total"];
+            this.privatelyPaid = _data["privatelyPaid"];
+            this.document = _data["document"];
+            this.transactionTime = _data["transactionTime"] ? new Date(_data["transactionTime"].toString()) : <any>undefined;
+            this.sender = _data["sender"] ? TradeParty.fromJS(_data["sender"]) : <any>undefined;
+            this.recipient = _data["recipient"] ? TradeParty.fromJS(_data["recipient"]) : <any>undefined;
+            this.name = _data["name"];
+            this.orderNumber = _data["orderNumber"];
+            this.invoiceId = _data["invoiceId"];
+            this.dueDate = _data["dueDate"] ? new Date(_data["dueDate"].toString()) : <any>undefined;
+            this.amountDue = _data["amountDue"];
+            this.currencyCode = _data["currencyCode"];
+        }
+    }
+
+    static fromJS(data: any): TransactionRecord {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionRecord();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["bommelId"] = this.bommelId;
+        data["documentKey"] = this.documentKey;
+        data["uploader"] = this.uploader;
+        data["total"] = this.total;
+        data["privatelyPaid"] = this.privatelyPaid;
+        data["document"] = this.document;
+        data["transactionTime"] = this.transactionTime ? this.transactionTime.toISOString() : <any>undefined;
+        data["sender"] = this.sender ? this.sender.toJSON() : <any>undefined;
+        data["recipient"] = this.recipient ? this.recipient.toJSON() : <any>undefined;
+        data["name"] = this.name;
+        data["orderNumber"] = this.orderNumber;
+        data["invoiceId"] = this.invoiceId;
+        data["dueDate"] = this.dueDate ? this.dueDate.toISOString() : <any>undefined;
+        data["amountDue"] = this.amountDue;
+        data["currencyCode"] = this.currencyCode;
+        return data;
+    }
+}
+
+export interface ITransactionRecord {
+    id?: number;
+    bommelId?: number;
+    documentKey?: string;
+    uploader?: string;
+    total?: number;
+    privatelyPaid?: boolean;
+    document?: DocumentType;
+    transactionTime?: Date;
+    sender?: TradeParty;
+    recipient?: TradeParty;
+    name?: string;
+    orderNumber?: string;
+    invoiceId?: string;
+    dueDate?: Date;
+    amountDue?: number;
+    currencyCode?: string;
 
     [key: string]: any;
 }
@@ -2597,13 +3240,6 @@ export class TreeSearchBommel implements ITreeSearchBommel {
                 data["cyclePath"].push(item);
         }
         return data;
-    }
-
-    clone(): TreeSearchBommel {
-        const json = this.toJSON();
-        let result = new TreeSearchBommel();
-        result.init(json);
-        return result;
     }
 }
 
@@ -2662,13 +3298,6 @@ export class ValidationResult implements IValidationResult {
         }
         return data;
     }
-
-    clone(): ValidationResult {
-        const json = this.toJSON();
-        let result = new ValidationResult();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface IValidationResult {
@@ -2720,13 +3349,6 @@ export class Violation implements IViolation {
         data["message"] = this.message;
         return data;
     }
-
-    clone(): Violation {
-        const json = this.toJSON();
-        let result = new Violation();
-        result.init(json);
-        return result;
-    }
 }
 
 export interface IViolation {
@@ -2736,8 +3358,246 @@ export interface IViolation {
     [key: string]: any;
 }
 
+export class DueDate implements IDueDate {
+
+    [key: string]: any;
+
+    constructor(data?: IDueDate) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): DueDate {
+        data = typeof data === 'object' ? data : {};
+        let result = new DueDate();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface IDueDate {
+
+    [key: string]: any;
+}
+
+export class Sender implements ISender {
+
+    [key: string]: any;
+
+    constructor(data?: ISender) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): Sender {
+        data = typeof data === 'object' ? data : {};
+        let result = new Sender();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface ISender {
+
+    [key: string]: any;
+}
+
+export class Receiver implements IReceiver {
+
+    [key: string]: any;
+
+    constructor(data?: IReceiver) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): Receiver {
+        data = typeof data === 'object' ? data : {};
+        let result = new Receiver();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface IReceiver {
+
+    [key: string]: any;
+}
+
+export class StoreAddress implements IStoreAddress {
+
+    [key: string]: any;
+
+    constructor(data?: IStoreAddress) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): StoreAddress {
+        data = typeof data === 'object' ? data : {};
+        let result = new StoreAddress();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface IStoreAddress {
+
+    [key: string]: any;
+}
+
+export class TransactionTime implements ITransactionTime {
+
+    [key: string]: any;
+
+    constructor(data?: ITransactionTime) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): TransactionTime {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionTime();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface ITransactionTime {
+
+    [key: string]: any;
+}
+
+function formatDate(d: Date) {
+    return d.getFullYear() + '-' + 
+        (d.getMonth() < 9 ? ('0' + (d.getMonth()+1)) : (d.getMonth()+1)) + '-' +
+        (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
+}
+
+export interface FileResponse {
+    data: Blob;
+    status: number;
+    fileName?: string;
+    headers?: { [name: string]: any };
+}
+
 export class ApiException extends Error {
-    override message: string;
+    message: string;
     status: number;
     response: string;
     headers: { [key: string]: any; };
