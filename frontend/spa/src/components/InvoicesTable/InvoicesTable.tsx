@@ -49,7 +49,7 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
     }, [searchQuery]);
 
     const summary = useMemo(() => {
-        const totalAmount = filteredData.reduce((sum, invoice) => sum + invoice.amount, 0);
+        const totalAmount = filteredData.reduce((sum, invoice) => sum + (invoice.amount || 0), 0);
 
         return `${t('invoices.summary.totalFirstPart')} ${filteredData.length} ${t('invoices.summary.invoicesPart')} ${formatNumber(totalAmount)}${currencySymbolAfter || ''}`;
     }, [filteredData, currencySymbolAfter]);
@@ -66,8 +66,8 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
     const getBommelFilterItems = () => {
         const ids: number[] = [];
         invoices.forEach((invoice) => {
-            if (!ids.includes(invoice.bommel)) {
-                ids.push(invoice.bommel);
+            if (!ids.includes(invoice.bommel || -1)) {
+                ids.push(invoice.bommel || -1);
             }
         });
 
