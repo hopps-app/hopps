@@ -16,7 +16,6 @@ public class InvoiceDataHelper {
         Map<String, DocumentField> fields = document.getFields();
 
         return new InvoiceData(
-                -1L,
                 BigDecimal.valueOf(fields.get("InvoiceTotal").getValueCurrency().getAmount()),
                 fields.get("InvoiceDate").getValueDate(),
                 Optional.ofNullable(fields.get("CurrencyCode"))

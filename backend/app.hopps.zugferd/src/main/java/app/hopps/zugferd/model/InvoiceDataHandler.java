@@ -14,7 +14,7 @@ public class InvoiceDataHandler {
         // only call the static method
     }
 
-    public static InvoiceData fromZugferd(Long referenceKey, Invoice invoice) {
+    public static InvoiceData fromZugferd(Invoice invoice) {
         TransactionCalculator tc = new TransactionCalculator(invoice);
 
         BigDecimal amountDue = tc.getGrandTotal();
@@ -27,7 +27,6 @@ public class InvoiceDataHandler {
         LocalDate dueDate = invoice.getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         return new InvoiceData(
-                referenceKey,
                 tc.getGrandTotal(),
                 invoice.getIssueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
                 invoice.getCurrency(),

@@ -2,21 +2,12 @@ package app.hopps.fin.endpoint;
 
 import app.hopps.fin.S3Handler;
 import app.hopps.fin.bpmn.SubmitService;
-import app.hopps.fin.jpa.TransactionRecordRepository;
 import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.kafka.DocumentProducer;
 import app.hopps.fin.model.DocumentType;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
@@ -28,7 +19,8 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,14 +29,10 @@ import java.util.UUID;
 public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
 
+    private static final List<String> ALLOWED_DOCUMENT_TYPES = List.of("image/png", "image/jpeg", "application/pdf");
+
     @Inject
     S3Handler s3Handler;
-
-    @Inject
-    TransactionRecordRepository repository;
-
-    @Inject
-    SecurityContext context;
 
     @Inject
     SubmitService submitService;
@@ -72,41 +60,45 @@ public class DocumentResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadDocument(
+    @Transactional
+    public TransactionRecord uploadDocument(
             @RestForm("file") FileUpload file,
             @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
             @RestForm("privatelyPaid") @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
             @RestForm("type") @PartType(MediaType.TEXT_PLAIN) DocumentType type) throws IOException {
         if (file == null || type == null) {
-            throw new WebApplicationException(
+            throw new BadRequestException(
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
         }
 
-        UUID documentKey = UUID.randomUUID();
-        s3Handler.saveFile(documentKey.toString(), file);
+        if (!ALLOWED_DOCUMENT_TYPES.contains(file.contentType())) {
+            throw new ClientErrorException(Response.status(Response.Status.UNSUPPORTED_MEDIA_TYPE)
+                    .entity("Invalid content type, allowed values: " + ALLOWED_DOCUMENT_TYPES)
+                    .build());
+        }
 
-        // Save in a database
-        TransactionRecord transactionRecord = new TransactionRecord(BigDecimal.ZERO, type,
-                context.getUserPrincipal().getName());
-        transactionRecord.setDocumentKey(documentKey.toString());
-        transactionRecord.setPrivatelyPaid(privatelyPaid);
-        bommelId.ifPresent(transactionRecord::setBommelId);
+        if (bommelId.isEmpty()) {
+            // TODO: Get root bommel of the organisation this user is attached to
+            throw new BadRequestException(
+                    Response.status(Response.Status.BAD_REQUEST).entity("'bommelId' not set!").build());
+        }
+
+        // TODO: Check this bommel ID is in the same organisation as the user
+
+        UUID documentKey = UUID.randomUUID();
+        LOG.info("Uploading document (documentKey={}, bommel={})", documentKey, bommelId);
+        byte[] fileContents = Files.readAllBytes(file.uploadedFile());
+        s3Handler.saveFile(documentKey.toString(), file.contentType(), fileContents);
 
         SubmitService.DocumentSubmissionRequest request = new SubmitService.DocumentSubmissionRequest(
                 documentKey.toString(),
-                bommelId,
-                Optional.of(type),
+                bommelId.get(),
+                type,
                 privatelyPaid,
-                securityContext.getUserPrincipal().getName());
-        String instanceId = submitService.submitDocument(request);
+                securityContext.getUserPrincipal().getName(),
+                file.contentType(),
+                fileContents);
 
-        return Response.accepted()
-                .entity(instanceId)
-                .build();
-    }
-
-    @Transactional
-    void persistTransactionRecord(TransactionRecord transactionRecord) {
-        repository.persist(transactionRecord);
+        return submitService.submitDocument(request);
     }
 }

@@ -30,7 +30,6 @@ class ZugFerdServiceTest {
 
         // then
         assertNotNull(invoiceData);
-        assertEquals(1L, invoiceData.referenceKey());
         assertEquals(LocalDate.of(2017, 5, 30), invoiceData.dueDate().get());
         assertEquals(LocalDate.of(2017, 5, 9), invoiceData.invoiceDate());
         assertEquals("Theodor Est", invoiceData.customerName().get());

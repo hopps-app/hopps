@@ -98,7 +98,6 @@ class ScanDocumentResourceTest {
 
     private static InvoiceData fakeInvoiceData() {
         return new InvoiceData(
-                0L,
                 BigDecimal.valueOf(135.0),
                 LocalDate.now(),
                 "EUR");
@@ -106,7 +105,6 @@ class ScanDocumentResourceTest {
 
     private static ReceiptData fakeReceiptData() {
         return new ReceiptData(
-                -1L,
                 BigDecimal.valueOf(156.9),
                 Optional.of("AWS"),
                 Optional.of(fakeAddress()),

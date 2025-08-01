@@ -11,6 +11,13 @@ import org.jboss.resteasy.reactive.RestForm;
 @RegisterClientHeaders
 @RegisterRestClient(configKey = "zugferd-service")
 public interface ZugFerdClient {
+
+    /**
+     * This status code is returned when the upload was correct, but the pdf either doesn't contain a zugferd invoice or
+     * the zugferd was incorrect.
+     */
+    int STATUS_CODE_UNSUCCESSFUL_PARSE = 422;
+
     @POST
     InvoiceData uploadDocument(
             @RestForm("file") byte[] file,

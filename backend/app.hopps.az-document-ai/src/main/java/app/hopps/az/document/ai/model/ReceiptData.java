@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 public record ReceiptData(
-        Long referenceKey,
         BigDecimal total,
         Optional<String> storeName,
         Optional<TradeParty> storeAddress,
