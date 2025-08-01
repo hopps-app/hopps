@@ -22,7 +22,6 @@ public class ReceiptDataHelper {
                 : LocalTime.parse(transactionTime.getValueTime());
 
         return new ReceiptData(
-                -1L,
                 BigDecimal.valueOf(fields.get("Total").getValueCurrency().getAmount()),
                 Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("MerchantAddress"))

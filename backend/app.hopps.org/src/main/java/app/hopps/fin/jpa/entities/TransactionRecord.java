@@ -1,17 +1,13 @@
 package app.hopps.fin.jpa.entities;
 
 import app.hopps.fin.model.DocumentType;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Generated;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Set;
 
 @Entity
 public class TransactionRecord {
@@ -52,6 +48,10 @@ public class TransactionRecord {
 
     @ManyToOne(cascade = CascadeType.ALL)
     private TradeParty recipient;
+
+    @ElementCollection
+    @CollectionTable
+    private Set<String> tags;
 
     private String name;
 
@@ -142,6 +142,14 @@ public class TransactionRecord {
 
     public void setDocument(DocumentType document) {
         this.document = document;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     public String getName() {

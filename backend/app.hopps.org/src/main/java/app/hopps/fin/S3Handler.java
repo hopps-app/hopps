@@ -15,11 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,17 +53,20 @@ public class S3Handler {
         return object.asByteArray();
     }
 
-    public void saveFile(String documentKey, FileUpload file) throws IOException {
-        byte[] fileContents = Files.readAllBytes(file.uploadedFile());
-
+    public void saveFile(String documentKey, String contentType, byte[] fileContents) {
         s3.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(documentKey)
-                .contentType(file.contentType())
+                .contentType(contentType)
                 .build(), RequestBody.fromBytes(fileContents));
 
         documentCache.as(CaffeineCache.class)
-                .put(file.fileName(), CompletableFuture.completedFuture(fileContents));
+                .put(documentKey, CompletableFuture.completedFuture(fileContents));
+    }
+
+    public void saveFile(String documentKey, FileUpload file) throws IOException {
+        byte[] fileContents = Files.readAllBytes(file.uploadedFile());
+        this.saveFile(documentKey, file.contentType(), fileContents);
     }
 
     void setup(@Observes StartupEvent ev) {

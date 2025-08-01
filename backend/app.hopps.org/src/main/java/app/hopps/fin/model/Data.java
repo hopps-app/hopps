@@ -1,5 +1,7 @@
 package app.hopps.fin.model;
 
+import app.hopps.fin.jpa.entities.TransactionRecord;
+
 public interface Data {
-    Long referenceKey();
+    void updateTransactionRecord(TransactionRecord transactionRecord);
 }

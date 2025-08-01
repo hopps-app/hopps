@@ -7,12 +7,12 @@ meta {
 post {
   url: {{baseUrl}}/document
   body: multipartForm
-  auth: none
+  auth: inherit
 }
 
 body:multipart-form {
-  file: @file()
-  bommelId: 
-  type: 
+  file: @file(/home/emilia/Downloads/hopps-test-belege/20249324596397B.pdf)
+  bommelId: 1
+  type: INVOICE
   privatelyPaid: false
 }
