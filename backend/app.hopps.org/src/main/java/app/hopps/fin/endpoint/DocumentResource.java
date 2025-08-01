@@ -21,7 +21,6 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Authenticated
@@ -63,7 +62,7 @@ public class DocumentResource {
     @Transactional
     public TransactionRecord uploadDocument(
             @RestForm("file") FileUpload file,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) Optional<Long> bommelId,
+            @RestForm("bommelId") @PartType(MediaType.TEXT_PLAIN) Long bommelId,
             @RestForm("privatelyPaid") @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
             @RestForm("type") @PartType(MediaType.TEXT_PLAIN) DocumentType type) throws IOException {
         if (file == null || type == null) {
@@ -77,7 +76,7 @@ public class DocumentResource {
                     .build());
         }
 
-        if (bommelId.isEmpty()) {
+        if (bommelId == null) {
             // TODO: Get root bommel of the organisation this user is attached to
             throw new BadRequestException(
                     Response.status(Response.Status.BAD_REQUEST).entity("'bommelId' not set!").build());
@@ -92,7 +91,7 @@ public class DocumentResource {
 
         SubmitService.DocumentSubmissionRequest request = new SubmitService.DocumentSubmissionRequest(
                 documentKey.toString(),
-                bommelId.get(),
+                bommelId,
                 type,
                 privatelyPaid,
                 securityContext.getUserPrincipal().getName(),

@@ -67,16 +67,17 @@ class S3HandlerTest {
         // save a file and then delete it from the s3,
         // this way getFile throws an error if it tries accessing the s3 again.
         FileUpload file = getMockedFileUpload();
-        s3Handler.saveFile("019676d0-19ec-704d-b746-b77353e2209f", file);
+        String documentKey = "019676d0-19ec-704d-b746-b77353e2209f";
+        s3Handler.saveFile(documentKey, file);
 
         lowLevels3Client.deleteObject(
                 DeleteObjectRequest.builder()
                         .bucket(bucketName)
-                        .key("019676d0-19ec-704d-b746-b77353e2209f")
+                        .key(documentKey)
                         .build());
 
         // when + then
-        assertDoesNotThrow(() -> s3Handler.getFile(file.fileName()));
+        assertDoesNotThrow(() -> s3Handler.getFile(documentKey));
     }
 
     private FileUpload getMockedFileUpload() throws URISyntaxException {
