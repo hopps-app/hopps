@@ -28,7 +28,6 @@
             "invoiceId": null,
             "purchaseOrderNumber": null,
             "receiver": null,
-            "referenceKey": -1,
             "sender": null,
             "total": 3.0
           },
@@ -101,7 +100,6 @@
       "request": {
         "body": {
           "content": {
-            "referenceKey": -1,
             "storeAddress": null,
             "storeName": null,
             "total": 3.0,
