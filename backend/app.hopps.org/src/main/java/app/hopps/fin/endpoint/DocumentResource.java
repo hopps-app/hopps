@@ -12,6 +12,10 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -68,6 +72,32 @@ public class DocumentResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
+    @Operation(summary = "Uploads a document, creates a transaction record for it and attaches that to a bommel.")
+    @APIResponse(responseCode = "200", description = "Newly created transaction record", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(contentSchema = TransactionRecord.class), example = """
+            {
+                "id": 1,
+                "bommelId": 23,
+                "documentKey": "0deb7f16-3521-4fdf-9bf4-ac097fef2d9e",
+                "uploader": "alice@example.test",
+                "total": 89.9,
+                "privatelyPaid": false,
+                "document": "INVOICE",
+                "transactionTime": "2024-07-17T22:00:00Z",
+                "sender": null,
+                "recipient": null,
+                "tags": [ "consulting", "services" ],
+                "name": "Herr Max Mustermann",
+                "orderNumber": "20249324596397",
+                "invoiceId": "20249324596397",
+                "dueDate": null,
+                "amountDue": null,
+                "currencyCode": "EUR"
+            }"""))
+    @APIResponse(responseCode = "400", description = """
+            Invalid input, either invalid bommel/bommel from another org, missing 'file' or 'type' inputs,
+            the user not being attached to exactly one organisation,
+            or an invalid MIME type on the uploaded file.
+            """)
     public TransactionRecord uploadDocument(
             @RestForm("file") FileUpload file,
             @RestForm("bommelId") @PartType(MediaType.TEXT_PLAIN) Long bommelId,

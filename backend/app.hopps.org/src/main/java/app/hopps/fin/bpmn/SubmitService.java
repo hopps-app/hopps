@@ -10,6 +10,7 @@ import app.hopps.fin.model.DocumentType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -82,7 +83,7 @@ public class SubmitService {
                 };
             } catch (WebApplicationException e) {
                 LOGGER.error("Error while uploading document to analysis service:", e);
-                throw e;
+                throw new InternalServerErrorException("Error while uploading document to analysis service", e);
             }
         }
 
