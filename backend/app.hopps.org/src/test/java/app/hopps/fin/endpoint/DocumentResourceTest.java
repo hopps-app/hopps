@@ -119,10 +119,10 @@ class DocumentResourceTest {
 
         ArgumentMatcher<SubmitService.DocumentSubmissionRequest> matchesRequest = (
                 SubmitService.DocumentSubmissionRequest req) -> req.bommelId() == ROOT_BOMMEL_ID
-                && req.type() == DocumentType.INVOICE
-                && req.privatelyPaid()
-                && Objects.equals(req.submitterUserName(), "alice@example.test")
-                && Objects.equals(req.contentType(), "application/pdf");
+                        && req.type() == DocumentType.INVOICE
+                        && req.privatelyPaid()
+                        && Objects.equals(req.submitterUserName(), "alice@example.test")
+                        && Objects.equals(req.contentType(), "application/pdf");
 
         Mockito.when(submitServiceMock.submitDocument(argThat(matchesRequest)))
                 .thenReturn(transaction);
