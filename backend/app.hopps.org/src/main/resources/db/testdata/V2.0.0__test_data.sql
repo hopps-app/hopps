@@ -30,7 +30,10 @@ values
 (17, 'b-bork@mymail.none', 'Birgit', 'Bork'),
 (18, 'gkalb@quickmail.none', 'Gunther', 'Kalb'),
 (19, 'b-schlicker@trashmail.none', 'Burckhard', 'Schlicker'),
-(20, 'alix1980@validmail.none', 'Alix', 'Raff');
+(20, 'alix1980@validmail.none', 'Alix', 'Raff'),
+(21, 'alice@example.test', 'Alice', 'Musterfrau'),
+(22, 'jdoe@example.test', 'Jdoe', 'Mustermann'),
+(23, 'bob@example.test', 'Bob', 'Mustermann');
 
 insert into Member_Verein (member_id, organizations_id)
 values
@@ -55,7 +58,10 @@ values
 (17, 4),
 (18, 4),
 (19, 4),
-(20, 4);
+(20, 4),
+(21, 4),
+(22, 4),
+(23, 4);
 
 insert into Bommel (id, parent_id, name, emoji, responsibleMember_id)
 values

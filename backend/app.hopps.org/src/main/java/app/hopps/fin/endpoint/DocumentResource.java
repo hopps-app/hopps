@@ -4,6 +4,7 @@ import app.hopps.fin.S3Handler;
 import app.hopps.fin.bpmn.SubmitService;
 import app.hopps.fin.jpa.entities.TransactionRecord;
 import app.hopps.fin.model.DocumentType;
+import app.hopps.org.jpa.*;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -21,6 +22,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Authenticated
@@ -38,6 +40,12 @@ public class DocumentResource {
 
     @Inject
     SecurityContext securityContext;
+
+    @Inject
+    BommelRepository bommelRepo;
+
+    @Inject
+    MemberRepository memberRepo;
 
     @GET
     @Path("{documentKey}")
@@ -76,13 +84,48 @@ public class DocumentResource {
                     .build());
         }
 
-        if (bommelId == null) {
-            // TODO: Get root bommel of the organisation this user is attached to
-            throw new BadRequestException(
-                    Response.status(Response.Status.BAD_REQUEST).entity("'bommelId' not set!").build());
+        Member member = memberRepo.find("email", securityContext.getUserPrincipal().getName()).firstResult();
+
+        if (member == null) {
+            throw new ClientErrorException(
+                    Response.status(Response.Status.UNAUTHORIZED).entity("Member not found in database").build());
         }
 
-        // TODO: Check this bommel ID is in the same organisation as the user
+        var orgs = member.getOrganizations();
+
+        if (orgs.isEmpty()) {
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Member is not part of an organisation")
+                    .build());
+        }
+
+        if (orgs.size() > 1) {
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("User (currently) cannot be part of multiple organisations")
+                    .build());
+        }
+
+        Organization userOrganisation = orgs.stream().findFirst().get();
+
+        if (bommelId == null) {
+            // if the user didn't supply an id, we'll just default to their organisation's root bommel
+            bommelId = userOrganisation.getRootBommel().id;
+        } else {
+            // if the user did supply an id, make sure it exists and is in the correct organisation
+            Bommel bommel = bommelRepo.findById(bommelId);
+
+            if (bommel == null) {
+                throw new BadRequestException(
+                        Response.status(Response.Status.BAD_REQUEST).entity("Bommel not found").build());
+            }
+
+            Organization bommelOrganisation = bommelRepo.getOrganization(bommel);
+
+            if (!Objects.equals(bommelOrganisation.getId(), userOrganisation.getId())) {
+                throw new BadRequestException(
+                        Response.status(Response.Status.BAD_REQUEST).entity("Bommel not found").build());
+            }
+        }
 
         UUID documentKey = UUID.randomUUID();
         LOG.info("Uploading document (documentKey={}, bommel={})", documentKey, bommelId);
