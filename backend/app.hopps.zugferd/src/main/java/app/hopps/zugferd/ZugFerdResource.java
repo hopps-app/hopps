@@ -3,11 +3,7 @@ package app.hopps.zugferd;
 import app.hopps.zugferd.model.InvoiceData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -18,6 +14,8 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
@@ -27,6 +25,7 @@ import java.text.ParseException;
 @Path("zugferd")
 @ApplicationScoped
 public class ZugFerdResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZugFerdResource.class.getName());
 
     @Inject
     ZugFerdService service;
@@ -48,6 +47,7 @@ public class ZugFerdResource {
             try {
                 return service.scanInvoice(referenceId, stream);
             } catch (ParseException | XPathExpressionException e) {
+                LOGGER.info("Scanning invoice failed (referenceId={})", referenceId);
                 throw new WebApplicationException("Could not parse PDF", e, 422); // 422: Unprocessable Entity
             }
         }

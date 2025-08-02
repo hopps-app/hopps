@@ -38,7 +38,6 @@ public class DocumentAnalyzeClientTest {
     @Test
     void testCreateInvoiceEndpoint() throws JsonProcessingException {
         var responseBody = objectMapper.writeValueAsString(new InvoiceData(
-                -1L,
                 BigDecimal.valueOf(0.5f),
                 LocalDate.ofYearDay(2024, 300),
                 "EUR"));
@@ -65,9 +64,7 @@ public class DocumentAnalyzeClientTest {
 
     @Test
     void testCreateReceiptEndpoint() throws JsonProcessingException {
-        var responseBody = objectMapper.writeValueAsString(new ReceiptData(
-                -1L,
-                BigDecimal.valueOf(0.5f)));
+        var responseBody = objectMapper.writeValueAsString(new ReceiptData(BigDecimal.valueOf(0.5f)));
 
         wireMock.register(
                 post(urlEqualTo("/document/scan/receipt"))
