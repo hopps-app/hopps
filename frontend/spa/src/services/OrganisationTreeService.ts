@@ -6,7 +6,7 @@ import apiService from '@/services/ApiService.ts';
 
 export class OrganisationTreeService {
     async getOrganizationBommels(rootBommelId: number): Promise<Bommel[]> {
-        const items = await apiService.bommel.recursive(rootBommelId);
+        const items = await apiService.orgService.recursive(rootBommelId);
         const bommelsWithDepth: (IBommel & { depth: number })[] = [];
 
         items.map((item) => {
@@ -42,11 +42,11 @@ export class OrganisationTreeService {
 
     async ensureRootBommelCreated(organizationId: number): Promise<Bommel> {
         const loadRootBommel = async () => {
-            return await apiService.bommel.root(organizationId);
+            return await apiService.orgService.root(organizationId);
         };
 
         const createRootBommel = async () => {
-            return await apiService.bommel.bommelPOST(
+            return await apiService.orgService.bommelPOST(
                 new Bommel({
                     organizationId,
                     name: 'root',

@@ -19,7 +19,7 @@ async function getInvoices(): Promise<InvoicesTableData[]> {
     let page = 0;
 
     while (true) {
-        const data = await apiService.transactionRecord.all(undefined, false, page, pageSize);
+        const data = await apiService.orgService.all(undefined, false, page, pageSize);
 
         if (Array.isArray(data)) {
             transactions.push(...data);

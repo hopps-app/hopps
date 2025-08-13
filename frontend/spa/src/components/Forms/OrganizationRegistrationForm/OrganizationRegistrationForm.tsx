@@ -2,12 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import { NewOrganizationInput } from '@hopps/api-client';
 
 import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
+import { NewOrganizationInput } from '@hopps/api-client';
 
 const schema = z
     .object({
@@ -49,7 +49,7 @@ export function OrganizationRegistrationForm(props: Props) {
 
     async function onSubmit(data: FormFields) {
         try {
-            await apiService.organization.organizationPOST(
+            await apiService.orgService.organizationPOST(
                 NewOrganizationInput.fromJS({
                     owner: {
                         firstName: data.firstName,

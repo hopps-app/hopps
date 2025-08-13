@@ -148,7 +148,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
             if (selectedBommelId) {
                 await Promise.all(
                     selectedFiles.map((file) =>
-                        apiService.document.documentPOST(
+                        apiService.orgService.documentPOST(
                             {
                                 data: file,
                                 fileName: file.name,
