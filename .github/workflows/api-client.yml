@@ -12,8 +12,6 @@ jobs:
   build-and-publish:
     name: Build and publish @hopps/api-client
     runs-on: ubuntu-latest
-    # Run the job inside a Docker container to satisfy the "build in a docker container" requirement
-    container: mcr.microsoft.com/dotnet/sdk:8.0
     permissions:
       contents: write
 
