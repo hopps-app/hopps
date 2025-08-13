@@ -20,7 +20,7 @@ function App() {
             return;
         }
 
-        const organisation = await apiService.organization.my();
+        const organisation = await apiService.orgService.my();
 
         useStore.getState().setOrganization(organisation);
     };
