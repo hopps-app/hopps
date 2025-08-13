@@ -15,7 +15,7 @@ export class Transaction_Record_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -157,7 +157,7 @@ export class Bommel_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -619,18 +619,18 @@ export class Document_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
-     * Upload Document
+     * Uploads a document, creates a transaction record for it and attaches that to a bommel.
      * @param file (optional) 
      * @param bommelId (optional) 
      * @param privatelyPaid (optional) 
      * @param type (optional) 
-     * @return OK
+     * @return Newly created transaction record
      */
-    documentPOST(file: FileParameter | undefined, bommelId: number | null | undefined, privatelyPaid: boolean | undefined, type: DocumentType | undefined): Promise<void> {
+    documentPOST(file: FileParameter | undefined, bommelId: number | undefined, privatelyPaid: boolean | undefined, type: DocumentType | undefined): Promise<any> {
         let url_ = this.baseUrl + "/document";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -639,7 +639,9 @@ export class Document_ResourceClient {
             throw new Error("The parameter 'file' cannot be null.");
         else
             content_.append("file", file.data, file.fileName ? file.fileName : "file");
-        if (bommelId !== null && bommelId !== undefined)
+        if (bommelId === null || bommelId === undefined)
+            throw new Error("The parameter 'bommelId' cannot be null.");
+        else
             content_.append("bommelId", bommelId.toString());
         if (privatelyPaid === null || privatelyPaid === undefined)
             throw new Error("The parameter 'privatelyPaid' cannot be null.");
@@ -654,6 +656,7 @@ export class Document_ResourceClient {
             body: content_,
             method: "POST",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -662,12 +665,20 @@ export class Document_ResourceClient {
         });
     }
 
-    protected processDocumentPOST(response: Response): Promise<void> {
+    protected processDocumentPOST(response: Response): Promise<any> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input, either invalid bommel/bommel from another org, missing \'file\' or \'type\' inputs,\nthe user not being attached to exactly one organisation,\nor an invalid MIME type on the uploaded file.\n", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -682,7 +693,7 @@ export class Document_ResourceClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<any>(null as any);
     }
 
     /**
@@ -746,7 +757,7 @@ export class Process_Instance_Management_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -1287,7 +1298,7 @@ export class Source_Files_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -1422,7 +1433,7 @@ export class Member_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -1490,7 +1501,7 @@ export class Quarkus_Topics_Information_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -1535,7 +1546,7 @@ export class Organization_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -1814,7 +1825,7 @@ export class Process_Svg_ResourceClient {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -2044,215 +2055,6 @@ export interface ICreateOrganizationResponse {
 export enum DocumentType {
     RECEIPT = "RECEIPT",
     INVOICE = "INVOICE",
-}
-
-export class InvoiceData implements IInvoiceData {
-    referenceKey?: number;
-    total?: number;
-    invoiceDate?: Date;
-    currencyCode?: string;
-    customerName?: string | undefined;
-    purchaseOrderNumber?: string | undefined;
-    invoiceId?: string | undefined;
-    dueDate?: DueDate;
-    amountDue?: number | undefined;
-    sender?: Sender;
-    receiver?: Receiver;
-
-    [key: string]: any;
-
-    constructor(data?: IInvoiceData) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.referenceKey = _data["referenceKey"];
-            this.total = _data["total"];
-            this.invoiceDate = _data["invoiceDate"] ? new Date(_data["invoiceDate"].toString()) : <any>undefined;
-            this.currencyCode = _data["currencyCode"];
-            this.customerName = _data["customerName"];
-            this.purchaseOrderNumber = _data["purchaseOrderNumber"];
-            this.invoiceId = _data["invoiceId"];
-            this.dueDate = _data["dueDate"];
-            this.amountDue = _data["amountDue"];
-            this.sender = _data["sender"];
-            this.receiver = _data["receiver"];
-        }
-    }
-
-    static fromJS(data: any): InvoiceData {
-        data = typeof data === 'object' ? data : {};
-        let result = new InvoiceData();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["referenceKey"] = this.referenceKey;
-        data["total"] = this.total;
-        data["invoiceDate"] = this.invoiceDate ? formatDate(this.invoiceDate) : <any>undefined;
-        data["currencyCode"] = this.currencyCode;
-        data["customerName"] = this.customerName;
-        data["purchaseOrderNumber"] = this.purchaseOrderNumber;
-        data["invoiceId"] = this.invoiceId;
-        data["dueDate"] = this.dueDate;
-        data["amountDue"] = this.amountDue;
-        data["sender"] = this.sender;
-        data["receiver"] = this.receiver;
-        return data;
-    }
-
-    clone(): InvoiceData {
-        const json = this.toJSON();
-        let result = new InvoiceData();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IInvoiceData {
-    referenceKey?: number;
-    total?: number;
-    invoiceDate?: Date;
-    currencyCode?: string;
-    customerName?: string | undefined;
-    purchaseOrderNumber?: string | undefined;
-    invoiceId?: string | undefined;
-    dueDate?: DueDate;
-    amountDue?: number | undefined;
-    sender?: Sender;
-    receiver?: Receiver;
-
-    [key: string]: any;
-}
-
-export class InvoiceModelInput implements IInvoiceModelInput {
-    invoiceData?: InvoiceData;
-
-    [key: string]: any;
-
-    constructor(data?: IInvoiceModelInput) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.invoiceData = _data["invoiceData"] ? InvoiceData.fromJS(_data["invoiceData"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): InvoiceModelInput {
-        data = typeof data === 'object' ? data : {};
-        let result = new InvoiceModelInput();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["invoiceData"] = this.invoiceData ? this.invoiceData.toJSON() : <any>undefined;
-        return data;
-    }
-
-    clone(): InvoiceModelInput {
-        const json = this.toJSON();
-        let result = new InvoiceModelInput();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IInvoiceModelInput {
-    invoiceData?: InvoiceData;
-
-    [key: string]: any;
-}
-
-export class InvoiceModelOutput implements IInvoiceModelOutput {
-    id?: string;
-    invoiceData?: InvoiceData;
-
-    [key: string]: any;
-
-    constructor(data?: IInvoiceModelOutput) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.invoiceData = _data["invoiceData"] ? InvoiceData.fromJS(_data["invoiceData"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): InvoiceModelOutput {
-        data = typeof data === 'object' ? data : {};
-        let result = new InvoiceModelOutput();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["invoiceData"] = this.invoiceData ? this.invoiceData.toJSON() : <any>undefined;
-        return data;
-    }
-
-    clone(): InvoiceModelOutput {
-        const json = this.toJSON();
-        let result = new InvoiceModelOutput();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IInvoiceModelOutput {
-    id?: string;
-    invoiceData?: InvoiceData;
-
-    [key: string]: any;
 }
 
 /** An example of a Hopps Member */
@@ -2892,191 +2694,6 @@ export interface IProcessMigrationSpec {
     [key: string]: any;
 }
 
-export class ReceiptData implements IReceiptData {
-    referenceKey?: number;
-    total?: number;
-    storeName?: string | undefined;
-    storeAddress?: StoreAddress;
-    transactionTime?: TransactionTime;
-
-    [key: string]: any;
-
-    constructor(data?: IReceiptData) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.referenceKey = _data["referenceKey"];
-            this.total = _data["total"];
-            this.storeName = _data["storeName"];
-            this.storeAddress = _data["storeAddress"];
-            this.transactionTime = _data["transactionTime"];
-        }
-    }
-
-    static fromJS(data: any): ReceiptData {
-        data = typeof data === 'object' ? data : {};
-        let result = new ReceiptData();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["referenceKey"] = this.referenceKey;
-        data["total"] = this.total;
-        data["storeName"] = this.storeName;
-        data["storeAddress"] = this.storeAddress;
-        data["transactionTime"] = this.transactionTime;
-        return data;
-    }
-
-    clone(): ReceiptData {
-        const json = this.toJSON();
-        let result = new ReceiptData();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IReceiptData {
-    referenceKey?: number;
-    total?: number;
-    storeName?: string | undefined;
-    storeAddress?: StoreAddress;
-    transactionTime?: TransactionTime;
-
-    [key: string]: any;
-}
-
-export class ReceiptModelInput implements IReceiptModelInput {
-    receiptData?: ReceiptData;
-
-    [key: string]: any;
-
-    constructor(data?: IReceiptModelInput) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.receiptData = _data["receiptData"] ? ReceiptData.fromJS(_data["receiptData"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): ReceiptModelInput {
-        data = typeof data === 'object' ? data : {};
-        let result = new ReceiptModelInput();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["receiptData"] = this.receiptData ? this.receiptData.toJSON() : <any>undefined;
-        return data;
-    }
-
-    clone(): ReceiptModelInput {
-        const json = this.toJSON();
-        let result = new ReceiptModelInput();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IReceiptModelInput {
-    receiptData?: ReceiptData;
-
-    [key: string]: any;
-}
-
-export class ReceiptModelOutput implements IReceiptModelOutput {
-    id?: string;
-    receiptData?: ReceiptData;
-
-    [key: string]: any;
-
-    constructor(data?: IReceiptModelOutput) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.receiptData = _data["receiptData"] ? ReceiptData.fromJS(_data["receiptData"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): ReceiptModelOutput {
-        data = typeof data === 'object' ? data : {};
-        let result = new ReceiptModelOutput();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["receiptData"] = this.receiptData ? this.receiptData.toJSON() : <any>undefined;
-        return data;
-    }
-
-    clone(): ReceiptModelOutput {
-        const json = this.toJSON();
-        let result = new ReceiptModelOutput();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IReceiptModelOutput {
-    id?: string;
-    receiptData?: ReceiptData;
-
-    [key: string]: any;
-}
-
 export class SourceFile implements ISourceFile {
     uri?: string;
 
@@ -3321,6 +2938,7 @@ export class TransactionRecord implements ITransactionRecord {
     transactionTime?: Date;
     sender?: TradeParty;
     recipient?: TradeParty;
+    tags?: string[];
     name?: string;
     orderNumber?: string;
     invoiceId?: string;
@@ -3355,6 +2973,11 @@ export class TransactionRecord implements ITransactionRecord {
             this.transactionTime = _data["transactionTime"] ? new Date(_data["transactionTime"].toString()) : <any>undefined;
             this.sender = _data["sender"] ? TradeParty.fromJS(_data["sender"]) : <any>undefined;
             this.recipient = _data["recipient"] ? TradeParty.fromJS(_data["recipient"]) : <any>undefined;
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(item);
+            }
             this.name = _data["name"];
             this.orderNumber = _data["orderNumber"];
             this.invoiceId = _data["invoiceId"];
@@ -3387,6 +3010,11 @@ export class TransactionRecord implements ITransactionRecord {
         data["transactionTime"] = this.transactionTime ? this.transactionTime.toISOString() : <any>undefined;
         data["sender"] = this.sender ? this.sender.toJSON() : <any>undefined;
         data["recipient"] = this.recipient ? this.recipient.toJSON() : <any>undefined;
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item);
+        }
         data["name"] = this.name;
         data["orderNumber"] = this.orderNumber;
         data["invoiceId"] = this.invoiceId;
@@ -3415,6 +3043,7 @@ export interface ITransactionRecord {
     transactionTime?: Date;
     sender?: TradeParty;
     recipient?: TradeParty;
+    tags?: string[];
     name?: string;
     orderNumber?: string;
     invoiceId?: string;
@@ -3612,267 +3241,6 @@ export interface IViolation {
     message?: string;
 
     [key: string]: any;
-}
-
-export class DueDate implements IDueDate {
-
-    [key: string]: any;
-
-    constructor(data?: IDueDate) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-        }
-    }
-
-    static fromJS(data: any): DueDate {
-        data = typeof data === 'object' ? data : {};
-        let result = new DueDate();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        return data;
-    }
-
-    clone(): DueDate {
-        const json = this.toJSON();
-        let result = new DueDate();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IDueDate {
-
-    [key: string]: any;
-}
-
-export class Sender implements ISender {
-
-    [key: string]: any;
-
-    constructor(data?: ISender) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-        }
-    }
-
-    static fromJS(data: any): Sender {
-        data = typeof data === 'object' ? data : {};
-        let result = new Sender();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        return data;
-    }
-
-    clone(): Sender {
-        const json = this.toJSON();
-        let result = new Sender();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ISender {
-
-    [key: string]: any;
-}
-
-export class Receiver implements IReceiver {
-
-    [key: string]: any;
-
-    constructor(data?: IReceiver) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-        }
-    }
-
-    static fromJS(data: any): Receiver {
-        data = typeof data === 'object' ? data : {};
-        let result = new Receiver();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        return data;
-    }
-
-    clone(): Receiver {
-        const json = this.toJSON();
-        let result = new Receiver();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IReceiver {
-
-    [key: string]: any;
-}
-
-export class StoreAddress implements IStoreAddress {
-
-    [key: string]: any;
-
-    constructor(data?: IStoreAddress) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-        }
-    }
-
-    static fromJS(data: any): StoreAddress {
-        data = typeof data === 'object' ? data : {};
-        let result = new StoreAddress();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        return data;
-    }
-
-    clone(): StoreAddress {
-        const json = this.toJSON();
-        let result = new StoreAddress();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IStoreAddress {
-
-    [key: string]: any;
-}
-
-export class TransactionTime implements ITransactionTime {
-
-    [key: string]: any;
-
-    constructor(data?: ITransactionTime) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-        }
-    }
-
-    static fromJS(data: any): TransactionTime {
-        data = typeof data === 'object' ? data : {};
-        let result = new TransactionTime();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        return data;
-    }
-
-    clone(): TransactionTime {
-        const json = this.toJSON();
-        let result = new TransactionTime();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ITransactionTime {
-
-    [key: string]: any;
-}
-
-function formatDate(d: Date) {
-    return d.getFullYear() + '-' + 
-        (d.getMonth() < 9 ? ('0' + (d.getMonth()+1)) : (d.getMonth()+1)) + '-' +
-        (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
 }
 
 export interface FileParameter {

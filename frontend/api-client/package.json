@@ -18,7 +18,7 @@
   "scripts": {
     "build": "tsc --build",
     "publish": "npm publish --access=public",
-    "generate:org-service": "nswag openapi2tsclient /input:../../backend/app.hopps.org//target/openapi/openapi.json /output:./src/services/OrgService.ts",
+    "generate:org-service": "nswag run org-service.nswag",
     "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o"
   },
   "devDependencies": {
