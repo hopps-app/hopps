@@ -12,6 +12,8 @@ jobs:
   build-and-publish:
     name: Build and publish @hopps/api-client
     runs-on: ubuntu-latest
+    container:
+      image: node:20
     permissions:
       contents: write
 
@@ -26,17 +28,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js 20.x inside container
+      - name: Setup pnpm
         run: |
-          apt-get update
-          apt-get install -y curl ca-certificates gnupg
-          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-          apt-get install -y nodejs
-          node -v
           corepack enable
           corepack prepare pnpm@latest --activate
           pnpm -v
-          dotnet --info
 
       - name: Set package version from input
         run: |
