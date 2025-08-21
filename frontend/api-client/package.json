@@ -16,6 +16,7 @@
   "author": "Open Project e.V.",
   "license": "MIT",
   "scripts": {
+    "release": "npm publish --access=public",
     "build": "tsc --build",
     "generate:org-service": "nswag run org-service.nswag",
     "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o"
@@ -27,9 +28,5 @@
     "typescript": "^5.8.3",
     "vitest": "^3.1.2",
     "nswag": "^14.4.0"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
   }
 }
