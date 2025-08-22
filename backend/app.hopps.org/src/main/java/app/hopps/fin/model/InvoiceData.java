@@ -1,13 +1,14 @@
 package app.hopps.fin.model;
 
 import app.hopps.fin.jpa.entities.TradeParty;
+import app.hopps.fin.jpa.entities.TransactionRecord;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 public record InvoiceData(
-        Long referenceKey,
         BigDecimal total,
         LocalDate invoiceDate,
         String currencyCode,
@@ -19,8 +20,8 @@ public record InvoiceData(
         Optional<TradeParty> sender,
         Optional<TradeParty> receiver) implements Data {
 
-    public InvoiceData(Long referenceKey, BigDecimal total, LocalDate invoiceDate, String currencyCode) {
-        this(referenceKey, total, invoiceDate, currencyCode,
+    public InvoiceData(BigDecimal total, LocalDate invoiceDate, String currencyCode) {
+        this(total, invoiceDate, currencyCode,
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
@@ -28,5 +29,28 @@ public record InvoiceData(
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty());
+    }
+
+    @Override
+    public void updateTransactionRecord(TransactionRecord transactionRecord) {
+        transactionRecord.setTotal(this.total());
+
+        // Required
+        transactionRecord.setTransactionTime(this.invoiceDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        transactionRecord.setCurrencyCode(this.currencyCode());
+
+        // Optional
+        this.customerName().ifPresent(transactionRecord::setName);
+
+        this.sender().ifPresent(transactionRecord::setSender);
+        this.receiver().ifPresent(transactionRecord::setRecipient);
+
+        this.purchaseOrderNumber().ifPresent(transactionRecord::setOrderNumber);
+        this.invoiceId().ifPresent(transactionRecord::setInvoiceId);
+        this.dueDate()
+                .ifPresent(
+                        dueDate -> transactionRecord
+                                .setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        this.amountDue().ifPresent(transactionRecord::setAmountDue);
     }
 }

@@ -45,7 +45,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ items, label, children, cla
     return (
         <BaseDropdownMenu>
             <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-            <DropdownMenuContent className={className}>
+            <DropdownMenuContent className={className} align="end">
                 {label && (
                     <>
                         <DropdownMenuLabel>{label}</DropdownMenuLabel>

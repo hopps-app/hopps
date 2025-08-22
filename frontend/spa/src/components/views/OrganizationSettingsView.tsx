@@ -29,7 +29,7 @@ function OrganizationSettingsView() {
 
     const createTreeNode = async () => {
         try {
-            const node = await apiService.bommel.bommelPOST(
+            const node = await apiService.orgService.bommelPOST(
                 new Bommel({
                     name: 'New item',
                     emoji: 'grey_question',
@@ -48,7 +48,7 @@ function OrganizationSettingsView() {
         let isSuccess = false;
 
         try {
-            await apiService.bommel.bommelPUT(
+            await apiService.orgService.bommelPUT(
                 node.id as number,
                 new Bommel({
                     name: node.text,
@@ -70,7 +70,7 @@ function OrganizationSettingsView() {
         setIsLoading(true);
         try {
             const parent = node.parent ? node.parent : rootBommel!.id;
-            await apiService.bommel.to(node.id as number, parent as number);
+            await apiService.orgService.to(node.id as number, parent as number);
             isSuccess = true;
         } catch (e) {
             console.error(e);
@@ -85,7 +85,7 @@ function OrganizationSettingsView() {
     const deleteTreeNode = async (id: string | number) => {
         setIsLoading(true);
         try {
-            await apiService.bommel.bommelDELETE(id as number, false);
+            await apiService.orgService.bommelDELETE(id as number, false);
             await loadTree();
             return true;
         } catch (e) {

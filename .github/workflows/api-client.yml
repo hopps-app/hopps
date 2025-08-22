@@ -1,0 +1,79 @@
+name: api-client
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.2.3)'
+        required: true
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Build and publish @hopps/api-client
+    runs-on: ubuntu-latest
+    container:
+      image: node:20
+    permissions:
+      contents: write
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: frontend/api-client
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Mark workspace as safe for git
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Install .NET SDK
+        run: |
+          apt-get update
+          apt-get install -y wget apt-transport-https
+          wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          dpkg -i packages-microsoft-prod.deb
+          apt-get update
+          apt-get install -y dotnet-sdk-8.0
+          dotnet --info
+
+      - name: Setup pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+          pnpm -v
+
+      - name: Set package version from input
+        run: |
+          pnpm version "${{ inputs.version }}" --no-git-tag-version
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Generate Org Service client (NSwag)
+        run: pnpm run generate:org-service
+
+      - name: Build package
+        run: pnpm run build
+
+      - name: Commit and push generated OrgService changes
+        uses: stefanzweifel/git-auto-commit-action@v5.2.0
+        with:
+          file_pattern: 'frontend/api-client/src/services/OrgService.ts frontend/api-client/package.json'
+          commit_message: "🚀 published @hopps/api-client v${{ inputs.version }}"
+
+      - name: Configure npm auth for npmjs.org
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > $HOME/.npmrc
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm run release

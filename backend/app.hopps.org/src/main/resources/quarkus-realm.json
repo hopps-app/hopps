@@ -2346,8 +2346,9 @@
     "id" : "eb4123a3-b722-4798-9af5-8957f823657a",
     "username" : "alice",
     "enabled" : true,
+    "email": "alice@example.test",
     "totp" : false,
-    "emailVerified" : false,
+    "emailVerified": true,
     "credentials" : [ {
       "type" : "password",
       "hashedSaltedValue" : "A3okqV2T/ybXTVEgKfosoSjP8Yc9IZbFP/SY4cEd6hag7TABQrQ6nUSuwagGt96l8cw1DTijO75PqX6uiTXMzw==",
@@ -2368,9 +2369,10 @@
   }, {
     "id" : "1eed6a8e-a853-4597-b4c6-c4c2533546a0",
     "username" : "jdoe",
+    "email": "jdoe@example.test",
     "enabled" : true,
     "totp" : false,
-    "emailVerified" : false,
+    "emailVerified": true,
     "credentials" : [ {
       "type" : "password",
       "hashedSaltedValue" : "JV3DUNLjqOadjbBOtC4rvacQI553CGaDGAzBS8MR5ReCr7SwF3E6CsW3T7/XO8ITZAsch8+A/6loeuCoVLLJrg==",

@@ -1,6 +1,6 @@
 import { FC, memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Transaction } from '@hopps/api-client';
+import { DocumentType } from '@hopps/api-client';
 
 import { useUploadForm } from '@/components/InvoiceUploadForm/hooks/useUploadForm';
 import InvoiceUploadFormAction from '@/components/InvoiceUploadForm/InvoiceUploadFormAction';
@@ -34,11 +34,11 @@ const InvoiceUploadForm: FC<InvoiceUploadType> = ({ onUploadInvoiceChange }) => 
 
     const transactionTypes: SelectItem[] = [
         {
-            value: Transaction.INVOICE,
+            value: DocumentType.INVOICE,
             label: t('invoiceUpload.invoice'),
         },
         {
-            value: Transaction.RECEIPT,
+            value: DocumentType.RECEIPT,
             label: t('invoiceUpload.receipt'),
         },
     ];

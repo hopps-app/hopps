@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public record InvoiceData(
-        Long referenceKey,
         BigDecimal total,
         LocalDate invoiceDate,
         String currencyCode,
@@ -17,8 +16,8 @@ public record InvoiceData(
         Optional<TradeParty> sender,
         Optional<TradeParty> receiver) {
 
-    public InvoiceData(Long referenceKey, BigDecimal total, LocalDate invoiceDate, String currencyCode) {
-        this(referenceKey, total, invoiceDate, currencyCode,
+    public InvoiceData(BigDecimal total, LocalDate invoiceDate, String currencyCode) {
+        this(total, invoiceDate, currencyCode,
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),

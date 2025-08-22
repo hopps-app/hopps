@@ -17,13 +17,13 @@ ARG USE_WORKSPACES=false
 WORKDIR /app
 
 # Kopieren Sie zuerst nur die Package-Dateien
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
 
 # Install pnpm globally
 RUN npm install -g pnpm
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies (lockfile may live outside context)
+RUN pnpm install --no-frozen-lockfile
 
 # Dann den Rest des Codes kopieren
 COPY . .

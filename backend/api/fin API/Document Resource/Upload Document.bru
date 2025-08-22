@@ -7,12 +7,12 @@ meta {
 post {
   url: {{baseUrl}}/document
   body: multipartForm
-  auth: none
+  auth: inherit
 }
 
 body:multipart-form {
   file: @file()
-  bommelId: 
-  type: 
+  bommelId: 1
+  type: INVOICE
   privatelyPaid: false
 }

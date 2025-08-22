@@ -148,5 +148,17 @@
   "validation": {
     "required": "This field is required.",
     "valid": "Please enter a valid value."
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "receipts": "Receipts",
+    "new-receipt": "New Receipts",
+    "expense": "Expense",
+    "intake": "Intake",
+    "structure": "Bommel structure",
+    "admin": "Admin",
+    "ngo-details": "Ngo Details",
+    "user-access": "User Access Controls",
+    "categories": "Categories"
   }
 }

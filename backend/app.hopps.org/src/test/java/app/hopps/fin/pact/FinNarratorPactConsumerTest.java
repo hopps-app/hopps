@@ -35,14 +35,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class FinNarratorPactConsumerTest {
 
     public static final InvoiceData EXAMPLE_INVOICE = new InvoiceData(
-            -1L,
             BigDecimal.valueOf(3.0),
             LocalDate.ofYearDay(2024, 20),
             "EUR");
 
-    public static final ReceiptData EXAMPLE_RECEIPT = new ReceiptData(
-            -1L,
-            BigDecimal.valueOf(3.0));
+    public static final ReceiptData EXAMPLE_RECEIPT = new ReceiptData(BigDecimal.valueOf(3.0));
 
     @Inject
     @RestClient
