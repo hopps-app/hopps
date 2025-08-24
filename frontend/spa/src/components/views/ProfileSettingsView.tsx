@@ -1,24 +1,29 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import Radio from '@/components/ui/Radio.tsx';
 import Select from '@/components/ui/Select.tsx';
 import languageService from '@/services/LanguageService.ts';
 import themeService, { Themes } from '@/services/ThemeService.ts';
+import Header from '../ui/Header';
 
 function ProfileSettingsView() {
     const { t } = useTranslation();
-    const themes = [
-        { label: 'Light', value: 'light' },
-        { label: 'Dark', value: 'dark' },
-        { label: 'Auto', value: 'auto' },
-    ];
-    const languages = [
-        { label: 'English', value: 'en' },
-        { label: 'German', value: 'de' },
-        { label: 'Ukrainian', value: 'uk' },
-    ];
+    const themeOptions = useMemo(
+        () => [
+          { label: t("profile.themes.light"), value: "light" },
+          { label: t("profile.themes.dark"),  value: "dark" },
+          { label: "Auto",  value: "auto" },
+        ],
+        [t]
+    );
+    const langOptions = useMemo(
+        () => [
+          { label: t("profile.lang.english"),   value: "en" },
+          { label: t("profile.lang.german"),    value: "de" },
+          { label: t("profile.lang.ukrainian"), value: "uk" },
+        ],
+        [t]
+    );
     const [theme, setTheme] = useState(themeService.isAutoMode() ? 'auto' : themeService.getTheme());
     const [currentLanguage, setCurrentLanguage] = useState(languageService.getLanguage());
 
@@ -39,25 +44,42 @@ function ProfileSettingsView() {
 
     return (
         <>
-            <SettingsPageHeader />
-            <div>
-                <div className="mt-4">
-                    <div className="flex flex-row">
-                        <div className="min-w-[200px]">{t('profile.settings.theme')}:</div>
-                        <div>
-                            <Radio items={themes} value={theme || 'auto'} layout="horizontal" onValueChange={onThemeChanged} />
-                        </div>
-                    </div>
-                    <div className="flex flex-row my-2">
-                        <div className="min-w-[200px] leading-10">{t('profile.settings.language')}:</div>
-                        <div>
-                            <Select items={languages} value={currentLanguage} onValueChanged={onLanguageChanged} />
-                        </div>
-                    </div>
+          <Header title={t("settings.menu.profile")} icon="Avatar" />
+          <form className="mt-4 max-w-[880px]">
+            <div className="space-y-8">
+              {/* Theme */}
+              <fieldset className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                <legend className="text-sm font-medium leading-10">
+                  {t("profile.settings.theme")}:
+                </legend>
+                <div className="sm:col-span-2">
+                  <Radio
+                    items={themeOptions}
+                    value={theme}
+                    layout="horizontal"
+                    onValueChange={onThemeChanged}
+                  />
                 </div>
+              </fieldset>
+    
+              {/* Language */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                <label className="text-sm font-medium leading-10">
+                  {t("profile.settings.language")}
+                </label>
+                <div className="sm:col-span-2">
+                  <Select
+                    items={langOptions}
+                    value={currentLanguage}
+                    onValueChanged={onLanguageChanged}
+                  />
+
+                </div>
+              </div>
             </div>
+          </form>
         </>
-    );
+      );
 }
 
 export default ProfileSettingsView;

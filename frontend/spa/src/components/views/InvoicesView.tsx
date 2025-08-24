@@ -4,13 +4,13 @@ import { TransactionRecord } from '@hopps/api-client';
 
 import InvoicesTable from '@/components/InvoicesTable/InvoicesTable';
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
-import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
 import Button from '@/components/ui/Button.tsx';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store.ts';
+import Header from '@/components/ui/Header';
 
 async function getInvoices(): Promise<InvoicesTableData[]> {
     const transactions: TransactionRecord[] = [];
@@ -89,11 +89,11 @@ function InvoicesView() {
     return (
         <>
             <LoadingOverlay isEnabled={isLoading} />
-            <SettingsPageHeader>
-                <Button onClick={reload} disabled={isLoading}>
-                    {t('common.refresh')}
-                </Button>
-            </SettingsPageHeader>
+            <Header 
+                title={t('settings.menu.invoices')}
+                icon='Archive' 
+                actions={<Button onClick={reload} disabled={isLoading}>{t('common.refresh')}</Button>} 
+            />
             {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices} reload={reload} />}
         </>
     );
