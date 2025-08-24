@@ -49,13 +49,11 @@ function ProfileSettingsView() {
             <div className="space-y-8">
               {/* Theme */}
               <fieldset className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                <legend className="text-sm font-medium leading-10">
-                  {t("profile.settings.theme")}:
-                </legend>
                 <div className="sm:col-span-2">
                   <Radio
                     items={themeOptions}
                     value={theme}
+                    label={t('profile.theme')}
                     layout="horizontal"
                     onValueChange={onThemeChanged}
                   />
@@ -64,11 +62,9 @@ function ProfileSettingsView() {
     
               {/* Language */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                <label className="text-sm font-medium leading-10">
-                  {t("profile.settings.language")}
-                </label>
                 <div className="sm:col-span-2">
                   <Select
+                    label={t('profile.language')}
                     items={langOptions}
                     value={currentLanguage}
                     onValueChanged={onLanguageChanged}
