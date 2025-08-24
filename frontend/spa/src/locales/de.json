@@ -80,9 +80,16 @@
     "createNode": "Neu hinzufügen"
   },
   "profile": {
-    "settings": {
-      "language": "Sprache",
-      "theme": "Thema"
+    "language": "Sprache",
+    "theme": "Thema",
+    "themes": {
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "lang": {
+      "english": "Englisch",
+      "german": "Deutsch",
+      "ukrainian": "Ukrainisch"
     }
   },
   "settings": {
