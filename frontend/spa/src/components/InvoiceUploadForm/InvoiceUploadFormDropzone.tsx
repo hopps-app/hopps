@@ -71,7 +71,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
                     <b className="font-bold text-xl">{t('invoiceUpload.dragDrop')}</b> <br />{' '}
                     <span className="text-xs font-medium">{t('invoiceUpload.fileType')}</span>
                 </p>
-                <Button className="min-w-28 px-5 py-2 flex rounded-[0.625rem] items-center h-8 text-md">{t('invoiceUpload.chooseFile')}</Button>
+                <Button className="min-w-28 px-5 py-2 flex rounded-[0.625rem] items-center h-8 text-md" type='button'>{t('invoiceUpload.chooseFile')}</Button>
             </div>
         );
     }
@@ -82,7 +82,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
         <div
             {...getRootProps()}
             className={cn(
-                'border-2 border-dashed border-gray-600 rounded-lg flex flex-col justify-center items-center dropzone text-center min-h-72 w-full flex-1',
+                'border-2 border-dashed border-gray-400 rounded-lg flex flex-col justify-center items-center dropzone text-center w-full flex-1 h-[650px]',
                 {
                     'border-gray-400': isHighlightDrop,
                 }
