@@ -84,6 +84,15 @@
     "settings": {
       "language": "Language",
       "theme": "Theme"
+    },
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "lang": {
+      "english": "English",
+      "german": "German",
+      "ukrainian": "Ukranian"
     }
   },
   "settings": {
