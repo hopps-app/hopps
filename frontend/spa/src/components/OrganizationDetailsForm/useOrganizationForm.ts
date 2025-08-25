@@ -42,7 +42,7 @@ export function useOrganizationForm() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const org = await apiService.organization.getCurrentOrganization();
+                const org = await apiService.orgService.my();
 
                 if (!org) throw new Error('Organization not found');
                 setIsLoading(false);
