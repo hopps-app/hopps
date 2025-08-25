@@ -22,7 +22,7 @@ export default function AuthLayout() {
                 	            bg-background-secondary
                 	            border
                                 rounded-[30px]
-                	            min-h-[85vh]
+                	            min-h-[80vh]
                 	            w-full
                 	            px-7 sm:px-7 py-[2.5rem]
                 	        ">

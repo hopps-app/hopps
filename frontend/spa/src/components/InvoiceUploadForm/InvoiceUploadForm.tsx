@@ -47,12 +47,12 @@ const InvoiceUploadForm: FC<InvoiceUploadType> = ({ onUploadInvoiceChange }) => 
         <form onSubmit={handleSubmit} className="invoice-upload-form">
             {isUploading && <LoadingOverlay />}
 
-            <div className="grid grid-cols-[1fr_2fr] gap-6 h-full">
-                <div className="min-w-0 min-h-0 min-w-[400px]">
+            <div className="grid grid-cols-1 gap-6 h-full sm:grid-cols-[1fr_2fr]">
+                <div className="min-w-0 min-h-0">
                     <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} />
                 </div>
 
-                <div className="min-w-0 min-h-0 min-w-[300px]">
+                <div className="min-w-0 min-h-0">
                     <div className="min-h-0 flex-1 overflow-y-auto">
                         <List
                             items={selectedFiles.map((file, i) => ({

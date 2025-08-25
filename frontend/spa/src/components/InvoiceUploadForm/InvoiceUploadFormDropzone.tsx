@@ -82,7 +82,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
         <div
             {...getRootProps()}
             className={cn(
-                'border-2 border-dashed border-gray-400 rounded-lg flex flex-col justify-center items-center dropzone text-center w-full flex-1 h-[650px]',
+                'border-2 border-dashed border-gray-400 rounded-lg flex flex-col justify-center items-center dropzone text-center w-full flex-1 min-h-[60vh]',
                 {
                     'border-gray-400': isHighlightDrop,
                 }
