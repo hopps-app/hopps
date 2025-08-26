@@ -107,7 +107,7 @@
   "menu": {
     "dashboard": "Dashboard",
     "receipts": "Receipts",
-    "new-receipt": "New Receipts",
+    "all-receipt": "All Receipts",
     "expense": "Expense",
     "intake": "Intake",
     "structure": "Bommel structure",

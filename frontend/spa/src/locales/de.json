@@ -106,7 +106,7 @@
   "menu": {
     "dashboard": "Übersicht",
     "receipts": "Belege",
-    "new-receipt": "Hinzufügen",
+    "all-receipt": "Alle Belege anzeigen",
     "expense": "Ausgabe",
     "intake": "Einnahme",
     "structure": "Bommel Struktur",
