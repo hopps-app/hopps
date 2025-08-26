@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import Icon, { RadixIcons } from '@/components/ui/Icon.tsx';
 
+import Icon, { RadixIcons } from '@/components/ui/Icon.tsx';
 
 interface HeaderProps {
     title: string;
@@ -9,14 +9,7 @@ interface HeaderProps {
     divider?: boolean;
 }
 
-
-function Header({
-    title,
-    icon,
-    actions,
-    divider = true,
-}: HeaderProps) {
-
+function Header({ title, icon, actions, divider = true }: HeaderProps) {
     return (
         <>
             <div className="flex flex-row justify-between">
@@ -30,7 +23,6 @@ function Header({
             {divider && <hr />}
         </>
     );
-
 }
 
 export default Header;

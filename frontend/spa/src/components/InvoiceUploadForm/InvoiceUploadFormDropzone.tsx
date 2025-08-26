@@ -5,7 +5,7 @@ import { FileWithPath, useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
 import save from '@/assets/save.svg';
-import Button from '@/components/ui/Button.tsx';
+import Button from '@/components/ui/Button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils.ts';
 
@@ -71,7 +71,9 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
                     <b className="font-bold text-xl">{t('invoiceUpload.dragDrop')}</b> <br />{' '}
                     <span className="text-xs font-medium">{t('invoiceUpload.fileType')}</span>
                 </p>
-                <Button className="min-w-28 px-5 py-2 flex rounded-[0.625rem] items-center h-8 text-md" type='button'>{t('invoiceUpload.chooseFile')}</Button>
+                <Button className="min-w-28 px-5 py-2 flex rounded-[0.625rem] items-center h-8 text-md" type="button">
+                    {t('invoiceUpload.chooseFile')}
+                </Button>
             </div>
         );
     }

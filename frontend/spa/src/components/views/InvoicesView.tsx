@@ -89,10 +89,14 @@ function InvoicesView() {
     return (
         <>
             <LoadingOverlay isEnabled={isLoading} />
-            <Header 
+            <Header
                 title={t('settings.menu.invoices')}
-                icon='Archive' 
-                actions={<Button onClick={reload} disabled={isLoading}>{t('common.refresh')}</Button>} 
+                icon="Archive"
+                actions={
+                    <Button onClick={reload} disabled={isLoading}>
+                        {t('common.refresh')}
+                    </Button>
+                }
             />
             {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices} reload={reload} />}
         </>
