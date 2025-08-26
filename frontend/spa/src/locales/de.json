@@ -15,7 +15,7 @@
     "save": "Speichern"
   },
   "header": {
-    "logout": "Abmelden",
+    "logout": "Ausloggen",
     "login": "Anmelden",
     "register": "Registrieren"
   },
@@ -104,14 +104,14 @@
     "menu": "Menü"
   },
   "menu": {
-    "dashboard": "Dashboard",
+    "dashboard": "Übersicht",
     "receipts": "Belege",
     "new-receipt": "Hinzufügen",
     "expense": "Ausgabe",
     "intake": "Einnahme",
     "structure": "Bommel Struktur",
     "admin": "Admin",
-    "ngo-details": "NGO Details",
+    "ngo-details": "Organisation",
     "categories": "Kategorien"
   }
 }
