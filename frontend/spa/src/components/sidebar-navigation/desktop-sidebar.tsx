@@ -107,7 +107,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
                 key={item.id}
                 onClick={() => handleMenuClick(item)}
                 className={`
-              flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED_R} hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl pl-6 transition-all duration-200'
+              flex flex-col items-left justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED_R} hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl pl-6 transition-all duration-200'
           ${isActive ? 'font-bold text-black' : 'dark:text-grey-400'}
         `}
             >
