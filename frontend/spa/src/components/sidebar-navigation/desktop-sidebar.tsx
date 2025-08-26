@@ -122,8 +122,8 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
         <div className="flex fixed z-10 left-0 top-0 h-screen" onMouseLeave={handleSidebarLeave}>
             <aside className={`flex flex-col h-full w-28 z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}>
                 <div className="flex flex-col items-center py-6">
-                    <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
-                    <span className="text-primary font-bold text-3xl mb-2">hopps</span>
+                    <img src="/logo.svg" alt="hopps logo" className="w-11 h-11 mb-2" />
+                    <span className="text-primary font-bold text-2xl mb-2">hopps</span>
                 </div>
                 <nav className="flex-1 flex flex-col gap-2 mt-2">
                     {menuConfig
