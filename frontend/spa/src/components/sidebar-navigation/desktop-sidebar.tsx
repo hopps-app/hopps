@@ -9,17 +9,12 @@ import type { MenuItem, SubMenuItem } from './shared/types';
 const ROUNDED_R = 'rounded-r-[20px]';
 const ROUNDED = 'rounded-[20px]';
 
-type DesktopSidebarProps = {
-    isWideScreen: boolean;
-};
-
-const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
+const DesktopSidebar: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [expanded, setExpanded] = React.useState<string | null>(null);
     const [isClosing, setIsClosing] = React.useState(false);
-    const [pinnedSubmenu, setPinnedSubmenu] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         const match = menuConfig.find((item) => item.children?.some((child) => location.pathname.startsWith(child.path ?? '')));
@@ -28,26 +23,16 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
 
     const handleMenuClick = (item: MenuItem | SubMenuItem) => {
         if (item.children) {
-            if (isWideScreen) {
-                if (pinnedSubmenu === item.id) {
-                    setPinnedSubmenu(null);
-                } else {
-                    setPinnedSubmenu(item.id);
-                    setExpanded(item.id);
-                }
+            if (expanded === item.id) {
+                setIsClosing(true);
+                setTimeout(() => {
+                    setExpanded(null);
+                    setIsClosing(false);
+                }, 280);
             } else {
-                if (expanded === item.id) {
-                    setIsClosing(true);
-                    setTimeout(() => {
-                        setExpanded(null);
-                        setIsClosing(false);
-                    }, 280);
-                } else {
-                    setExpanded(item.id);
-                }
+                setExpanded(item.id);
             }
         } else if (item.path) {
-            setPinnedSubmenu(null);
             setExpanded(null);
             navigate(item.path);
         }
@@ -55,12 +40,10 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
 
     const handleMenuHover = (item: MenuItem) => {
         if (item.children) {
-            if (expanded && expanded !== item.id) {
-                setExpanded(item.id);
-            } else if (!expanded) {
+            if (expanded !== item.id) {
                 setExpanded(item.id);
             }
-        } else if (expanded && (!isWideScreen || !pinnedSubmenu)) {
+        } else if (expanded) {
             setIsClosing(true);
             setTimeout(() => {
                 setExpanded(null);
@@ -70,11 +53,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isWideScreen }) => {
     };
 
     const handleSidebarLeave = () => {
-        if (isWideScreen && pinnedSubmenu) {
-            setExpanded(pinnedSubmenu);
-            return;
-        }
-
         if (expanded) {
             setIsClosing(true);
             setTimeout(() => {
