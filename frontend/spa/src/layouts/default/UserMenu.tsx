@@ -15,7 +15,7 @@ function UserMenu() {
 
     const [menuItems] = useState<DropdownMenuItem[]>([
         { title: `${t('settings.menu.profile')}`, onClick: () => navigate('/profile'), icon: <Icon icon="Avatar" /> },
-        { title: `${t('header.logout')}`, onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" />},
+        { title: `${t('header.logout')}`, onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> },
     ]);
 
     return (

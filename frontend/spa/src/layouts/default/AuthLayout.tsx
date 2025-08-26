@@ -24,8 +24,8 @@ export default function AuthLayout() {
                                 rounded-[30px]
                 	            min-h-[80vh]
                 	            w-full
-                	            px-7 sm:px-7 py-[2.5rem]
-                	        ">
+                	            px-7 sm:px-7 py-[2.5rem]"
+                        >
                             <Outlet />
                         </div>
                     </main>

@@ -63,7 +63,7 @@ export class AuthService {
     }
 
     async logout() {
-        await this.keycloak.logout() // works fine without option
+        await this.keycloak.logout(); // works fine without option
     }
 
     async checkLogin() {

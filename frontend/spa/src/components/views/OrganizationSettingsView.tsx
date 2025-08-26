@@ -127,7 +127,7 @@ function OrganizationSettingsView() {
 
     return (
         <>
-            <Header title={t('settings.menu.organization')} icon='Backpack'/>
+            <Header title={t('settings.menu.organization')} icon="Backpack" />
             {isLoading && <LoadingOverlay />}
 
             {isOrganizationError ? (

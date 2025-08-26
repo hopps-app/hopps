@@ -30,15 +30,15 @@ export default function AppRoutes() {
                 }
             >
                 {/* user menu */}
-                <Route path="/profile" element={<ProfileSettingsView/>} />
+                <Route path="/profile" element={<ProfileSettingsView />} />
 
-                <Route path="/dashboard/*" element={<DashboardView/>} />
-                <Route path="/structure/*" element={<OrganizationSettingsView />}/>
+                <Route path="/dashboard/*" element={<DashboardView />} />
+                <Route path="/structure/*" element={<OrganizationSettingsView />} />
 
                 {/* receipts/invoices */}
-                <Route path="/receipts/new" element={<InvoicesView />}/>
+                <Route path="/receipts/new" element={<InvoicesView />} />
 
-                {/* Old navigation logic*/} 
+                {/* Old navigation logic*/}
                 <Route path="/settings/*" element={<SettingsView />} />
 
                 <Route path="*" element={<NotFoundView />} />
