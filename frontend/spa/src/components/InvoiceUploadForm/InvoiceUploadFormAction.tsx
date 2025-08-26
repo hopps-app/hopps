@@ -12,7 +12,7 @@ const InvoiceUploadFormAction: FC<InvoiceUploadFormActionPropsType> = ({ onCance
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-row gap-8 justify-end">
+        <div className="flex flex-row gap-8 justify-end mt-4">
             <Button
                 className="max-h-8 rounded-[var(--btn-radius)] bg-transparent border-solid border-[var(--muted)] border text-[var(--muted)] hover:bg-[var(--border-line)] hover:text-[var(--hover-effect)]"
                 type="button"

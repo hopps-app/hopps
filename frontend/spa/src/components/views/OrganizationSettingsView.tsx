@@ -4,7 +4,7 @@ import { Bommel } from '@hopps/api-client';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
-import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
+import Header from '@/components/ui/Header';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
@@ -127,7 +127,7 @@ function OrganizationSettingsView() {
 
     return (
         <>
-            <SettingsPageHeader />
+            <Header title={t('settings.menu.organization')} icon="Backpack" />
             {isLoading && <LoadingOverlay />}
 
             {isOrganizationError ? (

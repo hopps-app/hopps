@@ -81,9 +81,16 @@
     "createNode": "Add new"
   },
   "profile": {
-    "settings": {
-      "language": "Language",
-      "theme": "Theme"
+    "language": "Language",
+    "theme": "Theme",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "lang": {
+      "english": "English",
+      "german": "German",
+      "ukrainian": "Ukranian"
     }
   },
   "settings": {
