@@ -9,12 +9,17 @@ import type { MenuItem, SubMenuItem } from './shared/types';
 const ROUNDED_R = 'rounded-r-[20px]';
 const ROUNDED = 'rounded-[20px]';
 
-const DesktopSidebar: React.FC = () => {
+type DesktopSidebarProps = {
+    closeDelayMs?: number;
+};
+
+const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [expanded, setExpanded] = React.useState<string | null>(null);
     const [isClosing, setIsClosing] = React.useState(false);
+    const closeTimeoutId = React.useRef<number | null>(null);
 
     React.useEffect(() => {
         const match = menuConfig.find((item) => item.children?.some((child) => location.pathname.startsWith(child.path ?? '')));
@@ -52,15 +57,30 @@ const DesktopSidebar: React.FC = () => {
         }
     };
 
-    const handleSidebarLeave = () => {
-        if (expanded) {
+    const cancelPendingClose = () => {
+        if (closeTimeoutId.current !== null) {
+            clearTimeout(closeTimeoutId.current);
+            closeTimeoutId.current = null;
+        }
+    };
+
+    const scheduleClose = () => {
+        if (!expanded) return;
+        cancelPendingClose();
+        closeTimeoutId.current = window.setTimeout(() => {
             setIsClosing(true);
             setTimeout(() => {
                 setExpanded(null);
                 setIsClosing(false);
             }, 280);
-        }
+        }, closeDelayMs);
     };
+
+    React.useEffect(() => {
+        return () => {
+            cancelPendingClose();
+        };
+    }, []);
 
     const renderMenuItem = (item: MenuItem) => {
         const isActive = location.pathname.indexOf(item.path) > -1;
@@ -97,7 +117,7 @@ const DesktopSidebar: React.FC = () => {
     };
 
     return (
-        <div className="flex fixed z-10 left-0 top-0 h-screen" onMouseLeave={handleSidebarLeave}>
+        <div className="flex fixed z-10 left-0 top-0 h-screen" onMouseLeave={scheduleClose} onMouseEnter={cancelPendingClose}>
             <aside className={`flex flex-col h-full w-28 z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}>
                 <div className="flex flex-col items-center py-6">
                     <img src="/logo.svg" alt="hopps logo" className="w-11 h-11 mb-2" />
