@@ -31,7 +31,6 @@ export const menuConfig: MenuItem[] = [
         path: '/admin',
         children: [
             { id: 'ngo-details', label: 'menu.ngo-details', path: '/admin/ngo-details' },
-            { id: 'user-access', label: 'menu.user-access', path: '/admin/user-access' },
             { id: 'categories', label: 'menu.categories', path: '/admin/categories' },
         ],
     },
