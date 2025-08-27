@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/shadecn/RadioGroup.tsx';
+import { Label } from './Label.tsx';
 
 interface RadioItem {
     label: string;
@@ -10,23 +11,27 @@ interface RadioItem {
 interface RadioProps {
     items: RadioItem[];
     value?: string;
+    label?: string;
     onValueChange?: (value: string) => void;
     className?: string;
     layout?: 'horizontal' | 'vertical';
 }
 
-const Radio: React.FC<RadioProps> = ({ items, value, onValueChange, className, layout, ...props }) => {
+const Radio: React.FC<RadioProps> = ({ items, value, label, onValueChange, className, layout, ...props }) => {
     return (
-        <RadioGroup value={value} onValueChange={onValueChange} className={className} {...props}>
-            <div className={layout === 'horizontal' ? 'flex flex-row gap-2' : ''}>
-                {items.map((item) => (
-                    <label key={item.value} className="flex items-center gap-2">
-                        <RadioGroupItem value={item.value} />
-                        {item.label}
-                    </label>
-                ))}
-            </div>
-        </RadioGroup>
+        <>
+            {label && <Label> {label} </Label>}
+            <RadioGroup value={value} onValueChange={onValueChange} className={className} {...props}>
+                <div className={layout === 'horizontal' ? 'flex flex-row gap-2' : ''}>
+                    {items.map((item) => (
+                        <label key={item.value} className="flex items-center gap-2">
+                            <RadioGroupItem value={item.value} />
+                            {item.label}
+                        </label>
+                    ))}
+                </div>
+            </RadioGroup>
+        </>
     );
 };
 
