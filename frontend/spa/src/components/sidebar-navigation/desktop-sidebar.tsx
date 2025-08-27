@@ -27,20 +27,12 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
     }, [location.pathname]);
 
     const handleMenuClick = (item: MenuItem | SubMenuItem) => {
-        if (item.children) {
-            if (expanded === item.id) {
-                setIsClosing(true);
-                setTimeout(() => {
-                    setExpanded(null);
-                    setIsClosing(false);
-                }, 280);
-            } else {
-                setExpanded(item.id);
-            }
-        } else if (item.path) {
+        setIsClosing(true);
+        setTimeout(() => {
             setExpanded(null);
-            navigate(item.path);
-        }
+            setIsClosing(false);
+        }, 280);
+        navigate(item.path);
     };
 
     const handleMenuHover = (item: MenuItem) => {
