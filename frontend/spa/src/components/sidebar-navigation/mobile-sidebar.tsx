@@ -61,7 +61,7 @@ const MobileSidebar: React.FC = () => {
                 key={item.id}
                 onClick={() => handleMobileMenuClick(item)}
                 className={`
-              flex items-center justify-between gap-3 p-4 cursor-pointer select-none ${ROUNDED} font-semibold text-lg transition-all duration-200
+              flex items-center justify-between gap-3 p-4 h-16 cursor-pointer select-none ${ROUNDED} font-semibold text-lg transition-all duration-200
           ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
         `}
             >
@@ -113,7 +113,7 @@ const MobileSidebar: React.FC = () => {
                         <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
                         <span className="text-primary font-bold text-3xl mb-2">hopps</span>
                     </div>
-                    <nav className={`flex-1 flex flex-col gap-2 mt-2 duration-300 ${isMobileFading ? 'opacity-0' : 'opacity-100'}`}>
+                    <nav className={`flex-1 flex flex-col gap-3 mt-2 duration-300 ${isMobileFading ? 'opacity-0' : 'opacity-100'}`}>
                         {mobileSubmenuStack.length === 0 ? (
                             <>
                                 {menuConfig
