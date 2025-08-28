@@ -26,8 +26,12 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
     const [id] = useState(_.uniqueId('text-field-'));
 
     return (
-        <div className={cn("relative grid items-center gap-1.5", props.className)}>
-            {props.label && <Label htmlFor={id}>{props.label} {props.required  && <span style={{ color: 'red' }}>*</span> }</Label>}
+        <div className={cn('relative grid items-center gap-1.5', props.className)}>
+            {props.label && (
+                <Label htmlFor={id}>
+                    {props.label} {props.required && <span style={{ color: 'red' }}>*</span>}
+                </Label>
+            )}
             <div className="relative flex items-center">
                 <BaseInput
                     id={id}

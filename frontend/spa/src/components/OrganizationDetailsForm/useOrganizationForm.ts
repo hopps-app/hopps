@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo, useState } from 'react';
+
 import apiService from '@/services/ApiService.ts';
 import { getCountryOptions } from '@/lib/countryOptions';
 import languageService from '@/services/LanguageService.ts';
@@ -11,21 +12,24 @@ export function useOrganizationForm() {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
 
-    const schema = useMemo(() =>  
-        z.object({
-            organizationName: z.string().min(1, t('validation.required')),
-            street: z.string().optional(),
-            postalCode: z.string().regex(/^\d+$/, t('validation.valid')).optional().or(z.literal('')),
-            city: z.string().optional(),
-            country: z.string().optional(),
-            dateOfFoundation: z.date().optional(),
-            registrationCourt: z.string().optional(),
-            registrationNumber: z.string().optional(),
-            taxId: z.string().optional(),
-            organizationEmail: z.string().min(1, t('validation.required')).email(t('validation.valid')),
-            phoneNumber: z.string().optional().or(z.literal('')),
-            website: z.string().url(t('validation.valid')).or(z.literal('')).optional(),
-    }), [t]);
+    const schema = useMemo(
+        () =>
+            z.object({
+                organizationName: z.string().min(1, t('validation.required')),
+                street: z.string().optional(),
+                postalCode: z.string().regex(/^\d+$/, t('validation.valid')).optional().or(z.literal('')),
+                city: z.string().optional(),
+                country: z.string().optional(),
+                dateOfFoundation: z.date().optional(),
+                registrationCourt: z.string().optional(),
+                registrationNumber: z.string().optional(),
+                taxId: z.string().optional(),
+                organizationEmail: z.string().min(1, t('validation.required')).email(t('validation.valid')),
+                phoneNumber: z.string().optional().or(z.literal('')),
+                website: z.string().url(t('validation.valid')).or(z.literal('')).optional(),
+            }),
+        [t]
+    );
 
     type FormFields = z.infer<typeof schema>;
 
@@ -77,5 +81,8 @@ export function useOrganizationForm() {
         watchDateOfFoundation: watch('dateOfFoundation'),
         countryOptions,
         isLoading,
+        schema,
     };
 }
+
+export type OrganizationFormFields = z.infer<ReturnType<typeof useOrganizationForm>['schema']>;

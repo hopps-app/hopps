@@ -41,11 +41,7 @@ function Select(props: SelectProps) {
                     </SelectGroup>
                 </SelectContent>
             </BaseSelect>
-            {error && (
-                <div className="absolute bottom-0 right-0 text-destructive text-xs px-4 translate-y-2.5">
-                  {error}
-                </div>
-            )}
+            {error && <div className="absolute bottom-0 right-0 text-destructive text-xs px-4 translate-y-2.5">{error}</div>}
         </div>
     );
 }
