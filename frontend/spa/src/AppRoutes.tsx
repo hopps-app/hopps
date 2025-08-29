@@ -10,7 +10,8 @@ import NotFoundView from '@/components/views/NotFoundView';
 import AuthLayout from '@/layouts/default/AuthLayout';
 import DefaultLayout from '@/layouts/default/DefaultLayout.tsx';
 import OrganizationSettingsView from './components/views/OrganizationSettingsView';
-import InvoicesView from './components/views/InvoicesView';
+// import InvoicesView from './components/views/InvoicesView';
+import ReceiptUploadView from './components/views/ReceiptUploadView';
 import ProfileSettingsView from './components/views/ProfileSettingsView';
 
 export default function AppRoutes() {
@@ -36,7 +37,7 @@ export default function AppRoutes() {
                 <Route path="/structure/*" element={<OrganizationSettingsView />} />
 
                 {/* receipts/invoices */}
-                <Route path="/receipts/new" element={<InvoicesView />} />
+                <Route path="/receipts/new" element={<ReceiptUploadView />} />
 
                 {/* Old navigation logic*/}
                 <Route path="/settings/*" element={<SettingsView />} />
