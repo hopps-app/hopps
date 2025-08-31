@@ -13,6 +13,7 @@ import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 import Switch from '@/components/ui/Switch.tsx';
+import Tags from '@/components/ui/Tags.tsx';
 
 type Tag = string;
 
@@ -35,30 +36,20 @@ function ReceiptUploadView() {
     const [category, setCategory] = useState('');
     const [area, setArea] = useState('');
     const [tags, setTags] = useState<Tag[]>([]);
-    const [tagInput, setTagInput] = useState('');
     const [netAmount, setNetAmount] = useState('');
     const [taxAmount, setTaxAmount] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (!store.organization) return;
-        loadBommels(store.organization.id).catch(() => {});
+        loadBommels(store.organization.id).catch(() => { });
     }, [store.organization]);
 
     const onFilesChanged = useCallback((files: File[]) => {
         setFile(files[0] ?? null);
     }, []);
 
-    const onAddTag = useCallback(() => {
-        const value = tagInput.trim();
-        if (!value) return;
-        if (!tags.includes(value)) setTags((prev) => [...prev, value]);
-        setTagInput('');
-    }, [tagInput, tags]);
 
-    const onRemoveTag = (idx: number) => {
-        setTags((prev) => prev.filter((_, i) => i !== idx));
-    };
 
     const areaItems: SelectItem[] = [
         { value: 'ideeller-bereich', label: 'Ideeller Bereich' },
@@ -110,7 +101,6 @@ function ReceiptUploadView() {
             setCategory('');
             setArea('');
             setTags([]);
-            setTagInput('');
             setNetAmount('');
             setTaxAmount('');
         } catch (e) {
@@ -154,25 +144,7 @@ function ReceiptUploadView() {
                     <Select label="Bereich" value={area} onValueChanged={setArea} items={areaItems} className={'col-span-2'} />
 
                     <div className="col-span-2">
-                        <label className="text-sm font-medium">Tags</label>
-                        <div className="flex items-center gap-2 mt-1">
-                            <TextField value={tagInput} onValueChange={setTagInput} placeholder="Tag hinzufügen" />
-                            <Button type="button" onClick={onAddTag} className="h-10 px-3">
-                                +
-                            </Button>
-                        </div>
-                        {tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {tags.map((tag, idx) => (
-                                    <span key={`${tag}-${idx}`} className="px-2 py-1 rounded-full bg-primary/10 text-xs">
-                                        {tag}
-                                        <button className="ml-2" type="button" onClick={() => onRemoveTag(idx)}>
-                                            ×
-                                        </button>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
+                        <Tags label="Tags" value={tags} onChange={setTags} placeholder="Tag hinzufügen" />
                     </div>
 
                     <TextField label="Steuerbetrag" value={taxAmount} onValueChange={setTaxAmount} />
