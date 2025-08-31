@@ -8,11 +8,11 @@ import Button from '@/components/ui/Button';
 import Radio from '@/components/ui/Radio';
 import Select, { SelectItem } from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
-import { Checkbox } from '@/components/ui/shadecn/Checkbox';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
+import Switch from '@/components/ui/Switch.tsx';
 
 type Tag = string;
 
@@ -141,12 +141,7 @@ function ReceiptUploadView() {
                         onValueChange={(v) => setTransactionKind(v as 'intake' | 'expense')}
                         layout="horizontal"
                     />
-                    <div>
-                        <Checkbox checked={isUnpaid} onCheckedChange={() => setIsUnpaid((v) => !v)} id="unpaid" />
-                        <label htmlFor="unpaid" className="text-xs font-medium leading-none">
-                            Unbezahlt
-                        </label>
-                    </div>
+                    <Switch checked={isUnpaid} onCheckedChange={() => setIsUnpaid((v) => !v)} label="Unbezahlt" />
 
                     <TextField label="Vertragspartner" value={contractPartner} onValueChange={setContractPartner} />
                     <div className="flex flex-col gap-2">
@@ -187,7 +182,7 @@ function ReceiptUploadView() {
                 </div>
 
                 <div className="flex justify-end gap-3 mt-6">
-                    <Button variant="secondary" onClick={() => window.history.back()} type="button">
+                    <Button variant="outline" onClick={() => window.history.back()} type="button">
                         Abbrechen
                     </Button>
                     <Button onClick={onSubmit} disabled={!isValid} type="button">
