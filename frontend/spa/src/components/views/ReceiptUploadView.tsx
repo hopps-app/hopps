@@ -151,7 +151,7 @@ function ReceiptUploadView() {
 
                     <TextField label="Fälligkeitsdatum" type="text" value={dueDate} onValueChange={setDueDate} />
                     <Select label="Kategorie" value={category} onValueChanged={setCategory} items={categoryItems} />
-                    <Select label="Bereich" value={area} onValueChanged={setArea} items={areaItems} />
+                    <Select label="Bereich" value={area} onValueChanged={setArea} items={areaItems} className={'col-span-2'} />
 
                     <div className="col-span-2">
                         <label className="text-sm font-medium">Tags</label>
