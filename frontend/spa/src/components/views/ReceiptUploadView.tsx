@@ -129,7 +129,7 @@ function ReceiptUploadView() {
 
             <div
                 className="min-w-0 min-h-0 border border-grey-700 p-4
-                                rounded-[30px]"
+                                rounded-[30px] w-1/2"
             >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <TextField label="Belegnummer" value={receiptNumber} onValueChange={setReceiptNumber} />
@@ -175,10 +175,8 @@ function ReceiptUploadView() {
                         )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <TextField label="Steuerbetrag" value={taxAmount} onValueChange={setTaxAmount} />
-                        <TextField label="Nettobetrag" value={netAmount} onValueChange={setNetAmount} />
-                    </div>
+                    <TextField label="Steuerbetrag" value={taxAmount} onValueChange={setTaxAmount} />
+                    <TextField label="Nettobetrag" value={netAmount} onValueChange={setNetAmount} />
                 </div>
 
                 <div className="flex justify-end gap-3 mt-6">
