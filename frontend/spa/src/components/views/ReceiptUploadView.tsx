@@ -128,7 +128,7 @@ function ReceiptUploadView() {
             </div>
 
             <div
-                className="min-w-0 min-h-0 border border-border p-4
+                className="min-w-0 min-h-0 border border-grey-700 p-4
                                 rounded-[30px]"
             >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

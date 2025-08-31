@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as React from 'react';
 
 import { Label } from './Label.tsx';
-import { Switch as BaseSwitch } from '@/components/ui/shadecn/Switch.tsx';
+import { BaseSwitch as BaseSwitch } from '@/components/ui/shadecn/BaseSwitch.tsx';
 
 type UISwitchProps = React.ComponentPropsWithoutRef<typeof BaseSwitch> & {
     label?: string;
@@ -22,5 +22,3 @@ const Switch = React.forwardRef<React.ElementRef<typeof BaseSwitch>, UISwitchPro
 Switch.displayName = 'Switch';
 
 export default Switch;
-
-
