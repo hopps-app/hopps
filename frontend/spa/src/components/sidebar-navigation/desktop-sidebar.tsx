@@ -82,7 +82,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
                 onClick={() => handleMenuClick(item)}
                 onMouseEnter={() => handleMenuHover(item)}
                 className={`
-              flex flex-col items-center justify-center text-center gap-1 p-4 h-20 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
+              flex flex-col items-center justify-center text-center gap-1 p-4 h-22 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
           ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-600 dark:text-gray-200'}
         `}
             >
@@ -108,11 +108,11 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
     return (
         <div className="flex fixed z-10 left-0 top-0 h-screen" onMouseLeave={scheduleClose} onMouseEnter={cancelPendingClose}>
             <aside className={`flex flex-col h-full w-28 z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}>
-                <div className="flex flex-col items-center py-6">
+                <div className="flex flex-col items-center py-6 h-40">
                     <img src="/logo.svg" alt="hopps logo" className="w-11 h-11 mb-2" />
                     <span className="text-primary font-bold text-2xl mb-2">hopps</span>
                 </div>
-                <nav className="flex-1 flex flex-col gap-2 mt-2">
+                <nav className="flex-1 flex flex-col gap-2 ">
                     {menuConfig
                         .filter((item) => item.id !== 'admin')
                         .map((item) => (
