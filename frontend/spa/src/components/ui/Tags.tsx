@@ -18,6 +18,8 @@ function Tags({ label, value, onChange, placeholder, className }: TagsProps) {
     const addTag = useCallback(() => {
         const v = input.trim();
         if (!v) return;
+        if (v.length > 20) return;
+        if (value.length >= 4) return;
         if (value.includes(v)) {
             setInput('');
             return;
@@ -34,13 +36,15 @@ function Tags({ label, value, onChange, placeholder, className }: TagsProps) {
     );
 
     return (
-        <div className={`w-full ${className || ''}`}>
+        <div className={`w-full min-h-32 ${className || ''}`}>
             {label && <Label>{label}</Label>}
             <div className="relative mt-1">
                 <BaseInput
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={placeholder || ''}
+                    maxLength={20}
+                    disabled={value.length >= 4}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
@@ -48,7 +52,13 @@ function Tags({ label, value, onChange, placeholder, className }: TagsProps) {
                         }
                     }}
                 />
-                <button type="button" onClick={addTag} className="absolute right-2 top-1/2 -translate-y-1/2 hover:opacity-80" aria-label="Add tag">
+                <button
+                    type="button"
+                    onClick={addTag}
+                    disabled={value.length >= 4 || input.trim().length > 20}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Add tag"
+                >
                     <Icon icon="PlusCircled" />
                 </button>
             </div>
