@@ -98,7 +98,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
                 key={item.id}
                 onClick={() => handleMenuClick(item)}
                 className={`
-              flex flex-col items-start justify-center gap-1 py-3 cursor-pointer select-none rounded-[10px] hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl pl-6 transition-all duration-200 text-gray-600 dark:text-gray-200`}
+              flex flex-col items-start justify-center gap-1 text-nowrap ml-5 px-6 py-3 cursor-pointer select-none rounded-[10px] hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl transition-all duration-200 text-gray-600 dark:text-gray-200`}
             >
                 <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
             </li>
@@ -128,9 +128,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
 
             {expanded && (
                 <div
-                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-44 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
-                    <div className="p-4 pt-40">
+                    <div className="pt-40">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
                     </div>
                 </div>
