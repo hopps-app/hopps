@@ -83,7 +83,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
                 onMouseEnter={() => handleMenuHover(item)}
                 className={`
               flex flex-col items-center justify-center text-center gap-1 p-4 h-20 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
-          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-500 dark:text-gray-200'}
+          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-600 dark:text-gray-200'}
         `}
             >
                 <Icon icon={item.icon} size={22} />
@@ -93,15 +93,12 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
     };
 
     const renderSubMenuItem = (item: SubMenuItem) => {
-        const isActive = location.pathname.indexOf(item.path) > -1;
         return (
             <li
                 key={item.id}
                 onClick={() => handleMenuClick(item)}
                 className={`
-              flex flex-col items-start justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED} hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl pl-6 transition-all duration-200
-          ${isActive ? 'font-bold text-black' : 'text-gray-500 dark:text-gray-200'}
-        `}
+              flex flex-col items-start justify-center gap-1 py-3 cursor-pointer select-none rounded-[10px] hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl pl-6 transition-all duration-200 text-gray-600 dark:text-gray-200`}
             >
                 <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
             </li>
