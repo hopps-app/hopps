@@ -4,7 +4,6 @@ import { DocumentType } from '@hopps/api-client';
 
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
-import Button from '@/components/ui/Button';
 import Radio from '@/components/ui/Radio';
 import Select, { SelectItem } from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
@@ -14,6 +13,7 @@ import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 import Switch from '@/components/ui/Switch.tsx';
 import Tags from '@/components/ui/Tags.tsx';
+import Button from '@/components/ui/Button.tsx';
 
 type Tag = string;
 
@@ -39,6 +39,7 @@ function ReceiptUploadView() {
     const [netAmount, setNetAmount] = useState('');
     const [taxAmount, setTaxAmount] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isAutoRead, setIsAutoRead] = useState(true);
 
     useEffect(() => {
         if (!store.organization) return;
@@ -110,44 +111,50 @@ function ReceiptUploadView() {
     };
 
     return (
-        <div className="flex flex-row gap-6">
-            <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} />
+        <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-semibold">Upload</h2>
 
-            <div
-                className="min-w-0 min-h-0 border border-grey-700 p-4
-                                rounded-[30px] w-1/2"
-            >
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <TextField label="Belegnummer" value={receiptNumber} onValueChange={setReceiptNumber} />
-                    {/*TODO Date Komponente*/}
-                    <TextField label="Belegdatum" type="text" value={receiptDate} onValueChange={setReceiptDate} />
-                    <Radio
-                        items={radioItems}
-                        value={transactionKind}
-                        onValueChange={(v) => setTransactionKind(v as 'intake' | 'expense')}
-                        layout="horizontal"
-                    />
-                    <Switch checked={isUnpaid} onCheckedChange={() => setIsUnpaid((v) => !v)} label="Unbezahlt" />
-
-                    <TextField label="Vertragspartner" value={contractPartner} onValueChange={setContractPartner} />
-                    <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium">Bommel</label>
-                        <InvoiceUploadFormBommelSelector onChange={(id) => setBommelId((id as number) ?? null)} />
-                    </div>
-
-                    <TextField label="Fälligkeitsdatum" type="text" value={dueDate} onValueChange={setDueDate} />
-                    <Select label="Kategorie" value={category} onValueChanged={setCategory} items={categoryItems} />
-                    <Select label="Bereich" value={area} onValueChanged={setArea} items={areaItems} className={'col-span-2'} />
-
-                    <div className="col-span-2">
-                        <Tags label="Tags" value={tags} onChange={setTags} placeholder="Tag hinzufügen" />
-                    </div>
-
-                    <TextField label="Steuerbetrag" value={taxAmount} onValueChange={setTaxAmount} />
-                    <TextField label="Nettobetrag" value={netAmount} onValueChange={setNetAmount} />
+            <div className="grid grid-cols-1 gap-x-6 gap-y-0 lg:grid-cols-2 items-stretch">
+                <div className="flex flex-col">
+                    <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} />
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6">
+                <div
+                    className="min-w-0 min-h-0 border border-grey-700 p-4
+                                rounded-[30px]"
+                >
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <TextField label="Belegnummer" value={receiptNumber} onValueChange={setReceiptNumber} />
+                        {/*TODO Date Komponente*/}
+                        <TextField label="Belegdatum" type="text" value={receiptDate} onValueChange={setReceiptDate} />
+                        <Radio
+                            items={radioItems}
+                            value={transactionKind}
+                            onValueChange={(v) => setTransactionKind(v as 'intake' | 'expense')}
+                            layout="horizontal"
+                        />
+                        <Switch checked={isUnpaid} onCheckedChange={() => setIsUnpaid((v) => !v)} label="Unbezahlt" />
+
+                        <TextField label="Vertragspartner" value={contractPartner} onValueChange={setContractPartner} />
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium">Bommel</label>
+                            <InvoiceUploadFormBommelSelector onChange={(id) => setBommelId((id as number) ?? null)} />
+                        </div>
+
+                        <TextField label="Fälligkeitsdatum" type="text" value={dueDate} onValueChange={setDueDate} />
+                        <Select label="Kategorie" value={category} onValueChanged={setCategory} items={categoryItems} />
+                        <Select label="Bereich" value={area} onValueChanged={setArea} items={areaItems} className={'col-span-2'} />
+
+                        <div className="col-span-2">
+                            <Tags label="Tags" value={tags} onChange={setTags} placeholder="Tag hinzufügen" />
+                        </div>
+
+                        <TextField label="Steuerbetrag" value={taxAmount} onValueChange={setTaxAmount} />
+                        <TextField label="Nettobetrag" value={netAmount} onValueChange={setNetAmount} />
+                    </div>
+                </div>
+                <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label="Automatisches Auslesen" />
+                <div className="flex justify-end gap-3 mt-6 grid-cols-2">
                     <Button variant="outline" onClick={() => window.history.back()} type="button">
                         Abbrechen
                     </Button>
