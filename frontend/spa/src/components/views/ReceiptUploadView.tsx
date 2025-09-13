@@ -42,14 +42,12 @@ function ReceiptUploadView() {
 
     useEffect(() => {
         if (!store.organization) return;
-        loadBommels(store.organization.id).catch(() => { });
+        loadBommels(store.organization.id).catch(() => {});
     }, [store.organization]);
 
     const onFilesChanged = useCallback((files: File[]) => {
         setFile(files[0] ?? null);
     }, []);
-
-
 
     const areaItems: SelectItem[] = [
         { value: 'ideeller-bereich', label: 'Ideeller Bereich' },
@@ -113,9 +111,7 @@ function ReceiptUploadView() {
 
     return (
         <div className="flex flex-row gap-6">
-            <div className="w-1/2 h-full bg-background-secondary">
-                <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} />
-            </div>
+            <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} />
 
             <div
                 className="min-w-0 min-h-0 border border-grey-700 p-4
