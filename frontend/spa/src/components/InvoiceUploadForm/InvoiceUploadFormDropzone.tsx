@@ -65,7 +65,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
         }
 
         return (
-            <div className="flex flex-col gap-2 items-center">
+            <div className="flex flex-col gap-2 items-center justify-center h-full">
                 <img src={save} alt="save" width="83" height="83" />
                 <p className="text-[var(--border)]">
                     <b className="font-bold text-xl">{t('invoiceUpload.dragDrop')}</b> <br />{' '}
@@ -84,7 +84,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
         <div
             {...getRootProps()}
             className={cn(
-                'border-2 border-dashed border-gray-400 rounded-lg flex flex-col justify-center items-center dropzone text-center w-full flex-1 min-h-[60vh]',
+                'border-2 border-dashed border-gray-400 rounded-lg flex flex-col justify-center items-center dropzone text-center w-full flex-1 min-h-full overflow-hidden bg-background-secondary',
                 {
                     'border-gray-400': isHighlightDrop,
                 }
