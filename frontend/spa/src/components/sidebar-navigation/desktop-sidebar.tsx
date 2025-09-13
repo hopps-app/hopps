@@ -82,8 +82,8 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
                 onClick={() => handleMenuClick(item)}
                 onMouseEnter={() => handleMenuHover(item)}
                 className={`
-              flex flex-col items-center justify-center text-center gap-1 p-4 h-20 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
-          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-500 dark:text-gray-200'}
+              flex flex-col items-center justify-center text-center gap-1 p-4 h-24 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
+          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-600 dark:text-gray-200'}
         `}
             >
                 <Icon icon={item.icon} size={22} />
@@ -93,15 +93,12 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
     };
 
     const renderSubMenuItem = (item: SubMenuItem) => {
-        const isActive = location.pathname.indexOf(item.path) > -1;
         return (
             <li
                 key={item.id}
                 onClick={() => handleMenuClick(item)}
                 className={`
-              flex flex-col items-start justify-center gap-1 py-3 cursor-pointer select-none ${ROUNDED} hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl pl-6 transition-all duration-200
-          ${isActive ? 'font-bold text-black' : 'text-gray-500 dark:text-gray-200'}
-        `}
+              flex flex-col items-start justify-center gap-1 text-nowrap ml-5 px-6 py-3 cursor-pointer select-none rounded-[10px] hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl transition-all duration-200 text-gray-600 dark:text-gray-200`}
             >
                 <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
             </li>
@@ -111,11 +108,11 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
     return (
         <div className="flex fixed z-10 left-0 top-0 h-screen" onMouseLeave={scheduleClose} onMouseEnter={cancelPendingClose}>
             <aside className={`flex flex-col h-full w-28 z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}>
-                <div className="flex flex-col items-center py-6">
+                <div className="flex flex-col items-center py-6 h-40">
                     <img src="/logo.svg" alt="hopps logo" className="w-11 h-11 mb-2" />
                     <span className="text-primary font-bold text-2xl mb-2">hopps</span>
                 </div>
-                <nav className="flex-1 flex flex-col gap-2 mt-2">
+                <nav className="flex-1 flex flex-col gap-2 ">
                     {menuConfig
                         .filter((item) => item.id !== 'admin')
                         .map((item) => (
@@ -131,9 +128,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
 
             {expanded && (
                 <div
-                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 w-44 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
+                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
                 >
-                    <div className="p-4 pt-40">
+                    <div className="pt-40">
                         <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
                     </div>
                 </div>
