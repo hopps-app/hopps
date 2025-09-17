@@ -5,7 +5,7 @@ It is written in [React](https://react.dev/).
 
 ## Project setup
 
-### Prequesites
+### Prerequisites
 - Install [NodeJs v22.15.0+](https://nodejs.org/en) (if you want to handle several Node installations locally for different projects check [nvm](https://github.com/nvm-sh/nvm))
 
 ### Optional

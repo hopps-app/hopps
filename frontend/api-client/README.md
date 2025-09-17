@@ -115,7 +115,7 @@ npm run build
 To publish the package:
 
 ```bash
-npm run publish
+npm run release
 ```
 
 ## License
