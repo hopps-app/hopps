@@ -43,7 +43,7 @@ public class TaggingResource {
     @Operation(summary = "Generates a list of tags for this invoice")
     @APIResponse(responseCode = "200", description = "Generated tags", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(contentSchema = String[].class), example = "[\"food\", \"pizza\"]"))
     public List<String> tagInvoice(JsonObject jsonData) throws JsonProcessingException {
-        return tagDocument("invoicoe", jsonData);
+        return tagDocument("invoice", jsonData);
     }
 
     @POST
