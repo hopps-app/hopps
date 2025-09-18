@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import Icon, { IconProps } from '@/components/ui/Icon.tsx';
-import { BaseButton, BaseButtonProps } from '@/components/ui/shadecn/BaseButton.tsx';
+import Icon, { IconProps } from '@/components/ui/Icon';
+import { BaseButton, BaseButtonProps } from '@/components/ui/shadecn/BaseButton';
 
 interface ButtonProps extends BaseButtonProps {
     title?: string;
