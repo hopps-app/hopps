@@ -44,7 +44,7 @@ function ReceiptUploadView() {
 
     useEffect(() => {
         if (!store.organization) return;
-        loadBommels(store.organization.id).catch(() => { });
+        loadBommels(store.organization.id).catch(() => {});
     }, [store.organization]);
 
     const onFilesChanged = useCallback((files: File[]) => {
@@ -128,12 +128,7 @@ function ReceiptUploadView() {
                         <TextField label="Belegnummer" value={receiptNumber} onValueChange={setReceiptNumber} />
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium">Belegdatum</label>
-                            <DatePicker
-                                date={receiptDate}
-                                onSelect={setReceiptDate}
-                                placeholder="Datum auswählen"
-                                className="w-full"
-                            />
+                            <DatePicker date={receiptDate} onSelect={setReceiptDate} className="w-full" />
                         </div>
                         <Radio
                             items={radioItems}
@@ -151,12 +146,7 @@ function ReceiptUploadView() {
 
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium">Fälligkeitsdatum</label>
-                            <DatePicker
-                                date={dueDate}
-                                onSelect={setDueDate}
-                                placeholder="Datum auswählen"
-                                className="w-full"
-                            />
+                            <DatePicker date={dueDate} onSelect={setDueDate} className="w-full" />
                         </div>
                         <Select label="Kategorie" value={category} onValueChanged={setCategory} items={categoryItems} />
                         <Select label="Bereich" value={area} onValueChanged={setArea} items={areaItems} className={'col-span-2'} />
