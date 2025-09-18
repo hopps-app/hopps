@@ -11,6 +11,7 @@ const buttonVariants = cva(
             variant: {
                 default: 'bg-primary text-primary-foreground font-medium hover:bg-primary-active',
                 outline: 'border border-input bg-background shadow-sm hover:bg-primary-foreground hover:text-primary',
+                ghost: 'hover:bg-accent hover:text-accent-foreground',
                 link: 'text-secondary underline-offset-4 dark:text-white hover:underline',
             },
             size: {
@@ -35,4 +36,4 @@ const BaseButton = React.forwardRef<HTMLButtonElement, BaseButtonProps>(({ class
 });
 BaseButton.displayName = 'BaseButton';
 
-export { BaseButton };
+export { BaseButton, buttonVariants };
