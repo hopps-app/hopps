@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker';
 
 import { cn } from '@/lib/utils.ts';
-import { Button, buttonVariants } from '@/components/ui/Button.tsx';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { buttonVariants } from '@/components/ui/shadecn/BaseButton';
 
 function Calendar({
     className,
@@ -15,7 +16,7 @@ function Calendar({
     components,
     ...props
 }: React.ComponentProps<typeof DayPicker> & {
-    buttonVariant?: React.ComponentProps<typeof Button>['variant'];
+    buttonVariant?: React.ComponentProps<typeof BaseButton>['variant'];
 }) {
     const defaultClassNames = getDefaultClassNames();
 
@@ -120,7 +121,7 @@ function CalendarDayButton({ className, day, modifiers, ...props }: React.Compon
     }, [modifiers.focused]);
 
     return (
-        <Button
+        <BaseButton
             ref={ref}
             variant="ghost"
             size="icon"

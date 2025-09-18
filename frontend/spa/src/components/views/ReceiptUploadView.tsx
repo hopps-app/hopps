@@ -14,6 +14,7 @@ import { useStore } from '@/store/store';
 import Switch from '@/components/ui/Switch.tsx';
 import Tags from '@/components/ui/Tags.tsx';
 import Button from '@/components/ui/Button.tsx';
+import { DatePicker } from '@/components/ui/shadecn/DatePicker';
 
 type Tag = string;
 
@@ -27,8 +28,8 @@ function ReceiptUploadView() {
     const [file, setFile] = useState<File | null>(null);
 
     const [receiptNumber, setReceiptNumber] = useState('');
-    const [receiptDate, setReceiptDate] = useState('');
-    const [dueDate, setDueDate] = useState('');
+    const [receiptDate, setReceiptDate] = useState<Date | undefined>(undefined);
+    const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
     const [transactionKind, setTransactionKind] = useState<'intake' | 'expense' | ''>('');
     const [isUnpaid, setIsUnpaid] = useState(false);
     const [contractPartner, setContractPartner] = useState('');
@@ -43,7 +44,7 @@ function ReceiptUploadView() {
 
     useEffect(() => {
         if (!store.organization) return;
-        loadBommels(store.organization.id).catch(() => {});
+        loadBommels(store.organization.id).catch(() => { });
     }, [store.organization]);
 
     const onFilesChanged = useCallback((files: File[]) => {
@@ -91,8 +92,8 @@ function ReceiptUploadView() {
             showSuccess('Beleg erfolgreich hochgeladen');
             setFile(null);
             setReceiptNumber('');
-            setReceiptDate('');
-            setDueDate('');
+            setReceiptDate(undefined);
+            setDueDate(undefined);
             setTransactionKind('');
             setIsUnpaid(false);
             setContractPartner('');
@@ -125,8 +126,15 @@ function ReceiptUploadView() {
                 >
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <TextField label="Belegnummer" value={receiptNumber} onValueChange={setReceiptNumber} />
-                        {/*TODO Date Komponente*/}
-                        <TextField label="Belegdatum" type="text" value={receiptDate} onValueChange={setReceiptDate} />
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium">Belegdatum</label>
+                            <DatePicker
+                                date={receiptDate}
+                                onSelect={setReceiptDate}
+                                placeholder="Datum auswählen"
+                                className="w-full"
+                            />
+                        </div>
                         <Radio
                             items={radioItems}
                             value={transactionKind}
@@ -141,7 +149,15 @@ function ReceiptUploadView() {
                             <InvoiceUploadFormBommelSelector onChange={(id) => setBommelId((id as number) ?? null)} />
                         </div>
 
-                        <TextField label="Fälligkeitsdatum" type="text" value={dueDate} onValueChange={setDueDate} />
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium">Fälligkeitsdatum</label>
+                            <DatePicker
+                                date={dueDate}
+                                onSelect={setDueDate}
+                                placeholder="Datum auswählen"
+                                className="w-full"
+                            />
+                        </div>
                         <Select label="Kategorie" value={category} onValueChanged={setCategory} items={categoryItems} />
                         <Select label="Bereich" value={area} onValueChanged={setArea} items={areaItems} className={'col-span-2'} />
 
