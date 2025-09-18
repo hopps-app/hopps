@@ -117,7 +117,7 @@ function ReceiptUploadView() {
 
             <div className="grid grid-cols-1 gap-x-6 gap-y-0 lg:grid-cols-2 items-stretch">
                 <div className="flex flex-col">
-                    <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} />
+                    <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} previewFile={file} />
                 </div>
 
                 <div
