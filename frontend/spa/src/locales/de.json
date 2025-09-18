@@ -113,5 +113,8 @@
     "admin": "Admin",
     "ngo-details": "Organisation",
     "categories": "Kategorien"
+  },
+  "datePicker": {
+    "selectDate": "Datum auswählen"
   }
 }

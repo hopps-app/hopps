@@ -114,5 +114,8 @@
     "admin": "Admin",
     "ngo-details": "Ngo Details",
     "categories": "Categories"
+  },
+  "datePicker": {
+    "selectDate": "Select date"
   }
 }
