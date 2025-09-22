@@ -3,6 +3,8 @@ package app.hopps.org.jpa;
 import jakarta.persistence.Embeddable;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import java.util.Objects;
+
 @Embeddable
 @Schema(name = "Organization", description = "An example of a valid address")
 public class Address {
@@ -64,5 +66,20 @@ public class Address {
 
     public void setStreet(String street) {
         this.street = street;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Address address = (Address) o;
+        return Objects.equals(getStreet(), address.getStreet()) && Objects.equals(getNumber(),
+                address.getNumber()) && Objects.equals(getCity(), address.getCity()) && Objects.equals(
+                getPlz(), address.getPlz()) && Objects.equals(getAdditionalLine(), address.getAdditionalLine());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getStreet(), getNumber(), getCity(), getPlz(), getAdditionalLine());
     }
 }

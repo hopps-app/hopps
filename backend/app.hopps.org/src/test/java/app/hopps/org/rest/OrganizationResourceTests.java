@@ -13,6 +13,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import org.flywaydb.core.Flyway;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
 @TestSecurity(authorizationEnabled = false)
@@ -120,44 +122,37 @@ class OrganizationResourceTests {
 
     @Test
     void shouldUpdateExistingOrganization(){
+        var adr = new Address();
+        adr.setCity("city");
+        adr.setStreet("street");
+        adr.setPlz("45645");
+        adr.setNumber("545645");
+        adr.setAdditionalLine("additional line");
 
-        Organization org = organizationRepository.findBySlug("gruenes-herz-ev");
-        Address adr = org.getAddress();
-
-        // alter adress
-        adr.setCity(adr.getCity() + "_altered");
-        adr.setNumber(adr.getNumber() + 1);
-        adr.setPlz(adr.getPlz() + "_altered");
-        adr.setStreet(adr.getStreet() + "_altered");
-        adr.setAdditionalLine(adr.getAdditionalLine() + "_altered");
-
-        //alter Organization
-        org.setName(org.getName() + "_altered");
-        org.setAddress(adr);
-        org.setFoundationDate(new Date(System.currentTimeMillis()));
-        org.setRegistrationCourt(org.getRegistrationCourt() + "_altered");
-        org.setRegistrationNumber(org.getRegistrationNumber() + "_altered");
-        org.setTaxId(org.getTaxId() + "_altered");
-
-        UpdateOrganizationInput updateOrganizationInput = new UpdateOrganizationInput(
-            org.getName(),
-            org.getAddress(),
-            org.getFoundationDate(),
-            org.getRegistrationCourt(),
-            org.getRegistrationNumber(),
-            org.getTaxId()
+        var updateOrganizationInput = new UpdateOrganizationInput(
+            "test_altered",
+            adr,
+            new Date(516515616),
+            "Test HRG",
+            "56156156",
+            "5461561561"
         );
 
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(updateOrganizationInput)
                 .when()
-                .put("/organizations/gruenes-herz-ev")
+                .put("gruenes-herz-ev")
                 .then()
                 .statusCode(200);
 
-        assert(organizationRepository.findBySlug("gruenes-herz-ev").equals(org));
+        var org = organizationRepository.findBySlug("gruenes-herz-ev");
 
+        assertEquals(updateOrganizationInput.organizationName(), org.getName());
+        assertEquals(updateOrganizationInput.foundationDate(), org.getFoundationDate());
+        assertEquals(updateOrganizationInput.registerCourt(), org.getRegistrationCourt());
+        assertEquals(updateOrganizationInput.registerNumber(), org.getRegistrationNumber());
+        assertEquals(updateOrganizationInput.address(), org.getAddress());
     }
 
 }

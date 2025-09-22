@@ -11,6 +11,7 @@ import app.hopps.org.rest.model.UpdateOrganizationInput;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
@@ -20,7 +21,9 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.jboss.resteasy.reactive.RestPath;
 import org.kie.kogito.Model;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessInstance;
@@ -162,12 +165,13 @@ public class OrganizationResource {
     @PUT
     @Path("{slug}")
     @Authenticated
+    @Transactional
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Update Organization by slug")
-    public Response updateOrganizationBySlug(@PathParam("slug") String slug, UpdateOrganizationInput updateOrganizationInput) {
+    public Organization updateOrganizationBySlug(@RestPath String slug, @RequestBody UpdateOrganizationInput updateOrganizationInput) {
         Organization organization = organizationRepository.findBySlug(slug);
         if (organization == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            throw new NotFoundException("Organization not found in database");
         }
 
         organization.setName(updateOrganizationInput.organizationName());
@@ -177,8 +181,8 @@ public class OrganizationResource {
         organization.setRegistrationNumber(updateOrganizationInput.registerNumber());
         organization.setTaxId(updateOrganizationInput.taxId());
 
-        organization.persist();
+//        organization.persist();
 
-        return Response.ok().build();
+        return organization;
     }
 }

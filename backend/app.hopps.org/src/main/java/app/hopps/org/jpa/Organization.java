@@ -14,6 +14,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import java.net.URL;
 import java.sql.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -163,6 +164,7 @@ public class Organization extends PanacheEntity {
     public void setFoundationDate(Date foundationDate) {
         this.foundationDate = foundationDate;
     }
+
     public void setRegistrationCourt(String registerCourt) {
         this.registrationCourt = registerCourt;
     }
@@ -185,5 +187,26 @@ public class Organization extends PanacheEntity {
 
     public void setTaxId(String taxId) {
         this.taxId = taxId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Organization that = (Organization) o;
+        return Objects.equals(getName(), that.getName()) && Objects.equals(getSlug(), that.getSlug())
+                && getType() == that.getType() && Objects.equals(getAddress(), that.getAddress())
+                && Objects.equals(getRootBommel(), that.getRootBommel()) && Objects.equals(getMembers(),
+                that.getMembers()) && Objects.equals(getWebsite(), that.getWebsite()) && Objects.equals(
+                getProfilePicture(), that.getProfilePicture()) && Objects.equals(getFoundationDate(),
+                that.getFoundationDate()) && Objects.equals(getRegistrationCourt(), that.getRegistrationCourt())
+                && Objects.equals(getRegistrationNumber(), that.getRegistrationNumber())
+                && Objects.equals(getTaxId(), that.getTaxId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getSlug(), getType(), getAddress(), getRootBommel(), getMembers(), getWebsite(),
+                getProfilePicture(), getFoundationDate(), getRegistrationCourt(), getRegistrationNumber(), getTaxId());
     }
 }
