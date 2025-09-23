@@ -47,9 +47,50 @@ function ReceiptUploadView() {
         loadBommels(store.organization.id).catch(() => {});
     }, [store.organization]);
 
-    const onFilesChanged = useCallback((files: File[]) => {
-        setFile(files[0] ?? null);
-    }, []);
+    const onFilesChanged = useCallback(
+        async (files: File[]) => {
+            const selected = files[0] ?? null;
+            setFile(selected);
+            if (!selected) return;
+            if (isSubmitting) return;
+
+            const mime = selected.type || '';
+            const nameLower = selected.name.toLowerCase();
+            const isAllowedType =
+                mime === 'application/pdf' ||
+                mime === 'image/jpeg' ||
+                mime === 'image/png' ||
+                nameLower.endsWith('.pdf') ||
+                nameLower.endsWith('.jpg') ||
+                nameLower.endsWith('.jpeg') ||
+                nameLower.endsWith('.png');
+            if (!isAllowedType) {
+                showError('Ungültiger Dateityp');
+                return;
+            }
+
+            try {
+                setIsSubmitting(true);
+                await apiService.orgService.documentPOST(
+                    {
+                        data: selected,
+                        fileName: selected.name,
+                    },
+                    54, // TODO: replace hardcoded bommelId with selected value
+                    false,
+                    DocumentType.INVOICE
+                );
+                showSuccess('Beleg erfolgreich hochgeladen');
+                setFile(null);
+            } catch (e) {
+                console.error(e);
+                showError('Upload fehlgeschlagen');
+            } finally {
+                setIsSubmitting(false);
+            }
+        },
+        [isSubmitting, showError, showSuccess]
+    );
 
     const areaItems: SelectItem[] = [
         { value: 'ideeller-bereich', label: 'Ideeller Bereich' },
