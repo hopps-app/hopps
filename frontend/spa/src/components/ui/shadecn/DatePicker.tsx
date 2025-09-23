@@ -52,21 +52,22 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             type="button"
                             disabled={disabled}
                             className={cn(
-                                'w-full text-gray-800 text-sm border border-gray-300 px-4 py-3 rounded-md outline-primary bg-primary-foreground',
+                                'w-full text-gray-800 text-sm border border-gray-300 py-3 rounded-md outline-primary bg-primary-foreground',
                                 'placeholder:text-muted focus:border-primary transition-colors',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 'flex items-center justify-start text-left font-normal',
                                 !date && 'text-muted-foreground',
+                                loading ? 'pl-3 pr-4' : 'px-4',
                                 className
                             )}
                         >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, 'PPP', { locale: getDateLocale() }) : <span>{defaultPlaceholder}</span>}
                             {loading && (
-                                <div className="ml-auto">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
                                     <InputLoader />
                                 </div>
                             )}
+                            <CalendarIcon className={loading ? 'ml-6 mr-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
+                            {date ? format(date, 'PPP', { locale: getDateLocale() }) : <span>{defaultPlaceholder}</span>}
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">

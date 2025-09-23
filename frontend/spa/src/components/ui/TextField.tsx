@@ -29,13 +29,18 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
         <div className="relative grid w-full items-center gap-1.5">
             {props.label && <Label htmlFor={id}>{props.label}</Label>}
             <div className="relative flex items-center">
+                {props.loading && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+                        <InputLoader />
+                    </div>
+                )}
                 <BaseInput
                     id={id}
                     name={props.name || undefined}
                     type={props.type || 'text'}
                     placeholder={props.placeholder || ''}
                     value={props.value}
-                    className={props.className}
+                    className={props.loading ? `pl-10 ${props.className || ''}` : props.className}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                         props.onChange?.(event);
                         props.onValueChange?.(event.target.value);
@@ -45,11 +50,6 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     onFocus={props.onFocus}
                     ref={ref}
                 />
-                {props.loading && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <InputLoader />
-                    </div>
-                )}
                 {props.appendIcon || null}
             </div>
             {props.error && (
