@@ -3,6 +3,7 @@ import React, { useState, forwardRef } from 'react';
 
 import { BaseInput } from '@/components/ui/shadecn/BaseInput.tsx';
 import { Label } from './Label.tsx';
+import InputLoader from './InputLoader';
 
 interface TextFieldProps {
     label?: string;
@@ -13,6 +14,7 @@ interface TextFieldProps {
     error?: string;
     appendIcon?: string;
     className?: string;
+    loading?: boolean;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onValueChange?: (value: string) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -43,6 +45,11 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     onFocus={props.onFocus}
                     ref={ref}
                 />
+                {props.loading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <InputLoader />
+                    </div>
+                )}
                 {props.appendIcon || null}
             </div>
             {props.error && (

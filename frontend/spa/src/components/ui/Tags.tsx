@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import Icon from '@/components/ui/Icon.tsx';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput.tsx';
 import { Label } from './Label.tsx';
+import InputLoader from './InputLoader';
 
 type TagsProps = {
     label?: string;
@@ -10,9 +11,10 @@ type TagsProps = {
     onChange?: (tags: string[]) => void;
     placeholder?: string;
     className?: string;
+    loading?: boolean;
 };
 
-function Tags({ label, value, onChange, placeholder, className }: TagsProps) {
+function Tags({ label, value, onChange, placeholder, className, loading }: TagsProps) {
     const [input, setInput] = useState('');
 
     const addTag = useCallback(() => {
@@ -52,15 +54,21 @@ function Tags({ label, value, onChange, placeholder, className }: TagsProps) {
                         }
                     }}
                 />
-                <button
-                    type="button"
-                    onClick={addTag}
-                    disabled={value.length >= 4 || input.trim().length > 20}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Add tag"
-                >
-                    <Icon icon="PlusCircled" />
-                </button>
+                {loading ? (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <InputLoader />
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={addTag}
+                        disabled={value.length >= 4 || input.trim().length > 20}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Add tag"
+                    >
+                        <Icon icon="PlusCircled" />
+                    </button>
+                )}
             </div>
 
             {value.length > 0 && (

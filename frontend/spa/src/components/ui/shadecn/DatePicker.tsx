@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { Calendar } from './calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
 import { Label } from '@/components/ui/Label';
+import InputLoader from '@/components/ui/InputLoader';
 
 interface DatePickerProps {
     date?: Date;
@@ -20,9 +21,10 @@ interface DatePickerProps {
     disabled?: boolean;
     label?: string;
     error?: string;
+    loading?: boolean;
 }
 
-export function DatePicker({ date, onSelect, placeholder, className, disabled, label, error }: DatePickerProps) {
+export function DatePicker({ date, onSelect, placeholder, className, disabled, label, error, loading }: DatePickerProps) {
     const { t, i18n } = useTranslation();
     const defaultPlaceholder = placeholder || t('datePicker.selectDate');
     const [id] = useState(_.uniqueId('date-picker-'));
@@ -60,6 +62,11 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {date ? format(date, 'PPP', { locale: getDateLocale() }) : <span>{defaultPlaceholder}</span>}
+                            {loading && (
+                                <div className="ml-auto">
+                                    <InputLoader />
+                                </div>
+                            )}
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -68,9 +75,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                 </Popover>
             </div>
             {error && (
-                <div className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none">
-                    {error}
-                </div>
+                <div className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none">{error}</div>
             )}
         </div>
     );
