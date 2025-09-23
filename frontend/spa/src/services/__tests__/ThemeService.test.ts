@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ThemeService, Themes } from '../ThemeService';
 
@@ -34,5 +34,26 @@ describe('ThemeService', () => {
         service.setDarkMode(false);
         expect(service.getTheme()).toBe(Themes.light);
         expect(document.documentElement.classList.contains(Themes.dark)).toBe(false);
+    });
+
+    it('should enable auto mode by clearing preference and reinitializing', () => {
+        localStorage.setItem('THEME', Themes.dark);
+        const initSpy = vi.spyOn(service, 'init');
+
+        service.setAutoMode();
+
+        expect(localStorage.getItem('THEME')).toBeNull();
+        expect(initSpy).toHaveBeenCalledTimes(1);
+        expect(service.isAutoMode()).toBe(true);
+
+        initSpy.mockRestore();
+    });
+
+    it('should report auto mode status based on stored preference', () => {
+        expect(service.isAutoMode()).toBe(true);
+
+        localStorage.setItem('THEME', Themes.light);
+
+        expect(service.isAutoMode()).toBe(false);
     });
 });
