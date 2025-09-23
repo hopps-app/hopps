@@ -41,12 +41,18 @@ function Tags({ label, value, onChange, placeholder, className, loading }: TagsP
         <div className={`w-full min-h-32 ${className || ''}`}>
             {label && <Label>{label}</Label>}
             <div className="relative mt-1">
+                {loading && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+                        <InputLoader />
+                    </div>
+                )}
                 <BaseInput
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={placeholder || ''}
                     maxLength={20}
                     disabled={value.length >= 4}
+                    className={loading ? 'pl-10' : ''}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
@@ -54,11 +60,7 @@ function Tags({ label, value, onChange, placeholder, className, loading }: TagsP
                         }
                     }}
                 />
-                {loading ? (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                        <InputLoader />
-                    </div>
-                ) : (
+                {!loading && (
                     <button
                         type="button"
                         onClick={addTag}
