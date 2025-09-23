@@ -6,7 +6,7 @@ import { BaseButton, BaseButtonProps } from '@/components/ui/shadecn/BaseButton'
 interface ButtonProps extends BaseButtonProps {
     title?: string;
     icon?: IconProps['icon'];
-    variant?: 'default' | 'outline' | 'link';
+    variant?: 'default' | 'secondary' | 'outline' | 'link';
     iconColor?: string;
 }
 
