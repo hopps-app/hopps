@@ -54,7 +54,7 @@ spec:
             - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
               value: http://{{ .Release.Name }}-az-document-ai:{{ .Values.azDocumentAi.service.port }}/
             # zugferd
-            - name: HOPPS_ZUGFERD
+            - name: HOPPS_ZUGFERD_SERVICE_URL
               value: http://{{ .Release.Name }}-zugferd:{{ .Values.zugferd.service.port }}/
           securityContext:
             {{- toYaml .Values.org.securityContext | nindent 12 }}
