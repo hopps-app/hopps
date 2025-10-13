@@ -25,7 +25,9 @@ export const CategorySchema = z.object({
 
 type CategoryInput = z.infer<typeof CategorySchema>;
 
-function CategoryForm() {
+type Props = { onSuccess?: () => void };
+
+function CategoryForm({ onSuccess }: Props) {
     const {
         register,
         handleSubmit,
@@ -38,6 +40,8 @@ function CategoryForm() {
     function onSubmit(data: CategoryInput) {
         console.log('Form submitted:', data);
         // Handle form submission logic here
+
+        onSuccess?.();
     }
 
     return (
