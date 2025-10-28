@@ -362,6 +362,15 @@ postgresqlOrg:
   nameOverride: org-postgresql
   auth:
     database: org
+  # use bitnami legacy repository (https://news.broadcom.com/app-dev/broadcom-introduces-bitnami-secure-images-for-production-ready-containerized-applications)
+  image:
+    repository: bitnamilegacy/postgresql
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/os-shell
+  metrics:
+    image:
+      repository: bitnamilegacy/postgres-exporter
 
 zugferd:
   replicaCount: 1
@@ -612,6 +621,20 @@ openfga:
 
 kafka:
   enabled: false
+  # use bitnami legacy repository (https://news.broadcom.com/app-dev/broadcom-introduces-bitnami-secure-images-for-production-ready-containerized-applications)
+  image:
+    repository: bitnamilegacy/kafka
+  defaultInitContainers:
+    volumePermissions:
+      image:
+        repository: bitnamilegacy/os-shell
+    autodiscovery:
+      image:
+        repository: bitnamilegacy/kubectl
+  metrics:
+    jmx:
+      image:
+        repository: bitnamilegacy/jmx-exporter
 
 kafka-ui:
   enabled: false

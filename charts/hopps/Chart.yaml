@@ -15,7 +15,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.13
+version: 0.1.14
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
@@ -43,7 +43,7 @@ dependencies:
   - condition: kafka.enabled
     name: kafka
     # ToDo: make version controllable by dependabot
-    version: 31.2.0
+    version: 32.4.4
     repository: https://charts.bitnami.com/bitnami
   - condition: postgresql-org.enabled
     alias: postgresqlOrg
