@@ -43,7 +43,7 @@ dependencies:
   - condition: kafka.enabled
     name: kafka
     # ToDo: make version controllable by dependabot
-    version: 32.4.4
+    version: 32.4.3
     repository: https://charts.bitnami.com/bitnami
   - condition: postgresql-org.enabled
     alias: postgresqlOrg
