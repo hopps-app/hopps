@@ -770,7 +770,8 @@
       ],
       "defaultClientScopes": [
         "profile",
-        "microprofile-jwt"
+        "microprofile-jwt",
+        "email"
       ],
       "optionalClientScopes": []
     },
