@@ -100,9 +100,9 @@ public class DocumentResource {
             """)
     public TransactionRecord uploadDocument(
             @RestForm("file") FileUpload file,
-            @RestForm("bommelId") @PartType(MediaType.TEXT_PLAIN) Long bommelId,
-            @RestForm("privatelyPaid") @PartType(MediaType.TEXT_PLAIN) boolean privatelyPaid,
-            @RestForm("type") @PartType(MediaType.TEXT_PLAIN) DocumentType type) throws IOException {
+            @RestForm("bommelId") Long bommelId,
+            @RestForm("privatelyPaid") boolean privatelyPaid,
+            @RestForm("type") DocumentType type) throws IOException {
         if (file == null || type == null) {
             throw new BadRequestException(
                     Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
