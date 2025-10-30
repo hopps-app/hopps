@@ -67,8 +67,7 @@ public class CategoryResource {
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get all categories for user's organization", description = "Retrieves all categories for the current user's organization")
-    @APIResponse(responseCode = "200", description = "Categories retrieved successfully",
-                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category[].class)))
+    @APIResponse(responseCode = "200", description = "Categories retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category[].class)))
     @APIResponse(responseCode = "404", description = "User or organization not found")
     public List<Category> getAllCategories(@Context SecurityContext securityContext) {
         Organization userOrganization = getUserOrganization(securityContext);
@@ -80,8 +79,7 @@ public class CategoryResource {
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get category by ID", description = "Retrieves a specific category by its ID within the user's organization")
-    @APIResponse(responseCode = "200", description = "Category retrieved successfully",
-                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category.class)))
+    @APIResponse(responseCode = "200", description = "Category retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category.class)))
     @APIResponse(responseCode = "404", description = "Category not found or not accessible")
     public Category getCategoryById(@PathParam("id") Long id, @Context SecurityContext securityContext) {
         Organization userOrganization = getUserOrganization(securityContext);
@@ -99,8 +97,7 @@ public class CategoryResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Operation(summary = "Create a new category", description = "Creates a new category for the user's organization")
-    @APIResponse(responseCode = "201", description = "Category created successfully",
-                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category.class)))
+    @APIResponse(responseCode = "201", description = "Category created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category.class)))
     @APIResponse(responseCode = "400", description = "Invalid category data")
     @APIResponse(responseCode = "404", description = "User or organization not found")
     public Response createCategory(@Valid CategoryInput categoryInput, @Context SecurityContext securityContext) {
@@ -122,11 +119,11 @@ public class CategoryResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Operation(summary = "Update a category", description = "Updates an existing category within the user's organization")
-    @APIResponse(responseCode = "200", description = "Category updated successfully",
-                 content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category.class)))
+    @APIResponse(responseCode = "200", description = "Category updated successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Category.class)))
     @APIResponse(responseCode = "404", description = "Category not found or not accessible")
     @APIResponse(responseCode = "400", description = "Invalid category data")
-    public Category updateCategory(@PathParam("id") Long id, @Valid CategoryInput categoryInput, @Context SecurityContext securityContext) {
+    public Category updateCategory(@PathParam("id") Long id, @Valid CategoryInput categoryInput,
+            @Context SecurityContext securityContext) {
         Organization userOrganization = getUserOrganization(securityContext);
         Category existingCategory = categoryRepository.findById(id);
 

@@ -5,11 +5,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Schema(name = "CategoryInput", description = "Input for creating a new category")
 public record CategoryInput(
-        @NotBlank
-        @Schema(description = "Name of the category", example = "Technology")
-        String name,
+        @NotBlank @Schema(description = "Name of the category", example = "Technology") String name,
 
-        @Schema(description = "Description of the category", example = "Category for technology-related items")
-        String description
-) {
+        @Schema(description = "Description of the category", example = "Category for technology-related items") String description) {
 }
