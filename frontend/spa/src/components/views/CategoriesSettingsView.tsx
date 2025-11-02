@@ -1,6 +1,8 @@
+import { useState } from 'react';
+
 import CategoryDialog from '@/components/Categories/CategoryDialog';
 import CategoryTable from '../Categories/CategoryTable';
-import TextField from '../ui/TextField';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/Command';
 
 const categories = [
     {
@@ -47,19 +49,35 @@ const categories = [
 ];
 
 function CategoriesSettingsView() {
+    const [showList] = useState(false);
     return (
         <>
             <div className="flex flex-col gap-4">
                 <div className="flex flex-row justify-between items-center">
                     <h2 className="text-2xl font-semibold">Kategorien</h2>
-                    <CategoryDialog />
                 </div>
                 <div
                     className="min-w-0 min-h-0 border border-grey-500 p-4
                                 rounded-[30px] bg-[#ECE0F6]"
                 >
-                    <div className="space-y-10">
-                        <TextField className="max-w-sm" placeholder="Kategorie suchen"></TextField>
+                    <div className="space-y-8 p-2">
+                        <div className="flex items-center justify-between">
+                            <Command className="max-w-sm">
+                                <CommandInput placeholder="Kategorie suchen" />
+                                {showList && (
+                                    <CommandList>
+                                        <CommandEmpty>No results found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <CommandItem>Calendar</CommandItem>
+                                            <CommandItem>Search Emoji</CommandItem>
+                                            <CommandItem>Calculator</CommandItem>
+                                        </CommandGroup>
+                                    </CommandList>
+                                )}
+                            </Command>
+
+                            <CategoryDialog />
+                        </div>
                         <CategoryTable categories={categories} />
                     </div>
                 </div>
