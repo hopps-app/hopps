@@ -34,9 +34,10 @@ jobs:
           - label: fin-narrator
             directory: app.hopps.fin-narrator
             serviceName: finNarrator
-          - label: mail-service
-            directory: app.hopps.mailservice
-            serviceName: mailService
+#          todo :enable again, as soon as the mail service is part of the helmchart
+#          - label: mail-service
+#            directory: app.hopps.mailservice
+#            serviceName: mailService
 
     runs-on: ubuntu-latest
     steps:
