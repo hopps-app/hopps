@@ -16,6 +16,7 @@ jobs:
       image: node:20
     permissions:
       contents: write
+      pull-requests: write
 
     defaults:
       run:
@@ -61,11 +62,32 @@ jobs:
       - name: Build package
         run: pnpm run build
 
-      - name: Commit and push generated OrgService changes
-        uses: stefanzweifel/git-auto-commit-action@v5.2.0
+      - name: Create feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "api-client/v${{ inputs.version }}"
+
+      - name: Commit generated changes
+        run: |
+          git add frontend/api-client/src/services/OrgService.ts frontend/api-client/package.json
+          git commit -m "🚀 published @hopps/api-client v${{ inputs.version }}"
+          git push origin "api-client/v${{ inputs.version }}"
+
+      - name: Create Pull Request
+        uses: actions/github-script@v7
         with:
-          file_pattern: 'frontend/api-client/src/services/OrgService.ts frontend/api-client/package.json'
-          commit_message: "🚀 published @hopps/api-client v${{ inputs.version }}"
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚀 API Client v${{ inputs.version }}`,
+              head: `api-client/v${{ inputs.version }}`,
+              base: 'main',
+              body: `## Summary
+            - Generated OrgService client for version ${{ inputs.version }}
+            - Updated package.json version to ${{ inputs.version }}
+            console.log(`Pull request created: ${pullRequest.html_url}`);
 
       - name: Configure npm auth for npmjs.org
         env:
