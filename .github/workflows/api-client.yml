@@ -86,7 +86,8 @@ jobs:
               base: 'main',
               body: `## Summary
             - Generated OrgService client for version ${{ inputs.version }}
-            - Updated package.json version to ${{ inputs.version }}
+            - Updated package.json version to ${{ inputs.version }}`
+            });
             console.log(`Pull request created: ${pullRequest.html_url}`);
 
       - name: Configure npm auth for npmjs.org
