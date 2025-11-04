@@ -70,7 +70,7 @@ jobs:
 
       - name: Commit generated changes
         run: |
-          git add frontend/api-client/src/services/OrgService.ts frontend/api-client/package.json
+          git add src/services/OrgService.ts package.json
           git commit -m "🚀 published @hopps/api-client v${{ inputs.version }}"
           git push origin "api-client/v${{ inputs.version }}"
 
