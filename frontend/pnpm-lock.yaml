@@ -189,8 +189,8 @@ importers:
         specifier: ^3.9.1
         version: 3.10.0(react-hook-form@7.57.0(react@18.3.1))
       '@hopps/api-client':
-        specifier: 1.0.4
-        version: 1.0.4
+        specifier: 1.0.6
+        version: 1.0.6
       '@minoru/react-dnd-treeview':
         specifier: ^3.4.4
         version: 3.5.2(dnd-core@16.0.1)(react-dnd@16.0.1(@types/node@22.15.31)(@types/react@18.3.23)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1644,7 +1644,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@0.22.26':
     resolution: {integrity: sha512-I689wc8Fn/AX7aUGiwrh3HnssiORMJtR2fpksX+JIe8Cj/EDleblYMSwRPd0025wrwOV9UN1KM/RuEt/QjCS3Q==}
@@ -1756,8 +1756,8 @@ packages:
     peerDependencies:
       react-hook-form: ^7.0.0
 
-  '@hopps/api-client@1.0.4':
-    resolution: {integrity: sha512-G7AS6x1bjEa5gcFl9+AnbY/kc6/IjgifNKtlzQ/N54yP4jKpqICgopcP0h3ccgSZxR92xvsaKjhcfa6obI/7Og==}
+  '@hopps/api-client@1.0.6':
+    resolution: {integrity: sha512-QnXYV5V+Tx6Hk9McuXsD50vKkeJGE5b0EcuZyfihk/4HNAXw/SMUOHe3/dIu7HDrhC6pV+W/xRoRc0Jo81Id2g==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -11206,7 +11206,7 @@ snapshots:
     dependencies:
       react-hook-form: 7.57.0(react@18.3.1)
 
-  '@hopps/api-client@1.0.4': {}
+  '@hopps/api-client@1.0.6': {}
 
   '@humanfs/core@0.19.1': {}
 
