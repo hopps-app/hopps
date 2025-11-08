@@ -5,12 +5,13 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
     {
         variants: {
             variant: {
                 default: 'bg-primary text-primary-foreground font-medium hover:bg-primary-active',
-                secondary: 'bg-[var(--purple-100)] text-[var(--purple-800)] border border-[var(--purple-300)] hover:bg-[var(--purple-200)] hover:border-[var(--purple-400)]',
+                secondary:
+                    'bg-[var(--purple-100)] text-[var(--color-black)] border border-[var(--purple-300)] hover:bg-[var(--purple-200)] hover:border-[var(--purple-400)]',
                 outline: 'border border-input bg-background shadow-sm hover:bg-primary-foreground hover:text-primary',
                 ghost: 'hover:bg-accent hover:text-accent-foreground',
                 link: 'text-secondary underline-offset-4 dark:text-white hover:underline',
