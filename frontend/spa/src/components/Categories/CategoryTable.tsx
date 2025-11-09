@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import Icon from '../ui/Icon';
 import CategoryForm, { Category } from './CategoryForm';
-import DialogWrapper from './DialogWrapper';
+import DialogWrapper from '../ui/DialogWrapper';
 import apiService from '@/services/ApiService.ts';
 
 type TableProps = {

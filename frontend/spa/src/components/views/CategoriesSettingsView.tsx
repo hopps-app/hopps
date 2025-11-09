@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useSearch } from '@/hooks/use-search';
 import { useCategories } from '../Categories/hooks/useCategories';
-import DialogWrapper from '@/components/Categories/DialogWrapper';
+import DialogWrapper from '@/components/ui/DialogWrapper';
 import CategoryTable from '../Categories/CategoryTable';
 import TextField from '../ui/TextField';
 import Button from '../ui/Button';
