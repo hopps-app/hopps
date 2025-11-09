@@ -66,6 +66,7 @@ function ReceiptUploadView() {
     // This function will handle incoming field updates from the backend
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleFieldUpdate = useCallback(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (field: string, value: any) => {
             switch (field) {
                 case 'receiptNumber':
