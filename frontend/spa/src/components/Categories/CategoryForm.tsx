@@ -10,7 +10,7 @@ import TextField from '@/components/ui/TextField';
 import apiService from '@/services/ApiService.ts';
 
 export interface Category {
-    id: number;
+    id?: number;
     name: string;
     description?: string | null;
 }

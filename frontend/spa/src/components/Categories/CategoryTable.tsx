@@ -38,7 +38,7 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                     <DialogWrapper
                         trigger={
                             <div
-                                onDoubleClick={() => setEditingCategoryId(category.id)}
+                                onDoubleClick={() => setEditingCategoryId(category.id!)}
                                 className="flex items-start justify-between rounded-2xl border border-gray-200 bg-white px-5 py-3 shadow-sm transition-colors hover:border-primary hover:ring-2 hover:ring-primary cursor-pointer"
                             >
                                 <div className="min-w-0 flex-1">
@@ -59,7 +59,7 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                                         }
                                         title={t('categories.dialog.deletion.title')}
                                         description={t('categories.dialog.deletion.description_1')}
-                                        onSuccess={() => deleteCategory(category.id)}
+                                        onSuccess={() => deleteCategory(category.id!)}
                                     >
                                         <p className="text-sm text-gray-600">{t('categories.dialog.deletion.description_2')}</p>
                                     </DialogWrapper>
