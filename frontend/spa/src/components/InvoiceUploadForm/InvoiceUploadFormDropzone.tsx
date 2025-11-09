@@ -2,7 +2,6 @@ import './styles/InvoiceuploadFormDropzone.scss';
 
 import { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
-// @ts-expect-error pdfjs-dist types don't export this path string
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?worker&url';
 import { FileWithPath, useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
