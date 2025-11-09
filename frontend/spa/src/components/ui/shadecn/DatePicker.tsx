@@ -8,7 +8,7 @@ import { useState } from 'react';
 import * as _ from 'lodash';
 
 import { cn } from '@/lib/utils';
-import { Calendar } from './calendar';
+import { Calendar } from './Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
 import { Label } from '@/components/ui/Label';
 import InputLoader from '@/components/ui/InputLoader';
