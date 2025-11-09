@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { DocumentType } from '@hopps/api-client';
 
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
@@ -156,7 +155,7 @@ function ReceiptUploadView() {
                     },
                     54, // TODO: replace hardcoded bommelId with selected value
                     false,
-                    DocumentType.INVOICE
+                    'INVOICE'
                 );
                 showSuccess('Beleg erfolgreich hochgeladen');
                 setFile(null);
@@ -216,7 +215,7 @@ function ReceiptUploadView() {
                 },
                 bommelId,
                 false,
-                DocumentType.RECEIPT
+                'RECEIPT'
             );
 
             showSuccess('Beleg erfolgreich hochgeladen');
