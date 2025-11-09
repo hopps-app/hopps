@@ -110,6 +110,8 @@ function ReceiptUploadView() {
         [setFieldLoading]
     );
 
+    handleFieldUpdate('', 1); // only to delete the
+
     const onFilesChanged = useCallback(
         async (files: File[]) => {
             const selected = files[0] ?? null;
