@@ -22,12 +22,12 @@ function CategoriesSettingsView() {
             <Header title={t('categories.title')} />
             <div className="flex-1 min-h-0 flex flex-col">
                 <div className="flex flex-col sm:flex-row sm:justify-end items-stretch sm:items-center gap-4 mb-8">
-                    <div className="w-full sm:w-[312px] order-2 sm:order-1">
+                    <div className="h-11 w-full sm:w-[312px] order-2 sm:order-1">
                         <TextField onValueChange={setQuery} value={query} prependIcon="MagnifyingGlass" placeholder={t('categories.searchInput.placeholder')} />
                     </div>
                     <DialogWrapper
                         trigger={
-                            <Button type="button" icon="Plus" className="min-h-7 w-full sm:w-auto order-1 sm:order-2">
+                            <Button type="button" icon="Plus" className="h-11 min-h-7 w-full sm:w-auto order-1 sm:order-2">
                                 {t('categories.addButton')}
                             </Button>
                         }
