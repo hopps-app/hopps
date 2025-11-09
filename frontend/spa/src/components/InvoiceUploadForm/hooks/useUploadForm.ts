@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FileWithPath } from 'react-dropzone';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { DocumentType } from '@hopps/api-client';
+import type { DocumentType } from '@hopps/api-client';
 
 import { InvoiceUploadType } from '@/components/InvoiceUploadForm/types/index';
 import { useToast } from '@/hooks/use-toast.ts';
