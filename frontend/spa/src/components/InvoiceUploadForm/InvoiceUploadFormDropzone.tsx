@@ -95,6 +95,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
                 canvas.height = viewport.height;
                 await page.render({ canvasContext: context, viewport }).promise;
             } catch (e) {
+                console.error(e);
                 // ignore rendering errors
             }
         };
