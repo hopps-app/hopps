@@ -38,7 +38,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     </div>
                 )}
                 {!props.loading && props.prependIcon && (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-gray-400">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text">
                         <Icon icon={props.prependIcon} size="md" />
                     </div>
                 )}
