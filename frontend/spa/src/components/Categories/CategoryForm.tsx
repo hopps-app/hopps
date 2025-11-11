@@ -1,19 +1,13 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CategoryInput } from '@hopps/api-client';
+import { CategoryInput, Category } from '@hopps/api-client';
 import { useTranslation } from 'react-i18next';
 
 import { useToast } from '@/hooks/use-toast.ts';
 import TextArea from '@/components/ui/Textarea';
 import TextField from '@/components/ui/TextField';
 import apiService from '@/services/ApiService.ts';
-
-export interface Category {
-    id?: number;
-    name: string;
-    description?: string | null;
-}
 
 type Props = {
     initialData?: Category;
@@ -39,11 +33,7 @@ export default function CategoryForm({ onSuccess, initialData, isEdit = false }:
         formState: { errors },
     } = useForm<FormFields>({
         resolver: zodResolver(CategorySchema),
-        defaultValues: {
-            id: initialData?.id,
-            name: initialData?.name,
-            description: initialData?.description,
-        },
+        defaultValues: initialData,
     });
 
     async function onSubmit(data: FormFields) {

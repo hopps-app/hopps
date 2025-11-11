@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Category } from '@hopps/api-client';
 
 import Icon from '../ui/Icon';
-import CategoryForm, { Category } from './CategoryForm';
+import CategoryForm from './CategoryForm';
 import DialogWrapper from '../ui/DialogWrapper';
 import apiService from '@/services/ApiService.ts';
 
