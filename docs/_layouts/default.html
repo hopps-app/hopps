@@ -36,8 +36,13 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1 class="sidebar-title">🏗️ Hopps</h1>
-                <p class="sidebar-subtitle">Architecture Documentation</p>
+                <a href="{{ '/' | relative_url }}" class="logo-link">
+                    <img src="{{ '/assets/images/hopps-logo.svg' | relative_url }}" alt="Hopps Logo" class="sidebar-logo">
+                    <div class="sidebar-title-wrapper">
+                        <h1 class="sidebar-title">Hopps Platform</h1>
+                        <p class="sidebar-subtitle">Architecture Documentation</p>
+                    </div>
+                </a>
             </div>
 
             <nav>
@@ -58,22 +63,22 @@
                     <h2 class="nav-section-title">Core Architecture</h2>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="{{ '/01_introduction.html' | relative_url }}" class="nav-link {% if page.url contains '01_introduction' %}active{% endif %}">
+                            <a href="{{ '/01_introduction' | relative_url }}" class="nav-link {% if page.url contains '01_introduction' %}active{% endif %}">
                                 01. Introduction & Goals
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ '/02_architecture_constraints.html' | relative_url }}" class="nav-link {% if page.url contains '02_architecture_constraints' %}active{% endif %}">
+                            <a href="{{ '/02_architecture_constraints' | relative_url }}" class="nav-link {% if page.url contains '02_architecture_constraints' %}active{% endif %}">
                                 02. Constraints
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ '/03_context.html' | relative_url }}" class="nav-link {% if page.url contains '03_context' %}active{% endif %}">
+                            <a href="{{ '/03_context' | relative_url }}" class="nav-link {% if page.url contains '03_context' %}active{% endif %}">
                                 03. System Context
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ '/04_solution_strategy.html' | relative_url }}" class="nav-link {% if page.url contains '04_solution_strategy' %}active{% endif %}">
+                            <a href="{{ '/04_solution_strategy' | relative_url }}" class="nav-link {% if page.url contains '04_solution_strategy' %}active{% endif %}">
                                 04. Solution Strategy
                             </a>
                         </li>
@@ -85,17 +90,17 @@
                     <h2 class="nav-section-title">System Structure</h2>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="{{ '/05_building_blocks.html' | relative_url }}" class="nav-link {% if page.url contains '05_building_blocks' %}active{% endif %}">
+                            <a href="{{ '/05_building_blocks' | relative_url }}" class="nav-link {% if page.url contains '05_building_blocks' %}active{% endif %}">
                                 05. Building Blocks
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ '/06_runtime_view.html' | relative_url }}" class="nav-link {% if page.url contains '06_runtime_view' %}active{% endif %}">
+                            <a href="{{ '/06_runtime_view' | relative_url }}" class="nav-link {% if page.url contains '06_runtime_view' %}active{% endif %}">
                                 06. Runtime View
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ '/07_deployment_view.html' | relative_url }}" class="nav-link {% if page.url contains '07_deployment_view' %}active{% endif %}">
+                            <a href="{{ '/07_deployment_view' | relative_url }}" class="nav-link {% if page.url contains '07_deployment_view' %}active{% endif %}">
                                 07. Deployment
                             </a>
                         </li>
@@ -107,12 +112,12 @@
                     <h2 class="nav-section-title">Cross-Cutting</h2>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="{{ '/08_crosscutting_concepts.html' | relative_url }}" class="nav-link {% if page.url contains '08_crosscutting_concepts' %}active{% endif %}">
+                            <a href="{{ '/08_crosscutting_concepts' | relative_url }}" class="nav-link {% if page.url contains '08_crosscutting_concepts' %}active{% endif %}">
                                 08. Concepts
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ '/09_architecture_decisions.html' | relative_url }}" class="nav-link {% if page.url contains '09_architecture_decisions' %}active{% endif %}">
+                            <a href="{{ '/09_architecture_decisions' | relative_url }}" class="nav-link {% if page.url contains '09_architecture_decisions' %}active{% endif %}">
                                 09. Decisions (ADRs)
                             </a>
                         </li>
@@ -124,12 +129,12 @@
                     <h2 class="nav-section-title">Quality & Risks</h2>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="{{ '/10_quality_scenarios.html' | relative_url }}" class="nav-link {% if page.url contains '10_quality_scenarios' %}active{% endif %}">
+                            <a href="{{ '/10_quality_scenarios' | relative_url }}" class="nav-link {% if page.url contains '10_quality_scenarios' %}active{% endif %}">
                                 10. Quality Requirements
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ '/11_technical_risks.html' | relative_url }}" class="nav-link {% if page.url contains '11_technical_risks' %}active{% endif %}">
+                            <a href="{{ '/11_technical_risks' | relative_url }}" class="nav-link {% if page.url contains '11_technical_risks' %}active{% endif %}">
                                 11. Technical Risks
                             </a>
                         </li>
@@ -141,7 +146,7 @@
                     <h2 class="nav-section-title">Reference</h2>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="{{ '/12_glossary.html' | relative_url }}" class="nav-link {% if page.url contains '12_glossary' %}active{% endif %}">
+                            <a href="{{ '/12_glossary' | relative_url }}" class="nav-link {% if page.url contains '12_glossary' %}active{% endif %}">
                                 12. Glossary
                             </a>
                         </li>
