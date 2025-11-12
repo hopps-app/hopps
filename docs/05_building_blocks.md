@@ -1,3 +1,8 @@
+---
+layout: default
+title: "05. Building Block View"
+description: "Static structure with Vertical Slice Architecture"
+---
 # 5. Building Block View
 
 This chapter describes the static decomposition of the Hopps platform into building blocks (modules, components, subsystems) and their relationships.

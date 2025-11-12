@@ -1,3 +1,8 @@
+---
+layout: default
+title: "10. Quality Requirements"
+description: "Performance, security, scalability scenarios"
+---
 # 10. Quality Requirements
 
 This chapter defines quality requirements through quality scenarios using the ISO 25010 quality model.

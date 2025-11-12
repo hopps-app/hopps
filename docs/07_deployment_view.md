@@ -1,3 +1,8 @@
+---
+layout: default
+title: "07. Deployment View"
+description: "Infrastructure, Kubernetes, and deployment architecture"
+---
 # 7. Deployment View
 
 This chapter describes how the Hopps platform is deployed to different environments using Docker and Kubernetes.

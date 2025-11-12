@@ -1,25 +1,16 @@
 # GitHub Pages Configuration for Hopps Architecture Documentation
 
-# Theme
-theme: jekyll-theme-cayman
+# Site Settings
 title: "Hopps Architecture Documentation"
 description: "Complete arc42 architecture documentation for the Hopps platform"
+url: "https://hopps-app.github.io"
+baseurl: "/hopps"
 
-# Navigation
-header_pages:
-  - index.md
-  - 01_introduction.md
-  - 02_architecture_constraints.md
-  - 03_context.md
-  - 04_solution_strategy.md
-  - 05_building_blocks.md
-  - 06_runtime_view.md
-  - 07_deployment_view.md
-  - 08_crosscutting_concepts.md
-  - 09_architecture_decisions.md
-  - 10_quality_scenarios.md
-  - 11_technical_risks.md
-  - 12_glossary.md
+# Theme - Using custom layout (no theme)
+# Custom CSS and layout in _layouts/default.html and assets/css/style.css
+
+# Build Settings
+permalink: pretty
 
 # Markdown processor
 markdown: kramdown
@@ -30,11 +21,12 @@ kramdown:
 
 # Plugins
 plugins:
-  - jekyll-mermaid
+  - jekyll-relative-links
 
-# Mermaid configuration
-mermaid:
-  src: 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js'
+# Relative links configuration
+relative_links:
+  enabled: true
+  collections: false
 
 # Exclude from build
 exclude:
@@ -61,4 +53,7 @@ defaults:
       type: "pages"
     values:
       layout: "default"
-      toc: true
+
+# SEO and metadata
+author: "Hopps Development Team"
+lang: "en"

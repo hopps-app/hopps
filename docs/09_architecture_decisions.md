@@ -1,3 +1,8 @@
+---
+layout: default
+title: "09. Architecture Decisions"
+description: "ADRs documenting significant architectural decisions"
+---
 # 9. Architecture Decisions
 
 This chapter documents significant architecture decisions (ADRs) using the ADR format.

@@ -1,3 +1,8 @@
+---
+layout: default
+title: "11. Risks and Technical Debt"
+description: "Technical risks and mitigation strategies"
+---
 # 11. Risks and Technical Debt
 
 This chapter identifies technical risks, technical debt, and mitigation strategies for the Hopps platform.

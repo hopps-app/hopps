@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title | default: site.title }} - Hopps Architecture Documentation</title>
+    <meta name="description" content="{{ page.description | default: site.description }}">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+
+    <!-- Mermaid for Diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#9955CC',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#7131A2',
+                lineColor: '#8D41C6',
+                secondaryColor: '#F5EEFA',
+                tertiaryColor: '#ECE0F6'
+            }
+        });
+    </script>
+
+    <!-- Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-title">🏗️ Hopps</h1>
+                <p class="sidebar-subtitle">Architecture Documentation</p>
+            </div>
+
+            <nav>
+                <!-- Quick Start -->
+                <div class="nav-section">
+                    <h2 class="nav-section-title">Quick Start</h2>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ '/' | relative_url }}" class="nav-link {% if page.url == '/' or page.url == '/index.html' %}active{% endif %}">
+                                📋 Overview
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Core Architecture -->
+                <div class="nav-section">
+                    <h2 class="nav-section-title">Core Architecture</h2>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ '/01_introduction.html' | relative_url }}" class="nav-link {% if page.url contains '01_introduction' %}active{% endif %}">
+                                01. Introduction & Goals
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ '/02_architecture_constraints.html' | relative_url }}" class="nav-link {% if page.url contains '02_architecture_constraints' %}active{% endif %}">
+                                02. Constraints
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ '/03_context.html' | relative_url }}" class="nav-link {% if page.url contains '03_context' %}active{% endif %}">
+                                03. System Context
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ '/04_solution_strategy.html' | relative_url }}" class="nav-link {% if page.url contains '04_solution_strategy' %}active{% endif %}">
+                                04. Solution Strategy
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- System Structure -->
+                <div class="nav-section">
+                    <h2 class="nav-section-title">System Structure</h2>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ '/05_building_blocks.html' | relative_url }}" class="nav-link {% if page.url contains '05_building_blocks' %}active{% endif %}">
+                                05. Building Blocks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ '/06_runtime_view.html' | relative_url }}" class="nav-link {% if page.url contains '06_runtime_view' %}active{% endif %}">
+                                06. Runtime View
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ '/07_deployment_view.html' | relative_url }}" class="nav-link {% if page.url contains '07_deployment_view' %}active{% endif %}">
+                                07. Deployment
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Cross-Cutting -->
+                <div class="nav-section">
+                    <h2 class="nav-section-title">Cross-Cutting</h2>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ '/08_crosscutting_concepts.html' | relative_url }}" class="nav-link {% if page.url contains '08_crosscutting_concepts' %}active{% endif %}">
+                                08. Concepts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ '/09_architecture_decisions.html' | relative_url }}" class="nav-link {% if page.url contains '09_architecture_decisions' %}active{% endif %}">
+                                09. Decisions (ADRs)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Quality & Risks -->
+                <div class="nav-section">
+                    <h2 class="nav-section-title">Quality & Risks</h2>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ '/10_quality_scenarios.html' | relative_url }}" class="nav-link {% if page.url contains '10_quality_scenarios' %}active{% endif %}">
+                                10. Quality Requirements
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ '/11_technical_risks.html' | relative_url }}" class="nav-link {% if page.url contains '11_technical_risks' %}active{% endif %}">
+                                11. Technical Risks
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Reference -->
+                <div class="nav-section">
+                    <h2 class="nav-section-title">Reference</h2>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ '/12_glossary.html' | relative_url }}" class="nav-link {% if page.url contains '12_glossary' %}active{% endif %}">
+                                12. Glossary
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            {% if page.title %}
+            <header class="page-header">
+                <h1>{{ page.title }}</h1>
+                {% if page.description %}
+                <p>{{ page.description }}</p>
+                {% endif %}
+            </header>
+            {% endif %}
+
+            <!-- Content -->
+            <article>
+                {{ content }}
+            </article>
+
+            <!-- Footer -->
+            <footer class="page-footer">
+                <p>
+                    <strong>Hopps Architecture Documentation</strong> |
+                    Based on <a href="https://arc42.org" target="_blank">arc42</a> template |
+                    Last updated: {{ site.time | date: '%Y-%m-%d' }}
+                </p>
+                <p>
+                    <a href="https://github.com/hopps-app/hopps" target="_blank">GitHub Repository</a> |
+                    <a href="{{ '/' | relative_url }}">Documentation Home</a>
+                </p>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

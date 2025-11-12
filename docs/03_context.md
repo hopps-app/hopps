@@ -1,3 +1,8 @@
+---
+layout: default
+title: "03. System Scope and Context"
+description: "Business and technical boundaries of the Hopps platform"
+---
 # 3. System Scope and Context
 
 This chapter describes the environment and context in which the Hopps platform operates, including external systems, interfaces, and communication partners.

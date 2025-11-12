@@ -1,3 +1,9 @@
+---
+layout: default
+title: "01. Introduction and Goals"
+description: "Requirements, stakeholders, and quality goals for the Hopps platform"
+---
+
 # 1. Introduction and Goals
 
 ## Overview

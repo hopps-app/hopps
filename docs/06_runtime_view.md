@@ -1,3 +1,8 @@
+---
+layout: default
+title: "06. Runtime View"
+description: "Dynamic behavior and runtime scenarios"
+---
 # 6. Runtime View
 
 This chapter describes the runtime behavior of the Hopps platform through key scenarios and sequence diagrams.

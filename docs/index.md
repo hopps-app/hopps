@@ -1,4 +1,8 @@
-# Hopps Platform - Architecture Documentation
+---
+layout: default
+title: "Hopps Platform"
+description: "Comprehensive arc42 architecture documentation for the Hopps cloud-native platform"
+---
 
 Welcome to the comprehensive architecture documentation for **Hopps**, a modern web-based platform for managing German organizations and associations (Vereine e.V.). This documentation follows the [arc42](https://arc42.org) template, providing structured and detailed architectural information.
 

@@ -1,3 +1,8 @@
+---
+layout: default
+title: "04. Solution Strategy"
+description: "Key technology decisions and architectural patterns"
+---
 # 4. Solution Strategy
 
 This chapter describes the fundamental decisions and solution approaches that shape the Hopps platform architecture.

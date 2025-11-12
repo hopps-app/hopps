@@ -1,3 +1,8 @@
+---
+layout: default
+title: "12. Glossary"
+description: "Domain terms, technical terms, and acronyms"
+---
 # 12. Glossary
 
 This chapter defines important domain terms, technical terms, and acronyms used in the Hopps platform.

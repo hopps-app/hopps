@@ -96,14 +96,28 @@ Deployment and runtime information:
 ## 🛠️ How to Use This Documentation
 
 ### Reading Online (GitHub Pages)
-Visit: `https://[your-username].github.io/hopps/` (configure in repository settings)
+Visit: `https://[your-username].github.io/hopps/`
 
-All Mermaid diagrams will render automatically!
+**Features:**
+- ✨ **Custom sidebar navigation** - Easy access to all 12 chapters
+- 🎨 **Hopps brand colors** - Purple theme (#9955CC) matching the application
+- 📊 **Mermaid diagrams** - All diagrams render automatically
+- 🔍 **Syntax highlighting** - Code blocks with proper highlighting
+- 📱 **Responsive design** - Works on desktop, tablet, and mobile
 
 ### Reading Locally
 1. Clone the repository
-2. Open Markdown files in any editor with Mermaid support (VS Code, IntelliJ, etc.)
-3. Or use `mdbook` or similar tools to generate HTML
+2. Install dependencies: `cd docs && bundle install`
+3. Start server: `bundle exec jekyll serve`
+4. Open http://localhost:4000/hopps/ in your browser
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed local development instructions.
+
+### Theme Customization
+The documentation uses a custom Jekyll theme with:
+- **Layout:** `_layouts/default.html` (sidebar navigation)
+- **Styles:** `assets/css/style.css` (Hopps purple color scheme)
+- **Font:** Reddit Sans (matching application)
 
 ### Contributing
 To improve this documentation:

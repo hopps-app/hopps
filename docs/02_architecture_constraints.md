@@ -1,3 +1,8 @@
+---
+layout: default
+title: "02. Architecture Constraints"
+description: "Technical, organizational, and regulatory constraints shaping the Hopps architecture"
+---
 # 2. Architecture Constraints
 
 This chapter documents the constraints that influenced the design and architecture of the Hopps platform. These constraints come from technical requirements, organizational decisions, and regulatory requirements.

@@ -1,3 +1,8 @@
+---
+layout: default
+title: "08. Cross-cutting Concepts"
+description: "Security, persistence, APIs, and testing strategies"
+---
 # 8. Cross-cutting Concepts
 
 This chapter describes concepts, patterns, and solutions that apply across multiple parts of the Hopps platform.
