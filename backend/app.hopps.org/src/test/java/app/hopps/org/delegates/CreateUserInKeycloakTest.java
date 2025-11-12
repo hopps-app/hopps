@@ -1,6 +1,7 @@
 package app.hopps.org.delegates;
 
-import app.hopps.org.jpa.Member;
+import app.hopps.member.domain.Member;
+import app.hopps.organization.service.CreateUserInKeycloak;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;

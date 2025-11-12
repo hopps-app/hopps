@@ -1,8 +1,9 @@
 package app.hopps.org.rest;
 
-import app.hopps.org.jpa.Organization;
-import app.hopps.org.rest.RestValidator.ValidationResult;
-import app.hopps.org.rest.RestValidator.Violation;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.validation.RestValidator;
+import app.hopps.shared.validation.RestValidator.ValidationResult;
+import app.hopps.shared.validation.RestValidator.Violation;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.Validator;

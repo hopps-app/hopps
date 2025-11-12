@@ -1,8 +1,9 @@
 package app.hopps.fin.endpoint;
 
-import app.hopps.fin.jpa.TransactionRecordRepository;
-import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.model.DocumentType;
+import app.hopps.document.domain.DocumentType;
+import app.hopps.transaction.api.TransactionRecordResource;
+import app.hopps.transaction.domain.TransactionRecord;
+import app.hopps.transaction.repository.TransactionRecordRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;

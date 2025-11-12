@@ -1,9 +1,10 @@
 package app.hopps.org.rest;
 
-import app.hopps.org.jpa.BommelRepository;
-import app.hopps.org.jpa.MemberRepository;
-import app.hopps.org.jpa.Organization;
-import app.hopps.org.jpa.OrganizationRepository;
+import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.member.repository.MemberRepository;
+import app.hopps.organization.api.OrganizationResource;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.org.rest.model.NewOrganizationInput;
 import app.hopps.org.rest.model.OrganizationInput;
 import app.hopps.org.rest.model.OwnerInput;

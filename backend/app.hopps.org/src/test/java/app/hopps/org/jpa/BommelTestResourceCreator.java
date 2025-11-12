@@ -1,5 +1,9 @@
 package app.hopps.org.jpa;
 
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;

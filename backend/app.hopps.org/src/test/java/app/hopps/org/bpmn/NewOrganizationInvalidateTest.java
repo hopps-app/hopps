@@ -1,7 +1,7 @@
 package app.hopps.org.bpmn;
 
-import app.hopps.org.jpa.Member;
-import app.hopps.org.jpa.Organization;
+import app.hopps.member.domain.Member;
+import app.hopps.organization.domain.Organization;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;

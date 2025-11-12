@@ -1,10 +1,11 @@
 package app.hopps.org.delegates;
 
-import app.hopps.org.jpa.Member;
-import app.hopps.org.jpa.Organization;
-import app.hopps.org.jpa.OrganizationRepository;
-import app.hopps.org.validation.NonUniqueConstraintViolation;
-import app.hopps.org.validation.NonUniqueConstraintViolation.NonUniqueConstraintViolationException;
+import app.hopps.member.domain.Member;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
+import app.hopps.organization.service.CreationValidationDelegate;
+import app.hopps.shared.validation.NonUniqueConstraintViolation;
+import app.hopps.shared.validation.NonUniqueConstraintViolation.NonUniqueConstraintViolationException;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;

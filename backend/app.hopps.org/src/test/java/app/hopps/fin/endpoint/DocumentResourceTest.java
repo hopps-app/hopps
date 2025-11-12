@@ -1,8 +1,9 @@
 package app.hopps.fin.endpoint;
 
-import app.hopps.fin.bpmn.SubmitService;
-import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.model.DocumentType;
+import app.hopps.document.api.DocumentResource;
+import app.hopps.document.domain.DocumentType;
+import app.hopps.document.service.SubmitService;
+import app.hopps.transaction.domain.TransactionRecord;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
