@@ -1,10 +1,11 @@
 package app.hopps.org.delegates;
 
-import app.hopps.org.jpa.BommelRepository;
-import app.hopps.org.jpa.Member;
-import app.hopps.org.jpa.MemberRepository;
-import app.hopps.org.jpa.Organization;
-import app.hopps.org.jpa.OrganizationRepository;
+import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
+import app.hopps.organization.service.PersistOrganizationDelegate;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;

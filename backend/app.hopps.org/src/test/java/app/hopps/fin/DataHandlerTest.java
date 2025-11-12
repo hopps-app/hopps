@@ -1,10 +1,10 @@
 package app.hopps.fin;
 
-import app.hopps.fin.jpa.entities.TradeParty;
-import app.hopps.fin.jpa.entities.TransactionRecord;
-import app.hopps.fin.model.DocumentType;
-import app.hopps.fin.model.InvoiceData;
-import app.hopps.fin.model.ReceiptData;
+import app.hopps.document.domain.DocumentType;
+import app.hopps.document.domain.InvoiceData;
+import app.hopps.document.domain.ReceiptData;
+import app.hopps.transaction.domain.TradeParty;
+import app.hopps.transaction.domain.TransactionRecord;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;

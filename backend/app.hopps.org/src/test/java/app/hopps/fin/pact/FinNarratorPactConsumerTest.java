@@ -1,8 +1,8 @@
 package app.hopps.fin.pact;
 
-import app.hopps.fin.client.FinNarratorClient;
-import app.hopps.fin.model.InvoiceData;
-import app.hopps.fin.model.ReceiptData;
+import app.hopps.document.client.FinNarratorClient;
+import app.hopps.document.domain.InvoiceData;
+import app.hopps.document.domain.ReceiptData;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit.MockServerConfig;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;

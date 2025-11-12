@@ -1,5 +1,10 @@
 package app.hopps.org.jpa;
 
+import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
+import app.hopps.organization.domain.Address;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.narayana.jta.QuarkusTransactionException;
 import io.quarkus.test.TestTransaction;

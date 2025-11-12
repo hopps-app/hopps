@@ -1,5 +1,10 @@
 package app.hopps.org.jpa;
 
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.domain.TreeSearchBommel;
+import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.narayana.jta.QuarkusTransactionException;
 import io.quarkus.test.TestTransaction;

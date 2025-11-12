@@ -1,11 +1,12 @@
 package app.hopps.org.rest;
 
-import app.hopps.org.jpa.Bommel;
-import app.hopps.org.jpa.BommelRepository;
+import app.hopps.bommel.api.BommelResource;
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.domain.TreeSearchBommel;
+import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.org.jpa.BommelTestResourceCreator;
-import app.hopps.org.jpa.Organization;
-import app.hopps.org.jpa.OrganizationRepository;
-import app.hopps.org.jpa.TreeSearchBommel;
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
 import io.quarkus.test.InjectMock;

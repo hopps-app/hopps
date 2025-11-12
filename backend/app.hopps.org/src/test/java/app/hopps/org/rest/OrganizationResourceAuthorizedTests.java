@@ -1,5 +1,6 @@
 package app.hopps.org.rest;
 
+import app.hopps.organization.api.OrganizationResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;

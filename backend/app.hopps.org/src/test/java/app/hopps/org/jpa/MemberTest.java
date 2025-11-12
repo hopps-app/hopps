@@ -1,5 +1,6 @@
 package app.hopps.org.jpa;
 
+import app.hopps.member.domain.Member;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolation;
