@@ -43,6 +43,10 @@ public class AzureAiService {
         LOG.info("Scanned receipt: {}", document.get().getFields());
 
         ReceiptData receiptData = ReceiptDataHelper.fromDocument(document.get());
+        if (receiptData == null) {
+            LOG.warn("Could not extract receipt data from document '{}' - missing required fields", documentName);
+            return Optional.empty();
+        }
         return Optional.of(receiptData);
     }
 

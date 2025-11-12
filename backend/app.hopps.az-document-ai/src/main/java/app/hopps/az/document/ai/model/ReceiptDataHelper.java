@@ -16,13 +16,19 @@ public class ReceiptDataHelper {
     public static ReceiptData fromDocument(AnalyzedDocument document) {
         Map<String, DocumentField> fields = document.getFields();
 
+        // Check if required "Total" field exists
+        DocumentField totalField = fields.get("Total");
+        if (totalField == null || totalField.getValueCurrency() == null) {
+            return null;
+        }
+
         DocumentField transactionTime = fields.get("TransactionTime");
 
         LocalTime time = transactionTime == null ? LocalTime.MIDNIGHT
                 : LocalTime.parse(transactionTime.getValueTime());
 
         return new ReceiptData(
-                BigDecimal.valueOf(fields.get("Total").getValueCurrency().getAmount()),
+                BigDecimal.valueOf(totalField.getValueCurrency().getAmount()),
                 Optional.ofNullable(fields.get("MerchantName")).map(DocumentField::getValueString),
                 Optional.ofNullable(fields.get("MerchantAddress"))
                         .map(DocumentField::getValueAddress)
