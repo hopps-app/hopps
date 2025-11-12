@@ -1,0 +1,64 @@
+# GitHub Pages Configuration for Hopps Architecture Documentation
+
+# Theme
+theme: jekyll-theme-cayman
+title: "Hopps Architecture Documentation"
+description: "Complete arc42 architecture documentation for the Hopps platform"
+
+# Navigation
+header_pages:
+  - index.md
+  - 01_introduction.md
+  - 02_architecture_constraints.md
+  - 03_context.md
+  - 04_solution_strategy.md
+  - 05_building_blocks.md
+  - 06_runtime_view.md
+  - 07_deployment_view.md
+  - 08_crosscutting_concepts.md
+  - 09_architecture_decisions.md
+  - 10_quality_scenarios.md
+  - 11_technical_risks.md
+  - 12_glossary.md
+
+# Markdown processor
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  hard_wrap: false
+
+# Plugins
+plugins:
+  - jekyll-mermaid
+
+# Mermaid configuration
+mermaid:
+  src: 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js'
+
+# Exclude from build
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Include
+include:
+  - _config.yml
+
+# Highlighter
+highlighter: rouge
+
+# Collections
+collections_dir: .
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+      toc: true
