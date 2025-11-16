@@ -208,5 +208,34 @@
         "cancel": "Cancel",
         "no": "No",
         "yes": "Yes"
+    },
+    "receipts": {
+        "draft": "Draft",
+        "dueDate": "Due on",
+        "status": {
+            "paid": "Status: Paid",
+            "unpaid": "Status: Unpaid",
+            "draft": "Status: Draft",
+            "failed": "Status: Failed"
+        },
+        "filters": {
+            "searchReceipt": "Search receipt",
+            "searchPlaceholder": "Search",
+            "receiptDate": "Receipt date",
+            "startDate": "Start period",
+            "endDate": "End period",
+            "bommel": "Bommel",
+            "category": "Category",
+            "type": "Receipt type",
+            "income": "Income",
+            "expense": "Expense",
+            "status": "Status",
+            "onlyUnpaid": "Only unpaid",
+            "drafts": "Drafts",
+            "displayType": "Display type",
+            "displayAll": "Expand all",
+            "reset": "Reset",
+            "noResults": "No results"
+        }
     }
 }

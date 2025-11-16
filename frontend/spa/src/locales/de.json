@@ -162,6 +162,35 @@
         "ngo-details": "Organisation",
         "categories": "Kategorien"
     },
+    "receipts": {
+        "draft": "Entwurf",
+        "dueDate": "Fällig am",
+        "status": {
+            "paid": "Status: Bezahlt",
+            "unpaid": "Status: Offen",
+            "draft": "Status: Entwurf",
+            "failed": "Fehlgeschlagen"
+        },
+        "filters": {
+            "searchReceipt": "Beleg suchen",
+            "searchPlaceholder": "Suche",
+            "receiptDate": "Belegdatum",
+            "startDate": "Startzeitraum",
+            "endDate": "Endzeitraum",
+            "bommel": "Bommel",
+            "category": "Kategorie",
+            "type": "Belegart",
+            "income": "Einnahme",
+            "expense": "Ausgabe",
+            "status": "Status",
+            "onlyUnpaid": "Nur unbezahlt",
+            "drafts": "Entwürfe",
+            "displayType": "Anzeigeart",
+            "displayAll": "Alles ausklappen",
+            "reset": "Zurücksetzen",
+            "noResults": "Keine Ergebnisse"
+        }
+    },
     "datePicker": {
         "selectDate": "Datum auswählen"
     },
