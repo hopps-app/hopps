@@ -1,6 +1,5 @@
 import { useState, ReactNode } from 'react';
 import { Dialog, Trigger, Portal, Content, Title, Close, Description, Overlay } from '@radix-ui/react-dialog';
-import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button';
 
@@ -11,11 +10,12 @@ interface DialogWrapperProps {
     children?: ReactNode | ((props: { onSuccess: () => void; setOpen: (open: boolean) => void }) => ReactNode);
     onSuccess?: () => void;
     formId?: string;
+    secondaryLabel: string;
+    primaryLabel: string;
 }
 
-export default function DialogWrapper({ trigger, title, description, children, onSuccess, formId }: DialogWrapperProps) {
+export default function DialogWrapper({ trigger, title, description, children, onSuccess, formId, primaryLabel, secondaryLabel }: DialogWrapperProps) {
     const [open, setOpen] = useState(false);
-    const { t } = useTranslation();
 
     const handleSuccess = () => {
         setOpen(false);
@@ -33,17 +33,17 @@ export default function DialogWrapper({ trigger, title, description, children, o
                     <div className="mt-4">{typeof children === 'function' ? children({ onSuccess: handleSuccess, setOpen }) : children}</div>
                     <div className="mt-6 flex justify-end gap-3">
                         <Close asChild>
-                            <Button variant="secondary" type="button">
-                                {t('dialogWrapper.cancel')}
+                            <Button variant="secondary" type="button" className="min-w-[131px]">
+                                {secondaryLabel}
                             </Button>
                         </Close>
                         {formId ? (
-                            <Button type="submit" form={formId}>
-                                {t('dialogWrapper.save')}
+                            <Button type="submit" form={formId} className="min-w-[131px]">
+                                {primaryLabel}
                             </Button>
                         ) : (
-                            <Button type="button" onClick={handleSuccess}>
-                                {t('dialogWrapper.save')}
+                            <Button type="button" onClick={handleSuccess} className="min-w-[131px]">
+                                {primaryLabel}
                             </Button>
                         )}
                     </div>

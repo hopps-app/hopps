@@ -35,6 +35,8 @@ function CategoriesSettingsView() {
                         description={t('categories.dialog.creation.description')}
                         formId="category-form"
                         onSuccess={refetch}
+                        primaryLabel={t('dialogWrapper.save')}
+                        secondaryLabel={t('dialogWrapper.cancel')}
                     >
                         {({ onSuccess }) => <CategoryForm onSuccess={onSuccess} />}
                     </DialogWrapper>
