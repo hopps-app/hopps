@@ -140,7 +140,7 @@
         },
         "form": {
             "name": "Name",
-            "description": "Description",
+            "description": "Beschreibung",
             "error": {
                 "name": "Dieses Feld darf nicht leer sein.",
                 "categoryCreated": "Ein Fehler is aufgetreten"
