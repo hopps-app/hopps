@@ -63,7 +63,9 @@ export class AuthService {
     }
 
     async logout() {
-        await this.keycloak.logout(); // works fine without option
+        return await this.keycloak.logout({
+            redirectUri: await import.meta.env.VITE_FRONTEND_URL,
+        });
     }
 
     async checkLogin() {
