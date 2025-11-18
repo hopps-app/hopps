@@ -156,6 +156,8 @@
     },
     "dialogWrapper": {
         "save": "Speichern",
-        "cancel": "Abbrechen"
+        "cancel": "Abbrechen",
+        "no": "Nein",
+        "yes": "Ja"
     }
 }
