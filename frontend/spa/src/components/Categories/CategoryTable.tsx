@@ -40,7 +40,13 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                         trigger={
                             <div
                                 onDoubleClick={() => setEditingCategoryId(category.id!)}
-                                className="flex items-start justify-between rounded-2xl border border-gray-200 bg-white px-5 py-3 shadow-sm transition-colors hover:border-primary hover:ring-2 hover:ring-primary cursor-pointer"
+                                className="
+                                  flex items-start justify-between
+                                  rounded-2xl border border-gray-200 bg-white px-5 py-3 shadow-sm
+                                  transition-all duration-200
+                                  hover:border-primary hover:ring-1 hover:ring-primary
+                                  cursor-pointer
+                                "
                             >
                                 <div className="min-w-0 flex-1">
                                     <div className="font-semibold text-gray-900">{category.name}</div>
@@ -61,6 +67,8 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                                         title={t('categories.dialog.deletion.title')}
                                         description={t('categories.dialog.deletion.description_1')}
                                         onSuccess={() => deleteCategory(category.id!)}
+                                        primaryLabel={t('dialogWrapper.yes')}
+                                        secondaryLabel={t('dialogWrapper.no')}
                                     >
                                         <p className="text-sm text-gray-600">{t('categories.dialog.deletion.description_2')}</p>
                                     </DialogWrapper>
@@ -71,6 +79,8 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                         description={t('categories.dialog.update.description')}
                         formId="category-form"
                         onSuccess={handleActionSuccess}
+                        primaryLabel={t('dialogWrapper.save')}
+                        secondaryLabel={t('dialogWrapper.cancel')}
                     >
                         {({ onSuccess, setOpen }) => {
                             if (editingCategoryId === category.id) {
