@@ -1,9 +1,11 @@
 # Hopps Frontend SPA
+
 This is the Single Page Application that is used in the Web to manage the finances of an NGO.
 It is written in [React](https://react.dev/).
 
 ## Local Environment Setup
-To run this project locally, you need to set up your environment variables:
+
+To run this project locally, set up your environment variables first.
 
 ### 1. Create Your Local Environment File
 
@@ -19,11 +21,19 @@ Open the `.env.local` file and replace the placeholder values with your actual c
 
 ### 4. Install Dependencies
 
-Run: `pnpm install`
+Run:
 
-## 5. Start the Development Server
+```bash
+pnpm install
+```
 
-Run: `pnpm run dev`
+### 5. Start the Development Server
+
+```bash
+  pnpm run dev
+```
+
+## Run Project Using Docker and Services
 
 ### Prerequisites
 
