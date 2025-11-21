@@ -16,7 +16,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -52,11 +51,7 @@ class BommelResourceTest {
     AuthorizationModelClient authModelClient;
 
     @BeforeEach
-    @Transactional
     void setup() {
-        orgRepo.deleteAll();
-        bommelRepo.deleteAll();
-
         Mockito.when(authModelClient.check(any(TupleKey.class)))
                 .thenReturn(Uni.createFrom().item(false));
     }
