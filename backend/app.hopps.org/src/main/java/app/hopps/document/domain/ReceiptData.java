@@ -20,14 +20,25 @@ public record ReceiptData(
 
     @Override
     public void updateTransactionRecord(TransactionRecord transactionRecord) {
-        transactionRecord.setTotal(this.total());
+        // Only update fields if they're currently null/empty
+        if (transactionRecord.getTotal() == null) {
+            transactionRecord.setTotal(this.total());
+        }
 
-        // Optional
-        this.storeName().ifPresent(transactionRecord::setName);
-        this.storeAddress().ifPresent(transactionRecord::setSender);
-        this.transactionTime()
-                .ifPresent(
-                        transactionTime -> transactionRecord
-                                .setTransactionTime(transactionTime.toInstant(ZoneOffset.UTC)));
+        // Optional fields - only set if null
+        if (transactionRecord.getName() == null) {
+            this.storeName().ifPresent(transactionRecord::setName);
+        }
+
+        if (transactionRecord.getSender() == null) {
+            this.storeAddress().ifPresent(transactionRecord::setSender);
+        }
+
+        if (transactionRecord.getTransactionTime() == null) {
+            this.transactionTime()
+                    .ifPresent(
+                            transactionTime -> transactionRecord
+                                    .setTransactionTime(transactionTime.toInstant(ZoneOffset.UTC)));
+        }
     }
 }

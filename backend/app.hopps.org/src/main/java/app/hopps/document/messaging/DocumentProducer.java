@@ -21,16 +21,18 @@ public class DocumentProducer {
     @Channel("document-out")
     Emitter<DocumentData> documentEmitter;
 
-    @ConfigProperty(name = "app.hopps.fin.url")
-    String finUrl;
+    @Channel("document-analysis-out")
+    Emitter<DocumentAnalysisMessage> analysisEmitter;
 
-    public void sendToProcess(TransactionRecord transactionRecord, DocumentType type) {
-        try {
-            URL internalFinUrl = URI.create(finUrl + "/document/" + transactionRecord.getDocumentKey()).toURL();
-            DocumentData documentData = new DocumentData(internalFinUrl, transactionRecord.getId(), type);
-            documentEmitter.send(documentData);
-        } catch (MalformedURLException e) {
-            LOG.warn("URL is malformed, sending to kafka failed", e);
-        }
+
+    /**
+     * Queue a document for asynchronous analysis.
+     *
+     * @param message the analysis message
+     */
+    public void queueForAnalysis(DocumentAnalysisMessage message) {
+        LOG.info("Queuing document for analysis: transactionRecordId={}, documentKey={}",
+                message.transactionRecordId(), message.documentKey());
+        analysisEmitter.send(message);
     }
 }

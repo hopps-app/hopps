@@ -33,24 +33,49 @@ public record InvoiceData(
 
     @Override
     public void updateTransactionRecord(TransactionRecord transactionRecord) {
-        transactionRecord.setTotal(this.total());
+        // Only update fields if they're currently null/empty
+        if (transactionRecord.getTotal() == null) {
+            transactionRecord.setTotal(this.total());
+        }
 
-        // Required
-        transactionRecord.setTransactionTime(this.invoiceDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
-        transactionRecord.setCurrencyCode(this.currencyCode());
+        if (transactionRecord.getTransactionTime() == null) {
+            transactionRecord.setTransactionTime(this.invoiceDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        }
 
-        // Optional
-        this.customerName().ifPresent(transactionRecord::setName);
+        if (transactionRecord.getCurrencyCode() == null) {
+            transactionRecord.setCurrencyCode(this.currencyCode());
+        }
 
-        this.sender().ifPresent(transactionRecord::setSender);
-        this.receiver().ifPresent(transactionRecord::setRecipient);
+        // Optional fields - only set if null
+        if (transactionRecord.getName() == null) {
+            this.customerName().ifPresent(transactionRecord::setName);
+        }
 
-        this.purchaseOrderNumber().ifPresent(transactionRecord::setOrderNumber);
-        this.invoiceId().ifPresent(transactionRecord::setInvoiceId);
-        this.dueDate()
-                .ifPresent(
-                        dueDate -> transactionRecord
-                                .setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        this.amountDue().ifPresent(transactionRecord::setAmountDue);
+        if (transactionRecord.getSender() == null) {
+            this.sender().ifPresent(transactionRecord::setSender);
+        }
+
+        if (transactionRecord.getRecipient() == null) {
+            this.receiver().ifPresent(transactionRecord::setRecipient);
+        }
+
+        if (transactionRecord.getOrderNumber() == null) {
+            this.purchaseOrderNumber().ifPresent(transactionRecord::setOrderNumber);
+        }
+
+        if (transactionRecord.getInvoiceId() == null) {
+            this.invoiceId().ifPresent(transactionRecord::setInvoiceId);
+        }
+
+        if (transactionRecord.getDueDate() == null) {
+            this.dueDate()
+                    .ifPresent(
+                            dueDate -> transactionRecord
+                                    .setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        }
+
+        if (transactionRecord.getAmountDue() == null) {
+            this.amountDue().ifPresent(transactionRecord::setAmountDue);
+        }
     }
 }

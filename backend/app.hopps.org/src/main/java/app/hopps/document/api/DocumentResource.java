@@ -3,12 +3,19 @@ package app.hopps.document.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.DocumentType;
+import app.hopps.document.messaging.DocumentAnalysisMessage;
+import app.hopps.document.messaging.DocumentProducer;
 import app.hopps.document.service.SubmitService;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.infrastructure.storage.S3Handler;
+import app.hopps.transaction.domain.AnalysisStatus;
 import app.hopps.transaction.domain.TransactionRecord;
+import app.hopps.transaction.domain.TransactionRecordAnalysisResult;
+import app.hopps.transaction.domain.TransactionStatus;
+import app.hopps.transaction.repository.AnalysisResultRepository;
+import app.hopps.transaction.repository.TransactionRecordRepository;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -54,6 +61,15 @@ public class DocumentResource {
     @Inject
     MemberRepository memberRepo;
 
+    @Inject
+    TransactionRecordRepository transactionRepo;
+
+    @Inject
+    AnalysisResultRepository analysisResultRepo;
+
+    @Inject
+    DocumentProducer documentProducer;
+
     @GET
     @Path("{documentKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -74,34 +90,26 @@ public class DocumentResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Transactional
-    @Operation(summary = "Uploads a document, creates a transaction record for it and attaches that to a bommel.")
-    @APIResponse(responseCode = "200", description = "Newly created transaction record", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(contentSchema = TransactionRecord.class), example = """
+    @Operation(summary = "Uploads a document and creates a transaction record. Analysis runs asynchronously.")
+    @APIResponse(responseCode = "202", description = "Document accepted for processing", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(contentSchema = DocumentUploadResponse.class), example = """
             {
-                "id": 1,
-                "bommelId": 23,
-                "documentKey": "0deb7f16-3521-4fdf-9bf4-ac097fef2d9e",
-                "uploader": "alice@example.test",
-                "total": 89.9,
-                "privatelyPaid": false,
-                "document": "INVOICE",
-                "transactionTime": "2024-07-17T22:00:00Z",
-                "sender": null,
-                "recipient": null,
-                "tags": [ "consulting", "services" ],
-                "name": "Herr Max Mustermann",
-                "orderNumber": "20249324596397",
-                "invoiceId": "20249324596397",
-                "dueDate": null,
-                "amountDue": null,
-                "currencyCode": "EUR"
+                "transactionRecordId": 42,
+                "documentKey": "a1b2c3d4-e5f6-47g8-h9i0-j1k2l3m4n5o6",
+                "status": "PENDING",
+                "analysisStatus": "QUEUED",
+                "_links": {
+                    "self": "/transaction-records/42",
+                    "analysis": "/transaction-records/42/analysis",
+                    "events": "/transaction-records/42/events",
+                    "document": "/document/a1b2c3d4-e5f6-47g8-h9i0-j1k2l3m4n5o6"
+                }
             }"""))
     @APIResponse(responseCode = "400", description = """
             Invalid input, either invalid bommel/bommel from another org, missing 'file' or 'type' inputs,
             the user not being attached to exactly one organisation,
             or an invalid MIME type on the uploaded file.
             """)
-    public TransactionRecord uploadDocument(
+    public Response uploadDocument(
             @RestForm("file") FileUpload file,
             @RestForm("bommelId") Long bommelId,
             @RestForm("privatelyPaid") boolean privatelyPaid,
@@ -165,15 +173,68 @@ public class DocumentResource {
         byte[] fileContents = Files.readAllBytes(file.uploadedFile());
         s3Handler.saveFile(documentKey.toString(), file.contentType(), fileContents);
 
-        SubmitService.DocumentSubmissionRequest request = new SubmitService.DocumentSubmissionRequest(
+        // Create transaction record and analysis result in a separate transaction
+        Long transactionRecordId = createTransactionRecordAndAnalysis(
                 documentKey.toString(),
-                bommelId,
                 type,
                 privatelyPaid,
-                securityContext.getUserPrincipal().getName(),
-                file.contentType(),
-                fileContents);
+                bommelId,
+                securityContext.getUserPrincipal().getName()
+        );
 
-        return submitService.submitDocument(request);
+        // Queue document for asynchronous analysis AFTER transaction commit
+        DocumentAnalysisMessage analysisMessage = new DocumentAnalysisMessage(
+                transactionRecordId,
+                documentKey.toString(),
+                type,
+                file.contentType(),
+                bommelId,
+                privatelyPaid,
+                securityContext.getUserPrincipal().getName()
+        );
+        documentProducer.queueForAnalysis(analysisMessage);
+
+        // Return 202 Accepted immediately
+        DocumentUploadResponse response = DocumentUploadResponse.create(
+                transactionRecordId,
+                documentKey.toString(),
+                TransactionStatus.PENDING,
+                AnalysisStatus.QUEUED
+        );
+
+        return Response.accepted(response).build();
+    }
+
+    /**
+     * Create transaction record and analysis result in a separate transaction.
+     * This ensures the transaction is committed before the Kafka message is sent.
+     */
+    @Transactional
+    Long createTransactionRecordAndAnalysis(
+            String documentKey,
+            DocumentType type,
+            boolean privatelyPaid,
+            Long bommelId,
+            String uploaderName) {
+
+        // Create transaction record with PENDING status
+        TransactionRecord transactionRecord = new TransactionRecord();
+        transactionRecord.setDocumentKey(documentKey);
+        transactionRecord.setDocument(type);
+        transactionRecord.setPrivatelyPaid(privatelyPaid);
+        transactionRecord.setBommelId(bommelId);
+        transactionRecord.setUploader(uploaderName);
+        transactionRecord.setStatus(TransactionStatus.PENDING);
+        transactionRepo.persist(transactionRecord);
+
+        // Create analysis result placeholder
+        TransactionRecordAnalysisResult analysisResult = new TransactionRecordAnalysisResult(transactionRecord);
+        analysisResult.setStatus(AnalysisStatus.QUEUED);
+        analysisResultRepo.persist(analysisResult);
+
+        // Flush to ensure ID is generated
+        transactionRepo.flush();
+
+        return transactionRecord.getId();
     }
 }

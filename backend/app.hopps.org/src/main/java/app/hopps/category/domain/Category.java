@@ -3,6 +3,7 @@ package app.hopps.category.domain;
 import app.hopps.organization.domain.Organization;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -16,6 +17,7 @@ public class Category extends PanacheEntity {
 
     @NotBlank
     @Schema(examples = "Technology")
+    @Column(length = 255)
     private String name;
 
     @Schema(examples = "Category for technology-related items")

@@ -3,10 +3,13 @@ package app.hopps.transaction.domain;
 import app.hopps.document.domain.DocumentType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -26,8 +29,22 @@ public class TransactionRecord {
     @Column(nullable = false, updatable = false)
     private String uploader;
 
-    // That's the only required common column in the kafka events
-    @Column(nullable = false)
+    // Status tracking for async analysis
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus status = TransactionStatus.PENDING;
+
+    // Timestamps
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    // Financial fields - nullable until populated by frontend or analysis
+    @Column
     private BigDecimal total;
 
     @Generated
@@ -102,6 +119,10 @@ public class TransactionRecord {
 
     public String getUploader() {
         return uploader;
+    }
+
+    public void setUploader(String uploader) {
+        this.uploader = uploader;
     }
 
     public Instant getTransactionTime() {
@@ -198,5 +219,21 @@ public class TransactionRecord {
 
     public void setCurrencyCode(String currencyCode) {
         this.currencyCode = currencyCode;
+    }
+
+    public TransactionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
     }
 }
