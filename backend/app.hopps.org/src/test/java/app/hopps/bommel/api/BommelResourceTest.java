@@ -325,6 +325,7 @@ class BommelResourceTest {
     void deleteBommelWorksWithWritePermissions() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();
+        var initialBommelSize = bommelRepo.count();
 
         Mockito.when(authModelClient.check(TupleKey.of("bommel:" + bommel.id, "write", "user:test")))
                 .thenReturn(Uni.createFrom().item(true));
@@ -335,19 +336,17 @@ class BommelResourceTest {
                 .then()
                 .statusCode(204);
 
-        assertEquals(bommels.size() - 1, bommelRepo.count());
+        assertEquals(initialBommelSize - 1, bommelRepo.count());
     }
 
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
     void getRootBommelTest() {
-        // Arrange
-        List<Bommel> existingBommels = resourceCreator.setupSimpleTree();
-        var organization = orgRepo.findAll().firstResult();
-        var rootBommel = existingBommels.getFirst();
+        var organization = orgRepo.findBySlug("gruenes-herz-ev"); // id=2 from migration
+        var rootBommelId = 2L; // From migration: rootBommel_id=2
 
-        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + rootBommel.id, "read", "user:test")))
+        Mockito.when(authModelClient.check(TupleKey.of("bommel:" + rootBommelId, "read", "user:test")))
                 .thenReturn(Uni.createFrom().item(true));
 
         // Act
@@ -356,8 +355,8 @@ class BommelResourceTest {
                 .get("/root/{orgId}", organization.getId())
                 .then()
                 .statusCode(200)
-                .body("id", is(rootBommel.id.intValue()))
-                .body("name", is(rootBommel.getName()));
+                .body("id", is(2))
+                .body("name", is("Grünes Herz e.V."));
     }
 
 }
