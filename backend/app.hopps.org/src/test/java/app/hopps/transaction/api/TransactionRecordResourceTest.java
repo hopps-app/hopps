@@ -1,16 +1,17 @@
 package app.hopps.transaction.api;
 
 import app.hopps.document.domain.DocumentType;
-import app.hopps.transaction.api.TransactionRecordResource;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
 import io.quarkus.panache.common.Page;
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -27,13 +28,20 @@ class TransactionRecordResourceTest {
     @Inject
     TransactionRecordRepository repository;
 
+    @Inject
+    Flyway flyway;
+
     KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
     @BeforeEach
-    @Transactional
     void setup() {
-        repository.deleteAll();
+        flyway.clean();
+        flyway.migrate();
+        setupTestData();
+    }
 
+    @Transactional
+    void setupTestData() {
         TransactionRecord withBommel = new TransactionRecord(BigDecimal.valueOf(50), DocumentType.INVOICE, "alice");
         withBommel.setDocumentKey("randomKey");
         withBommel.setBommelId(1L);
