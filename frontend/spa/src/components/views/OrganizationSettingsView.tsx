@@ -223,7 +223,7 @@ function OrganizationSettingsView() {
                         <div className="lg:col-span-3 space-y-6">
                             {/* Statistics Overview */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <Card>
+                                <Card className="bg-white">
                                     <CardHeader className="pb-2">
                                         <CardTitle className="text-sm text-gray-600">{t('organization.stats.totalBommels')}</CardTitle>
                                     </CardHeader>
@@ -232,7 +232,7 @@ function OrganizationSettingsView() {
                                     </CardContent>
                                 </Card>
 
-                                <Card>
+                                <Card className="bg-white">
                                     <CardHeader className="pb-2">
                                         <CardTitle className="text-sm text-gray-600">{t('organization.stats.totalIncome')}</CardTitle>
                                     </CardHeader>
@@ -241,7 +241,7 @@ function OrganizationSettingsView() {
                                     </CardContent>
                                 </Card>
 
-                                <Card>
+                                <Card className="bg-white">
                                     <CardHeader className="pb-2">
                                         <CardTitle className="text-sm text-gray-600">{t('organization.stats.totalExpenses')}</CardTitle>
                                     </CardHeader>
@@ -250,7 +250,7 @@ function OrganizationSettingsView() {
                                     </CardContent>
                                 </Card>
 
-                                <Card>
+                                <Card className="bg-white">
                                     <CardHeader className="pb-2">
                                         <CardTitle className="text-sm text-gray-600">{t('organization.stats.totalReceipts')}</CardTitle>
                                     </CardHeader>
@@ -320,7 +320,7 @@ function OrganizationSettingsView() {
                         {/* Right Side - Selected Bommel Details */}
                         <div className="lg:col-span-1">
                             {selectedBommel ? (
-                                <Card className="sticky top-6">
+                                <Card className="sticky top-6 bg-white">
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             {selectedBommel.data?.emoji && <span className="text-2xl">{selectedBommel.data.emoji}</span>}
@@ -367,7 +367,7 @@ function OrganizationSettingsView() {
                                     </CardContent>
                                 </Card>
                             ) : (
-                                <Card className="sticky top-6">
+                                <Card className="sticky top-6 bg-white">
                                     <CardContent className="py-12 text-center text-gray-500">{t('organization.structure.details.selectBommel')}</CardContent>
                                 </Card>
                             )}

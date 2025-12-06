@@ -84,20 +84,9 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
 
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-            <div className="bg-white rounded-lg border border-gray-200">
-                {/* Header with column labels */}
-                <div className="flex flex-row items-center gap-4 px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                    <div className="flex-1 min-w-0">{/* Empty space for tree structure */}</div>
-                    <div className="flex flex-row gap-6 text-xs font-semibold text-gray-600 uppercase flex-shrink-0">
-                        <div className="text-center min-w-[80px]">Subbommel</div>
-                        <div className="text-center min-w-[100px]">Einnahmen</div>
-                        <div className="text-center min-w-[100px]">Ausgaben</div>
-                        <div className="text-center min-w-[100px]">Umsatz</div>
-                    </div>
-                </div>
-
+            <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
                 {/* Tree content */}
-                <div className="px-4">
+                <div className="space-y-3">
                     {treeData.length ? (
                         <Tree
                             tree={treeData}
@@ -141,7 +130,7 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
 
                 {/* Add new node button */}
                 {isEditable && (
-                    <div className="text-center py-3 border-t border-gray-200">
+                    <div className="text-center pt-6">
                         <Button variant="link" icon="Plus" onClick={onClickCreate}>
                             {t('organizationTree.createNode')}
                         </Button>
