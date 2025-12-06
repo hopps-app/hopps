@@ -72,6 +72,31 @@
             "saved": "Einstellungen erfolgreich gespeichert",
             "structure": "Struktur"
         },
+        "stats": {
+            "totalBommels": "Gesamt Bommels",
+            "totalIncome": "Gesamt Einnahmen",
+            "totalExpenses": "Gesamt Ausgaben",
+            "totalReceipts": "Gesamt Belege"
+        },
+        "structure": {
+            "quickSearch": "Schnellsuche",
+            "edit": "Bearbeiten",
+            "done": "Fertig",
+            "treeView": "Baumstruktur",
+            "tableView": "Tabelle",
+            "details": {
+                "title": "Details",
+                "selectBommel": "Wählen Sie einen Bommel aus, um Details anzuzeigen",
+                "income": "Einnahmen",
+                "expenses": "Ausgaben",
+                "revenue": "Umsatz",
+                "receipts": "Belege",
+                "openInvoices": "Offene Rechnungen",
+                "drafts": "Entwürfe",
+                "subBommels": "Subbommel",
+                "toReceipts": "Zu Belege"
+            }
+        },
         "noOrganization": {
             "title": "Keine Organisation gefunden",
             "message": "Sie haben keinen Zugang zu einer Organisation oder die Organisation existiert nicht.",

@@ -73,6 +73,31 @@
             "saved": "Settings successfully saved",
             "structure": "Structure"
         },
+        "stats": {
+            "totalBommels": "Total Bommels",
+            "totalIncome": "Total Income",
+            "totalExpenses": "Total Expenses",
+            "totalReceipts": "Total Receipts"
+        },
+        "structure": {
+            "quickSearch": "Quick Search",
+            "edit": "Edit",
+            "done": "Done",
+            "treeView": "Tree View",
+            "tableView": "Table View",
+            "details": {
+                "title": "Details",
+                "selectBommel": "Select a Bommel to view details",
+                "income": "Income",
+                "expenses": "Expenses",
+                "revenue": "Revenue",
+                "receipts": "Receipts",
+                "openInvoices": "Open Invoices",
+                "drafts": "Drafts",
+                "subBommels": "Sub-Bommels",
+                "toReceipts": "To Receipts"
+            }
+        },
         "noOrganization": {
             "title": "No Organization Found",
             "message": "You don't have access to any organization or the organization doesn't exist.",

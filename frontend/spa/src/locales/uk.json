@@ -72,6 +72,31 @@
       "saved": "Налаштування успішно збережено",
       "structure": "Структура"
     },
+    "stats": {
+      "totalBommels": "Всього Боммелів",
+      "totalIncome": "Всього Доходів",
+      "totalExpenses": "Всього Витрат",
+      "totalReceipts": "Всього Квитанцій"
+    },
+    "structure": {
+      "quickSearch": "Швидкий пошук",
+      "edit": "Редагувати",
+      "done": "Готово",
+      "treeView": "Деревовидний вигляд",
+      "tableView": "Табличний вигляд",
+      "details": {
+        "title": "Деталі",
+        "selectBommel": "Виберіть Боммель, щоб переглянути деталі",
+        "income": "Доходи",
+        "expenses": "Витрати",
+        "revenue": "Дохід",
+        "receipts": "Квитанції",
+        "openInvoices": "Відкриті рахунки",
+        "drafts": "Чернетки",
+        "subBommels": "Підбоммелі",
+        "toReceipts": "До квитанцій"
+      }
+    },
     "noOrganization": {
       "title": "Організацію не знайдено",
       "message": "У вас немає доступу до організації або організація не існує.",

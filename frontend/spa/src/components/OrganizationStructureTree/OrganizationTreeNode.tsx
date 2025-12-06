@@ -31,9 +31,11 @@ function OrganizationTreeNode(props: Props) {
     const indent = props.depth * IDENT_SIZE;
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
-    const [emoji, setEmoji] = useState(data?.emoji || '');
+    const [editEmoji, setEditEmoji] = useState('');
     const [isHover, setIsHover] = useState(false);
     const textFieldRef = useRef<HTMLInputElement>(null);
+
+    const emoji = data?.emoji || '';
 
     const handleToggle = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -47,12 +49,13 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onEmojiChanged = (value: string) => {
-        setEmoji(value);
+        setEditEmoji(value);
     };
 
     const onClickEdit = () => {
         if (!props.editable) return;
         setEditValue(props.node.text);
+        setEditEmoji(emoji);
         setIsEditing(true);
     };
 
@@ -61,7 +64,7 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onClickAcceptEdit = () => {
-        props.onEdit({ ...props.node, text: editValue, data: { ...props.node.data, emoji } });
+        props.onEdit({ ...props.node, text: editValue, data: { ...props.node.data, emoji: editEmoji } });
         setIsEditing(false);
     };
 
@@ -86,9 +89,17 @@ function OrganizationTreeNode(props: Props) {
 
     const dragOverProps = useDragOver(id, props.isOpen, props.onToggle);
 
+    const { receiptsCount, receiptsOpen, subBommelsCount, income, expenses, revenue } = props.node.data || {};
+
+    const formatCurrency = (value?: number) => {
+        if (value === undefined || value === null) return '-';
+        const sign = value >= 0 ? '+' : '';
+        return `${sign}${value.toLocaleString('de-DE')}€`;
+    };
+
     return (
         <div
-            className={cn('h-10 leading-10', {
+            className={cn('py-2 border-b border-gray-100', {
                 'hover:bg-accent': !props.disableHover && !props.isSelected,
                 'bg-primary': props.isSelected,
                 'text-primary-foreground': props.isSelected,
@@ -99,46 +110,75 @@ function OrganizationTreeNode(props: Props) {
             onClick={handleSelect}
             {...dragOverProps}
         >
-            <div className="flex flex-row items-center">
-                <div className="scale-150 pr-1" onClick={handleToggle}>
-                    {props.hasChild ? (
-                        <Icon icon={props.isOpen ? 'TriangleDown' : 'TriangleRight'} className="cursor-pointer hover:text-primary" />
-                    ) : (
-                        <Icon icon="Dot" />
-                    )}
+            <div className="flex flex-row items-center gap-4">
+                {/* Toggle Icon and Content */}
+                <div className="flex flex-row items-center flex-1 min-w-0">
+                    <div className="scale-150 pr-2 flex-shrink-0" onClick={handleToggle}>
+                        {props.hasChild ? (
+                            <Icon icon={props.isOpen ? 'TriangleDown' : 'TriangleRight'} className="cursor-pointer hover:text-primary" />
+                        ) : (
+                            <Icon icon="Dot" />
+                        )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                        {isEditing ? (
+                            <div className="flex flex-row items-center gap-1">
+                                <EmojiField value={editEmoji} className="py-0 px-1 h-8" onChange={onEmojiChanged} />
+                                <TextField
+                                    ref={textFieldRef}
+                                    value={editValue}
+                                    className="py-1 px-1 h-8 flex-1"
+                                    onValueChange={onEditValueChange}
+                                    onKeyDown={onKeyDown}
+                                />
+                                <Button variant="link" className="px-1" icon="Check" onClick={onClickAcceptEdit} />
+                                <Button variant="link" className="px-1" icon="Cross1" onClick={onClickCancelEdit} />
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-1">
+                                <div className="flex flex-row items-center gap-2">
+                                    {emoji && (
+                                        <span className="flex-shrink-0">
+                                            <Emoji emoji={emoji} className="text-xl" />
+                                        </span>
+                                    )}
+                                    <span className="font-semibold text-sm truncate">{props.node.text}</span>
+                                    {isHover && props.editable && (
+                                        <div className="flex gap-1 ml-auto">
+                                            <Button variant="link" className="px-1" icon="Pencil1" onClick={onClickEdit} />
+                                            <Button variant="link" className="px-1" icon="Trash" onClick={onClickDelete} />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-row items-center gap-2 text-xs text-gray-600">
+                                    {receiptsCount !== undefined && <span>{receiptsCount} Belege</span>}
+                                    {receiptsOpen !== undefined && receiptsOpen > 0 && (
+                                        <span className="bg-gray-200 px-2 py-0.5 rounded-full text-xs">{receiptsOpen} offen</span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div className="w-full">
-                    {isEditing ? (
-                        <div className="flex flex-row items-center w-full">
-                            <EmojiField value={emoji} className="py-0 px-1 h-8" onChange={onEmojiChanged} />
-                            <TextField
-                                ref={textFieldRef}
-                                value={editValue}
-                                className="py-1 px-1 h-8 w-full"
-                                onValueChange={onEditValueChange}
-                                onKeyDown={onKeyDown}
-                            />
-                            <Button variant="link" className="px-1" icon="Check" onClick={onClickAcceptEdit} />
-                            <Button variant="link" className="px-1" icon="Cross1" onClick={onClickCancelEdit} />
+
+                {/* Financial Information Columns */}
+                {!isEditing && (
+                    <div className="flex flex-row gap-6 text-sm flex-shrink-0">
+                        <div className="text-center min-w-[80px]">
+                            <div className="font-medium">{subBommelsCount ?? 0}</div>
                         </div>
-                    ) : (
-                        <div className="flex flex-row items-center">
-                            {emoji && (
-                                <span className="mr-1">
-                                    <Emoji emoji={emoji} className="text-xl" />
-                                </span>
-                            )}
-                            {props.node.text}
-                            <div className="flex-grow"></div>
-                            {isHover && props.editable && (
-                                <>
-                                    <Button variant="link" className="px-1" icon="Pencil1" onClick={onClickEdit} />
-                                    <Button variant="link" className="px-1" icon="Trash" onClick={onClickDelete} />
-                                </>
-                            )}
+                        <div className="text-center min-w-[100px]">
+                            <div className="font-medium text-green-600">{formatCurrency(income)}</div>
                         </div>
-                    )}
-                </div>
+                        <div className="text-center min-w-[100px]">
+                            <div className="font-medium text-red-600">{formatCurrency(expenses)}</div>
+                        </div>
+                        <div className="text-center min-w-[100px]">
+                            <div className="font-medium">{formatCurrency(revenue)}</div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
