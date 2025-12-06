@@ -5,7 +5,7 @@
   "interactions": [
     {
       "comments": {
-        "testname": "app.hopps.fin.pact.FinNarratorPactConsumerTest.testInvoiceTagging()",
+        "testname": "app.hopps.document.client.FinNarratorPactConsumerTest.testInvoiceTagging()",
         "text": [
 
         ]
@@ -89,7 +89,7 @@
     },
     {
       "comments": {
-        "testname": "app.hopps.fin.pact.FinNarratorPactConsumerTest.testReceiptTagging()",
+        "testname": "app.hopps.document.client.FinNarratorPactConsumerTest.testReceiptTagging()",
         "text": [
 
         ]
