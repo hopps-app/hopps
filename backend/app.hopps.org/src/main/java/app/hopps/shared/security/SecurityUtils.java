@@ -12,8 +12,8 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.util.Collection;
 
 /**
- * Security utility class for common authentication and authorization operations.
- * Provides centralized methods for user and organization retrieval.
+ * Security utility class for common authentication and authorization operations. Provides centralized methods for user
+ * and organization retrieval.
  */
 @ApplicationScoped
 public class SecurityUtils {
@@ -24,10 +24,15 @@ public class SecurityUtils {
     /**
      * Retrieves the organization associated with the current authenticated user.
      *
-     * @param securityContext the JAX-RS security context containing user principal
+     * @param securityContext
+     *            the JAX-RS security context containing user principal
+     *
      * @return the user's organization
-     * @throws WebApplicationException if user not found (404) or has no organization
-     * @throws IllegalStateException if user belongs to multiple organizations (not yet supported)
+     *
+     * @throws WebApplicationException
+     *             if user not found (404) or has no organization
+     * @throws IllegalStateException
+     *             if user belongs to multiple organizations (not yet supported)
      */
     public Organization getUserOrganization(SecurityContext securityContext) {
         String userName = securityContext.getUserPrincipal().getName();
@@ -55,9 +60,13 @@ public class SecurityUtils {
     /**
      * Retrieves the current authenticated user (member).
      *
-     * @param securityContext the JAX-RS security context containing user principal
+     * @param securityContext
+     *            the JAX-RS security context containing user principal
+     *
      * @return the current user
-     * @throws WebApplicationException if user not found (404)
+     *
+     * @throws WebApplicationException
+     *             if user not found (404)
      */
     public Member getCurrentUser(SecurityContext securityContext) {
         String userName = securityContext.getUserPrincipal().getName();

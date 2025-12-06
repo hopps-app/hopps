@@ -8,17 +8,17 @@ import org.eclipse.microprofile.openapi.models.PathItem;
 import java.util.List;
 
 /**
- * OpenAPI filter for hiding Kogito BPMN process endpoints from API documentation.
- * This is a temporary fix for removing the endpoints of kogito processes.
+ * OpenAPI filter for hiding Kogito BPMN process endpoints from API documentation. This is a temporary fix for removing
+ * the endpoints of kogito processes.
  */
 @OpenApiFilter(OpenApiFilter.RunStage.RUN)
 public class KogitoEndpointFilter implements OASFilter {
 
     // Unified blacklist from both org and fin modules
     private static final List<String> BLACKLIST = List.of(
-        "NewOrganization",  // from org module
-        "Invoice",          // from fin module
-        "Receipt"           // from fin module
+            "NewOrganization", // from org module
+            "Invoice", // from fin module
+            "Receipt" // from fin module
     );
 
     @Override

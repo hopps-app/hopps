@@ -22,8 +22,7 @@ import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * S3 storage handler for managing document uploads and downloads.
- * Provides caching for frequently accessed documents.
+ * S3 storage handler for managing document uploads and downloads. Provides caching for frequently accessed documents.
  */
 @ApplicationScoped
 public class S3Handler {

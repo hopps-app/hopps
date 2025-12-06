@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Represents a uniqueness constraint violation for validation purposes.
- * Used when a field value must be unique but a duplicate is detected.
+ * Represents a uniqueness constraint violation for validation purposes. Used when a field value must be unique but a
+ * duplicate is detected.
  */
 public record NonUniqueConstraintViolation(String field, Object root) {
 
