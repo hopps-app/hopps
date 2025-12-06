@@ -3,22 +3,13 @@ package app.hopps.bommel.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.org.service.UserOrganizationService;
-import io.quarkiverse.openfga.client.AuthorizationModelClient;
+import app.hopps.organization.domain.Organization;
 import io.quarkus.runtime.configuration.ConfigUtils;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
@@ -45,13 +36,7 @@ public class BommelResource {
     BommelRepository bommelRepo;
 
     @Inject
-    OrganizationRepository orgRepo;
-
-    @Inject
     SecurityContext securityContext;
-
-    @Inject
-    AuthorizationModelClient authModelClient;
 
     @Inject
     UserOrganizationService userOrganizationService;
