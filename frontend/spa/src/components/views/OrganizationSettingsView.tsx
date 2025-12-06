@@ -4,6 +4,9 @@ import { Bommel } from '@hopps/api-client';
 
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree.tsx';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
+import { BommelTreeComponent } from '@/components/BommelTreeView';
+import { ViewMode } from '@/components/BommelTreeView/types';
+import Button from '@/components/ui/Button';
 import Header from '@/components/ui/Header';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
@@ -19,6 +22,7 @@ function OrganizationSettingsView() {
     const [isLoading, setIsLoading] = useState(true);
     const [rootBommel, setRootBommel] = useState<Bommel | null>(null);
     const [tree, setTree] = useState<OrganizationTreeNodeModel[]>([]);
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
 
     const loadTree = async () => {
         const bommels = await organizationTreeService.getOrganizationBommels(rootBommel!.id!);
@@ -134,16 +138,39 @@ function OrganizationSettingsView() {
                 <div>{t('organization.settings.error')}</div>
             ) : (
                 <>
-                    <h3>{t('organization.settings.structure')}:</h3>
-                    <OrganizationTree
-                        tree={tree}
-                        editable={true}
-                        selectable={false}
-                        createNode={createTreeNode}
-                        updateNode={updateTreeNode}
-                        deleteNode={deleteTreeNode}
-                        moveNode={moveTreeNode}
-                    />
+                    <div className="flex items-center justify-between mb-4">
+                        <h3>{t('organization.settings.structure')}:</h3>
+                        <div className="flex gap-2">
+                            <Button variant={viewMode === 'list' ? 'default' : 'outline'} icon="TriangleDown" onClick={() => setViewMode('list')}>
+                                List View
+                            </Button>
+                            <Button variant={viewMode === 'tree' ? 'default' : 'outline'} icon="TriangleRight" onClick={() => setViewMode('tree')}>
+                                Tree View
+                            </Button>
+                        </div>
+                    </div>
+
+                    {viewMode === 'list' ? (
+                        <OrganizationTree
+                            tree={tree}
+                            editable={true}
+                            selectable={false}
+                            createNode={createTreeNode}
+                            updateNode={updateTreeNode}
+                            deleteNode={deleteTreeNode}
+                            moveNode={moveTreeNode}
+                        />
+                    ) : (
+                        <BommelTreeComponent
+                            tree={tree}
+                            rootBommel={rootBommel}
+                            width={800}
+                            height={500}
+                            onNodeClick={(nodeData) => {
+                                console.log('Node clicked:', nodeData);
+                            }}
+                        />
+                    )}
                 </>
             )}
         </>

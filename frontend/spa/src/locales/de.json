@@ -72,6 +72,11 @@
             "saved": "Einstellungen erfolgreich gespeichert",
             "structure": "Struktur"
         },
+        "noOrganization": {
+            "title": "Keine Organisation gefunden",
+            "message": "Sie haben keinen Zugang zu einer Organisation oder die Organisation existiert nicht.",
+            "suggestion": "Bitte wenden Sie sich an Ihren Administrator oder melden Sie sich ab und versuchen Sie es mit einem anderen Konto erneut."
+        },
         "buttons": {
             "addNew": "Neu hinzufügen"
         }

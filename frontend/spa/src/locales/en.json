@@ -73,6 +73,11 @@
             "saved": "Settings successfully saved",
             "structure": "Structure"
         },
+        "noOrganization": {
+            "title": "No Organization Found",
+            "message": "You don't have access to any organization or the organization doesn't exist.",
+            "suggestion": "Please contact your administrator or sign out and try again with a different account."
+        },
         "buttons": {
             "addNew": "Add new"
         }
