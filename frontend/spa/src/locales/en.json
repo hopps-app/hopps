@@ -153,6 +153,10 @@
         },
         "table": {
             "noDescription": "No description"
+        },
+        "empty": {
+            "mainText": "No categories created yet",
+            "subText": "Categories can be created and managed here"
         }
     },
     "dialogWrapper": {

@@ -152,6 +152,10 @@
         },
         "table": {
             "noDescription": "Keine Beschreibung"
+        },
+        "empty": {
+            "mainText": "Noch keine Kategorien erstellt",
+            "subText": "Hier können Kategorien erstellt und bearbeitet werden"
         }
     },
     "dialogWrapper": {
