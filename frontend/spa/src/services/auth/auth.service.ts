@@ -64,7 +64,7 @@ export class AuthService {
 
     async logout() {
         return await this.keycloak.logout({
-            redirectUri: await import.meta.env.VITE_FRONTEND_URL,
+            redirectUri: window.location.origin,
         });
     }
 
