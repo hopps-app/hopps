@@ -1,22 +1,6 @@
-# Hopps
+# Fuggs
 
-Wir wollen eine cloudbasierte Open Source Buchhaltungssoftware mit AI entwickeln, damit Vereine mehr Zeit für ihre
-wesentlichen Ziele und Angebote haben und frustrierte Situationen mit der Buchhaltung der Vergangenheit angehören.
-Implementiert wird das Projekt von einer Gruppe engagierter EntwicklerInnen
-des [Open Project e.V. Pfaffenhofen an der Ilm](https://op-paf.de).
-
-Das Projekt wird gefördert von
-der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-engagement-und-ehrenamt.de/).
-
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-
-![Frontend](https://github.com/hopps-app/hopps/actions/workflows/frontend.yml/badge.svg)
-![Backend](https://github.com/hopps-app/hopps/actions/workflows/backend.yml/badge.svg)
-![Keycloak](https://github.com/hopps-app/hopps/actions/workflows/keycloak.yml/badge.svg)
-
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-vereine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-vereine)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-fin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-fin)
+Fuggs ist ein Fork von Hopps.
 
 ## Contributors
 
@@ -48,9 +32,3 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-
-### How to use the allcontributors bot
-
-Guide: https://allcontributors.org/docs/en/bot/usage
-
-Available emojis: https://allcontributors.org/docs/en/emoji-key
