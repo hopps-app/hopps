@@ -1,11 +1,11 @@
-package app.hopps.repository;
+package app.hopps.audit.repository;
 
 import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
-import app.hopps.model.AuditLogEntry;
+import app.hopps.audit.domain.AuditLogEntry;
 
 @ApplicationScoped
 public class AuditLogRepository implements PanacheRepositoryBase<AuditLogEntry, Long>

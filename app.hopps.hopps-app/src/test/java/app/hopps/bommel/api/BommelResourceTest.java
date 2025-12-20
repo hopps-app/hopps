@@ -1,4 +1,4 @@
-package app.hopps.rest;
+package app.hopps.bommel.api;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -9,11 +9,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
-import app.hopps.model.Bommel;
-import app.hopps.repository.BommelRepository;
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.repository.BommelRepository;
 
 @QuarkusTest
-class BommelsTest
+class BommelResourceTest
 {
 	@Inject
 	BommelRepository bommelRepository;
@@ -33,7 +33,7 @@ class BommelsTest
 
 		given()
 			.when()
-			.get("/Bommels/index")
+			.get("/bommels")
 			.then()
 			.statusCode(200)
 			.body(containsString("Wurzel-Bommel erstellen"))
@@ -48,7 +48,7 @@ class BommelsTest
 
 		given()
 			.when()
-			.get("/Bommels/index")
+			.get("/bommels")
 			.then()
 			.statusCode(200)
 			.body(containsString("cds-tree-view"))
@@ -63,7 +63,7 @@ class BommelsTest
 
 		given()
 			.when()
-			.get("/Bommels/index?selectedId=" + rootId)
+			.get("/bommels?selectedId=" + rootId)
 			.then()
 			.statusCode(200)
 			.body(containsString("Bearbeiten: Verein"))
@@ -79,7 +79,7 @@ class BommelsTest
 		// With Long id type, an invalid string causes endpoint matching to fail
 		given()
 			.when()
-			.get("/Bommels/index?selectedId=invalid-id")
+			.get("/bommels?selectedId=invalid-id")
 			.then()
 			.statusCode(404);
 	}
@@ -93,7 +93,7 @@ class BommelsTest
 		// Valid Long but non-existent in database
 		given()
 			.when()
-			.get("/Bommels/index?selectedId=99999")
+			.get("/bommels?selectedId=99999")
 			.then()
 			.statusCode(200)
 			.body(containsString("Klicken Sie auf einen Bommel"));
@@ -108,7 +108,7 @@ class BommelsTest
 
 		given()
 			.when()
-			.get("/Bommels/index?selectedId=" + rootId)
+			.get("/bommels?selectedId=" + rootId)
 			.then()
 			.statusCode(200)
 			.body(containsString("kann nicht gelöscht werden"));

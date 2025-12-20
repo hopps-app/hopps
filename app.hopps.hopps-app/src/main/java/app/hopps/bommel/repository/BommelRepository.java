@@ -1,8 +1,8 @@
-package app.hopps.repository;
+package app.hopps.bommel.repository;
 
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
-import app.hopps.model.Bommel;
+import app.hopps.bommel.domain.Bommel;
 
 import java.util.List;
 

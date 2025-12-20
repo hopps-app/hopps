@@ -7,8 +7,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
-import app.hopps.model.AuditLogEntry;
-import app.hopps.repository.AuditLogRepository;
+import app.hopps.audit.domain.AuditLogEntry;
+import app.hopps.audit.repository.AuditLogRepository;
 
 /**
  * The ProcessEngine executes process definitions. It manages chain lifecycle

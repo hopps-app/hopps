@@ -1,10 +1,12 @@
-package app.hopps.rest;
+package app.hopps.bommel.api;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestQuery;
@@ -12,10 +14,11 @@ import org.jboss.resteasy.reactive.RestQuery;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkiverse.renarde.Controller;
-import app.hopps.model.Bommel;
-import app.hopps.repository.BommelRepository;
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.repository.BommelRepository;
 
-public class Bommels extends Controller
+@Path("/bommels")
+public class BommelResource extends Controller
 {
 	@Inject
 	BommelRepository bommelRepository;
@@ -26,6 +29,8 @@ public class Bommels extends Controller
 		public static native TemplateInstance index(Bommel root, Bommel selected);
 	}
 
+	@GET
+	@Path("")
 	public TemplateInstance index(@RestQuery Long selectedId)
 	{
 		Bommel root = bommelRepository.findRoot();
@@ -41,14 +46,14 @@ public class Bommels extends Controller
 	{
 		if (validationFailed())
 		{
-			redirect(Bommels.class).index(null);
+			redirect(BommelResource.class).index(null);
 			return;
 		}
 
 		if (bommelRepository.hasRoot())
 		{
 			flash("error", "Wurzel-Bommel existiert bereits");
-			redirect(Bommels.class).index(null);
+			redirect(BommelResource.class).index(null);
 			return;
 		}
 
@@ -59,7 +64,7 @@ public class Bommels extends Controller
 		bommelRepository.persist(root);
 
 		flash("success", "Wurzel-Bommel erstellt");
-		redirect(Bommels.class).index(root.getId());
+		redirect(BommelResource.class).index(root.getId());
 	}
 
 	@POST
@@ -72,7 +77,7 @@ public class Bommels extends Controller
 		if (parentId == null)
 		{
 			flash("error", "Eltern-ID ist erforderlich");
-			redirect(Bommels.class).index(null);
+			redirect(BommelResource.class).index(null);
 			return;
 		}
 
@@ -80,14 +85,14 @@ public class Bommels extends Controller
 		if (parent == null)
 		{
 			flash("error", "Eltern-Bommel nicht gefunden");
-			redirect(Bommels.class).index(null);
+			redirect(BommelResource.class).index(null);
 			return;
 		}
 
 		if (title == null || title.isBlank())
 		{
 			flash("error", "Titel ist erforderlich");
-			redirect(Bommels.class).index(parentId);
+			redirect(BommelResource.class).index(parentId);
 			return;
 		}
 
@@ -98,7 +103,7 @@ public class Bommels extends Controller
 		bommelRepository.persist(child);
 
 		flash("success", "Kind-Bommel hinzugefügt");
-		redirect(Bommels.class).index(child.getId());
+		redirect(BommelResource.class).index(child.getId());
 	}
 
 	@POST
@@ -110,7 +115,7 @@ public class Bommels extends Controller
 	{
 		if (validationFailed())
 		{
-			redirect(Bommels.class).index(id);
+			redirect(BommelResource.class).index(id);
 			return;
 		}
 
@@ -118,7 +123,7 @@ public class Bommels extends Controller
 		if (bommel == null)
 		{
 			flash("error", "Bommel nicht gefunden");
-			redirect(Bommels.class).index(null);
+			redirect(BommelResource.class).index(null);
 			return;
 		}
 
@@ -126,7 +131,7 @@ public class Bommels extends Controller
 		bommel.setTitle(title);
 
 		flash("success", "Bommel aktualisiert");
-		redirect(Bommels.class).index(id);
+		redirect(BommelResource.class).index(id);
 	}
 
 	@POST
@@ -135,7 +140,7 @@ public class Bommels extends Controller
 	{
 		if (validationFailed())
 		{
-			redirect(Bommels.class).index(null);
+			redirect(BommelResource.class).index(null);
 			return;
 		}
 
@@ -143,14 +148,14 @@ public class Bommels extends Controller
 		if (bommel == null)
 		{
 			flash("error", "Bommel nicht gefunden");
-			redirect(Bommels.class).index(null);
+			redirect(BommelResource.class).index(null);
 			return;
 		}
 
 		if (bommelRepository.hasChildren(bommel))
 		{
 			flash("error", "Bommel mit Kindern kann nicht gelöscht werden. Entfernen Sie zuerst alle Kinder.");
-			redirect(Bommels.class).index(id);
+			redirect(BommelResource.class).index(id);
 			return;
 		}
 
@@ -158,6 +163,6 @@ public class Bommels extends Controller
 
 		bommelRepository.delete(bommel);
 		flash("success", "Bommel gelöscht");
-		redirect(Bommels.class).index(redirectToId);
+		redirect(BommelResource.class).index(redirectToId);
 	}
 }

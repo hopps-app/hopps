@@ -1,4 +1,4 @@
-package app.hopps.util;
+package app.hopps.shared.util;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -7,8 +7,8 @@ import jakarta.transaction.Transactional;
 
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.StartupEvent;
-import app.hopps.model.Bommel;
-import app.hopps.repository.BommelRepository;
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.repository.BommelRepository;
 
 @ApplicationScoped
 public class Startup
