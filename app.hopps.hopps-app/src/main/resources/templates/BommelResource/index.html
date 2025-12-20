@@ -217,14 +217,14 @@
 <div class="bommels-layout">
   <div class="tree-panel">
     <div class="box">
-      <h2 class="box-header">Organisationsstruktur</h2>
+      <h2 class="box-header">Bommels</h2>
 
       {#if root}
         <cds-tree-view label="Bommels">
           {#bommelNode root selected=selected /}
         </cds-tree-view>
       {#else}
-        <p>Noch keine Organisationsstruktur definiert.</p>
+        <p>Noch keine Bommels vorhanden.</p>
 
         <h3 style="margin-top: 1rem;">Wurzel-Bommel erstellen</h3>
         {#form uri:BommelResource.createRoot()}

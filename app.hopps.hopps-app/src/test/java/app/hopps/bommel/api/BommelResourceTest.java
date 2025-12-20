@@ -37,7 +37,7 @@ class BommelResourceTest
 			.then()
 			.statusCode(200)
 			.body(containsString("Wurzel-Bommel erstellen"))
-			.body(containsString("Noch keine Organisationsstruktur definiert"));
+			.body(containsString("Noch keine Bommels vorhanden"));
 	}
 
 	@Test
