@@ -19,7 +19,6 @@ import model.Todo;
  */
 public class Todos extends Controller
 {
-
 	/**
 	 * This defines templates available in
 	 * src/main/resources/templates/Classname/method.html by convention
