@@ -11,11 +11,11 @@ export const menuConfig: MenuItem[] = [
         id: 'receipts',
         label: 'menu.receipts',
         icon: 'Archive',
-        path: '/receipts/all',
+        path: '/receipts',
         children: [
-            { id: 'all-receipt', label: 'menu.all-receipt', path: '/receipts/all' },
-            { id: 'expense', label: 'menu.expense', path: '/receipts/expense' },
-            { id: 'intake', label: 'menu.intake', path: '/receipts/intake' },
+            { id: 'all-receipt', label: 'menu.all-receipt', path: '/receipts' },
+            { id: 'expense', label: 'menu.expense', path: '/receipts?type=expense' },
+            { id: 'intake', label: 'menu.intake', path: '/receipts?type=income' },
         ],
     },
     {
