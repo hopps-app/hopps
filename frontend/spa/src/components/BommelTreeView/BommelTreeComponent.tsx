@@ -56,16 +56,16 @@ function BommelCard({
 }) {
     const { t } = useTranslation();
     const nodeId = nodeDatum.attributes?.id as number;
-    const income = nodeDatum.attributes?.income || 0;
-    const expenses = nodeDatum.attributes?.expenses || 0;
-    const revenue = nodeDatum.attributes?.revenue || 0;
-    const receiptsCount = nodeDatum.attributes?.receiptsCount || 0;
-    const receiptsOpen = nodeDatum.attributes?.receiptsOpen || 0;
+    const income = (nodeDatum.attributes?.income as number) || 0;
+    const expenses = (nodeDatum.attributes?.expenses as number) || 0;
+    const revenue = (nodeDatum.attributes?.revenue as number) || 0;
+    const receiptsCount = (nodeDatum.attributes?.receiptsCount as number) || 0;
+    const receiptsOpen = (nodeDatum.attributes?.receiptsOpen as number) || 0;
     const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
 
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(nodeDatum.name);
-    const [editedEmoji, setEditedEmoji] = useState(nodeDatum.attributes?.emoji || '');
+    const [editedEmoji, setEditedEmoji] = useState((nodeDatum.attributes?.emoji as string) || '');
 
     const handleClick = () => {
         if (!isEditing && onNodeClick && nodeDatum.attributes) {
@@ -79,7 +79,7 @@ function BommelCard({
 
     const handleSaveName = async () => {
         if (onEdit && editedName.trim()) {
-            const hasChanged = editedName !== nodeDatum.name || editedEmoji !== (nodeDatum.attributes?.emoji || '');
+            const hasChanged = editedName !== nodeDatum.name || editedEmoji !== ((nodeDatum.attributes?.emoji as string) || '');
             if (hasChanged) {
                 const success = await onEdit(nodeId, editedName.trim(), editedEmoji);
                 if (success) {
@@ -91,14 +91,14 @@ function BommelCard({
         } else {
             setIsEditing(false);
             setEditedName(nodeDatum.name);
-            setEditedEmoji(nodeDatum.attributes?.emoji || '');
+            setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
         }
     };
 
     const handleCancelEdit = () => {
         setIsEditing(false);
         setEditedName(nodeDatum.name);
-        setEditedEmoji(nodeDatum.attributes?.emoji || '');
+        setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
     };
 
     const handleDelete = async () => {
@@ -244,7 +244,7 @@ function BommelCard({
                         <>
                             {nodeDatum.attributes?.emoji && (
                                 <div style={{ fontSize: '20px', flexShrink: 0 }}>
-                                    <Emoji emoji={nodeDatum.attributes.emoji as string} />
+                                    <Emoji emoji={(nodeDatum.attributes.emoji as string)} />
                                 </div>
                             )}
                             <div

@@ -355,7 +355,7 @@ function OrganizationSettingsView() {
                                                     text: newName,
                                                     data: {
                                                         ...node.data,
-                                                        emoji: newEmoji || node.data?.emoji,
+                                                        emoji: newEmoji || node.data?.emoji || '',
                                                     },
                                                 };
                                                 return await updateTreeNode(updatedNode);
