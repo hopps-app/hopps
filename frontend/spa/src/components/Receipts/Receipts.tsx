@@ -6,7 +6,7 @@ const Receipts = () => {
     const { filters, setFilter, resetFilters } = useReceiptFilters();
 
     return (
-        <div className="w-full space-y-4">
+        <div className="w-full max-w-6xl mx-auto space-y-4">
             <ReceiptFilters filters={filters} setFilter={setFilter} resetFilters={resetFilters} />
             <ReceiptsList filters={filters} />
         </div>

@@ -27,13 +27,8 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
     const handleSelect = useCallback(
         (type: 'startDate' | 'endDate', date: Date | undefined) => {
             if (!date) return;
-
             onChange(type, date.toISOString());
-            if (type === 'startDate') {
-                setOpenStart(false);
-            } else {
-                setOpenEnd(false);
-            }
+            type === 'startDate' ? setOpenStart(false) : setOpenEnd(false);
         },
         [onChange]
     );
