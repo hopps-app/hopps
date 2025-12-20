@@ -46,6 +46,7 @@
         --grey-500: #E5E5E5;
         --grey-400: #F5F5F5;
         --grey-white: #FFFFFF;
+        --error-100: #FDD3D0;
 
         --primary: var(--purple-500);
         --primary-active: #b54ffb;
@@ -69,6 +70,7 @@
         --border-line: var(--grey-700);
         --hover-effect: var(--grey-400);
         --radius: 8px;
+        --radius-l: 16px;
         --font: 16px;
         --btn-radius: 10px;
     }
@@ -117,6 +119,7 @@
         --hover-effect: #1a1a1a;
         --border-line: var(--grey-800);
         --radius: 8px;
+        --radius-l: 16px;
         --font: 16px;
         --btn-radius: 10px;
     }
