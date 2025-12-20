@@ -5,8 +5,9 @@
 <style>
   .bommels-layout {
     display: flex;
-    gap: var(--cds-spacing-05);
+    gap: var(--cds-spacing-07);
     flex-wrap: wrap;
+    padding: var(--cds-spacing-05) 0;
   }
   .tree-panel {
     flex: 1;
@@ -15,6 +16,12 @@
   .detail-panel {
     flex: 2;
     min-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cds-spacing-05);
+  }
+  .detail-panel .box {
+    margin-bottom: 0;
   }
   .form-row {
     display: flex;
@@ -27,6 +34,7 @@
     flex-direction: column;
     gap: 0.25rem;
     flex: 1;
+    margin-bottom: 1rem;
   }
   .form-group.icon-input {
     max-width: 140px;
@@ -58,6 +66,7 @@
     gap: 0.5rem;
     flex-wrap: wrap;
     padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
   }
   .icon-option {
     width: 40px;
@@ -66,6 +75,7 @@
     align-items: center;
     justify-content: center;
     border: 2px solid transparent;
+    border-radius: 4px;
     background: #f4f4f4;
     cursor: pointer;
     transition: all 0.15s;
@@ -159,7 +169,7 @@
 
       {#if root}
         <cds-tree-view label="Bommels">
-          {#bommelNode root /}
+          {#bommelNode root selected=selected /}
         </cds-tree-view>
       {#else}
         <p>No organization structure defined yet.</p>
