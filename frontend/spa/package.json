@@ -57,6 +57,7 @@
         "react-d3-tree": "^3.6.6",
         "react-day-picker": "^9.10.0",
         "react-dnd": "^16.0.1",
+        "react-dnd-html5-backend": "^16.0.1",
         "react-dom": "^18.3.1",
         "react-dropzone": "^14.3.8",
         "react-hook-form": "^7.66.0",

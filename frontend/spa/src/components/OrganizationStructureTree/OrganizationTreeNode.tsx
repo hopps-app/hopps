@@ -208,8 +208,8 @@ function OrganizationTreeNode(props: Props) {
                                         <h4 className="text-gray-900 font-semibold truncate">{props.node.text}</h4>
                                     </div>
                                     <div className="flex items-center gap-3 text-xs text-gray-600">
-                                        {receiptsCount !== undefined && <span>{receiptsCount} Belege</span>}
-                                        {receiptsOpen !== undefined && receiptsOpen > 0 && (
+                                        {!props.editable && receiptsCount !== undefined && <span>{receiptsCount} Belege</span>}
+                                        {!props.editable && receiptsOpen !== undefined && receiptsOpen > 0 && (
                                             <span className="bg-orange-500 text-white px-2 py-0.5 rounded-full">{receiptsOpen} offen</span>
                                         )}
                                         {subBommelsCount !== undefined && subBommelsCount > 0 && (

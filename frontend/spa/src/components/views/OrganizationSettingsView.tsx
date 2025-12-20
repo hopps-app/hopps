@@ -132,6 +132,7 @@ function OrganizationSettingsView() {
     };
     const updateTreeNode = async (node: OrganizationTreeNodeModel) => {
         let isSuccess = false;
+        setIsLoading(true);
 
         try {
             await apiService.orgService.bommelPUT(
@@ -143,9 +144,12 @@ function OrganizationSettingsView() {
                 })
             );
             isSuccess = true;
+            await loadTree();
         } catch (e) {
             console.error(e);
             showError('Failed to update.');
+        } finally {
+            setIsLoading(false);
         }
 
         return isSuccess;
@@ -292,14 +296,52 @@ function OrganizationSettingsView() {
                                 </div>
 
                                 <TabsContent value="tree" className="mt-0">
+                                    {isEditMode && (
+                                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                                            <svg
+                                                className="w-5 h-5 text-blue-600"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                />
+                                            </svg>
+                                            <span className="text-sm text-blue-800">{t('organization.structure.editModeHint')}</span>
+                                        </div>
+                                    )}
                                     <BommelTreeComponent
                                         tree={tree}
                                         rootBommel={rootBommel}
-                                        width={800}
-                                        height={500}
+                                        editable={isEditMode}
+                                        width={1200}
+                                        height={600}
                                         onNodeClick={(nodeData) => {
                                             const node = tree.find((n) => n.id === nodeData.attributes?.id);
                                             setSelectedBommel(node || null);
+                                        }}
+                                        onEdit={async (nodeId, newName, newEmoji) => {
+                                            const node = tree.find((n) => n.id === nodeId);
+                                            if (node) {
+                                                const updatedNode = {
+                                                    ...node,
+                                                    text: newName,
+                                                    data: {
+                                                        ...node.data,
+                                                        emoji: newEmoji || node.data?.emoji,
+                                                    },
+                                                };
+                                                return await updateTreeNode(updatedNode);
+                                            }
+                                            return false;
+                                        }}
+                                        onDelete={async (nodeId) => {
+                                            return await deleteTreeNode(nodeId);
                                         }}
                                     />
                                 </TabsContent>
