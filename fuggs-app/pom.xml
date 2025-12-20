@@ -30,10 +30,10 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Quarkus -->
         <dependency>
-            <groupId>io.quarkiverse.renarde</groupId>
-            <artifactId>quarkus-renarde</artifactId>
-            <version>3.1.3</version>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -47,6 +47,17 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
+        <!-- Quarkiverse -->
+        <dependency>
+            <groupId>io.quarkiverse.renarde</groupId>
+            <artifactId>quarkus-renarde</artifactId>
+            <version>3.1.3</version>
+        </dependency>
+        <!-- Testing -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>

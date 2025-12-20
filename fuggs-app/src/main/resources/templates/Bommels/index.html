@@ -22,11 +22,37 @@
     align-items: flex-end;
     margin-bottom: 1rem;
   }
-  .form-row cds-text-input {
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     flex: 1;
   }
-  .emoji-input {
+  .form-group.emoji-input {
     max-width: 80px;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+  }
+  .form-group input {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group input:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .form-group input.error {
+    border-bottom: 2px solid #da1e28;
+  }
+  .error-text {
+    color: #da1e28;
+    font-size: 0.75rem;
   }
   cds-tree-node {
     cursor: pointer;
@@ -34,6 +60,44 @@
   .button-row {
     display: flex;
     gap: 1rem;
+  }
+  /* Native button styled like Carbon */
+  button.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  button.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  button.cds-btn-secondary {
+    background-color: #393939;
+    color: white;
+  }
+  button.cds-btn-secondary:hover {
+    background-color: #4c4c4c;
+  }
+  button.cds-btn-danger {
+    background-color: #da1e28;
+    color: white;
+  }
+  button.cds-btn-danger:hover {
+    background-color: #b81921;
+  }
+  button.cds-btn:disabled {
+    background-color: #c6c6c6;
+    color: #8d8d8d;
+    cursor: not-allowed;
   }
 </style>
 {/moreStyles}
@@ -69,21 +133,18 @@
         <h3 style="margin-top: 1rem;">Create Root Bommel</h3>
         {#form uri:Bommels.createRoot()}
           <div class="form-row">
-            <cds-text-input
-              class="emoji-input"
-              name="emoji"
-              label="Emoji"
-              placeholder="🏠"
-              {#ifError 'emoji'}invalid invalid-text="{#error 'emoji'/}"{/ifError}>
-            </cds-text-input>
-            <cds-text-input
-              name="title"
-              label="Title"
-              placeholder="Organization Name"
-              {#ifError 'title'}invalid invalid-text="{#error 'title'/}"{/ifError}>
-            </cds-text-input>
+            <div class="form-group emoji-input">
+              <label for="emoji">Emoji</label>
+              <input type="text" id="emoji" name="emoji" placeholder="🏠" {#ifError 'emoji'}class="error"{/ifError}>
+              {#ifError 'emoji'}<span class="error-text">{#error 'emoji'/}</span>{/ifError}
+            </div>
+            <div class="form-group">
+              <label for="title">Title</label>
+              <input type="text" id="title" name="title" placeholder="Organization Name" {#ifError 'title'}class="error"{/ifError}>
+              {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
+            </div>
           </div>
-          <cds-button type="submit">Create Root</cds-button>
+          <button type="submit" class="cds-btn cds-btn-primary">Create Root</button>
         {/form}
       {/if}
     </div>
@@ -97,21 +158,18 @@
         {#form uri:Bommels.update()}
           <input type="hidden" name="id" value="{selected.id}">
           <div class="form-row">
-            <cds-text-input
-              class="emoji-input"
-              name="emoji"
-              label="Emoji"
-              value="{selected.emoji}"
-              {#ifError 'emoji'}invalid invalid-text="{#error 'emoji'/}"{/ifError}>
-            </cds-text-input>
-            <cds-text-input
-              name="title"
-              label="Title"
-              value="{selected.title}"
-              {#ifError 'title'}invalid invalid-text="{#error 'title'/}"{/ifError}>
-            </cds-text-input>
+            <div class="form-group emoji-input">
+              <label for="edit-emoji">Emoji</label>
+              <input type="text" id="edit-emoji" name="emoji" value="{selected.emoji}" {#ifError 'emoji'}class="error"{/ifError}>
+              {#ifError 'emoji'}<span class="error-text">{#error 'emoji'/}</span>{/ifError}
+            </div>
+            <div class="form-group">
+              <label for="edit-title">Title</label>
+              <input type="text" id="edit-title" name="title" value="{selected.title}" {#ifError 'title'}class="error"{/ifError}>
+              {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
+            </div>
           </div>
-          <cds-button type="submit">Save Changes</cds-button>
+          <button type="submit" class="cds-btn cds-btn-primary">Save Changes</button>
         {/form}
       </div>
 
@@ -121,21 +179,18 @@
         {#form uri:Bommels.addChild()}
           <input type="hidden" name="parentId" value="{selected.id}">
           <div class="form-row">
-            <cds-text-input
-              class="emoji-input"
-              name="emoji"
-              label="Emoji"
-              placeholder="📁"
-              {#ifError 'emoji'}invalid invalid-text="{#error 'emoji'/}"{/ifError}>
-            </cds-text-input>
-            <cds-text-input
-              name="title"
-              label="Title"
-              placeholder="Child Name"
-              {#ifError 'title'}invalid invalid-text="{#error 'title'/}"{/ifError}>
-            </cds-text-input>
+            <div class="form-group emoji-input">
+              <label for="child-emoji">Emoji</label>
+              <input type="text" id="child-emoji" name="emoji" placeholder="📁" {#ifError 'emoji'}class="error"{/ifError}>
+              {#ifError 'emoji'}<span class="error-text">{#error 'emoji'/}</span>{/ifError}
+            </div>
+            <div class="form-group">
+              <label for="child-title">Title</label>
+              <input type="text" id="child-title" name="title" placeholder="Child Name" {#ifError 'title'}class="error"{/ifError}>
+              {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
+            </div>
           </div>
-          <cds-button type="submit" kind="secondary">Add Child</cds-button>
+          <button type="submit" class="cds-btn cds-btn-secondary">Add Child</button>
         {/form}
       </div>
 
@@ -143,11 +198,11 @@
         <h3 class="box-header">Danger Zone</h3>
         {#if selected.hasChildren}
           <p>Cannot delete this bommel because it has children. Remove all children first.</p>
-          <cds-button kind="danger" disabled>Delete Bommel</cds-button>
+          <button type="button" class="cds-btn cds-btn-danger" disabled>Delete Bommel</button>
         {#else}
           {#form uri:Bommels.delete()}
             <input type="hidden" name="id" value="{selected.id}">
-            <cds-button type="submit" kind="danger">Delete Bommel</cds-button>
+            <button type="submit" class="cds-btn cds-btn-danger">Delete Bommel</button>
           {/form}
         {/if}
       </div>

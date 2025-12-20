@@ -1,5 +1,6 @@
 package rest;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.POST;
 
@@ -11,6 +12,7 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkiverse.renarde.Controller;
 import model.Bommel;
 
+@ApplicationScoped
 public class Bommels extends Controller
 {
 	@CheckedTemplate
@@ -54,20 +56,30 @@ public class Bommels extends Controller
 
 	@POST
 	public void addChild(
-		@RestForm @NotBlank String parentId,
-		@RestForm @NotBlank String emoji,
-		@RestForm @NotBlank String title)
+		@RestForm String parentId,
+		@RestForm String emoji,
+		@RestForm String title)
 	{
-		if (validationFailed())
+		if (parentId == null || parentId.isBlank())
 		{
-			index(null);
+			flash("error", "Parent ID is required");
+			redirect(Bommels.class).index(null);
+			return;
 		}
 
 		Bommel parent = Bommel.findById(parentId);
 		if (parent == null)
 		{
 			flash("error", "Parent bommel not found");
-			index(null);
+			redirect(Bommels.class).index(null);
+			return;
+		}
+
+		if (emoji == null || emoji.isBlank() || title == null || title.isBlank())
+		{
+			flash("error", "Emoji and title are required");
+			redirect(Bommels.class).index(parentId);
+			return;
 		}
 
 		Bommel child = new Bommel();
