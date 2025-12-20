@@ -14,6 +14,7 @@ import OrganizationSettingsView from './components/views/OrganizationSettingsVie
 import ReceiptUploadView from './components/views/ReceiptUploadView';
 import ProfileSettingsView from './components/views/ProfileSettingsView';
 import CategoriesSettingsView from './components/views/CategoriesSettingsView';
+import ReceiptView from '@/components/views/ReceiptView';
 
 export default function AppRoutes() {
     return (
@@ -42,7 +43,7 @@ export default function AppRoutes() {
 
                 {/** admin settings **/}
                 <Route path="/admin/categories" element={<CategoriesSettingsView />} />
-
+                <Route path="/receipts/all" element={<ReceiptView />} />
                 {/* Old navigation logic*/}
                 <Route path="/settings/*" element={<SettingsView />} />
 

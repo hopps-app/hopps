@@ -44,7 +44,7 @@ function ProfileSettingsView() {
     }, []);
 
     return (
-        <>
+        <div className="px-7 py-[2.5rem]">
             <Header title={t('settings.menu.profile')} icon="Avatar" />
             <form className="mt-4 max-w-[880px]">
                 <div className="space-y-8">
@@ -63,7 +63,7 @@ function ProfileSettingsView() {
                     </div>
                 </div>
             </form>
-        </>
+        </div>
     );
 }
 
