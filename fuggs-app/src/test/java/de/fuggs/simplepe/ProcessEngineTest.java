@@ -1,0 +1,223 @@
+package de.fuggs.simplepe;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.inject.Inject;
+
+import org.junit.jupiter.api.Test;
+
+import io.quarkus.test.junit.QuarkusTest;
+import model.AuditLogEntry;
+import repository.AuditLogRepository;
+
+@QuarkusTest
+class ProcessEngineTest
+{
+	@Inject
+	ProcessEngine processEngine;
+
+	@Inject
+	AuditLogRepository auditLogRepository;
+
+	@Inject
+	CalculateTotalTask calculateTotalTask;
+
+	@Inject
+	SendNotificationTask sendNotificationTask;
+
+	@Inject
+	ApprovalTask approvalTask;
+
+	@Inject
+	EnterOrderDetailsTask enterOrderDetailsTask;
+
+	@Test
+	void givenSystemTasksOnly_whenStartProcess_thenCompletesImmediately()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("SimpleCalculation")
+			.addTask(calculateTotalTask)
+			.addTask(sendNotificationTask);
+
+		Map<String, Object> initialVars = new HashMap<>();
+		initialVars.put("price", 10.0);
+		initialVars.put("quantity", 5);
+		initialVars.put("recipient", "customer@example.com");
+
+		// When
+		Chain chain = processEngine.startProcess(process, initialVars);
+
+		// Then
+		assertEquals(ChainStatus.COMPLETED, chain.getStatus());
+		assertEquals(50.0, chain.getVariable("total"));
+		assertTrue((Boolean)chain.getVariable("notificationSent"));
+
+		// Verify audit logs
+		List<AuditLogEntry> logs = auditLogRepository.findByChainId(chain.getId());
+		assertFalse(logs.isEmpty());
+		assertTrue(logs.stream().anyMatch(l -> "ProcessStarted".equals(l.taskName)));
+		assertTrue(logs.stream().anyMatch(l -> "CalculateTotal".equals(l.taskName)));
+		assertTrue(logs.stream().anyMatch(l -> "SendNotification".equals(l.taskName)));
+		assertTrue(logs.stream().anyMatch(l -> "ProcessCompleted".equals(l.taskName)));
+	}
+
+	@Test
+	void givenUserTask_whenStartProcess_thenWaitsForUser()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("OrderWithApproval")
+			.addTask(enterOrderDetailsTask)
+			.addTask(calculateTotalTask);
+
+		// When
+		Chain chain = processEngine.startProcess(process);
+
+		// Then
+		assertEquals(ChainStatus.WAITING, chain.getStatus());
+		assertTrue(chain.isWaitingForUser());
+		assertEquals("EnterOrderDetails", chain.getCurrentUserTask());
+	}
+
+	@Test
+	void givenWaitingChain_whenCompleteUserTask_thenResumes()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("OrderWithApproval")
+			.addTask(enterOrderDetailsTask)
+			.addTask(calculateTotalTask)
+			.addTask(sendNotificationTask);
+
+		Chain chain = processEngine.startProcess(process);
+		assertEquals(ChainStatus.WAITING, chain.getStatus());
+
+		// When - complete the user task
+		Map<String, Object> userInput = new HashMap<>();
+		userInput.put("price", 25.0);
+		userInput.put("quantity", 4);
+		userInput.put("recipient", "test@example.com");
+
+		Chain updatedChain = processEngine.completeUserTask(chain.getId(), userInput, "testuser");
+
+		// Then
+		assertEquals(ChainStatus.COMPLETED, updatedChain.getStatus());
+		assertEquals(100.0, updatedChain.getVariable("total"));
+		assertTrue((Boolean)updatedChain.getVariable("notificationSent"));
+	}
+
+	@Test
+	void givenMultipleUserTasks_whenCompleteSequentially_thenProcessCompletes()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("ApprovalProcess")
+			.addTask(enterOrderDetailsTask)
+			.addTask(calculateTotalTask)
+			.addTask(approvalTask)
+			.addTask(sendNotificationTask);
+
+		// When - start process (waits at first user task)
+		Chain chain = processEngine.startProcess(process);
+		assertEquals(ChainStatus.WAITING, chain.getStatus());
+		assertEquals("EnterOrderDetails", chain.getCurrentUserTask());
+
+		// Complete first user task
+		Map<String, Object> orderDetails = new HashMap<>();
+		orderDetails.put("price", 100.0);
+		orderDetails.put("quantity", 2);
+		orderDetails.put("recipient", "customer@test.com");
+
+		chain = processEngine.completeUserTask(chain.getId(), orderDetails, "clerk");
+
+		// Now waiting at approval task
+		assertEquals(ChainStatus.WAITING, chain.getStatus());
+		assertEquals("ManagerApproval", chain.getCurrentUserTask());
+		assertEquals(200.0, chain.getVariable("total")); // CalculateTotal ran
+
+		// Complete approval task
+		Map<String, Object> approval = new HashMap<>();
+		approval.put("approved", true);
+		approval.put("comment", "Looks good!");
+
+		chain = processEngine.completeUserTask(chain.getId(), approval, "manager");
+
+		// Then - process complete
+		assertEquals(ChainStatus.COMPLETED, chain.getStatus());
+		assertTrue((Boolean)chain.getVariable("approved"));
+		assertEquals("Looks good!", chain.getVariable("approvalComment"));
+		assertTrue((Boolean)chain.getVariable("notificationSent"));
+	}
+
+	@Test
+	void givenRejectedApproval_whenComplete_thenProcessFails()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("RejectionProcess")
+			.addTask(enterOrderDetailsTask)
+			.addTask(approvalTask)
+			.addTask(sendNotificationTask);
+
+		Chain chain = processEngine.startProcess(process);
+
+		// Complete order details
+		Map<String, Object> orderDetails = new HashMap<>();
+		orderDetails.put("price", 50.0);
+		orderDetails.put("quantity", 1);
+		chain = processEngine.completeUserTask(chain.getId(), orderDetails, "clerk");
+
+		// When - reject the approval
+		Map<String, Object> rejection = new HashMap<>();
+		rejection.put("approved", false);
+		rejection.put("comment", "Too expensive");
+
+		chain = processEngine.completeUserTask(chain.getId(), rejection, "manager");
+
+		// Then - process failed
+		assertEquals(ChainStatus.FAILED, chain.getStatus());
+		assertFalse((Boolean)chain.getVariable("approved"));
+		assertEquals("Request was rejected", chain.getError());
+		// Notification task was not executed
+		assertNull(chain.getVariable("notificationSent"));
+	}
+
+	@Test
+	void givenInvalidUserInput_whenComplete_thenValidationFails()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("ValidationTest")
+			.addTask(enterOrderDetailsTask)
+			.addTask(calculateTotalTask);
+
+		Chain chain = processEngine.startProcess(process);
+
+		// When - provide invalid input (negative quantity)
+		Map<String, Object> invalidInput = new HashMap<>();
+		invalidInput.put("price", 10.0);
+		invalidInput.put("quantity", -5);
+
+		Chain result = processEngine.completeUserTask(chain.getId(), invalidInput, "user");
+
+		// Then - still waiting, validation failed
+		assertEquals(ChainStatus.FAILED, result.getStatus());
+		assertNotNull(result.getError());
+	}
+
+	@Test
+	void givenChainId_whenGetChain_thenReturnsChain()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("GetChainTest")
+			.addTask(enterOrderDetailsTask);
+
+		Chain chain = processEngine.startProcess(process);
+
+		// When
+		Chain retrieved = processEngine.getChain(chain.getId());
+
+		// Then
+		assertNotNull(retrieved);
+		assertEquals(chain.getId(), retrieved.getId());
+	}
+}
