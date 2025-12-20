@@ -3,6 +3,7 @@ package app.hopps.bommel.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.hopps.member.domain.Member;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +18,9 @@ public class Bommel extends PanacheEntity
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	public Bommel parent;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	private Member responsibleMember;
 
 	@OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
 	public List<Bommel> children = new ArrayList<>();
@@ -59,5 +63,15 @@ public class Bommel extends PanacheEntity
 	public String getTitle()
 	{
 		return title;
+	}
+
+	public Member getResponsibleMember()
+	{
+		return responsibleMember;
+	}
+
+	public void setResponsibleMember(Member responsibleMember)
+	{
+		this.responsibleMember = responsibleMember;
 	}
 }

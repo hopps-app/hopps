@@ -3,7 +3,12 @@
     "allow": [
       "Bash(find:*)",
       "Bash(./mvnw compile:*)",
-      "Bash(./mvnw test:*)"
+      "Bash(./mvnw test:*)",
+      "WebFetch(domain:web-components.carbondesignsystem.com)",
+      "WebFetch(domain:carbondesignsystem.com)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

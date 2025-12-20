@@ -4,21 +4,27 @@
 {#moreStyles}
 <style>
   .bommels-layout {
-    display: flex;
-    gap: var(--cds-spacing-07);
-    flex-wrap: wrap;
-    padding: var(--cds-spacing-05) 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cds-spacing-05);
+  }
+  @media (max-width: 900px) {
+    .bommels-layout {
+      grid-template-columns: 1fr;
+    }
   }
   .tree-panel {
-    flex: 1;
-    min-width: 300px;
+    min-width: 0;
+  }
+  .tree-panel .box {
+    height: 100%;
+    overflow-x: auto;
   }
   .detail-panel {
-    flex: 2;
-    min-width: 400px;
     display: flex;
     flex-direction: column;
     gap: var(--cds-spacing-05);
+    min-width: 0;
   }
   .detail-panel .box {
     margin-bottom: 0;
@@ -101,6 +107,22 @@
   cds-tree-node {
     cursor: pointer;
   }
+  cds-dropdown {
+    position: relative;
+    z-index: 10;
+    --cds-field-01: #ffffff;
+    --cds-field-02: #ffffff;
+    --cds-layer: #ffffff;
+    --cds-layer-01: #ffffff;
+    --cds-layer-02: #ffffff;
+    --cds-background: #ffffff;
+  }
+  cds-dropdown-item {
+    background-color: #ffffff;
+  }
+  cds-dropdown-item:hover {
+    background-color: #e8e8e8;
+  }
   .button-row {
     display: flex;
     gap: 1rem;
@@ -149,6 +171,20 @@
 {#moreScripts}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Fix dropdown transparent background by injecting styles into shadow DOM
+    document.querySelectorAll('cds-dropdown').forEach(function(dropdown) {
+      var checkShadow = setInterval(function() {
+        if (dropdown.shadowRoot) {
+          var style = document.createElement('style');
+          style.textContent = '.cds--list-box__menu { background-color: #ffffff; } .cds--list-box__menu-item { background-color: #ffffff; } .cds--list-box__menu-item:hover { background-color: #e8e8e8; }';
+          dropdown.shadowRoot.appendChild(style);
+          clearInterval(checkShadow);
+        }
+      }, 100);
+    });
+
+    var badgeSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="width:14px;height:14px;fill:#0043ce;flex-shrink:0;"><polygon points="23 2 24.593 5 28 5.414 25.5 7.667 26 11 23 9.125 20 11 20.5 7.667 18 5.414 21.5 5 23 2"/><path d="M22.7168,13.249l-1.9375-.498A6.9942,6.9942,0,1,1,15.7505,4.22l.499-1.9365A8.99,8.99,0,0,0,8,17.689V30l6-4,6,4V17.7078A8.9627,8.9627,0,0,0,22.7168,13.249ZM18,26.2627l-4-2.6665-4,2.6665V19.05a8.9238,8.9238,0,0,0,8,.0062Z"/></svg>';
+
     document.querySelectorAll('cds-tree-node').forEach(function(node) {
       node.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -157,6 +193,22 @@
           window.location.href = '/bommels?selectedId=' + id;
         }
       });
+
+      var bommelwart = node.getAttribute('data-bommelwart');
+      if (bommelwart) {
+        setTimeout(function() {
+          var shadowRoot = node.shadowRoot;
+          if (shadowRoot) {
+            var labelEl = shadowRoot.querySelector('.cds--tree-node__label');
+            if (labelEl && !labelEl.querySelector('.bommelwart-badge')) {
+              var badge = document.createElement('span');
+              badge.style.cssText = 'display:inline-flex;align-items:center;gap:0.25rem;margin-left:0.75rem;padding:0.125rem 0.5rem 0.125rem 0.375rem;background:linear-gradient(135deg,#d0e2ff 0%,#a6c8ff 100%);border-radius:12px;font-size:0.75rem;font-weight:500;color:#0043ce;letter-spacing:0.01em;white-space:nowrap;';
+              badge.innerHTML = badgeSvg + bommelwart;
+              labelEl.appendChild(badge);
+            }
+          }
+        }, 100);
+      }
     });
   });
 </script>
@@ -212,6 +264,28 @@
           </div>
           <button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
         {/form}
+      </div>
+
+      <div class="box">
+        <h3 class="box-header">Bommelwart</h3>
+
+        <form action="/bommels/assignBommelwart" method="POST" style="display: flex; gap: 1rem; align-items: flex-end;">
+          {#authenticityToken /}
+          <input type="hidden" name="bommelId" value="{selected.id}">
+          <div style="flex: 1;">
+            <cds-dropdown
+              name="memberId"
+              title-text="Verantwortliches Mitglied"
+              label="Mitglied auswählen"
+              value="{#if selected.responsibleMember}{selected.responsibleMember.id}{#else}0{/if}">
+              <cds-dropdown-item value="0">— Kein Bommelwart —</cds-dropdown-item>
+              {#for member in members}
+              <cds-dropdown-item value="{member.id}" {#if selected.responsibleMember != null && selected.responsibleMember.id == member.id}selected{/if}>{member.displayName}</cds-dropdown-item>
+              {/for}
+            </cds-dropdown>
+          </div>
+          <button type="submit" class="cds-btn cds-btn-secondary">Speichern</button>
+        </form>
       </div>
 
       <div class="box">

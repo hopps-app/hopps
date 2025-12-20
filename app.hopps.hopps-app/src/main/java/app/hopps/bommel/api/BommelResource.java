@@ -1,5 +1,7 @@
 package app.hopps.bommel.api;
 
+import java.util.List;
+
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +18,8 @@ import io.quarkus.qute.TemplateInstance;
 import io.quarkiverse.renarde.Controller;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
 
 @Path("/bommels")
 public class BommelResource extends Controller
@@ -23,10 +27,13 @@ public class BommelResource extends Controller
 	@Inject
 	BommelRepository bommelRepository;
 
+	@Inject
+	MemberRepository memberRepository;
+
 	@CheckedTemplate
 	public static class Templates
 	{
-		public static native TemplateInstance index(Bommel root, Bommel selected);
+		public static native TemplateInstance index(Bommel root, Bommel selected, List<Member> members);
 	}
 
 	@GET
@@ -35,7 +42,8 @@ public class BommelResource extends Controller
 	{
 		Bommel root = bommelRepository.findRoot();
 		Bommel selected = selectedId != null ? bommelRepository.findById(selectedId) : null;
-		return Templates.index(root, selected);
+		List<Member> members = memberRepository.findAllOrderedByName();
+		return Templates.index(root, selected, members);
 	}
 
 	@POST
@@ -52,7 +60,7 @@ public class BommelResource extends Controller
 
 		if (bommelRepository.hasRoot())
 		{
-			flash("error", "Wurzel-Bommel existiert bereits");
+			flash("error", "Hauptbommel existiert bereits");
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -63,7 +71,7 @@ public class BommelResource extends Controller
 		root.parent = null;
 		bommelRepository.persist(root);
 
-		flash("success", "Wurzel-Bommel erstellt");
+		flash("success", "Hauptbommel erstellt");
 		redirect(BommelResource.class).index(root.getId());
 	}
 
@@ -164,5 +172,40 @@ public class BommelResource extends Controller
 		bommelRepository.delete(bommel);
 		flash("success", "Bommel gelöscht");
 		redirect(BommelResource.class).index(redirectToId);
+	}
+
+	@POST
+	@Transactional
+	public void assignBommelwart(
+		@RestForm @NotNull Long bommelId,
+		@RestForm Long memberId)
+	{
+		Bommel bommel = bommelRepository.findById(bommelId);
+		if (bommel == null)
+		{
+			flash("error", "Bommel nicht gefunden");
+			redirect(BommelResource.class).index(null);
+			return;
+		}
+
+		if (memberId == null || memberId == 0)
+		{
+			bommel.setResponsibleMember(null);
+			flash("success", "Bommelwart entfernt");
+		}
+		else
+		{
+			Member member = memberRepository.findById(memberId);
+			if (member == null)
+			{
+				flash("error", "Mitglied nicht gefunden");
+				redirect(BommelResource.class).index(bommelId);
+				return;
+			}
+			bommel.setResponsibleMember(member);
+			flash("success", "Bommelwart zugewiesen: " + member.getDisplayName());
+		}
+
+		redirect(BommelResource.class).index(bommelId);
 	}
 }
