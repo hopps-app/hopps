@@ -4,66 +4,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+
+@Entity
 public class Bommel
 {
+	@Id
 	public String id;
+
 	public String icon;
 	public String title;
+
+	@ManyToOne(fetch = FetchType.LAZY)
 	public Bommel parent;
 
-	private static final List<Bommel> all = new ArrayList<>();
+	@OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+	public List<Bommel> children = new ArrayList<>();
 
 	public Bommel()
 	{
 		this.id = UUID.randomUUID().toString();
 	}
 
-	public static List<Bommel> listAll()
-	{
-		return all;
-	}
-
-	public static Bommel findById(String id)
-	{
-		return all.stream()
-			.filter(b -> b.id.equals(id))
-			.findFirst()
-			.orElse(null);
-	}
-
-	public static Bommel findRoot()
-	{
-		return all.stream()
-			.filter(b -> b.parent == null)
-			.findFirst()
-			.orElse(null);
-	}
-
-	public static boolean hasRoot()
-	{
-		return findRoot() != null;
-	}
-
-	public void persist()
-	{
-		all.add(this);
-	}
-
-	public void delete()
-	{
-		all.remove(this);
-	}
-
 	public List<Bommel> getChildren()
 	{
-		return all.stream()
-			.filter(b -> b.parent != null && b.parent.id.equals(this.id))
-			.toList();
+		return children;
 	}
 
 	public boolean hasChildren()
 	{
-		return !getChildren().isEmpty();
+		return children != null && !children.isEmpty();
 	}
 
 	public String getDisplayLabel()

@@ -15,7 +15,8 @@
       "WebFetch(domain:carbondesignsystem.com)",
       "Bash(for:*)",
       "Bash(do echo \"=== $icon ===\" curl -sL \"https://raw.githubusercontent.com/carbon-design-system/carbon/main/packages/icons/src/svg/32/$icon.svg\")",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(cat:*)"
     ]
   }
 }

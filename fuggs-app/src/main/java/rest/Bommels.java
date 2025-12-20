@@ -1,6 +1,7 @@
 package rest;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.POST;
 
@@ -11,10 +12,13 @@ import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkiverse.renarde.Controller;
 import model.Bommel;
+import repository.BommelRepository;
 
-@ApplicationScoped
 public class Bommels extends Controller
 {
+	@Inject
+	BommelRepository bommelRepository;
+
 	@CheckedTemplate
 	public static class Templates
 	{
@@ -23,12 +27,13 @@ public class Bommels extends Controller
 
 	public TemplateInstance index(@RestQuery String selectedId)
 	{
-		Bommel root = Bommel.findRoot();
-		Bommel selected = selectedId != null ? Bommel.findById(selectedId) : null;
+		Bommel root = bommelRepository.findRoot();
+		Bommel selected = selectedId != null ? bommelRepository.findById(selectedId) : null;
 		return Templates.index(root, selected);
 	}
 
 	@POST
+	@Transactional
 	public void createRoot(
 		@RestForm String icon,
 		@RestForm @NotBlank String title)
@@ -39,7 +44,7 @@ public class Bommels extends Controller
 			return;
 		}
 
-		if (Bommel.hasRoot())
+		if (bommelRepository.hasRoot())
 		{
 			flash("error", "Root bommel already exists");
 			redirect(Bommels.class).index(null);
@@ -50,13 +55,14 @@ public class Bommels extends Controller
 		root.icon = icon != null ? icon : "home";
 		root.title = title;
 		root.parent = null;
-		root.persist();
+		bommelRepository.persist(root);
 
 		flash("success", "Root bommel created");
 		redirect(Bommels.class).index(root.id);
 	}
 
 	@POST
+	@Transactional
 	public void addChild(
 		@RestForm String parentId,
 		@RestForm String icon,
@@ -69,7 +75,7 @@ public class Bommels extends Controller
 			return;
 		}
 
-		Bommel parent = Bommel.findById(parentId);
+		Bommel parent = bommelRepository.findById(parentId);
 		if (parent == null)
 		{
 			flash("error", "Parent bommel not found");
@@ -88,13 +94,14 @@ public class Bommels extends Controller
 		child.icon = icon != null ? icon : "folder";
 		child.title = title;
 		child.parent = parent;
-		child.persist();
+		bommelRepository.persist(child);
 
 		flash("success", "Child bommel added");
 		redirect(Bommels.class).index(child.id);
 	}
 
 	@POST
+	@Transactional
 	public void update(
 		@RestForm @NotBlank String id,
 		@RestForm String icon,
@@ -106,7 +113,7 @@ public class Bommels extends Controller
 			return;
 		}
 
-		Bommel bommel = Bommel.findById(id);
+		Bommel bommel = bommelRepository.findById(id);
 		if (bommel == null)
 		{
 			flash("error", "Bommel not found");
@@ -122,6 +129,7 @@ public class Bommels extends Controller
 	}
 
 	@POST
+	@Transactional
 	public void delete(@RestForm @NotBlank String id)
 	{
 		if (validationFailed())
@@ -130,7 +138,7 @@ public class Bommels extends Controller
 			return;
 		}
 
-		Bommel bommel = Bommel.findById(id);
+		Bommel bommel = bommelRepository.findById(id);
 		if (bommel == null)
 		{
 			flash("error", "Bommel not found");
@@ -138,7 +146,7 @@ public class Bommels extends Controller
 			return;
 		}
 
-		if (bommel.hasChildren())
+		if (bommelRepository.hasChildren(bommel))
 		{
 			flash("error", "Cannot delete bommel with children. Remove children first.");
 			redirect(Bommels.class).index(id);
@@ -147,7 +155,7 @@ public class Bommels extends Controller
 
 		String redirectToId = bommel.parent != null ? bommel.parent.id : null;
 
-		bommel.delete();
+		bommelRepository.delete(bommel);
 		flash("success", "Bommel deleted");
 		redirect(Bommels.class).index(redirectToId);
 	}
