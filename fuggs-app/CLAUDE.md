@@ -56,8 +56,9 @@ rendering.
   `PanacheEntity`
 - Use the [Carbon Design System](https://carbondesignsystem.com/) for UI
   components and styling.
--
-Use [@carbon/web-components](https://web-components.carbondesignsystem.com/?path=/docs/introduction-welcome--overview)
+- Use [@carbon/web-components](https://web-components.carbondesignsystem.com/?path=/docs/introduction-welcome--overview)
 as vanilla as possible
 - Test everything with the given then when pattern. Mock es little as possible.
   Use `@InjectMock` or the real `@Inject` if possible. 
+- Always run the app to see if it compiles
+- Use boxes to structure the layout

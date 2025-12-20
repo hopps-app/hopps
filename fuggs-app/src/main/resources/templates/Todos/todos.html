@@ -1,37 +1,67 @@
 {#include main.html}
-{#title}Todos{/title}
-{! Add some CSS !}
+{#title}Todos - Fuggs Bookkeeping{/title}
 {#moreStyles}
 <style>
-  .todo {
-    margin: 1em;
+  .todo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cds-spacing-05);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
   }
-  .error {
-  	color: red;
-  	border-color: red;
+  .todo-item:last-child {
+    border-bottom: none;
+  }
+  .add-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+  .add-form cds-text-input {
+    flex: 1;
   }
 </style>
 {/moreStyles}
 
-  {! Iterate over our todo items !}
-  {#for todo in todos}
-    <div class="todo">
-      {! This invokes the JavaExtensions.capitalise(String) extension method !}
-      {todo.task.capitalise}
-      {#if todo.completed}
-        (done {todo.completed.since})
-      {/if}
-    </div>
-  {/for} 
-
-  {! A form action calling Todos.add() !}
-  {#form uri:Todos.add()}
-    {! We add some information if there's a validation error !}
-    <input name="task" placeholder="Enter new task" {#ifError 'task'}class="error"{/}/>
-    {#ifError 'task'}
-      <div class="error">
-      	Error: {#error 'task'/}
+<div class="box">
+  <h2 class="box-header">Todos</h2>
+  <div class="box-stack">
+    {#for todo in todos}
+      <div class="todo-item">
+        <span>{todo.task.capitalise}</span>
+        {#if todo.completed}
+          <cds-tag type="green">Done {todo.completed.since}</cds-tag>
+        {/if}
       </div>
-    {/ifError}
+    {#else}
+      <p>No todos yet. Add one below!</p>
+    {/for}
+  </div>
+</div>
+
+<div class="box">
+  <h3 class="box-header">Add New Todo</h3>
+  {#form uri:Todos.add()}
+    <div class="add-form">
+      <cds-text-input
+        name="task"
+        label="Task"
+        placeholder="Enter new task"
+        {#ifError 'task'}invalid invalid-text="{#error 'task'/}"{/ifError}>
+      </cds-text-input>
+      <cds-button type="submit">Add</cds-button>
+    </div>
   {/form}
+
+  {#ifError 'task'}
+    <cds-inline-notification
+      kind="error"
+      title="Validation Error"
+      subtitle="{#error 'task'/}"
+      hide-close-button
+      style="margin-top: 1rem;">
+    </cds-inline-notification>
+  {/ifError}
+</div>
+
 {/include}
