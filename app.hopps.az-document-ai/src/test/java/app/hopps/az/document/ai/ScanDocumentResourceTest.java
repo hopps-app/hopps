@@ -131,5 +131,4 @@ class ScanDocumentResourceTest
 			"vatid",
 			"Amazon Web Services");
 	}
-
 }
