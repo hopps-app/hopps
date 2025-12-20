@@ -80,8 +80,13 @@ Templates: `src/main/resources/templates/<Feature>/<method>.html` (follow Renard
 - Test everything with the given then when pattern. Mock es little as possible.
   Use `@InjectMock` or the real `@Inject` if possible.
 - Always run the app to see if it compiles
+
+**Tests:**
+
 - Also test the frontend with RESTAssured by calling the html endpoints and
   asserting the document to contain especially the entities.
+- Use RESTAssured and Hamcrest
+- name the tests like `shouldDoStuff`
 
 **Frontend:**
 

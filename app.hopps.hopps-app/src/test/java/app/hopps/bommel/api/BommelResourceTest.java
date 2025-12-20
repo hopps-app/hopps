@@ -2,15 +2,14 @@ package app.hopps.bommel.api;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 
-import jakarta.inject.Inject;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.junit.QuarkusTest;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 
 @QuarkusTest
 class BommelResourceTest
@@ -18,17 +17,9 @@ class BommelResourceTest
 	@Inject
 	BommelRepository bommelRepository;
 
-	@BeforeEach
-	void setUp()
-	{
-		// Data cleanup happens via drop-and-create on each test run
-		// For individual test isolation, we rely on the database being fresh
-	}
-
 	@Test
-	void givenNoBommels_whenIndexCalled_thenShowsCreateRootForm()
+	void shouldShowCreateRootFormWhenNoBommelsExist()
 	{
-		// Clear any existing data
 		deleteAllBommels();
 
 		given()
@@ -41,10 +32,10 @@ class BommelResourceTest
 	}
 
 	@Test
-	void givenRootBommel_whenIndexCalled_thenShowsTreeView()
+	void shouldShowTreeViewWithBommelTitle()
 	{
 		deleteAllBommels();
-		Long rootId = createRootBommel("home", "Verein");
+		createRootBommel("home", "Verein");
 
 		given()
 			.when()
@@ -56,7 +47,7 @@ class BommelResourceTest
 	}
 
 	@Test
-	void givenRootBommel_whenIndexCalledWithSelectedId_thenShowsEditForm()
+	void shouldShowEditFormWhenBommelSelected()
 	{
 		deleteAllBommels();
 		Long rootId = createRootBommel("home", "Verein");
@@ -71,12 +62,11 @@ class BommelResourceTest
 	}
 
 	@Test
-	void givenInvalidSelectedId_whenIndexCalled_thenReturns404()
+	void shouldReturn404ForInvalidSelectedId()
 	{
 		deleteAllBommels();
 		createRootBommel("home", "Verein");
 
-		// With Long id type, an invalid string causes endpoint matching to fail
 		given()
 			.when()
 			.get("/bommels?selectedId=invalid-id")
@@ -85,12 +75,11 @@ class BommelResourceTest
 	}
 
 	@Test
-	void givenNonExistentSelectedId_whenIndexCalled_thenReturns200WithNoSelection()
+	void shouldShowNoSelectionForNonExistentId()
 	{
 		deleteAllBommels();
 		createRootBommel("home", "Verein");
 
-		// Valid Long but non-existent in database
 		given()
 			.when()
 			.get("/bommels?selectedId=99999")
@@ -100,7 +89,7 @@ class BommelResourceTest
 	}
 
 	@Test
-	void givenBommelWithChildren_whenIndexCalledWithSelectedId_thenDeleteButtonDisabled()
+	void shouldDisableDeleteButtonWhenBommelHasChildren()
 	{
 		deleteAllBommels();
 		Long rootId = createRootBommel("home", "Verein");
@@ -114,7 +103,40 @@ class BommelResourceTest
 			.body(containsString("kann nicht gelöscht werden"));
 	}
 
-	// Helper methods that use transactions properly
+	@Test
+	void shouldShowChildBommelsInTree()
+	{
+		deleteAllBommels();
+		Long rootId = createRootBommel("home", "Verein");
+		createChildBommel(rootId, "group", "Jugend");
+		createChildBommel(rootId, "music", "Orchester");
+
+		given()
+			.when()
+			.get("/bommels")
+			.then()
+			.statusCode(200)
+			.body(containsString("Verein"))
+			.body(containsString("Jugend"))
+			.body(containsString("Orchester"));
+	}
+
+	@Test
+	void shouldEnableDeleteButtonWhenBommelHasNoChildren()
+	{
+		deleteAllBommels();
+		Long rootId = createRootBommel("home", "Verein");
+		Long childId = createChildBommel(rootId, "group", "Jugend");
+
+		given()
+			.when()
+			.get("/bommels?selectedId=" + childId)
+			.then()
+			.statusCode(200)
+			.body(not(containsString("kann nicht gelöscht werden")))
+			.body(containsString("Bommel löschen"));
+	}
+
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	void deleteAllBommels()
 	{
@@ -132,7 +154,7 @@ class BommelResourceTest
 	}
 
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	void createChildBommel(Long parentId, String icon, String title)
+	Long createChildBommel(Long parentId, String icon, String title)
 	{
 		Bommel parent = bommelRepository.findById(parentId);
 		Bommel child = new Bommel();
@@ -140,5 +162,6 @@ class BommelResourceTest
 		child.setTitle(title);
 		child.parent = parent;
 		bommelRepository.persist(child);
+		return child.getId();
 	}
 }
