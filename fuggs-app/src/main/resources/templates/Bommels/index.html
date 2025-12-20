@@ -28,14 +28,15 @@
     gap: 0.25rem;
     flex: 1;
   }
-  .form-group.emoji-input {
-    max-width: 80px;
+  .form-group.icon-input {
+    max-width: 140px;
   }
   .form-group label {
     font-size: 0.875rem;
     color: #525252;
   }
-  .form-group input {
+  .form-group input,
+  .form-group select {
     height: 40px;
     padding: 0 1rem;
     border: none;
@@ -44,11 +45,44 @@
     font-size: 0.875rem;
     outline: none;
   }
-  .form-group input:focus {
+  .form-group input:focus,
+  .form-group select:focus {
     border-bottom: 2px solid #0f62fe;
   }
-  .form-group input.error {
+  .form-group input.error,
+  .form-group select.error {
     border-bottom: 2px solid #da1e28;
+  }
+  .icon-picker {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+  }
+  .icon-option {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    background: #f4f4f4;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .icon-option:hover {
+    background: #e0e0e0;
+  }
+  .icon-option.selected {
+    border-color: #0f62fe;
+    background: #d0e2ff;
+  }
+  .icon-option input {
+    display: none;
+  }
+  .icon-option svg {
+    width: 24px;
+    height: 24px;
   }
   .error-text {
     color: #da1e28;
@@ -132,17 +166,14 @@
 
         <h3 style="margin-top: 1rem;">Create Root Bommel</h3>
         {#form uri:Bommels.createRoot()}
-          <div class="form-row">
-            <div class="form-group emoji-input">
-              <label for="emoji">Emoji</label>
-              <input type="text" id="emoji" name="emoji" placeholder="🏠" {#ifError 'emoji'}class="error"{/ifError}>
-              {#ifError 'emoji'}<span class="error-text">{#error 'emoji'/}</span>{/ifError}
-            </div>
-            <div class="form-group">
-              <label for="title">Title</label>
-              <input type="text" id="title" name="title" placeholder="Organization Name" {#ifError 'title'}class="error"{/ifError}>
-              {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
-            </div>
+          <div class="form-group">
+            <label>Icon</label>
+            {#iconPicker "home" name="icon" /}
+          </div>
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" placeholder="Organization Name" {#ifError 'title'}class="error"{/ifError}>
+            {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
           <button type="submit" class="cds-btn cds-btn-primary">Create Root</button>
         {/form}
@@ -153,42 +184,42 @@
   <div class="detail-panel">
     {#if selected}
       <div class="box">
-        <h2 class="box-header">Edit: {selected.getDisplayLabel}</h2>
+        <h2 class="box-header" style="display: flex; align-items: center; gap: 0.5rem;">
+          {#carbonIcon selected.icon /}
+          Edit: {selected.getDisplayLabel}
+        </h2>
 
         {#form uri:Bommels.update()}
           <input type="hidden" name="id" value="{selected.id}">
-          <div class="form-row">
-            <div class="form-group emoji-input">
-              <label for="edit-emoji">Emoji</label>
-              <input type="text" id="edit-emoji" name="emoji" value="{selected.emoji}" {#ifError 'emoji'}class="error"{/ifError}>
-              {#ifError 'emoji'}<span class="error-text">{#error 'emoji'/}</span>{/ifError}
-            </div>
-            <div class="form-group">
-              <label for="edit-title">Title</label>
-              <input type="text" id="edit-title" name="title" value="{selected.title}" {#ifError 'title'}class="error"{/ifError}>
-              {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
-            </div>
+          <div class="form-group">
+            <label>Icon</label>
+            {#iconPicker selected.icon name="icon" /}
+          </div>
+          <div class="form-group">
+            <label for="edit-title">Title</label>
+            <input type="text" id="edit-title" name="title" value="{selected.title}" {#ifError 'title'}class="error"{/ifError}>
+            {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
           <button type="submit" class="cds-btn cds-btn-primary">Save Changes</button>
         {/form}
       </div>
 
       <div class="box">
-        <h3 class="box-header">Add Child to {selected.getDisplayLabel}</h3>
+        <h3 class="box-header" style="display: flex; align-items: center; gap: 0.5rem;">
+          {#carbonIcon selected.icon /}
+          Add Child to {selected.getDisplayLabel}
+        </h3>
 
         {#form uri:Bommels.addChild()}
           <input type="hidden" name="parentId" value="{selected.id}">
-          <div class="form-row">
-            <div class="form-group emoji-input">
-              <label for="child-emoji">Emoji</label>
-              <input type="text" id="child-emoji" name="emoji" placeholder="📁" {#ifError 'emoji'}class="error"{/ifError}>
-              {#ifError 'emoji'}<span class="error-text">{#error 'emoji'/}</span>{/ifError}
-            </div>
-            <div class="form-group">
-              <label for="child-title">Title</label>
-              <input type="text" id="child-title" name="title" placeholder="Child Name" {#ifError 'title'}class="error"{/ifError}>
-              {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
-            </div>
+          <div class="form-group">
+            <label>Icon</label>
+            {#iconPicker "folder" name="icon" /}
+          </div>
+          <div class="form-group">
+            <label for="child-title">Title</label>
+            <input type="text" id="child-title" name="title" placeholder="Child Name" {#ifError 'title'}class="error"{/ifError}>
+            {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
           <button type="submit" class="cds-btn cds-btn-secondary">Add Child</button>
         {/form}

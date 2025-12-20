@@ -11,7 +11,10 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(/Users/markus/git/fuggs/fuggs-app/mvnw quarkus:dev)",
       "Bash(./mvnw formatter:format:*)",
-      "Bash(./mvnw test:*)"
+      "Bash(./mvnw test:*)",
+      "WebFetch(domain:carbondesignsystem.com)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $icon ===\" curl -sL \"https://raw.githubusercontent.com/carbon-design-system/carbon/main/packages/icons/src/svg/32/$icon.svg\")"
     ]
   }
 }
