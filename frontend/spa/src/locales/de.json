@@ -12,7 +12,8 @@
         "search": "Suche",
         "goBack": "Zurück",
         "cancel": "Abbrechen",
-        "save": "Speichern"
+        "save": "Speichern",
+        "delete": "Löschen"
     },
     "header": {
         "logout": "Abmelden",
@@ -95,6 +96,12 @@
                 "drafts": "Entwürfe",
                 "subBommels": "Subbommel",
                 "toReceipts": "Zu Belege"
+            },
+            "deleteDialog": {
+                "title": "Bommel löschen",
+                "description": "Dieser Bommel hat {{count}} Belege. Sind Sie sicher, dass Sie diesen Bommel löschen möchten?",
+                "confirm": "Ja, löschen",
+                "cancel": "Abbrechen"
             }
         },
         "noOrganization": {

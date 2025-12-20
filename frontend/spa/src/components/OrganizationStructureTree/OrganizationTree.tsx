@@ -25,6 +25,7 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
     const [treeData, setTreeData] = useState<OrganizationTreeNodeModel[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedNode, setSelectedNode] = useState<OrganizationTreeNodeModel | null>(null);
+    const [newlyCreatedNodeId, setNewlyCreatedNodeId] = useState<string | number | null>(null);
     const isEditable = editable ?? false;
     const isSelectable = selectable ?? false;
 
@@ -50,6 +51,7 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
         if (node) {
             const newTree = [...treeData, node];
             setTreeData(newTree);
+            setNewlyCreatedNodeId(node.id);
         }
     };
 
@@ -107,9 +109,11 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
                                     editable={isEditable}
                                     selectable={isSelectable}
                                     isSelected={node.id === selectedNode?.id}
+                                    autoEdit={node.id === newlyCreatedNodeId}
                                     onEdit={onEditNode}
                                     onDelete={onDeleteNode}
                                     onSelect={onSelectNode}
+                                    onEditComplete={() => setNewlyCreatedNodeId(null)}
                                     disableHover={isDragging}
                                     {...options}
                                 />
