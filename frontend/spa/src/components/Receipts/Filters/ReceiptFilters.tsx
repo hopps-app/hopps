@@ -45,14 +45,14 @@ export const ReceiptFilters = ({ filters, setFilter, resetFilters }: ReceiptFilt
                     <BaseButton
                         variant="outline"
                         onClick={resetFilters}
-                        className="h-9 px-4 text-sm font-medium
+                        className="h-10 px-6 text-sm font-medium
                             rounded-[var(--radius-l)]
                             border border-[var(--purple-300)]
                             text-[var(--purple-900)]
                             bg-[var(--purple-100)]
                             hover:bg-[var(--purple-200)]
                             transition-colors w-full
-                            lg:max-w-20"
+                            lg:w-auto"
                     >
                         {t('receipts.filters.reset')}
                     </BaseButton>
