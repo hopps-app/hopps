@@ -3,7 +3,7 @@ package app.hopps.member.api;
 import java.util.List;
 
 import org.jboss.resteasy.reactive.RestForm;
-import org.jboss.resteasy.reactive.RestQuery;
+import org.jboss.resteasy.reactive.RestPath;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
@@ -50,7 +50,7 @@ public class MemberResource extends Controller
 
 	@GET
 	@Path("/{id}")
-	public TemplateInstance detail(@RestQuery Long id)
+	public TemplateInstance detail(@RestPath Long id)
 	{
 		Member member = memberRepository.findById(id);
 		if (member == null)
