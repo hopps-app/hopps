@@ -15,14 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @QuarkusTest
 class ZugFerdServiceTest
 {
-
 	@Inject
 	ZugFerdService zugFerdService;
 
 	@Test
 	void shouldAnalyzeInvoiceWithZugferd() throws Exception
 	{
-
 		// given
 		InputStream stream = getClass().getClassLoader()
 			.getResourceAsStream("MustangGnuaccountingBeispielRE-20170509_505.pdf");

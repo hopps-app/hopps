@@ -16,11 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @TestHTTPEndpoint(ZugFerdResource.class)
 class ZugFerdResourceTest
 {
-
 	@Test
 	void shouldReadZugFerd()
 	{
-
 		// prepare
 		URL resourceUrl = getClass().getClassLoader().getResource("MustangGnuaccountingBeispielRE-20170509_505.pdf");
 		assertNotNull(resourceUrl, "Test file not found in classpath");
@@ -41,7 +39,6 @@ class ZugFerdResourceTest
 	@Test
 	void shouldNotReadNonZugferd()
 	{
-
 		// prepare
 		URL resourceUrl = getClass().getClassLoader().getResource("wacky-widgets.pdf");
 		assertNotNull(resourceUrl, "Test file not found in classpath");
