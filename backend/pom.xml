@@ -45,11 +45,9 @@
     </licenses>
 
     <modules>
-        <module>app.hopps.az-document-ai</module>
         <module>app.hopps.fin-narrator</module>
         <module>app.hopps.mailservice</module>
         <module>app.hopps.org</module>
-        <module>app.hopps.zugferd</module>
     </modules>
 
     <build>
