@@ -1,4 +1,4 @@
-name: Build Quarkus
+name: Build hopps-app
 
 on:
   push:
