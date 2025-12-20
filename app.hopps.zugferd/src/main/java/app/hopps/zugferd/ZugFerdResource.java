@@ -44,7 +44,6 @@ public class ZugFerdResource
 		@RestForm @PartType(MediaType.TEXT_PLAIN) @Schema(description = "Reference ID for the invoice", examples = "12345") Long referenceId)
 		throws IOException
 	{
-
 		try (InputStream stream = file.uploadedFile().toFile().toPath().toUri().toURL().openStream())
 		{
 			try
@@ -54,9 +53,8 @@ public class ZugFerdResource
 			catch (ParseException | XPathExpressionException e)
 			{
 				LOGGER.info("Scanning invoice failed (referenceId={})", referenceId);
-				throw new WebApplicationException("Could not parse PDF", e, 422); // 422:
-																					// Unprocessable
-																					// Entity
+				// 422 means Unprocessable Entity
+				throw new WebApplicationException("Could not parse PDF", e, 422);
 			}
 		}
 	}
