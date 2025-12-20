@@ -322,11 +322,3 @@ const { t } = useTranslation();
 3. Pact Tests für Consumer/Provider aktualisieren
 4. Keycloak Roles beachten
 5. OpenFGA Authorization Rules prüfen
-
-## Nächste Schritte (Priorisiert)
-1. ✅ Backend: Vertical Slice Architecture Migration
-2. ⏳ Backend: Test Coverage erhöhen
-3. ⏳ Frontend: Mehr Test Coverage
-4. ⏳ Code-Duplikate eliminieren
-5. ⏳ MemberResource vervollständigen
-- /clear
