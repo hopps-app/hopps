@@ -31,24 +31,24 @@ public class Startup
 			b.persist();
 
 			Bommel root = new Bommel();
-			root.emoji = "🏛️";
+			root.icon = "home";
 			root.title = "Verein";
 			root.persist();
 
 			Bommel jugend = new Bommel();
-			jugend.emoji = "👦";
+			jugend.icon = "group";
 			jugend.title = "Jugend";
 			jugend.parent = root;
 			jugend.persist();
 
 			Bommel orchester = new Bommel();
-			orchester.emoji = "🎺";
+			orchester.icon = "music";
 			orchester.title = "Orchester";
 			orchester.parent = root;
 			orchester.persist();
 
 			Bommel anfaenger = new Bommel();
-			anfaenger.emoji = "🌱";
+			anfaenger.icon = "education";
 			anfaenger.title = "Anfaenger";
 			anfaenger.parent = jugend;
 			anfaenger.persist();

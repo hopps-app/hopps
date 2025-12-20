@@ -7,7 +7,7 @@ import java.util.UUID;
 public class Bommel
 {
 	public String id;
-	public String emoji;
+	public String icon;
 	public String title;
 	public Bommel parent;
 
@@ -68,6 +68,6 @@ public class Bommel
 
 	public String getDisplayLabel()
 	{
-		return emoji + " " + title;
+		return title;
 	}
 }

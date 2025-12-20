@@ -30,34 +30,36 @@ public class Bommels extends Controller
 
 	@POST
 	public void createRoot(
-		@RestForm @NotBlank String emoji,
+		@RestForm String icon,
 		@RestForm @NotBlank String title)
 	{
 		if (validationFailed())
 		{
-			index(null);
+			redirect(Bommels.class).index(null);
+			return;
 		}
 
 		if (Bommel.hasRoot())
 		{
 			flash("error", "Root bommel already exists");
-			index(null);
+			redirect(Bommels.class).index(null);
+			return;
 		}
 
 		Bommel root = new Bommel();
-		root.emoji = emoji;
+		root.icon = icon != null ? icon : "home";
 		root.title = title;
 		root.parent = null;
 		root.persist();
 
 		flash("success", "Root bommel created");
-		index(null);
+		redirect(Bommels.class).index(root.id);
 	}
 
 	@POST
 	public void addChild(
 		@RestForm String parentId,
-		@RestForm String emoji,
+		@RestForm String icon,
 		@RestForm String title)
 	{
 		if (parentId == null || parentId.isBlank())
@@ -75,15 +77,15 @@ public class Bommels extends Controller
 			return;
 		}
 
-		if (emoji == null || emoji.isBlank() || title == null || title.isBlank())
+		if (title == null || title.isBlank())
 		{
-			flash("error", "Emoji and title are required");
+			flash("error", "Title is required");
 			redirect(Bommels.class).index(parentId);
 			return;
 		}
 
 		Bommel child = new Bommel();
-		child.emoji = emoji;
+		child.icon = icon != null ? icon : "folder";
 		child.title = title;
 		child.parent = parent;
 		child.persist();
@@ -95,22 +97,24 @@ public class Bommels extends Controller
 	@POST
 	public void update(
 		@RestForm @NotBlank String id,
-		@RestForm @NotBlank String emoji,
+		@RestForm String icon,
 		@RestForm @NotBlank String title)
 	{
 		if (validationFailed())
 		{
-			index(id);
+			redirect(Bommels.class).index(id);
+			return;
 		}
 
 		Bommel bommel = Bommel.findById(id);
 		if (bommel == null)
 		{
 			flash("error", "Bommel not found");
-			index(null);
+			redirect(Bommels.class).index(null);
+			return;
 		}
 
-		bommel.emoji = emoji;
+		bommel.icon = icon != null ? icon : bommel.icon;
 		bommel.title = title;
 
 		flash("success", "Bommel updated");
@@ -122,20 +126,23 @@ public class Bommels extends Controller
 	{
 		if (validationFailed())
 		{
-			index(null);
+			redirect(Bommels.class).index(null);
+			return;
 		}
 
 		Bommel bommel = Bommel.findById(id);
 		if (bommel == null)
 		{
 			flash("error", "Bommel not found");
-			index(null);
+			redirect(Bommels.class).index(null);
+			return;
 		}
 
 		if (bommel.hasChildren())
 		{
 			flash("error", "Cannot delete bommel with children. Remove children first.");
 			redirect(Bommels.class).index(id);
+			return;
 		}
 
 		String redirectToId = bommel.parent != null ? bommel.parent.id : null;
