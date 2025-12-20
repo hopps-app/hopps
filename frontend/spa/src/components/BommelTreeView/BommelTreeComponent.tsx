@@ -385,7 +385,17 @@ function BommelCard({
     );
 }
 
-function BommelTreeComponent({ tree, rootBommel, editable = false, onNodeClick, onEdit, onDelete, onAddChild, width = 800, height = 600 }: BommelTreeComponentProps) {
+function BommelTreeComponent({
+    tree,
+    rootBommel,
+    editable = false,
+    onNodeClick,
+    onEdit,
+    onDelete,
+    onAddChild,
+    width = 800,
+    height = 600,
+}: BommelTreeComponentProps) {
     const { t } = useTranslation();
     const [, forceUpdate] = useState({});
     const treeContainerRef = useRef<HTMLDivElement>(null);
