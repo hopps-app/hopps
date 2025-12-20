@@ -63,7 +63,9 @@ export class AuthService {
     }
 
     async logout() {
-        await this.keycloak.logout(); // works fine without option
+        return await this.keycloak.logout({
+            redirectUri: window.location.origin,
+        });
     }
 
     async checkLogin() {
