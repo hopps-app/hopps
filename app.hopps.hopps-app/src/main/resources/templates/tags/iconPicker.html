@@ -1,0 +1,93 @@
+<div class="icon-picker">
+  <label class="icon-option {#if it == 'home'}selected{/if}">
+    <input type="radio" name="{name}" value="home" {#if it == 'home'}checked{/if}>
+    {#carbonIcon 'home' /}
+  </label>
+  <label class="icon-option {#if it == 'building'}selected{/if}">
+    <input type="radio" name="{name}" value="building" {#if it == 'building'}checked{/if}>
+    {#carbonIcon 'building' /}
+  </label>
+  <label class="icon-option {#if it == 'group'}selected{/if}">
+    <input type="radio" name="{name}" value="group" {#if it == 'group'}checked{/if}>
+    {#carbonIcon 'group' /}
+  </label>
+  <label class="icon-option {#if it == 'events'}selected{/if}">
+    <input type="radio" name="{name}" value="events" {#if it == 'events'}checked{/if}>
+    {#carbonIcon 'events' /}
+  </label>
+  <label class="icon-option {#if it == 'user'}selected{/if}">
+    <input type="radio" name="{name}" value="user" {#if it == 'user'}checked{/if}>
+    {#carbonIcon 'user' /}
+  </label>
+  <label class="icon-option {#if it == 'music'}selected{/if}">
+    <input type="radio" name="{name}" value="music" {#if it == 'music'}checked{/if}>
+    {#carbonIcon 'music' /}
+  </label>
+  <label class="icon-option {#if it == 'education'}selected{/if}">
+    <input type="radio" name="{name}" value="education" {#if it == 'education'}checked{/if}>
+    {#carbonIcon 'education' /}
+  </label>
+  <label class="icon-option {#if it == 'trophy'}selected{/if}">
+    <input type="radio" name="{name}" value="trophy" {#if it == 'trophy'}checked{/if}>
+    {#carbonIcon 'trophy' /}
+  </label>
+  <label class="icon-option {#if it == 'badge'}selected{/if}">
+    <input type="radio" name="{name}" value="badge" {#if it == 'badge'}checked{/if}>
+    {#carbonIcon 'badge' /}
+  </label>
+  <label class="icon-option {#if it == 'activity'}selected{/if}">
+    <input type="radio" name="{name}" value="activity" {#if it == 'activity'}checked{/if}>
+    {#carbonIcon 'activity' /}
+  </label>
+  <label class="icon-option {#if it == 'folder'}selected{/if}">
+    <input type="radio" name="{name}" value="folder" {#if it == 'folder'}checked{/if}>
+    {#carbonIcon 'folder' /}
+  </label>
+  <label class="icon-option {#if it == 'book'}selected{/if}">
+    <input type="radio" name="{name}" value="book" {#if it == 'book'}checked{/if}>
+    {#carbonIcon 'book' /}
+  </label>
+  <label class="icon-option {#if it == 'task'}selected{/if}">
+    <input type="radio" name="{name}" value="task" {#if it == 'task'}checked{/if}>
+    {#carbonIcon 'task' /}
+  </label>
+  <label class="icon-option {#if it == 'calendar'}selected{/if}">
+    <input type="radio" name="{name}" value="calendar" {#if it == 'calendar'}checked{/if}>
+    {#carbonIcon 'calendar' /}
+  </label>
+  <label class="icon-option {#if it == 'star'}selected{/if}">
+    <input type="radio" name="{name}" value="star" {#if it == 'star'}checked{/if}>
+    {#carbonIcon 'star' /}
+  </label>
+  <label class="icon-option {#if it == 'finance'}selected{/if}">
+    <input type="radio" name="{name}" value="finance" {#if it == 'finance'}checked{/if}>
+    {#carbonIcon 'finance' /}
+  </label>
+  <label class="icon-option {#if it == 'settings'}selected{/if}">
+    <input type="radio" name="{name}" value="settings" {#if it == 'settings'}checked{/if}>
+    {#carbonIcon 'settings' /}
+  </label>
+  <label class="icon-option {#if it == 'tools'}selected{/if}">
+    <input type="radio" name="{name}" value="tools" {#if it == 'tools'}checked{/if}>
+    {#carbonIcon 'tools' /}
+  </label>
+  <label class="icon-option {#if it == 'car'}selected{/if}">
+    <input type="radio" name="{name}" value="car" {#if it == 'car'}checked{/if}>
+    {#carbonIcon 'car' /}
+  </label>
+  <label class="icon-option {#if it == 'bus'}selected{/if}">
+    <input type="radio" name="{name}" value="bus" {#if it == 'bus'}checked{/if}>
+    {#carbonIcon 'bus' /}
+  </label>
+</div>
+<script>
+  (function() {
+    var picker = document.currentScript.previousElementSibling;
+    picker.querySelectorAll('.icon-option').forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        picker.querySelectorAll('.icon-option').forEach(function(o) { o.classList.remove('selected'); });
+        this.classList.add('selected');
+      });
+    });
+  })();
+</script>
