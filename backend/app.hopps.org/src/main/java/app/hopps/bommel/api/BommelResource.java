@@ -3,21 +3,13 @@ package app.hopps.bommel.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.organization.repository.OrganizationRepository;
-import io.quarkiverse.openfga.client.AuthorizationModelClient;
+import app.hopps.org.service.UserOrganizationService;
+import app.hopps.organization.domain.Organization;
 import io.quarkus.runtime.configuration.ConfigUtils;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
@@ -44,13 +36,10 @@ public class BommelResource {
     BommelRepository bommelRepo;
 
     @Inject
-    OrganizationRepository orgRepo;
-
-    @Inject
     SecurityContext securityContext;
 
     @Inject
-    AuthorizationModelClient authModelClient;
+    UserOrganizationService userOrganizationService;
 
     // Auth is only disabled when in dev mode and auth has been disabled through the config property (see below)
     boolean authEnabled;
@@ -116,6 +105,37 @@ public class BommelResource {
         checkUserHasPermission(rootBommel.id, "read");
 
         return rootBommel;
+    }
+
+    @GET
+    @Path("/organization")
+    @Operation(summary = "Fetch all bommels for user's organization", description = "Retrieves the root bommel and all its children for the current user's organization")
+    @APIResponse(responseCode = "200", description = "All bommels for organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TreeSearchBommel[].class)))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = "Organization or root bommel not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public List<TreeSearchBommel> getAllBommelsForUserOrganization() {
+        Organization userOrganization = userOrganizationService.getUserOrganization(securityContext);
+
+        Optional<Bommel> rootBommelOpt = bommelRepo.getRootBommel(userOrganization.getId());
+        Bommel rootBommel = throwOrGetBommel(rootBommelOpt);
+
+        checkUserHasPermission(rootBommel.id, "read");
+
+        List<TreeSearchBommel> allBommels = new java.util.ArrayList<>();
+
+        // Add the root bommel as the first element
+        TreeSearchBommel rootTreeSearchBommel = new TreeSearchBommel(
+            rootBommel,
+            false,
+            java.util.List.of(rootBommel.id)
+        );
+        allBommels.add(rootTreeSearchBommel);
+
+        // Add all children recursively
+        allBommels.addAll(bommelRepo.getChildrenRecursive(rootBommel));
+
+        return allBommels;
     }
 
     @POST

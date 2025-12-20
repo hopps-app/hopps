@@ -12,7 +12,8 @@
         "noItems": "No items to show",
         "goBack": "Back",
         "cancel": "Cancel",
-        "save": "Save"
+        "save": "Save",
+        "delete": "Delete"
     },
     "header": {
         "logout": "Logout",
@@ -72,6 +73,53 @@
             "saveError": "Failed to save setting",
             "saved": "Settings successfully saved",
             "structure": "Structure"
+        },
+        "stats": {
+            "totalBommels": "Total Bommels",
+            "totalIncome": "Total Income",
+            "totalExpenses": "Total Expenses",
+            "totalReceipts": "Total Receipts"
+        },
+        "structure": {
+            "quickSearch": "Quick Search",
+            "edit": "Edit",
+            "done": "Done",
+            "treeView": "Tree View",
+            "tableView": "Table View",
+            "noData": "No data available",
+            "addItems": "Please add items to your organization structure",
+            "receiptsLabel": "Receipts",
+            "openLabel": "open",
+            "subBommelsLabel": "Sub-Bommels",
+            "editName": "Edit name",
+            "deleteBommel": "Delete Bommel",
+            "addChild": "Add Child",
+            "saveName": "Save",
+            "cancelEdit": "Cancel",
+            "editModeHint": "To move bommels, switch to the Table view",
+            "details": {
+                "title": "Details",
+                "selectBommel": "Select a Bommel to view details",
+                "income": "Income",
+                "expenses": "Expenses",
+                "revenue": "Result",
+                "receipts": "Receipts",
+                "openInvoices": "Open Invoices",
+                "drafts": "Drafts",
+                "subBommels": "Sub-Bommels",
+                "toReceipts": "To Receipts"
+            },
+            "deleteDialog": {
+                "title": "Delete Bommel",
+                "description": "This Bommel has {{count}} receipts. Are you sure you want to delete this Bommel?",
+                "confirm": "Yes, delete",
+                "cancel": "Cancel"
+            }
+        },
+        "noOrganization": {
+            "title": "No Organization Found",
+            "message": "You don't have access to any organization or the organization doesn't exist.",
+            "suggestion": "Please contact your administrator or sign out and try again with a different account."
         },
         "buttons": {
             "addNew": "Add new"

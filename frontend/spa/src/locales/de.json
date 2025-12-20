@@ -12,7 +12,8 @@
         "search": "Suche",
         "goBack": "Zurück",
         "cancel": "Abbrechen",
-        "save": "Speichern"
+        "save": "Speichern",
+        "delete": "Löschen"
     },
     "header": {
         "logout": "Abmelden",
@@ -71,6 +72,53 @@
             "saveError": "Fehler beim Speichern der Einstellungen",
             "saved": "Einstellungen erfolgreich gespeichert",
             "structure": "Struktur"
+        },
+        "stats": {
+            "totalBommels": "Gesamt Bommels",
+            "totalIncome": "Gesamt Einnahmen",
+            "totalExpenses": "Gesamt Ausgaben",
+            "totalReceipts": "Gesamt Belege"
+        },
+        "structure": {
+            "quickSearch": "Schnellsuche",
+            "edit": "Bearbeiten",
+            "done": "Fertig",
+            "treeView": "Baumstruktur",
+            "tableView": "Tabelle",
+            "noData": "Keine Daten verfügbar",
+            "addItems": "Bitte fügen Sie Elemente zu Ihrer Organisationsstruktur hinzu",
+            "receiptsLabel": "Belege",
+            "openLabel": "offen",
+            "subBommelsLabel": "Unterbommel",
+            "editName": "Name bearbeiten",
+            "deleteBommel": "Bommel löschen",
+            "addChild": "Kind hinzufügen",
+            "saveName": "Speichern",
+            "cancelEdit": "Abbrechen",
+            "editModeHint": "Zum Verschieben von Bommeln wechseln Sie zur Tabellen-Ansicht",
+            "details": {
+                "title": "Details",
+                "selectBommel": "Wählen Sie einen Bommel aus, um Details anzuzeigen",
+                "income": "Einnahmen",
+                "expenses": "Ausgaben",
+                "revenue": "Ergebnis",
+                "receipts": "Belege",
+                "openInvoices": "Offene Rechnungen",
+                "drafts": "Entwürfe",
+                "subBommels": "Subbommel",
+                "toReceipts": "Zu Belege"
+            },
+            "deleteDialog": {
+                "title": "Bommel löschen",
+                "description": "Dieser Bommel hat {{count}} Belege. Sind Sie sicher, dass Sie diesen Bommel löschen möchten?",
+                "confirm": "Ja, löschen",
+                "cancel": "Abbrechen"
+            }
+        },
+        "noOrganization": {
+            "title": "Keine Organisation gefunden",
+            "message": "Sie haben keinen Zugang zu einer Organisation oder die Organisation existiert nicht.",
+            "suggestion": "Bitte wenden Sie sich an Ihren Administrator oder melden Sie sich ab und versuchen Sie es mit einem anderen Konto erneut."
         },
         "buttons": {
             "addNew": "Neu hinzufügen"

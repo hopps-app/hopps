@@ -3,21 +3,14 @@ package app.hopps.category.api;
 import app.hopps.category.domain.Category;
 import app.hopps.category.model.CategoryInput;
 import app.hopps.category.repository.CategoryRepository;
+import app.hopps.org.service.UserOrganizationService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.SecurityUtils;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -37,6 +30,7 @@ public class CategoryResource {
 
     @Inject
     SecurityUtils securityUtils;
+
 
     @GET
     @Authenticated
