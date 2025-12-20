@@ -1,0 +1,150 @@
+{#include main.html}
+{#title}Mitglieder - Hopps Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .members-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--cds-layer-02);
+  }
+  .members-table th,
+  .members-table td {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+  }
+  .members-table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--cds-text-secondary);
+    background-color: var(--cds-layer-01);
+  }
+  .members-table tr:hover {
+    background-color: var(--cds-background-hover);
+  }
+  .members-table a {
+    color: var(--cds-link-primary, #0f62fe);
+    text-decoration: none;
+  }
+  .members-table a:hover {
+    text-decoration: underline;
+  }
+  .empty-state {
+    text-align: center;
+    padding: var(--cds-spacing-09);
+    color: var(--cds-text-secondary);
+  }
+  .empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--cds-spacing-05);
+    fill: var(--cds-icon-secondary, #525252);
+  }
+  button.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  button.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  a.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  a.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  a.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+</style>
+{/moreStyles}
+
+<div class="page-header">
+  <h1>Mitglieder</h1>
+  <a href="/mitglieder/neu" class="cds-btn cds-btn-primary">
+    <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+    Neues Mitglied
+  </a>
+</div>
+
+<div class="box">
+  {#if members.isEmpty}
+    <div class="empty-state">
+      <svg viewBox="0 0 32 32"><path d="M12 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM22 30h-2v-5a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v5H2v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7ZM22 4h10v2H22zM22 9h10v2H22zM22 14h7v2h-7z"/></svg>
+      <p>Noch keine Mitglieder vorhanden.</p>
+      <a href="/mitglieder/neu" class="cds-btn cds-btn-primary">Erstes Mitglied anlegen</a>
+    </div>
+  {#else}
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>E-Mail</th>
+          <th>Telefon</th>
+          <th>Bommelwart für</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#for member in members}
+        <tr>
+          <td><a href="/mitglieder/{member.id}">{member.displayName}</a></td>
+          <td>{member.email ?: '-'}</td>
+          <td>{member.phone ?: '-'}</td>
+          <td>{member.responsibleBommels.size} Bommel(s)</td>
+        </tr>
+        {/for}
+      </tbody>
+    </table>
+  {/if}
+</div>
+
+{#if flash:success}
+  <cds-inline-notification
+    kind="success"
+    title="Erfolg"
+    subtitle="{flash:success}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Fehler"
+    subtitle="{flash:error}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{/include}

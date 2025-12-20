@@ -13,6 +13,7 @@
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/tag.min.js"></script>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/notification.min.js"></script>
     <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/tree-view.min.js"></script>
+    <script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/dropdown.min.js"></script>
 
     <style>
       :root {
@@ -22,6 +23,13 @@
         --cds-layer-01: #f4f4f4;
         --cds-layer-02: #ffffff;
         --cds-border-subtle-01: #e0e0e0;
+        --cds-text-primary: #161616;
+        --cds-text-secondary: #525252;
+        --cds-icon-primary: #161616;
+        --cds-background-hover: rgba(141, 141, 141, 0.12);
+        --cds-background-active: rgba(141, 141, 141, 0.5);
+        --cds-border-interactive: #0f62fe;
+        --side-nav-width: 256px;
       }
 
       body {
@@ -30,12 +38,126 @@
         background-color: var(--cds-layer-01);
       }
 
-      .content {
-        padding: var(--cds-spacing-07);
+      /* Side Navigation */
+      .side-nav {
+        position: fixed;
+        top: 48px;
+        left: 0;
+        bottom: 0;
+        width: var(--side-nav-width);
+        background-color: var(--cds-layer-02);
+        border-right: 1px solid var(--cds-border-subtle-01);
+        overflow-y: auto;
+        z-index: 100;
+        transition: transform 0.11s cubic-bezier(0.2, 0, 1, 0.9);
+      }
+
+      .side-nav-header {
+        padding: var(--cds-spacing-05);
+        border-bottom: 1px solid var(--cds-border-subtle-01);
+      }
+
+      .side-nav-header h2 {
+        margin: 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--cds-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.32px;
+      }
+
+      .side-nav-section {
+        padding: 0.5rem 0;
+      }
+
+      .side-nav-section-title {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--cds-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.32px;
+      }
+
+      .side-nav-items {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .side-nav-item {
+        display: block;
+      }
+
+      .side-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        color: var(--cds-text-primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 400;
+        border-left: 4px solid transparent;
+        transition: background-color 0.11s, border-color 0.11s;
+      }
+
+      .side-nav-link:hover {
+        background-color: var(--cds-background-hover);
+      }
+
+      .side-nav-link.active {
+        background-color: var(--cds-background-hover);
+        border-left-color: var(--cds-border-interactive);
+        font-weight: 600;
+      }
+
+      .side-nav-link svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        flex-shrink: 0;
+      }
+
+      .side-nav-divider {
+        height: 1px;
+        background-color: var(--cds-border-subtle-01);
+        margin: 0.5rem 0;
+      }
+
+      /* Content area with side nav */
+      .app-container {
+        display: flex;
+        min-height: calc(100vh - 48px);
         margin-top: 48px;
+      }
+
+      .content {
+        flex: 1;
+        padding: var(--cds-spacing-07);
+        margin-left: var(--side-nav-width);
+        max-width: calc(100% - var(--side-nav-width));
+      }
+
+      .content-inner {
         max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
+        margin: 0 auto;
+      }
+
+      /* Responsive: collapse side nav on small screens */
+      @media (max-width: 1056px) {
+        .side-nav {
+          transform: translateX(-100%);
+        }
+
+        .side-nav.expanded {
+          transform: translateX(0);
+        }
+
+        .content {
+          margin-left: 0;
+          max-width: 100%;
+        }
       }
 
       .box {
@@ -68,20 +190,160 @@
         flex-direction: column;
         gap: var(--cds-spacing-05);
       }
+
+      /* Menu toggle button */
+      .menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        padding: 0.875rem 1rem;
+        cursor: pointer;
+        color: white;
+      }
+
+      .menu-toggle svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      @media (max-width: 1056px) {
+        .menu-toggle {
+          display: flex;
+          align-items: center;
+        }
+      }
+
+      /* Overlay for mobile */
+      .side-nav-overlay {
+        display: none;
+        position: fixed;
+        top: 48px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+      }
+
+      .side-nav-overlay.visible {
+        display: block;
+      }
+
+      /* Fix Carbon dropdown transparent background */
+      cds-dropdown::part(menu-body) {
+        background-color: #ffffff;
+      }
+      .cds--list-box__menu {
+        background-color: #ffffff !important;
+      }
+      .cds--list-box__menu-item {
+        background-color: #ffffff;
+      }
+      .cds--list-box__menu-item:hover {
+        background-color: #e8e8e8;
+      }
     </style>
     {#insert moreStyles /}
     {#insert moreScripts /}
   </head>
   <body>
     <cds-header aria-label="Hopps Buchhaltung">
+      <button class="menu-toggle" onclick="toggleSideNav()" aria-label="Menu">
+        <svg viewBox="0 0 20 20"><path d="M2 4h16v2H2zM2 9h16v2H2zM2 14h16v2H2z"/></svg>
+      </button>
       <cds-header-name href="/bommels" prefix="Hopps">Buchhaltung</cds-header-name>
-      <cds-header-nav menu-bar-label="Navigation">
-        <cds-header-nav-item href="/bommels">Bommels</cds-header-nav-item>
-      </cds-header-nav>
     </cds-header>
 
-    <main class="content">
-      {#insert /}
-    </main>
+    <div class="side-nav-overlay" onclick="toggleSideNav()"></div>
+
+    <nav class="side-nav" aria-label="Hauptnavigation">
+      <div class="side-nav-section">
+        <div class="side-nav-section-title">Organisation</div>
+        <ul class="side-nav-items">
+          <li class="side-nav-item">
+            <a href="/bommels" class="side-nav-link {#if inject:vertxRequest.path.startsWith('/bommels')}active{/if}">
+              <svg viewBox="0 0 32 32"><path d="M16,15h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6V2h-2v22c0,1.1025.897,2,2,2h9v3c0,.5522.4477,1,1,1h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6v-13h9v3c0,.5522.4477,1,1,1ZM17,6h2.76l.45.89.55,1.11h5.24v5h-9v-7ZM17,21h2.76l.45.89.55,1.11h5.24v5h-9v-7Z"/></svg>
+              Bommels
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="side-nav-divider"></div>
+
+      <div class="side-nav-section">
+        <div class="side-nav-section-title">Stammdaten</div>
+        <ul class="side-nav-items">
+          <li class="side-nav-item">
+            <a href="/mitglieder" class="side-nav-link {#if inject:vertxRequest.path.startsWith('/mitglieder')}active{/if}">
+              <svg viewBox="0 0 32 32"><path d="M12 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM22 30h-2v-5a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v5H2v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7ZM22 4h10v2H22zM22 9h10v2H22zM22 14h7v2h-7z"/></svg>
+              Mitglieder
+            </a>
+          </li>
+          <li class="side-nav-item">
+            <a href="#" class="side-nav-link">
+              <svg viewBox="0 0 32 32"><path d="M8 18h6v2H8zM8 24h10v2H8zM26 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 22H6V6h20Z"/><path d="M18 10h4v4h-4z"/></svg>
+              Kategorien
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="side-nav-divider"></div>
+
+      <div class="side-nav-section">
+        <div class="side-nav-section-title">Finanzen</div>
+        <ul class="side-nav-items">
+          <li class="side-nav-item">
+            <a href="#" class="side-nav-link">
+              <svg viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+              Transaktionen
+            </a>
+          </li>
+          <li class="side-nav-item">
+            <a href="#" class="side-nav-link">
+              <svg viewBox="0 0 32 32"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/><path d="M10 22h12v2H10zM10 16h12v2H10z"/></svg>
+              Belege
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="side-nav-divider"></div>
+
+      <div class="side-nav-section">
+        <div class="side-nav-section-title">System</div>
+        <ul class="side-nav-items">
+          <li class="side-nav-item">
+            <a href="#" class="side-nav-link">
+              <svg viewBox="0 0 32 32"><path d="M28 16a12 12 0 0 0-.8-4.3l1.8-.7a14.2 14.2 0 0 1 0 10l-1.8-.7A12 12 0 0 0 28 16ZM16 28a12 12 0 0 1-4.3-.8l-.7 1.8a14.2 14.2 0 0 0 10 0l-.7-1.8A12 12 0 0 1 16 28ZM4 16a12 12 0 0 1 .8-4.3l-1.8-.7a14.2 14.2 0 0 0 0 10l1.8-.7A12 12 0 0 1 4 16ZM16 4a12 12 0 0 1 4.3.8l.7-1.8a14.2 14.2 0 0 0-10 0l.7 1.8A12 12 0 0 1 16 4Z"/><path d="M16 24a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"/></svg>
+              Einstellungen
+            </a>
+          </li>
+          <li class="side-nav-item">
+            <a href="#" class="side-nav-link">
+              <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M15 8h2v11h-2zM15 21h2v3h-2z"/></svg>
+              Audit-Log
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="app-container">
+      <main class="content">
+        <div class="content-inner">
+          {#insert /}
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function toggleSideNav() {
+        document.querySelector('.side-nav').classList.toggle('expanded');
+        document.querySelector('.side-nav-overlay').classList.toggle('visible');
+      }
+    </script>
   </body>
 </html>
