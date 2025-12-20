@@ -126,10 +126,9 @@ public class BommelResource {
 
         // Add the root bommel as the first element
         TreeSearchBommel rootTreeSearchBommel = new TreeSearchBommel(
-            rootBommel,
-            false,
-            java.util.List.of(rootBommel.id)
-        );
+                rootBommel,
+                false,
+                java.util.List.of(rootBommel.id));
         allBommels.add(rootTreeSearchBommel);
 
         // Add all children recursively

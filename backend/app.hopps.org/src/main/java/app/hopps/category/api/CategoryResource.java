@@ -31,7 +31,6 @@ public class CategoryResource {
     @Inject
     SecurityUtils securityUtils;
 
-
     @GET
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
