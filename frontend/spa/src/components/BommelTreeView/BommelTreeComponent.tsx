@@ -244,7 +244,7 @@ function BommelCard({
                         <>
                             {nodeDatum.attributes?.emoji && (
                                 <div style={{ fontSize: '20px', flexShrink: 0 }}>
-                                    <Emoji emoji={(nodeDatum.attributes.emoji as string)} />
+                                    <Emoji emoji={nodeDatum.attributes.emoji as string} />
                                 </div>
                             )}
                             <div
