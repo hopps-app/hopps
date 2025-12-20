@@ -92,6 +92,7 @@
             "subBommelsLabel": "Unterbommel",
             "editName": "Name bearbeiten",
             "deleteBommel": "Bommel löschen",
+            "addChild": "Kind hinzufügen",
             "saveName": "Speichern",
             "cancelEdit": "Abbrechen",
             "editModeHint": "Zum Verschieben von Bommeln wechseln Sie zur Tabellen-Ansicht",

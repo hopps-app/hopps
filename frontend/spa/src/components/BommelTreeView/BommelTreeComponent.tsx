@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import Tree, { RawNodeDatum, CustomNodeElementProps } from 'react-d3-tree';
 import { Bommel } from '@hopps/api-client';
-import { ChevronDown, ChevronRight, Pencil, Trash2, Check, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Pencil, Trash2, Check, X, Plus } from 'lucide-react';
 
 import Emoji from '@/components/ui/Emoji';
 import EmojiField from '@/components/ui/EmojiField';
@@ -31,6 +31,7 @@ interface BommelTreeComponentProps {
     onNodeClick?: (nodeData: TreeNodeData) => void;
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
+    onAddChild?: (nodeId: number) => Promise<boolean>;
     width?: number;
     height?: number;
 }
@@ -42,6 +43,7 @@ function BommelCard({
     onNodeClick,
     onEdit,
     onDelete,
+    onAddChild,
     editable,
 }: {
     nodeDatum: RawNodeDatum;
@@ -49,6 +51,7 @@ function BommelCard({
     onNodeClick?: (nodeData: TreeNodeData) => void;
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
+    onAddChild?: (nodeId: number) => Promise<boolean>;
     editable: boolean;
 }) {
     const { t } = useTranslation();
@@ -101,6 +104,12 @@ function BommelCard({
     const handleDelete = async () => {
         if (onDelete && window.confirm(t('organization.structure.deleteDialog.title'))) {
             await onDelete(nodeId);
+        }
+    };
+
+    const handleAddChild = async () => {
+        if (onAddChild) {
+            await onAddChild(nodeId);
         }
     };
 
@@ -254,9 +263,28 @@ function BommelCard({
                         </>
                     )}
 
-                    {/* Edit and Delete buttons in edit mode */}
+                    {/* Edit, Add Child and Delete buttons in edit mode */}
                     {editable && !isEditing && (
                         <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddChild();
+                                }}
+                                style={{
+                                    background: 'rgba(34, 197, 94, 0.8)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    padding: '4px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                }}
+                                title={t('organization.structure.addChild')}
+                            >
+                                <Plus className="w-3 h-3" />
+                            </button>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -357,7 +385,7 @@ function BommelCard({
     );
 }
 
-function BommelTreeComponent({ tree, rootBommel, editable = false, onNodeClick, onEdit, onDelete, width = 800, height = 600 }: BommelTreeComponentProps) {
+function BommelTreeComponent({ tree, rootBommel, editable = false, onNodeClick, onEdit, onDelete, onAddChild, width = 800, height = 600 }: BommelTreeComponentProps) {
     const { t } = useTranslation();
     const [, forceUpdate] = useState({});
     const treeContainerRef = useRef<HTMLDivElement>(null);
@@ -456,6 +484,20 @@ function BommelTreeComponent({ tree, rootBommel, editable = false, onNodeClick, 
         [onDelete]
     );
 
+    const handleAddChild = useCallback(
+        async (nodeId: number) => {
+            if (onAddChild) {
+                const success = await onAddChild(nodeId);
+                if (success) {
+                    forceUpdate({});
+                }
+                return success;
+            }
+            return false;
+        },
+        [onAddChild]
+    );
+
     const renderCustomNodeElement = useCallback(
         ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
             return (
@@ -467,13 +509,14 @@ function BommelTreeComponent({ tree, rootBommel, editable = false, onNodeClick, 
                             onNodeClick={onNodeClick}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
+                            onAddChild={handleAddChild}
                             editable={editable}
                         />
                     </foreignObject>
                 </g>
             );
         },
-        [editable, handleEdit, handleDelete, onNodeClick]
+        [editable, handleEdit, handleDelete, handleAddChild, onNodeClick]
     );
 
     if (!treeData) {

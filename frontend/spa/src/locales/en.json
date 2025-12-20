@@ -93,6 +93,7 @@
             "subBommelsLabel": "Sub-Bommels",
             "editName": "Edit name",
             "deleteBommel": "Delete Bommel",
+            "addChild": "Add Child",
             "saveName": "Save",
             "cancelEdit": "Cancel",
             "editModeHint": "To move bommels, switch to the Table view",

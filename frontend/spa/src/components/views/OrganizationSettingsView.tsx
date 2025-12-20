@@ -130,6 +130,28 @@ function OrganizationSettingsView() {
             showError('Failed to create.');
         }
     };
+
+    const createChildBommel = async (parentId: number) => {
+        setIsLoading(true);
+        try {
+            await apiService.orgService.bommelPOST(
+                new Bommel({
+                    name: 'New item',
+                    emoji: 'grey_question',
+                    children: [],
+                    parent: new Bommel({ id: parentId }),
+                })
+            );
+            await loadTree();
+            return true;
+        } catch (e) {
+            console.error(e);
+            showError('Failed to create child bommel.');
+        } finally {
+            setIsLoading(false);
+        }
+        return false;
+    };
     const updateTreeNode = async (node: OrganizationTreeNodeModel) => {
         let isSuccess = false;
         setIsLoading(true);
@@ -342,6 +364,9 @@ function OrganizationSettingsView() {
                                         }}
                                         onDelete={async (nodeId) => {
                                             return await deleteTreeNode(nodeId);
+                                        }}
+                                        onAddChild={async (nodeId) => {
+                                            return await createChildBommel(nodeId);
                                         }}
                                     />
                                 </TabsContent>
