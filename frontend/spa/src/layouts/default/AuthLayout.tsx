@@ -1,14 +1,9 @@
-import { Outlet, useLocation } from 'react-router-dom';
-import { useMemo } from 'react';
+import { Outlet } from 'react-router-dom';
 
 import UserMenu from '@/layouts/default/UserMenu.tsx';
 import SidebarNavigation from '@/components/sidebar-navigation';
 
 export default function AuthLayout() {
-    const { pathname } = useLocation();
-
-    const isReceiptsAll = useMemo(() => pathname.includes('/receipts/all'), [pathname]);
-
     return (
         <div className="flex h-screen bg-background">
             <SidebarNavigation />
@@ -19,17 +14,7 @@ export default function AuthLayout() {
                     </div>
 
                     <main className="p-4 sm:p-6">
-                        <div
-                            className={`
-                                ${!isReceiptsAll ? 'bg-background-secondary' : ''}
-                                border
-                                rounded-[30px]
-                                min-h-[80vh]
-                                w-full
-                                `}
-                        >
-                            <Outlet />
-                        </div>
+                        <Outlet />
                     </main>
                 </div>
             </div>

@@ -40,10 +40,10 @@ export default function AppRoutes() {
 
                 {/* receipts/invoices */}
                 <Route path="/receipts/new" element={<ReceiptUploadView />} />
+                <Route path="/receipts" element={<ReceiptView />} />
 
                 {/** admin settings **/}
                 <Route path="/admin/categories" element={<CategoriesSettingsView />} />
-                <Route path="/receipts/all" element={<ReceiptView />} />
                 {/* Old navigation logic*/}
                 <Route path="/settings/*" element={<SettingsView />} />
 
