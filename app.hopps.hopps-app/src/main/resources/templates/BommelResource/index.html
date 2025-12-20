@@ -154,7 +154,7 @@
         e.stopPropagation();
         var id = this.getAttribute('data-id');
         if (id) {
-          window.location.href = '/Bommels/index?selectedId=' + id;
+          window.location.href = '/bommels?selectedId=' + id;
         }
       });
     });
@@ -175,7 +175,7 @@
         <p>Noch keine Organisationsstruktur definiert.</p>
 
         <h3 style="margin-top: 1rem;">Wurzel-Bommel erstellen</h3>
-        {#form uri:Bommels.createRoot()}
+        {#form uri:BommelResource.createRoot()}
           <div class="form-group">
             <label>Symbol</label>
             {#iconPicker "home" name="icon" /}
@@ -199,7 +199,7 @@
           Bearbeiten: {selected.getDisplayLabel}
         </h2>
 
-        {#form uri:Bommels.update()}
+        {#form uri:BommelResource.update()}
           <input type="hidden" name="id" value="{selected.id}">
           <div class="form-group">
             <label>Symbol</label>
@@ -220,7 +220,7 @@
           Kind hinzufügen zu {selected.getDisplayLabel}
         </h3>
 
-        {#form uri:Bommels.addChild()}
+        {#form uri:BommelResource.addChild()}
           <input type="hidden" name="parentId" value="{selected.id}">
           <div class="form-group">
             <label>Symbol</label>
@@ -241,7 +241,7 @@
           <p>Dieser Bommel kann nicht gelöscht werden, da er Kinder hat. Entfernen Sie zuerst alle Kinder.</p>
           <button type="button" class="cds-btn cds-btn-danger" disabled>Bommel löschen</button>
         {#else}
-          {#form uri:Bommels.delete()}
+          {#form uri:BommelResource.delete()}
             <input type="hidden" name="id" value="{selected.id}">
             <button type="submit" class="cds-btn cds-btn-danger">Bommel löschen</button>
           {/form}

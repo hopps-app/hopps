@@ -11,8 +11,8 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
-import app.hopps.model.AuditLogEntry;
-import app.hopps.repository.AuditLogRepository;
+import app.hopps.audit.domain.AuditLogEntry;
+import app.hopps.audit.repository.AuditLogRepository;
 
 @QuarkusTest
 class ProcessEngineTest

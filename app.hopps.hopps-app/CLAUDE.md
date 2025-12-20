@@ -40,12 +40,35 @@ rendering.
 
 **Project structure:**
 
-- `rest/` - Renarde controllers (extend `Controller`, convention-based routing:
-  `Classname/method`)
-- `model/` - Domain models (currently in-memory, prepared for Panache ORM)
-- `util/` - Qute template extensions (`@TemplateExtension`) and startup logic
-- `src/main/resources/templates/` - Qute HTML templates (follow
-  `Classname/method.html` convention)
+Feature-based package structure following the legacy service pattern:
+
+```
+app.hopps.<feature>/
+├── api/          - REST resources/controllers (Renarde controllers extend Controller)
+├── domain/       - Entity classes (extend PanacheEntity)
+├── model/        - DTOs/Input classes
+├── repository/   - Data access (implement PanacheRepository)
+├── service/      - Business logic
+├── client/       - External service clients
+└── messaging/    - Message producers/consumers
+
+app.hopps.shared/
+├── filter/       - HTTP filters
+├── infrastructure/storage/  - Storage handlers
+├── security/     - Security utilities
+├── util/         - Template extensions, startup logic
+└── validation/   - Validation utilities
+
+app.hopps.simplepe/ - Process engine (separate module)
+```
+
+Current features:
+- `bommel/` - Bommel tree management (api, domain, repository)
+- `audit/` - Audit logging (domain, repository)
+- `shared/` - Shared utilities (util)
+- `simplepe/` - Process engine
+
+Templates: `src/main/resources/templates/<Feature>/<method>.html` (follow Renarde naming convention)
 
 **Conventions:**
 

@@ -1,4 +1,4 @@
-package app.hopps.util;
+package app.hopps.shared.util;
 
 import io.quarkus.qute.TemplateExtension;
 

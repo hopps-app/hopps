@@ -1,4 +1,4 @@
-package app.hopps.model;
+package app.hopps.bommel.domain;
 
 import java.util.ArrayList;
 import java.util.List;
