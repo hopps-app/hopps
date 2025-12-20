@@ -1,0 +1,13 @@
+{#let bommel=it}
+<cds-tree-node
+  label="{bommel.getDisplayLabel}"
+  {#if bommel.hasChildren}is-expanded{/if}
+  {#if selected != null && selected.id == bommel.id}selected{/if}
+  data-id="{bommel.id}"
+  {#if bommel.responsibleMember}data-bommelwart="{bommel.responsibleMember.displayName}"{/if}>
+  <span slot="icon">{#carbonIcon bommel.icon /}</span>
+  {#for child in bommel.getChildren}
+    {#bommelNode child selected=selected /}
+  {/for}
+</cds-tree-node>
+{/let}
