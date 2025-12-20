@@ -157,6 +157,7 @@ function OrganizationSettingsView() {
         try {
             const parent = node.parent ? node.parent : rootBommel!.id;
             await apiService.orgService.to(node.id as number, parent as number);
+            await loadTree();
             isSuccess = true;
         } catch (e) {
             console.error(e);
