@@ -47,7 +47,7 @@ public class Bommels extends Controller
 
 		if (bommelRepository.hasRoot())
 		{
-			flash("error", "Root bommel already exists");
+			flash("error", "Wurzel-Bommel existiert bereits");
 			redirect(Bommels.class).index(null);
 			return;
 		}
@@ -58,7 +58,7 @@ public class Bommels extends Controller
 		root.parent = null;
 		bommelRepository.persist(root);
 
-		flash("success", "Root bommel created");
+		flash("success", "Wurzel-Bommel erstellt");
 		redirect(Bommels.class).index(root.getId());
 	}
 
@@ -71,7 +71,7 @@ public class Bommels extends Controller
 	{
 		if (parentId == null)
 		{
-			flash("error", "Parent ID is required");
+			flash("error", "Eltern-ID ist erforderlich");
 			redirect(Bommels.class).index(null);
 			return;
 		}
@@ -79,14 +79,14 @@ public class Bommels extends Controller
 		Bommel parent = bommelRepository.findById(parentId);
 		if (parent == null)
 		{
-			flash("error", "Parent bommel not found");
+			flash("error", "Eltern-Bommel nicht gefunden");
 			redirect(Bommels.class).index(null);
 			return;
 		}
 
 		if (title == null || title.isBlank())
 		{
-			flash("error", "Title is required");
+			flash("error", "Titel ist erforderlich");
 			redirect(Bommels.class).index(parentId);
 			return;
 		}
@@ -97,7 +97,7 @@ public class Bommels extends Controller
 		child.parent = parent;
 		bommelRepository.persist(child);
 
-		flash("success", "Child bommel added");
+		flash("success", "Kind-Bommel hinzugefügt");
 		redirect(Bommels.class).index(child.getId());
 	}
 
@@ -117,7 +117,7 @@ public class Bommels extends Controller
 		Bommel bommel = bommelRepository.findById(id);
 		if (bommel == null)
 		{
-			flash("error", "Bommel not found");
+			flash("error", "Bommel nicht gefunden");
 			redirect(Bommels.class).index(null);
 			return;
 		}
@@ -125,7 +125,7 @@ public class Bommels extends Controller
 		bommel.setIcon(icon != null ? icon : bommel.getIcon());
 		bommel.setTitle(title);
 
-		flash("success", "Bommel updated");
+		flash("success", "Bommel aktualisiert");
 		redirect(Bommels.class).index(id);
 	}
 
@@ -142,14 +142,14 @@ public class Bommels extends Controller
 		Bommel bommel = bommelRepository.findById(id);
 		if (bommel == null)
 		{
-			flash("error", "Bommel not found");
+			flash("error", "Bommel nicht gefunden");
 			redirect(Bommels.class).index(null);
 			return;
 		}
 
 		if (bommelRepository.hasChildren(bommel))
 		{
-			flash("error", "Cannot delete bommel with children. Remove children first.");
+			flash("error", "Bommel mit Kindern kann nicht gelöscht werden. Entfernen Sie zuerst alle Kinder.");
 			redirect(Bommels.class).index(id);
 			return;
 		}
@@ -157,7 +157,7 @@ public class Bommels extends Controller
 		Long redirectToId = bommel.parent != null ? bommel.parent.getId() : null;
 
 		bommelRepository.delete(bommel);
-		flash("success", "Bommel deleted");
+		flash("success", "Bommel gelöscht");
 		redirect(Bommels.class).index(redirectToId);
 	}
 }

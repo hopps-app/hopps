@@ -1,5 +1,5 @@
 {#include main.html}
-{#title}Bommels - Fuggs Bookkeeping{/title}
+{#title}Bommels - Hopps Buchhaltung{/title}
 
 {#moreStyles}
 <style>
@@ -165,27 +165,27 @@
 <div class="bommels-layout">
   <div class="tree-panel">
     <div class="box">
-      <h2 class="box-header">Organization Structure</h2>
+      <h2 class="box-header">Organisationsstruktur</h2>
 
       {#if root}
         <cds-tree-view label="Bommels">
           {#bommelNode root selected=selected /}
         </cds-tree-view>
       {#else}
-        <p>No organization structure defined yet.</p>
+        <p>Noch keine Organisationsstruktur definiert.</p>
 
-        <h3 style="margin-top: 1rem;">Create Root Bommel</h3>
+        <h3 style="margin-top: 1rem;">Wurzel-Bommel erstellen</h3>
         {#form uri:Bommels.createRoot()}
           <div class="form-group">
-            <label>Icon</label>
+            <label>Symbol</label>
             {#iconPicker "home" name="icon" /}
           </div>
           <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" id="title" name="title" placeholder="Organization Name" {#ifError 'title'}class="error"{/ifError}>
+            <label for="title">Titel</label>
+            <input type="text" id="title" name="title" placeholder="Organisationsname" {#ifError 'title'}class="error"{/ifError}>
             {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
-          <button type="submit" class="cds-btn cds-btn-primary">Create Root</button>
+          <button type="submit" class="cds-btn cds-btn-primary">Erstellen</button>
         {/form}
       {/if}
     </div>
@@ -196,61 +196,61 @@
       <div class="box">
         <h2 class="box-header" style="display: flex; align-items: center; gap: 0.5rem;">
           {#carbonIcon selected.icon /}
-          Edit: {selected.getDisplayLabel}
+          Bearbeiten: {selected.getDisplayLabel}
         </h2>
 
         {#form uri:Bommels.update()}
           <input type="hidden" name="id" value="{selected.id}">
           <div class="form-group">
-            <label>Icon</label>
+            <label>Symbol</label>
             {#iconPicker selected.icon name="icon" /}
           </div>
           <div class="form-group">
-            <label for="edit-title">Title</label>
+            <label for="edit-title">Titel</label>
             <input type="text" id="edit-title" name="title" value="{selected.title}" {#ifError 'title'}class="error"{/ifError}>
             {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
-          <button type="submit" class="cds-btn cds-btn-primary">Save Changes</button>
+          <button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
         {/form}
       </div>
 
       <div class="box">
         <h3 class="box-header" style="display: flex; align-items: center; gap: 0.5rem;">
           {#carbonIcon selected.icon /}
-          Add Child to {selected.getDisplayLabel}
+          Kind hinzufügen zu {selected.getDisplayLabel}
         </h3>
 
         {#form uri:Bommels.addChild()}
           <input type="hidden" name="parentId" value="{selected.id}">
           <div class="form-group">
-            <label>Icon</label>
+            <label>Symbol</label>
             {#iconPicker "folder" name="icon" /}
           </div>
           <div class="form-group">
-            <label for="child-title">Title</label>
-            <input type="text" id="child-title" name="title" placeholder="Child Name" {#ifError 'title'}class="error"{/ifError}>
+            <label for="child-title">Titel</label>
+            <input type="text" id="child-title" name="title" placeholder="Name" {#ifError 'title'}class="error"{/ifError}>
             {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
-          <button type="submit" class="cds-btn cds-btn-secondary">Add Child</button>
+          <button type="submit" class="cds-btn cds-btn-secondary">Hinzufügen</button>
         {/form}
       </div>
 
       <div class="box">
-        <h3 class="box-header">Danger Zone</h3>
+        <h3 class="box-header">Gefahrenzone</h3>
         {#if selected.hasChildren}
-          <p>Cannot delete this bommel because it has children. Remove all children first.</p>
-          <button type="button" class="cds-btn cds-btn-danger" disabled>Delete Bommel</button>
+          <p>Dieser Bommel kann nicht gelöscht werden, da er Kinder hat. Entfernen Sie zuerst alle Kinder.</p>
+          <button type="button" class="cds-btn cds-btn-danger" disabled>Bommel löschen</button>
         {#else}
           {#form uri:Bommels.delete()}
             <input type="hidden" name="id" value="{selected.id}">
-            <button type="submit" class="cds-btn cds-btn-danger">Delete Bommel</button>
+            <button type="submit" class="cds-btn cds-btn-danger">Bommel löschen</button>
           {/form}
         {/if}
       </div>
     {#else if root}
       <div class="box">
-        <h2 class="box-header">Select a Bommel</h2>
-        <p>Click on a bommel in the tree to view and edit its details.</p>
+        <h2 class="box-header">Bommel auswählen</h2>
+        <p>Klicken Sie auf einen Bommel im Baum, um seine Details anzuzeigen und zu bearbeiten.</p>
       </div>
     {/if}
   </div>
@@ -259,7 +259,7 @@
 {#if flash:success}
   <cds-inline-notification
     kind="success"
-    title="Success"
+    title="Erfolg"
     subtitle="{flash:success}"
     style="position: fixed; bottom: 1rem; right: 1rem;">
   </cds-inline-notification>
@@ -268,7 +268,7 @@
 {#if flash:error}
   <cds-inline-notification
     kind="error"
-    title="Error"
+    title="Fehler"
     subtitle="{flash:error}"
     style="position: fixed; bottom: 1rem; right: 1rem;">
   </cds-inline-notification>

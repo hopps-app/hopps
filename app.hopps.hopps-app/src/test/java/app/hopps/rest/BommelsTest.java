@@ -36,8 +36,8 @@ class BommelsTest
 			.get("/Bommels/index")
 			.then()
 			.statusCode(200)
-			.body(containsString("Create Root Bommel"))
-			.body(containsString("No organization structure defined yet"));
+			.body(containsString("Wurzel-Bommel erstellen"))
+			.body(containsString("Noch keine Organisationsstruktur definiert"));
 	}
 
 	@Test
@@ -66,8 +66,8 @@ class BommelsTest
 			.get("/Bommels/index?selectedId=" + rootId)
 			.then()
 			.statusCode(200)
-			.body(containsString("Edit: Verein"))
-			.body(containsString("Add Child to Verein"));
+			.body(containsString("Bearbeiten: Verein"))
+			.body(containsString("Kind hinzufügen zu Verein"));
 	}
 
 	@Test
@@ -96,7 +96,7 @@ class BommelsTest
 			.get("/Bommels/index?selectedId=99999")
 			.then()
 			.statusCode(200)
-			.body(containsString("Click on a bommel"));
+			.body(containsString("Klicken Sie auf einen Bommel"));
 	}
 
 	@Test
@@ -111,7 +111,7 @@ class BommelsTest
 			.get("/Bommels/index?selectedId=" + rootId)
 			.then()
 			.statusCode(200)
-			.body(containsString("Cannot delete"));
+			.body(containsString("kann nicht gelöscht werden"));
 	}
 
 	// Helper methods that use transactions properly
