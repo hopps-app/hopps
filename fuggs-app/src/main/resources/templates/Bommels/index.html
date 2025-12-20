@@ -1,0 +1,181 @@
+{#include main.html}
+{#title}Bommels - Fuggs Bookkeeping{/title}
+
+{#moreStyles}
+<style>
+  .bommels-layout {
+    display: flex;
+    gap: var(--cds-spacing-05);
+    flex-wrap: wrap;
+  }
+  .tree-panel {
+    flex: 1;
+    min-width: 300px;
+  }
+  .detail-panel {
+    flex: 2;
+    min-width: 400px;
+  }
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+  .form-row cds-text-input {
+    flex: 1;
+  }
+  .emoji-input {
+    max-width: 80px;
+  }
+  cds-tree-node {
+    cursor: pointer;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+  }
+</style>
+{/moreStyles}
+
+{#moreScripts}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('cds-tree-node').forEach(function(node) {
+      node.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = this.getAttribute('data-id');
+        if (id) {
+          window.location.href = '/Bommels/index?selectedId=' + id;
+        }
+      });
+    });
+  });
+</script>
+{/moreScripts}
+
+<div class="bommels-layout">
+  <div class="tree-panel">
+    <div class="box">
+      <h2 class="box-header">Organization Structure</h2>
+
+      {#if root}
+        <cds-tree-view label="Bommels">
+          {#bommelNode root /}
+        </cds-tree-view>
+      {#else}
+        <p>No organization structure defined yet.</p>
+
+        <h3 style="margin-top: 1rem;">Create Root Bommel</h3>
+        {#form uri:Bommels.createRoot()}
+          <div class="form-row">
+            <cds-text-input
+              class="emoji-input"
+              name="emoji"
+              label="Emoji"
+              placeholder="🏠"
+              {#ifError 'emoji'}invalid invalid-text="{#error 'emoji'/}"{/ifError}>
+            </cds-text-input>
+            <cds-text-input
+              name="title"
+              label="Title"
+              placeholder="Organization Name"
+              {#ifError 'title'}invalid invalid-text="{#error 'title'/}"{/ifError}>
+            </cds-text-input>
+          </div>
+          <cds-button type="submit">Create Root</cds-button>
+        {/form}
+      {/if}
+    </div>
+  </div>
+
+  <div class="detail-panel">
+    {#if selected}
+      <div class="box">
+        <h2 class="box-header">Edit: {selected.getDisplayLabel}</h2>
+
+        {#form uri:Bommels.update()}
+          <input type="hidden" name="id" value="{selected.id}">
+          <div class="form-row">
+            <cds-text-input
+              class="emoji-input"
+              name="emoji"
+              label="Emoji"
+              value="{selected.emoji}"
+              {#ifError 'emoji'}invalid invalid-text="{#error 'emoji'/}"{/ifError}>
+            </cds-text-input>
+            <cds-text-input
+              name="title"
+              label="Title"
+              value="{selected.title}"
+              {#ifError 'title'}invalid invalid-text="{#error 'title'/}"{/ifError}>
+            </cds-text-input>
+          </div>
+          <cds-button type="submit">Save Changes</cds-button>
+        {/form}
+      </div>
+
+      <div class="box">
+        <h3 class="box-header">Add Child to {selected.getDisplayLabel}</h3>
+
+        {#form uri:Bommels.addChild()}
+          <input type="hidden" name="parentId" value="{selected.id}">
+          <div class="form-row">
+            <cds-text-input
+              class="emoji-input"
+              name="emoji"
+              label="Emoji"
+              placeholder="📁"
+              {#ifError 'emoji'}invalid invalid-text="{#error 'emoji'/}"{/ifError}>
+            </cds-text-input>
+            <cds-text-input
+              name="title"
+              label="Title"
+              placeholder="Child Name"
+              {#ifError 'title'}invalid invalid-text="{#error 'title'/}"{/ifError}>
+            </cds-text-input>
+          </div>
+          <cds-button type="submit" kind="secondary">Add Child</cds-button>
+        {/form}
+      </div>
+
+      <div class="box">
+        <h3 class="box-header">Danger Zone</h3>
+        {#if selected.hasChildren}
+          <p>Cannot delete this bommel because it has children. Remove all children first.</p>
+          <cds-button kind="danger" disabled>Delete Bommel</cds-button>
+        {#else}
+          {#form uri:Bommels.delete()}
+            <input type="hidden" name="id" value="{selected.id}">
+            <cds-button type="submit" kind="danger">Delete Bommel</cds-button>
+          {/form}
+        {/if}
+      </div>
+    {#else if root}
+      <div class="box">
+        <h2 class="box-header">Select a Bommel</h2>
+        <p>Click on a bommel in the tree to view and edit its details.</p>
+      </div>
+    {/if}
+  </div>
+</div>
+
+{#if flash:success}
+  <cds-inline-notification
+    kind="success"
+    title="Success"
+    subtitle="{flash:success}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Error"
+    subtitle="{flash:error}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{/include}

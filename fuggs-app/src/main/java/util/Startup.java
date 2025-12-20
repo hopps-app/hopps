@@ -7,6 +7,7 @@ import jakarta.enterprise.event.Observes;
 
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.runtime.StartupEvent;
+import model.Bommel;
 import model.Todo;
 
 @ApplicationScoped
@@ -28,6 +29,29 @@ public class Startup
 			b.task = "Second item";
 			b.completed = new Date();
 			b.persist();
+
+			Bommel root = new Bommel();
+			root.emoji = "🏛️";
+			root.title = "Verein";
+			root.persist();
+
+			Bommel jugend = new Bommel();
+			jugend.emoji = "👦";
+			jugend.title = "Jugend";
+			jugend.parent = root;
+			jugend.persist();
+
+			Bommel orchester = new Bommel();
+			orchester.emoji = "🎺";
+			orchester.title = "Orchester";
+			orchester.parent = root;
+			orchester.persist();
+
+			Bommel anfaenger = new Bommel();
+			anfaenger.emoji = "🌱";
+			anfaenger.title = "Anfaenger";
+			anfaenger.parent = jugend;
+			anfaenger.persist();
 		}
 	}
 }
