@@ -10,6 +10,7 @@ import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Emoji from '@/components/ui/Emoji.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 import organizationTreeService from '@/services/OrganisationTreeService.ts';
@@ -323,7 +324,7 @@ function OrganizationSettingsView() {
                                 <Card className="sticky top-6 bg-white">
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            {selectedBommel.data?.emoji && <span className="text-2xl">{selectedBommel.data.emoji}</span>}
+                                            {selectedBommel.data?.emoji && <Emoji emoji={selectedBommel.data.emoji} className="text-2xl" />}
                                             {selectedBommel.text}
                                         </CardTitle>
                                     </CardHeader>

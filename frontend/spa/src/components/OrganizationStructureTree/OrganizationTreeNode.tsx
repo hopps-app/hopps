@@ -1,5 +1,6 @@
 import { NodeModel, useDragOver } from '@minoru/react-dnd-treeview';
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import Button from '@/components/ui/Button.tsx';
@@ -27,6 +28,7 @@ type Props = {
 const IDENT_SIZE = 32;
 
 function OrganizationTreeNode(props: Props) {
+    const { t } = useTranslation();
     const { id, data } = props.node;
     const indent = props.depth * IDENT_SIZE;
     const [isEditing, setIsEditing] = useState(false);
@@ -169,17 +171,17 @@ function OrganizationTreeNode(props: Props) {
                             {/* Right: Financial info */}
                             <div className="flex items-center gap-6 flex-shrink-0">
                                 <div className="text-right">
-                                    <div className="text-xs text-gray-500 mb-0.5">Einnahmen</div>
+                                    <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.income')}</div>
                                     <div className="text-sm font-medium text-green-600">{formatCurrency(income)}</div>
                                 </div>
 
                                 <div className="text-right">
-                                    <div className="text-xs text-gray-500 mb-0.5">Ausgaben</div>
+                                    <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.expenses')}</div>
                                     <div className="text-sm font-medium text-red-600">{formatCurrency(expenses)}</div>
                                 </div>
 
                                 <div className="text-right bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
-                                    <div className="text-xs text-gray-500 mb-0.5">Umsatz</div>
+                                    <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.revenue')}</div>
                                     <div
                                         className={cn('text-base font-semibold', {
                                             'text-green-600': revenue !== undefined && revenue >= 0,
