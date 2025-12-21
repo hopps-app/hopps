@@ -16,7 +16,9 @@
       "Bash(/Users/markus/git/fuggs/app.hopps.hopps-app/mvnw:*)",
       "Bash(grep:*)",
       "WebFetch(domain:localhost)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:docs.quarkiverse.io)",
+      "WebFetch(domain:quarkus.io)"
     ]
   }
 }
