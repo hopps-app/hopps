@@ -1,19 +1,27 @@
 package app.hopps.audit.domain;
 
+import java.time.Instant;
+
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrePersist;
-
-import java.time.LocalDateTime;
 
 @Entity
 public class AuditLogEntry extends PanacheEntity
 {
 	private String username;
-	private LocalDateTime timestamp;
+
+	@Column(nullable = false)
+	private Instant timestamp;
+
 	private String taskName;
+
+	@Column(length = 4000)
 	private String details;
+
 	private String entityName;
+
 	private String entityId;
 
 	public String getUsername()
@@ -26,12 +34,12 @@ public class AuditLogEntry extends PanacheEntity
 		this.username = username;
 	}
 
-	public LocalDateTime getTimestamp()
+	public Instant getTimestamp()
 	{
 		return timestamp;
 	}
 
-	public void setTimestamp(LocalDateTime timestamp)
+	public void setTimestamp(Instant timestamp)
 	{
 		this.timestamp = timestamp;
 	}
@@ -81,7 +89,7 @@ public class AuditLogEntry extends PanacheEntity
 	{
 		if (timestamp == null)
 		{
-			timestamp = LocalDateTime.now();
+			timestamp = Instant.now();
 		}
 	}
 }
