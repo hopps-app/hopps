@@ -18,7 +18,9 @@
       "WebFetch(domain:localhost)",
       "Bash(curl:*)",
       "WebFetch(domain:docs.quarkiverse.io)",
-      "WebFetch(domain:quarkus.io)"
+      "WebFetch(domain:quarkus.io)",
+      "WebFetch(domain:medium.com)",
+      "Bash(xargs cat:*)"
     ]
   }
 }

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TradeParty;
@@ -55,7 +56,9 @@ public class DocumentResource extends Controller
 	{
 		public static native TemplateInstance index(List<Document> documents);
 
-		public static native TemplateInstance create(List<Bommel> bommels);
+		public static native TemplateInstance create();
+
+		public static native TemplateInstance review(Document document, List<Bommel> bommels);
 
 		public static native TemplateInstance show(Document document, List<Bommel> bommels);
 	}
@@ -80,8 +83,47 @@ public class DocumentResource extends Controller
 	@Path("/neu")
 	public TemplateInstance create()
 	{
+		return Templates.create();
+	}
+
+	@GET
+	@Path("/{id}/pruefen")
+	public TemplateInstance review(Long id)
+	{
+		Document document = documentRepository.findById(id);
+		if (document == null)
+		{
+			flash("error", "Beleg nicht gefunden");
+			redirect(DocumentResource.class).index(null);
+			return null;
+		}
 		List<Bommel> bommels = bommelRepository.listAll();
-		return Templates.create(bommels);
+		return Templates.review(document, bommels);
+	}
+
+	@GET
+	@Path("/{id}/analysis-status")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAnalysisStatus(Long id)
+	{
+		Document document = documentRepository.findById(id);
+		if (document == null)
+		{
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		String status = document.getAnalysisStatus() != null
+			? document.getAnalysisStatus().name()
+			: "PENDING";
+
+		return Response.ok(new AnalysisStatusResponse(
+			status,
+			document.isAnalysisComplete(),
+			document.getAnalysisError())).build();
+	}
+
+	public record AnalysisStatusResponse(String status, boolean complete, String error)
+	{
 	}
 
 	@GET
@@ -99,9 +141,54 @@ public class DocumentResource extends Controller
 		return Templates.show(document, bommels);
 	}
 
+	/**
+	 * Step 1: Upload file and create document (simplified - just file and type)
+	 */
+	@POST
+	@Transactional
+	@Path("/upload")
+	public void upload(
+		@RestForm @NotNull String documentType,
+		@RestForm("file") FileUpload file)
+	{
+		if (validationFailed())
+		{
+			redirect(DocumentResource.class).create();
+			return;
+		}
+
+		boolean hasFile = file != null && file.fileName() != null && !file.fileName().isBlank();
+		if (!hasFile)
+		{
+			flash("error", "Bitte wählen Sie eine Datei aus");
+			redirect(DocumentResource.class).create();
+			return;
+		}
+
+		Document document = new Document();
+		document.setDocumentType(DocumentType.valueOf(documentType));
+		document.setTotal(java.math.BigDecimal.ZERO); // Placeholder, will be
+														// filled by AI
+		document.setCurrencyCode("EUR");
+		document.setAnalysisStatus(AnalysisStatus.PENDING);
+
+		handleFileUpload(document, file);
+		documentRepository.persist(document);
+
+		// Trigger AI analysis workflow
+		triggerDocumentAnalysis(document.getId());
+
+		// Redirect to review page where user can see AI results
+		redirect(DocumentResource.class).review(document.getId());
+	}
+
+	/**
+	 * Step 2: Save reviewed document (after AI analysis)
+	 */
 	@POST
 	@Transactional
 	public void save(
+		@RestForm @NotNull Long id,
 		@RestForm @NotNull String documentType,
 		@RestForm String name,
 		@RestForm @NotNull BigDecimal total,
@@ -115,16 +202,16 @@ public class DocumentResource extends Controller
 		@RestForm boolean privatelyPaid,
 		@RestForm String invoiceId,
 		@RestForm String orderNumber,
-		@RestForm String dueDate,
-		@RestForm("file") FileUpload file)
+		@RestForm String dueDate)
 	{
-		if (validationFailed())
+		Document document = documentRepository.findById(id);
+		if (document == null)
 		{
-			redirect(DocumentResource.class).create();
+			flash("error", "Beleg nicht gefunden");
+			redirect(DocumentResource.class).index(null);
 			return;
 		}
 
-		Document document = new Document();
 		document.setDocumentType(DocumentType.valueOf(documentType));
 		document.setName(name);
 		document.setTotal(total);
@@ -136,21 +223,37 @@ public class DocumentResource extends Controller
 			LocalDate date = LocalDate.parse(transactionDate);
 			document.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
 		}
+		else
+		{
+			document.setTransactionTime(null);
+		}
 
 		if (bommelId != null && bommelId > 0)
 		{
 			Bommel bommel = bommelRepository.findById(bommelId);
 			document.setBommel(bommel);
 		}
+		else
+		{
+			document.setBommel(null);
+		}
 
 		if (senderName != null && !senderName.isBlank())
 		{
-			TradeParty sender = new TradeParty();
+			TradeParty sender = document.getSender();
+			if (sender == null)
+			{
+				sender = new TradeParty();
+			}
 			sender.setName(senderName);
 			sender.setStreet(senderStreet);
 			sender.setZipCode(senderZipCode);
 			sender.setCity(senderCity);
 			document.setSender(sender);
+		}
+		else if (document.getSender() != null)
+		{
+			document.setSender(null);
 		}
 
 		if (DocumentType.INVOICE.name().equals(documentType))
@@ -162,24 +265,13 @@ public class DocumentResource extends Controller
 				LocalDate date = LocalDate.parse(dueDate);
 				document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
 			}
+			else
+			{
+				document.setDueDate(null);
+			}
 		}
 
-		// Handle file upload
-		boolean hasFile = file != null && file.fileName() != null && !file.fileName().isBlank();
-		if (hasFile)
-		{
-			handleFileUpload(document, file);
-		}
-
-		documentRepository.persist(document);
-
-		// Trigger AI analysis workflow if file was uploaded
-		if (hasFile)
-		{
-			triggerDocumentAnalysis(document.getId());
-		}
-
-		flash("success", "Beleg erstellt");
+		flash("success", "Beleg gespeichert");
 		redirect(DocumentResource.class).show(document.getId());
 	}
 

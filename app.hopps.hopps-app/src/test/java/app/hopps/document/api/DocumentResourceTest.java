@@ -81,9 +81,9 @@ class DocumentResourceTest
 			.get("/belege/neu")
 			.then()
 			.statusCode(200)
-			.body(containsString("Neuer Beleg"))
+			.body(containsString("Beleg hochladen"))
 			.body(containsString("Belegtyp"))
-			.body(containsString("Betrag"));
+			.body(containsString("documentType"));
 	}
 
 	@Test
@@ -125,7 +125,7 @@ class DocumentResourceTest
 			.statusCode(200)
 			.body(containsString("enctype=\"multipart/form-data\""))
 			.body(containsString("name=\"file\""))
-			.body(containsString("Beleg-Datei"));
+			.body(containsString("Datei hierher ziehen"));
 	}
 
 	@Test

@@ -11,6 +11,7 @@ import app.hopps.document.client.DocumentAiClient;
 import app.hopps.document.client.InvoiceData;
 import app.hopps.document.client.ReceiptData;
 import app.hopps.document.client.TradePartyData;
+import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TradeParty;
@@ -70,8 +71,12 @@ public class AnalyzeDocumentTask extends SystemTask
 		if (!document.hasFile())
 		{
 			LOG.info("Document has no file, skipping analysis: id={}", documentId);
+			document.setAnalysisStatus(AnalysisStatus.SKIPPED);
 			return;
 		}
+
+		// Mark as analyzing
+		document.setAnalysisStatus(AnalysisStatus.ANALYZING);
 
 		LOG.info("Starting document analysis: id={}, type={}, fileName={}",
 			documentId, document.getDocumentType(), document.getFileName());
@@ -89,11 +94,14 @@ public class AnalyzeDocumentTask extends SystemTask
 				analyzeReceipt(document, fileStream);
 			}
 
+			document.setAnalysisStatus(AnalysisStatus.COMPLETED);
 			LOG.info("Document analysis completed successfully: id={}", documentId);
 		}
 		catch (Exception e)
 		{
 			LOG.error("Document analysis failed: id={}, error={}", documentId, e.getMessage(), e);
+			document.setAnalysisStatus(AnalysisStatus.FAILED);
+			document.setAnalysisError(e.getMessage());
 			throw new RuntimeException("Document analysis failed: " + e.getMessage(), e);
 		}
 	}
