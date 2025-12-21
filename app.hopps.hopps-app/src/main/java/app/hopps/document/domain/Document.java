@@ -63,6 +63,11 @@ public class Document extends PanacheEntity
 	private String fileContentType; // MIME type
 	private Long fileSize; // Size in bytes
 
+	// AI analysis status
+	@Enumerated(EnumType.STRING)
+	private AnalysisStatus analysisStatus;
+	private String analysisError;
+
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 
@@ -236,6 +241,11 @@ public class Document extends PanacheEntity
 		return String.format("%.2f %s", total, currency);
 	}
 
+	public boolean isTotalPositive()
+	{
+		return total != null && total.compareTo(BigDecimal.ZERO) > 0;
+	}
+
 	public String getDisplayDate()
 	{
 		if (transactionTime == null)
@@ -360,5 +370,38 @@ public class Document extends PanacheEntity
 		{
 			return String.format("%.1f MB", fileSize / (1024.0 * 1024.0));
 		}
+	}
+
+	public AnalysisStatus getAnalysisStatus()
+	{
+		return analysisStatus;
+	}
+
+	public void setAnalysisStatus(AnalysisStatus analysisStatus)
+	{
+		this.analysisStatus = analysisStatus;
+	}
+
+	public String getAnalysisError()
+	{
+		return analysisError;
+	}
+
+	public void setAnalysisError(String analysisError)
+	{
+		this.analysisError = analysisError;
+	}
+
+	public boolean isAnalyzing()
+	{
+		return analysisStatus == AnalysisStatus.PENDING
+			|| analysisStatus == AnalysisStatus.ANALYZING;
+	}
+
+	public boolean isAnalysisComplete()
+	{
+		return analysisStatus == AnalysisStatus.COMPLETED
+			|| analysisStatus == AnalysisStatus.FAILED
+			|| analysisStatus == AnalysisStatus.SKIPPED;
 	}
 }
