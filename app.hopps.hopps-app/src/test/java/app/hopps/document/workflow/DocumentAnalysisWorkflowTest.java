@@ -42,8 +42,7 @@ class DocumentAnalysisWorkflowTest
 		Long documentId = createDocumentWithFile("Test Invoice", DocumentType.INVOICE);
 
 		// When - the workflow will fail to connect to AI service, but should
-		// handle
-		// gracefully
+		// handle gracefully
 		Chain chain = workflow.startAnalysis(documentId);
 
 		// Then - workflow should complete (either success or handled failure)
