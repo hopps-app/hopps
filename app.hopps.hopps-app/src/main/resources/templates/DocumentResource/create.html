@@ -1,0 +1,283 @@
+{#include main.html}
+{#title}Neuer Beleg - Hopps Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .form-section {
+    margin-bottom: var(--cds-spacing-07);
+  }
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: var(--cds-spacing-05);
+    padding-bottom: var(--cds-spacing-03);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+  }
+  .form-group input,
+  .form-group select {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .form-group input.error,
+  .form-group select.error {
+    border-bottom: 2px solid #da1e28;
+  }
+  .form-group.checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .form-group.checkbox input {
+    width: 20px;
+    height: 20px;
+  }
+  .error-text {
+    color: #da1e28;
+    font-size: 0.75rem;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: var(--cds-spacing-05);
+  }
+  button.cds-btn,
+  a.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  button.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  a.cds-btn-secondary {
+    background-color: #393939;
+    color: white;
+  }
+  a.cds-btn-secondary:hover {
+    background-color: #4c4c4c;
+  }
+  .invoice-fields {
+    display: none;
+  }
+  .invoice-fields.visible {
+    display: block;
+  }
+  .file-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .file-upload input[type="file"] {
+    height: auto;
+    padding: 0.5rem;
+    border: 1px dashed #8d8d8d;
+    background-color: #f4f4f4;
+    cursor: pointer;
+  }
+  .file-upload input[type="file"]:hover {
+    border-color: #0f62fe;
+    background-color: #e8f0fe;
+  }
+  .file-hint {
+    font-size: 0.75rem;
+    color: #525252;
+  }
+</style>
+{/moreStyles}
+
+{#moreScripts}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var typeSelect = document.getElementById('documentType');
+    var invoiceFields = document.querySelector('.invoice-fields');
+
+    function toggleInvoiceFields() {
+      if (typeSelect.value === 'INVOICE') {
+        invoiceFields.classList.add('visible');
+      } else {
+        invoiceFields.classList.remove('visible');
+      }
+    }
+
+    typeSelect.addEventListener('change', toggleInvoiceFields);
+    toggleInvoiceFields();
+  });
+</script>
+{/moreScripts}
+
+<div class="page-header">
+  <h1>Neuer Beleg</h1>
+</div>
+
+<div class="box">
+  <form action="/belege/save" method="POST" enctype="multipart/form-data">
+    {#authenticityToken /}
+    <div class="form-section">
+      <h3>Datei hochladen</h3>
+      <div class="form-row">
+        <div class="form-group file-upload">
+          <label for="file">Beleg-Datei (PDF, Bild)</label>
+          <input type="file" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp">
+          <span class="file-hint">Optional: Laden Sie den Originalbeleg hoch (max. 10 MB)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Belegdaten</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="documentType">Belegtyp *</label>
+          <select id="documentType" name="documentType" required>
+            <option value="RECEIPT">Beleg / Quittung</option>
+            <option value="INVOICE">Rechnung</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="name">Bezeichnung</label>
+          <input type="text" id="name" name="name" placeholder="z.B. Büromaterial">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="total">Betrag *</label>
+          <input type="number" id="total" name="total" step="0.01" required placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="currencyCode">Währung</label>
+          <select id="currencyCode" name="currencyCode">
+            <option value="EUR" selected>EUR</option>
+            <option value="USD">USD</option>
+            <option value="CHF">CHF</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="transactionDate">Datum</label>
+          <input type="date" id="transactionDate" name="transactionDate">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bommelId">Bommel zuweisen</label>
+          <select id="bommelId" name="bommelId">
+            <option value="">— Nicht zugewiesen —</option>
+            {#for bommel in bommels}
+            <option value="{bommel.id}">{bommel.title}</option>
+            {/for}
+          </select>
+        </div>
+        <div class="form-group checkbox">
+          <input type="checkbox" id="privatelyPaid" name="privatelyPaid">
+          <label for="privatelyPaid">Privat bezahlt</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Absender</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="senderName">Name / Firma</label>
+          <input type="text" id="senderName" name="senderName" placeholder="z.B. Lieferant GmbH">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="senderStreet">Straße</label>
+          <input type="text" id="senderStreet" name="senderStreet">
+        </div>
+        <div class="form-group">
+          <label for="senderZipCode">PLZ</label>
+          <input type="text" id="senderZipCode" name="senderZipCode">
+        </div>
+        <div class="form-group">
+          <label for="senderCity">Ort</label>
+          <input type="text" id="senderCity" name="senderCity">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section invoice-fields">
+      <h3>Rechnungsdetails</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="invoiceId">Rechnungsnummer</label>
+          <input type="text" id="invoiceId" name="invoiceId">
+        </div>
+        <div class="form-group">
+          <label for="orderNumber">Bestellnummer</label>
+          <input type="text" id="orderNumber" name="orderNumber">
+        </div>
+        <div class="form-group">
+          <label for="dueDate">Fälligkeitsdatum</label>
+          <input type="date" id="dueDate" name="dueDate">
+        </div>
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button type="submit" class="cds-btn cds-btn-primary">
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+        Speichern
+      </button>
+      <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
+    </div>
+  </form>
+</div>
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Fehler"
+    subtitle="{flash:error}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{/include}
