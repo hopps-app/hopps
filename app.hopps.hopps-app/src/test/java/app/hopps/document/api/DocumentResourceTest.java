@@ -1,0 +1,300 @@
+package app.hopps.document.api;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+
+import java.math.BigDecimal;
+
+import org.junit.jupiter.api.Test;
+
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentType;
+import app.hopps.document.repository.DocumentRepository;
+import app.hopps.document.service.StorageService;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+
+@QuarkusTest
+class DocumentResourceTest
+{
+	@Inject
+	DocumentRepository documentRepository;
+
+	@Inject
+	BommelRepository bommelRepository;
+
+	@Inject
+	StorageService storageService;
+
+	@Test
+	void shouldShowEmptyStateWhenNoDocumentsExist()
+	{
+		deleteAllData();
+
+		given()
+			.when()
+			.get("/belege")
+			.then()
+			.statusCode(200)
+			.body(containsString("Noch keine Belege vorhanden"))
+			.body(containsString("Ersten Beleg anlegen"));
+	}
+
+	@Test
+	void shouldShowDocumentsInTable()
+	{
+		deleteAllData();
+		createDocument("Rechnung Test", DocumentType.INVOICE, new BigDecimal("100.00"));
+
+		given()
+			.when()
+			.get("/belege")
+			.then()
+			.statusCode(200)
+			.body(containsString("Rechnung Test"))
+			.body(containsString("100,00"));
+	}
+
+	@Test
+	void shouldShowDocumentDetailPage()
+	{
+		deleteAllData();
+		Long docId = createDocument("Quittung Detail", DocumentType.RECEIPT, new BigDecimal("50.00"));
+
+		given()
+			.when()
+			.get("/belege/" + docId)
+			.then()
+			.statusCode(200)
+			.body(containsString("Quittung Detail"))
+			.body(containsString("50"));
+	}
+
+	@Test
+	void shouldShowCreateDocumentForm()
+	{
+		given()
+			.when()
+			.get("/belege/neu")
+			.then()
+			.statusCode(200)
+			.body(containsString("Neuer Beleg"))
+			.body(containsString("Belegtyp"))
+			.body(containsString("Betrag"));
+	}
+
+	@Test
+	void shouldRedirectToIndexForNonExistentDocument()
+	{
+		deleteAllData();
+
+		given()
+			.redirects().follow(false)
+			.when()
+			.get("/belege/99999")
+			.then()
+			.statusCode(303);
+	}
+
+	@Test
+	void shouldShowDocumentWithBommelAssignment()
+	{
+		deleteAllData();
+		Long bommelId = createBommel("Test Bommel");
+		Long docId = createDocumentWithBommel("Rechnung mit Bommel", DocumentType.INVOICE, new BigDecimal("200.00"),
+			bommelId);
+
+		given()
+			.when()
+			.get("/belege/" + docId)
+			.then()
+			.statusCode(200)
+			.body(containsString("Test Bommel"));
+	}
+
+	@Test
+	void shouldShowFileUploadFormOnCreatePage()
+	{
+		given()
+			.when()
+			.get("/belege/neu")
+			.then()
+			.statusCode(200)
+			.body(containsString("enctype=\"multipart/form-data\""))
+			.body(containsString("name=\"file\""))
+			.body(containsString("Beleg-Datei"));
+	}
+
+	@Test
+	void shouldDownloadUploadedFile()
+	{
+		deleteAllData();
+
+		// Create a document with file metadata
+		String testContent = "Test download content";
+		Long docId = createDocumentWithFile("Download Test Doc", testContent.getBytes());
+
+		given()
+			.when()
+			.get("/belege/" + docId + "/download")
+			.then()
+			.statusCode(200)
+			.header("Content-Disposition", containsString("test-file.txt"))
+			.body(is(testContent));
+	}
+
+	@Test
+	void shouldReturn404ForDownloadWithNoFile()
+	{
+		deleteAllData();
+		Long docId = createDocument("No File Doc", DocumentType.RECEIPT, new BigDecimal("10.00"));
+
+		given()
+			.when()
+			.get("/belege/" + docId + "/download")
+			.then()
+			.statusCode(404);
+	}
+
+	@Test
+	void shouldReturn404ForDownloadNonExistentDocument()
+	{
+		deleteAllData();
+
+		given()
+			.when()
+			.get("/belege/99999/download")
+			.then()
+			.statusCode(404);
+	}
+
+	@Test
+	void shouldShowDeleteFileButtonOnDetailPage()
+	{
+		deleteAllData();
+		Long docId = createDocumentWithFile("Doc with File", "content".getBytes());
+
+		given()
+			.when()
+			.get("/belege/" + docId)
+			.then()
+			.statusCode(200)
+			.body(containsString("test-file.txt"))
+			.body(containsString("deleteFile"));
+	}
+
+	@Test
+	void shouldShowUploadFormOnDetailPage()
+	{
+		deleteAllData();
+		Long docId = createDocument("Doc without File", DocumentType.RECEIPT, new BigDecimal("25.00"));
+
+		given()
+			.when()
+			.get("/belege/" + docId)
+			.then()
+			.statusCode(200)
+			.body(containsString("uploadFile"))
+			.body(containsString("Datei hochladen"));
+	}
+
+	@Test
+	void shouldShowFileIndicatorInList()
+	{
+		deleteAllData();
+		createDocumentWithFile("Doc with File", "content".getBytes());
+
+		given()
+			.when()
+			.get("/belege")
+			.then()
+			.statusCode(200)
+			.body(containsString("has-file"))
+			.body(containsString("Datei"));
+	}
+
+	@Test
+	void shouldFilterDocumentsByBommel()
+	{
+		deleteAllData();
+		Long bommelId = createBommel("Filter Bommel");
+		createDocumentWithBommel("Filtered Doc", DocumentType.RECEIPT, new BigDecimal("10.00"), bommelId);
+		createDocument("Other Doc", DocumentType.INVOICE, new BigDecimal("20.00"));
+
+		given()
+			.queryParam("bommelId", bommelId)
+			.when()
+			.get("/belege")
+			.then()
+			.statusCode(200)
+			.body(containsString("Filtered Doc"));
+	}
+
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	void deleteAllData()
+	{
+		documentRepository.deleteAll();
+		bommelRepository.deleteAll();
+	}
+
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	Long createDocument(String name, DocumentType type, BigDecimal total)
+	{
+		Document document = new Document();
+		document.setName(name);
+		document.setDocumentType(type);
+		document.setTotal(total);
+		document.setCurrencyCode("EUR");
+		documentRepository.persist(document);
+		return document.getId();
+	}
+
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	Long createDocumentWithBommel(String name, DocumentType type, BigDecimal total, Long bommelId)
+	{
+		Bommel bommel = bommelRepository.findById(bommelId);
+		Document document = new Document();
+		document.setName(name);
+		document.setDocumentType(type);
+		document.setTotal(total);
+		document.setCurrencyCode("EUR");
+		document.setBommel(bommel);
+		documentRepository.persist(document);
+		return document.getId();
+	}
+
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	Long createBommel(String title)
+	{
+		Bommel bommel = new Bommel();
+		bommel.setIcon("folder");
+		bommel.setTitle(title);
+		bommelRepository.persist(bommel);
+		return bommel.getId();
+	}
+
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	Long createDocumentWithFile(String name, byte[] content)
+	{
+		Document document = new Document();
+		document.setName(name);
+		document.setDocumentType(DocumentType.RECEIPT);
+		document.setTotal(new BigDecimal("10.00"));
+		document.setCurrencyCode("EUR");
+
+		String fileKey = "test-documents/" + System.currentTimeMillis() + "/test-file.txt";
+		document.setFileKey(fileKey);
+		document.setFileName("test-file.txt");
+		document.setFileContentType("text/plain");
+		document.setFileSize((long)content.length);
+
+		// Upload to S3
+		storageService.uploadFile(fileKey, content, "text/plain");
+
+		documentRepository.persist(document);
+		return document.getId();
+	}
+}

@@ -11,7 +11,10 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(cat:*)",
       "Bash(ls:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(./mvnw formatter:format:*)",
+      "Bash(/Users/markus/git/fuggs/app.hopps.hopps-app/mvnw:*)",
+      "Bash(grep:*)"
     ]
   }
 }
