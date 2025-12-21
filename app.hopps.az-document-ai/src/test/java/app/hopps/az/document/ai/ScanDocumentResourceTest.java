@@ -10,11 +10,17 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -98,6 +104,34 @@ class ScanDocumentResourceTest
 			.post("invoice")
 			.then()
 			.statusCode(500);
+	}
+
+	@Test
+	void fileUploadPreservesBytesCorrectly() throws URISyntaxException, IOException
+	{
+		// Arrange - get the actual test file
+		File receiptFile = new File(getClass().getClassLoader().getResource("receipt.png").toURI());
+		byte[] expectedBytes = Files.readAllBytes(receiptFile.toPath());
+
+		// Use Answer to verify bytes during invocation (before temp file
+		// cleanup)
+		when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
+			.thenAnswer(invocation -> {
+				Path uploadedPath = invocation.getArgument(0);
+				byte[] actualBytes = Files.readAllBytes(uploadedPath);
+				assertArrayEquals(expectedBytes, actualBytes, "Uploaded file bytes should match original file");
+				return Optional.of(fakeInvoiceData());
+			});
+
+		// Act
+		given()
+			.multiPart("document", receiptFile, "application/octet-stream")
+			.multiPart("transactionRecordId", "123")
+			.contentType(ContentType.MULTIPART)
+			.when()
+			.post("invoice")
+			.then()
+			.statusCode(200);
 	}
 
 	private static InvoiceData fakeInvoiceData()

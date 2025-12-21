@@ -5,10 +5,11 @@ import com.azure.ai.documentintelligence.DocumentIntelligenceClientBuilder;
 import com.azure.ai.documentintelligence.models.AnalyzeDocumentOptions;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
 import com.azure.core.credential.AzureKeyCredential;
-import com.azure.core.util.BinaryData;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 @ApplicationScoped
@@ -28,10 +29,16 @@ public class AzureDocumentConnector
 
 	public AnalyzeResult getAnalyzeResult(String modelId, Path image)
 	{
-		BinaryData imageData = BinaryData.fromFile(image);
-
-		var analyzeDocumentPoller = azureClient.beginAnalyzeDocument(modelId, new AnalyzeDocumentOptions(imageData));
-
-		return analyzeDocumentPoller.getFinalResult();
+		try
+		{
+			byte[] imageBytes = Files.readAllBytes(image);
+			var options = new AnalyzeDocumentOptions(imageBytes);
+			var analyzeDocumentPoller = azureClient.beginAnalyzeDocument(modelId, options);
+			return analyzeDocumentPoller.getFinalResult();
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException("Failed to read document file: " + image, e);
+		}
 	}
 }
