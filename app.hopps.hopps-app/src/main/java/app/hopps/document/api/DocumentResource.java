@@ -6,6 +6,9 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
@@ -13,6 +16,7 @@ import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
+import app.hopps.document.workflow.DocumentAnalysisWorkflow;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -32,6 +36,8 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 @Path("/belege")
 public class DocumentResource extends Controller
 {
+	private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
+
 	@Inject
 	DocumentRepository documentRepository;
 
@@ -40,6 +46,9 @@ public class DocumentResource extends Controller
 
 	@Inject
 	StorageService storageService;
+
+	@Inject
+	DocumentAnalysisWorkflow documentAnalysisWorkflow;
 
 	@CheckedTemplate
 	public static class Templates
@@ -156,12 +165,19 @@ public class DocumentResource extends Controller
 		}
 
 		// Handle file upload
-		if (file != null && file.fileName() != null && !file.fileName().isBlank())
+		boolean hasFile = file != null && file.fileName() != null && !file.fileName().isBlank();
+		if (hasFile)
 		{
 			handleFileUpload(document, file);
 		}
 
 		documentRepository.persist(document);
+
+		// Trigger AI analysis workflow if file was uploaded
+		if (hasFile)
+		{
+			triggerDocumentAnalysis(document.getId());
+		}
 
 		flash("success", "Beleg erstellt");
 		redirect(DocumentResource.class).show(document.getId());
@@ -330,6 +346,9 @@ public class DocumentResource extends Controller
 
 		handleFileUpload(document, file);
 
+		// Trigger AI analysis workflow for newly uploaded file
+		triggerDocumentAnalysis(documentId);
+
 		flash("success", "Datei hochgeladen: " + file.fileName());
 		redirect(DocumentResource.class).show(documentId);
 	}
@@ -385,6 +404,22 @@ public class DocumentResource extends Controller
 	private void deleteFileFromStorage(String fileKey)
 	{
 		storageService.deleteFile(fileKey);
+	}
+
+	private void triggerDocumentAnalysis(Long documentId)
+	{
+		try
+		{
+			documentAnalysisWorkflow.startAnalysis(documentId);
+			LOG.info("Document analysis workflow triggered for document: {}", documentId);
+		}
+		catch (Exception e)
+		{
+			LOG.warn("Document analysis failed, continuing without autofill: documentId={}, error={}",
+				documentId, e.getMessage());
+			// Don't fail the upload if analysis fails - it's an enhancement,
+			// not critical
+		}
 	}
 
 	@POST
