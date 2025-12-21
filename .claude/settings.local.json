@@ -14,7 +14,9 @@
       "Bash(git check-ignore:*)",
       "Bash(./mvnw formatter:format:*)",
       "Bash(/Users/markus/git/fuggs/app.hopps.hopps-app/mvnw:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)"
     ]
   }
 }

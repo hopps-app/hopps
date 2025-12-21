@@ -1,5 +1,8 @@
 package app.hopps.simplepe;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Abstract base class for system tasks. System tasks are executed automatically
  * by the process engine. They run synchronously and complete immediately.
@@ -9,16 +12,23 @@ package app.hopps.simplepe;
  */
 public abstract class SystemTask implements Task
 {
+	private static final Logger LOG = LoggerFactory.getLogger(SystemTask.class);
+
 	@Override
 	public final TaskResult execute(Chain chain)
 	{
+		LOG.debug("Executing system task: {} for chain: {}", getTaskName(), chain.getId());
+
 		try
 		{
 			doExecute(chain);
+			LOG.debug("System task completed successfully: {} for chain: {}", getTaskName(), chain.getId());
 			return TaskResult.COMPLETED;
 		}
 		catch (Exception e)
 		{
+			LOG.error("System task failed: {} for chain: {}, error: {}",
+				getTaskName(), chain.getId(), e.getMessage(), e);
 			chain.setError(e.getMessage());
 			return TaskResult.FAILED;
 		}
