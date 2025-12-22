@@ -1,9 +1,7 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.az.document.ai.model.InvoiceData;
-import app.hopps.az.document.ai.model.InvoiceDataHelper;
-import app.hopps.az.document.ai.model.ReceiptData;
-import app.hopps.az.document.ai.model.ReceiptDataHelper;
+import app.hopps.az.document.ai.model.DocumentData;
+import app.hopps.az.document.ai.model.DocumentDataHelper;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
 import com.azure.ai.documentintelligence.models.AnalyzedDocument;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -14,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 @ApplicationScoped
 public class AzureAiService
@@ -23,11 +20,8 @@ public class AzureAiService
 
 	private final AzureDocumentConnector azureDocumentConnector;
 
-	@ConfigProperty(name = "app.hopps.az-document-ai.azure.invoiceModelId")
-	String invoiceModelId;
-
-	@ConfigProperty(name = "app.hopps.az-document-ai.azure.receiptModelId")
-	String receiptModelId;
+	@ConfigProperty(name = "app.hopps.az-document-ai.azure.modelId")
+	String modelId;
 
 	@Inject
 	public AzureAiService(AzureDocumentConnector azureDocumentConnector)
@@ -35,53 +29,26 @@ public class AzureAiService
 		this.azureDocumentConnector = azureDocumentConnector;
 	}
 
-	public Optional<ReceiptData> scanReceipt(Path documentData, String documentName)
+	public DocumentData scanDocument(Path documentData, String documentName) throws OcrException
 	{
-		var document = scanDocument(receiptModelId, documentData, documentName);
-		if (document.isEmpty())
-		{
-			return Optional.empty();
-		}
+		LOG.info("Starting scan of document: '{}'", documentName);
 
-		LOG.info("Scanned receipt: {}", document.get().getFields());
-
-		ReceiptData receiptData = ReceiptDataHelper.fromDocument(document.get());
-		return Optional.of(receiptData);
-	}
-
-	public Optional<InvoiceData> scanInvoice(Path documentData, String documentName)
-	{
-		var document = scanDocument(invoiceModelId, documentData, documentName);
-		if (document.isEmpty())
-		{
-			return Optional.empty();
-		}
-
-		LOG.info("Scanned invoice: {}", document.get().getFields());
-
-		InvoiceData invoiceData = InvoiceDataHelper.fromDocument(document.get());
-		return Optional.of(invoiceData);
-	}
-
-	private Optional<AnalyzedDocument> scanDocument(String modelId, Path document, String documentName)
-	{
-		LOG.info("(model={}) Starting scan of document: '{}'", modelId, documentName);
-
-		AnalyzeResult analyzeLayoutResult = azureDocumentConnector.getAnalyzeResult(modelId, document);
+		AnalyzeResult analyzeLayoutResult = azureDocumentConnector.getAnalyzeResult(modelId, documentData);
 		List<AnalyzedDocument> documents = analyzeLayoutResult.getDocuments();
 
 		if (documents.isEmpty())
 		{
 			LOG.error("Couldn't analyze document '{}'", documentName);
-			return Optional.empty();
+			throw new OcrException("Could not analyze document, AI's return value is empty");
 		}
 		else if (documents.size() > 1)
 		{
 			LOG.warn("Document analysis for '{}' found {} documents, using first one", documentName, documents.size());
 		}
 
-		LOG.info("(model={}) Scan successfully completed for: '{}'", modelId, documentName);
+		AnalyzedDocument document = documents.getFirst();
+		LOG.info("Scanned document '{}': {}", documentName, document.getFields());
 
-		return Optional.ofNullable(documents.getFirst());
+		return DocumentDataHelper.fromDocument(document);
 	}
 }
