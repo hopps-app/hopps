@@ -188,6 +188,7 @@ Form POST endpoints require CSRF tokens. For testing:
 - Use [@carbon/web-components](https://web-components.carbondesignsystem.com/)
 - Common components: `cds-inline-notification`, tables, buttons
 - Custom CSS follows Carbon design tokens (e.g., `--cds-spacing-05`)
+- If there are long-running requests, use the best practices from Carbon (https://carbondesignsystem.com/patterns/loading-pattern/)
 
 ## Common Gotchas
 
