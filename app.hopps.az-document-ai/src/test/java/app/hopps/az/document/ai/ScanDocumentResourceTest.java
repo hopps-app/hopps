@@ -1,14 +1,12 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.az.document.ai.model.InvoiceData;
-import app.hopps.az.document.ai.model.ReceiptData;
+import app.hopps.az.document.ai.model.DocumentData;
 import app.hopps.az.document.ai.model.TradeParty;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,97 +15,86 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @TestHTTPEndpoint(ScanDocumentResource.class)
 class ScanDocumentResourceTest
 {
-	private static final String INVOICE_REQUEST_BODY = "fake invoice data here";
-	private static final String RECEIPT_REQUEST_BODY = "fake receipt data here";
+	private static final String REQUEST_BODY = "fake document data here";
 
 	@InjectMock
 	AzureAiService azureAiServiceMock;
 
 	@Test
-	void invoiceScanWorks()
+	void documentScanWorks() throws OcrException
 	{
 		// Arrange
-		InvoiceData invoiceData = fakeInvoiceData();
+		DocumentData documentData = fakeDocumentData();
 
-		when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
-			.thenReturn(Optional.of(invoiceData));
-		when(azureAiServiceMock.scanReceipt(Mockito.any(), Mockito.anyString()))
-			.thenReturn(Optional.empty());
+		when(azureAiServiceMock.scanDocument(any(), anyString()))
+			.thenReturn(documentData);
 
 		// Act
 		var receivedData = given()
-			.multiPart("document", INVOICE_REQUEST_BODY)
+			.multiPart("document", REQUEST_BODY)
 			.multiPart("transactionRecordId", "32")
 			.contentType(ContentType.MULTIPART)
 			.when()
-			.post("invoice")
+			.post()
 			.then()
 			.statusCode(200)
 			.extract()
-			.as(InvoiceData.class);
+			.as(DocumentData.class);
 
 		// Assert
-		assertEquals(invoiceData, receivedData);
+		assertEquals(documentData, receivedData);
 	}
 
 	@Test
-	void receiptScanWorks()
+	void azureFailureIsPropagatedAsBadRequest() throws OcrException
 	{
 		// Arrange
-		ReceiptData receiptData = fakeReceiptData();
+		when(azureAiServiceMock.scanDocument(any(), anyString()))
+			.thenThrow(new OcrException("Test error"));
 
-		when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
-			.thenReturn(Optional.empty());
-		when(azureAiServiceMock.scanReceipt(Mockito.any(), Mockito.anyString()))
-			.thenReturn(Optional.of(receiptData));
-
-		// Act
-		var receivedData = given()
-			.multiPart("document", RECEIPT_REQUEST_BODY)
+		// Act + Assert
+		given()
+			.multiPart("document", REQUEST_BODY)
 			.multiPart("transactionRecordId", "32")
 			.contentType(ContentType.MULTIPART)
 			.when()
-			.post("receipt")
+			.post()
 			.then()
-			.statusCode(200)
-			.extract()
-			.as(ReceiptData.class);
-
-		// Assert
-		assertEquals(receiptData, receivedData);
+			.statusCode(400);
 	}
 
 	@Test
-	void azureFailureIsPropagatedAsInternalServerError()
+	void azureRuntimeFailureIsPropagatedAsInternalServerError() throws OcrException
 	{
 		// Arrange
-		when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
+		when(azureAiServiceMock.scanDocument(any(), anyString()))
 			.thenThrow(new RuntimeException());
 
 		// Act + Assert
 		given()
-			.multiPart("document", INVOICE_REQUEST_BODY)
+			.multiPart("document", REQUEST_BODY)
 			.multiPart("transactionRecordId", "32")
 			.contentType(ContentType.MULTIPART)
 			.when()
-			.post("invoice")
+			.post()
 			.then()
 			.statusCode(500);
 	}
 
 	@Test
-	void fileUploadPreservesBytesCorrectly() throws URISyntaxException, IOException
+	void fileUploadPreservesBytesCorrectly() throws URISyntaxException, IOException, OcrException
 	{
 		// Arrange - get the actual test file
 		File receiptFile = new File(getClass().getClassLoader().getResource("receipt.png").toURI());
@@ -115,12 +102,12 @@ class ScanDocumentResourceTest
 
 		// Use Answer to verify bytes during invocation (before temp file
 		// cleanup)
-		when(azureAiServiceMock.scanInvoice(Mockito.any(), Mockito.anyString()))
+		when(azureAiServiceMock.scanDocument(any(), anyString()))
 			.thenAnswer(invocation -> {
 				Path uploadedPath = invocation.getArgument(0);
 				byte[] actualBytes = Files.readAllBytes(uploadedPath);
 				assertArrayEquals(expectedBytes, actualBytes, "Uploaded file bytes should match original file");
-				return Optional.of(fakeInvoiceData());
+				return fakeDocumentData();
 			});
 
 		// Act
@@ -129,32 +116,43 @@ class ScanDocumentResourceTest
 			.multiPart("transactionRecordId", "123")
 			.contentType(ContentType.MULTIPART)
 			.when()
-			.post("invoice")
+			.post()
 			.then()
 			.statusCode(200);
 	}
 
-	private static InvoiceData fakeInvoiceData()
+	private static DocumentData fakeDocumentData()
 	{
-		return new InvoiceData(
+		return new DocumentData(
 			BigDecimal.valueOf(135.0),
+			"EUR",
 			LocalDate.now(),
-			"EUR");
-	}
-
-	private static ReceiptData fakeReceiptData()
-	{
-		return new ReceiptData(
-			BigDecimal.valueOf(156.9),
-			Optional.of("AWS"),
-			Optional.of(fakeAddress()),
-			Optional.empty());
+			null,
+			"INV-001",
+			"Test Merchant",
+			fakeAddress(),
+			"DE123456789",
+			"Test Customer",
+			"CUST-001",
+			null,
+			fakeAddress(),
+			null,
+			LocalDate.now().plusDays(30),
+			BigDecimal.valueOf(135.0),
+			BigDecimal.valueOf(113.45),
+			BigDecimal.valueOf(21.55),
+			null,
+			null,
+			"PO-12345",
+			"Net 30",
+			null,
+			null);
 	}
 
 	private static TradeParty fakeAddress()
 	{
 		return new TradeParty(
-			"AWS",
+			"Test Company",
 			"Germany",
 			"85276",
 			"Bavaria",
@@ -163,6 +161,6 @@ class ScanDocumentResourceTest
 			"5",
 			"taxid",
 			"vatid",
-			"Amazon Web Services");
+			"Test Company Description");
 	}
 }
