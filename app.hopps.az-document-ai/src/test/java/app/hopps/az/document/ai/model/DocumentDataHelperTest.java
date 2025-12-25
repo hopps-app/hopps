@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,7 +27,7 @@ class DocumentDataHelperTest
 		AnalyzedDocument document = loadSampleDocument("sample-receipt.02.json");
 
 		// when
-		DocumentData data = DocumentDataHelper.fromDocument(document);
+		DocumentData data = DocumentDataHelper.fromDocument(document, Collections.emptyList());
 
 		// then
 		// Brutto (total) should be 100.00 - what was actually paid
@@ -52,7 +53,7 @@ class DocumentDataHelperTest
 		AnalyzedDocument document = loadSampleDocument("sample-receipt.02.json");
 
 		// when
-		DocumentData data = DocumentDataHelper.fromDocument(document);
+		DocumentData data = DocumentDataHelper.fromDocument(document, Collections.emptyList());
 
 		// then
 		assertNotNull(data.date());
@@ -68,7 +69,7 @@ class DocumentDataHelperTest
 		AnalyzedDocument document = loadSampleDocument("sample-receipt.02.json");
 
 		// when
-		DocumentData data = DocumentDataHelper.fromDocument(document);
+		DocumentData data = DocumentDataHelper.fromDocument(document, Collections.emptyList());
 
 		// then
 		assertEquals("1/1/1/1001", data.documentId());
@@ -81,7 +82,7 @@ class DocumentDataHelperTest
 		AnalyzedDocument document = loadSampleDocument("sample-receipt.02.json");
 
 		// when
-		DocumentData data = DocumentDataHelper.fromDocument(document);
+		DocumentData data = DocumentDataHelper.fromDocument(document, Collections.emptyList());
 
 		// then
 		assertEquals("Kassenbeleg", data.merchantName());
@@ -94,7 +95,7 @@ class DocumentDataHelperTest
 		AnalyzedDocument document = loadSampleDocument("sample-receipt.02.json");
 
 		// when
-		DocumentData data = DocumentDataHelper.fromDocument(document);
+		DocumentData data = DocumentDataHelper.fromDocument(document, Collections.emptyList());
 
 		// then
 		assertEquals("EUR", data.currencyCode());
@@ -107,7 +108,7 @@ class DocumentDataHelperTest
 		AnalyzedDocument document = loadSampleDocument("sample-receipt.02.json");
 
 		// when
-		DocumentData data = DocumentDataHelper.fromDocument(document);
+		DocumentData data = DocumentDataHelper.fromDocument(document, Collections.emptyList());
 
 		// then
 		assertEquals("VISA", data.paymentTerm());

@@ -29,9 +29,6 @@ public class DocumentAnalysisWorkflow
 	@Inject
 	AnalyzeDocumentTask analyzeDocumentTask;
 
-	@Inject
-	GenerateTagsTask generateTagsTask;
-
 	/**
 	 * Starts the document analysis workflow for the given document.
 	 *
@@ -42,11 +39,10 @@ public class DocumentAnalysisWorkflow
 	public Chain startAnalysis(Long documentId)
 	{
 		LOG.info("Starting document analysis workflow: documentId={}", documentId);
-		LOG.debug("Creating process definition with AnalyzeDocumentTask and GenerateTagsTask");
+		LOG.debug("Creating process definition with AnalyzeDocumentTask");
 
 		ProcessDefinition process = new ProcessDefinition(PROCESS_NAME)
-			.addTask(analyzeDocumentTask)
-			.addTask(generateTagsTask);
+			.addTask(analyzeDocumentTask);
 
 		Map<String, Object> variables = Map.of(
 			AnalyzeDocumentTask.VAR_DOCUMENT_ID, documentId);

@@ -3,6 +3,7 @@ package app.hopps.document.client;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 public record DocumentData(
 	BigDecimal total,
@@ -27,6 +28,7 @@ public record DocumentData(
 	String purchaseOrderNumber,
 	String paymentTerm,
 	LocalDate serviceStartDate,
-	LocalDate serviceEndDate)
+	LocalDate serviceEndDate,
+	List<String> tags)
 {
 }
