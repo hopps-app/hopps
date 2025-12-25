@@ -3,36 +3,6 @@
 
 {#moreStyles}
 <style>
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--cds-spacing-05);
-  }
-  .page-header h1 {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .doc-type {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-  .doc-type.invoice {
-    background: linear-gradient(135deg, #d0e2ff 0%, #a6c8ff 100%);
-    color: #0043ce;
-  }
-  .doc-type.receipt {
-    background: linear-gradient(135deg, #defbe6 0%, #a7f0ba 100%);
-    color: #0e6027;
-  }
-
   /* Loading State */
   .loading-container {
     text-align: center;
@@ -84,6 +54,7 @@
     font-size: 0.75rem;
     color: #8d8d8d;
   }
+
   /* Skeleton placeholders */
   .skeleton-form {
     margin-top: 2rem;
@@ -158,7 +129,6 @@
     font-size: 0.875rem;
     color: #491d8b;
   }
-  /* AI Label popover content */
   .ai-explainer {
     padding: 0.5rem;
   }
@@ -171,48 +141,9 @@
     font-weight: 600;
   }
 
-  /* Form Styling */
-  .form-section {
-    margin-bottom: var(--cds-spacing-07);
-  }
-  .form-section h3 {
-    margin-top: 0;
-    margin-bottom: var(--cds-spacing-05);
-    padding-bottom: var(--cds-spacing-03);
-    border-bottom: 1px solid var(--cds-border-subtle-01);
-    font-size: 1rem;
-    font-weight: 600;
-  }
-  .form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  .form-group label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: #525252;
-  }
+  /* AI Form Input Styling */
   .form-group cds-ai-label {
     margin-left: 0.25rem;
-  }
-  .form-group input,
-  .form-group select {
-    height: 40px;
-    padding: 0 1rem;
-    border: none;
-    border-bottom: 1px solid #8d8d8d;
-    background-color: #f4f4f4;
-    font-size: 0.875rem;
-    outline: none;
   }
   .form-group input.ai-value,
   .form-group select.ai-value {
@@ -229,15 +160,13 @@
     flex: 1;
     padding-right: 2rem;
   }
-  .clear-ai-btn {
+  .clear-ai-btn, .restore-ai-btn {
     position: absolute;
     right: 0.5rem;
     width: 20px;
     height: 20px;
     padding: 0;
     border: none;
-    background: #8a3ffc;
-    color: white;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -247,136 +176,28 @@
     line-height: 1;
     opacity: 0.8;
     transition: opacity 0.15s, background-color 0.15s;
+  }
+  .clear-ai-btn {
+    background: #8a3ffc;
+    color: white;
   }
   .clear-ai-btn:hover {
     opacity: 1;
     background: #6929c4;
   }
-  .clear-ai-btn svg {
-    width: 10px;
-    height: 10px;
-    fill: currentColor;
-  }
   .restore-ai-btn {
-    position: absolute;
-    right: 0.5rem;
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    border: none;
     background: #6929c4;
     color: white;
-    border-radius: 50%;
-    cursor: pointer;
     display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    line-height: 1;
-    opacity: 0.8;
-    transition: opacity 0.15s, background-color 0.15s;
   }
   .restore-ai-btn:hover {
     opacity: 1;
     background: #8a3ffc;
   }
-  .restore-ai-btn svg {
+  .clear-ai-btn svg, .restore-ai-btn svg {
     width: 10px;
     height: 10px;
     fill: currentColor;
-  }
-  .form-group input:focus,
-  .form-group select:focus {
-    border-bottom: 2px solid #0f62fe;
-  }
-  .form-group.checkbox {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .form-group.checkbox input {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* File Preview */
-  .file-preview {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: #f4f4f4;
-    border-radius: 4px;
-    margin-bottom: var(--cds-spacing-05);
-  }
-  .file-preview .file-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0f62fe;
-    border-radius: 4px;
-    color: white;
-  }
-  .file-preview .file-icon svg {
-    width: 24px;
-    height: 24px;
-    fill: currentColor;
-  }
-  .file-preview .file-details {
-    flex: 1;
-  }
-  .file-preview .file-name {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-  .file-preview .file-meta {
-    font-size: 0.75rem;
-    color: #525252;
-  }
-
-  /* Buttons */
-  .button-row {
-    display: flex;
-    gap: 1rem;
-    margin-top: var(--cds-spacing-07);
-  }
-  button.cds-btn,
-  a.cds-btn {
-    height: 48px;
-    padding: 0 1.5rem;
-    border: none;
-    font-size: 0.875rem;
-    font-weight: 400;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-  }
-  button.cds-btn-primary {
-    background-color: #0f62fe;
-    color: white;
-  }
-  button.cds-btn-primary:hover {
-    background-color: #0353e9;
-  }
-  a.cds-btn-secondary,
-  button.cds-btn-secondary {
-    background-color: #393939;
-    color: white;
-  }
-  a.cds-btn-secondary:hover,
-  button.cds-btn-secondary:hover {
-    background-color: #4c4c4c;
-  }
-  button.cds-btn-danger {
-    background-color: #da1e28;
-    color: white;
-  }
-  button.cds-btn-danger:hover {
-    background-color: #b81921;
   }
 
   /* Analysis Error */
@@ -408,79 +229,11 @@
     color: #750e13;
   }
 
-  /* Hidden content during loading */
+  /* Visibility states */
   .review-form { display: none; }
   .review-form.visible { display: block; }
 
-  /* Tag input styling */
-  .tag-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    min-height: 40px;
-    padding: 0.5rem;
-    background: #f4f4f4;
-    border-radius: 4px;
-    margin-bottom: 0.75rem;
-  }
-  .tag-container:empty::before {
-    content: 'Keine Tags vorhanden';
-    color: #8d8d8d;
-    font-size: 0.875rem;
-    font-style: italic;
-  }
-  .tag-container cds-tag {
-    --cds-layout-size-height: 2rem;
-  }
-  .tag-container cds-tag[type="purple"] {
-    background: linear-gradient(135deg, rgba(105, 41, 196, 0.15) 0%, rgba(166, 108, 255, 0.2) 100%);
-    border-color: #8a3ffc;
-  }
-  .tag-input-row {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-  .tag-text-input {
-    flex: 1;
-    height: 40px;
-    padding: 0 1rem;
-    border: none;
-    border-bottom: 1px solid #8d8d8d;
-    background-color: #f4f4f4;
-    font-size: 0.875rem;
-    outline: none;
-  }
-  .tag-text-input:focus {
-    border-bottom: 2px solid #0f62fe;
-  }
-  .tag-add-btn {
-    height: 40px;
-    padding: 0 1rem;
-    border: none;
-    background: #0f62fe;
-    color: white;
-    font-size: 0.875rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    white-space: nowrap;
-  }
-  .tag-add-btn:hover {
-    background: #0353e9;
-  }
-  .tag-add-btn:disabled {
-    background: #c6c6c6;
-    cursor: not-allowed;
-  }
-  .tag-hint {
-    font-size: 0.75rem;
-    color: #525252;
-    margin-top: 0.25rem;
-  }
-
-  /* Split Layout for document preview */
+  /* Split Layout */
   .review-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -548,16 +301,6 @@
     min-height: 500px;
     border: none;
   }
-  .preview-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: var(--cds-spacing-04);
-  }
-  .preview-actions a {
-    flex: 1;
-    text-align: center;
-    justify-content: center;
-  }
   .form-panel {
     min-width: 0;
   }
@@ -602,10 +345,8 @@
         .then(function(response) { return response.json(); })
         .then(function(data) {
           if (data.complete) {
-            // Reload page to get updated document data
             window.location.reload();
           } else {
-            // Poll again after 1 second
             setTimeout(pollAnalysisStatus, 1000);
           }
         })
@@ -619,7 +360,6 @@
   function clearAiValue(inputId) {
     var input = document.getElementById(inputId);
     if (input) {
-      // Store original value before clearing
       if (!input.dataset.aiValue) {
         input.dataset.aiValue = input.value;
       }
@@ -629,7 +369,6 @@
         input.value = '';
       }
       input.classList.remove('ai-value');
-      // Hide clear button, show restore button
       var clearBtn = input.parentElement.querySelector('.clear-ai-btn');
       var restoreBtn = input.parentElement.querySelector('.restore-ai-btn');
       if (clearBtn) clearBtn.style.display = 'none';
@@ -642,90 +381,12 @@
     if (input && input.dataset.aiValue) {
       input.value = input.dataset.aiValue;
       input.classList.add('ai-value');
-      // Show clear button, hide restore button
       var clearBtn = input.parentElement.querySelector('.clear-ai-btn');
       var restoreBtn = input.parentElement.querySelector('.restore-ai-btn');
       if (clearBtn) clearBtn.style.display = 'flex';
       if (restoreBtn) restoreBtn.style.display = 'none';
     }
   }
-
-  // Tag handling
-  function initTagHandling() {
-    var tagContainer = document.getElementById('tagContainer');
-    var tagsInput = document.getElementById('tagsInput');
-    var newTagInput = document.getElementById('newTagInput');
-    var addTagBtn = document.getElementById('addTagBtn');
-
-    if (!tagContainer || !tagsInput || !newTagInput || !addTagBtn) return;
-
-    // Handle filter tag close events
-    tagContainer.addEventListener('cds-tag-closed', function(event) {
-      var tag = event.target;
-      var tagName = tag.dataset.tagName;
-      if (tagName) {
-        removeTagFromInput(tagName);
-        tag.remove();
-      }
-    });
-
-    // Handle adding new tags
-    function addNewTag() {
-      var tagName = newTagInput.value.trim().toLowerCase();
-      if (!tagName) return;
-
-      // Check if tag already exists
-      var existingTags = getTagsFromInput();
-      if (existingTags.includes(tagName)) {
-        newTagInput.value = '';
-        return;
-      }
-
-      // Add to hidden input
-      existingTags.push(tagName);
-      tagsInput.value = existingTags.join(', ');
-
-      // Create visual tag element
-      var tagElement = document.createElement('cds-tag');
-      tagElement.setAttribute('filter', '');
-      tagElement.setAttribute('size', 'md');
-      tagElement.setAttribute('type', 'gray');
-      tagElement.setAttribute('data-tag-name', tagName);
-      tagElement.setAttribute('title', 'Manuell hinzugefügt');
-      tagElement.textContent = tagName;
-      tagContainer.appendChild(tagElement);
-
-      // Clear input
-      newTagInput.value = '';
-      newTagInput.focus();
-    }
-
-    addTagBtn.addEventListener('click', addNewTag);
-
-    newTagInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addNewTag();
-      }
-    });
-
-    function getTagsFromInput() {
-      var value = tagsInput.value.trim();
-      if (!value) return [];
-      return value.split(',').map(function(t) { return t.trim().toLowerCase(); }).filter(function(t) { return t.length > 0; });
-    }
-
-    function removeTagFromInput(tagName) {
-      var tags = getTagsFromInput();
-      tags = tags.filter(function(t) { return t !== tagName.toLowerCase(); });
-      tagsInput.value = tags.join(', ');
-    }
-  }
-
-  // Initialize tag handling when DOM is ready
-  document.addEventListener('DOMContentLoaded', function() {
-    initTagHandling();
-  });
 </script>
 {/moreScripts}
 
@@ -751,7 +412,6 @@
       Dies kann einige Sekunden dauern
     </div>
     <div class="loading-elapsed" id="loadingElapsed"></div>
-    <!-- Skeleton form preview -->
     <div class="skeleton-form">
       <div class="skeleton-row">
         <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
@@ -769,7 +429,7 @@
 <!-- Review Form (shown after analysis) -->
 <div class="review-form" id="reviewForm">
   <div class="review-layout">
-    <!-- Document Preview Panel (Left) -->
+    <!-- Document Preview Panel -->
     <div class="document-preview-panel">
       <div class="box">
         <div class="preview-header">
@@ -801,429 +461,60 @@
       </div>
     </div>
 
-    <!-- Form Panel (Right) -->
+    <!-- Form Panel -->
     <div class="form-panel">
-      <!-- AI Analysis Result -->
       <div class="box ai-gradient-box">
-    <div class="ai-header">
-      <cds-ai-label size="sm" autoalign alignment="bottom-left">
-        <div slot="body-text" class="ai-explainer">
-          <p class="secondary">KI-Erklärung</p>
-          <p class="secondary bold">Dokumentenanalyse</p>
-          <p class="secondary">Unsere KI analysiert hochgeladene Belege und extrahiert automatisch relevante Daten wie Beträge, Daten und Absenderinformationen.</p>
-        </div>
-      </cds-ai-label>
-      <h3>Erkannte Daten</h3>
-    </div>
-
-    {#if document.analysisStatus.name == 'FAILED'}
-    <div class="analysis-error">
-      <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M15 8h2v11h-2zM15 21h2v3h-2z"/></svg>
-      <div class="analysis-error-content">
-        <h4>Analyse fehlgeschlagen</h4>
-        <p>Die automatische Analyse konnte nicht durchgeführt werden. Bitte füllen Sie die Felder manuell aus.</p>
-      </div>
-    </div>
-    {#else if document.analysisStatus.name == 'COMPLETED'}
-    <div class="ai-message">
-      <svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/></svg>
-      <p>Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern.</p>
-    </div>
-    {#else}
-    <div class="ai-message">
-      <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
-      <p>Bitte füllen Sie die Belegdaten manuell aus.</p>
-    </div>
-    {/if}
-
-    <form action="/belege/save" method="POST">
-      {#authenticityToken /}
-      <input type="hidden" name="id" value="{document.id}">
-      <input type="hidden" name="documentType" value="{document.documentType.name}">
-
-      <div class="form-section">
-        <h3>Belegdaten</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="name">
-              Bezeichnung
-              {#if document.name != null && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Bezeichnung</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="text" id="name" name="name" value="{document.name ?: ''}" placeholder="z.B. Büromaterial" class="{#if document.name != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.name != null && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('name')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('name')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="transactionDate">
-              Datum
-              {#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Belegdatum</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="date" id="transactionDate" name="transactionDate" value="{document.transactionDateForInput}" class="{#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('transactionDate')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('transactionDate')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="total">
-              Bruttobetrag *
-              {#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Gesamtbetrag</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="number" id="total" name="total" step="0.01" required value="{document.total}" class="{#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('total')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('total')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="subTotal">Nettobetrag (berechnet)</label>
-            <input type="number" id="subTotal" step="0.01" value="{document.subTotal}" disabled style="background-color: #e0e0e0; color: #525252;">
-          </div>
-          <div class="form-group">
-            <label for="totalTax">
-              MwSt
-              {#if document.totalTax != null && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Mehrwertsteuer</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="number" id="totalTax" name="totalTax" step="0.01" value="{document.totalTax}" class="{#if document.totalTax != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.totalTax != null && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('totalTax')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('totalTax')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="currencyCode">
-              Währung
-              {#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Währung</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <select id="currencyCode" name="currencyCode" class="{#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-                <option value="EUR" {#if document.currencyCode == 'EUR' || document.currencyCode == null}selected{/if}>EUR</option>
-                <option value="USD" {#if document.currencyCode == 'USD'}selected{/if}>USD</option>
-                <option value="CHF" {#if document.currencyCode == 'CHF'}selected{/if}>CHF</option>
-                <option value="GBP" {#if document.currencyCode == 'GBP'}selected{/if}>GBP</option>
-              </select>
-              {#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('currencyCode')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('currencyCode')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="bommelId">Bommel zuweisen</label>
-            <select id="bommelId" name="bommelId">
-              <option value="">— Nicht zugewiesen —</option>
-              {#for bommel in bommels}
-              <option value="{bommel.id}" {#if document.bommel != null && document.bommel.id == bommel.id}selected{/if}>{bommel.title}</option>
-              {/for}
-            </select>
-          </div>
-          <div class="form-group checkbox">
-            <input type="checkbox" id="privatelyPaid" name="privatelyPaid" {#if document.privatelyPaid}checked{/if}>
-            <label for="privatelyPaid">Privat bezahlt</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3>Absender</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="senderName">
-              Name / Firma
-              {#if document.senderName != null && document.senderName != '' && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Absender</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="text" id="senderName" name="senderName" value="{document.senderName}" placeholder="z.B. Lieferant GmbH" class="{#if document.senderName != null && document.senderName != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.senderName != null && document.senderName != '' && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderName')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderName')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="senderStreet">Straße</label>
-            <div class="input-with-clear">
-              <input type="text" id="senderStreet" name="senderStreet" value="{document.senderStreet}" class="{#if document.senderStreet != null && document.senderStreet != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.senderStreet != null && document.senderStreet != '' && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderStreet')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderStreet')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="senderZipCode">PLZ</label>
-            <div class="input-with-clear">
-              <input type="text" id="senderZipCode" name="senderZipCode" value="{document.senderZipCode}" class="{#if document.senderZipCode != null && document.senderZipCode != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.senderZipCode != null && document.senderZipCode != '' && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderZipCode')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderZipCode')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="senderCity">Ort</label>
-            <div class="input-with-clear">
-              <input type="text" id="senderCity" name="senderCity" value="{document.senderCity}" class="{#if document.senderCity != null && document.senderCity != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.senderCity != null && document.senderCity != '' && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderCity')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderCity')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3>Rechnungsdetails</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="invoiceId">
-              Rechnungsnummer
-              {#if document.invoiceId != null && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Rechnungsnummer</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="text" id="invoiceId" name="invoiceId" value="{document.invoiceId ?: ''}" class="{#if document.invoiceId != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.invoiceId != null && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('invoiceId')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('invoiceId')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="orderNumber">
-              Bestellnummer
-              {#if document.orderNumber != null && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Bestellnummer</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="text" id="orderNumber" name="orderNumber" value="{document.orderNumber ?: ''}" class="{#if document.orderNumber != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.orderNumber != null && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('orderNumber')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('orderNumber')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="dueDate">
-              Fälligkeitsdatum
-              {#if document.dueDate != null && document.analysisStatus.name == 'COMPLETED'}
-              <cds-ai-label size="mini" autoalign alignment="bottom-left">
-                <div slot="body-text" class="ai-explainer">
-                  <p class="secondary">KI-erkannt</p>
-                  <p class="secondary bold">Fälligkeitsdatum</p>
-                  <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
-                </div>
-              </cds-ai-label>
-              {/if}
-            </label>
-            <div class="input-with-clear">
-              <input type="date" id="dueDate" name="dueDate" value="{document.dueDateForInput}" class="{#if document.dueDate != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              {#if document.dueDate != null && document.analysisStatus.name == 'COMPLETED'}
-              <button type="button" class="clear-ai-btn" onclick="clearAiValue('dueDate')" title="KI-Wert löschen">
-                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
-              </button>
-              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('dueDate')" title="KI-Wert wiederherstellen">
-                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
-              </button>
-              {/if}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3>
-          Tags
-          {#if document.hasAiTags}
-          <cds-ai-label size="mini" autoalign alignment="bottom-left">
+        <div class="ai-header">
+          <cds-ai-label size="sm" autoalign alignment="bottom-left">
             <div slot="body-text" class="ai-explainer">
-              <p class="secondary">KI-generiert</p>
-              <p class="secondary bold">Automatische Tags</p>
-              <p class="secondary">Diese Tags wurden automatisch basierend auf dem Beleginhalt generiert.</p>
+              <p class="secondary">KI-Erklärung</p>
+              <p class="secondary bold">Dokumentenanalyse</p>
+              <p class="secondary">Unsere KI analysiert hochgeladene Belege und extrahiert automatisch relevante Daten wie Beträge, Daten und Absenderinformationen.</p>
             </div>
           </cds-ai-label>
-          {/if}
-        </h3>
-        <div class="form-row">
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <!-- Hidden input that holds the actual tag values for form submission -->
-            <input type="hidden" id="tagsInput" name="tags" value="{document.tagsAsString}">
+          <h3>Erkannte Daten</h3>
+        </div>
 
-            <!-- Tag display area -->
-            <div class="tag-container" id="tagContainer">
-              {#for docTag in document.documentTags}
-              <cds-tag filter size="md" type="{#if docTag.aiGenerated}purple{#else}gray{/if}" data-tag-name="{docTag.name}" title="{#if docTag.aiGenerated}KI-generiert{#else}Manuell hinzugefügt{/if}">
-                {#if docTag.aiGenerated}<cds-ai-label size="mini"></cds-ai-label>{/if}
-                {docTag.name}
-              </cds-tag>
-              {/for}
-            </div>
-
-            <!-- Tag input area -->
-            <div class="tag-input-row">
-              <input type="text" id="newTagInput" placeholder="Neuen Tag eingeben..." class="tag-text-input">
-              <button type="button" id="addTagBtn" class="tag-add-btn" title="Tag hinzufügen">
-                <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V8h-2v7H8v2h7v7h2v-7h7v-2z"/></svg>
-                Hinzufügen
-              </button>
-            </div>
-            <span class="tag-hint">Enter drücken oder Button klicken zum Hinzufügen</span>
+        {#if document.analysisStatus.name == 'FAILED'}
+        <div class="analysis-error">
+          <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M15 8h2v11h-2zM15 21h2v3h-2z"/></svg>
+          <div class="analysis-error-content">
+            <h4>Analyse fehlgeschlagen</h4>
+            <p>Die automatische Analyse konnte nicht durchgeführt werden. Bitte füllen Sie die Felder manuell aus.</p>
           </div>
         </div>
-      </div>
+        {#else if document.analysisStatus.name == 'COMPLETED'}
+        <div class="ai-message">
+          <svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/></svg>
+          <p>Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern.</p>
+        </div>
+        {#else}
+        <div class="ai-message">
+          <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
+          <p>Bitte füllen Sie die Belegdaten manuell aus.</p>
+        </div>
+        {/if}
 
-      <div class="button-row">
-        <button type="submit" class="cds-btn cds-btn-primary">
-          <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>
-          Beleg speichern
-        </button>
-        <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
+        <form action="/belege/save" method="POST">
+          {#authenticityToken /}
+          <input type="hidden" name="id" value="{document.id}">
+          <input type="hidden" name="documentType" value="{document.documentType.name}">
+
+          {#include DocumentResource/partials/reviewFormFields document=document bommels=bommels /}
+
+          <div class="button-row" style="margin-top: var(--cds-spacing-07);">
+            <button type="submit" class="cds-btn cds-btn-primary">
+              <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>
+              Beleg speichern
+            </button>
+            <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   </div>
-    </div><!-- /form-panel -->
-  </div><!-- /review-layout -->
-</div><!-- /review-form -->
+</div>
 
-{#if flash:success}
-  <cds-inline-notification
-    kind="success"
-    title="Erfolg"
-    subtitle="{flash:success}"
-    style="position: fixed; bottom: 1rem; right: 1rem;">
-  </cds-inline-notification>
-{/if}
-
-{#if flash:error}
-  <cds-inline-notification
-    kind="error"
-    title="Fehler"
-    subtitle="{flash:error}"
-    style="position: fixed; bottom: 1rem; right: 1rem;">
-  </cds-inline-notification>
-{/if}
+{#flashNotifications /}
 
 {/include}

@@ -1,0 +1,17 @@
+{#if flash:success}
+  <cds-inline-notification
+    kind="success"
+    title="Erfolg"
+    subtitle="{flash:success}"
+    class="flash-notification">
+  </cds-inline-notification>
+{/if}
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Fehler"
+    subtitle="{flash:error}"
+    class="flash-notification">
+  </cds-inline-notification>
+{/if}
