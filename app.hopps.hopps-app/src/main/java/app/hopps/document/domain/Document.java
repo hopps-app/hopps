@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -295,7 +296,7 @@ public class Document extends PanacheEntity
 			return "-";
 		}
 		String currency = currencyCode != null ? currencyCode : "EUR";
-		return String.format("%.2f %s", total, currency);
+		return String.format(Locale.GERMAN, "%.2f %s", total, currency);
 	}
 
 	public boolean isTotalPositive()
