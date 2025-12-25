@@ -28,7 +28,9 @@
       "Bash(./mvnw clean package:*)",
       "Bash(../mvnw formatter:format:*)",
       "Bash(../mvnw compile:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)"
     ]
   }
 }
