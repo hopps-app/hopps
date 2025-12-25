@@ -604,12 +604,25 @@
       <button class="menu-toggle" onclick="toggleSideNav()" aria-label="Menu">
         <svg viewBox="0 0 20 20"><path d="M2 4h16v2H2zM2 9h16v2H2zM2 14h16v2H2z"/></svg>
       </button>
-      <cds-header-name href="/bommels" prefix="Hopps">Buchhaltung</cds-header-name>
+      <cds-header-name href="/" prefix="Hopps">Buchhaltung</cds-header-name>
     </cds-header>
 
     <div class="side-nav-overlay" onclick="toggleSideNav()"></div>
 
     <nav class="side-nav" aria-label="Hauptnavigation">
+      <div class="side-nav-section">
+        <ul class="side-nav-items">
+          <li class="side-nav-item">
+            <a href="/" class="side-nav-link {#if inject:vertxRequest.path == '/'}active{/if}">
+              <svg viewBox="0 0 32 32"><path d="M16.61 2.21a1 1 0 0 0-1.24 0L1 13.42 2.24 15 4 13.55V26a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V13.55L29.76 15 31 13.42ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.06l10-8.14 10 8.14V26Z"/></svg>
+              Dashboard
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="side-nav-divider"></div>
+
       <div class="side-nav-section">
         <div class="side-nav-section-title">Organisation</div>
         <ul class="side-nav-items">
