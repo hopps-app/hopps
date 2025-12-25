@@ -218,6 +218,34 @@
     height: 10px;
     fill: currentColor;
   }
+  .restore-ai-btn {
+    position: absolute;
+    right: 0.5rem;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: #6929c4;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.15s, background-color 0.15s;
+  }
+  .restore-ai-btn:hover {
+    opacity: 1;
+    background: #8a3ffc;
+  }
+  .restore-ai-btn svg {
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
+  }
   .form-group input:focus,
   .form-group select:focus {
     border-bottom: 2px solid #0f62fe;
@@ -385,17 +413,34 @@
   function clearAiValue(inputId) {
     var input = document.getElementById(inputId);
     if (input) {
+      // Store original value before clearing
+      if (!input.dataset.aiValue) {
+        input.dataset.aiValue = input.value;
+      }
       if (input.tagName === 'SELECT') {
         input.selectedIndex = 0;
       } else {
         input.value = '';
       }
       input.classList.remove('ai-value');
-      // Hide the clear button
-      var btn = input.parentElement.querySelector('.clear-ai-btn');
-      if (btn) {
-        btn.style.display = 'none';
-      }
+      // Hide clear button, show restore button
+      var clearBtn = input.parentElement.querySelector('.clear-ai-btn');
+      var restoreBtn = input.parentElement.querySelector('.restore-ai-btn');
+      if (clearBtn) clearBtn.style.display = 'none';
+      if (restoreBtn) restoreBtn.style.display = 'flex';
+    }
+  }
+
+  function restoreAiValue(inputId) {
+    var input = document.getElementById(inputId);
+    if (input && input.dataset.aiValue) {
+      input.value = input.dataset.aiValue;
+      input.classList.add('ai-value');
+      // Show clear button, hide restore button
+      var clearBtn = input.parentElement.querySelector('.clear-ai-btn');
+      var restoreBtn = input.parentElement.querySelector('.restore-ai-btn');
+      if (clearBtn) clearBtn.style.display = 'flex';
+      if (restoreBtn) restoreBtn.style.display = 'none';
     }
   }
 </script>
@@ -504,6 +549,9 @@
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('name')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
               </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('name')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
+              </button>
               {/if}
             </div>
           </div>
@@ -525,6 +573,9 @@
               {#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('transactionDate')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('transactionDate')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
               </button>
               {/if}
             </div>
@@ -549,6 +600,9 @@
               {#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('total')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('total')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
               </button>
               {/if}
             </div>
@@ -576,6 +630,9 @@
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('totalTax')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
               </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('totalTax')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
+              </button>
               {/if}
             </div>
           </div>
@@ -602,6 +659,9 @@
               {#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('currencyCode')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('currencyCode')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
               </button>
               {/if}
             </div>
@@ -646,6 +706,9 @@
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderName')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
               </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderName')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
+              </button>
               {/if}
             </div>
           </div>
@@ -659,6 +722,9 @@
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderStreet')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
               </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderStreet')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
+              </button>
               {/if}
             </div>
           </div>
@@ -670,6 +736,9 @@
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderZipCode')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
               </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderZipCode')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
+              </button>
               {/if}
             </div>
           </div>
@@ -680,6 +749,9 @@
               {#if document.senderCity != null && document.senderCity != '' && document.analysisStatus.name == 'COMPLETED'}
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderCity')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('senderCity')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
               </button>
               {/if}
             </div>
@@ -709,6 +781,9 @@
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('invoiceId')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
               </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('invoiceId')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
+              </button>
               {/if}
             </div>
           </div>
@@ -731,6 +806,9 @@
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('orderNumber')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
               </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('orderNumber')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
+              </button>
               {/if}
             </div>
           </div>
@@ -752,6 +830,9 @@
               {#if document.dueDate != null && document.analysisStatus.name == 'COMPLETED'}
               <button type="button" class="clear-ai-btn" onclick="clearAiValue('dueDate')" title="KI-Wert löschen">
                 <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              <button type="button" class="restore-ai-btn" onclick="restoreAiValue('dueDate')" title="KI-Wert wiederherstellen">
+                <svg viewBox="0 0 32 32"><path d="M18 28A12 12 0 1 0 6 16v6.2l-3.6-3.6L1 20l6 6 6-6-1.4-1.4L8 22.2V16a10 10 0 1 1 10 10Z"/></svg>
               </button>
               {/if}
             </div>
