@@ -362,6 +362,22 @@ public class Document extends PanacheEntity
 		this.fileContentType = fileContentType;
 	}
 
+	/**
+	 * Checks if the file is an image (for template use).
+	 */
+	public boolean isImage()
+	{
+		return fileContentType != null && fileContentType.startsWith("image/");
+	}
+
+	/**
+	 * Checks if the file is a PDF (for template use).
+	 */
+	public boolean isPdf()
+	{
+		return "application/pdf".equals(fileContentType);
+	}
+
 	public Long getFileSize()
 	{
 		return fileSize;
