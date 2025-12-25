@@ -193,6 +193,49 @@
     color: #da1e28;
     border-bottom-color: #da1e28;
   }
+
+  /* Document Preview */
+  .document-preview-section {
+    margin-top: var(--cds-spacing-05);
+  }
+  .preview-container {
+    background: #262626;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    max-height: 80vh;
+  }
+  .preview-container img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+  }
+  .preview-container iframe,
+  .preview-container object {
+    width: 100%;
+    height: 70vh;
+    border: none;
+  }
+  .preview-container .no-preview {
+    color: #a8a8a8;
+    text-align: center;
+    padding: 2rem;
+  }
+  .preview-container .no-preview svg {
+    opacity: 0.5;
+    margin-bottom: 1rem;
+  }
+  .preview-container .no-preview p {
+    margin: 0.25rem 0;
+  }
+  .preview-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: var(--cds-spacing-04);
+  }
 </style>
 {/moreStyles}
 
@@ -367,6 +410,36 @@
     </div>
   {/form}
 </div>
+
+{#if document.hasFile}
+<div class="box document-preview-section">
+  <div class="form-section" style="margin-bottom: 0;">
+    <h3>
+      <svg viewBox="0 0 32 32" width="18" height="18" fill="currentColor" style="vertical-align: middle; margin-right: 0.5rem;"><path d="M30.94 15.66A16.69 16.69 0 0 0 16 5 16.69 16.69 0 0 0 1.06 15.66a1 1 0 0 0 0 .68A16.69 16.69 0 0 0 16 27a16.69 16.69 0 0 0 14.94-10.66 1 1 0 0 0 0-.68ZM16 25c-5.3 0-10.9-3.93-12.93-9C5.1 10.93 10.7 7 16 7s10.9 3.93 12.93 9C26.9 21.07 21.3 25 16 25Z"/><path d="M16 10a6 6 0 1 0 6 6 6 6 0 0 0-6-6Zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4Z"/></svg>
+      Dokumentvorschau
+    </h3>
+    <div class="preview-container">
+      {#if document.image}
+      <img src="/belege/{document.id}/download" alt="{document.fileName}">
+      {#else if document.pdf}
+      <iframe src="/belege/{document.id}/download" title="{document.fileName}"></iframe>
+      {#else}
+      <div class="no-preview">
+        <svg viewBox="0 0 32 32" width="48" height="48" fill="currentColor"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/></svg>
+        <p>Vorschau nicht verfügbar</p>
+        <p style="font-size: 0.75rem;">{document.fileContentType}</p>
+      </div>
+      {/if}
+    </div>
+    <div class="preview-actions">
+      <a href="/belege/{document.id}/download" target="_blank" class="cds-btn cds-btn-secondary" style="height: 36px; font-size: 0.8rem;">
+        <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 28H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v2H6v20h20V16h2v10a2 2 0 0 1-2 2z"/><path d="M20 2v2h6.586L18 12.586 19.414 14 28 5.414V12h2V2H20z"/></svg>
+        In neuem Tab öffnen
+      </a>
+    </div>
+  </div>
+</div>
+{/if}
 
 <div class="box danger-zone">
   <div class="form-section" style="margin-bottom: 0;">
