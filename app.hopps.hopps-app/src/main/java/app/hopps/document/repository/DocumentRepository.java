@@ -11,12 +11,14 @@ public class DocumentRepository implements PanacheRepository<Document>
 {
 	public List<Document> findAllOrderedByDate()
 	{
-		return find("ORDER BY transactionTime DESC, createdAt DESC").list();
+		return find("SELECT DISTINCT d FROM Document d LEFT JOIN FETCH d.documentTags ORDER BY d.transactionTime DESC, d.createdAt DESC")
+			.list();
 	}
 
 	public List<Document> findByBommelId(Long bommelId)
 	{
-		return find("bommel.id = ?1 ORDER BY transactionTime DESC", bommelId).list();
+		return find("SELECT DISTINCT d FROM Document d LEFT JOIN FETCH d.documentTags WHERE d.bommel.id = ?1 ORDER BY d.transactionTime DESC",
+			bommelId).list();
 	}
 
 	public List<Document> findUnassigned()

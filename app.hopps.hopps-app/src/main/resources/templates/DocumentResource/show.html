@@ -236,10 +236,154 @@
     gap: 0.5rem;
     margin-top: var(--cds-spacing-04);
   }
+
+  /* Tag input styling */
+  .tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0.5rem;
+    background: #f4f4f4;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+  }
+  .tag-container:empty::before {
+    content: 'Keine Tags vorhanden';
+    color: #8d8d8d;
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+  .tag-container cds-tag {
+    --cds-layout-size-height: 2rem;
+  }
+  .tag-container cds-tag[type="purple"] {
+    background: linear-gradient(135deg, rgba(105, 41, 196, 0.15) 0%, rgba(166, 108, 255, 0.2) 100%);
+    border-color: #8a3ffc;
+  }
+  .tag-input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .tag-text-input {
+    flex: 1;
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .tag-text-input:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .tag-add-btn {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    background: #0f62fe;
+    color: white;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+  .tag-add-btn:hover {
+    background: #0353e9;
+  }
+  .tag-add-btn:disabled {
+    background: #c6c6c6;
+    cursor: not-allowed;
+  }
+  .tag-hint {
+    font-size: 0.75rem;
+    color: #525252;
+    margin-top: 0.25rem;
+  }
 </style>
 {/moreStyles}
 
 {#moreScripts}
+<script>
+  // Tag handling
+  function initTagHandling() {
+    var tagContainer = document.getElementById('tagContainer');
+    var tagsInput = document.getElementById('tagsInput');
+    var newTagInput = document.getElementById('newTagInput');
+    var addTagBtn = document.getElementById('addTagBtn');
+
+    if (!tagContainer || !tagsInput || !newTagInput || !addTagBtn) return;
+
+    // Handle filter tag close events
+    tagContainer.addEventListener('cds-tag-closed', function(event) {
+      var tag = event.target;
+      var tagName = tag.dataset.tagName;
+      if (tagName) {
+        removeTagFromInput(tagName);
+        tag.remove();
+      }
+    });
+
+    // Handle adding new tags
+    function addNewTag() {
+      var tagName = newTagInput.value.trim().toLowerCase();
+      if (!tagName) return;
+
+      // Check if tag already exists
+      var existingTags = getTagsFromInput();
+      if (existingTags.includes(tagName)) {
+        newTagInput.value = '';
+        return;
+      }
+
+      // Add to hidden input
+      existingTags.push(tagName);
+      tagsInput.value = existingTags.join(', ');
+
+      // Create visual tag element
+      var tagElement = document.createElement('cds-tag');
+      tagElement.setAttribute('filter', '');
+      tagElement.setAttribute('size', 'md');
+      tagElement.setAttribute('type', 'gray');
+      tagElement.setAttribute('data-tag-name', tagName);
+      tagElement.setAttribute('title', 'Manuell hinzugefügt');
+      tagElement.textContent = tagName;
+      tagContainer.appendChild(tagElement);
+
+      // Clear input
+      newTagInput.value = '';
+      newTagInput.focus();
+    }
+
+    addTagBtn.addEventListener('click', addNewTag);
+
+    newTagInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addNewTag();
+      }
+    });
+
+    function getTagsFromInput() {
+      var value = tagsInput.value.trim();
+      if (!value) return [];
+      return value.split(',').map(function(t) { return t.trim().toLowerCase(); }).filter(function(t) { return t.length > 0; });
+    }
+
+    function removeTagFromInput(tagName) {
+      var tags = getTagsFromInput();
+      tags = tags.filter(function(t) { return t !== tagName.toLowerCase(); });
+      tagsInput.value = tags.join(', ');
+    }
+  }
+
+  // Initialize tag handling when DOM is ready
+  document.addEventListener('DOMContentLoaded', initTagHandling);
+</script>
 {/moreScripts}
 
 <div class="page-header">
@@ -405,18 +549,28 @@
       <h3>Tags</h3>
       <div class="form-row">
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label for="tags">Tags (kommagetrennt)</label>
-          <input type="text" id="tags" name="tags" value="{document.tagsAsString}" placeholder="z.B. büro, material, software">
-          {#if document.hasTags}
-          <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
+          <!-- Hidden input that holds the actual tag values for form submission -->
+          <input type="hidden" id="tagsInput" name="tags" value="{document.tagsAsString}">
+
+          <!-- Tag display area -->
+          <div class="tag-container" id="tagContainer">
             {#for docTag in document.documentTags}
-            <cds-tag type="purple" size="sm">
+            <cds-tag filter size="md" type="{#if docTag.aiGenerated}purple{#else}gray{/if}" data-tag-name="{docTag.name}" title="{#if docTag.aiGenerated}KI-generiert{#else}Manuell hinzugefügt{/if}">
               {#if docTag.aiGenerated}<cds-ai-label size="mini"></cds-ai-label>{/if}
               {docTag.name}
             </cds-tag>
             {/for}
           </div>
-          {/if}
+
+          <!-- Tag input area -->
+          <div class="tag-input-row">
+            <input type="text" id="newTagInput" placeholder="Neuen Tag eingeben..." class="tag-text-input">
+            <button type="button" id="addTagBtn" class="tag-add-btn" title="Tag hinzufügen">
+              <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V8h-2v7H8v2h7v7h2v-7h7v-2z"/></svg>
+              Hinzufügen
+            </button>
+          </div>
+          <span class="tag-hint">Enter drücken oder Button klicken zum Hinzufügen</span>
         </div>
       </div>
     </div>

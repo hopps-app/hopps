@@ -127,6 +127,19 @@
     height: 12px;
     fill: currentColor;
   }
+  .tags-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    max-width: 200px;
+  }
+  .tags-cell cds-tag {
+    --cds-layout-size-height: 1.5rem;
+  }
+  .tags-cell cds-tag[type="purple"] {
+    background: linear-gradient(135deg, rgba(105, 41, 196, 0.15) 0%, rgba(166, 108, 255, 0.2) 100%);
+    border-color: #8a3ffc;
+  }
 </style>
 {/moreStyles}
 
@@ -154,6 +167,7 @@
           <th>Datum</th>
           <th>Betrag</th>
           <th>Bommel</th>
+          <th>Tags</th>
           <th>Status</th>
         </tr>
       </thead>
@@ -169,6 +183,19 @@
           <td>
             {#if doc.bommel}
               <span class="bommel-badge">{doc.bommel.title}</span>
+            {#else}
+              <span style="color: var(--cds-text-disabled);">—</span>
+            {/if}
+          </td>
+          <td>
+            {#if doc.hasTags}
+            <div class="tags-cell">
+              {#for docTag in doc.documentTags}
+              <cds-tag size="sm" type="{#if docTag.aiGenerated}purple{#else}gray{/if}" title="{#if docTag.aiGenerated}KI-generiert{#else}Manuell{/if}">
+                {docTag.name}
+              </cds-tag>
+              {/for}
+            </div>
             {#else}
               <span style="color: var(--cds-text-disabled);">—</span>
             {/if}
