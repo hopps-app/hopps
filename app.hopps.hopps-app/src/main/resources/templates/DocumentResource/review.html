@@ -79,6 +79,45 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
+  .loading-elapsed {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #8d8d8d;
+  }
+  /* Skeleton placeholders */
+  .skeleton-form {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(105, 41, 196, 0.2);
+  }
+  .skeleton-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .skeleton-field {
+    flex: 1;
+  }
+  .skeleton-label {
+    height: 14px;
+    width: 80px;
+    background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: 2px;
+    margin-bottom: 0.5rem;
+  }
+  .skeleton-input {
+    height: 40px;
+    background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: 2px;
+  }
+  @keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 
   /* AI Styling */
   .ai-gradient-box {
@@ -465,12 +504,29 @@
   document.addEventListener('DOMContentLoaded', function() {
     var loadingContainer = document.getElementById('loadingContainer');
     var reviewForm = document.getElementById('reviewForm');
+    var loadingElapsed = document.getElementById('loadingElapsed');
+    var startTime = Date.now();
 
     if (analysisComplete) {
       loadingContainer.style.display = 'none';
       reviewForm.classList.add('visible');
     } else {
       pollAnalysisStatus();
+      updateElapsedTime();
+    }
+
+    function updateElapsedTime() {
+      var elapsed = Math.floor((Date.now() - startTime) / 1000);
+      if (elapsed < 60) {
+        loadingElapsed.textContent = elapsed + ' Sekunde' + (elapsed !== 1 ? 'n' : '') + ' vergangen';
+      } else {
+        var minutes = Math.floor(elapsed / 60);
+        var seconds = elapsed % 60;
+        loadingElapsed.textContent = minutes + ' Minute' + (minutes !== 1 ? 'n' : '') + ' ' + seconds + ' Sekunden vergangen';
+      }
+      if (!analysisComplete) {
+        setTimeout(updateElapsedTime, 1000);
+      }
     }
 
     function pollAnalysisStatus() {
@@ -548,6 +604,19 @@
     <div class="loading-progress">
       <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
       Dies kann einige Sekunden dauern
+    </div>
+    <div class="loading-elapsed" id="loadingElapsed"></div>
+    <!-- Skeleton form preview -->
+    <div class="skeleton-form">
+      <div class="skeleton-row">
+        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
+        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
+      </div>
+      <div class="skeleton-row">
+        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
+        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
+        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
+      </div>
     </div>
   </div>
 </div>
