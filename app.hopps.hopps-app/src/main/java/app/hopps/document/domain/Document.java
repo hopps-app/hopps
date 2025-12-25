@@ -174,10 +174,26 @@ public class Document extends PanacheEntity
 	}
 
 	/**
-	 * Adds a tag with the specified source.
+	 * Adds a tag with the specified source. If the tag already exists on this
+	 * document, it will not be added again.
 	 */
 	public void addTag(app.hopps.shared.domain.Tag tag, TagSource source)
 	{
+		// Check if this tag already exists on the document (by ID or name)
+		boolean exists = documentTags.stream()
+			.anyMatch(dt -> {
+				app.hopps.shared.domain.Tag existingTag = dt.getTag();
+				// Compare by ID if both have IDs, otherwise by name
+				if (existingTag.getId() != null && tag.getId() != null)
+				{
+					return existingTag.getId().equals(tag.getId());
+				}
+				return existingTag.getName().equalsIgnoreCase(tag.getName());
+			});
+		if (exists)
+		{
+			return;
+		}
 		DocumentTag documentTag = new DocumentTag(this, tag, source);
 		documentTags.add(documentTag);
 	}

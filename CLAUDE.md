@@ -90,21 +90,25 @@ Templates: `src/main/resources/templates/<ControllerName>/<method>.html`
 
 ```java
 // In entity class
-public String getFormattedDate() {
-    return date != null ? date.format(formatter) : "";
+public String getFormattedDate()
+{
+	return date != null ? date.format(formatter) : "";
 }
 
-public String getSenderName() {
-    return sender != null ? sender.getName() : "";
+public String getSenderName()
+{
+	return sender != null ? sender.getName() : "";
 }
 ```
 
 **Logging:**
 
 - Use `org.slf4j.Logger` for logging
-- Create logger: `private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);`
+- Create logger:
+  `private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);`
 - Add reasonable logging for important operations, errors, and debugging
-- Log levels: `error` for failures, `warn` for issues, `info` for operations, `debug` for details
+- Log levels: `error` for failures, `warn` for issues, `info` for operations,
+  `debug` for details
 
 **Form handling:**
 
@@ -130,9 +134,15 @@ Use `StorageService` for file operations:
 ```java
 @Inject StorageService storageService;
 
-storageService.uploadFile(key, filePath, contentType);
-storageService.downloadFile(key);
-storageService.deleteFile(key);
+storageService.
+
+uploadFile(key, filePath, contentType);
+storageService.
+
+downloadFile(key);
+storageService.
+
+deleteFile(key);
 ```
 
 ## Testing
@@ -149,27 +159,30 @@ storageService.deleteFile(key);
 
 ```java
 @QuarkusTest
-class ResourceTest {
-    @Inject
-    Repository repository;
+class ResourceTest
+{
+	@Inject
+	Repository repository;
 
-    @Test
-    void shouldShowEntityInList() {
-        deleteAllData();
-        createEntity("Test");
+	@Test
+	void shouldShowEntityInList()
+	{
+		deleteAllData();
+		createEntity("Test");
 
-        given()
-            .when()
-            .get("/resource")
-            .then()
-            .statusCode(200)
-            .body(containsString("Test"));
-    }
+		given()
+			.when()
+			.get("/resource")
+			.then()
+			.statusCode(200)
+			.body(containsString("Test"));
+	}
 
-    @Transactional(TxType.REQUIRES_NEW)
-    void deleteAllData() {
-        repository.deleteAll();
-    }
+	@Transactional(TxType.REQUIRES_NEW)
+	void deleteAllData()
+	{
+		repository.deleteAll();
+	}
 }
 ```
 
@@ -188,7 +201,8 @@ Form POST endpoints require CSRF tokens. For testing:
 - Use [@carbon/web-components](https://web-components.carbondesignsystem.com/)
 - Common components: `cds-inline-notification`, tables, buttons
 - Custom CSS follows Carbon design tokens (e.g., `--cds-spacing-05`)
-- If there are long-running requests, use the best practices from Carbon (https://carbondesignsystem.com/patterns/loading-pattern/)
+- If there are long-running requests, use the best practices from
+  Carbon (https://carbondesignsystem.com/patterns/loading-pattern/)
 
 ## Common Gotchas
 
@@ -199,3 +213,9 @@ Form POST endpoints require CSRF tokens. For testing:
 4. **.gitignore patterns** - Use `/tags` not `tags` to avoid ignoring
    `templates/tags/`
 5. **S3 dependency** - Requires `url-connection-client` for HTTP transport
+
+## Git
+
+- Use Gitmoji with the official emojis as Unicode in the form
+  `✨ (scope): Short description` followed by a longer description or
+  enumeration. 
