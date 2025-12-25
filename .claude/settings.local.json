@@ -30,7 +30,8 @@
       "Bash(../mvnw compile:*)",
       "Bash(xargs ls:*)",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)"
     ]
   }
 }
