@@ -1,6 +1,7 @@
 package app.hopps.document.workflow;
 
 import java.io.InputStream;
+import java.time.LocalTime;
 import java.time.ZoneId;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -8,12 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import app.hopps.document.client.DocumentAiClient;
-import app.hopps.document.client.InvoiceData;
-import app.hopps.document.client.ReceiptData;
+import app.hopps.document.client.DocumentData;
 import app.hopps.document.client.TradePartyData;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
@@ -85,14 +84,7 @@ public class AnalyzeDocumentTask extends SystemTask
 		{
 			LOG.debug("Downloaded file from S3: key={}", document.getFileKey());
 
-			if (document.getDocumentType() == DocumentType.INVOICE)
-			{
-				analyzeInvoice(document, fileStream);
-			}
-			else
-			{
-				analyzeReceipt(document, fileStream);
-			}
+			analyzeDocument(document, fileStream);
 
 			document.setAnalysisStatus(AnalysisStatus.COMPLETED);
 			LOG.info("Document analysis completed successfully: id={}", documentId);
@@ -106,135 +98,116 @@ public class AnalyzeDocumentTask extends SystemTask
 		}
 	}
 
-	private void analyzeInvoice(Document document, InputStream fileStream)
+	private void analyzeDocument(Document document, InputStream fileStream)
 	{
-		LOG.debug("Calling Document AI for invoice analysis: documentId={}", document.getId());
+		LOG.debug("Calling Document AI for analysis: documentId={}", document.getId());
 
-		InvoiceData invoiceData = documentAiClient.scanInvoice(fileStream, document.getId());
+		DocumentData data = documentAiClient.scanDocument(fileStream, document.getId());
 
-		if (invoiceData == null)
+		if (data == null)
 		{
-			LOG.warn("Document AI returned no data for invoice: documentId={}", document.getId());
+			LOG.warn("Document AI returned no data: documentId={}", document.getId());
 			return;
 		}
 
-		LOG.debug("Received invoice data from AI: total={}, currency={}, invoiceId={}",
-			invoiceData.total(), invoiceData.currencyCode(), invoiceData.invoiceId());
+		LOG.debug("Received document data from AI: total={}, currency={}, documentId={}",
+			data.total(), data.currencyCode(), data.documentId());
 
 		int fieldsUpdated = 0;
 
-		// Update document with extracted data
-		if (invoiceData.total() != null && document.getTotal() == null)
+		if (data.total() != null
+			&& (document.getTotal() == null || java.math.BigDecimal.ZERO.compareTo(document.getTotal()) == 0))
 		{
-			document.setTotal(invoiceData.total());
-			LOG.debug("Autofilled total: {}", invoiceData.total());
+			document.setTotal(data.total());
+			LOG.debug("Autofilled total: {}", data.total());
 			fieldsUpdated++;
 		}
 
-		if (invoiceData.currencyCode() != null && document.getCurrencyCode() == null)
+		if (data.currencyCode() != null && document.getCurrencyCode() == null)
 		{
-			document.setCurrencyCode(invoiceData.currencyCode());
-			LOG.debug("Autofilled currencyCode: {}", invoiceData.currencyCode());
+			document.setCurrencyCode(data.currencyCode());
+			LOG.debug("Autofilled currencyCode: {}", data.currencyCode());
 			fieldsUpdated++;
 		}
 
-		if (invoiceData.invoiceId() != null && document.getInvoiceId() == null)
+		if (data.documentId() != null && document.getInvoiceId() == null)
 		{
-			document.setInvoiceId(invoiceData.invoiceId());
-			LOG.debug("Autofilled invoiceId: {}", invoiceData.invoiceId());
+			document.setInvoiceId(data.documentId());
+			LOG.debug("Autofilled invoiceId: {}", data.documentId());
 			fieldsUpdated++;
 		}
 
-		if (invoiceData.purchaseOrderNumber() != null && document.getOrderNumber() == null)
+		if (data.purchaseOrderNumber() != null && document.getOrderNumber() == null)
 		{
-			document.setOrderNumber(invoiceData.purchaseOrderNumber());
-			LOG.debug("Autofilled orderNumber: {}", invoiceData.purchaseOrderNumber());
+			document.setOrderNumber(data.purchaseOrderNumber());
+			LOG.debug("Autofilled orderNumber: {}", data.purchaseOrderNumber());
 			fieldsUpdated++;
 		}
 
-		if (invoiceData.invoiceDate() != null && document.getTransactionTime() == null)
+		if (data.date() != null && document.getTransactionTime() == null)
 		{
-			document.setTransactionTime(invoiceData.invoiceDate()
+			LocalTime time = data.time() != null ? data.time() : LocalTime.MIDNIGHT;
+			document.setTransactionTime(data.date()
+				.atTime(time)
+				.atZone(ZoneId.systemDefault())
+				.toInstant());
+			LOG.debug("Autofilled transactionTime: {} {}", data.date(), time);
+			fieldsUpdated++;
+		}
+
+		if (data.dueDate() != null && document.getDueDate() == null)
+		{
+			document.setDueDate(data.dueDate()
 				.atStartOfDay(ZoneId.systemDefault()).toInstant());
-			LOG.debug("Autofilled transactionTime: {}", invoiceData.invoiceDate());
+			LOG.debug("Autofilled dueDate: {}", data.dueDate());
 			fieldsUpdated++;
 		}
 
-		if (invoiceData.dueDate() != null && document.getDueDate() == null)
+		if (data.totalTax() != null && document.getTotalTax() == null)
 		{
-			document.setDueDate(invoiceData.dueDate()
-				.atStartOfDay(ZoneId.systemDefault()).toInstant());
-			LOG.debug("Autofilled dueDate: {}", invoiceData.dueDate());
+			document.setTotalTax(data.totalTax());
+			LOG.debug("Autofilled totalTax: {}", data.totalTax());
 			fieldsUpdated++;
 		}
 
-		if (invoiceData.sender() != null && document.getSender() == null)
+		if (data.merchantAddress() != null && document.getSender() == null)
 		{
-			document.setSender(mapTradeParty(invoiceData.sender()));
-			LOG.debug("Autofilled sender: {}", invoiceData.sender().name());
+			TradeParty sender = mapTradeParty(data.merchantAddress());
+			if (data.merchantName() != null)
+			{
+				sender.setName(data.merchantName());
+			}
+			document.setSender(sender);
+			LOG.debug("Autofilled sender: {}", sender.getName());
+			fieldsUpdated++;
+		}
+		else if (data.merchantName() != null && document.getSender() == null)
+		{
+			TradeParty sender = new TradeParty();
+			sender.setName(data.merchantName());
+			document.setSender(sender);
+			LOG.debug("Autofilled sender name: {}", data.merchantName());
 			fieldsUpdated++;
 		}
 
-		// Use customer name as document name if not set
-		if (invoiceData.customerName() != null && document.getName() == null)
+		// Use merchant name or customer name as document name if not set
+		if (document.getName() == null)
 		{
-			document.setName(invoiceData.customerName());
-			LOG.debug("Autofilled name: {}", invoiceData.customerName());
-			fieldsUpdated++;
+			if (data.merchantName() != null)
+			{
+				document.setName(data.merchantName());
+				LOG.debug("Autofilled name from merchant: {}", data.merchantName());
+				fieldsUpdated++;
+			}
+			else if (data.customerName() != null)
+			{
+				document.setName(data.customerName());
+				LOG.debug("Autofilled name from customer: {}", data.customerName());
+				fieldsUpdated++;
+			}
 		}
 
-		LOG.info("Invoice analysis complete: documentId={}, fieldsUpdated={}", document.getId(), fieldsUpdated);
-	}
-
-	private void analyzeReceipt(Document document, InputStream fileStream)
-	{
-		LOG.debug("Calling Document AI for receipt analysis: documentId={}", document.getId());
-
-		ReceiptData receiptData = documentAiClient.scanReceipt(fileStream, document.getId());
-
-		if (receiptData == null)
-		{
-			LOG.warn("Document AI returned no data for receipt: documentId={}", document.getId());
-			return;
-		}
-
-		LOG.debug("Received receipt data from AI: total={}, storeName={}",
-			receiptData.total(), receiptData.storeName());
-
-		int fieldsUpdated = 0;
-
-		// Update document with extracted data
-		if (receiptData.total() != null && document.getTotal() == null)
-		{
-			document.setTotal(receiptData.total());
-			LOG.debug("Autofilled total: {}", receiptData.total());
-			fieldsUpdated++;
-		}
-
-		if (receiptData.transactionTime() != null && document.getTransactionTime() == null)
-		{
-			document.setTransactionTime(receiptData.transactionTime()
-				.atZone(ZoneId.systemDefault()).toInstant());
-			LOG.debug("Autofilled transactionTime: {}", receiptData.transactionTime());
-			fieldsUpdated++;
-		}
-
-		if (receiptData.storeAddress() != null && document.getSender() == null)
-		{
-			document.setSender(mapTradeParty(receiptData.storeAddress()));
-			LOG.debug("Autofilled sender from store address: {}", receiptData.storeAddress().name());
-			fieldsUpdated++;
-		}
-
-		// Use store name as document name if not set
-		if (receiptData.storeName() != null && document.getName() == null)
-		{
-			document.setName(receiptData.storeName());
-			LOG.debug("Autofilled name: {}", receiptData.storeName());
-			fieldsUpdated++;
-		}
-
-		LOG.info("Receipt analysis complete: documentId={}, fieldsUpdated={}", document.getId(), fieldsUpdated);
+		LOG.info("Document analysis complete: documentId={}, fieldsUpdated={}", document.getId(), fieldsUpdated);
 	}
 
 	private TradeParty mapTradeParty(TradePartyData data)

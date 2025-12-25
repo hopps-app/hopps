@@ -57,6 +57,9 @@ public class Document extends PanacheEntity
 	private Instant dueDate;
 	private BigDecimal amountDue;
 
+	// Tax field for Verein bookkeeping
+	private BigDecimal totalTax;
+
 	// File storage fields
 	private String fileKey; // S3 object key
 	private String fileName; // Original filename
@@ -219,6 +222,28 @@ public class Document extends PanacheEntity
 	public void setAmountDue(BigDecimal amountDue)
 	{
 		this.amountDue = amountDue;
+	}
+
+	/**
+	 * Calculates Nettobetrag (net amount before tax). Netto = Brutto - MwSt
+	 */
+	public BigDecimal getSubTotal()
+	{
+		if (total == null || totalTax == null)
+		{
+			return null;
+		}
+		return total.subtract(totalTax);
+	}
+
+	public BigDecimal getTotalTax()
+	{
+		return totalTax;
+	}
+
+	public void setTotalTax(BigDecimal totalTax)
+	{
+		this.totalTax = totalTax;
 	}
 
 	public Instant getCreatedAt()

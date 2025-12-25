@@ -23,7 +23,8 @@
       "Bash(xargs cat:*)",
       "Bash(./mvnw quarkus:dev:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(/Users/markus/git/fuggs/mvnw formatter:format -q)"
     ]
   }
 }

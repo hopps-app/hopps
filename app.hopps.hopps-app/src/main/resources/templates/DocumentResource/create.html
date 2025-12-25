@@ -251,20 +251,10 @@
 
   <form action="/belege/upload" method="POST" enctype="multipart/form-data">
     {#authenticityToken /}
+    <input type="hidden" name="documentType" value="RECEIPT">
 
     <div class="form-section">
-      <h3>1. Belegtyp auswählen</h3>
-      <div class="form-group">
-        <label for="documentType">Was möchten Sie hochladen?</label>
-        <select id="documentType" name="documentType" required>
-          <option value="RECEIPT">Beleg / Quittung</option>
-          <option value="INVOICE">Rechnung</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <h3>2. Datei hochladen</h3>
+      <h3>Datei hochladen</h3>
       <div class="file-drop-zone">
         <svg viewBox="0 0 32 32"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
         <h4>Datei hierher ziehen</h4>

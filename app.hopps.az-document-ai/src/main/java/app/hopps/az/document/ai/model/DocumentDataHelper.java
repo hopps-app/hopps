@@ -24,8 +24,12 @@ public class DocumentDataHelper
 		Map<String, DocumentField> fields = document.getFields();
 		LOG.debug("Document fields: {}", fields.keySet());
 
+		BigDecimal subTotal = extractCurrency(fields, "SubTotal");
+		BigDecimal totalTax = extractCurrency(fields, "TotalTax");
+		BigDecimal total = extractTotal(fields, subTotal, totalTax);
+
 		return new DocumentData(
-			extractTotal(fields),
+			total,
 			extractCurrencyCode(fields),
 			extractDate(fields),
 			extractTime(fields),
@@ -40,8 +44,8 @@ public class DocumentDataHelper
 			extractAddress(fields, "ShippingAddress"),
 			extractLocalDate(fields, "DueDate"),
 			extractCurrency(fields, "AmountDue"),
-			extractCurrency(fields, "SubTotal"),
-			extractCurrency(fields, "TotalTax"),
+			subTotal,
+			totalTax,
 			extractCurrency(fields, "TotalDiscount"),
 			extractCurrency(fields, "PreviousUnpaidBalance"),
 			extractString(fields, "PurchaseOrder"),
@@ -50,17 +54,32 @@ public class DocumentDataHelper
 			extractLocalDate(fields, "ServiceEndDate"));
 	}
 
-	private static BigDecimal extractTotal(Map<String, DocumentField> fields)
+	private static BigDecimal extractTotal(Map<String, DocumentField> fields, BigDecimal subTotal,
+		BigDecimal totalTax)
 	{
+		// Try InvoiceTotal first (for invoices)
 		DocumentField totalField = fields.get("InvoiceTotal");
-		if (totalField == null)
-		{
-			totalField = fields.get("Total");
-		}
 		if (totalField != null && totalField.getValueCurrency() != null)
 		{
 			return BigDecimal.valueOf(totalField.getValueCurrency().getAmount());
 		}
+
+		// If we have SubTotal and TotalTax, calculate the gross total (Brutto =
+		// Netto + MwSt)
+		if (subTotal != null && totalTax != null)
+		{
+			BigDecimal calculated = subTotal.add(totalTax);
+			LOG.debug("Calculated total from SubTotal + TotalTax: {} + {} = {}", subTotal, totalTax, calculated);
+			return calculated;
+		}
+
+		// Fall back to Total field (for receipts - this is usually the gross)
+		totalField = fields.get("Total");
+		if (totalField != null && totalField.getValueCurrency() != null)
+		{
+			return BigDecimal.valueOf(totalField.getValueCurrency().getAmount());
+		}
+
 		return null;
 	}
 
