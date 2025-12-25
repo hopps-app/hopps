@@ -85,6 +85,44 @@ class DocumentTagTest
 	}
 
 	@Test
+	void shouldUpdateDocumentTagsWithSameTags()
+	{
+		// This test reproduces the duplicate key constraint error that occurs
+		// when clearing tags and re-adding the same ones in the same
+		// transaction
+		deleteAllData();
+
+		Long docId = createDocumentWithTags("Test Doc", Set.of("food", "pizza"), TagSource.MANUAL);
+
+		// Update with the same tags - this should NOT cause a duplicate key
+		// error
+		updateDocumentTags(docId, Set.of("food", "pizza"));
+
+		Document found = findDocumentById(docId);
+		assertEquals(2, found.getDocumentTags().size());
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("food")));
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("pizza")));
+	}
+
+	@Test
+	void shouldUpdateDocumentTagsWithPartialOverlap()
+	{
+		// Test with partial overlap: keep some, remove some, add some
+		deleteAllData();
+
+		Long docId = createDocumentWithTags("Test Doc", Set.of("food", "old"), TagSource.MANUAL);
+
+		// Keep "food", remove "old", add "new"
+		updateDocumentTags(docId, Set.of("food", "new"));
+
+		Document found = findDocumentById(docId);
+		assertEquals(2, found.getDocumentTags().size());
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("food")));
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("new")));
+		assertFalse(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("old")));
+	}
+
+	@Test
 	void shouldHandleDocumentWithNoTags()
 	{
 		deleteAllData();
@@ -209,14 +247,41 @@ class DocumentTagTest
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)
-	void updateDocumentTags(Long docId, Set<String> tagNames)
+	void updateDocumentTags(Long docId, Set<String> newTagNames)
 	{
 		Document doc = documentRepository.findById(docId);
-		doc.clearTags();
-		Set<Tag> tags = tagRepository.findOrCreateTags(tagNames);
-		for (Tag tag : tags)
+
+		// Build map of current tag name -> DocumentTag
+		java.util.Map<String, DocumentTag> existingTags = doc.getDocumentTags().stream()
+			.collect(java.util.stream.Collectors.toMap(
+				dt -> dt.getName().toLowerCase(),
+				dt -> dt,
+				(a, b) -> a));
+
+		// Find tags to remove
+		Set<String> existingTagNames = existingTags.keySet();
+		Set<String> tagsToRemove = new java.util.HashSet<>(existingTagNames);
+		tagsToRemove.removeAll(newTagNames.stream().map(String::toLowerCase).collect(java.util.stream.Collectors.toSet()));
+
+		// Find tags to add
+		Set<String> tagsToAdd = new java.util.HashSet<>(newTagNames);
+		tagsToAdd.removeAll(existingTagNames);
+
+		// Remove tags
+		for (String tagName : tagsToRemove)
 		{
-			doc.addTag(tag, TagSource.MANUAL);
+			DocumentTag docTag = existingTags.get(tagName);
+			doc.getDocumentTags().remove(docTag);
+		}
+
+		// Add new tags
+		if (!tagsToAdd.isEmpty())
+		{
+			Set<Tag> tags = tagRepository.findOrCreateTags(tagsToAdd);
+			for (Tag tag : tags)
+			{
+				doc.addTag(tag, TagSource.MANUAL);
+			}
 		}
 	}
 

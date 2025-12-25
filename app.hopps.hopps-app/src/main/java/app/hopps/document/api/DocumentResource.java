@@ -408,7 +408,8 @@ public class DocumentResource extends Controller
 
 	/**
 	 * Parses comma-separated tag names and updates the document's tags.
-	 * Preserves AI source for existing tags, adds new tags as MANUAL.
+	 * Preserves AI source for existing tags, adds new tags as MANUAL. Uses a
+	 * diff-based approach to avoid Hibernate INSERT/DELETE ordering issues.
 	 */
 	private void updateDocumentTags(Document document, String tagsInput)
 	{
@@ -423,25 +424,36 @@ public class DocumentResource extends Controller
 				.collect(Collectors.toSet());
 		}
 
-		// Build map of current tag name -> source (to preserve AI source)
-		Map<String, TagSource> existingTagSources = document.getDocumentTags().stream()
+		// Build map of current tag name -> DocumentTag (to preserve and reuse)
+		Map<String, app.hopps.document.domain.DocumentTag> existingTags = document.getDocumentTags().stream()
 			.collect(Collectors.toMap(
 				dt -> dt.getName().toLowerCase(),
-				dt -> dt.getSource(),
+				dt -> dt,
 				(a, b) -> a));
 
-		// Clear and rebuild tags, preserving sources for existing ones
-		document.clearTags();
+		// Find tags to remove (existing but not in new set)
+		Set<String> existingTagNames = existingTags.keySet();
+		Set<String> tagsToRemove = new HashSet<>(existingTagNames);
+		tagsToRemove.removeAll(newTagNames);
 
-		if (!newTagNames.isEmpty())
+		// Find tags to add (in new set but not existing)
+		Set<String> tagsToAdd = new HashSet<>(newTagNames);
+		tagsToAdd.removeAll(existingTagNames);
+
+		// Remove tags that are no longer needed
+		for (String tagName : tagsToRemove)
 		{
-			Set<Tag> tagEntities = tagRepository.findOrCreateTags(newTagNames);
+			app.hopps.document.domain.DocumentTag docTag = existingTags.get(tagName);
+			document.getDocumentTags().remove(docTag);
+		}
+
+		// Add new tags
+		if (!tagsToAdd.isEmpty())
+		{
+			Set<Tag> tagEntities = tagRepository.findOrCreateTags(tagsToAdd);
 			for (Tag tag : tagEntities)
 			{
-				// Preserve source if tag existed before, otherwise MANUAL
-				TagSource source = existingTagSources.getOrDefault(
-					tag.getName().toLowerCase(), TagSource.MANUAL);
-				document.addTag(tag, source);
+				document.addTag(tag, TagSource.MANUAL);
 			}
 		}
 	}
