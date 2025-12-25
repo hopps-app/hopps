@@ -180,6 +180,44 @@
     background: linear-gradient(135deg, rgba(232, 218, 255, 0.3) 0%, rgba(212, 187, 255, 0.3) 100%);
     border-bottom-color: #8a3ffc;
   }
+  .input-with-clear {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-with-clear input,
+  .input-with-clear select {
+    flex: 1;
+    padding-right: 2rem;
+  }
+  .clear-ai-btn {
+    position: absolute;
+    right: 0.5rem;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: #8a3ffc;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.15s, background-color 0.15s;
+  }
+  .clear-ai-btn:hover {
+    opacity: 1;
+    background: #6929c4;
+  }
+  .clear-ai-btn svg {
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
+  }
   .form-group input:focus,
   .form-group select:focus {
     border-bottom: 2px solid #0f62fe;
@@ -343,6 +381,23 @@
         });
     }
   });
+
+  function clearAiValue(inputId) {
+    var input = document.getElementById(inputId);
+    if (input) {
+      if (input.tagName === 'SELECT') {
+        input.selectedIndex = 0;
+      } else {
+        input.value = '';
+      }
+      input.classList.remove('ai-value');
+      // Hide the clear button
+      var btn = input.parentElement.querySelector('.clear-ai-btn');
+      if (btn) {
+        btn.style.display = 'none';
+      }
+    }
+  }
 </script>
 {/moreScripts}
 
@@ -443,7 +498,14 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="text" id="name" name="name" value="{document.name ?: ''}" placeholder="z.B. Büromaterial" class="{#if document.name != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="text" id="name" name="name" value="{document.name ?: ''}" placeholder="z.B. Büromaterial" class="{#if document.name != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.name != null && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('name')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
           <div class="form-group">
             <label for="transactionDate">
@@ -458,7 +520,14 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="date" id="transactionDate" name="transactionDate" value="{document.transactionDateForInput}" class="{#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="date" id="transactionDate" name="transactionDate" value="{document.transactionDateForInput}" class="{#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('transactionDate')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
         </div>
         <div class="form-row">
@@ -475,7 +544,14 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="number" id="total" name="total" step="0.01" required value="{document.total}" class="{#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="number" id="total" name="total" step="0.01" required value="{document.total}" class="{#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('total')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
           <div class="form-group">
             <label for="subTotal">Nettobetrag (berechnet)</label>
@@ -494,7 +570,14 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="number" id="totalTax" name="totalTax" step="0.01" value="{document.totalTax}" class="{#if document.totalTax != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="number" id="totalTax" name="totalTax" step="0.01" value="{document.totalTax}" class="{#if document.totalTax != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.totalTax != null && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('totalTax')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
           <div class="form-group">
             <label for="currencyCode">
@@ -509,12 +592,19 @@
               </cds-ai-label>
               {/if}
             </label>
-            <select id="currencyCode" name="currencyCode" class="{#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
-              <option value="EUR" {#if document.currencyCode == 'EUR' || document.currencyCode == null}selected{/if}>EUR</option>
-              <option value="USD" {#if document.currencyCode == 'USD'}selected{/if}>USD</option>
-              <option value="CHF" {#if document.currencyCode == 'CHF'}selected{/if}>CHF</option>
-              <option value="GBP" {#if document.currencyCode == 'GBP'}selected{/if}>GBP</option>
-            </select>
+            <div class="input-with-clear">
+              <select id="currencyCode" name="currencyCode" class="{#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+                <option value="EUR" {#if document.currencyCode == 'EUR' || document.currencyCode == null}selected{/if}>EUR</option>
+                <option value="USD" {#if document.currencyCode == 'USD'}selected{/if}>USD</option>
+                <option value="CHF" {#if document.currencyCode == 'CHF'}selected{/if}>CHF</option>
+                <option value="GBP" {#if document.currencyCode == 'GBP'}selected{/if}>GBP</option>
+              </select>
+              {#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('currencyCode')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
         </div>
         <div class="form-row">
@@ -550,21 +640,49 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="text" id="senderName" name="senderName" value="{document.senderName}" placeholder="z.B. Lieferant GmbH" class="{#if document.senderName != null && document.senderName != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="text" id="senderName" name="senderName" value="{document.senderName}" placeholder="z.B. Lieferant GmbH" class="{#if document.senderName != null && document.senderName != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.senderName != null && document.senderName != '' && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderName')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="senderStreet">Straße</label>
-            <input type="text" id="senderStreet" name="senderStreet" value="{document.senderStreet}" class="{#if document.senderStreet != null && document.senderStreet != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="text" id="senderStreet" name="senderStreet" value="{document.senderStreet}" class="{#if document.senderStreet != null && document.senderStreet != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.senderStreet != null && document.senderStreet != '' && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderStreet')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
           <div class="form-group">
             <label for="senderZipCode">PLZ</label>
-            <input type="text" id="senderZipCode" name="senderZipCode" value="{document.senderZipCode}" class="{#if document.senderZipCode != null && document.senderZipCode != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="text" id="senderZipCode" name="senderZipCode" value="{document.senderZipCode}" class="{#if document.senderZipCode != null && document.senderZipCode != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.senderZipCode != null && document.senderZipCode != '' && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderZipCode')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
           <div class="form-group">
             <label for="senderCity">Ort</label>
-            <input type="text" id="senderCity" name="senderCity" value="{document.senderCity}" class="{#if document.senderCity != null && document.senderCity != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="text" id="senderCity" name="senderCity" value="{document.senderCity}" class="{#if document.senderCity != null && document.senderCity != '' && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.senderCity != null && document.senderCity != '' && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('senderCity')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
         </div>
       </div>
@@ -585,7 +703,14 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="text" id="invoiceId" name="invoiceId" value="{document.invoiceId ?: ''}" class="{#if document.invoiceId != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="text" id="invoiceId" name="invoiceId" value="{document.invoiceId ?: ''}" class="{#if document.invoiceId != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.invoiceId != null && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('invoiceId')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
           <div class="form-group">
             <label for="orderNumber">
@@ -600,7 +725,14 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="text" id="orderNumber" name="orderNumber" value="{document.orderNumber ?: ''}" class="{#if document.orderNumber != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="text" id="orderNumber" name="orderNumber" value="{document.orderNumber ?: ''}" class="{#if document.orderNumber != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.orderNumber != null && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('orderNumber')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
           <div class="form-group">
             <label for="dueDate">
@@ -615,7 +747,14 @@
               </cds-ai-label>
               {/if}
             </label>
-            <input type="date" id="dueDate" name="dueDate" value="{document.dueDateForInput}" class="{#if document.dueDate != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+            <div class="input-with-clear">
+              <input type="date" id="dueDate" name="dueDate" value="{document.dueDateForInput}" class="{#if document.dueDate != null && document.analysisStatus.name == 'COMPLETED'}ai-value{/if}">
+              {#if document.dueDate != null && document.analysisStatus.name == 'COMPLETED'}
+              <button type="button" class="clear-ai-btn" onclick="clearAiValue('dueDate')" title="KI-Wert löschen">
+                <svg viewBox="0 0 32 32"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"/></svg>
+              </button>
+              {/if}
+            </div>
           </div>
         </div>
       </div>
