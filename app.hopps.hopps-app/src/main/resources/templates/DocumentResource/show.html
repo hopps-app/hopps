@@ -122,12 +122,6 @@
   button.cds-btn-danger:hover {
     background-color: #b81921;
   }
-  .invoice-fields {
-    display: none;
-  }
-  .invoice-fields.visible {
-    display: block;
-  }
   .file-section {
     background: #f4f4f4;
     padding: 1rem;
@@ -203,23 +197,6 @@
 {/moreStyles}
 
 {#moreScripts}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var typeSelect = document.getElementById('documentType');
-    var invoiceFields = document.querySelector('.invoice-fields');
-
-    function toggleInvoiceFields() {
-      if (typeSelect.value === 'INVOICE') {
-        invoiceFields.classList.add('visible');
-      } else {
-        invoiceFields.classList.remove('visible');
-      }
-    }
-
-    typeSelect.addEventListener('change', toggleInvoiceFields);
-    toggleInvoiceFields();
-  });
-</script>
 {/moreScripts}
 
 <div class="page-header">
@@ -285,25 +262,32 @@
   {#form uri:DocumentResource.update()}
     <input type="hidden" name="id" value="{document.id}">
 
+    <input type="hidden" name="documentType" value="{document.documentType.name}">
+
     <div class="form-section">
       <h3>Belegdaten</h3>
       <div class="form-row">
         <div class="form-group">
-          <label for="documentType">Belegtyp *</label>
-          <select id="documentType" name="documentType" required>
-            <option value="RECEIPT" {#if document.documentType.name == 'RECEIPT'}selected{/if}>Beleg / Quittung</option>
-            <option value="INVOICE" {#if document.documentType.name == 'INVOICE'}selected{/if}>Rechnung</option>
-          </select>
-        </div>
-        <div class="form-group">
           <label for="name">Bezeichnung</label>
           <input type="text" id="name" name="name" value="{document.name ?: ''}" placeholder="z.B. Büromaterial">
+        </div>
+        <div class="form-group">
+          <label for="transactionDate">Datum</label>
+          <input type="date" id="transactionDate" name="transactionDate" value="{document.transactionDateForInput}">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label for="total">Betrag *</label>
+          <label for="total">Bruttobetrag *</label>
           <input type="number" id="total" name="total" step="0.01" required value="{document.total}">
+        </div>
+        <div class="form-group">
+          <label for="subTotal">Nettobetrag (berechnet)</label>
+          <input type="number" id="subTotal" step="0.01" value="{document.subTotal}" disabled style="background-color: #e0e0e0; color: #525252;">
+        </div>
+        <div class="form-group">
+          <label for="totalTax">MwSt</label>
+          <input type="number" id="totalTax" name="totalTax" step="0.01" value="{document.totalTax}">
         </div>
         <div class="form-group">
           <label for="currencyCode">Währung</label>
@@ -313,10 +297,6 @@
             <option value="CHF" {#if document.currencyCode == 'CHF'}selected{/if}>CHF</option>
             <option value="GBP" {#if document.currencyCode == 'GBP'}selected{/if}>GBP</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label for="transactionDate">Datum</label>
-          <input type="date" id="transactionDate" name="transactionDate" value="{document.transactionDateForInput}">
         </div>
       </div>
       <div class="form-row">
@@ -360,7 +340,7 @@
       </div>
     </div>
 
-    <div class="form-section invoice-fields">
+    <div class="form-section">
       <h3>Rechnungsdetails</h3>
       <div class="form-row">
         <div class="form-group">

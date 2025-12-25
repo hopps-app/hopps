@@ -192,6 +192,7 @@ public class DocumentResource extends Controller
 		@RestForm @NotNull String documentType,
 		@RestForm String name,
 		@RestForm @NotNull BigDecimal total,
+		@RestForm BigDecimal totalTax,
 		@RestForm String currencyCode,
 		@RestForm String transactionDate,
 		@RestForm Long bommelId,
@@ -215,6 +216,7 @@ public class DocumentResource extends Controller
 		document.setDocumentType(DocumentType.valueOf(documentType));
 		document.setName(name);
 		document.setTotal(total);
+		document.setTotalTax(totalTax);
 		document.setCurrencyCode(currencyCode != null && !currencyCode.isBlank() ? currencyCode : "EUR");
 		document.setPrivatelyPaid(privatelyPaid);
 
@@ -256,19 +258,17 @@ public class DocumentResource extends Controller
 			document.setSender(null);
 		}
 
-		if (DocumentType.INVOICE.name().equals(documentType))
+		// Invoice-specific fields (saved for all document types now)
+		document.setInvoiceId(invoiceId);
+		document.setOrderNumber(orderNumber);
+		if (dueDate != null && !dueDate.isBlank())
 		{
-			document.setInvoiceId(invoiceId);
-			document.setOrderNumber(orderNumber);
-			if (dueDate != null && !dueDate.isBlank())
-			{
-				LocalDate date = LocalDate.parse(dueDate);
-				document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-			}
-			else
-			{
-				document.setDueDate(null);
-			}
+			LocalDate date = LocalDate.parse(dueDate);
+			document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		}
+		else
+		{
+			document.setDueDate(null);
 		}
 
 		flash("success", "Beleg gespeichert");
@@ -304,6 +304,7 @@ public class DocumentResource extends Controller
 		@RestForm @NotNull String documentType,
 		@RestForm String name,
 		@RestForm @NotNull BigDecimal total,
+		@RestForm BigDecimal totalTax,
 		@RestForm String currencyCode,
 		@RestForm String transactionDate,
 		@RestForm Long bommelId,
@@ -327,6 +328,7 @@ public class DocumentResource extends Controller
 		document.setDocumentType(DocumentType.valueOf(documentType));
 		document.setName(name);
 		document.setTotal(total);
+		document.setTotalTax(totalTax);
 		document.setCurrencyCode(currencyCode != null && !currencyCode.isBlank() ? currencyCode : "EUR");
 		document.setPrivatelyPaid(privatelyPaid);
 
@@ -368,19 +370,17 @@ public class DocumentResource extends Controller
 			document.setSender(null);
 		}
 
-		if (DocumentType.INVOICE.name().equals(documentType))
+		// Invoice-specific fields (saved for all document types now)
+		document.setInvoiceId(invoiceId);
+		document.setOrderNumber(orderNumber);
+		if (dueDate != null && !dueDate.isBlank())
 		{
-			document.setInvoiceId(invoiceId);
-			document.setOrderNumber(orderNumber);
-			if (dueDate != null && !dueDate.isBlank())
-			{
-				LocalDate date = LocalDate.parse(dueDate);
-				document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-			}
-			else
-			{
-				document.setDueDate(null);
-			}
+			LocalDate date = LocalDate.parse(dueDate);
+			document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		}
+		else
+		{
+			document.setDueDate(null);
 		}
 
 		flash("success", "Beleg aktualisiert");
