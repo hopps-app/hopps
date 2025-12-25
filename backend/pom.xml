@@ -45,7 +45,6 @@
     </licenses>
 
     <modules>
-        <module>app.hopps.fin-narrator</module>
         <module>app.hopps.mailservice</module>
         <module>app.hopps.org</module>
     </modules>
