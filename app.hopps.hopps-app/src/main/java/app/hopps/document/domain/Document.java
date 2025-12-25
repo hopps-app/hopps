@@ -9,15 +9,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 import app.hopps.bommel.domain.Bommel;
+import app.hopps.shared.domain.Tag;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 
 @Entity
@@ -45,9 +47,9 @@ public class Document extends PanacheEntity
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private TradeParty recipient;
 
-	@ElementCollection
-	@CollectionTable
-	private Set<String> tags = new HashSet<>();
+	@ManyToMany
+	@JoinTable(name = "document_tag", joinColumns = @JoinColumn(name = "document_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+	private Set<Tag> tags = new HashSet<>();
 
 	private boolean privatelyPaid;
 
@@ -164,12 +166,12 @@ public class Document extends PanacheEntity
 		this.recipient = recipient;
 	}
 
-	public Set<String> getTags()
+	public Set<Tag> getTags()
 	{
 		return tags;
 	}
 
-	public void setTags(Set<String> tags)
+	public void setTags(Set<Tag> tags)
 	{
 		this.tags = tags;
 	}
