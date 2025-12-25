@@ -12,33 +12,6 @@
   .page-header h1 {
     margin: 0;
   }
-  .documents-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: var(--cds-layer-02);
-  }
-  .documents-table th,
-  .documents-table td {
-    padding: 0.875rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--cds-border-subtle-01);
-  }
-  .documents-table th {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--cds-text-secondary);
-    background-color: var(--cds-layer-01);
-  }
-  .documents-table tr:hover {
-    background-color: var(--cds-background-hover);
-  }
-  .documents-table a {
-    color: var(--cds-link-primary, #0f62fe);
-    text-decoration: none;
-  }
-  .documents-table a:hover {
-    text-decoration: underline;
-  }
   .doc-type {
     display: inline-flex;
     align-items: center;
@@ -59,9 +32,8 @@
   .amount {
     font-weight: 600;
     font-family: 'IBM Plex Mono', monospace;
-  }
-  .amount.negative {
-    color: #da1e28;
+    text-align: right;
+    display: block;
   }
   .bommel-badge {
     display: inline-flex;
@@ -140,6 +112,21 @@
     background: linear-gradient(135deg, rgba(105, 41, 196, 0.15) 0%, rgba(166, 108, 255, 0.2) 100%);
     border-color: #8a3ffc;
   }
+  cds-table {
+    width: 100%;
+  }
+  cds-table-cell a {
+    color: var(--cds-link-primary, #0f62fe);
+    text-decoration: none;
+  }
+  cds-table-cell a:hover {
+    text-decoration: underline;
+  }
+  .status-cell {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
 </style>
 {/moreStyles}
 
@@ -159,35 +146,35 @@
       <a href="/belege/neu" class="cds-btn cds-btn-primary">Ersten Beleg anlegen</a>
     </div>
   {#else}
-    <table class="documents-table">
-      <thead>
-        <tr>
-          <th>Typ</th>
-          <th>Name / Absender</th>
-          <th>Datum</th>
-          <th>Betrag</th>
-          <th>Bommel</th>
-          <th>Tags</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
+    <cds-table size="lg">
+      <cds-table-head>
+        <cds-table-header-row>
+          <cds-table-header-cell>Typ</cds-table-header-cell>
+          <cds-table-header-cell>Name / Absender</cds-table-header-cell>
+          <cds-table-header-cell>Datum</cds-table-header-cell>
+          <cds-table-header-cell>Betrag</cds-table-header-cell>
+          <cds-table-header-cell>Bommel</cds-table-header-cell>
+          <cds-table-header-cell>Tags</cds-table-header-cell>
+          <cds-table-header-cell>Status</cds-table-header-cell>
+        </cds-table-header-row>
+      </cds-table-head>
+      <cds-table-body>
         {#for doc in documents}
-        <tr>
-          <td>
+        <cds-table-row>
+          <cds-table-cell>
             <span class="doc-type {doc.documentType.name.toLowerCase}">{doc.displayType}</span>
-          </td>
-          <td><a href="/belege/{doc.id}">{doc.displayName}</a></td>
-          <td>{doc.displayDate}</td>
-          <td><span class="amount">{doc.displayTotal}</span></td>
-          <td>
+          </cds-table-cell>
+          <cds-table-cell><a href="/belege/{doc.id}">{doc.displayName}</a></cds-table-cell>
+          <cds-table-cell>{doc.displayDate}</cds-table-cell>
+          <cds-table-cell><span class="amount">{doc.displayTotal}</span></cds-table-cell>
+          <cds-table-cell>
             {#if doc.bommel}
               <span class="bommel-badge">{doc.bommel.title}</span>
             {#else}
               <span style="color: var(--cds-text-disabled);">—</span>
             {/if}
-          </td>
-          <td>
+          </cds-table-cell>
+          <cds-table-cell>
             {#if doc.hasTags}
             <div class="tags-cell">
               {#for docTag in doc.documentTags}
@@ -199,22 +186,24 @@
             {#else}
               <span style="color: var(--cds-text-disabled);">—</span>
             {/if}
-          </td>
-          <td>
-            {#if doc.hasFile}
-              <span class="has-file">
-                <svg viewBox="0 0 32 32"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/></svg>
-                Datei
-              </span>
-            {/if}
-            {#if doc.privatelyPaid}
-              <span class="privately-paid">Privat bezahlt</span>
-            {/if}
-          </td>
-        </tr>
+          </cds-table-cell>
+          <cds-table-cell>
+            <div class="status-cell">
+              {#if doc.hasFile}
+                <span class="has-file">
+                  <svg viewBox="0 0 32 32"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/></svg>
+                  Datei
+                </span>
+              {/if}
+              {#if doc.privatelyPaid}
+                <span class="privately-paid">Privat bezahlt</span>
+              {/if}
+            </div>
+          </cds-table-cell>
+        </cds-table-row>
         {/for}
-      </tbody>
-    </table>
+      </cds-table-body>
+    </cds-table>
   {/if}
 </div>
 
