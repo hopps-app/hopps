@@ -16,6 +16,7 @@ public class DashboardResource extends Controller
 	}
 
 	@GET
+	@Path("")
 	public TemplateInstance index()
 	{
 		return Templates.index();

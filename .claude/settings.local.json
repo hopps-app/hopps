@@ -27,7 +27,8 @@
       "Bash(/Users/markus/git/fuggs/mvnw formatter:format -q)",
       "Bash(./mvnw clean package:*)",
       "Bash(../mvnw formatter:format:*)",
-      "Bash(../mvnw compile:*)"
+      "Bash(../mvnw compile:*)",
+      "Bash(xargs ls:*)"
     ]
   }
 }
