@@ -4,28 +4,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import org.hibernate.Hibernate;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.shared.domain.Tag;
-import app.hopps.document.service.DocumentTagService;
 import app.hopps.document.service.StorageService;
 import app.hopps.shared.repository.TagRepository;
 import app.hopps.simplepe.Chain;
 import app.hopps.simplepe.ChainStatus;
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
@@ -48,17 +41,6 @@ class DocumentAnalysisWorkflowTest
 
 	@Inject
 	DocumentAnalysisWorkflow workflow;
-
-	@InjectMock
-	DocumentTagService documentTagService;
-
-	@BeforeEach
-	void setUp()
-	{
-		// Default mock behavior - return empty tags
-		when(documentTagService.tagDocument(any()))
-			.thenReturn(List.of());
-	}
 
 	@Test
 	void shouldCompleteWorkflowForDocumentWithFile()
@@ -117,43 +99,20 @@ class DocumentAnalysisWorkflowTest
 	}
 
 	@Test
-	void shouldGenerateTagsForDocument()
-	{
-		// Given
-		Long documentId = createDocumentWithoutFile();
-
-		// Mock the tag service to return tags
-		when(documentTagService.tagDocument(any()))
-			.thenReturn(List.of("food", "pizza", "restaurant"));
-
-		// When
-		Chain chain = workflow.startAnalysis(documentId);
-
-		// Then
-		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
-
-		Document document = findDocumentById(documentId);
-		assertThat(document.getDocumentTags(), hasSize(3));
-	}
-
-	@Test
 	void shouldNotOverwriteExistingTags()
 	{
-		// Given
+		// Given - document with existing tags
 		Long documentId = createDocumentWithTags();
 
-		// Mock would return different tags, but should be skipped
-		when(documentTagService.tagDocument(any()))
-			.thenReturn(List.of("different", "tags"));
-
-		// When
+		// When - workflow runs (tags come from az-document-ai service, which is
+		// mocked in tests)
 		Chain chain = workflow.startAnalysis(documentId);
 
-		// Then
+		// Then - should complete and keep original tags
 		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
 
 		Document document = findDocumentById(documentId);
-		// Should still have original tag, not the mocked ones
+		// Should still have original tag since document already has tags
 		assertThat(document.getDocumentTags(), hasSize(1));
 	}
 

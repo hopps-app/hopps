@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 
 public class DocumentDataHelper
@@ -19,7 +20,7 @@ public class DocumentDataHelper
 	{
 	}
 
-	public static DocumentData fromDocument(AnalyzedDocument document)
+	public static DocumentData fromDocument(AnalyzedDocument document, List<String> tags)
 	{
 		Map<String, DocumentField> fields = document.getFields();
 		LOG.debug("Document fields: {}", fields.keySet());
@@ -51,7 +52,8 @@ public class DocumentDataHelper
 			extractString(fields, "PurchaseOrder"),
 			extractString(fields, "PaymentTerm"),
 			extractLocalDate(fields, "ServiceStartDate"),
-			extractLocalDate(fields, "ServiceEndDate"));
+			extractLocalDate(fields, "ServiceEndDate"),
+			tags);
 	}
 
 	private static BigDecimal extractTotal(Map<String, DocumentField> fields, BigDecimal subTotal,

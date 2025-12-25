@@ -3,6 +3,8 @@ package app.hopps.document.workflow;
 import java.io.InputStream;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -13,9 +15,12 @@ import app.hopps.document.client.DocumentData;
 import app.hopps.document.client.TradePartyData;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
+import app.hopps.shared.domain.Tag;
+import app.hopps.shared.repository.TagRepository;
 import app.hopps.simplepe.Chain;
 import app.hopps.simplepe.SystemTask;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,6 +43,9 @@ public class AnalyzeDocumentTask extends SystemTask
 
 	@Inject
 	DocumentRepository documentRepository;
+
+	@Inject
+	TagRepository tagRepository;
 
 	@RestClient
 	DocumentAiClient documentAiClient;
@@ -205,6 +213,18 @@ public class AnalyzeDocumentTask extends SystemTask
 				LOG.debug("Autofilled name from customer: {}", data.customerName());
 				fieldsUpdated++;
 			}
+		}
+
+		// Apply AI-generated tags if document has no existing tags
+		if (data.tags() != null && !data.tags().isEmpty() && document.getDocumentTags().isEmpty())
+		{
+			Set<Tag> tags = tagRepository.findOrCreateTags(new HashSet<>(data.tags()));
+			for (Tag tag : tags)
+			{
+				document.addTag(tag, TagSource.AI);
+			}
+			LOG.info("Applied {} AI-generated tags: {}", tags.size(), data.tags());
+			fieldsUpdated++;
 		}
 
 		LOG.info("Document analysis complete: documentId={}, fieldsUpdated={}", document.getId(), fieldsUpdated);

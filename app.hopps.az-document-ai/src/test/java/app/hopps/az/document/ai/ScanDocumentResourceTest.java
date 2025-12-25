@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -146,7 +147,8 @@ class ScanDocumentResourceTest
 			"PO-12345",
 			"Net 30",
 			null,
-			null);
+			null,
+			List.of("food", "pizza"));
 	}
 
 	private static TradeParty fakeAddress()
