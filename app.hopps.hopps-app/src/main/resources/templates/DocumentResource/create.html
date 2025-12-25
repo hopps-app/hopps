@@ -149,6 +149,97 @@
     background-color: #c6c6c6;
     cursor: not-allowed;
   }
+  /* Loading state for submit button */
+  button.cds-btn-primary.loading {
+    background-color: #0353e9;
+    pointer-events: none;
+  }
+  .btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: btn-spin 0.8s linear infinite;
+  }
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
+  /* Upload overlay */
+  .upload-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(22, 22, 22, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .upload-overlay.visible {
+    display: flex;
+  }
+  .upload-modal {
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: 4px;
+    text-align: center;
+    max-width: 400px;
+  }
+  .upload-modal-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #0f62fe;
+    border-radius: 50%;
+    animation: btn-spin 0.8s linear infinite;
+    margin: 0 auto 1.5rem;
+  }
+  .upload-modal h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .upload-modal p {
+    margin: 0;
+    color: #525252;
+    font-size: 0.875rem;
+  }
+  .upload-modal .upload-steps {
+    margin-top: 1.5rem;
+    text-align: left;
+  }
+  .upload-modal .upload-step {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: #525252;
+    font-size: 0.875rem;
+  }
+  .upload-modal .upload-step.active {
+    color: #0f62fe;
+    font-weight: 500;
+  }
+  .upload-modal .upload-step.done {
+    color: #0e6027;
+  }
+  .upload-modal .upload-step svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+  .upload-modal .step-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e0e0e0;
+    border-top-color: #0f62fe;
+    border-radius: 50%;
+    animation: btn-spin 0.8s linear infinite;
+  }
   a.cds-btn-secondary {
     background-color: #393939;
     color: white;
@@ -194,6 +285,8 @@
     var fileSelected = document.querySelector('.file-selected');
     var fileSelectedName = document.querySelector('.file-selected-name');
     var submitBtn = document.getElementById('submitBtn');
+    var uploadForm = document.getElementById('uploadForm');
+    var uploadOverlay = document.getElementById('uploadOverlay');
 
     dropZone.addEventListener('click', function() {
       fileInput.click();
@@ -236,6 +329,27 @@
       fileSelected.classList.remove('visible');
       submitBtn.disabled = true;
     });
+
+    // Handle form submission with loading state
+    uploadForm.addEventListener('submit', function(e) {
+      // Show loading overlay
+      uploadOverlay.classList.add('visible');
+
+      // Update button to loading state
+      submitBtn.classList.add('loading');
+      submitBtn.innerHTML = '<span class="btn-spinner"></span> Wird hochgeladen...';
+
+      // Animate through steps
+      var steps = document.querySelectorAll('.upload-step');
+      steps[0].classList.add('active');
+
+      setTimeout(function() {
+        steps[0].classList.remove('active');
+        steps[0].classList.add('done');
+        steps[0].querySelector('.step-spinner').outerHTML = '<svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>';
+        steps[1].classList.add('active');
+      }, 800);
+    });
   });
 </script>
 {/moreScripts}
@@ -249,7 +363,7 @@
     <p>Laden Sie einen Beleg hoch. Die KI analysiert das Dokument automatisch und extrahiert die wichtigsten Daten.</p>
   </div>
 
-  <form action="/belege/upload" method="POST" enctype="multipart/form-data">
+  <form id="uploadForm" action="/belege/upload" method="POST" enctype="multipart/form-data">
     {#authenticityToken /}
     <input type="hidden" name="documentType" value="RECEIPT">
 
@@ -286,6 +400,25 @@
       <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
     </div>
   </form>
+</div>
+
+<!-- Upload Loading Overlay -->
+<div id="uploadOverlay" class="upload-overlay">
+  <div class="upload-modal">
+    <div class="upload-modal-spinner"></div>
+    <h3>Beleg wird verarbeitet</h3>
+    <p>Bitte warten Sie, während Ihr Dokument hochgeladen und analysiert wird.</p>
+    <div class="upload-steps">
+      <div class="upload-step">
+        <span class="step-spinner"></span>
+        <span>Datei wird hochgeladen</span>
+      </div>
+      <div class="upload-step">
+        <span class="step-spinner"></span>
+        <span>KI analysiert Beleg</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 {#if flash:error}
