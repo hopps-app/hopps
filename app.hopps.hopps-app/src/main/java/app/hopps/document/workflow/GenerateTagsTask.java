@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentTagService;
 import app.hopps.shared.domain.Tag;
@@ -60,7 +61,7 @@ public class GenerateTagsTask extends SystemTask
 		}
 
 		// Skip if document already has tags
-		if (!document.getTags().isEmpty())
+		if (!document.getDocumentTags().isEmpty())
 		{
 			LOG.info("Document already has tags, skipping generation: id={}", documentId);
 			return;
@@ -80,7 +81,12 @@ public class GenerateTagsTask extends SystemTask
 
 			// Convert tag names to Tag entities (reusing existing tags)
 			Set<Tag> tags = tagRepository.findOrCreateTags(new HashSet<>(tagNames));
-			document.setTags(tags);
+
+			// Add each tag with AI source
+			for (Tag tag : tags)
+			{
+				document.addTag(tag, TagSource.AI);
+			}
 
 			LOG.info("Generated {} tags for document: id={}, tags={}",
 				tags.size(), documentId, tagNames);

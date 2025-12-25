@@ -119,7 +119,10 @@ class TagRepositoryTest
 	@Transactional(TxType.REQUIRES_NEW)
 	void deleteAllTags()
 	{
-		// Must delete documents first due to foreign key constraint
+		// Must delete document_tag entries first due to foreign key constraint
+		documentRepository.getEntityManager()
+			.createNativeQuery("DELETE FROM document_tag")
+			.executeUpdate();
 		documentRepository.deleteAll();
 		tagRepository.deleteAll();
 	}

@@ -17,7 +17,9 @@ import org.mockito.Mockito;
 
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentType;
+import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.shared.domain.Tag;
 import app.hopps.document.service.DocumentTagService;
 import app.hopps.document.service.StorageService;
 import app.hopps.shared.repository.TagRepository;
@@ -131,7 +133,7 @@ class DocumentAnalysisWorkflowTest
 		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
 
 		Document document = findDocumentById(documentId);
-		assertThat(document.getTags(), hasSize(3));
+		assertThat(document.getDocumentTags(), hasSize(3));
 	}
 
 	@Test
@@ -152,7 +154,7 @@ class DocumentAnalysisWorkflowTest
 
 		Document document = findDocumentById(documentId);
 		// Should still have original tag, not the mocked ones
-		assertThat(document.getTags(), hasSize(1));
+		assertThat(document.getDocumentTags(), hasSize(1));
 	}
 
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
@@ -222,7 +224,10 @@ class DocumentAnalysisWorkflowTest
 		document.setTotal(new BigDecimal("50.00"));
 
 		// Add an existing tag
-		document.setTags(tagRepository.findOrCreateTags(java.util.Set.of("existing")));
+		for (Tag tag : tagRepository.findOrCreateTags(java.util.Set.of("existing")))
+		{
+			document.addTag(tag, TagSource.MANUAL);
+		}
 
 		documentRepository.persist(document);
 		return document.getId();
@@ -233,7 +238,7 @@ class DocumentAnalysisWorkflowTest
 	{
 		Document doc = documentRepository.findById(id);
 		// Force lazy loading of tags
-		Hibernate.initialize(doc.getTags());
+		Hibernate.initialize(doc.getDocumentTags());
 		return doc;
 	}
 }
