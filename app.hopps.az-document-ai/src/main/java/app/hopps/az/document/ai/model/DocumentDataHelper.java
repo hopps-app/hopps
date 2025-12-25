@@ -57,30 +57,50 @@ public class DocumentDataHelper
 	private static BigDecimal extractTotal(Map<String, DocumentField> fields, BigDecimal subTotal,
 		BigDecimal totalTax)
 	{
-		// Try InvoiceTotal first (for invoices)
-		DocumentField totalField = fields.get("InvoiceTotal");
-		if (totalField != null && totalField.getValueCurrency() != null)
+		// Azure sometimes mislabels fields - InvoiceTotal might be Netto,
+		// SubTotal
+		// might be Brutto
+		// Since Brutto >= Netto always, we use the maximum of available values
+
+		BigDecimal invoiceTotal = null;
+		DocumentField invoiceTotalField = fields.get("InvoiceTotal");
+		if (invoiceTotalField != null && invoiceTotalField.getValueCurrency() != null)
 		{
-			return BigDecimal.valueOf(totalField.getValueCurrency().getAmount());
+			invoiceTotal = BigDecimal.valueOf(invoiceTotalField.getValueCurrency().getAmount());
 		}
 
-		// If we have SubTotal and TotalTax, calculate the gross total (Brutto =
-		// Netto + MwSt)
-		if (subTotal != null && totalTax != null)
-		{
-			BigDecimal calculated = subTotal.add(totalTax);
-			LOG.debug("Calculated total from SubTotal + TotalTax: {} + {} = {}", subTotal, totalTax, calculated);
-			return calculated;
-		}
-
-		// Fall back to Total field (for receipts - this is usually the gross)
-		totalField = fields.get("Total");
+		BigDecimal total = null;
+		DocumentField totalField = fields.get("Total");
 		if (totalField != null && totalField.getValueCurrency() != null)
 		{
-			return BigDecimal.valueOf(totalField.getValueCurrency().getAmount());
+			total = BigDecimal.valueOf(totalField.getValueCurrency().getAmount());
+		}
+
+		// Find the maximum of all available values - Brutto is always the
+		// largest
+		BigDecimal result = max(invoiceTotal, subTotal, total);
+
+		if (result != null)
+		{
+			LOG.debug("Extracted total (Brutto): {} (from InvoiceTotal={}, SubTotal={}, Total={})", result,
+				invoiceTotal, subTotal, total);
+			return result;
 		}
 
 		return null;
+	}
+
+	private static BigDecimal max(BigDecimal... values)
+	{
+		BigDecimal result = null;
+		for (BigDecimal value : values)
+		{
+			if (value != null && (result == null || value.compareTo(result) > 0))
+			{
+				result = value;
+			}
+		}
+		return result;
 	}
 
 	private static String extractCurrencyCode(Map<String, DocumentField> fields)
