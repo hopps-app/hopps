@@ -447,4 +447,41 @@ public class Document extends PanacheEntity
 			|| analysisStatus == AnalysisStatus.FAILED
 			|| analysisStatus == AnalysisStatus.SKIPPED;
 	}
+
+	/**
+	 * Returns a JSON-like string representation for AI analysis.
+	 */
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		sb.append("\"type\": \"").append(documentType).append("\"");
+		if (name != null)
+		{
+			sb.append(", \"name\": \"").append(name).append("\"");
+		}
+		if (total != null)
+		{
+			sb.append(", \"total\": ").append(total);
+			if (currencyCode != null)
+			{
+				sb.append(", \"currency\": \"").append(currencyCode).append("\"");
+			}
+		}
+		if (sender != null && sender.getName() != null)
+		{
+			sb.append(", \"sender\": \"").append(sender.getName()).append("\"");
+		}
+		if (invoiceId != null)
+		{
+			sb.append(", \"invoiceId\": \"").append(invoiceId).append("\"");
+		}
+		if (orderNumber != null)
+		{
+			sb.append(", \"orderNumber\": \"").append(orderNumber).append("\"");
+		}
+		sb.append("}");
+		return sb.toString();
+	}
 }
