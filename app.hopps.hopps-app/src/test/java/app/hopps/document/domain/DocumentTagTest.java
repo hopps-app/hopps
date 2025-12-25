@@ -1,6 +1,7 @@
 package app.hopps.document.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -30,12 +31,12 @@ class DocumentTagTest
 	{
 		deleteAllData();
 
-		Long docId = createDocumentWithTags("Test Document", Set.of("food", "pizza"));
+		Long docId = createDocumentWithTags("Test Document", Set.of("food", "pizza"), TagSource.MANUAL);
 
 		Document found = findDocumentById(docId);
-		assertEquals(2, found.getTags().size());
-		assertTrue(found.getTags().stream().anyMatch(t -> t.getName().equals("food")));
-		assertTrue(found.getTags().stream().anyMatch(t -> t.getName().equals("pizza")));
+		assertEquals(2, found.getDocumentTags().size());
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("food")));
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("pizza")));
 	}
 
 	@Test
@@ -43,8 +44,8 @@ class DocumentTagTest
 	{
 		deleteAllData();
 
-		Long doc1Id = createDocumentWithTags("Doc 1", Set.of("shared", "unique1"));
-		Long doc2Id = createDocumentWithTags("Doc 2", Set.of("shared", "unique2"));
+		Long doc1Id = createDocumentWithTags("Doc 1", Set.of("shared", "unique1"), TagSource.MANUAL);
+		Long doc2Id = createDocumentWithTags("Doc 2", Set.of("shared", "unique2"), TagSource.MANUAL);
 
 		// Should only have 3 tags total (shared, unique1, unique2)
 		assertEquals(3, countTags());
@@ -53,12 +54,14 @@ class DocumentTagTest
 		Document doc2 = findDocumentById(doc2Id);
 
 		// Find the shared tag in both documents
-		Tag sharedTag1 = doc1.getTags().stream()
-			.filter(t -> t.getName().equals("shared"))
+		Tag sharedTag1 = doc1.getDocumentTags().stream()
+			.filter(dt -> dt.getName().equals("shared"))
+			.map(DocumentTag::getTag)
 			.findFirst()
 			.orElseThrow();
-		Tag sharedTag2 = doc2.getTags().stream()
-			.filter(t -> t.getName().equals("shared"))
+		Tag sharedTag2 = doc2.getDocumentTags().stream()
+			.filter(dt -> dt.getName().equals("shared"))
+			.map(DocumentTag::getTag)
 			.findFirst()
 			.orElseThrow();
 
@@ -71,14 +74,14 @@ class DocumentTagTest
 	{
 		deleteAllData();
 
-		Long docId = createDocumentWithTags("Test Doc", Set.of("old"));
+		Long docId = createDocumentWithTags("Test Doc", Set.of("old"), TagSource.MANUAL);
 
 		updateDocumentTags(docId, Set.of("new1", "new2"));
 
 		Document found = findDocumentById(docId);
-		assertEquals(2, found.getTags().size());
-		assertTrue(found.getTags().stream().anyMatch(t -> t.getName().equals("new1")));
-		assertTrue(found.getTags().stream().anyMatch(t -> t.getName().equals("new2")));
+		assertEquals(2, found.getDocumentTags().size());
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("new1")));
+		assertTrue(found.getDocumentTags().stream().anyMatch(dt -> dt.getName().equals("new2")));
 	}
 
 	@Test
@@ -86,21 +89,98 @@ class DocumentTagTest
 	{
 		deleteAllData();
 
-		Long docId = createDocumentWithTags("No Tags Doc", Set.of());
+		Long docId = createDocumentWithTags("No Tags Doc", Set.of(), TagSource.MANUAL);
 
 		Document found = findDocumentById(docId);
-		assertTrue(found.getTags().isEmpty());
+		assertTrue(found.getDocumentTags().isEmpty());
+	}
+
+	@Test
+	void shouldIdentifyAiGeneratedTags()
+	{
+		Document doc = new Document();
+		doc.setDocumentType(DocumentType.RECEIPT);
+		doc.setTotal(BigDecimal.TEN);
+
+		Tag aiTag = new Tag("food");
+		Tag manualTag = new Tag("manual");
+		doc.addTag(aiTag, TagSource.AI);
+		doc.addTag(manualTag, TagSource.MANUAL);
+
+		assertTrue(doc.hasAiTags());
+
+		// Find the AI tag and manual tag from documentTags
+		DocumentTag aiDocTag = doc.getDocumentTags().stream()
+			.filter(dt -> dt.getName().equals("food"))
+			.findFirst()
+			.orElseThrow();
+		DocumentTag manualDocTag = doc.getDocumentTags().stream()
+			.filter(dt -> dt.getName().equals("manual"))
+			.findFirst()
+			.orElseThrow();
+
+		assertTrue(aiDocTag.isAiGenerated());
+		assertFalse(manualDocTag.isAiGenerated());
+	}
+
+	@Test
+	void shouldTrackTagSourceCorrectly()
+	{
+		Document doc = new Document();
+		doc.setDocumentType(DocumentType.RECEIPT);
+		doc.setTotal(BigDecimal.TEN);
+
+		Tag tag1 = new Tag("ai-tag");
+		Tag tag2 = new Tag("manual-tag");
+
+		doc.addTag(tag1, TagSource.AI);
+		doc.addTag(tag2, TagSource.MANUAL);
+
+		assertEquals(2, doc.getDocumentTags().size());
+
+		DocumentTag dt1 = doc.getDocumentTags().stream()
+			.filter(dt -> dt.getName().equals("ai-tag"))
+			.findFirst()
+			.orElseThrow();
+		DocumentTag dt2 = doc.getDocumentTags().stream()
+			.filter(dt -> dt.getName().equals("manual-tag"))
+			.findFirst()
+			.orElseThrow();
+
+		assertEquals(TagSource.AI, dt1.getSource());
+		assertEquals(TagSource.MANUAL, dt2.getSource());
+		assertTrue(dt1.isAiGenerated());
+		assertTrue(dt2.isManual());
+	}
+
+	@Test
+	void shouldReturnFalseForNoAiTags()
+	{
+		Document doc = new Document();
+		doc.setDocumentType(DocumentType.RECEIPT);
+		doc.setTotal(BigDecimal.TEN);
+
+		Tag tag = new Tag("test");
+		doc.addTag(tag, TagSource.MANUAL);
+
+		assertFalse(doc.hasAiTags());
+		assertTrue(doc.hasTags());
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)
 	void deleteAllData()
 	{
+		// Delete document_tag entries first (via native query to avoid cascade
+		// issues)
+		documentRepository.getEntityManager()
+			.createNativeQuery("DELETE FROM document_tag")
+			.executeUpdate();
 		documentRepository.deleteAll();
 		tagRepository.deleteAll();
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)
-	Long createDocumentWithTags(String name, Set<String> tagNames)
+	Long createDocumentWithTags(String name, Set<String> tagNames, TagSource source)
 	{
 		Set<Tag> tags = tagRepository.findOrCreateTags(tagNames);
 
@@ -109,7 +189,11 @@ class DocumentTagTest
 		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
-		document.setTags(tags);
+
+		for (Tag tag : tags)
+		{
+			document.addTag(tag, source);
+		}
 
 		documentRepository.persist(document);
 		return document.getId();
@@ -120,7 +204,7 @@ class DocumentTagTest
 	{
 		Document doc = documentRepository.findById(id);
 		// Force lazy loading of tags
-		doc.getTags().size();
+		doc.getDocumentTags().size();
 		return doc;
 	}
 
@@ -128,8 +212,12 @@ class DocumentTagTest
 	void updateDocumentTags(Long docId, Set<String> tagNames)
 	{
 		Document doc = documentRepository.findById(docId);
+		doc.clearTags();
 		Set<Tag> tags = tagRepository.findOrCreateTags(tagNames);
-		doc.setTags(tags);
+		for (Tag tag : tags)
+		{
+			doc.addTag(tag, TagSource.MANUAL);
+		}
 	}
 
 	@Transactional(TxType.REQUIRES_NEW)

@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentType;
+import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentTagService;
 import app.hopps.shared.domain.Tag;
@@ -90,7 +91,7 @@ class GenerateTagsTaskTest
 	{
 		// Given
 		Document document = createDocument(1L);
-		document.setTags(Set.of(new Tag("existing")));
+		document.addTag(new Tag("existing"), TagSource.MANUAL);
 
 		chain.setVariable(AnalyzeDocumentTask.VAR_DOCUMENT_ID, 1L);
 		when(documentRepository.findById(1L)).thenReturn(document);
@@ -122,7 +123,7 @@ class GenerateTagsTaskTest
 
 		// Then
 		assertThat(result, is(TaskResult.COMPLETED));
-		assertThat(document.getTags(), hasSize(2));
+		assertThat(document.getDocumentTags(), hasSize(2));
 	}
 
 	@Test
@@ -139,7 +140,7 @@ class GenerateTagsTaskTest
 
 		// Then
 		assertThat(result, is(TaskResult.COMPLETED));
-		assertThat(document.getTags(), hasSize(0));
+		assertThat(document.getDocumentTags(), hasSize(0));
 		verify(tagRepository, never()).findOrCreateTags(Mockito.any());
 	}
 
@@ -157,7 +158,7 @@ class GenerateTagsTaskTest
 
 		// Then
 		assertThat(result, is(TaskResult.COMPLETED));
-		assertThat(document.getTags(), hasSize(0));
+		assertThat(document.getDocumentTags(), hasSize(0));
 		verify(tagRepository, never()).findOrCreateTags(Mockito.any());
 	}
 
@@ -176,7 +177,7 @@ class GenerateTagsTaskTest
 
 		// Then - should complete successfully despite error (tags are optional)
 		assertThat(result, is(TaskResult.COMPLETED));
-		assertThat(document.getTags(), hasSize(0));
+		assertThat(document.getDocumentTags(), hasSize(0));
 	}
 
 	private Document createDocument(Long id)

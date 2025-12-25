@@ -5,11 +5,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import app.hopps.bommel.domain.Bommel;
-import app.hopps.shared.domain.Tag;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,10 +17,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class Document extends PanacheEntity
@@ -47,9 +45,8 @@ public class Document extends PanacheEntity
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private TradeParty recipient;
 
-	@ManyToMany
-	@JoinTable(name = "document_tag", joinColumns = @JoinColumn(name = "document_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
-	private Set<Tag> tags = new HashSet<>();
+	@OneToMany(mappedBy = "document", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<DocumentTag> documentTags = new ArrayList<>();
 
 	private boolean privatelyPaid;
 
@@ -166,14 +163,31 @@ public class Document extends PanacheEntity
 		this.recipient = recipient;
 	}
 
-	public Set<Tag> getTags()
+	public List<DocumentTag> getDocumentTags()
 	{
-		return tags;
+		return documentTags;
 	}
 
-	public void setTags(Set<Tag> tags)
+	public void setDocumentTags(List<DocumentTag> documentTags)
 	{
-		this.tags = tags;
+		this.documentTags = documentTags;
+	}
+
+	/**
+	 * Adds a tag with the specified source.
+	 */
+	public void addTag(app.hopps.shared.domain.Tag tag, TagSource source)
+	{
+		DocumentTag documentTag = new DocumentTag(this, tag, source);
+		documentTags.add(documentTag);
+	}
+
+	/**
+	 * Removes all existing tags.
+	 */
+	public void clearTags()
+	{
+		documentTags.clear();
 	}
 
 	public boolean isPrivatelyPaid()
@@ -446,6 +460,37 @@ public class Document extends PanacheEntity
 		return analysisStatus == AnalysisStatus.COMPLETED
 			|| analysisStatus == AnalysisStatus.FAILED
 			|| analysisStatus == AnalysisStatus.SKIPPED;
+	}
+
+	/**
+	 * Returns true if document has tags.
+	 */
+	public boolean hasTags()
+	{
+		return documentTags != null && !documentTags.isEmpty();
+	}
+
+	/**
+	 * Returns true if document has any AI-generated tags.
+	 */
+	public boolean hasAiTags()
+	{
+		return documentTags != null && documentTags.stream().anyMatch(DocumentTag::isAiGenerated);
+	}
+
+	/**
+	 * Returns tag names as comma-separated string for form input.
+	 */
+	public String getTagsAsString()
+	{
+		if (documentTags == null || documentTags.isEmpty())
+		{
+			return "";
+		}
+		return documentTags.stream()
+			.map(DocumentTag::getName)
+			.sorted()
+			.collect(Collectors.joining(", "));
 	}
 
 	/**

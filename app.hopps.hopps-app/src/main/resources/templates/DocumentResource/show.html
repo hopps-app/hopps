@@ -401,6 +401,26 @@
       </div>
     </div>
 
+    <div class="form-section">
+      <h3>Tags</h3>
+      <div class="form-row">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label for="tags">Tags (kommagetrennt)</label>
+          <input type="text" id="tags" name="tags" value="{document.tagsAsString}" placeholder="z.B. büro, material, software">
+          {#if document.hasTags}
+          <div style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem;">
+            {#for docTag in document.documentTags}
+            <cds-tag type="purple" size="sm">
+              {#if docTag.aiGenerated}<cds-ai-label size="mini"></cds-ai-label>{/if}
+              {docTag.name}
+            </cds-tag>
+            {/for}
+          </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+
     <div class="button-row">
       <button type="submit" class="cds-btn cds-btn-primary">
         <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>

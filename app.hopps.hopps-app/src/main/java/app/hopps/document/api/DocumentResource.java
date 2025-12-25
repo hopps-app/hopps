@@ -3,8 +3,13 @@ package app.hopps.document.api;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +19,13 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentType;
+import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
 import app.hopps.document.workflow.DocumentAnalysisWorkflow;
+import app.hopps.shared.domain.Tag;
+import app.hopps.shared.repository.TagRepository;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -50,6 +58,9 @@ public class DocumentResource extends Controller
 
 	@Inject
 	DocumentAnalysisWorkflow documentAnalysisWorkflow;
+
+	@Inject
+	TagRepository tagRepository;
 
 	@CheckedTemplate
 	public static class Templates
@@ -203,7 +214,8 @@ public class DocumentResource extends Controller
 		@RestForm boolean privatelyPaid,
 		@RestForm String invoiceId,
 		@RestForm String orderNumber,
-		@RestForm String dueDate)
+		@RestForm String dueDate,
+		@RestForm String tags)
 	{
 		Document document = documentRepository.findById(id);
 		if (document == null)
@@ -271,6 +283,9 @@ public class DocumentResource extends Controller
 			document.setDueDate(null);
 		}
 
+		// Handle tags
+		updateDocumentTags(document, tags);
+
 		flash("success", "Beleg gespeichert");
 		redirect(DocumentResource.class).show(document.getId());
 	}
@@ -315,7 +330,8 @@ public class DocumentResource extends Controller
 		@RestForm boolean privatelyPaid,
 		@RestForm String invoiceId,
 		@RestForm String orderNumber,
-		@RestForm String dueDate)
+		@RestForm String dueDate,
+		@RestForm String tags)
 	{
 		Document document = documentRepository.findById(id);
 		if (document == null)
@@ -383,8 +399,51 @@ public class DocumentResource extends Controller
 			document.setDueDate(null);
 		}
 
+		// Handle tags
+		updateDocumentTags(document, tags);
+
 		flash("success", "Beleg aktualisiert");
 		redirect(DocumentResource.class).show(id);
+	}
+
+	/**
+	 * Parses comma-separated tag names and updates the document's tags.
+	 * Preserves AI source for existing tags, adds new tags as MANUAL.
+	 */
+	private void updateDocumentTags(Document document, String tagsInput)
+	{
+		// Parse new tag names from input
+		Set<String> newTagNames = new HashSet<>();
+		if (tagsInput != null && !tagsInput.isBlank())
+		{
+			newTagNames = Arrays.stream(tagsInput.split(","))
+				.map(String::trim)
+				.map(String::toLowerCase)
+				.filter(s -> !s.isEmpty())
+				.collect(Collectors.toSet());
+		}
+
+		// Build map of current tag name -> source (to preserve AI source)
+		Map<String, TagSource> existingTagSources = document.getDocumentTags().stream()
+			.collect(Collectors.toMap(
+				dt -> dt.getName().toLowerCase(),
+				dt -> dt.getSource(),
+				(a, b) -> a));
+
+		// Clear and rebuild tags, preserving sources for existing ones
+		document.clearTags();
+
+		if (!newTagNames.isEmpty())
+		{
+			Set<Tag> tagEntities = tagRepository.findOrCreateTags(newTagNames);
+			for (Tag tag : tagEntities)
+			{
+				// Preserve source if tag existed before, otherwise MANUAL
+				TagSource source = existingTagSources.getOrDefault(
+					tag.getName().toLowerCase(), TagSource.MANUAL);
+				document.addTag(tag, source);
+			}
+		}
 	}
 
 	@POST
