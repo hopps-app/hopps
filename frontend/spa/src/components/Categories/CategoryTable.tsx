@@ -53,7 +53,7 @@ export default function CategoryTable({ items, totalCategories, isLoading = fals
     // If there are categories but search returned no results, show empty message
     if (items.length === 0) {
         return (
-            <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-center h-full min-h-[60vh]">
                 <EmptyTable mainText={t('categories.notFound.mainText')} icon={<img src={hoppsIconSrc} />} />
             </div>
         );
