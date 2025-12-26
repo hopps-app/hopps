@@ -1,7 +1,7 @@
 package app.hopps.zugferd;
 
-import app.hopps.zugferd.model.InvoiceData;
-import app.hopps.zugferd.model.InvoiceDataHandler;
+import app.hopps.zugferd.model.DocumentData;
+import app.hopps.zugferd.model.DocumentDataHandler;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.mustangproject.Invoice;
 import org.mustangproject.ZUGFeRD.ZUGFeRDInvoiceImporter;
@@ -15,15 +15,15 @@ import java.text.ParseException;
 @ApplicationScoped
 public class ZugFerdService
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ZugFerdService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ZugFerdService.class);
 
-	public InvoiceData scanInvoice(Long referenceKey, InputStream stream)
+	public DocumentData scanDocument(Long transactionRecordId, InputStream stream)
 		throws XPathExpressionException, ParseException
 	{
-		LOGGER.info("Starting scan of invoice (referenceKey={})", referenceKey);
+		LOG.info("Starting scan of document (transactionRecordId={})", transactionRecordId);
 		ZUGFeRDInvoiceImporter zii = new ZUGFeRDInvoiceImporter(stream);
 		Invoice invoice = zii.extractInvoice();
-		LOGGER.info("Successfully extracted invoice from pdf (referenceKey={})", referenceKey);
-		return InvoiceDataHandler.fromZugferd(invoice);
+		LOG.info("Successfully extracted invoice from PDF (transactionRecordId={})", transactionRecordId);
+		return DocumentDataHandler.fromZugferd(invoice);
 	}
 }

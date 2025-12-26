@@ -31,7 +31,9 @@
       "Bash(xargs ls:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-      "Bash(gh run watch:*)"
+      "Bash(gh run watch:*)",
+      "Bash(mvn test:*)",
+      "Bash(mvn formatter:format:*)"
     ]
   }
 }
