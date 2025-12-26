@@ -1,7 +1,6 @@
 package app.hopps.zugferd.model;
 
 import org.mustangproject.Invoice;
-import org.mustangproject.ZUGFeRD.TransactionCalculator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,15 +15,16 @@ public class DocumentDataHandler
 		// only call the static method
 	}
 
-	public static DocumentData fromZugferd(Invoice invoice)
+	public static DocumentData fromZugferd(Invoice invoice, BigDecimal grandTotal,
+		BigDecimal totalTax, BigDecimal taxBasis)
 	{
-		TransactionCalculator tc = new TransactionCalculator(invoice);
-
-		BigDecimal grandTotal = tc.getGrandTotal();
+		// Values are passed from ZUGFeRDImporter because TransactionCalculator
+		// returns 0 when calculation errors are ignored (e.g., when line items
+		// don't sum to header total)
 		BigDecimal amountDue = grandTotal;
-		if (invoice.getTotalPrepaidAmount() != null)
+		if (grandTotal != null && invoice.getTotalPrepaidAmount() != null)
 		{
-			amountDue = amountDue.subtract(invoice.getTotalPrepaidAmount());
+			amountDue = grandTotal.subtract(invoice.getTotalPrepaidAmount());
 		}
 
 		org.mustangproject.TradeParty sender = invoice.getSender();
@@ -48,8 +48,8 @@ public class DocumentDataHandler
 			null, // shippingAddress - not separately available
 			toLocalDate(invoice.getDueDate()),
 			amountDue,
-			null, // subTotal - could calculate but not directly available
-			null, // totalTax - not directly available
+			taxBasis, // subTotal (net amount before tax)
+			totalTax, // totalTax (MwSt)
 			null, // totalDiscount - not directly available
 			invoice.getTotalPrepaidAmount(),
 			invoice.getReferenceNumber(),

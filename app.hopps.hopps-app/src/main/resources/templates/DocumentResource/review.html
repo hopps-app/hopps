@@ -486,7 +486,12 @@
         {#else if document.analysisStatus.name == 'COMPLETED'}
         <div class="ai-message">
           <svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/></svg>
-          <p>Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern.</p>
+          <div>
+            <p>Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern.</p>
+            {#if document.displayExtractionSource}
+            <p style="margin-top: 0.5rem; font-size: 0.75rem; color: #6929c4;">Extrahiert via <strong>{document.displayExtractionSource}</strong></p>
+            {/if}
+          </div>
         </div>
         {#else}
         <div class="ai-message">

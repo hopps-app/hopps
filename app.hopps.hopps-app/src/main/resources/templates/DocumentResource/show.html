@@ -74,7 +74,7 @@
     <input type="hidden" name="documentType" value="{document.documentType.name}">
 
     <div class="form-section">
-      <h3>Belegdaten</h3>
+      <h3>Belegdaten{#if document.displayExtractionSource} <span style="font-size: 0.75rem; font-weight: normal; color: #6929c4; margin-left: 0.5rem;">(Extrahiert via {document.displayExtractionSource})</span>{/if}</h3>
       <div class="form-row">
         <div class="form-group">
           <label for="name">Bezeichnung</label>

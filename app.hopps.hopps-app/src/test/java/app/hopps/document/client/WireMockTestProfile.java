@@ -1,5 +1,6 @@
 package app.hopps.document.client;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTestProfile;
@@ -11,9 +12,13 @@ public class WireMockTestProfile implements QuarkusTestProfile
 	@Override
 	public Map<String, String> getConfigOverrides()
 	{
-		return Map.of(
-			"quarkus.wiremock.devservices.enabled", "true",
-			"quarkus.wiremock.devservices.port", String.valueOf(WIREMOCK_PORT),
-			"quarkus.rest-client.document-ai.url", "http://localhost:" + WIREMOCK_PORT);
+		Map<String, String> config = new HashMap<>();
+		config.put("quarkus.wiremock.devservices.enabled", "true");
+		config.put("quarkus.wiremock.devservices.port", String.valueOf(WIREMOCK_PORT));
+		config.put("quarkus.rest-client.document-ai.url", "http://localhost:" + WIREMOCK_PORT);
+		config.put("quarkus.rest-client.zugferd.url", "http://localhost:" + WIREMOCK_PORT);
+		// Ensure S3 devservices are enabled for integration tests
+		config.put("quarkus.s3.devservices.enabled", "true");
+		return config;
 	}
 }

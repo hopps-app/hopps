@@ -71,6 +71,10 @@ public class Document extends PanacheEntity
 	private AnalysisStatus analysisStatus;
 	private String analysisError;
 
+	// Extraction source (which method extracted the data)
+	@Enumerated(EnumType.STRING)
+	private ExtractionSource extractionSource;
+
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 
@@ -464,6 +468,33 @@ public class Document extends PanacheEntity
 	public void setAnalysisError(String analysisError)
 	{
 		this.analysisError = analysisError;
+	}
+
+	public ExtractionSource getExtractionSource()
+	{
+		return extractionSource;
+	}
+
+	public void setExtractionSource(ExtractionSource extractionSource)
+	{
+		this.extractionSource = extractionSource;
+	}
+
+	/**
+	 * Returns the extraction source as a display string for the UI.
+	 */
+	public String getDisplayExtractionSource()
+	{
+		if (extractionSource == null)
+		{
+			return null;
+		}
+		return switch (extractionSource)
+		{
+			case ZUGFERD -> "ZugFerd";
+			case AI -> "Document AI";
+			case MANUAL -> "Manuell";
+		};
 	}
 
 	public boolean isAnalyzing()

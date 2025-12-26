@@ -13,8 +13,8 @@ import jakarta.inject.Inject;
 
 /**
  * Manages the document analysis workflow. When a document is uploaded with a
- * file, this workflow triggers the AI analysis to extract and autofill
- * metadata.
+ * file, this workflow triggers ZugFerd extraction first (for PDFs), then falls
+ * back to AI analysis if ZugFerd fails or is not applicable.
  */
 @ApplicationScoped
 public class DocumentAnalysisWorkflow
@@ -27,7 +27,10 @@ public class DocumentAnalysisWorkflow
 	ProcessEngine processEngine;
 
 	@Inject
-	AnalyzeDocumentTask analyzeDocumentTask;
+	AnalyzeDocumentZugFerdTask analyzeDocumentZugFerdTask;
+
+	@Inject
+	AnalyzeDocumentAiTask analyzeDocumentAiTask;
 
 	/**
 	 * Starts the document analysis workflow for the given document.
@@ -39,13 +42,16 @@ public class DocumentAnalysisWorkflow
 	public Chain startAnalysis(Long documentId)
 	{
 		LOG.info("Starting document analysis workflow: documentId={}", documentId);
-		LOG.debug("Creating process definition with AnalyzeDocumentTask");
+		LOG.debug("Creating process definition with ZugFerd and AI tasks");
 
+		// ZugFerd task runs first - if it succeeds, AI task will skip
+		// If ZugFerd fails or document is not PDF, AI task will process
 		ProcessDefinition process = new ProcessDefinition(PROCESS_NAME)
-			.addTask(analyzeDocumentTask);
+			.addTask(analyzeDocumentZugFerdTask)
+			.addTask(analyzeDocumentAiTask);
 
 		Map<String, Object> variables = Map.of(
-			AnalyzeDocumentTask.VAR_DOCUMENT_ID, documentId);
+			AnalyzeDocumentZugFerdTask.VAR_DOCUMENT_ID, documentId);
 
 		LOG.debug("Starting process with variables: {}", variables);
 		Chain chain = processEngine.startProcess(process, variables);
