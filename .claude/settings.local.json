@@ -33,7 +33,11 @@
       "Bash(gh run view:*)",
       "Bash(gh run watch:*)",
       "Bash(mvn test:*)",
-      "Bash(mvn formatter:format:*)"
+      "Bash(mvn formatter:format:*)",
+      "Bash(git mv:*)",
+      "Bash(../mvnw test:*)",
+      "Bash(./mvnw failsafe:integration-test:*)",
+      "WebFetch(domain:www.mustangproject.org)"
     ]
   }
 }

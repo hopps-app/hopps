@@ -10,11 +10,12 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import app.hopps.document.client.DocumentAiClient;
 import app.hopps.document.client.DocumentData;
 import app.hopps.document.client.TradePartyData;
+import app.hopps.document.client.ZugFerdClient;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.ExtractionSource;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
@@ -28,15 +29,17 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 /**
- * Analyzes an uploaded document using the Document AI service and updates the
- * document's metadata with extracted values.
+ * Analyzes an uploaded PDF document using the ZugFerd service to extract
+ * embedded invoice data. This task only processes PDF files and sets a chain
+ * variable to indicate success/failure for workflow orchestration.
  */
 @ApplicationScoped
-public class AnalyzeDocumentTask extends SystemTask
+public class AnalyzeDocumentZugFerdTask extends SystemTask
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AnalyzeDocumentTask.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AnalyzeDocumentZugFerdTask.class);
 
 	public static final String VAR_DOCUMENT_ID = "documentId";
+	public static final String VAR_ZUGFERD_SUCCESS = "zugferdSuccess";
 
 	@Inject
 	StorageService storageService;
@@ -48,18 +51,21 @@ public class AnalyzeDocumentTask extends SystemTask
 	TagRepository tagRepository;
 
 	@RestClient
-	DocumentAiClient documentAiClient;
+	ZugFerdClient zugFerdClient;
 
 	@Override
 	public String getTaskName()
 	{
-		return "AnalyzeDocument";
+		return "AnalyzeDocumentZugFerd";
 	}
 
 	@Override
 	@Transactional
 	protected void doExecute(Chain chain)
 	{
+		// Default to false - will be set to true only on successful extraction
+		chain.setVariable(VAR_ZUGFERD_SUCCESS, false);
+
 		Long documentId = chain.getVariable(VAR_DOCUMENT_ID, Long.class);
 		if (documentId == null)
 		{
@@ -77,16 +83,23 @@ public class AnalyzeDocumentTask extends SystemTask
 
 		if (!document.hasFile())
 		{
-			LOG.info("Document has no file, skipping analysis: id={}", documentId);
-			document.setAnalysisStatus(AnalysisStatus.SKIPPED);
+			LOG.info("Document has no file, skipping ZugFerd analysis: id={}", documentId);
+			return;
+		}
+
+		// ZugFerd only works with PDF files
+		if (!document.isPdf())
+		{
+			LOG.info("Document is not a PDF, skipping ZugFerd analysis: id={}, contentType={}",
+				documentId, document.getFileContentType());
 			return;
 		}
 
 		// Mark as analyzing
 		document.setAnalysisStatus(AnalysisStatus.ANALYZING);
 
-		LOG.info("Starting document analysis: id={}, type={}, fileName={}",
-			documentId, document.getDocumentType(), document.getFileName());
+		LOG.info("Starting ZugFerd analysis: id={}, fileName={}",
+			documentId, document.getFileName());
 
 		try (InputStream fileStream = storageService.downloadFile(document.getFileKey()))
 		{
@@ -95,30 +108,33 @@ public class AnalyzeDocumentTask extends SystemTask
 			analyzeDocument(document, fileStream);
 
 			document.setAnalysisStatus(AnalysisStatus.COMPLETED);
-			LOG.info("Document analysis completed successfully: id={}", documentId);
+			document.setExtractionSource(ExtractionSource.ZUGFERD);
+			chain.setVariable(VAR_ZUGFERD_SUCCESS, true);
+			LOG.info("ZugFerd analysis completed successfully: id={}", documentId);
 		}
 		catch (Exception e)
 		{
-			LOG.error("Document analysis failed: id={}, error={}", documentId, e.getMessage(), e);
-			document.setAnalysisStatus(AnalysisStatus.FAILED);
-			document.setAnalysisError(e.getMessage());
-			throw new RuntimeException("Document analysis failed: " + e.getMessage(), e);
+			LOG.info("ZugFerd extraction failed (will fallback to AI): id={}, error={}",
+				documentId, e.getMessage());
+			// Reset status to PENDING so AI task can try
+			document.setAnalysisStatus(AnalysisStatus.PENDING);
+			// Keep zugferdSuccess as false - AI task will be triggered
 		}
 	}
 
 	private void analyzeDocument(Document document, InputStream fileStream)
 	{
-		LOG.debug("Calling Document AI for analysis: documentId={}", document.getId());
+		LOG.debug("Calling ZugFerd service for analysis: documentId={}", document.getId());
 
-		DocumentData data = documentAiClient.scanDocument(fileStream, document.getId());
+		DocumentData data = zugFerdClient.scanDocument(fileStream, document.getId());
 
 		if (data == null)
 		{
-			LOG.warn("Document AI returned no data: documentId={}", document.getId());
-			return;
+			LOG.warn("ZugFerd service returned no data: documentId={}", document.getId());
+			throw new RuntimeException("ZugFerd extraction returned no data");
 		}
 
-		LOG.debug("Received document data from AI: total={}, currency={}, documentId={}",
+		LOG.debug("Received document data from ZugFerd: total={}, currency={}, documentId={}",
 			data.total(), data.currencyCode(), data.documentId());
 
 		int fieldsUpdated = 0;
@@ -215,7 +231,9 @@ public class AnalyzeDocumentTask extends SystemTask
 			}
 		}
 
-		// Apply AI-generated tags if document has no existing tags
+		// Apply tags if document has no existing tags (ZugFerd doesn't provide
+		// AI tags,
+		// but the service might return tags in the future)
 		if (data.tags() != null && !data.tags().isEmpty() && document.getDocumentTags().isEmpty())
 		{
 			Set<Tag> tags = tagRepository.findOrCreateTags(new HashSet<>(data.tags()));
@@ -223,11 +241,11 @@ public class AnalyzeDocumentTask extends SystemTask
 			{
 				document.addTag(tag, TagSource.AI);
 			}
-			LOG.info("Applied {} AI-generated tags: {}", tags.size(), data.tags());
+			LOG.info("Applied {} tags from ZugFerd: {}", tags.size(), data.tags());
 			fieldsUpdated++;
 		}
 
-		LOG.info("Document analysis complete: documentId={}, fieldsUpdated={}", document.getId(), fieldsUpdated);
+		LOG.info("ZugFerd analysis complete: documentId={}, fieldsUpdated={}", document.getId(), fieldsUpdated);
 	}
 
 	private TradeParty mapTradeParty(TradePartyData data)

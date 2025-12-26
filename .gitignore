@@ -198,3 +198,6 @@ $RECYCLE.BIN/
 age.agekey
 
 node_modules
+
+# Maven
+target
