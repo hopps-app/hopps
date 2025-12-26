@@ -564,6 +564,24 @@ public class DocumentResource extends Controller
 			.build();
 	}
 
+	@GET
+	@Path("/{id}/view")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response viewFile(Long id)
+	{
+		Document document = documentRepository.findById(id);
+		if (document == null || !document.hasFile())
+		{
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
+
+		var inputStream = storageService.downloadFile(document.getFileKey());
+		return Response.ok(inputStream)
+			.header("Content-Disposition", "inline; filename=\"" + document.getFileName() + "\"")
+			.header("Content-Type", document.getFileContentType())
+			.build();
+	}
+
 	private void deleteFileFromStorage(String fileKey)
 	{
 		storageService.deleteFile(fileKey);
