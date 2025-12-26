@@ -65,10 +65,15 @@ Current features:
 
 - `bommel/` - Bommel tree management (api, domain, repository)
 - `member/` - Member management (api, domain, repository)
-- `document/` - Document/receipt management with S3 file storage
+- `document/` - Document/receipt management with S3 file storage and intelligent extraction
 - `audit/` - Audit logging (domain, repository)
 - `shared/` - Shared utilities
 - `simplepe/` - Process engine
+
+**Microservices:**
+
+- `app.hopps.zugferd` - ZugFerd e-invoice extraction service (port 8103)
+- `app.hopps.az-document-ai` - Azure Document Intelligence integration (port 8200)
 
 Templates: `src/main/resources/templates/<ControllerName>/<method>.html`
 
@@ -144,6 +149,49 @@ storageService.
 
 deleteFile(key);
 ```
+
+## Document Analysis Workflow
+
+Document analysis uses a workflow-based approach with ZugFerd extraction first, falling back to Azure Document AI if ZugFerd fails.
+
+**Workflow steps:**
+
+1. **Upload** - Document uploaded to S3 storage
+2. **ZugFerd extraction** (AnalyzeDocumentZugFerdTask) - Attempts to extract embedded ZugFerd XML from PDF
+3. **AI extraction** (AnalyzeDocumentAiTask) - If ZugFerd fails or document is not PDF, uses Azure Document AI
+4. **Review** - User reviews and confirms extracted data
+
+**Extraction source tracking:**
+
+The `ExtractionSource` enum tracks how data was extracted:
+- `ZUGFERD` - Data from embedded ZugFerd XML in PDF
+- `AI` - Data from Azure Document Intelligence
+- `MANUAL` - User-entered data
+
+**ZugFerd service (`app.hopps.zugferd`):**
+
+Uses Mustang Project library (`org.mustangproject`) to extract ZugFerd XML:
+
+```java
+ZUGFeRDImporter importer = new ZUGFeRDImporter();
+importer.doIgnoreCalculationErrors(); // Handle incomplete invoices
+importer.setInputStream(stream);
+Invoice invoice = importer.extractInvoice();
+
+// Get values directly from XML header (not calculated from line items)
+BigDecimal grandTotal = parseBigDecimal(importer.getAmount());
+BigDecimal totalTax = parseBigDecimal(importer.getTaxTotalAmount());
+BigDecimal taxBasis = parseBigDecimal(importer.getTaxBasisTotalAmount());
+```
+
+**Important:** Use `ZUGFeRDImporter.getAmount()` and `getTaxTotalAmount()` to read values directly from XML header, not `TransactionCalculator` which returns 0 when calculation errors are ignored.
+
+**Document preview:**
+
+PDF documents are displayed inline using the `/view` endpoint:
+- `/belege/{id}/download` - Downloads file with `Content-Disposition: attachment`
+- `/belege/{id}/view` - Displays inline with `Content-Disposition: inline`
+- Templates use `#navpanes=0` parameter to hide PDF viewer thumbnail sidebar
 
 ## Testing
 

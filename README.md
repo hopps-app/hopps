@@ -18,6 +18,18 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-fin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-fin)
 
+## Features
+
+### Intelligent Document Processing
+
+Hopps automatisiert die Belegverarbeitung mit einem intelligenten Multi-Schritt-Ansatz:
+
+1. **ZugFerd-Extraktion** - Automatische Erkennung und Extraktion von strukturierten ZugFerd/Factur-X e-Rechnungen aus PDFs
+2. **KI-gestützte Analyse** - Fallback auf Azure Document Intelligence für Belege ohne eingebettete Daten
+3. **Transparente Herkunft** - Nachvollziehbarkeit, ob Daten via ZugFerd, KI oder manuell erfasst wurden
+
+Die ZugFerd-Integration nutzt das Open-Source [Mustang Project](https://www.mustangproject.org/) und unterstützt deutsche e-Rechnungsstandards (ZugFerd, XRechnung, Factur-X).
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
