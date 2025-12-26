@@ -130,8 +130,8 @@
             },
             "deletion": {
                 "title": "Diese Kategorie löschen",
-                "description_1": "Sind Sie sicher, dass Sie diese Kategorie löschen möchten?",
-                "description_2": "Belege, die der Kategorie zugeordnet werden, werden der Kategorie 'unbekannt' zugeordnet."
+                "description": "Beim Löschen dieser Kategorie werden alle zugeordneten Belege automatisch der Kategorie „Unbekannt“ zugewiesen.",
+                "warning": "Möchten Sie die Kategorie wirklich löschen?"
             },
             "update": {
                 "title": "Kategorie bearbeiten",
@@ -156,6 +156,9 @@
         "empty": {
             "mainText": "Noch keine Kategorien erstellt",
             "subText": "Hier können Kategorien erstellt und bearbeitet werden"
+        },
+        "notFound": {
+            "mainText": "Es wurden keine Kategorien gefunden."
         }
     },
     "dialogWrapper": {

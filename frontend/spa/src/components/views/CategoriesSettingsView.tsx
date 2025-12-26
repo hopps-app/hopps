@@ -13,7 +13,7 @@ import Header from '../ui/Header';
 
 function CategoriesSettingsView() {
     const { t } = useTranslation();
-    const { categories, refetch } = useCategories();
+    const { categories, isLoading, refetch } = useCategories();
     const [query, setQuery] = useState('');
     const results: Category[] = useSearch(categories, query, ['name']);
 
@@ -42,7 +42,7 @@ function CategoriesSettingsView() {
                     </DialogWrapper>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <CategoryTable items={results} onActionSuccess={refetch} />
+                    <CategoryTable items={results} totalCategories={categories.length} isLoading={isLoading} onActionSuccess={refetch} />
                 </div>
             </div>
         </div>

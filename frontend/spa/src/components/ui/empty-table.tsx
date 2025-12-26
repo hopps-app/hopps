@@ -1,6 +1,6 @@
 interface Props {
     mainText: string;
-    subText: string;
+    subText?: string;
     actionText?: string;
     onAction?: () => void;
     icon?: React.ReactNode;
@@ -14,7 +14,7 @@ function EmptyTable({ mainText, subText, actionText, onAction, icon }: Props) {
 
                 <h2 className="text-xl font-semibold text-gray-900 ">{mainText}</h2>
 
-                <p className="text-lg text-gray-600">{subText}</p>
+                {subText && <p className="text-lg text-gray-600">{subText}</p>}
 
                 {actionText && onAction && (
                     <button
