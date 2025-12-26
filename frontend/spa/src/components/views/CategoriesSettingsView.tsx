@@ -41,7 +41,7 @@ function CategoriesSettingsView() {
                         {({ onSuccess }) => <CategoryForm onSuccess={onSuccess} />}
                     </DialogWrapper>
                 </div>
-                <div className="flex-1 min-h-0">
+                <div>
                     <CategoryTable items={results} totalCategories={categories.length} isLoading={isLoading} onActionSuccess={refetch} />
                 </div>
             </div>

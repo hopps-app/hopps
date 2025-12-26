@@ -44,7 +44,7 @@ export default function CategoryTable({ items, totalCategories, isLoading = fals
     // Show empty state only if there are no categories at all
     if (totalCategories === 0) {
         return (
-            <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-center h-full min-h-[60vh]">
                 <EmptyTable mainText={t('categories.empty.mainText')} subText={t('categories.empty.subText')} icon={<img src={hoppsIconSrc} />} />
             </div>
         );
