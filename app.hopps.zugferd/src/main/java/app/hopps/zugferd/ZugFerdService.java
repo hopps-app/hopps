@@ -1,22 +1,30 @@
 package app.hopps.zugferd;
 
-import app.hopps.zugferd.model.DocumentData;
-import app.hopps.zugferd.model.DocumentDataHandler;
-import jakarta.enterprise.context.ApplicationScoped;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.List;
+
+import javax.xml.xpath.XPathExpressionException;
+
 import org.mustangproject.Invoice;
 import org.mustangproject.ZUGFeRD.ZUGFeRDImporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.xpath.XPathExpressionException;
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.text.ParseException;
+import app.hopps.zugferd.model.DocumentData;
+import app.hopps.zugferd.model.DocumentDataHandler;
+import app.hopps.zugferd.service.TagGenerationService;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ZugFerdService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ZugFerdService.class);
+
+	@Inject
+	TagGenerationService tagGenerationService;
 
 	public DocumentData scanDocument(Long transactionRecordId, InputStream stream)
 		throws XPathExpressionException, ParseException
@@ -36,7 +44,11 @@ public class ZugFerdService
 		LOG.info(
 			"Successfully extracted invoice from PDF (transactionRecordId={}, grandTotal={}, totalTax={})",
 			transactionRecordId, grandTotal, totalTax);
-		return DocumentDataHandler.fromZugferd(invoice, grandTotal, totalTax, taxBasis);
+
+		// Generate AI-powered tags for the invoice
+		List<String> tags = tagGenerationService.generateTagsForInvoice(invoice);
+
+		return DocumentDataHandler.fromZugferd(invoice, grandTotal, totalTax, taxBasis, tags);
 	}
 
 	private BigDecimal parseBigDecimal(String value)
