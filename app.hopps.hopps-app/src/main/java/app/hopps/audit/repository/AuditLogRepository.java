@@ -25,8 +25,8 @@ public class AuditLogRepository implements PanacheRepositoryBase<AuditLogEntry, 
 		return list("username", username);
 	}
 
-	public List<AuditLogEntry> findByChainId(String chainId)
+	public List<AuditLogEntry> findByWorkflowInstanceId(String workflowInstanceId)
 	{
-		return list("entityName = ?1 and entityId = ?2", "Chain", chainId);
+		return list("entityName = ?1 and entityId = ?2", "WorkflowInstance", workflowInstanceId);
 	}
 }

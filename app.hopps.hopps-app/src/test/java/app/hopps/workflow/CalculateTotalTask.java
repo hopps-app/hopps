@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -15,10 +15,10 @@ public class CalculateTotalTask extends SystemTask
 	}
 
 	@Override
-	protected void doExecute(Chain chain)
+	protected void doExecute(WorkflowInstance instance)
 	{
-		Double price = chain.getVariable("price", Double.class);
-		Integer quantity = chain.getVariable("quantity", Integer.class);
+		Double price = instance.getVariable("price", Double.class);
+		Integer quantity = instance.getVariable("quantity", Integer.class);
 
 		if (price == null || quantity == null)
 		{
@@ -26,6 +26,6 @@ public class CalculateTotalTask extends SystemTask
 		}
 
 		double total = price * quantity;
-		chain.setVariable("total", total);
+		instance.setVariable("total", total);
 	}
 }

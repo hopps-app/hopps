@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,31 +15,31 @@ public abstract class SystemTask implements Task
 	private static final Logger LOG = LoggerFactory.getLogger(SystemTask.class);
 
 	@Override
-	public final TaskResult execute(Chain chain)
+	public final TaskResult execute(WorkflowInstance instance)
 	{
-		LOG.debug("Executing system task: {} for chain: {}", getTaskName(), chain.getId());
+		LOG.debug("Executing system task: {} for chain: {}", getTaskName(), instance.getId());
 
 		try
 		{
-			doExecute(chain);
-			LOG.debug("System task completed successfully: {} for chain: {}", getTaskName(), chain.getId());
+			doExecute(instance);
+			LOG.debug("System task completed successfully: {} for chain: {}", getTaskName(), instance.getId());
 			return TaskResult.COMPLETED;
 		}
 		catch (Exception e)
 		{
 			LOG.error("System task failed: {} for chain: {}, error: {}",
-				getTaskName(), chain.getId(), e.getMessage(), e);
-			chain.setError(e.getMessage());
+				getTaskName(), instance.getId(), e.getMessage(), e);
+			instance.setError(e.getMessage());
 			return TaskResult.FAILED;
 		}
 	}
 
 	/**
 	 * Implement this method to perform the system task logic. All state should
-	 * be read from and written to the chain.
+	 * be read from and written to the instance.
 	 *
 	 * @param chain
 	 *            the process chain holding all state
 	 */
-	protected abstract void doExecute(Chain chain);
+	protected abstract void doExecute(WorkflowInstance instance);
 }

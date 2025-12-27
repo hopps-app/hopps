@@ -22,8 +22,8 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
-import app.hopps.simplepe.Chain;
-import app.hopps.simplepe.SystemTask;
+import app.hopps.workflow.WorkflowInstance;
+import app.hopps.workflow.SystemTask;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -61,15 +61,15 @@ public class AnalyzeDocumentZugFerdTask extends SystemTask
 
 	@Override
 	@Transactional
-	protected void doExecute(Chain chain)
+	protected void doExecute(WorkflowInstance instance)
 	{
 		// Default to false - will be set to true only on successful extraction
-		chain.setVariable(VAR_ZUGFERD_SUCCESS, false);
+		instance.setVariable(VAR_ZUGFERD_SUCCESS, false);
 
-		Long documentId = chain.getVariable(VAR_DOCUMENT_ID, Long.class);
+		Long documentId = instance.getVariable(VAR_DOCUMENT_ID, Long.class);
 		if (documentId == null)
 		{
-			LOG.error("Document ID not set in chain: {}", chain.getId());
+			LOG.error("Document ID not set in chain: {}", instance.getId());
 			throw new IllegalStateException("Document ID not set in chain");
 		}
 
@@ -109,7 +109,7 @@ public class AnalyzeDocumentZugFerdTask extends SystemTask
 
 			document.setAnalysisStatus(AnalysisStatus.COMPLETED);
 			document.setExtractionSource(ExtractionSource.ZUGFERD);
-			chain.setVariable(VAR_ZUGFERD_SUCCESS, true);
+			instance.setVariable(VAR_ZUGFERD_SUCCESS, true);
 			LOG.info("ZugFerd analysis completed successfully: id={}", documentId);
 		}
 		catch (Exception e)

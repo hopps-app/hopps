@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import java.util.Map;
 
@@ -17,37 +17,37 @@ public class ApprovalTask extends UserTask
 	}
 
 	@Override
-	protected boolean validateInput(Chain chain, Map<String, Object> userInput)
+	protected boolean validateInput(WorkflowInstance instance, Map<String, Object> userInput)
 	{
 		// Must have approved field
 		if (!userInput.containsKey("approved"))
 		{
-			chain.setError("Approval decision is required");
+			instance.setError("Approval decision is required");
 			return false;
 		}
 		return true;
 	}
 
 	@Override
-	protected void processInput(Chain chain, Map<String, Object> userInput)
+	protected void processInput(WorkflowInstance instance, Map<String, Object> userInput)
 	{
 		Boolean approved = (Boolean)userInput.get("approved");
 		String comment = (String)userInput.get("comment");
 
-		chain.setVariable("approved", approved);
+		instance.setVariable("approved", approved);
 		if (comment != null)
 		{
-			chain.setVariable("approvalComment", comment);
+			instance.setVariable("approvalComment", comment);
 		}
 
 		if (!approved)
 		{
-			chain.setError("Request was rejected");
+			instance.setError("Request was rejected");
 		}
 	}
 
 	@Override
-	public String getAssignee(Chain chain)
+	public String getAssignee(WorkflowInstance instance)
 	{
 		return "manager";
 	}

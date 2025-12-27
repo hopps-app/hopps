@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +12,7 @@ import jakarta.transaction.Transactional;
 
 import app.hopps.audit.domain.AuditLogEntry;
 import app.hopps.audit.repository.AuditLogRepository;
-import app.hopps.simplepe.repository.ChainRepository;
+import app.hopps.workflow.repository.WorkflowInstanceRepository;
 
 /**
  * The ProcessEngine executes process definitions. It manages chain lifecycle
@@ -29,7 +29,7 @@ public class ProcessEngine
 	AuditLogRepository auditLogRepository;
 
 	@Inject
-	ChainRepository chainRepository;
+	WorkflowInstanceRepository chainRepository;
 
 	// Registry of process definitions by name (for recovery after restart)
 	private final Map<String, ProcessDefinition> processRegistry = new HashMap<>();
@@ -56,7 +56,7 @@ public class ProcessEngine
 	 * @return the chain representing this process instance
 	 */
 	@Transactional
-	public Chain startProcess(ProcessDefinition process)
+	public WorkflowInstance startProcess(ProcessDefinition process)
 	{
 		return startProcess(process, new HashMap<>());
 	}
@@ -71,29 +71,29 @@ public class ProcessEngine
 	 * @return the chain representing this process instance
 	 */
 	@Transactional
-	public Chain startProcess(ProcessDefinition process, Map<String, Object> initialVariables)
+	public WorkflowInstance startProcess(ProcessDefinition process, Map<String, Object> initialVariables)
 	{
-		Chain chain = new Chain(process.getName());
-		chain.setVariables(initialVariables);
+		WorkflowInstance instance = new WorkflowInstance(process.getName());
+		instance.setVariables(initialVariables);
 
 		// Register the process definition for later retrieval
 		registerProcess(process);
 
 		// Persist the chain BEFORE execution (ensures it exists in DB)
-		chainRepository.persistAndFlush(chain);
+		chainRepository.persistAndFlush(instance);
 
-		logAudit(chain, "ProcessStarted", "Started process: " + process.getName());
+		logAudit(instance, "ProcessStarted", "Started process: " + process.getName());
 
 		// Execute tasks until waiting or complete
-		executeUntilWaitingOrComplete(chain, process);
+		executeUntilWaitingOrComplete(instance, process);
 
-		return chain;
+		return instance;
 	}
 
 	/**
 	 * Completes a user task and resumes chain execution.
 	 *
-	 * @param chainId
+	 * @param workflowInstanceId
 	 *            the chain ID
 	 * @param userInput
 	 *            the user's input data
@@ -102,29 +102,29 @@ public class ProcessEngine
 	 * @return the updated chain
 	 */
 	@Transactional
-	public Chain completeUserTask(String chainId, Map<String, Object> userInput, String username)
+	public WorkflowInstance completeUserTask(String workflowInstanceId, Map<String, Object> userInput, String username)
 	{
 		// Load chain from database
-		Chain chain = chainRepository.findById(chainId);
-		if (chain == null)
+		WorkflowInstance instance = chainRepository.findById(workflowInstanceId);
+		if (instance == null)
 		{
-			throw new IllegalArgumentException("Chain not found: " + chainId);
+			throw new IllegalArgumentException("WorkflowInstance not found: " + workflowInstanceId);
 		}
 
-		if (!chain.isWaitingForUser())
+		if (!instance.isWaitingForUser())
 		{
-			throw new IllegalStateException("Chain is not waiting for user input");
+			throw new IllegalStateException("WorkflowInstance is not waiting for user input");
 		}
 
 		// Look up process definition from registry
-		ProcessDefinition process = processRegistry.get(chain.getProcessName());
+		ProcessDefinition process = processRegistry.get(instance.getProcessName());
 		if (process == null)
 		{
 			throw new IllegalStateException(
-				"Process definition not registered: " + chain.getProcessName());
+				"Process definition not registered: " + instance.getProcessName());
 		}
 
-		Task currentTask = process.getTask(chain.getCurrentTaskIndex());
+		Task currentTask = process.getTask(instance.getCurrentTaskIndex());
 
 		if (!(currentTask instanceof UserTask userTask))
 		{
@@ -132,86 +132,86 @@ public class ProcessEngine
 		}
 
 		// Complete the user task
-		TaskResult result = userTask.complete(chain, userInput);
+		TaskResult result = userTask.complete(instance, userInput);
 
-		logAudit(chain, currentTask.getTaskName(), "User task completed by: " + username, username);
+		logAudit(instance, currentTask.getTaskName(), "User task completed by: " + username, username);
 
 		if (result == TaskResult.COMPLETED)
 		{
-			chain.incrementTaskIndex();
-			executeUntilWaitingOrComplete(chain, process);
+			instance.incrementTaskIndex();
+			executeUntilWaitingOrComplete(instance, process);
 		}
 
-		return chain;
+		return instance;
 	}
 
 	/**
 	 * Gets a chain by its ID from the database.
 	 */
-	public Chain getChain(String chainId)
+	public WorkflowInstance getChain(String workflowInstanceId)
 	{
-		return chainRepository.findById(chainId);
+		return chainRepository.findById(workflowInstanceId);
 	}
 
 	/**
 	 * Executes tasks until a UserTask is encountered or process completes.
 	 * Persists chain state after each task execution for crash recovery.
 	 */
-	private void executeUntilWaitingOrComplete(Chain chain, ProcessDefinition process)
+	private void executeUntilWaitingOrComplete(WorkflowInstance instance, ProcessDefinition process)
 	{
-		while (chain.getStatus() == ChainStatus.RUNNING || chain.getStatus() == ChainStatus.WAITING)
+		while (instance.getStatus() == WorkflowStatus.RUNNING || instance.getStatus() == WorkflowStatus.WAITING)
 		{
 			// Check if we've completed all tasks
-			if (chain.getCurrentTaskIndex() >= process.getTaskCount())
+			if (instance.getCurrentTaskIndex() >= process.getTaskCount())
 			{
-				chain.setStatus(ChainStatus.COMPLETED);
-				logAudit(chain, "ProcessCompleted", "Process completed successfully");
-				chainRepository.persist(chain);
+				instance.setStatus(WorkflowStatus.COMPLETED);
+				logAudit(instance, "ProcessCompleted", "Process completed successfully");
+				chainRepository.persist(instance);
 				chainRepository.flush();
 				break;
 			}
 
-			Task task = process.getTask(chain.getCurrentTaskIndex());
+			Task task = process.getTask(instance.getCurrentTaskIndex());
 
 			// Execute the task
-			TaskResult result = task.execute(chain);
+			TaskResult result = task.execute(instance);
 
-			logAudit(chain, task.getTaskName(), "Task executed with result: " + result);
+			logAudit(instance, task.getTaskName(), "Task executed with result: " + result);
 
 			switch (result)
 			{
 				case COMPLETED:
-					chain.incrementTaskIndex();
-					chain.setStatus(ChainStatus.RUNNING);
+					instance.incrementTaskIndex();
+					instance.setStatus(WorkflowStatus.RUNNING);
 					// Persist after each task for crash recovery
-					chainRepository.persist(chain);
+					chainRepository.persist(instance);
 					chainRepository.flush();
 					break;
 				case WAITING:
 					// UserTask - persist and stop execution
-					chainRepository.persist(chain);
+					chainRepository.persist(instance);
 					chainRepository.flush();
 					return;
 				case FAILED:
 					// Error occurred - persist failure state
-					logAudit(chain, task.getTaskName(), "Task failed: " + chain.getError());
-					chainRepository.persist(chain);
+					logAudit(instance, task.getTaskName(), "Task failed: " + instance.getError());
+					chainRepository.persist(instance);
 					chainRepository.flush();
 					return;
 			}
 		}
 	}
 
-	private void logAudit(Chain chain, String taskName, String details)
+	private void logAudit(WorkflowInstance instance, String taskName, String details)
 	{
-		logAudit(chain, taskName, details, "system");
+		logAudit(instance, taskName, details, "system");
 	}
 
-	private void logAudit(Chain chain, String taskName, String details, String username)
+	private void logAudit(WorkflowInstance instance, String taskName, String details, String username)
 	{
 		AuditLogEntry entry = new AuditLogEntry();
-		entry.setEntityName("Chain");
-		entry.setEntityId(chain.getId());
+		entry.setEntityName("WorkflowInstance");
+		entry.setEntityId(instance.getId());
 		entry.setTaskName(taskName);
 		entry.setDetails(details);
 		entry.setUsername(username);
