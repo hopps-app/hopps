@@ -1,0 +1,144 @@
+<header class="hopps-header">
+  <button class="hopps-header__menu-btn" onclick="toggleSideNav()" aria-label="Menu">
+    <svg viewBox="0 0 20 20" width="20" height="20">
+      <path d="M2 4h16v2H2zM2 9h16v2H2zM2 14h16v2H2z"/>
+    </svg>
+  </button>
+
+  <a href="/" class="hopps-header__name">hopps</a>
+
+  <div class="hopps-header__actions">
+    <button class="hopps-header__action" aria-label="Benachrichtigungen" title="Benachrichtigungen">
+      <svg width="20" height="20" viewBox="0 0 32 32">
+        <path d="M28.707 19.293L26 16.586V13a10.014 10.014 0 0 0-9-9.95V1h-2v2.05A10.014 10.014 0 0 0 6 13v3.586l-2.707 2.707A1 1 0 0 0 3 20v3a1 1 0 0 0 1 1h7v.777a5.152 5.152 0 0 0 4.5 5.199A5.006 5.006 0 0 0 21 25v-1h7a1 1 0 0 0 1-1v-3a1 1 0 0 0-.293-.707ZM19 25a3 3 0 0 1-6 0v-1h6Zm8-3H5v-1.586l2.707-2.707A1 1 0 0 0 8 17v-4a8 8 0 0 1 16 0v4a1 1 0 0 0 .293.707L27 20.414Z"/>
+      </svg>
+      <span class="hopps-header__badge">3</span>
+    </button>
+
+    <button class="hopps-header__action" aria-label="Profil" title="Profil">
+      <svg width="20" height="20" viewBox="0 0 32 32">
+        <path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<style>
+  .hopps-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background-color: #000000;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    z-index: 8000;
+    border-bottom: 1px solid #262626;
+  }
+
+  .hopps-header__menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.11s;
+  }
+
+  .hopps-header__menu-btn:hover {
+    background-color: #262626;
+  }
+
+  .hopps-header__menu-btn svg {
+    fill: currentColor;
+  }
+
+  @media (max-width: 1056px) {
+    .hopps-header__menu-btn {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .hopps-header__name {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    padding: 0 1rem;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    border-radius: 4px;
+    transition: background-color 0.11s;
+  }
+
+  .hopps-header__name:hover {
+    background-color: #262626;
+  }
+
+  .hopps-header__name:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+
+  .hopps-header__actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .hopps-header__action {
+    position: relative;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0 1rem;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.11s;
+  }
+
+  .hopps-header__action:hover {
+    background-color: #262626;
+  }
+
+  .hopps-header__action:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+
+  .hopps-header__action svg {
+    fill: currentColor;
+  }
+
+  .hopps-header__badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #da1e28;
+    color: #ffffff;
+    font-size: 0.625rem;
+    font-weight: 600;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+  }
+</style>
