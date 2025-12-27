@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.junit.QuarkusTest;
 import app.hopps.audit.domain.AuditLogEntry;
 import app.hopps.audit.repository.AuditLogRepository;
-import app.hopps.simplepe.repository.ChainRepository;
+import app.hopps.workflow.repository.WorkflowInstanceRepository;
 
 @QuarkusTest
 class ProcessEngineTest
@@ -29,7 +29,7 @@ class ProcessEngineTest
 	AuditLogRepository auditLogRepository;
 
 	@Inject
-	ChainRepository chainRepository;
+	WorkflowInstanceRepository chainRepository;
 
 	@Inject
 	CalculateTotalTask calculateTotalTask;
@@ -65,15 +65,15 @@ class ProcessEngineTest
 		initialVars.put("recipient", "customer@example.com");
 
 		// When
-		Chain chain = processEngine.startProcess(process, initialVars);
+		WorkflowInstance instance = processEngine.startProcess(process, initialVars);
 
 		// Then
-		assertEquals(ChainStatus.COMPLETED, chain.getStatus());
-		assertEquals(50.0, chain.getVariable("total"));
-		assertTrue((Boolean)chain.getVariable("notificationSent"));
+		assertEquals(WorkflowStatus.COMPLETED, instance.getStatus());
+		assertEquals(50.0, instance.getVariable("total"));
+		assertTrue((Boolean)instance.getVariable("notificationSent"));
 
 		// Verify audit logs
-		List<AuditLogEntry> logs = auditLogRepository.findByChainId(chain.getId());
+		List<AuditLogEntry> logs = auditLogRepository.findByWorkflowInstanceId(instance.getId());
 		assertFalse(logs.isEmpty());
 		assertTrue(logs.stream().anyMatch(l -> "ProcessStarted".equals(l.getTaskName())));
 		assertTrue(logs.stream().anyMatch(l -> "CalculateTotal".equals(l.getTaskName())));
@@ -90,12 +90,12 @@ class ProcessEngineTest
 			.addTask(calculateTotalTask);
 
 		// When
-		Chain chain = processEngine.startProcess(process);
+		WorkflowInstance instance = processEngine.startProcess(process);
 
 		// Then
-		assertEquals(ChainStatus.WAITING, chain.getStatus());
-		assertTrue(chain.isWaitingForUser());
-		assertEquals("EnterOrderDetails", chain.getCurrentUserTask());
+		assertEquals(WorkflowStatus.WAITING, instance.getStatus());
+		assertTrue(instance.isWaitingForUser());
+		assertEquals("EnterOrderDetails", instance.getCurrentUserTask());
 	}
 
 	@Test
@@ -107,8 +107,8 @@ class ProcessEngineTest
 			.addTask(calculateTotalTask)
 			.addTask(sendNotificationTask);
 
-		Chain chain = processEngine.startProcess(process);
-		assertEquals(ChainStatus.WAITING, chain.getStatus());
+		WorkflowInstance instance = processEngine.startProcess(process);
+		assertEquals(WorkflowStatus.WAITING, instance.getStatus());
 
 		// When - complete the user task
 		Map<String, Object> userInput = new HashMap<>();
@@ -116,12 +116,12 @@ class ProcessEngineTest
 		userInput.put("quantity", 4);
 		userInput.put("recipient", "test@example.com");
 
-		Chain updatedChain = processEngine.completeUserTask(chain.getId(), userInput, "testuser");
+		WorkflowInstance updatedInstance = processEngine.completeUserTask(instance.getId(), userInput, "testuser");
 
 		// Then
-		assertEquals(ChainStatus.COMPLETED, updatedChain.getStatus());
-		assertEquals(100.0, updatedChain.getVariable("total"));
-		assertTrue((Boolean)updatedChain.getVariable("notificationSent"));
+		assertEquals(WorkflowStatus.COMPLETED, updatedInstance.getStatus());
+		assertEquals(100.0, updatedInstance.getVariable("total"));
+		assertTrue((Boolean)updatedInstance.getVariable("notificationSent"));
 	}
 
 	@Test
@@ -135,9 +135,9 @@ class ProcessEngineTest
 			.addTask(sendNotificationTask);
 
 		// When - start process (waits at first user task)
-		Chain chain = processEngine.startProcess(process);
-		assertEquals(ChainStatus.WAITING, chain.getStatus());
-		assertEquals("EnterOrderDetails", chain.getCurrentUserTask());
+		WorkflowInstance instance = processEngine.startProcess(process);
+		assertEquals(WorkflowStatus.WAITING, instance.getStatus());
+		assertEquals("EnterOrderDetails", instance.getCurrentUserTask());
 
 		// Complete first user task
 		Map<String, Object> orderDetails = new HashMap<>();
@@ -145,25 +145,26 @@ class ProcessEngineTest
 		orderDetails.put("quantity", 2);
 		orderDetails.put("recipient", "customer@test.com");
 
-		chain = processEngine.completeUserTask(chain.getId(), orderDetails, "clerk");
+		instance = processEngine.completeUserTask(instance.getId(), orderDetails, "clerk");
 
 		// Now waiting at approval task
-		assertEquals(ChainStatus.WAITING, chain.getStatus());
-		assertEquals("ManagerApproval", chain.getCurrentUserTask());
-		assertEquals(200.0, chain.getVariable("total")); // CalculateTotal ran
+		assertEquals(WorkflowStatus.WAITING, instance.getStatus());
+		assertEquals("ManagerApproval", instance.getCurrentUserTask());
+		assertEquals(200.0, instance.getVariable("total")); // CalculateTotal
+															// ran
 
 		// Complete approval task
 		Map<String, Object> approval = new HashMap<>();
 		approval.put("approved", true);
 		approval.put("comment", "Looks good!");
 
-		chain = processEngine.completeUserTask(chain.getId(), approval, "manager");
+		instance = processEngine.completeUserTask(instance.getId(), approval, "manager");
 
 		// Then - process complete
-		assertEquals(ChainStatus.COMPLETED, chain.getStatus());
-		assertTrue((Boolean)chain.getVariable("approved"));
-		assertEquals("Looks good!", chain.getVariable("approvalComment"));
-		assertTrue((Boolean)chain.getVariable("notificationSent"));
+		assertEquals(WorkflowStatus.COMPLETED, instance.getStatus());
+		assertTrue((Boolean)instance.getVariable("approved"));
+		assertEquals("Looks good!", instance.getVariable("approvalComment"));
+		assertTrue((Boolean)instance.getVariable("notificationSent"));
 	}
 
 	@Test
@@ -175,27 +176,27 @@ class ProcessEngineTest
 			.addTask(approvalTask)
 			.addTask(sendNotificationTask);
 
-		Chain chain = processEngine.startProcess(process);
+		WorkflowInstance instance = processEngine.startProcess(process);
 
 		// Complete order details
 		Map<String, Object> orderDetails = new HashMap<>();
 		orderDetails.put("price", 50.0);
 		orderDetails.put("quantity", 1);
-		chain = processEngine.completeUserTask(chain.getId(), orderDetails, "clerk");
+		instance = processEngine.completeUserTask(instance.getId(), orderDetails, "clerk");
 
 		// When - reject the approval
 		Map<String, Object> rejection = new HashMap<>();
 		rejection.put("approved", false);
 		rejection.put("comment", "Too expensive");
 
-		chain = processEngine.completeUserTask(chain.getId(), rejection, "manager");
+		instance = processEngine.completeUserTask(instance.getId(), rejection, "manager");
 
 		// Then - process failed
-		assertEquals(ChainStatus.FAILED, chain.getStatus());
-		assertFalse((Boolean)chain.getVariable("approved"));
-		assertEquals("Request was rejected", chain.getError());
+		assertEquals(WorkflowStatus.FAILED, instance.getStatus());
+		assertFalse((Boolean)instance.getVariable("approved"));
+		assertEquals("Request was rejected", instance.getError());
 		// Notification task was not executed
-		assertNull(chain.getVariable("notificationSent"));
+		assertNull(instance.getVariable("notificationSent"));
 	}
 
 	@Test
@@ -206,17 +207,17 @@ class ProcessEngineTest
 			.addTask(enterOrderDetailsTask)
 			.addTask(calculateTotalTask);
 
-		Chain chain = processEngine.startProcess(process);
+		WorkflowInstance instance = processEngine.startProcess(process);
 
 		// When - provide invalid input (negative quantity)
 		Map<String, Object> invalidInput = new HashMap<>();
 		invalidInput.put("price", 10.0);
 		invalidInput.put("quantity", -5);
 
-		Chain result = processEngine.completeUserTask(chain.getId(), invalidInput, "user");
+		WorkflowInstance result = processEngine.completeUserTask(instance.getId(), invalidInput, "user");
 
 		// Then - still waiting, validation failed
-		assertEquals(ChainStatus.FAILED, result.getStatus());
+		assertEquals(WorkflowStatus.FAILED, result.getStatus());
 		assertNotNull(result.getError());
 	}
 
@@ -227,14 +228,14 @@ class ProcessEngineTest
 		ProcessDefinition process = new ProcessDefinition("GetChainTest")
 			.addTask(enterOrderDetailsTask);
 
-		Chain chain = processEngine.startProcess(process);
+		WorkflowInstance instance = processEngine.startProcess(process);
 
 		// When
-		Chain retrieved = processEngine.getChain(chain.getId());
+		WorkflowInstance retrieved = processEngine.getChain(instance.getId());
 
 		// Then
 		assertNotNull(retrieved);
-		assertEquals(chain.getId(), retrieved.getId());
+		assertEquals(instance.getId(), retrieved.getId());
 	}
 
 	// ===== Persistence Tests =====
@@ -253,14 +254,14 @@ class ProcessEngineTest
 		vars.put("recipient", "test@example.com");
 
 		// When
-		Chain chain = processEngine.startProcess(process, vars);
+		WorkflowInstance instance = processEngine.startProcess(process, vars);
 
 		// Then - verify chain exists in database
-		Chain persisted = chainRepository.findById(chain.getId());
-		assertNotNull(persisted, "Chain should be persisted to database");
-		assertEquals(chain.getId(), persisted.getId());
+		WorkflowInstance persisted = chainRepository.findById(instance.getId());
+		assertNotNull(persisted, "WorkflowInstance should be persisted to database");
+		assertEquals(instance.getId(), persisted.getId());
 		assertEquals("PersistenceTest", persisted.getProcessName());
-		assertEquals(ChainStatus.COMPLETED, persisted.getStatus());
+		assertEquals(WorkflowStatus.COMPLETED, persisted.getStatus());
 		assertNotNull(persisted.getCreatedAt());
 		assertNotNull(persisted.getUpdatedAt());
 	}
@@ -274,17 +275,17 @@ class ProcessEngineTest
 			.addTask(calculateTotalTask)
 			.addTask(sendNotificationTask);
 
-		Chain originalChain = processEngine.startProcess(process);
-		String chainId = originalChain.getId();
+		WorkflowInstance originalInstance = processEngine.startProcess(process);
+		String workflowInstanceId = originalInstance.getId();
 
 		// When - load chain from database (simulating restart)
-		Chain loadedChain = chainRepository.findById(chainId);
+		WorkflowInstance loadedInstance = chainRepository.findById(workflowInstanceId);
 
 		// Then - verify chain state is correct
-		assertNotNull(loadedChain);
-		assertEquals(ChainStatus.WAITING, loadedChain.getStatus());
-		assertTrue(loadedChain.isWaitingForUser());
-		assertEquals("EnterOrderDetails", loadedChain.getCurrentUserTask());
+		assertNotNull(loadedInstance);
+		assertEquals(WorkflowStatus.WAITING, loadedInstance.getStatus());
+		assertTrue(loadedInstance.isWaitingForUser());
+		assertEquals("EnterOrderDetails", loadedInstance.getCurrentUserTask());
 
 		// And - can complete user task to resume
 		Map<String, Object> userInput = new HashMap<>();
@@ -292,8 +293,8 @@ class ProcessEngineTest
 		userInput.put("quantity", 2);
 		userInput.put("recipient", "resume@test.com");
 
-		Chain completed = processEngine.completeUserTask(chainId, userInput, "testuser");
-		assertEquals(ChainStatus.COMPLETED, completed.getStatus());
+		WorkflowInstance completed = processEngine.completeUserTask(workflowInstanceId, userInput, "testuser");
+		assertEquals(WorkflowStatus.COMPLETED, completed.getStatus());
 	}
 
 	@Test
@@ -314,10 +315,10 @@ class ProcessEngineTest
 		vars.put("quantity", 5);
 
 		// When
-		Chain chain = processEngine.startProcess(process, vars);
+		WorkflowInstance instance = processEngine.startProcess(process, vars);
 
 		// Then - reload from database and verify all variables
-		Chain loaded = chainRepository.findById(chain.getId());
+		WorkflowInstance loaded = chainRepository.findById(instance.getId());
 		assertNotNull(loaded);
 
 		assertEquals("test value", loaded.getVariable("stringVar"));
@@ -341,7 +342,7 @@ class ProcessEngineTest
 	}
 
 	@Test
-	void givenChainRepository_whenQueryByStatus_thenFindsCorrectChains()
+	void givenWorkflowInstanceRepository_whenQueryByStatus_thenFindsCorrectChains()
 	{
 		// Given - create chains with different statuses
 		ProcessDefinition completedProcess = new ProcessDefinition("CompletedProcess")
@@ -354,15 +355,15 @@ class ProcessEngineTest
 		vars.put("price", 10.0);
 		vars.put("quantity", 2);
 
-		Chain completed1 = processEngine.startProcess(completedProcess, vars);
-		Chain completed2 = processEngine.startProcess(completedProcess, vars);
-		Chain waiting1 = processEngine.startProcess(waitingProcess);
-		Chain waiting2 = processEngine.startProcess(waitingProcess);
+		WorkflowInstance completed1 = processEngine.startProcess(completedProcess, vars);
+		WorkflowInstance completed2 = processEngine.startProcess(completedProcess, vars);
+		WorkflowInstance waiting1 = processEngine.startProcess(waitingProcess);
+		WorkflowInstance waiting2 = processEngine.startProcess(waitingProcess);
 
 		// When
-		List<Chain> completedChains = chainRepository.findByStatus(ChainStatus.COMPLETED);
-		List<Chain> waitingChains = chainRepository.findWaitingChains();
-		List<Chain> activeChains = chainRepository.findActiveChains();
+		List<WorkflowInstance> completedChains = chainRepository.findByStatus(WorkflowStatus.COMPLETED);
+		List<WorkflowInstance> waitingChains = chainRepository.findWaitingChains();
+		List<WorkflowInstance> activeChains = chainRepository.findActiveChains();
 
 		// Then
 		assertEquals(2, completedChains.size());

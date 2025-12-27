@@ -22,8 +22,8 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
-import app.hopps.simplepe.Chain;
-import app.hopps.simplepe.SystemTask;
+import app.hopps.workflow.WorkflowInstance;
+import app.hopps.workflow.SystemTask;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -60,20 +60,20 @@ public class AnalyzeDocumentAiTask extends SystemTask
 
 	@Override
 	@Transactional
-	protected void doExecute(Chain chain)
+	protected void doExecute(WorkflowInstance instance)
 	{
 		// Skip if ZugFerd already succeeded
-		Boolean zugferdSuccess = chain.getVariable(AnalyzeDocumentZugFerdTask.VAR_ZUGFERD_SUCCESS, Boolean.class);
+		Boolean zugferdSuccess = instance.getVariable(AnalyzeDocumentZugFerdTask.VAR_ZUGFERD_SUCCESS, Boolean.class);
 		if (Boolean.TRUE.equals(zugferdSuccess))
 		{
 			LOG.info("ZugFerd extraction succeeded, skipping AI analysis");
 			return;
 		}
 
-		Long documentId = chain.getVariable(VAR_DOCUMENT_ID, Long.class);
+		Long documentId = instance.getVariable(VAR_DOCUMENT_ID, Long.class);
 		if (documentId == null)
 		{
-			LOG.error("Document ID not set in chain: {}", chain.getId());
+			LOG.error("Document ID not set in chain: {}", instance.getId());
 			throw new IllegalStateException("Document ID not set in chain");
 		}
 

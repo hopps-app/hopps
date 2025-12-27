@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 /**
  * Base interface for all tasks in the process engine. Tasks are stateless and
@@ -18,5 +18,5 @@ public interface Task
 	 *            the process chain holding all state
 	 * @return the result of execution
 	 */
-	TaskResult execute(Chain chain);
+	TaskResult execute(WorkflowInstance instance);
 }

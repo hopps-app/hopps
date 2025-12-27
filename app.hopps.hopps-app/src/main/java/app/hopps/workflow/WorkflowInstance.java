@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -16,16 +16,18 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
 /**
- * The Chain holds all state for a process instance. It acts as a token that
- * flows through the process, carrying data between tasks.
+ * WorkflowInstance holds all state for a workflow execution. It acts as a token
+ * that flows through the workflow, carrying data between tasks.
  *
- * Process instances are persisted to the database so they survive application
+ * Workflow instances are persisted to the database so they survive application
  * restarts. UserTasks can wait for user input across server reboots.
  */
 @Entity
-public class Chain extends PanacheEntityBase
+@Table(name = "workflow_instance")
+public class WorkflowInstance extends PanacheEntityBase
 {
 	@Id
 	@Column(length = 36)
@@ -39,7 +41,7 @@ public class Chain extends PanacheEntityBase
 
 	@Enumerated(EnumType.STRING)
 	@Column(length = 20, nullable = false)
-	private ChainStatus status = ChainStatus.RUNNING;
+	private WorkflowStatus status = WorkflowStatus.RUNNING;
 
 	@Column(nullable = false)
 	private int currentTaskIndex = 0;
@@ -59,18 +61,18 @@ public class Chain extends PanacheEntityBase
 	private Instant updatedAt;
 
 	// No-arg constructor required by JPA
-	public Chain()
+	public WorkflowInstance()
 	{
 	}
 
-	public Chain(String processName)
+	public WorkflowInstance(String processName)
 	{
 		this.id = UUID.randomUUID().toString();
 		this.processName = processName;
 	}
 
 	// For reconstruction from persistence
-	public Chain(String id, String processName)
+	public WorkflowInstance(String id, String processName)
 	{
 		this.id = id;
 		this.processName = processName;
@@ -102,12 +104,12 @@ public class Chain extends PanacheEntityBase
 		return processName;
 	}
 
-	public ChainStatus getStatus()
+	public WorkflowStatus getStatus()
 	{
 		return status;
 	}
 
-	public void setStatus(ChainStatus status)
+	public void setStatus(WorkflowStatus status)
 	{
 		this.status = status;
 	}
@@ -137,7 +139,7 @@ public class Chain extends PanacheEntityBase
 		this.waitingForUser = waiting;
 		if (waiting)
 		{
-			this.status = ChainStatus.WAITING;
+			this.status = WorkflowStatus.WAITING;
 		}
 	}
 
@@ -159,7 +161,7 @@ public class Chain extends PanacheEntityBase
 	public void setError(String error)
 	{
 		this.error = error;
-		this.status = ChainStatus.FAILED;
+		this.status = WorkflowStatus.FAILED;
 	}
 
 	// Variable management

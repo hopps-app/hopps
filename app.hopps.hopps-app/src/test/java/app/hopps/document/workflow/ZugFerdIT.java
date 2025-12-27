@@ -23,8 +23,8 @@ import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentType;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
-import app.hopps.simplepe.Chain;
-import app.hopps.simplepe.ChainStatus;
+import app.hopps.workflow.WorkflowInstance;
+import app.hopps.workflow.WorkflowStatus;
 import io.quarkiverse.wiremock.devservice.ConnectWireMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
@@ -106,10 +106,10 @@ class ZugFerdIT
 		Long documentId = createDocumentWithZugFerdPdf();
 
 		// When - run the document analysis workflow
-		Chain chain = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startAnalysis(documentId);
 
 		// Then - workflow should complete successfully
-		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
+		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
 
 		// And - document should have extracted data
 		Document document = findDocumentById(documentId);
@@ -169,10 +169,10 @@ class ZugFerdIT
 		Long documentId = createDocumentWithZugFerdPdf();
 
 		// When - run the document analysis workflow
-		Chain chain = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startAnalysis(documentId);
 
 		// Then - workflow should complete (AI fallback worked)
-		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
+		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
 
 		// And - document should have AI-extracted data
 		Document document = findDocumentById(documentId);
@@ -226,10 +226,10 @@ class ZugFerdIT
 		Long documentId = createDocumentWithImage();
 
 		// When - run the document analysis workflow
-		Chain chain = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startAnalysis(documentId);
 
 		// Then - workflow should complete successfully via AI
-		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
+		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
 
 		// And - document should have AI-extracted data
 		Document document = findDocumentById(documentId);

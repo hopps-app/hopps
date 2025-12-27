@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import java.util.Map;
 
@@ -13,11 +13,11 @@ import java.util.Map;
 public abstract class UserTask implements Task
 {
 	@Override
-	public final TaskResult execute(Chain chain)
+	public final TaskResult execute(WorkflowInstance instance)
 	{
 		// Store information about this user task in the chain
-		chain.setWaitingForUser(true);
-		chain.setCurrentUserTask(getTaskName());
+		instance.setWaitingForUser(true);
+		instance.setCurrentUserTask(getTaskName());
 		return TaskResult.WAITING;
 	}
 
@@ -30,28 +30,28 @@ public abstract class UserTask implements Task
 	 *            the data provided by the user
 	 * @return COMPLETED if successful, FAILED if validation fails
 	 */
-	public final TaskResult complete(Chain chain, Map<String, Object> userInput)
+	public final TaskResult complete(WorkflowInstance instance, Map<String, Object> userInput)
 	{
 		try
 		{
 			// Validate and process user input
-			if (!validateInput(chain, userInput))
+			if (!validateInput(instance, userInput))
 			{
 				return TaskResult.FAILED;
 			}
 
 			// Process the user input
-			processInput(chain, userInput);
+			processInput(instance, userInput);
 
 			// Clear waiting state
-			chain.setWaitingForUser(false);
-			chain.setCurrentUserTask(null);
+			instance.setWaitingForUser(false);
+			instance.setCurrentUserTask(null);
 
 			return TaskResult.COMPLETED;
 		}
 		catch (Exception e)
 		{
-			chain.setError(e.getMessage());
+			instance.setError(e.getMessage());
 			return TaskResult.FAILED;
 		}
 	}
@@ -66,21 +66,21 @@ public abstract class UserTask implements Task
 	 *            the input to validate
 	 * @return true if valid, false otherwise
 	 */
-	protected boolean validateInput(Chain chain, Map<String, Object> userInput)
+	protected boolean validateInput(WorkflowInstance instance, Map<String, Object> userInput)
 	{
 		return true;
 	}
 
 	/**
 	 * Processes the validated user input. Implementations should store results
-	 * in the chain.
+	 * in the instance.
 	 *
 	 * @param chain
 	 *            the process chain
 	 * @param userInput
 	 *            the validated user input
 	 */
-	protected abstract void processInput(Chain chain, Map<String, Object> userInput);
+	protected abstract void processInput(WorkflowInstance instance, Map<String, Object> userInput);
 
 	/**
 	 * Returns the assignee for this user task, if any. Override to assign tasks
@@ -90,7 +90,7 @@ public abstract class UserTask implements Task
 	 *            the process chain
 	 * @return the assignee username, or null for unassigned
 	 */
-	public String getAssignee(Chain chain)
+	public String getAssignee(WorkflowInstance instance)
 	{
 		return null;
 	}

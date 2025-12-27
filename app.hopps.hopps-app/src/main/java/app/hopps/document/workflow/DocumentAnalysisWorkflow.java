@@ -5,9 +5,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import app.hopps.simplepe.Chain;
-import app.hopps.simplepe.ProcessDefinition;
-import app.hopps.simplepe.ProcessEngine;
+import app.hopps.workflow.WorkflowInstance;
+import app.hopps.workflow.ProcessDefinition;
+import app.hopps.workflow.ProcessEngine;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -39,7 +39,7 @@ public class DocumentAnalysisWorkflow
 	 *            the ID of the document to analyze
 	 * @return the workflow chain
 	 */
-	public Chain startAnalysis(Long documentId)
+	public WorkflowInstance startAnalysis(Long documentId)
 	{
 		LOG.info("Starting document analysis workflow: documentId={}", documentId);
 		LOG.debug("Creating process definition with ZugFerd and AI tasks");
@@ -54,19 +54,19 @@ public class DocumentAnalysisWorkflow
 			AnalyzeDocumentZugFerdTask.VAR_DOCUMENT_ID, documentId);
 
 		LOG.debug("Starting process with variables: {}", variables);
-		Chain chain = processEngine.startProcess(process, variables);
+		WorkflowInstance instance = processEngine.startProcess(process, variables);
 
-		if (chain.getError() != null)
+		if (instance.getError() != null)
 		{
-			LOG.warn("Document analysis workflow failed: documentId={}, chainId={}, error={}",
-				documentId, chain.getId(), chain.getError());
+			LOG.warn("Document analysis workflow failed: documentId={}, workflowInstanceId={}, error={}",
+				documentId, instance.getId(), instance.getError());
 		}
 		else
 		{
-			LOG.info("Document analysis workflow completed: documentId={}, chainId={}, status={}",
-				documentId, chain.getId(), chain.getStatus());
+			LOG.info("Document analysis workflow completed: documentId={}, workflowInstanceId={}, status={}",
+				documentId, instance.getId(), instance.getStatus());
 		}
 
-		return chain;
+		return instance;
 	}
 }

@@ -17,8 +17,8 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.shared.domain.Tag;
 import app.hopps.document.service.StorageService;
 import app.hopps.shared.repository.TagRepository;
-import app.hopps.simplepe.Chain;
-import app.hopps.simplepe.ChainStatus;
+import app.hopps.workflow.WorkflowInstance;
+import app.hopps.workflow.WorkflowStatus;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
@@ -50,12 +50,12 @@ class DocumentAnalysisWorkflowTest
 
 		// When - the workflow will fail to connect to AI service, but should
 		// handle gracefully
-		Chain chain = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startAnalysis(documentId);
 
 		// Then - workflow should complete (either success or handled failure)
 		// In test environment without AI service, it will fail but that's
 		// expected
-		assertThat(chain, is(org.hamcrest.Matchers.notNullValue()));
+		assertThat(instance, is(org.hamcrest.Matchers.notNullValue()));
 	}
 
 	@Test
@@ -65,10 +65,10 @@ class DocumentAnalysisWorkflowTest
 		Long documentId = createDocumentWithoutFile();
 
 		// When
-		Chain chain = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startAnalysis(documentId);
 
 		// Then - should complete successfully as it skips analysis
-		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
+		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
 
 		// Document should be unchanged
 		Document document = documentRepository.findById(documentId);
@@ -106,10 +106,10 @@ class DocumentAnalysisWorkflowTest
 
 		// When - workflow runs (tags come from az-document-ai service, which is
 		// mocked in tests)
-		Chain chain = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startAnalysis(documentId);
 
 		// Then - should complete and keep original tags
-		assertThat(chain.getStatus(), is(ChainStatus.COMPLETED));
+		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
 
 		Document document = findDocumentById(documentId);
 		// Should still have original tag since document already has tags

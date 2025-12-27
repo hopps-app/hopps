@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -15,10 +15,10 @@ public class SendNotificationTask extends SystemTask
 	}
 
 	@Override
-	protected void doExecute(Chain chain)
+	protected void doExecute(WorkflowInstance instance)
 	{
-		String recipient = chain.getVariable("recipient", String.class);
-		Double total = chain.getVariable("total", Double.class);
+		String recipient = instance.getVariable("recipient", String.class);
+		Double total = instance.getVariable("total", Double.class);
 
 		if (recipient == null)
 		{
@@ -27,7 +27,7 @@ public class SendNotificationTask extends SystemTask
 
 		// Simulate sending notification
 		String message = String.format("Order total: %.2f", total != null ? total : 0.0);
-		chain.setVariable("notificationSent", true);
-		chain.setVariable("notificationMessage", message);
+		instance.setVariable("notificationSent", true);
+		instance.setVariable("notificationMessage", message);
 	}
 }

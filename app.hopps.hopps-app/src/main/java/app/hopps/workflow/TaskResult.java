@@ -1,4 +1,4 @@
-package app.hopps.simplepe;
+package app.hopps.workflow;
 
 /**
  * Result of task execution.
@@ -11,8 +11,8 @@ public enum TaskResult
 	COMPLETED,
 
 	/**
-	 * Task is waiting for external input (e.g., user action). Chain execution
-	 * pauses until resumed.
+	 * Task is waiting for external input (e.g., user action). WorkflowInstance
+	 * execution pauses until resumed.
 	 */
 	WAITING,
 
