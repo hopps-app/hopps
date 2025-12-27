@@ -155,10 +155,10 @@
         },
         "empty": {
             "mainText": "Noch keine Kategorien erstellt",
-            "subText": "Hier können Kategorien erstellt und bearbeitet werden"
+            "subText": "Hier können Kategorien erstellt und bearbeitet werden."
         },
         "notFound": {
-            "mainText": "Es wurden keine Kategorien gefunden."
+            "mainText": "Es wurden keine Kategorien gefunden"
         }
     },
     "dialogWrapper": {
