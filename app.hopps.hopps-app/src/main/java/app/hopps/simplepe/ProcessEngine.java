@@ -3,26 +3,50 @@ package app.hopps.simplepe;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import app.hopps.audit.domain.AuditLogEntry;
 import app.hopps.audit.repository.AuditLogRepository;
+import app.hopps.simplepe.repository.ChainRepository;
 
 /**
  * The ProcessEngine executes process definitions. It manages chain lifecycle
  * and coordinates task execution.
+ *
+ * Chains are persisted to the database to survive application restarts.
  */
 @ApplicationScoped
 public class ProcessEngine
 {
+	private static final Logger LOG = LoggerFactory.getLogger(ProcessEngine.class);
+
 	@Inject
 	AuditLogRepository auditLogRepository;
 
-	// In-memory storage for active chains (in production, persist to DB)
-	private final Map<String, Chain> activeChains = new HashMap<>();
-	private final Map<String, ProcessDefinition> chainProcesses = new HashMap<>();
+	@Inject
+	ChainRepository chainRepository;
+
+	// Registry of process definitions by name (for recovery after restart)
+	private final Map<String, ProcessDefinition> processRegistry = new HashMap<>();
+
+	/**
+	 * Registers a process definition so it can be retrieved later for resuming
+	 * chains. This is necessary because ProcessDefinition contains CDI beans
+	 * that cannot be serialized.
+	 *
+	 * @param process
+	 *            the process definition to register
+	 */
+	public void registerProcess(ProcessDefinition process)
+	{
+		processRegistry.put(process.getName(), process);
+		LOG.debug("Registered process definition: {}", process.getName());
+	}
 
 	/**
 	 * Starts a new process instance.
@@ -52,8 +76,11 @@ public class ProcessEngine
 		Chain chain = new Chain(process.getName());
 		chain.setVariables(initialVariables);
 
-		activeChains.put(chain.getId(), chain);
-		chainProcesses.put(chain.getId(), process);
+		// Register the process definition for later retrieval
+		registerProcess(process);
+
+		// Persist the chain BEFORE execution (ensures it exists in DB)
+		chainRepository.persistAndFlush(chain);
 
 		logAudit(chain, "ProcessStarted", "Started process: " + process.getName());
 
@@ -77,7 +104,8 @@ public class ProcessEngine
 	@Transactional
 	public Chain completeUserTask(String chainId, Map<String, Object> userInput, String username)
 	{
-		Chain chain = activeChains.get(chainId);
+		// Load chain from database
+		Chain chain = chainRepository.findById(chainId);
 		if (chain == null)
 		{
 			throw new IllegalArgumentException("Chain not found: " + chainId);
@@ -88,7 +116,14 @@ public class ProcessEngine
 			throw new IllegalStateException("Chain is not waiting for user input");
 		}
 
-		ProcessDefinition process = chainProcesses.get(chainId);
+		// Look up process definition from registry
+		ProcessDefinition process = processRegistry.get(chain.getProcessName());
+		if (process == null)
+		{
+			throw new IllegalStateException(
+				"Process definition not registered: " + chain.getProcessName());
+		}
+
 		Task currentTask = process.getTask(chain.getCurrentTaskIndex());
 
 		if (!(currentTask instanceof UserTask userTask))
@@ -111,15 +146,16 @@ public class ProcessEngine
 	}
 
 	/**
-	 * Gets a chain by its ID.
+	 * Gets a chain by its ID from the database.
 	 */
 	public Chain getChain(String chainId)
 	{
-		return activeChains.get(chainId);
+		return chainRepository.findById(chainId);
 	}
 
 	/**
 	 * Executes tasks until a UserTask is encountered or process completes.
+	 * Persists chain state after each task execution for crash recovery.
 	 */
 	private void executeUntilWaitingOrComplete(Chain chain, ProcessDefinition process)
 	{
@@ -130,6 +166,8 @@ public class ProcessEngine
 			{
 				chain.setStatus(ChainStatus.COMPLETED);
 				logAudit(chain, "ProcessCompleted", "Process completed successfully");
+				chainRepository.persist(chain);
+				chainRepository.flush();
 				break;
 			}
 
@@ -145,13 +183,20 @@ public class ProcessEngine
 				case COMPLETED:
 					chain.incrementTaskIndex();
 					chain.setStatus(ChainStatus.RUNNING);
+					// Persist after each task for crash recovery
+					chainRepository.persist(chain);
+					chainRepository.flush();
 					break;
 				case WAITING:
-					// UserTask - stop execution and wait
+					// UserTask - persist and stop execution
+					chainRepository.persist(chain);
+					chainRepository.flush();
 					return;
 				case FAILED:
-					// Error occurred
+					// Error occurred - persist failure state
 					logAudit(chain, task.getTaskName(), "Task failed: " + chain.getError());
+					chainRepository.persist(chain);
+					chainRepository.flush();
 					return;
 			}
 		}

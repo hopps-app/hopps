@@ -2,17 +2,22 @@ package app.hopps.simplepe;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
 import app.hopps.audit.domain.AuditLogEntry;
 import app.hopps.audit.repository.AuditLogRepository;
+import app.hopps.simplepe.repository.ChainRepository;
 
 @QuarkusTest
 class ProcessEngineTest
@@ -22,6 +27,9 @@ class ProcessEngineTest
 
 	@Inject
 	AuditLogRepository auditLogRepository;
+
+	@Inject
+	ChainRepository chainRepository;
 
 	@Inject
 	CalculateTotalTask calculateTotalTask;
@@ -34,6 +42,14 @@ class ProcessEngineTest
 
 	@Inject
 	EnterOrderDetailsTask enterOrderDetailsTask;
+
+	@BeforeEach
+	@Transactional(TxType.REQUIRES_NEW)
+	void setup()
+	{
+		// Clear all chains from previous tests
+		chainRepository.deleteAll();
+	}
 
 	@Test
 	void givenSystemTasksOnly_whenStartProcess_thenCompletesImmediately()
@@ -219,5 +235,143 @@ class ProcessEngineTest
 		// Then
 		assertNotNull(retrieved);
 		assertEquals(chain.getId(), retrieved.getId());
+	}
+
+	// ===== Persistence Tests =====
+
+	@Test
+	void givenStartedProcess_whenCheckDatabase_thenChainIsPersisted()
+	{
+		// Given
+		ProcessDefinition process = new ProcessDefinition("PersistenceTest")
+			.addTask(calculateTotalTask)
+			.addTask(sendNotificationTask);
+
+		Map<String, Object> vars = new HashMap<>();
+		vars.put("price", 20.0);
+		vars.put("quantity", 3);
+		vars.put("recipient", "test@example.com");
+
+		// When
+		Chain chain = processEngine.startProcess(process, vars);
+
+		// Then - verify chain exists in database
+		Chain persisted = chainRepository.findById(chain.getId());
+		assertNotNull(persisted, "Chain should be persisted to database");
+		assertEquals(chain.getId(), persisted.getId());
+		assertEquals("PersistenceTest", persisted.getProcessName());
+		assertEquals(ChainStatus.COMPLETED, persisted.getStatus());
+		assertNotNull(persisted.getCreatedAt());
+		assertNotNull(persisted.getUpdatedAt());
+	}
+
+	@Test
+	void givenPersistedChain_whenLoadFromDatabase_thenCanResume()
+	{
+		// Given - start a process that waits at user task
+		ProcessDefinition process = new ProcessDefinition("ResumeTest")
+			.addTask(enterOrderDetailsTask)
+			.addTask(calculateTotalTask)
+			.addTask(sendNotificationTask);
+
+		Chain originalChain = processEngine.startProcess(process);
+		String chainId = originalChain.getId();
+
+		// When - load chain from database (simulating restart)
+		Chain loadedChain = chainRepository.findById(chainId);
+
+		// Then - verify chain state is correct
+		assertNotNull(loadedChain);
+		assertEquals(ChainStatus.WAITING, loadedChain.getStatus());
+		assertTrue(loadedChain.isWaitingForUser());
+		assertEquals("EnterOrderDetails", loadedChain.getCurrentUserTask());
+
+		// And - can complete user task to resume
+		Map<String, Object> userInput = new HashMap<>();
+		userInput.put("price", 15.0);
+		userInput.put("quantity", 2);
+		userInput.put("recipient", "resume@test.com");
+
+		Chain completed = processEngine.completeUserTask(chainId, userInput, "testuser");
+		assertEquals(ChainStatus.COMPLETED, completed.getStatus());
+	}
+
+	@Test
+	void givenVariousVariableTypes_whenPersist_thenSerializedCorrectly()
+	{
+		// Given - variables with primitives, strings, lists, maps
+		ProcessDefinition process = new ProcessDefinition("VariableSerializationTest")
+			.addTask(calculateTotalTask);
+
+		Map<String, Object> vars = new HashMap<>();
+		vars.put("stringVar", "test value");
+		vars.put("intVar", 42);
+		vars.put("doubleVar", 3.14);
+		vars.put("boolVar", true);
+		vars.put("listVar", List.of("item1", "item2", "item3"));
+		vars.put("mapVar", Map.of("key1", "value1", "key2", 123));
+		vars.put("price", 10.0);
+		vars.put("quantity", 5);
+
+		// When
+		Chain chain = processEngine.startProcess(process, vars);
+
+		// Then - reload from database and verify all variables
+		Chain loaded = chainRepository.findById(chain.getId());
+		assertNotNull(loaded);
+
+		assertEquals("test value", loaded.getVariable("stringVar"));
+		assertEquals(42, loaded.getVariable("intVar"));
+		assertEquals(3.14, loaded.getVariable("doubleVar"));
+		assertEquals(true, loaded.getVariable("boolVar"));
+
+		// List and Map are deserialized as ArrayList and HashMap by JSON
+		@SuppressWarnings("unchecked")
+		List<String> list = (List<String>)loaded.getVariable("listVar");
+		assertEquals(3, list.size());
+		assertTrue(list.contains("item1"));
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> map = (Map<String, Object>)loaded.getVariable("mapVar");
+		assertEquals("value1", map.get("key1"));
+		assertEquals(123, map.get("key2"));
+
+		// Verify calculated total was also persisted
+		assertEquals(50.0, loaded.getVariable("total"));
+	}
+
+	@Test
+	void givenChainRepository_whenQueryByStatus_thenFindsCorrectChains()
+	{
+		// Given - create chains with different statuses
+		ProcessDefinition completedProcess = new ProcessDefinition("CompletedProcess")
+			.addTask(calculateTotalTask);
+
+		ProcessDefinition waitingProcess = new ProcessDefinition("WaitingProcess")
+			.addTask(enterOrderDetailsTask);
+
+		Map<String, Object> vars = new HashMap<>();
+		vars.put("price", 10.0);
+		vars.put("quantity", 2);
+
+		Chain completed1 = processEngine.startProcess(completedProcess, vars);
+		Chain completed2 = processEngine.startProcess(completedProcess, vars);
+		Chain waiting1 = processEngine.startProcess(waitingProcess);
+		Chain waiting2 = processEngine.startProcess(waitingProcess);
+
+		// When
+		List<Chain> completedChains = chainRepository.findByStatus(ChainStatus.COMPLETED);
+		List<Chain> waitingChains = chainRepository.findWaitingChains();
+		List<Chain> activeChains = chainRepository.findActiveChains();
+
+		// Then
+		assertEquals(2, completedChains.size());
+		assertEquals(2, waitingChains.size());
+		assertEquals(2, activeChains.size()); // Only waiting chains are active
+
+		assertTrue(completedChains.stream().anyMatch(c -> c.getId().equals(completed1.getId())));
+		assertTrue(completedChains.stream().anyMatch(c -> c.getId().equals(completed2.getId())));
+		assertTrue(waitingChains.stream().anyMatch(c -> c.getId().equals(waiting1.getId())));
+		assertTrue(waitingChains.stream().anyMatch(c -> c.getId().equals(waiting2.getId())));
 	}
 }
