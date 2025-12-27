@@ -38,7 +38,8 @@
       "Bash(../mvnw test:*)",
       "Bash(./mvnw failsafe:integration-test:*)",
       "WebFetch(domain:www.mustangproject.org)",
-      "Bash(mvn compile:*)"
+      "Bash(mvn compile:*)",
+      "Bash(mvn validate:*)"
     ]
   }
 }
