@@ -5,8 +5,8 @@ import org.mustangproject.Invoice;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class DocumentDataHandler
 {
@@ -16,7 +16,7 @@ public class DocumentDataHandler
 	}
 
 	public static DocumentData fromZugferd(Invoice invoice, BigDecimal grandTotal,
-		BigDecimal totalTax, BigDecimal taxBasis)
+		BigDecimal totalTax, BigDecimal taxBasis, List<String> tags)
 	{
 		// Values are passed from ZUGFeRDImporter because TransactionCalculator
 		// returns 0 when calculation errors are ignored (e.g., when line items
@@ -56,8 +56,7 @@ public class DocumentDataHandler
 			null, // paymentTerm - not directly available
 			null, // serviceStartDate - not directly available
 			null, // serviceEndDate - not directly available
-			Collections.emptyList() // tags - no AI in ZUGFeRD extraction
-		);
+			tags);
 	}
 
 	private static LocalDate toLocalDate(Date date)
