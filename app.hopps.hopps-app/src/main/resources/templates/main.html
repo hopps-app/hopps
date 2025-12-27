@@ -223,29 +223,6 @@
         gap: var(--cds-spacing-05);
       }
 
-      /* Menu toggle button */
-      .menu-toggle {
-        display: none;
-        background: none;
-        border: none;
-        padding: 0.875rem 1rem;
-        cursor: pointer;
-        color: white;
-      }
-
-      .menu-toggle svg {
-        width: 20px;
-        height: 20px;
-        fill: currentColor;
-      }
-
-      @media (max-width: 1056px) {
-        .menu-toggle {
-          display: flex;
-          align-items: center;
-        }
-      }
-
       /* Overlay for mobile */
       .side-nav-overlay {
         display: none;
@@ -600,12 +577,7 @@
     {#insert moreScripts /}
   </head>
   <body>
-    <cds-header aria-label="Hopps Buchhaltung">
-      <button class="menu-toggle" onclick="toggleSideNav()" aria-label="Menu">
-        <svg viewBox="0 0 20 20"><path d="M2 4h16v2H2zM2 9h16v2H2zM2 14h16v2H2z"/></svg>
-      </button>
-      <cds-header-name href="/" prefix="Hopps">Buchhaltung</cds-header-name>
-    </cds-header>
+    {#include tags/header.html /}
 
     <div class="side-nav-overlay" onclick="toggleSideNav()"></div>
 
