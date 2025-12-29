@@ -32,6 +32,8 @@ import app.hopps.workflow.WorkflowInstance;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
@@ -45,6 +47,7 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+@Authenticated
 @Path("/belege")
 public class DocumentResource extends Controller
 {
@@ -67,6 +70,9 @@ public class DocumentResource extends Controller
 
 	@Inject
 	TagRepository tagRepository;
+
+	@Inject
+	SecurityIdentity securityIdentity;
 
 	@CheckedTemplate
 	public static class Templates
@@ -195,8 +201,7 @@ public class DocumentResource extends Controller
 		document.setCurrencyCode("EUR");
 		document.setAnalysisStatus(AnalysisStatus.PENDING);
 		document.setDocumentStatus(DocumentStatus.UPLOADED);
-		// TODO: Set uploadedBy when authentication is implemented
-		// document.setUploadedBy(getCurrentUsername());
+		document.setUploadedBy(securityIdentity.getPrincipal().getName());
 
 		handleFileUpload(document, file);
 		documentRepository.persist(document);
@@ -308,12 +313,11 @@ public class DocumentResource extends Controller
 		{
 			try
 			{
-				// TODO: Set reviewedBy when authentication is implemented
-				// document.setReviewedBy(getCurrentUsername());
+				document.setReviewedBy(securityIdentity.getPrincipal().getName());
 				processEngine.completeUserTask(
 					document.getWorkflowInstanceId(),
 					userInput,
-					"system"); // TODO: Replace with actual username
+					securityIdentity.getPrincipal().getName());
 				LOG.info("Review completed via workflow: documentId={}, workflowInstanceId={}",
 					id, document.getWorkflowInstanceId());
 			}
@@ -834,8 +838,7 @@ public class DocumentResource extends Controller
 		{
 			WorkflowInstance instance = documentProcessingWorkflow.startProcessing(document.getId());
 			document.setWorkflowInstanceId(instance.getId());
-			// TODO: Set analyzedBy when authentication is implemented
-			// document.setAnalyzedBy(getCurrentUsername());
+			document.setAnalyzedBy(securityIdentity.getPrincipal().getName());
 			LOG.info("Document processing workflow triggered: documentId={}, workflowInstanceId={}",
 				document.getId(), instance.getId());
 		}

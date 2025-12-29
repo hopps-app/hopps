@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
@@ -18,6 +19,7 @@ class BommelResourceTest
 	BommelRepository bommelRepository;
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowCreateRootFormWhenNoBommelsExist()
 	{
 		deleteAllBommels();
@@ -32,6 +34,7 @@ class BommelResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowTreeViewWithBommelTitle()
 	{
 		deleteAllBommels();
@@ -47,6 +50,7 @@ class BommelResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowEditFormWhenBommelSelected()
 	{
 		deleteAllBommels();
@@ -62,6 +66,7 @@ class BommelResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldReturn404ForInvalidSelectedId()
 	{
 		deleteAllBommels();
@@ -75,6 +80,7 @@ class BommelResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowNoSelectionForNonExistentId()
 	{
 		deleteAllBommels();
@@ -89,6 +95,7 @@ class BommelResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldDisableDeleteButtonWhenBommelHasChildren()
 	{
 		deleteAllBommels();
@@ -104,6 +111,7 @@ class BommelResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowChildBommelsInTree()
 	{
 		deleteAllBommels();
@@ -122,6 +130,7 @@ class BommelResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldEnableDeleteButtonWhenBommelHasNoChildren()
 	{
 		deleteAllBommels();

@@ -5,6 +5,7 @@ import java.util.List;
 
 import app.hopps.bommel.domain.Bommel;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
@@ -24,6 +25,9 @@ public class Member extends PanacheEntity
 	private String email;
 
 	private String phone;
+
+	@Column(unique = true)
+	private String keycloakUserId;
 
 	@OneToMany(mappedBy = "responsibleMember", fetch = FetchType.LAZY)
 	private List<Bommel> responsibleBommels = new ArrayList<>();
@@ -78,8 +82,30 @@ public class Member extends PanacheEntity
 		return responsibleBommels;
 	}
 
+	public String getKeycloakUserId()
+	{
+		return keycloakUserId;
+	}
+
+	public void setKeycloakUserId(String keycloakUserId)
+	{
+		this.keycloakUserId = keycloakUserId;
+	}
+
 	public String getDisplayName()
 	{
 		return firstName + " " + lastName;
+	}
+
+	public String generateUsername()
+	{
+		// Use email if available, otherwise generate from name
+		if (email != null && !email.isBlank())
+		{
+			return email;
+		}
+		return (firstName + "." + lastName).toLowerCase()
+			.replaceAll("\\s+", "")
+			.replaceAll("[^a-z0-9.]", "");
 	}
 }

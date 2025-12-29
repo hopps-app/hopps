@@ -4,13 +4,18 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.member.service.MemberKeycloakSyncService;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
@@ -22,7 +27,29 @@ class MemberResourceTest
 	@Inject
 	BommelRepository bommelRepository;
 
+	@InjectMock
+	MemberKeycloakSyncService memberKeycloakSyncService;
+
+	@BeforeEach
+	void setupMocks()
+	{
+		Mockito.when(memberKeycloakSyncService.syncMemberToKeycloak(Mockito.any(Member.class)))
+			.thenAnswer(invocation -> {
+				Member member = invocation.getArgument(0);
+				member.setKeycloakUserId("mock-keycloak-id-" + member.getId());
+				return "mock-keycloak-id-" + member.getId();
+			});
+
+		Mockito.when(memberKeycloakSyncService.syncMemberToKeycloak(Mockito.any(Member.class), Mockito.anyList()))
+			.thenAnswer(invocation -> {
+				Member member = invocation.getArgument(0);
+				member.setKeycloakUserId("mock-keycloak-id-" + member.getId());
+				return "mock-keycloak-id-" + member.getId();
+			});
+	}
+
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowEmptyStateWhenNoMembersExist()
 	{
 		deleteAllData();
@@ -37,6 +64,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowMembersInTable()
 	{
 		deleteAllData();
@@ -53,6 +81,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowMemberDetailPage()
 	{
 		deleteAllData();
@@ -68,6 +97,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowCreateMemberForm()
 	{
 		given()
@@ -81,6 +111,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowMultipleMembersOrderedByName()
 	{
 		deleteAllData();
@@ -97,6 +128,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowCopyButtonsForContactInfo()
 	{
 		deleteAllData();
@@ -112,6 +144,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowResponsibleBommelsOnDetailPage()
 	{
 		deleteAllData();
@@ -128,6 +161,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowNoBommelsMessageWhenNotBommelwart()
 	{
 		deleteAllData();
@@ -142,6 +176,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowBommelCountInMemberList()
 	{
 		deleteAllData();
@@ -158,6 +193,7 @@ class MemberResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldRedirectToIndexForNonExistentMember()
 	{
 		deleteAllData();

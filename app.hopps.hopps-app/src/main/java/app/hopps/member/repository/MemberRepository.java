@@ -19,4 +19,14 @@ public class MemberRepository implements PanacheRepository<Member>
 		return list("lower(firstName) like ?1 or lower(lastName) like ?1",
 			"%" + query.toLowerCase() + "%");
 	}
+
+	public Member findByEmail(String email)
+	{
+		return find("email", email).firstResult();
+	}
+
+	public Member findByKeycloakUserId(String keycloakUserId)
+	{
+		return find("keycloakUserId", keycloakUserId).firstResult();
+	}
 }
