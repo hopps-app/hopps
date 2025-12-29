@@ -18,14 +18,17 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
-import app.hopps.document.workflow.DocumentAnalysisWorkflow;
+import app.hopps.document.workflow.DocumentProcessingWorkflow;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
+import app.hopps.workflow.ProcessEngine;
+import app.hopps.workflow.WorkflowInstance;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -57,7 +60,10 @@ public class DocumentResource extends Controller
 	StorageService storageService;
 
 	@Inject
-	DocumentAnalysisWorkflow documentAnalysisWorkflow;
+	DocumentProcessingWorkflow documentProcessingWorkflow;
+
+	@Inject
+	ProcessEngine processEngine;
 
 	@Inject
 	TagRepository tagRepository;
@@ -65,7 +71,7 @@ public class DocumentResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
-		public static native TemplateInstance index(List<Document> documents);
+		public static native TemplateInstance index(List<Document> documents, List<Document> documentsNeedingReview);
 
 		public static native TemplateInstance create();
 
@@ -87,7 +93,13 @@ public class DocumentResource extends Controller
 		{
 			documents = documentRepository.findAllOrderedByDate();
 		}
-		return Templates.index(documents);
+
+		// Filter documents that need review (status = ANALYZED)
+		List<Document> documentsNeedingReview = documents.stream()
+			.filter(d -> d.getDocumentStatus() != null && d.getDocumentStatus() == DocumentStatus.ANALYZED)
+			.toList();
+
+		return Templates.index(documents, documentsNeedingReview);
 	}
 
 	@GET
@@ -182,19 +194,248 @@ public class DocumentResource extends Controller
 														// filled by AI
 		document.setCurrencyCode("EUR");
 		document.setAnalysisStatus(AnalysisStatus.PENDING);
+		document.setDocumentStatus(DocumentStatus.UPLOADED);
+		// TODO: Set uploadedBy when authentication is implemented
+		// document.setUploadedBy(getCurrentUsername());
 
 		handleFileUpload(document, file);
 		documentRepository.persist(document);
 
-		// Trigger AI analysis workflow
-		triggerDocumentAnalysis(document.getId());
+		// Trigger AI analysis workflow (auto-start as per user preference)
+		triggerDocumentAnalysis(document);
 
 		// Redirect to review page where user can see AI results
 		redirect(DocumentResource.class).review(document.getId());
 	}
 
 	/**
-	 * Step 2: Save reviewed document (after AI analysis)
+	 * Manually trigger analysis for an uploaded document.
+	 */
+	@POST
+	@Transactional
+	@Path("/{id}/analyze")
+	public void analyzeDocument(Long id)
+	{
+		Document document = documentRepository.findById(id);
+		if (document == null)
+		{
+			flash("error", "Beleg nicht gefunden");
+			redirect(DocumentResource.class).index(null);
+			return;
+		}
+
+		if (!document.hasFile())
+		{
+			flash("error", "Kein Dokument vorhanden zum Analysieren");
+			redirect(DocumentResource.class).show(id);
+			return;
+		}
+
+		if (document.getDocumentStatus() != DocumentStatus.UPLOADED
+			&& document.getDocumentStatus() != DocumentStatus.FAILED)
+		{
+			flash("warning", "Dokument wurde bereits analysiert");
+			redirect(DocumentResource.class).show(id);
+			return;
+		}
+
+		// Start workflow
+		triggerDocumentAnalysis(document);
+
+		flash("info", "Analyse gestartet");
+		redirect(DocumentResource.class).review(id);
+	}
+
+	/**
+	 * Complete the review UserTask in the workflow with user's confirmed data.
+	 */
+	@POST
+	@Transactional
+	@Path("/{id}/complete-review")
+	public void completeReview(
+		@RestForm @NotNull Long id,
+		@RestForm @NotNull Boolean confirmed,
+		@RestForm @NotNull Boolean reanalyze,
+		@RestForm @NotNull String documentType,
+		@RestForm String name,
+		@RestForm @NotNull BigDecimal total,
+		@RestForm BigDecimal totalTax,
+		@RestForm String currencyCode,
+		@RestForm String transactionDate,
+		@RestForm Long bommelId,
+		@RestForm String senderName,
+		@RestForm String senderStreet,
+		@RestForm String senderZipCode,
+		@RestForm String senderCity,
+		@RestForm boolean privatelyPaid,
+		@RestForm String invoiceId,
+		@RestForm String orderNumber,
+		@RestForm String dueDate,
+		@RestForm String tags)
+	{
+		Document document = documentRepository.findById(id);
+		if (document == null)
+		{
+			flash("error", "Beleg nicht gefunden");
+			redirect(DocumentResource.class).index(null);
+			return;
+		}
+
+		// Build user input map for workflow
+		Map<String, Object> userInput = new java.util.HashMap<>();
+		userInput.put("id", id);
+		userInput.put("confirmed", confirmed);
+		userInput.put("reanalyze", reanalyze);
+		userInput.put("documentType", documentType);
+		userInput.put("name", name);
+		userInput.put("total", total);
+		userInput.put("totalTax", totalTax);
+		userInput.put("currencyCode", currencyCode);
+		userInput.put("transactionDate", transactionDate);
+		userInput.put("bommelId", bommelId);
+		userInput.put("senderName", senderName);
+		userInput.put("senderStreet", senderStreet);
+		userInput.put("senderZipCode", senderZipCode);
+		userInput.put("senderCity", senderCity);
+		userInput.put("privatelyPaid", privatelyPaid);
+		userInput.put("invoiceId", invoiceId);
+		userInput.put("orderNumber", orderNumber);
+		userInput.put("dueDate", dueDate);
+		userInput.put("tags", tags);
+
+		// Complete the UserTask in the workflow
+		if (document.getWorkflowInstanceId() != null)
+		{
+			try
+			{
+				// TODO: Set reviewedBy when authentication is implemented
+				// document.setReviewedBy(getCurrentUsername());
+				processEngine.completeUserTask(
+					document.getWorkflowInstanceId(),
+					userInput,
+					"system"); // TODO: Replace with actual username
+				LOG.info("Review completed via workflow: documentId={}, workflowInstanceId={}",
+					id, document.getWorkflowInstanceId());
+			}
+			catch (Exception e)
+			{
+				LOG.error("Failed to complete workflow user task: documentId={}, error={}",
+					id, e.getMessage(), e);
+				flash("error", "Fehler beim Abschließen der Prüfung: " + e.getMessage());
+				redirect(DocumentResource.class).review(id);
+				return;
+			}
+		}
+		else
+		{
+			// No workflow - direct save (backward compatibility for manual
+			// entry)
+			LOG.info("No workflow instance found, saving directly: documentId={}", id);
+			applyFormDataDirectly(document, userInput);
+			document.setDocumentStatus(DocumentStatus.CONFIRMED);
+		}
+
+		if (Boolean.TRUE.equals(confirmed))
+		{
+			flash("success", "Beleg gespeichert");
+			redirect(DocumentResource.class).show(id);
+		}
+		else if (Boolean.TRUE.equals(reanalyze))
+		{
+			flash("info", "Beleg wird erneut analysiert");
+			redirect(DocumentResource.class).review(id);
+		}
+		else
+		{
+			flash("info", "Beleg zur manuellen Eingabe vorbereitet");
+			redirect(DocumentResource.class).show(id);
+		}
+	}
+
+	/**
+	 * Apply form data directly to document (for backward compatibility when no
+	 * workflow exists).
+	 */
+	private void applyFormDataDirectly(Document document, Map<String, Object> userInput)
+	{
+		String documentType = (String)userInput.get("documentType");
+		if (documentType != null)
+		{
+			document.setDocumentType(DocumentType.valueOf(documentType));
+		}
+
+		document.setName((String)userInput.get("name"));
+		document.setTotal((BigDecimal)userInput.get("total"));
+		document.setTotalTax((BigDecimal)userInput.get("totalTax"));
+
+		String currencyCode = (String)userInput.get("currencyCode");
+		document.setCurrencyCode(
+			currencyCode != null && !currencyCode.isBlank() ? currencyCode : "EUR");
+
+		Boolean privatelyPaid = (Boolean)userInput.get("privatelyPaid");
+		document.setPrivatelyPaid(Boolean.TRUE.equals(privatelyPaid));
+
+		String transactionDate = (String)userInput.get("transactionDate");
+		if (transactionDate != null && !transactionDate.isBlank())
+		{
+			LocalDate date = LocalDate.parse(transactionDate);
+			document.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		}
+		else
+		{
+			document.setTransactionTime(null);
+		}
+
+		Long bommelId = (Long)userInput.get("bommelId");
+		if (bommelId != null && bommelId > 0)
+		{
+			Bommel bommel = bommelRepository.findById(bommelId);
+			document.setBommel(bommel);
+		}
+		else
+		{
+			document.setBommel(null);
+		}
+
+		String senderName = (String)userInput.get("senderName");
+		if (senderName != null && !senderName.isBlank())
+		{
+			TradeParty sender = document.getSender();
+			if (sender == null)
+			{
+				sender = new TradeParty();
+			}
+			sender.setName(senderName);
+			sender.setStreet((String)userInput.get("senderStreet"));
+			sender.setZipCode((String)userInput.get("senderZipCode"));
+			sender.setCity((String)userInput.get("senderCity"));
+			document.setSender(sender);
+		}
+		else if (document.getSender() != null)
+		{
+			document.setSender(null);
+		}
+
+		document.setInvoiceId((String)userInput.get("invoiceId"));
+		document.setOrderNumber((String)userInput.get("orderNumber"));
+
+		String dueDate = (String)userInput.get("dueDate");
+		if (dueDate != null && !dueDate.isBlank())
+		{
+			LocalDate date = LocalDate.parse(dueDate);
+			document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		}
+		else
+		{
+			document.setDueDate(null);
+		}
+
+		updateDocumentTags(document, (String)userInput.get("tags"));
+	}
+
+	/**
+	 * Step 2: Save reviewed document (after AI analysis) - kept for backward
+	 * compatibility
 	 */
 	@POST
 	@Transactional
@@ -510,7 +751,7 @@ public class DocumentResource extends Controller
 		handleFileUpload(document, file);
 
 		// Trigger AI analysis workflow for newly uploaded file
-		triggerDocumentAnalysis(documentId);
+		triggerDocumentAnalysis(document);
 
 		flash("success", "Datei hochgeladen: " + file.fileName());
 		redirect(DocumentResource.class).show(documentId);
@@ -587,17 +828,21 @@ public class DocumentResource extends Controller
 		storageService.deleteFile(fileKey);
 	}
 
-	private void triggerDocumentAnalysis(Long documentId)
+	private void triggerDocumentAnalysis(Document document)
 	{
 		try
 		{
-			documentAnalysisWorkflow.startAnalysis(documentId);
-			LOG.info("Document analysis workflow triggered for document: {}", documentId);
+			WorkflowInstance instance = documentProcessingWorkflow.startProcessing(document.getId());
+			document.setWorkflowInstanceId(instance.getId());
+			// TODO: Set analyzedBy when authentication is implemented
+			// document.setAnalyzedBy(getCurrentUsername());
+			LOG.info("Document processing workflow triggered: documentId={}, workflowInstanceId={}",
+				document.getId(), instance.getId());
 		}
 		catch (Exception e)
 		{
 			LOG.warn("Document analysis failed, continuing without autofill: documentId={}, error={}",
-				documentId, e.getMessage());
+				document.getId(), e.getMessage());
 			// Don't fail the upload if analysis fails - it's an enhancement,
 			// not critical
 		}

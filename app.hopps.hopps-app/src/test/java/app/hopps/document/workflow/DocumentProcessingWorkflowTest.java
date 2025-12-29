@@ -28,7 +28,7 @@ import jakarta.inject.Inject;
  * to be mocked with WireMock or similar for full integration tests.
  */
 @QuarkusTest
-class DocumentAnalysisWorkflowTest
+class DocumentProcessingWorkflowTest
 {
 	@Inject
 	DocumentRepository documentRepository;
@@ -40,7 +40,7 @@ class DocumentAnalysisWorkflowTest
 	TagRepository tagRepository;
 
 	@Inject
-	DocumentAnalysisWorkflow workflow;
+	DocumentProcessingWorkflow workflow;
 
 	@Test
 	void shouldCompleteWorkflowForDocumentWithFile()
@@ -50,7 +50,7 @@ class DocumentAnalysisWorkflowTest
 
 		// When - the workflow will fail to connect to AI service, but should
 		// handle gracefully
-		WorkflowInstance instance = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startProcessing(documentId);
 
 		// Then - workflow should complete (either success or handled failure)
 		// In test environment without AI service, it will fail but that's
@@ -65,7 +65,7 @@ class DocumentAnalysisWorkflowTest
 		Long documentId = createDocumentWithoutFile();
 
 		// When
-		WorkflowInstance instance = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startProcessing(documentId);
 
 		// Then - should complete successfully as it skips analysis
 		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
@@ -84,7 +84,7 @@ class DocumentAnalysisWorkflowTest
 		// When - even if workflow fails, existing data should be preserved
 		try
 		{
-			workflow.startAnalysis(documentId);
+			workflow.startProcessing(documentId);
 		}
 		catch (Exception e)
 		{
@@ -106,7 +106,7 @@ class DocumentAnalysisWorkflowTest
 
 		// When - workflow runs (tags come from az-document-ai service, which is
 		// mocked in tests)
-		WorkflowInstance instance = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startProcessing(documentId);
 
 		// Then - should complete and keep original tags
 		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));

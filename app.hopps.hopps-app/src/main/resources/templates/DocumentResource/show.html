@@ -6,6 +6,32 @@
   .document-preview-section {
     margin-top: var(--cds-spacing-05);
   }
+
+  /* Document Status Badges */
+  .status-badge {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .status-badge.uploaded {
+    background-color: #e8daff;
+    color: #6929c4;
+  }
+  .status-badge.analyzing {
+    background-color: #d0e2ff;
+    color: #0043ce;
+  }
+  .status-badge.analyzed {
+    background-color: #a7f0ba;
+    color: #0e6027;
+  }
+  .status-badge.confirmed {
+    background-color: #a7f0ba;
+    color: #0e6027;
+  }
+  .status-badge.failed {
+    background-color: #ffd7d9;
+    color: #a2191f;
+  }
 </style>
 {/moreStyles}
 
@@ -13,6 +39,11 @@
   <h1>
     <span class="doc-type {document.documentType.name.toLowerCase}">{document.displayType}</span>
     {document.displayName}
+    {#if document.documentStatus}
+    <span class="status-badge {document.documentStatus.name.toLowerCase}" style="margin-left: 1rem; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 500;">
+      {document.displayStatus}
+    </span>
+    {/if}
   </h1>
   <a href="/belege" class="cds-btn cds-btn-secondary">
     <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M10 16L20 6l1.4 1.4-8.6 8.6 8.6 8.6L20 26z"/></svg>
@@ -67,6 +98,26 @@
     {/if}
   </div>
 </div>
+
+{#if document.hasFile && document.documentStatus}
+  {#if document.documentStatus.name == 'UPLOADED' || document.documentStatus.name == 'FAILED'}
+  <div class="box" style="background: linear-gradient(135deg, rgba(105, 41, 196, 0.05) 0%, rgba(166, 108, 255, 0.08) 100%); border: 1px solid rgba(105, 41, 196, 0.2);">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #6929c4;">KI-Analyse verfügbar</h3>
+        <p style="margin: 0; font-size: 0.875rem; color: #525252;">Lassen Sie die KI automatisch Daten aus diesem Beleg extrahieren.</p>
+      </div>
+      <form action="/belege/{document.id}/analyze" method="POST">
+        {#authenticityToken /}
+        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap;">
+          <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><circle cx="16" cy="10" r="1.5"/><path d="M16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
+          KI-Analyse starten
+        </button>
+      </form>
+    </div>
+  </div>
+  {/if}
+{/if}
 
 <div class="box">
   {#form uri:DocumentResource.update()}

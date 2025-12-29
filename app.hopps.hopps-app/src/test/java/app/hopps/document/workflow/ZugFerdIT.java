@@ -90,7 +90,7 @@ class ZugFerdIT
 	StorageService storageService;
 
 	@Inject
-	DocumentAnalysisWorkflow workflow;
+	DocumentProcessingWorkflow workflow;
 
 	@Test
 	void shouldExtractDataFromZugFerdInvoice() throws IOException
@@ -106,7 +106,7 @@ class ZugFerdIT
 		Long documentId = createDocumentWithZugFerdPdf();
 
 		// When - run the document analysis workflow
-		WorkflowInstance instance = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startProcessing(documentId);
 
 		// Then - workflow should complete successfully
 		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
@@ -169,7 +169,7 @@ class ZugFerdIT
 		Long documentId = createDocumentWithZugFerdPdf();
 
 		// When - run the document analysis workflow
-		WorkflowInstance instance = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startProcessing(documentId);
 
 		// Then - workflow should complete (AI fallback worked)
 		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
@@ -226,7 +226,7 @@ class ZugFerdIT
 		Long documentId = createDocumentWithImage();
 
 		// When - run the document analysis workflow
-		WorkflowInstance instance = workflow.startAnalysis(documentId);
+		WorkflowInstance instance = workflow.startProcessing(documentId);
 
 		// Then - workflow should complete successfully via AI
 		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));

@@ -75,6 +75,19 @@ public class Document extends PanacheEntity
 	@Enumerated(EnumType.STRING)
 	private ExtractionSource extractionSource;
 
+	// Overall document workflow status
+	@Enumerated(EnumType.STRING)
+	private DocumentStatus documentStatus;
+
+	// Link to workflow instance for resuming workflow
+	@Column(name = "workflow_instance_id", length = 36)
+	private String workflowInstanceId;
+
+	// User tracking for multi-user scenarios
+	private String uploadedBy;
+	private String analyzedBy;
+	private String reviewedBy;
+
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 
@@ -539,6 +552,107 @@ public class Document extends PanacheEntity
 			.map(DocumentTag::getName)
 			.sorted()
 			.collect(Collectors.joining(", "));
+	}
+
+	public DocumentStatus getDocumentStatus()
+	{
+		return documentStatus;
+	}
+
+	public void setDocumentStatus(DocumentStatus documentStatus)
+	{
+		this.documentStatus = documentStatus;
+	}
+
+	public String getWorkflowInstanceId()
+	{
+		return workflowInstanceId;
+	}
+
+	public void setWorkflowInstanceId(String workflowInstanceId)
+	{
+		this.workflowInstanceId = workflowInstanceId;
+	}
+
+	public String getUploadedBy()
+	{
+		return uploadedBy;
+	}
+
+	public void setUploadedBy(String uploadedBy)
+	{
+		this.uploadedBy = uploadedBy;
+	}
+
+	public String getAnalyzedBy()
+	{
+		return analyzedBy;
+	}
+
+	public void setAnalyzedBy(String analyzedBy)
+	{
+		this.analyzedBy = analyzedBy;
+	}
+
+	public String getReviewedBy()
+	{
+		return reviewedBy;
+	}
+
+	public void setReviewedBy(String reviewedBy)
+	{
+		this.reviewedBy = reviewedBy;
+	}
+
+	/**
+	 * Returns the document status as a display string for the UI.
+	 */
+	public String getDisplayStatus()
+	{
+		if (documentStatus == null)
+		{
+			// Legacy documents without documentStatus - infer from
+			// analysisStatus
+			if (analysisStatus == AnalysisStatus.COMPLETED)
+			{
+				return "Bestätigt";
+			}
+			else if (analysisStatus == AnalysisStatus.PENDING || analysisStatus == AnalysisStatus.ANALYZING)
+			{
+				return "Wird analysiert";
+			}
+			else if (analysisStatus == AnalysisStatus.FAILED)
+			{
+				return "Fehlgeschlagen";
+			}
+			return "Hochgeladen";
+		}
+
+		return switch (documentStatus)
+		{
+			case UPLOADED -> "Hochgeladen";
+			case ANALYZING -> "Wird analysiert";
+			case ANALYZED -> "Analysiert";
+			case CONFIRMED -> "Bestätigt";
+			case FAILED -> "Fehlgeschlagen";
+		};
+	}
+
+	/**
+	 * Returns true if the document is ready for review (analysis complete,
+	 * awaiting user confirmation).
+	 */
+	public boolean isReadyForReview()
+	{
+		return documentStatus == DocumentStatus.ANALYZED;
+	}
+
+	/**
+	 * Returns true if the document has been confirmed by the user.
+	 */
+	public boolean isConfirmed()
+	{
+		return documentStatus == DocumentStatus.CONFIRMED;
 	}
 
 	/**
