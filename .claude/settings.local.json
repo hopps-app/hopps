@@ -45,7 +45,9 @@
       "Bash(git checkout:*)",
       "Bash(./mvnw validate:*)",
       "Bash(tail:*)",
-      "Bash(./mvnw surefire-report:report:*)"
+      "Bash(./mvnw surefire-report:report:*)",
+      "Bash(xargs -I {} bash -c 'echo \"\"\"\"=== API Package: {} ===\"\"\"\" && ls -1 {}')",
+      "Bash(tree:*)"
     ]
   }
 }
