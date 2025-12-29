@@ -1,0 +1,359 @@
+{#include main.html}
+{#title}{transaction.displayName} - Hopps Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .form-section {
+    margin-bottom: var(--cds-spacing-07);
+  }
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: var(--cds-spacing-05);
+    padding-bottom: var(--cds-spacing-03);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+  }
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group input[type="date"],
+  .form-group select {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .radio-group {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .form-group.checkbox {
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .form-group.checkbox input {
+    width: auto;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: var(--cds-spacing-05);
+    padding-top: var(--cds-spacing-05);
+    border-top: 1px solid var(--cds-border-subtle-01);
+  }
+  button.cds-btn, a.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  button.cds-btn-primary, a.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  a.cds-btn-secondary {
+    background-color: transparent;
+    color: #0f62fe;
+    border: 1px solid #0f62fe;
+  }
+  a.cds-btn-secondary:hover {
+    background-color: #e8f0fe;
+  }
+  button.cds-btn-danger {
+    background-color: #da1e28;
+    color: white;
+  }
+  button.cds-btn-danger:hover {
+    background-color: #ba1b23;
+  }
+  .linked-document-section {
+    background: linear-gradient(135deg, #e8daff 0%, #d4bbff 100%);
+    border: 2px solid #8a3ffc;
+  }
+  .document-link-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .doc-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .doc-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .doc-type.invoice {
+    background: linear-gradient(135deg, #d0e2ff 0%, #a6c8ff 100%);
+    color: #0043ce;
+  }
+  .doc-type.receipt {
+    background: linear-gradient(135deg, #defbe6 0%, #a7f0ba 100%);
+    color: #0e6027;
+  }
+  .doc-date {
+    font-size: 0.75rem;
+    color: var(--cds-text-secondary, #525252);
+  }
+  .danger-zone {
+    border: 2px solid #da1e28;
+    background: #fff1f1;
+  }
+  .danger-zone h3 {
+    color: #da1e28;
+  }
+</style>
+{/moreStyles}
+
+<div class="page-header">
+  <h1>{transaction.displayName}</h1>
+  <a href="/transaktionen" class="cds-btn cds-btn-secondary">← Zurück</a>
+</div>
+
+{#if transaction.document}
+<div class="box linked-document-section">
+  <div class="form-section">
+    <h3>📄 Verknüpftes Dokument</h3>
+    <div class="document-link-card">
+      <div class="doc-info">
+        <span class="doc-type {#if transaction.document.documentType.name == 'INVOICE'}invoice{#else}receipt{/if}">
+          {transaction.document.displayType}
+        </span>
+        <strong>{transaction.document.displayName}</strong>
+        <span class="doc-date">{transaction.document.displayDate}</span>
+      </div>
+      <a href="/belege/{transaction.document.id}" class="cds-btn cds-btn-secondary">
+        Beleg öffnen →
+      </a>
+    </div>
+  </div>
+</div>
+{/if}
+
+<div class="box">
+  {#form uri:TransactionResource.update()}
+  <input type="hidden" name="id" value="{transaction.id}">
+
+  <!-- Section 1: Typ & Grunddaten -->
+  <div class="form-section">
+    <h3>Grunddaten</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Typ</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="documentType" value="INVOICE" {#if transaction.documentType.name == 'INVOICE'}checked{/if}>
+            Rechnung
+          </label>
+          <label>
+            <input type="radio" name="documentType" value="RECEIPT" {#if transaction.documentType.name == 'RECEIPT'}checked{/if}>
+            Beleg
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="name">Name / Beschreibung</label>
+        <input type="text" id="name" name="name" placeholder="z.B. Büromaterial Bestellung" value="{transaction.name ?: ''}">
+      </div>
+      <div class="form-group">
+        <label for="transactionDate">Transaktionsdatum</label>
+        <input type="date" id="transactionDate" name="transactionDate" value="{transaction.displayDateIso ?: ''}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="total">Betrag *</label>
+        <input type="number" id="total" name="total" step="0.01" required placeholder="0.00" value="{transaction.total}">
+      </div>
+      <div class="form-group">
+        <label for="currencyCode">Währung</label>
+        <select id="currencyCode" name="currencyCode">
+          <option value="EUR" {#if transaction.currencyCode == 'EUR'}selected{/if}>EUR</option>
+          <option value="USD" {#if transaction.currencyCode == 'USD'}selected{/if}>USD</option>
+          <option value="CHF" {#if transaction.currencyCode == 'CHF'}selected{/if}>CHF</option>
+          <option value="GBP" {#if transaction.currencyCode == 'GBP'}selected{/if}>GBP</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="bommelId">Bommel zuweisen</label>
+        <select id="bommelId" name="bommelId">
+          <option value="">— Nicht zugewiesen —</option>
+          {#for bommel in bommels}
+          <option value="{bommel.id}" {#if transaction.bommel && transaction.bommel.id == bommel.id}selected{/if}>{bommel.title}</option>
+          {/for}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group checkbox">
+        <input type="checkbox" id="privatelyPaid" name="privatelyPaid" {#if transaction.privatelyPaid}checked{/if}>
+        <label for="privatelyPaid">Privat bezahlt</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Absender -->
+  <div class="form-section">
+    <h3>Absender</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="senderName">Name / Firma</label>
+        <input type="text" id="senderName" name="senderName" placeholder="z.B. Lieferant GmbH" value="{transaction.senderName ?: ''}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="senderStreet">Straße</label>
+        <input type="text" id="senderStreet" name="senderStreet" value="{transaction.senderStreet ?: ''}">
+      </div>
+      <div class="form-group">
+        <label for="senderZipCode">PLZ</label>
+        <input type="text" id="senderZipCode" name="senderZipCode" value="{transaction.senderZipCode ?: ''}">
+      </div>
+      <div class="form-group">
+        <label for="senderCity">Ort</label>
+        <input type="text" id="senderCity" name="senderCity" value="{transaction.senderCity ?: ''}">
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Rechnungsdetails (conditional) -->
+  <div class="form-section" id="invoiceDetails">
+    <h3>Rechnungsdetails</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="invoiceId">Rechnungsnummer</label>
+        <input type="text" id="invoiceId" name="invoiceId" value="{transaction.invoiceId ?: ''}">
+      </div>
+      <div class="form-group">
+        <label for="orderNumber">Bestellnummer</label>
+        <input type="text" id="orderNumber" name="orderNumber" value="{transaction.orderNumber ?: ''}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="dueDate">Fälligkeitsdatum</label>
+        <input type="date" id="dueDate" name="dueDate" value="{transaction.displayDueDateIso ?: ''}">
+      </div>
+      <div class="form-group">
+        <label for="amountDue">Fälliger Betrag</label>
+        <input type="number" id="amountDue" name="amountDue" step="0.01" value="{transaction.amountDue ?: ''}">
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Tags -->
+  <div class="form-section">
+    <h3>Tags</h3>
+    <div class="form-row">
+      <div class="form-group" style="grid-column: 1 / -1;">
+        {#tagInput documentTags=transaction.transactionTags tagsAsString=transaction.tagsAsString /}
+      </div>
+    </div>
+  </div>
+
+  <div class="button-row">
+    <button type="submit" class="cds-btn cds-btn-primary">
+      <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+      Änderungen speichern
+    </button>
+    <a href="/transaktionen" class="cds-btn cds-btn-secondary">Abbrechen</a>
+  </div>
+
+  {/form}
+</div>
+
+<!-- Danger Zone -->
+<div class="box danger-zone">
+  <div class="form-section">
+    <h3>⚠️ Gefahrenzone</h3>
+    <p style="margin-bottom: 1rem;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+    {#form uri:TransactionResource.delete()}
+      <input type="hidden" name="id" value="{transaction.id}">
+      <button type="submit" class="cds-btn cds-btn-danger" onclick="return confirm('Transaktion wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')">
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zM12 2h8v2h-8z"/></svg>
+        Transaktion löschen
+      </button>
+    {/form}
+  </div>
+</div>
+
+<script>
+  // Show/hide invoice details based on type selection
+  const invoiceDetails = document.getElementById('invoiceDetails');
+  const documentTypeInputs = document.querySelectorAll('input[name="documentType"]');
+
+  // Initial state
+  const selectedType = document.querySelector('input[name="documentType"]:checked').value;
+  invoiceDetails.style.display = selectedType === 'INVOICE' ? 'block' : 'none';
+
+  documentTypeInputs.forEach(input => {
+    input.addEventListener('change', (e) => {
+      if (e.target.value === 'INVOICE') {
+        invoiceDetails.style.display = 'block';
+      } else {
+        invoiceDetails.style.display = 'none';
+      }
+    });
+  });
+</script>
+
+{#flashNotifications /}
+
+{/include}

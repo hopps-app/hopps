@@ -351,7 +351,31 @@ public class TransactionRecord extends PanacheEntity
 	 */
 	public String getSenderName()
 	{
-		return sender != null ? sender.getName() : "";
+		return sender != null && sender.getName() != null ? sender.getName() : "";
+	}
+
+	/**
+	 * Returns sender street or empty string (safe for templates).
+	 */
+	public String getSenderStreet()
+	{
+		return sender != null && sender.getStreet() != null ? sender.getStreet() : "";
+	}
+
+	/**
+	 * Returns sender zip code or empty string (safe for templates).
+	 */
+	public String getSenderZipCode()
+	{
+		return sender != null && sender.getZipCode() != null ? sender.getZipCode() : "";
+	}
+
+	/**
+	 * Returns sender city or empty string (safe for templates).
+	 */
+	public String getSenderCity()
+	{
+		return sender != null && sender.getCity() != null ? sender.getCity() : "";
 	}
 
 	/**
@@ -399,6 +423,15 @@ public class TransactionRecord extends PanacheEntity
 	}
 
 	/**
+	 * Returns transaction date in ISO format (alias for
+	 * getTransactionDateForInput).
+	 */
+	public String getDisplayDateIso()
+	{
+		return getTransactionDateForInput();
+	}
+
+	/**
 	 * Returns due date formatted for HTML input (yyyy-MM-dd).
 	 */
 	public String getDueDateForInput()
@@ -408,5 +441,13 @@ public class TransactionRecord extends PanacheEntity
 			return "";
 		}
 		return dueDate.atZone(ZoneId.systemDefault()).toLocalDate().toString();
+	}
+
+	/**
+	 * Returns due date in ISO format (alias for getDueDateForInput).
+	 */
+	public String getDisplayDueDateIso()
+	{
+		return getDueDateForInput();
 	}
 }

@@ -19,10 +19,13 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentStatus;
+import app.hopps.document.domain.DocumentTag;
 import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.transaction.domain.TransactionRecord;
+import app.hopps.transaction.repository.TransactionRecordRepository;
 import app.hopps.document.service.StorageService;
 import app.hopps.document.workflow.DocumentProcessingWorkflow;
 import app.hopps.shared.domain.Tag;
@@ -58,6 +61,9 @@ public class DocumentResource extends Controller
 
 	@Inject
 	BommelRepository bommelRepository;
+
+	@Inject
+	TransactionRecordRepository transactionRepository;
 
 	@Inject
 	StorageService storageService;
@@ -876,5 +882,75 @@ public class DocumentResource extends Controller
 		}
 
 		redirect(DocumentResource.class).show(documentId);
+	}
+
+	/**
+	 * Creates a new TransactionRecord from an existing Document. Copies all
+	 * relevant data including sender, tags, and invoice details.
+	 */
+	@POST
+	@Transactional
+	@Path("/{id}/create-transaction")
+	public void createTransactionFromDocument(Long id)
+	{
+		Document document = documentRepository.findById(id);
+		if (document == null)
+		{
+			flash("error", "Beleg nicht gefunden");
+			redirect(DocumentResource.class).index(null);
+			return;
+		}
+
+		// Create transaction from document
+		TransactionRecord transaction = new TransactionRecord(
+			document.getTotal(),
+			document.getDocumentType(),
+			securityIdentity.getPrincipal().getName());
+
+		// Link to document
+		transaction.setDocument(document);
+
+		// Copy core fields
+		transaction.setName(document.getName());
+		transaction.setTransactionTime(document.getTransactionTime());
+		transaction.setBommel(document.getBommel());
+		transaction.setPrivatelyPaid(document.isPrivatelyPaid());
+		transaction.setCurrencyCode(
+			document.getCurrencyCode() != null ? document.getCurrencyCode() : "EUR");
+
+		// Copy sender (create new TradeParty instance to avoid shared
+		// references)
+		if (document.getSender() != null)
+		{
+			TradeParty sender = new TradeParty();
+			sender.setName(document.getSender().getName());
+			sender.setStreet(document.getSender().getStreet());
+			sender.setZipCode(document.getSender().getZipCode());
+			sender.setCity(document.getSender().getCity());
+			transaction.setSender(sender);
+		}
+
+		// Copy invoice fields
+		transaction.setInvoiceId(document.getInvoiceId());
+		transaction.setOrderNumber(document.getOrderNumber());
+		transaction.setDueDate(document.getDueDate());
+		transaction.setAmountDue(
+			document.getDueDate() != null ? document.getTotal() : null);
+
+		// Copy tags (preserve AI source)
+		for (DocumentTag docTag : document.getDocumentTags())
+		{
+			app.hopps.transaction.domain.TagSource source = docTag.getSource() == TagSource.AI
+				? app.hopps.transaction.domain.TagSource.AI
+				: app.hopps.transaction.domain.TagSource.MANUAL;
+			transaction.addTag(docTag.getTag(), source);
+		}
+
+		transactionRepository.persist(transaction);
+
+		LOG.info("Transaction created from document: documentId={}, transactionId={}",
+			document.getId(), transaction.getId());
+		flash("success", "Transaktion erstellt aus Beleg \"" + document.getDisplayName() + "\"");
+		redirect(app.hopps.transaction.api.TransactionResource.class).show(transaction.getId());
 	}
 }
