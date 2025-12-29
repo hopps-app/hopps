@@ -40,7 +40,9 @@
       "WebFetch(domain:www.mustangproject.org)",
       "Bash(mvn compile:*)",
       "Bash(mvn validate:*)",
-      "Bash(./mvnw test-compile:*)"
+      "Bash(./mvnw test-compile:*)",
+      "Bash(done)",
+      "Bash(git checkout:*)"
     ]
   }
 }
