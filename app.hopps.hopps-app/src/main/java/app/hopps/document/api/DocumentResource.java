@@ -180,7 +180,6 @@ public class DocumentResource extends Controller
 	 * Step 1: Upload file and create document (simplified - just file and type)
 	 */
 	@POST
-	@Transactional
 	@Path("/upload")
 	public void upload(
 		@RestForm @NotNull String documentType,
@@ -200,6 +199,18 @@ public class DocumentResource extends Controller
 			return;
 		}
 
+		// Create and persist document in a separate transaction
+		// This prevents transaction rollback when redirect() throws
+		// RedirectException
+		Long documentId = createAndPersistDocument(documentType, file);
+
+		// Redirect to review page where user can see AI results
+		redirect(DocumentResource.class).review(documentId);
+	}
+
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
+	Long createAndPersistDocument(String documentType, FileUpload file)
+	{
 		Document document = new Document();
 		document.setDocumentType(DocumentType.valueOf(documentType));
 		document.setTotal(java.math.BigDecimal.ZERO); // Placeholder, will be
@@ -213,10 +224,18 @@ public class DocumentResource extends Controller
 		documentRepository.persist(document);
 
 		// Trigger AI analysis workflow (auto-start as per user preference)
-		triggerDocumentAnalysis(document);
+		boolean analysisStarted = triggerDocumentAnalysis(document);
 
-		// Redirect to review page where user can see AI results
-		redirect(DocumentResource.class).review(document.getId());
+		if (!analysisStarted)
+		{
+			// AI service unavailable - set status to FAILED with helpful
+			// message
+			document.setAnalysisStatus(AnalysisStatus.FAILED);
+			document.setAnalysisError("KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+			LOG.warn("AI analysis could not be started for document {}: AI service unavailable", document.getId());
+		}
+
+		return document.getId();
 	}
 
 	/**
@@ -251,9 +270,19 @@ public class DocumentResource extends Controller
 		}
 
 		// Start workflow
-		triggerDocumentAnalysis(document);
+		boolean analysisStarted = triggerDocumentAnalysis(document);
 
-		flash("info", "Analyse gestartet");
+		if (analysisStarted)
+		{
+			flash("info", "Analyse gestartet");
+		}
+		else
+		{
+			document.setAnalysisStatus(AnalysisStatus.FAILED);
+			document.setAnalysisError("KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+			flash("error", "KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+		}
+
 		redirect(DocumentResource.class).review(id);
 	}
 
@@ -761,9 +790,19 @@ public class DocumentResource extends Controller
 		handleFileUpload(document, file);
 
 		// Trigger AI analysis workflow for newly uploaded file
-		triggerDocumentAnalysis(document);
+		boolean analysisStarted = triggerDocumentAnalysis(document);
 
-		flash("success", "Datei hochgeladen: " + file.fileName());
+		if (analysisStarted)
+		{
+			flash("success", "Datei hochgeladen: " + file.fileName() + ". KI-Analyse gestartet.");
+		}
+		else
+		{
+			document.setAnalysisStatus(AnalysisStatus.FAILED);
+			document.setAnalysisError("KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+			flash("warning", "Datei hochgeladen: " + file.fileName() + ". KI-Dienst nicht verfügbar - bitte Felder manuell ausfüllen.");
+		}
+
 		redirect(DocumentResource.class).show(documentId);
 	}
 
@@ -838,7 +877,15 @@ public class DocumentResource extends Controller
 		storageService.deleteFile(fileKey);
 	}
 
-	private void triggerDocumentAnalysis(Document document)
+	/**
+	 * Triggers AI document analysis workflow.
+	 *
+	 * @param document
+	 *            the document to analyze
+	 * @return true if analysis was successfully started, false if AI service is
+	 *         unavailable
+	 */
+	private boolean triggerDocumentAnalysis(Document document)
 	{
 		try
 		{
@@ -847,13 +894,15 @@ public class DocumentResource extends Controller
 			document.setAnalyzedBy(securityIdentity.getPrincipal().getName());
 			LOG.info("Document processing workflow triggered: documentId={}, workflowInstanceId={}",
 				document.getId(), instance.getId());
+			return true;
 		}
 		catch (Exception e)
 		{
-			LOG.warn("Document analysis failed, continuing without autofill: documentId={}, error={}",
+			LOG.warn("Document analysis could not be started: documentId={}, error={}",
 				document.getId(), e.getMessage());
 			// Don't fail the upload if analysis fails - it's an enhancement,
 			// not critical
+			return false;
 		}
 	}
 
