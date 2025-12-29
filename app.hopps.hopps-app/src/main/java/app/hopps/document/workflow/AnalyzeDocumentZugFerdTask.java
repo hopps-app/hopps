@@ -10,6 +10,7 @@ import app.hopps.document.client.DocumentData;
 import app.hopps.document.client.ZugFerdClient;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.ExtractionSource;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
@@ -90,6 +91,7 @@ public class AnalyzeDocumentZugFerdTask extends SystemTask
 
 		// Mark as analyzing
 		document.setAnalysisStatus(AnalysisStatus.ANALYZING);
+		document.setDocumentStatus(DocumentStatus.ANALYZING);
 
 		LOG.info("Starting ZugFerd analysis: id={}, fileName={}",
 			documentId, document.getFileName());
@@ -101,6 +103,7 @@ public class AnalyzeDocumentZugFerdTask extends SystemTask
 			analyzeDocument(document, fileStream);
 
 			document.setAnalysisStatus(AnalysisStatus.COMPLETED);
+			document.setDocumentStatus(DocumentStatus.ANALYZED);
 			document.setExtractionSource(ExtractionSource.ZUGFERD);
 			instance.setVariable(VAR_ZUGFERD_SUCCESS, true);
 			LOG.info("ZugFerd analysis completed successfully: id={}", documentId);
@@ -111,6 +114,7 @@ public class AnalyzeDocumentZugFerdTask extends SystemTask
 				documentId, e.getMessage());
 			// Reset status to PENDING so AI task can try
 			document.setAnalysisStatus(AnalysisStatus.PENDING);
+			// Keep documentStatus as ANALYZING - AI task will update it
 			// Keep zugferdSuccess as false - AI task will be triggered
 		}
 	}

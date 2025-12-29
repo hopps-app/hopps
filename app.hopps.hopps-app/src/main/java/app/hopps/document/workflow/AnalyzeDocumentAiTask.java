@@ -10,6 +10,7 @@ import app.hopps.document.client.DocumentAiClient;
 import app.hopps.document.client.DocumentData;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.ExtractionSource;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
@@ -82,11 +83,16 @@ public class AnalyzeDocumentAiTask extends SystemTask
 		{
 			LOG.info("Document has no file, skipping analysis: id={}", documentId);
 			document.setAnalysisStatus(AnalysisStatus.SKIPPED);
+			document.setDocumentStatus(DocumentStatus.UPLOADED);
 			return;
 		}
 
-		// Mark as analyzing
+		// Mark as analyzing (if not already set by ZugFerd task)
 		document.setAnalysisStatus(AnalysisStatus.ANALYZING);
+		if (document.getDocumentStatus() != DocumentStatus.ANALYZING)
+		{
+			document.setDocumentStatus(DocumentStatus.ANALYZING);
+		}
 
 		LOG.info("Starting document analysis: id={}, type={}, fileName={}",
 			documentId, document.getDocumentType(), document.getFileName());
@@ -98,6 +104,7 @@ public class AnalyzeDocumentAiTask extends SystemTask
 			analyzeDocument(document, fileStream);
 
 			document.setAnalysisStatus(AnalysisStatus.COMPLETED);
+			document.setDocumentStatus(DocumentStatus.ANALYZED);
 			document.setExtractionSource(ExtractionSource.AI);
 			LOG.info("Document analysis completed successfully: id={}", documentId);
 		}
@@ -105,6 +112,7 @@ public class AnalyzeDocumentAiTask extends SystemTask
 		{
 			LOG.error("Document analysis failed: id={}, error={}", documentId, e.getMessage(), e);
 			document.setAnalysisStatus(AnalysisStatus.FAILED);
+			document.setDocumentStatus(DocumentStatus.FAILED);
 			document.setAnalysisError(e.getMessage());
 			throw new RuntimeException("Document analysis failed: " + e.getMessage(), e);
 		}

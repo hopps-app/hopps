@@ -137,6 +137,159 @@
     font-size: 0.75rem;
     color: #6929c4;
   }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  .status-badge.uploaded {
+    background-color: #e8daff;
+    color: #6929c4;
+  }
+  .status-badge.analyzing {
+    background-color: #d0e2ff;
+    color: #0043ce;
+  }
+  .status-badge.analyzed {
+    background-color: #a7f0ba;
+    color: #0e6027;
+  }
+  a.status-badge.analyzed:hover {
+    background-color: #6fdc8c;
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(14, 96, 39, 0.2);
+  }
+  .status-badge.confirmed {
+    background-color: #a7f0ba;
+    color: #0e6027;
+  }
+  .status-badge.failed {
+    background-color: #ffd7d9;
+    color: #a2191f;
+  }
+
+  /* Review Alert Banner */
+  .review-alert {
+    background: linear-gradient(135deg, #8a3ffc 0%, #6929c4 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    margin-bottom: var(--cds-spacing-05);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 4px 12px rgba(105, 41, 196, 0.3);
+    animation: slideIn 0.3s ease-out;
+  }
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .review-alert-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+  }
+  .review-alert-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+  }
+  .review-alert-content {
+    flex: 1;
+  }
+  .review-alert-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .review-alert-content p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 0.875rem;
+  }
+  .review-alert-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  .review-btn {
+    background: white;
+    color: #6929c4;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .review-btn:hover {
+    background: #f4f4f4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  .review-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+
+  /* Make analyzed rows stand out */
+  cds-table-row.needs-review {
+    background: linear-gradient(90deg, rgba(105, 41, 196, 0.03) 0%, rgba(166, 108, 255, 0.05) 100%);
+    animation: glow 3s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: inset 0 0 0 1px rgba(105, 41, 196, 0.1);
+    }
+    50% {
+      box-shadow: inset 0 0 0 2px rgba(105, 41, 196, 0.2);
+    }
+  }
+  .needs-review .status-badge.analyzed {
+    animation: bounce 2s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
 </style>
 {/moreStyles}
 
@@ -147,6 +300,31 @@
     Neuer Beleg
   </a>
 </div>
+
+{#if !documentsNeedingReview.isEmpty}
+<div class="review-alert">
+  <div class="review-alert-icon">
+    <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><circle cx="16" cy="10" r="1.5"/><path d="M16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
+  </div>
+  <div class="review-alert-content">
+    <h3>{#if documentsNeedingReview.size() == 1}🎉 Ein Beleg wartet auf Ihre Prüfung!{#else}🎉 {documentsNeedingReview.size()} Belege warten auf Ihre Prüfung!{/if}</h3>
+    <p>Die KI hat die Daten bereits extrahiert. Schauen Sie sie kurz durch und bestätigen Sie sie mit einem Klick.</p>
+  </div>
+  <div class="review-alert-actions">
+    {#if documentsNeedingReview.size() == 1}
+    <a href="/belege/{documentsNeedingReview.get(0).id}/pruefen" class="review-btn">
+      <svg viewBox="0 0 32 32"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
+      Jetzt prüfen
+    </a>
+    {#else}
+    <a href="/belege/{documentsNeedingReview.get(0).id}/pruefen" class="review-btn">
+      <svg viewBox="0 0 32 32"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
+      Ersten prüfen
+    </a>
+    {/if}
+  </div>
+</div>
+{/if}
 
 <div class="box">
   {#if documents.isEmpty}
@@ -170,11 +348,15 @@
       </cds-table-head>
       <cds-table-body>
         {#for doc in documents}
-        <cds-table-row>
+        <cds-table-row class="{#if doc.documentStatus != null && doc.documentStatus.name == 'ANALYZED'}needs-review{/if}">
           <cds-table-cell>
             <span class="doc-type {doc.documentType.name.toLowerCase}">{doc.displayType}</span>
           </cds-table-cell>
-          <cds-table-cell><a href="/belege/{doc.id}">{doc.displayName}</a></cds-table-cell>
+          <cds-table-cell>
+            <a href="{#if doc.documentStatus != null && doc.documentStatus.name == 'ANALYZED'}/belege/{doc.id}/pruefen{#else}/belege/{doc.id}{/if}">
+              {doc.displayName}
+            </a>
+          </cds-table-cell>
           <cds-table-cell>{doc.displayDate}</cds-table-cell>
           <cds-table-cell><span class="amount">{doc.displayTotal}</span></cds-table-cell>
           <cds-table-cell>
@@ -199,6 +381,17 @@
           </cds-table-cell>
           <cds-table-cell>
             <div class="status-cell">
+              {#if doc.documentStatus}
+                {#if doc.documentStatus.name == 'ANALYZED'}
+                <a href="/belege/{doc.id}/pruefen" class="status-badge {doc.documentStatus.name.toLowerCase}" style="text-decoration: none; cursor: pointer;" title="Klicken zum Prüfen">
+                  {doc.displayStatus} →
+                </a>
+                {#else}
+                <span class="status-badge {doc.documentStatus.name.toLowerCase}">
+                  {doc.displayStatus}
+                </span>
+                {/if}
+              {/if}
               {#if doc.hasFile}
                 <span class="has-file">
                   <svg viewBox="0 0 32 32"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/></svg>
