@@ -15,6 +15,7 @@ import app.hopps.document.domain.DocumentType;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
@@ -30,6 +31,7 @@ class DocumentResourceTest
 	StorageService storageService;
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowEmptyStateWhenNoDocumentsExist()
 	{
 		deleteAllData();
@@ -44,6 +46,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDocumentsInTable()
 	{
 		deleteAllData();
@@ -59,6 +62,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDocumentDetailPage()
 	{
 		deleteAllData();
@@ -74,6 +78,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowCreateDocumentForm()
 	{
 		given()
@@ -87,6 +92,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldRedirectToIndexForNonExistentDocument()
 	{
 		deleteAllData();
@@ -100,6 +106,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDocumentWithBommelAssignment()
 	{
 		deleteAllData();
@@ -116,6 +123,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowFileUploadFormOnCreatePage()
 	{
 		given()
@@ -129,6 +137,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldDownloadUploadedFile()
 	{
 		deleteAllData();
@@ -147,6 +156,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldReturn404ForDownloadWithNoFile()
 	{
 		deleteAllData();
@@ -160,6 +170,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldReturn404ForDownloadNonExistentDocument()
 	{
 		deleteAllData();
@@ -172,6 +183,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDeleteFileButtonOnDetailPage()
 	{
 		deleteAllData();
@@ -187,6 +199,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowUploadFormOnDetailPage()
 	{
 		deleteAllData();
@@ -202,6 +215,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowFileIndicatorInList()
 	{
 		deleteAllData();
@@ -217,6 +231,7 @@ class DocumentResourceTest
 	}
 
 	@Test
+	@TestSecurity(user = "bob", roles = "user")
 	void shouldFilterDocumentsByBommel()
 	{
 		deleteAllData();

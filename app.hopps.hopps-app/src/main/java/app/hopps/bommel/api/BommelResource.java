@@ -2,6 +2,8 @@ package app.hopps.bommel.api;
 
 import java.util.List;
 
+import io.quarkus.security.Authenticated;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +23,7 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 
+@Authenticated
 @Path("/bommels")
 public class BommelResource extends Controller
 {
@@ -48,6 +51,7 @@ public class BommelResource extends Controller
 
 	@POST
 	@Transactional
+	@RolesAllowed("admin")
 	public void createRoot(
 		@RestForm String icon,
 		@RestForm @NotBlank String title)
@@ -77,6 +81,7 @@ public class BommelResource extends Controller
 
 	@POST
 	@Transactional
+	@RolesAllowed("admin")
 	public void addChild(
 		@RestForm Long parentId,
 		@RestForm String icon,
@@ -116,6 +121,7 @@ public class BommelResource extends Controller
 
 	@POST
 	@Transactional
+	@RolesAllowed("admin")
 	public void update(
 		@RestForm @NotNull Long id,
 		@RestForm String icon,
@@ -144,6 +150,7 @@ public class BommelResource extends Controller
 
 	@POST
 	@Transactional
+	@RolesAllowed("admin")
 	public void delete(@RestForm @NotNull Long id)
 	{
 		if (validationFailed())
@@ -176,6 +183,7 @@ public class BommelResource extends Controller
 
 	@POST
 	@Transactional
+	@RolesAllowed("admin")
 	public void assignBommelwart(
 		@RestForm @NotNull Long bommelId,
 		@RestForm Long memberId)

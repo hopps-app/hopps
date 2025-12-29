@@ -4,6 +4,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
+
+import app.hopps.member.service.MemberKeycloakSyncService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -34,6 +39,11 @@ public class Startup
 
 	@Inject
 	DocumentRepository documentRepository;
+
+	@Inject
+	MemberKeycloakSyncService memberKeycloakSyncService;
+
+	private static final Logger LOG = LoggerFactory.getLogger(Startup.class);
 
 	/**
 	 * This method is executed at the start of your application
@@ -90,6 +100,9 @@ public class Startup
 				// Create demo documents
 				seedDocuments(root, jugend, orchester);
 			}
+
+			// Bootstrap alice and bob users (always in DEV mode)
+			bootstrapDefaultUsers();
 		}
 	}
 
@@ -236,5 +249,55 @@ public class Startup
 	private Instant toInstant(LocalDate date)
 	{
 		return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
+	}
+
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
+	public void bootstrapDefaultUsers()
+	{
+		// Bootstrap alice (admin)
+		Member alice = memberRepository.findByEmail("alice@hopps.local");
+		if (alice == null)
+		{
+			alice = new Member();
+			alice.setFirstName("Alice");
+			alice.setLastName("Admin");
+			alice.setEmail("alice@hopps.local");
+			alice.setPhone("+49 100 000001");
+			memberRepository.persist(alice);
+
+			try
+			{
+				memberKeycloakSyncService.syncMemberToKeycloak(alice, List.of("admin"));
+				LOG.info("Bootstrapped alice: memberId={}, keycloakUserId={}",
+					alice.getId(), alice.getKeycloakUserId());
+			}
+			catch (Exception e)
+			{
+				LOG.error("Failed to sync alice to Keycloak", e);
+			}
+		}
+
+		// Bootstrap bob (user)
+		Member bob = memberRepository.findByEmail("bob@hopps.local");
+		if (bob == null)
+		{
+			bob = new Member();
+			bob.setFirstName("Bob");
+			bob.setLastName("User");
+			bob.setEmail("bob@hopps.local");
+			bob.setPhone("+49 100 000002");
+			memberRepository.persist(bob);
+
+			try
+			{
+				memberKeycloakSyncService.syncMemberToKeycloak(bob);
+				LOG.info("Bootstrapped bob: memberId={}, keycloakUserId={}",
+					bob.getId(), bob.getKeycloakUserId());
+			}
+			catch (Exception e)
+			{
+				LOG.error("Failed to sync bob to Keycloak", e);
+			}
+		}
 	}
 }

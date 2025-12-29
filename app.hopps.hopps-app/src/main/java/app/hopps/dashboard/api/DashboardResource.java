@@ -3,9 +3,11 @@ package app.hopps.dashboard.api;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
+@Authenticated
 @Path("/")
 public class DashboardResource extends Controller
 {
