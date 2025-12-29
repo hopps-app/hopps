@@ -19,11 +19,12 @@ import app.hopps.document.service.StorageService;
 import app.hopps.shared.repository.TagRepository;
 import app.hopps.workflow.WorkflowInstance;
 import app.hopps.workflow.WorkflowStatus;
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
 /**
- * Tests for the document analysis workflow. Note: These tests verify the
+ * Tests for the document processing workflow. Note: These tests verify the
  * workflow mechanics without the external AI service. The AI service would need
  * to be mocked with WireMock or similar for full integration tests.
  */
@@ -42,88 +43,15 @@ class DocumentProcessingWorkflowTest
 	@Inject
 	DocumentProcessingWorkflow workflow;
 
+	@TestTransaction
 	@Test
 	void shouldCompleteWorkflowForDocumentWithFile()
 	{
-		// Given
-		Long documentId = createDocumentWithFile("Test Invoice", DocumentType.INVOICE);
-
-		// When - the workflow will fail to connect to AI service, but should
-		// handle gracefully
-		WorkflowInstance instance = workflow.startProcessing(documentId);
-
-		// Then - workflow should complete (either success or handled failure)
-		// In test environment without AI service, it will fail but that's
-		// expected
-		assertThat(instance, is(org.hamcrest.Matchers.notNullValue()));
-	}
-
-	@Test
-	void shouldCompleteWorkflowForDocumentWithoutFile()
-	{
-		// Given
-		Long documentId = createDocumentWithoutFile();
-
-		// When
-		WorkflowInstance instance = workflow.startProcessing(documentId);
-
-		// Then - should complete successfully as it skips analysis
-		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
-
-		// Document should be unchanged
-		Document document = documentRepository.findById(documentId);
-		assertThat(document.getTotal(), equalTo(new BigDecimal("0.00")));
-	}
-
-	@Test
-	void shouldPreserveExistingMetadataOnWorkflowRun()
-	{
-		// Given
-		Long documentId = createDocumentWithMetadata();
-
-		// When - even if workflow fails, existing data should be preserved
-		try
-		{
-			workflow.startProcessing(documentId);
-		}
-		catch (Exception e)
-		{
-			// Expected in test environment without AI service
-		}
-
-		// Then - existing values should still be there
-		Document document = documentRepository.findById(documentId);
-		assertThat(document.getTotal(), equalTo(new BigDecimal("100.00")));
-		assertThat(document.getCurrencyCode(), equalTo("EUR"));
-		assertThat(document.getInvoiceId(), equalTo("EXISTING-123"));
-	}
-
-	@Test
-	void shouldNotOverwriteExistingTags()
-	{
-		// Given - document with existing tags
-		Long documentId = createDocumentWithTags();
-
-		// When - workflow runs (tags come from az-document-ai service, which is
-		// mocked in tests)
-		WorkflowInstance instance = workflow.startProcessing(documentId);
-
-		// Then - should complete and keep original tags
-		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
-
-		Document document = findDocumentById(documentId);
-		// Should still have original tag since document already has tags
-		assertThat(document.getDocumentTags(), hasSize(1));
-	}
-
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocumentWithFile(String name, DocumentType type)
-	{
 		Document document = new Document();
-		document.setName(name);
-		document.setDocumentType(type);
+		document.setName("Test Invoice");
+		document.setDocumentType(DocumentType.INVOICE);
 		document.setCurrencyCode("EUR");
-		document.setTotal(new BigDecimal("0.00")); // Will be overwritten by AI
+		document.setTotal(new BigDecimal("0.00"));
 
 		String fileKey = "test-analysis/" + System.currentTimeMillis() + "/test.pdf";
 		document.setFileKey(fileKey);
@@ -131,15 +59,38 @@ class DocumentProcessingWorkflowTest
 		document.setFileContentType("application/pdf");
 		document.setFileSize(1000L);
 
-		// Upload test content to S3
 		storageService.uploadFile(fileKey, "test content".getBytes(), "application/pdf");
-
 		documentRepository.persist(document);
-		return document.getId();
+
+		WorkflowInstance instance = workflow.startProcessing(document.getId());
+
+		assertThat(instance, is(org.hamcrest.Matchers.notNullValue()));
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocumentWithMetadata()
+	@TestTransaction
+	@Test
+	void shouldCompleteWorkflowForDocumentWithoutFile()
+	{
+		Document document = new Document();
+		document.setName("No File Document");
+		document.setDocumentType(DocumentType.RECEIPT);
+		document.setCurrencyCode("EUR");
+		document.setTotal(new BigDecimal("0.00"));
+
+		documentRepository.persist(document);
+
+		WorkflowInstance instance = workflow.startProcessing(document.getId());
+
+		assertThat(instance.getStatus(), is(WorkflowStatus.WAITING));
+		assertThat(instance.isWaitingForUser(), is(true));
+
+		Document found = documentRepository.findById(document.getId());
+		assertThat(found.getTotal(), equalTo(new BigDecimal("0.00")));
+	}
+
+	@TestTransaction
+	@Test
+	void shouldPreserveExistingMetadataOnWorkflowRun()
 	{
 		Document document = new Document();
 		document.setName("Existing Invoice");
@@ -155,26 +106,26 @@ class DocumentProcessingWorkflowTest
 		document.setFileSize(1000L);
 
 		storageService.uploadFile(fileKey, "test content".getBytes(), "application/pdf");
-
 		documentRepository.persist(document);
-		return document.getId();
+
+		try
+		{
+			workflow.startProcessing(document.getId());
+		}
+		catch (Exception e)
+		{
+			// Expected in test environment without AI service
+		}
+
+		Document found = documentRepository.findById(document.getId());
+		assertThat(found.getTotal(), equalTo(new BigDecimal("100.00")));
+		assertThat(found.getCurrencyCode(), equalTo("EUR"));
+		assertThat(found.getInvoiceId(), equalTo("EXISTING-123"));
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocumentWithoutFile()
-	{
-		Document document = new Document();
-		document.setName("No File Document");
-		document.setDocumentType(DocumentType.RECEIPT);
-		document.setCurrencyCode("EUR");
-		document.setTotal(new BigDecimal("0.00"));
-
-		documentRepository.persist(document);
-		return document.getId();
-	}
-
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocumentWithTags()
+	@TestTransaction
+	@Test
+	void shouldNotOverwriteExistingTags()
 	{
 		Document document = new Document();
 		document.setName("Document with Tags");
@@ -182,22 +133,21 @@ class DocumentProcessingWorkflowTest
 		document.setCurrencyCode("EUR");
 		document.setTotal(new BigDecimal("50.00"));
 
-		// Add an existing tag
 		for (Tag tag : tagRepository.findOrCreateTags(java.util.Set.of("existing")))
 		{
 			document.addTag(tag, TagSource.MANUAL);
 		}
 
 		documentRepository.persist(document);
-		return document.getId();
-	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Document findDocumentById(Long id)
-	{
-		Document doc = documentRepository.findById(id);
-		// Force lazy loading of tags
-		Hibernate.initialize(doc.getDocumentTags());
-		return doc;
+		WorkflowInstance instance = workflow.startProcessing(document.getId());
+
+		assertThat(instance.getStatus(), is(WorkflowStatus.WAITING));
+		assertThat(instance.isWaitingForUser(), is(true));
+
+		Document found = documentRepository.findById(document.getId());
+		Hibernate.initialize(found.getDocumentTags());
+
+		assertThat(found.getDocumentTags(), hasSize(1));
 	}
 }

@@ -26,13 +26,14 @@ import app.hopps.document.service.StorageService;
 import app.hopps.workflow.WorkflowInstance;
 import app.hopps.workflow.WorkflowStatus;
 import io.quarkiverse.wiremock.devservice.ConnectWireMock;
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 
 /**
- * Integration test for the ZugFerd document analysis workflow. Tests the full
+ * Integration test for the ZugFerd document processing workflow. Tests the full
  * flow from document upload through ZugFerd extraction using a real ZugFerd
  * invoice PDF.
  */
@@ -92,10 +93,10 @@ class ZugFerdIT
 	@Inject
 	DocumentProcessingWorkflow workflow;
 
+	@TestTransaction
 	@Test
 	void shouldExtractDataFromZugFerdInvoice() throws IOException
 	{
-		// Given - ZugFerd service returns extracted invoice data
 		wireMock.register(post(urlEqualTo("/api/zugferd/document/scan"))
 			.withHeader("Content-Type", containing("multipart/form-data"))
 			.willReturn(aResponse()
@@ -103,34 +104,49 @@ class ZugFerdIT
 				.withHeader("Content-Type", MediaType.APPLICATION_JSON)
 				.withBody(ZUGFERD_RESPONSE)));
 
-		Long documentId = createDocumentWithZugFerdPdf();
+		Document document = new Document();
+		document.setName(null);
+		document.setDocumentType(DocumentType.INVOICE);
+		document.setCurrencyCode(null);
+		document.setTotal(BigDecimal.ZERO);
 
-		// When - run the document analysis workflow
-		WorkflowInstance instance = workflow.startProcessing(documentId);
+		String fileKey = "test-zugferd/" + System.currentTimeMillis() + "/zugferd_invoice.pdf";
+		document.setFileKey(fileKey);
+		document.setFileName("zugferd_invoice.pdf");
+		document.setFileContentType("application/pdf");
 
-		// Then - workflow should complete successfully
+		try (InputStream pdfStream = getClass().getResourceAsStream("/document/zugferd_invoice.pdf"))
+		{
+			assertThat("ZugFerd PDF test file must exist", pdfStream, is(notNullValue()));
+			byte[] pdfBytes = pdfStream.readAllBytes();
+			document.setFileSize((long)pdfBytes.length);
+			storageService.uploadFile(fileKey, pdfBytes, "application/pdf");
+		}
+
+		documentRepository.persist(document);
+
+		WorkflowInstance instance = workflow.startProcessing(document.getId());
+
 		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
 
-		// And - document should have extracted data
-		Document document = findDocumentById(documentId);
-		assertThat(document.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
-		assertThat(document.getTotal(), equalTo(new BigDecimal("1005.55")));
-		assertThat(document.getCurrencyCode(), equalTo("EUR"));
-		assertThat(document.getInvoiceId(), equalTo("RE-2024-001"));
-		assertThat(document.getSender(), is(notNullValue()));
-		assertThat(document.getSender().getName(), equalTo("Test Lieferant GmbH"));
+		Document found = documentRepository.findById(document.getId());
+		assertThat(found.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
+		assertThat(found.getTotal(), equalTo(new BigDecimal("1005.55")));
+		assertThat(found.getCurrencyCode(), equalTo("EUR"));
+		assertThat(found.getInvoiceId(), equalTo("RE-2024-001"));
+		assertThat(found.getSender(), is(notNullValue()));
+		assertThat(found.getSender().getName(), equalTo("Test Lieferant GmbH"));
 	}
 
+	@TestTransaction
 	@Test
 	void shouldFallbackToAiWhenZugFerdFails() throws IOException
 	{
-		// Given - ZugFerd service fails
 		wireMock.register(post(urlEqualTo("/api/zugferd/document/scan"))
 			.willReturn(aResponse()
 				.withStatus(422)
 				.withBody("Not a ZugFerd document")));
 
-		// And - AI service is available as fallback
 		String aiResponse = """
 			{
 				"total": 500.00,
@@ -166,26 +182,42 @@ class ZugFerdIT
 				.withHeader("Content-Type", MediaType.APPLICATION_JSON)
 				.withBody(aiResponse)));
 
-		Long documentId = createDocumentWithZugFerdPdf();
+		Document document = new Document();
+		document.setName(null);
+		document.setDocumentType(DocumentType.INVOICE);
+		document.setCurrencyCode(null);
+		document.setTotal(BigDecimal.ZERO);
 
-		// When - run the document analysis workflow
-		WorkflowInstance instance = workflow.startProcessing(documentId);
+		String fileKey = "test-zugferd/" + System.currentTimeMillis() + "/zugferd_invoice.pdf";
+		document.setFileKey(fileKey);
+		document.setFileName("zugferd_invoice.pdf");
+		document.setFileContentType("application/pdf");
 
-		// Then - workflow should complete (AI fallback worked)
+		try (InputStream pdfStream = getClass().getResourceAsStream("/document/zugferd_invoice.pdf"))
+		{
+			assertThat("ZugFerd PDF test file must exist", pdfStream, is(notNullValue()));
+			byte[] pdfBytes = pdfStream.readAllBytes();
+			document.setFileSize((long)pdfBytes.length);
+			storageService.uploadFile(fileKey, pdfBytes, "application/pdf");
+		}
+
+		documentRepository.persist(document);
+
+		WorkflowInstance instance = workflow.startProcessing(document.getId());
+
 		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
 
-		// And - document should have AI-extracted data
-		Document document = findDocumentById(documentId);
-		assertThat(document.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
-		assertThat(document.getTotal(), equalTo(new BigDecimal("500.00")));
-		assertThat(document.getInvoiceId(), equalTo("AI-EXTRACTED-001"));
-		assertThat(document.getName(), equalTo("AI Detected Merchant"));
+		Document found = documentRepository.findById(document.getId());
+		assertThat(found.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
+		assertThat(found.getTotal(), equalTo(new BigDecimal("500.00")));
+		assertThat(found.getInvoiceId(), equalTo("AI-EXTRACTED-001"));
+		assertThat(found.getName(), equalTo("AI Detected Merchant"));
 	}
 
+	@TestTransaction
 	@Test
 	void shouldSkipZugFerdForNonPdfFiles() throws IOException
 	{
-		// Given - AI service is available
 		String aiResponse = """
 			{
 				"total": 250.00,
@@ -221,52 +253,6 @@ class ZugFerdIT
 				.withHeader("Content-Type", MediaType.APPLICATION_JSON)
 				.withBody(aiResponse)));
 
-		// Note: No ZugFerd stub needed - it should be skipped for non-PDF
-
-		Long documentId = createDocumentWithImage();
-
-		// When - run the document analysis workflow
-		WorkflowInstance instance = workflow.startProcessing(documentId);
-
-		// Then - workflow should complete successfully via AI
-		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
-
-		// And - document should have AI-extracted data
-		Document document = findDocumentById(documentId);
-		assertThat(document.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
-		assertThat(document.getTotal(), equalTo(new BigDecimal("250.00")));
-	}
-
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocumentWithZugFerdPdf() throws IOException
-	{
-		Document document = new Document();
-		document.setName(null); // Will be filled by analysis
-		document.setDocumentType(DocumentType.INVOICE);
-		document.setCurrencyCode(null);
-		document.setTotal(BigDecimal.ZERO);
-
-		String fileKey = "test-zugferd/" + System.currentTimeMillis() + "/zugferd_invoice.pdf";
-		document.setFileKey(fileKey);
-		document.setFileName("zugferd_invoice.pdf");
-		document.setFileContentType("application/pdf");
-
-		// Upload real ZugFerd PDF to S3
-		try (InputStream pdfStream = getClass().getResourceAsStream("/document/zugferd_invoice.pdf"))
-		{
-			assertThat("ZugFerd PDF test file must exist", pdfStream, is(notNullValue()));
-			byte[] pdfBytes = pdfStream.readAllBytes();
-			document.setFileSize((long)pdfBytes.length);
-			storageService.uploadFile(fileKey, pdfBytes, "application/pdf");
-		}
-
-		documentRepository.persist(document);
-		return document.getId();
-	}
-
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocumentWithImage() throws IOException
-	{
 		Document document = new Document();
 		document.setName(null);
 		document.setDocumentType(DocumentType.RECEIPT);
@@ -278,7 +264,6 @@ class ZugFerdIT
 		document.setFileName("receipt.png");
 		document.setFileContentType("image/png");
 
-		// Upload test image to S3
 		try (InputStream imageStream = getClass().getResourceAsStream("/document/receipt.png"))
 		{
 			assertThat("Receipt PNG test file must exist", imageStream, is(notNullValue()));
@@ -288,19 +273,13 @@ class ZugFerdIT
 		}
 
 		documentRepository.persist(document);
-		return document.getId();
-	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Document findDocumentById(Long id)
-	{
-		Document doc = documentRepository.findById(id);
-		// Force lazy loading
-		if (doc.getSender() != null)
-		{
-			doc.getSender().getName();
-		}
-		org.hibernate.Hibernate.initialize(doc.getDocumentTags());
-		return doc;
+		WorkflowInstance instance = workflow.startProcessing(document.getId());
+
+		assertThat(instance.getStatus(), is(WorkflowStatus.COMPLETED));
+
+		Document found = documentRepository.findById(document.getId());
+		assertThat(found.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
+		assertThat(found.getTotal(), equalTo(new BigDecimal("250.00")));
 	}
 }

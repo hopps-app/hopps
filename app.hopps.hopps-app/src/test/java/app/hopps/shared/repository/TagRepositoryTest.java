@@ -12,10 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.shared.domain.Tag;
+import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-import jakarta.transaction.Transactional.TxType;
 
 @QuarkusTest
 class TagRepositoryTest
@@ -26,141 +25,94 @@ class TagRepositoryTest
 	@Inject
 	DocumentRepository documentRepository;
 
+	@TestTransaction
 	@Test
 	void shouldCreateAndFindTagByName()
 	{
-		deleteAllTags();
+		Tag tag = new Tag("food");
+		tagRepository.persist(tag);
 
-		createTag("food");
-
-		Optional<Tag> found = findTagByName("food");
+		Optional<Tag> found = tagRepository.findByName("food");
 		assertTrue(found.isPresent());
 		assertEquals("food", found.get().getName());
 	}
 
+	@TestTransaction
 	@Test
 	void shouldReturnEmptyWhenTagNotFound()
 	{
-		deleteAllTags();
-
-		Optional<Tag> found = findTagByName("nonexistent");
+		Optional<Tag> found = tagRepository.findByName("nonexistent");
 		assertTrue(found.isEmpty());
 	}
 
+	@TestTransaction
 	@Test
 	void shouldFindAllTagsOrderedByName()
 	{
-		deleteAllTags();
+		Tag tag1 = new Tag("zebra");
+		tagRepository.persist(tag1);
 
-		createTag("zebra");
-		createTag("apple");
-		createTag("mango");
+		Tag tag2 = new Tag("apple");
+		tagRepository.persist(tag2);
 
-		List<Tag> tags = findAllOrderedByName();
+		Tag tag3 = new Tag("mango");
+		tagRepository.persist(tag3);
+
+		List<Tag> tags = tagRepository.findAllOrderedByName();
 		assertEquals(3, tags.size());
 		assertEquals("apple", tags.get(0).getName());
 		assertEquals("mango", tags.get(1).getName());
 		assertEquals("zebra", tags.get(2).getName());
 	}
 
+	@TestTransaction
 	@Test
 	void shouldFindOrCreateNewTag()
 	{
-		deleteAllTags();
-
-		Tag tag = findOrCreateTag("newtag");
+		Tag tag = tagRepository.findOrCreateTag("newtag");
 		assertNotNull(tag);
 		assertNotNull(tag.getId());
 		assertEquals("newtag", tag.getName());
 
 		// Verify it was persisted
-		Optional<Tag> found = findTagByName("newtag");
+		Optional<Tag> found = tagRepository.findByName("newtag");
 		assertTrue(found.isPresent());
 	}
 
+	@TestTransaction
 	@Test
 	void shouldFindExistingTagInsteadOfCreatingDuplicate()
 	{
-		deleteAllTags();
+		Tag existing = new Tag("existing");
+		tagRepository.persist(existing);
+		long countBefore = tagRepository.count();
 
-		createTag("existing");
-		long countBefore = countTags();
-
-		Tag tag = findOrCreateTag("existing");
-		long countAfter = countTags();
+		Tag tag = tagRepository.findOrCreateTag("existing");
+		long countAfter = tagRepository.count();
 
 		assertEquals("existing", tag.getName());
 		assertEquals(countBefore, countAfter);
 	}
 
+	@TestTransaction
 	@Test
 	void shouldFindOrCreateMultipleTags()
 	{
-		deleteAllTags();
-
-		createTag("existing1");
+		Tag existing = new Tag("existing1");
+		tagRepository.persist(existing);
 
 		Set<String> tagNames = Set.of("existing1", "new1", "new2");
-		Set<Tag> tags = findOrCreateTags(tagNames);
+		Set<Tag> tags = tagRepository.findOrCreateTags(tagNames);
 
 		assertEquals(3, tags.size());
-		assertEquals(3, countTags());
+		assertEquals(3, tagRepository.count());
 	}
 
+	@TestTransaction
 	@Test
 	void shouldHandleEmptyTagSet()
 	{
-		deleteAllTags();
-
-		Set<Tag> tags = findOrCreateTags(Set.of());
+		Set<Tag> tags = tagRepository.findOrCreateTags(Set.of());
 		assertTrue(tags.isEmpty());
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	void deleteAllTags()
-	{
-		// Must delete document_tag entries first due to foreign key constraint
-		documentRepository.getEntityManager()
-			.createNativeQuery("DELETE FROM document_tag")
-			.executeUpdate();
-		documentRepository.deleteAll();
-		tagRepository.deleteAll();
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	void createTag(String name)
-	{
-		Tag tag = new Tag(name);
-		tagRepository.persist(tag);
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	Optional<Tag> findTagByName(String name)
-	{
-		return tagRepository.findByName(name);
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	List<Tag> findAllOrderedByName()
-	{
-		return tagRepository.findAllOrderedByName();
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	Tag findOrCreateTag(String name)
-	{
-		return tagRepository.findOrCreateTag(name);
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	Set<Tag> findOrCreateTags(Set<String> names)
-	{
-		return tagRepository.findOrCreateTags(names);
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	long countTags()
-	{
-		return tagRepository.count();
 	}
 }
