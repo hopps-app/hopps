@@ -1,0 +1,151 @@
+package app.hopps.document.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import app.hopps.document.domain.Document;
+import io.quarkus.test.junit.QuarkusTest;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+@ExtendWith(MockitoExtension.class)
+class DocumentFileServiceTest
+{
+	@Mock
+	StorageService storageService;
+
+	@Mock
+	FileUpload fileUpload;
+
+	@InjectMocks
+	DocumentFileService documentFileService;
+
+	private Document document;
+
+	@BeforeEach
+	void setUp()
+	{
+		document = new Document();
+	}
+
+	@Test
+	void shouldHandleFileUploadSuccessfully()
+	{
+		// Given
+		Path filePath = Paths.get("/tmp/test.pdf");
+		when(fileUpload.fileName()).thenReturn("test.pdf");
+		when(fileUpload.uploadedFile()).thenReturn(filePath);
+		when(fileUpload.contentType()).thenReturn("application/pdf");
+		when(fileUpload.size()).thenReturn(1024L);
+
+		// When
+		documentFileService.handleFileUpload(document, fileUpload);
+
+		// Then
+		verify(storageService).uploadFile(any(String.class), eq(filePath), eq("application/pdf"));
+		assertEquals("test.pdf", document.getFileName());
+		assertEquals("application/pdf", document.getFileContentType());
+		assertEquals(1024L, document.getFileSize());
+		assertTrue(document.getFileKey().startsWith("documents/"));
+		assertTrue(document.getFileKey().endsWith("/test.pdf"));
+	}
+
+	@Test
+	void shouldThrowExceptionWhenUploadFails()
+	{
+		// Given
+		Path filePath = Paths.get("/tmp/test.pdf");
+		when(fileUpload.fileName()).thenReturn("test.pdf");
+		when(fileUpload.uploadedFile()).thenReturn(filePath);
+		when(fileUpload.contentType()).thenReturn("application/pdf");
+		doThrow(new RuntimeException("S3 error")).when(storageService)
+			.uploadFile(any(String.class), eq(filePath), any(String.class));
+
+		// When/Then
+		assertThrows(RuntimeException.class, () -> {
+			documentFileService.handleFileUpload(document, fileUpload);
+		});
+	}
+
+	@Test
+	void shouldDeleteFileSuccessfully()
+	{
+		// Given
+		String fileKey = "documents/test-uuid/test.pdf";
+
+		// When
+		documentFileService.deleteFile(fileKey);
+
+		// Then
+		verify(storageService).deleteFile(fileKey);
+	}
+
+	@Test
+	void shouldNotDeleteFileWhenKeyIsNull()
+	{
+		// When
+		documentFileService.deleteFile(null);
+
+		// Then
+		verify(storageService, never()).deleteFile(any());
+	}
+
+	@Test
+	void shouldNotDeleteFileWhenKeyIsBlank()
+	{
+		// When
+		documentFileService.deleteFile("");
+
+		// Then
+		verify(storageService, never()).deleteFile(any());
+	}
+
+	@Test
+	void shouldNotThrowExceptionWhenDeleteFails()
+	{
+		// Given
+		String fileKey = "documents/test-uuid/test.pdf";
+		doThrow(new RuntimeException("S3 error")).when(storageService).deleteFile(fileKey);
+
+		// When/Then - should not throw
+		documentFileService.deleteFile(fileKey);
+		verify(storageService).deleteFile(fileKey);
+	}
+
+	@Test
+	void shouldDownloadFileSuccessfully()
+	{
+		// Given
+		String fileKey = "documents/test-uuid/test.pdf";
+		@SuppressWarnings("unchecked")
+		ResponseInputStream<GetObjectResponse> mockInputStream = org.mockito.Mockito
+			.mock(ResponseInputStream.class);
+		when(storageService.downloadFile(fileKey)).thenReturn(mockInputStream);
+
+		// When
+		ResponseInputStream<GetObjectResponse> result = documentFileService.downloadFile(fileKey);
+
+		// Then
+		assertEquals(mockInputStream, result);
+		verify(storageService).downloadFile(fileKey);
+	}
+}

@@ -3,13 +3,8 @@ package app.hopps.document.api;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +21,9 @@ import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
-import app.hopps.document.service.StorageService;
+import app.hopps.document.service.DocumentAnalysisService;
+import app.hopps.document.service.DocumentDataService;
+import app.hopps.document.service.DocumentFileService;
 import app.hopps.document.workflow.DocumentProcessingWorkflow;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
@@ -66,9 +63,6 @@ public class DocumentResource extends Controller
 	TransactionRecordRepository transactionRepository;
 
 	@Inject
-	StorageService storageService;
-
-	@Inject
 	DocumentProcessingWorkflow documentProcessingWorkflow;
 
 	@Inject
@@ -79,6 +73,15 @@ public class DocumentResource extends Controller
 
 	@Inject
 	SecurityIdentity securityIdentity;
+
+	@Inject
+	DocumentFileService fileService;
+
+	@Inject
+	DocumentAnalysisService analysisService;
+
+	@Inject
+	DocumentDataService dataService;
 
 	@CheckedTemplate
 	public static class Templates
@@ -228,11 +231,8 @@ public class DocumentResource extends Controller
 
 		if (!analysisStarted)
 		{
-			// AI service unavailable - set status to FAILED with helpful
-			// message
-			document.setAnalysisStatus(AnalysisStatus.FAILED);
-			document.setAnalysisError("KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
-			LOG.warn("AI analysis could not be started for document {}: AI service unavailable", document.getId());
+			analysisService.markAnalysisFailed(document,
+				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
 		}
 
 		return document.getId();
@@ -278,8 +278,8 @@ public class DocumentResource extends Controller
 		}
 		else
 		{
-			document.setAnalysisStatus(AnalysisStatus.FAILED);
-			document.setAnalysisError("KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+			analysisService.markAnalysisFailed(document,
+				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
 			flash("error", "KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
 		}
 
@@ -391,40 +391,11 @@ public class DocumentResource extends Controller
 		}
 	}
 
-	/**
-	 * Apply form data directly to document (for backward compatibility when no
-	 * workflow exists).
-	 */
 	private void applyFormDataDirectly(Document document, Map<String, Object> userInput)
 	{
-		String documentType = (String)userInput.get("documentType");
-		if (documentType != null)
-		{
-			document.setDocumentType(DocumentType.valueOf(documentType));
-		}
+		dataService.applyFormData(document, userInput);
 
-		document.setName((String)userInput.get("name"));
-		document.setTotal((BigDecimal)userInput.get("total"));
-		document.setTotalTax((BigDecimal)userInput.get("totalTax"));
-
-		String currencyCode = (String)userInput.get("currencyCode");
-		document.setCurrencyCode(
-			currencyCode != null && !currencyCode.isBlank() ? currencyCode : "EUR");
-
-		Boolean privatelyPaid = (Boolean)userInput.get("privatelyPaid");
-		document.setPrivatelyPaid(Boolean.TRUE.equals(privatelyPaid));
-
-		String transactionDate = (String)userInput.get("transactionDate");
-		if (transactionDate != null && !transactionDate.isBlank())
-		{
-			LocalDate date = LocalDate.parse(transactionDate);
-			document.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		}
-		else
-		{
-			document.setTransactionTime(null);
-		}
-
+		// Handle bommel assignment (requires repository access)
 		Long bommelId = (Long)userInput.get("bommelId");
 		if (bommelId != null && bommelId > 0)
 		{
@@ -434,39 +405,6 @@ public class DocumentResource extends Controller
 		else
 		{
 			document.setBommel(null);
-		}
-
-		String senderName = (String)userInput.get("senderName");
-		if (senderName != null && !senderName.isBlank())
-		{
-			TradeParty sender = document.getSender();
-			if (sender == null)
-			{
-				sender = new TradeParty();
-			}
-			sender.setName(senderName);
-			sender.setStreet((String)userInput.get("senderStreet"));
-			sender.setZipCode((String)userInput.get("senderZipCode"));
-			sender.setCity((String)userInput.get("senderCity"));
-			document.setSender(sender);
-		}
-		else if (document.getSender() != null)
-		{
-			document.setSender(null);
-		}
-
-		document.setInvoiceId((String)userInput.get("invoiceId"));
-		document.setOrderNumber((String)userInput.get("orderNumber"));
-
-		String dueDate = (String)userInput.get("dueDate");
-		if (dueDate != null && !dueDate.isBlank())
-		{
-			LocalDate date = LocalDate.parse(dueDate);
-			document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		}
-		else
-		{
-			document.setDueDate(null);
 		}
 
 		updateDocumentTags(document, (String)userInput.get("tags"));
@@ -572,24 +510,7 @@ public class DocumentResource extends Controller
 
 	private void handleFileUpload(Document document, FileUpload file)
 	{
-		// Generate unique file key for S3
-		String fileKey = "documents/" + UUID.randomUUID() + "/" + file.fileName();
-
-		// Store file metadata
-		document.setFileKey(fileKey);
-		document.setFileName(file.fileName());
-		document.setFileContentType(file.contentType());
-		try
-		{
-			document.setFileSize(java.nio.file.Files.size(file.filePath()));
-		}
-		catch (Exception e)
-		{
-			document.setFileSize(0L);
-		}
-
-		// Upload file to S3
-		storageService.uploadFile(fileKey, file.filePath(), file.contentType());
+		fileService.handleFileUpload(document, file);
 	}
 
 	@POST
@@ -686,56 +607,9 @@ public class DocumentResource extends Controller
 		redirect(DocumentResource.class).show(id);
 	}
 
-	/**
-	 * Parses comma-separated tag names and updates the document's tags.
-	 * Preserves AI source for existing tags, adds new tags as MANUAL. Uses a
-	 * diff-based approach to avoid Hibernate INSERT/DELETE ordering issues.
-	 */
 	private void updateDocumentTags(Document document, String tagsInput)
 	{
-		// Parse new tag names from input
-		Set<String> newTagNames = new HashSet<>();
-		if (tagsInput != null && !tagsInput.isBlank())
-		{
-			newTagNames = Arrays.stream(tagsInput.split(","))
-				.map(String::trim)
-				.map(String::toLowerCase)
-				.filter(s -> !s.isEmpty())
-				.collect(Collectors.toSet());
-		}
-
-		// Build map of current tag name -> DocumentTag (to preserve and reuse)
-		Map<String, app.hopps.document.domain.DocumentTag> existingTags = document.getDocumentTags().stream()
-			.collect(Collectors.toMap(
-				dt -> dt.getName().toLowerCase(),
-				dt -> dt,
-				(a, b) -> a));
-
-		// Find tags to remove (existing but not in new set)
-		Set<String> existingTagNames = existingTags.keySet();
-		Set<String> tagsToRemove = new HashSet<>(existingTagNames);
-		tagsToRemove.removeAll(newTagNames);
-
-		// Find tags to add (in new set but not existing)
-		Set<String> tagsToAdd = new HashSet<>(newTagNames);
-		tagsToAdd.removeAll(existingTagNames);
-
-		// Remove tags that are no longer needed
-		for (String tagName : tagsToRemove)
-		{
-			app.hopps.document.domain.DocumentTag docTag = existingTags.get(tagName);
-			document.getDocumentTags().remove(docTag);
-		}
-
-		// Add new tags
-		if (!tagsToAdd.isEmpty())
-		{
-			Set<Tag> tagEntities = tagRepository.findOrCreateTags(tagsToAdd);
-			for (Tag tag : tagEntities)
-			{
-				document.addTag(tag, TagSource.MANUAL);
-			}
-		}
+		dataService.updateTags(document, tagsInput);
 	}
 
 	@POST
@@ -798,8 +672,8 @@ public class DocumentResource extends Controller
 		}
 		else
 		{
-			document.setAnalysisStatus(AnalysisStatus.FAILED);
-			document.setAnalysisError("KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+			analysisService.markAnalysisFailed(document,
+				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
 			flash("warning", "Datei hochgeladen: " + file.fileName() + ". KI-Dienst nicht verfügbar - bitte Felder manuell ausfüllen.");
 		}
 
@@ -847,7 +721,7 @@ public class DocumentResource extends Controller
 			return Response.status(Response.Status.NOT_FOUND).build();
 		}
 
-		var inputStream = storageService.downloadFile(document.getFileKey());
+		var inputStream = fileService.downloadFile(document.getFileKey());
 		return Response.ok(inputStream)
 			.header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
 			.header("Content-Type", document.getFileContentType())
@@ -865,7 +739,7 @@ public class DocumentResource extends Controller
 			return Response.status(Response.Status.NOT_FOUND).build();
 		}
 
-		var inputStream = storageService.downloadFile(document.getFileKey());
+		var inputStream = fileService.downloadFile(document.getFileKey());
 		return Response.ok(inputStream)
 			.header("Content-Disposition", "inline; filename=\"" + document.getFileName() + "\"")
 			.header("Content-Type", document.getFileContentType())
@@ -874,36 +748,12 @@ public class DocumentResource extends Controller
 
 	private void deleteFileFromStorage(String fileKey)
 	{
-		storageService.deleteFile(fileKey);
+		fileService.deleteFile(fileKey);
 	}
 
-	/**
-	 * Triggers AI document analysis workflow.
-	 *
-	 * @param document
-	 *            the document to analyze
-	 * @return true if analysis was successfully started, false if AI service is
-	 *         unavailable
-	 */
 	private boolean triggerDocumentAnalysis(Document document)
 	{
-		try
-		{
-			WorkflowInstance instance = documentProcessingWorkflow.startProcessing(document.getId());
-			document.setWorkflowInstanceId(instance.getId());
-			document.setAnalyzedBy(securityIdentity.getPrincipal().getName());
-			LOG.info("Document processing workflow triggered: documentId={}, workflowInstanceId={}",
-				document.getId(), instance.getId());
-			return true;
-		}
-		catch (Exception e)
-		{
-			LOG.warn("Document analysis could not be started: documentId={}, error={}",
-				document.getId(), e.getMessage());
-			// Don't fail the upload if analysis fails - it's an enhancement,
-			// not critical
-			return false;
-		}
+		return analysisService.triggerAnalysis(document, securityIdentity.getPrincipal().getName());
 	}
 
 	@POST
