@@ -173,6 +173,38 @@
     color: #a2191f;
   }
 
+  /* Transaction status badges */
+  .transaction-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .transaction-status.has-transaction {
+    background: linear-gradient(135deg, #defbe6 0%, #a7f0ba 100%);
+    color: #0e6027;
+    cursor: pointer;
+  }
+  .transaction-status.has-transaction:hover {
+    background: linear-gradient(135deg, #a7f0ba 0%, #6fdc8c 100%);
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(14, 96, 39, 0.2);
+  }
+  .transaction-status.no-transaction {
+    background: linear-gradient(135deg, rgba(105, 41, 196, 0.15) 0%, rgba(166, 108, 255, 0.2) 100%);
+    color: #6929c4;
+  }
+  .transaction-status svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+  }
+
   /* Review Alert Banner */
   .review-alert {
     background: linear-gradient(135deg, #8a3ffc 0%, #6929c4 100%);
@@ -403,6 +435,16 @@
               {/if}
               {#if doc.privatelyPaid}
                 <span class="privately-paid">Privat bezahlt</span>
+              {/if}
+              {#if doc.hasTransactions}
+                <a href="/transaktionen?documentId={doc.id}" class="transaction-status has-transaction" title="Zugehörige Transaktion(en) anzeigen">
+                  <svg viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+                  {doc.displayTransactionCount}
+                </a>
+              {#else}
+                <span class="transaction-status no-transaction" title="Noch keine Transaktion erstellt">
+                  {doc.displayTransactionCount}
+                </span>
               {/if}
             </div>
           </cds-table-cell>

@@ -91,6 +91,10 @@ public class Document extends PanacheEntity
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 
+	// Transient field for transaction count (populated by controller)
+	@jakarta.persistence.Transient
+	private Long transactionCount;
+
 	public Document()
 	{
 		this.createdAt = Instant.now();
@@ -690,5 +694,42 @@ public class Document extends PanacheEntity
 		}
 		sb.append("}");
 		return sb.toString();
+	}
+
+	public Long getTransactionCount()
+	{
+		return transactionCount;
+	}
+
+	public void setTransactionCount(Long transactionCount)
+	{
+		this.transactionCount = transactionCount;
+	}
+
+	/**
+	 * Returns true if this document has associated transactions.
+	 */
+	public boolean hasTransactions()
+	{
+		return transactionCount != null && transactionCount > 0;
+	}
+
+	/**
+	 * Returns formatted transaction count for display.
+	 */
+	public String getDisplayTransactionCount()
+	{
+		if (transactionCount == null || transactionCount == 0)
+		{
+			return "Keine Transaktion";
+		}
+		else if (transactionCount == 1)
+		{
+			return "1 Transaktion";
+		}
+		else
+		{
+			return transactionCount + " Transaktionen";
+		}
 	}
 }

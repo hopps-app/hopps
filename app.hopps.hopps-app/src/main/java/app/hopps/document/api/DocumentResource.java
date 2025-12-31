@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +110,9 @@ public class DocumentResource extends Controller
 			documents = documentRepository.findAllOrderedByDate();
 		}
 
+		// Populate transaction counts for each document
+		enrichDocumentsWithTransactionCounts(documents);
+
 		// Filter documents that need review (status = ANALYZED)
 		List<Document> documentsNeedingReview = documents.stream()
 			.filter(d -> d.getDocumentStatus() != null && d.getDocumentStatus() == DocumentStatus.ANALYZED)
@@ -175,8 +179,56 @@ public class DocumentResource extends Controller
 			redirect(DocumentResource.class).index(null);
 			return null;
 		}
+
+		// Populate transaction count for display
+		long count = transactionRepository.findByDocument(id).size();
+		document.setTransactionCount(count);
+
 		List<Bommel> bommels = bommelRepository.listAll();
 		return Templates.show(document, bommels);
+	}
+
+	/**
+	 * Enriches documents with transaction counts using a single optimized
+	 * query.
+	 */
+	private void enrichDocumentsWithTransactionCounts(List<Document> documents)
+	{
+		if (documents.isEmpty())
+		{
+			return;
+		}
+
+		// Get all document IDs
+		List<Long> documentIds = documents.stream()
+			.map(Document::getId)
+			.toList();
+
+		// Execute single query to get counts for all documents
+		// Uses JPQL query for optimal performance
+		@SuppressWarnings("unchecked")
+		List<Object[]> results = documentRepository.getEntityManager()
+			.createQuery(
+				"SELECT t.document.id, COUNT(t) " +
+					"FROM TransactionRecord t " +
+					"WHERE t.document.id IN :ids " +
+					"GROUP BY t.document.id",
+				Object[].class)
+			.setParameter("ids", documentIds)
+			.getResultList();
+
+		// Create map of documentId -> count
+		Map<Long, Long> countMap = results.stream()
+			.collect(Collectors.toMap(
+				arr -> (Long)arr[0],
+				arr -> (Long)arr[1]));
+
+		// Populate counts on documents
+		for (Document doc : documents)
+		{
+			Long count = countMap.getOrDefault(doc.getId(), 0L);
+			doc.setTransactionCount(count);
+		}
 	}
 
 	/**

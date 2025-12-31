@@ -51,6 +51,50 @@
   </a>
 </div>
 
+{#if document.hasTransactions}
+<div class="box" style="background: linear-gradient(135deg, #defbe6 0%, #a7f0ba 100%); border: 2px solid #0e6027; margin-bottom: var(--cds-spacing-05);">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: 0.75rem 1rem;">
+    <div style="flex: 1;">
+      <h3 style="margin: 0 0 0.25rem 0; font-size: 0.875rem; color: #0e6027;">✓ Transaktion(en) vorhanden</h3>
+      <p style="margin: 0; font-size: 0.75rem; color: #525252;">
+        {document.displayTransactionCount} zu diesem Beleg erstellt.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="/transaktionen?documentId={document.id}" class="cds-btn cds-btn-secondary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
+        <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
+        Transaktionen anzeigen
+      </a>
+      {#form uri:DocumentResource.createTransactionFromDocument(document.id)}
+        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
+          <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+          Weitere erstellen
+        </button>
+      {/form}
+    </div>
+  </div>
+</div>
+{#else}
+<div class="box" style="background: linear-gradient(135deg, #e8daff 0%, #d4bbff 100%); border: 2px solid #8a3ffc; margin-bottom: var(--cds-spacing-05);">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: 0.75rem 1rem;">
+    <div style="flex: 1;">
+      <h3 style="margin: 0 0 0.25rem 0; font-size: 0.875rem; color: #161616;">💰 Transaktion erstellen</h3>
+      <p style="margin: 0; font-size: 0.75rem; color: #525252;">
+        Erstellen Sie eine Buchungstransaktion basierend auf diesem Beleg.
+      </p>
+    </div>
+    <div>
+      {#form uri:DocumentResource.createTransactionFromDocument(document.id)}
+        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
+          <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+          Transaktion erstellen →
+        </button>
+      {/form}
+    </div>
+  </div>
+</div>
+{/if}
+
 <div class="box">
   <div class="form-section" style="margin-bottom: 0;">
     <h3>Beleg-Datei</h3>
@@ -248,28 +292,6 @@
   </div>
 </div>
 {/if}
-
-<div class="box" style="background: linear-gradient(135deg, #e8daff 0%, #d4bbff 100%); border: 2px solid #8a3ffc;">
-  <div class="form-section" style="margin: 0;">
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 2rem;">
-      <div>
-        <h3 style="margin: 0 0 0.5rem 0; color: #161616;">💰 Transaktion erstellen</h3>
-        <p style="margin: 0; font-size: 0.875rem; color: #525252;">
-          Erstellen Sie eine Buchungstransaktion basierend auf diesem Beleg.
-          Alle Daten werden übernommen und können anschließend bearbeitet werden.
-        </p>
-      </div>
-      <div>
-        {#form uri:DocumentResource.createTransactionFromDocument(document.id)}
-          <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap;">
-            <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
-            Transaktion erstellen →
-          </button>
-        {/form}
-      </div>
-    </div>
-  </div>
-</div>
 
 <div class="box danger-zone">
   <div class="form-section" style="margin-bottom: 0;">
