@@ -392,11 +392,11 @@
     </div>
 
     <div class="button-row">
-      <button type="submit" id="submitBtn" class="cds-btn cds-btn-primary" disabled>
-        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
+      <cds-button type="submit" id="submitBtn" kind="primary" disabled>
         Hochladen & Analysieren
-      </button>
-      <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
+        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
+      </cds-button>
+      <cds-button href="/belege" kind="secondary">Abbrechen</cds-button>
     </div>
   </form>
 </div>

@@ -237,7 +237,7 @@
             <input type="text" id="title" name="title" placeholder="Organisationsname" {#ifError 'title'}class="error"{/ifError}>
             {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
-          <button type="submit" class="cds-btn cds-btn-primary">Erstellen</button>
+          <cds-button type="submit" kind="primary">Erstellen</cds-button>
         {/form}
       {/if}
     </div>
@@ -262,7 +262,7 @@
             <input type="text" id="edit-title" name="title" value="{selected.title}" {#ifError 'title'}class="error"{/ifError}>
             {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
-          <button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
+          <cds-button type="submit" kind="primary">Speichern</cds-button>
         {/form}
       </div>
 
@@ -284,7 +284,7 @@
               {/for}
             </cds-dropdown>
           </div>
-          <button type="submit" class="cds-btn cds-btn-secondary">Speichern</button>
+          <cds-button type="submit" kind="secondary">Speichern</cds-button>
         </form>
       </div>
 
@@ -305,7 +305,7 @@
             <input type="text" id="child-title" name="title" placeholder="Name" {#ifError 'title'}class="error"{/ifError}>
             {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
           </div>
-          <button type="submit" class="cds-btn cds-btn-secondary">Hinzufügen</button>
+          <cds-button type="submit" kind="secondary">Hinzufügen</cds-button>
         {/form}
       </div>
 
@@ -313,11 +313,11 @@
         <h3 class="box-header">Gefahrenzone</h3>
         {#if selected.hasChildren}
           <p>Dieser Bommel kann nicht gelöscht werden, da er Kinder hat. Entfernen Sie zuerst alle Kinder.</p>
-          <button type="button" class="cds-btn cds-btn-danger" disabled>Bommel löschen</button>
+          <cds-button kind="danger" disabled>Bommel löschen</cds-button>
         {#else}
           {#form uri:BommelResource.delete()}
             <input type="hidden" name="id" value="{selected.id}">
-            <button type="submit" class="cds-btn cds-btn-danger">Bommel löschen</button>
+            <cds-button type="submit" kind="danger">Bommel löschen</cds-button>
           {/form}
         {/if}
       </div>
