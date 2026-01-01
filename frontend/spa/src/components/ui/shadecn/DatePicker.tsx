@@ -22,12 +22,14 @@ interface DatePickerProps {
     label?: string;
     error?: string;
     loading?: boolean;
+    dateFormat?: string;
 }
 
-export function DatePicker({ date, onSelect, placeholder, className, disabled, label, error, loading }: DatePickerProps) {
+export function DatePicker({ date, onSelect, placeholder, className, disabled, label, error, loading, dateFormat }: DatePickerProps) {
     const { t, i18n } = useTranslation();
     const defaultPlaceholder = placeholder || t('datePicker.selectDate');
     const [id] = useState(_.uniqueId('date-picker-'));
+    const [isOpen, setIsOpen] = useState(false);
 
     // Get the appropriate date-fns locale based on the current language
     const getDateLocale = () => {
@@ -41,11 +43,16 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
         }
     };
 
+    const handleDateSelect = (selectedDate: Date | undefined) => {
+        onSelect?.(selectedDate);
+        setIsOpen(false);
+    };
+
     return (
         <div className="relative grid w-full items-center gap-1.5">
             {label && <Label htmlFor={id}>{label}</Label>}
             <div className="relative flex items-center">
-                <Popover>
+                <Popover open={isOpen} onOpenChange={setIsOpen}>
                     <PopoverTrigger asChild>
                         <button
                             id={id}
@@ -67,11 +74,11 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                                 </div>
                             )}
                             <CalendarIcon className={loading ? 'ml-6 mr-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
-                            {date ? format(date, 'PPP', { locale: getDateLocale() }) : <span>{defaultPlaceholder}</span>}
+                            {date ? format(date, dateFormat || 'dd.MM.yyyy', { locale: getDateLocale() }) : <span>{defaultPlaceholder}</span>}
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={date} onSelect={onSelect} />
+                        <Calendar mode="single" selected={date} onSelect={handleDateSelect} />
                     </PopoverContent>
                 </Popover>
             </div>
