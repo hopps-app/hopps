@@ -150,27 +150,37 @@
       <input type="hidden" name="id" value="{member.id}">
 
       <div class="form-row">
-        <div class="form-group">
-          <label for="firstName">Vorname *</label>
-          <input type="text" id="firstName" name="firstName" value="{member.firstName}" required {#ifError 'firstName'}class="error"{/ifError}>
-          {#ifError 'firstName'}<span class="error-text">{#error 'firstName'/}</span>{/ifError}
-        </div>
-        <div class="form-group">
-          <label for="lastName">Nachname *</label>
-          <input type="text" id="lastName" name="lastName" value="{member.lastName}" required {#ifError 'lastName'}class="error"{/ifError}>
-          {#ifError 'lastName'}<span class="error-text">{#error 'lastName'/}</span>{/ifError}
-        </div>
+        <cds-text-input
+          label="Vorname *"
+          name="firstName"
+          value="{member.firstName}"
+          required
+          {#ifError 'firstName'}invalid{/ifError}
+          {#ifError 'firstName'}invalid-text="{#error 'firstName'/}"{/ifError}>
+        </cds-text-input>
+        <cds-text-input
+          label="Nachname *"
+          name="lastName"
+          value="{member.lastName}"
+          required
+          {#ifError 'lastName'}invalid{/ifError}
+          {#ifError 'lastName'}invalid-text="{#error 'lastName'/}"{/ifError}>
+        </cds-text-input>
       </div>
 
       <div class="form-row">
-        <div class="form-group">
-          <label for="email">E-Mail</label>
-          <input type="email" id="email" name="email" value="{member.email}">
-        </div>
-        <div class="form-group">
-          <label for="phone">Telefon</label>
-          <input type="tel" id="phone" name="phone" value="{member.phone}">
-        </div>
+        <cds-text-input
+          label="E-Mail"
+          name="email"
+          value="{member.email}"
+          type="email">
+        </cds-text-input>
+        <cds-text-input
+          label="Telefon"
+          name="phone"
+          value="{member.phone}"
+          type="tel">
+        </cds-text-input>
       </div>
 
       <div class="button-row">
