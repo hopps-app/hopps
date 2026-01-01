@@ -152,7 +152,7 @@ class DocumentDataApplierTest
 		document.setTotal(BigDecimal.valueOf(50.00));
 		DocumentData data = createDocumentData(
 			BigDecimal.valueOf(100.50),
-			null, null, null, null, null, null, null, null, null, null, null);
+			null, null, null, null, null, null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -167,7 +167,7 @@ class DocumentDataApplierTest
 	{
 		// given
 		DocumentData data = createDocumentData(
-			null, "EUR", null, null, null, null, null, null, null, null, null, null);
+			null, "EUR", null, null, null, null, null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -183,7 +183,7 @@ class DocumentDataApplierTest
 		// given
 		document.setCurrencyCode("USD");
 		DocumentData data = createDocumentData(
-			null, "EUR", null, null, null, null, null, null, null, null, null, null);
+			null, "EUR", null, null, null, null, null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -199,7 +199,7 @@ class DocumentDataApplierTest
 		// given
 		LocalDate date = LocalDate.of(2024, 12, 27);
 		DocumentData data = createDocumentData(
-			null, null, date, null, null, null, null, null, null, null, null, null);
+			null, null, date, null, null, null, null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -221,7 +221,7 @@ class DocumentDataApplierTest
 		LocalDate date = LocalDate.of(2024, 12, 27);
 		LocalTime time = LocalTime.of(14, 30);
 		DocumentData data = createDocumentData(
-			null, null, date, time, null, null, null, null, null, null, null, null);
+			null, null, date, time, null, null, null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -241,7 +241,7 @@ class DocumentDataApplierTest
 	{
 		// given
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, null, null, null, BigDecimal.valueOf(19.00), null, null);
+			null, null, null, null, null, null, null, null, BigDecimal.valueOf(19.00), null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -257,7 +257,7 @@ class DocumentDataApplierTest
 		// given
 		TradePartyData merchantAddress = createTradePartyData("ACME Corp", "123 Main St", "12345", "Berlin");
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, merchantAddress, null, null, null, null, null);
+			null, null, null, null, null, null, merchantAddress, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -277,7 +277,7 @@ class DocumentDataApplierTest
 		// given
 		TradePartyData merchantAddress = createTradePartyData("Address Name", "123 Main St", "12345", "Berlin");
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, "Merchant Override", merchantAddress, null, null, null, null, null);
+			null, null, null, null, null, "Merchant Override", merchantAddress, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -296,7 +296,7 @@ class DocumentDataApplierTest
 	{
 		// given
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, "Merchant Name Only", null, null, null, null, null, null);
+			null, null, null, null, null, "Merchant Name Only", null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -320,7 +320,7 @@ class DocumentDataApplierTest
 
 		TradePartyData merchantAddress = createTradePartyData("New Sender", "123 Main St", "12345", "Berlin");
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, merchantAddress, null, null, null, null, null);
+			null, null, null, null, null, null, merchantAddress, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -335,7 +335,7 @@ class DocumentDataApplierTest
 	{
 		// given
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, "Merchant Name", null, null, null, null, null, null);
+			null, null, null, null, null, "Merchant Name", null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -352,7 +352,7 @@ class DocumentDataApplierTest
 	{
 		// given
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, null, "Customer Name", null, null, null, null);
+			null, null, null, null, null, null, null, "Customer Name", null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -367,7 +367,7 @@ class DocumentDataApplierTest
 	{
 		// given
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, "Merchant Name", null, "Customer Name", null, null, null, null);
+			null, null, null, null, null, "Merchant Name", null, "Customer Name", null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -386,7 +386,7 @@ class DocumentDataApplierTest
 		// given
 		document.setName("Existing Name");
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, "Merchant Name", null, null, null, null, null, null);
+			null, null, null, null, null, "Merchant Name", null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -411,7 +411,7 @@ class DocumentDataApplierTest
 		when(tagRepository.findOrCreateTags(any())).thenReturn(tags);
 
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, null, null, null, null, null, tagNames);
+			null, null, null, null, null, null, null, null, null, null, tagNames);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -432,7 +432,7 @@ class DocumentDataApplierTest
 
 		List<String> tagNames = List.of("new-tag");
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, null, null, null, null, null, tagNames);
+			null, null, null, null, null, null, null, null, null, null, tagNames);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);

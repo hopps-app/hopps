@@ -86,8 +86,7 @@ class DocumentResourceTest
 			.then()
 			.statusCode(200)
 			.body(containsString("Beleg hochladen"))
-			.body(containsString("Datei hochladen"))
-			.body(containsString("documentType"));
+			.body(containsString("Datei hochladen"));
 	}
 
 	@Test
