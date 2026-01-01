@@ -232,11 +232,13 @@
             <label>Symbol</label>
             {#iconPicker "home" name="icon" /}
           </div>
-          <div class="form-group">
-            <label for="title">Titel</label>
-            <input type="text" id="title" name="title" placeholder="Organisationsname" {#ifError 'title'}class="error"{/ifError}>
-            {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
-          </div>
+          <cds-text-input
+            label="Titel"
+            name="title"
+            placeholder="Organisationsname"
+            {#ifError 'title'}invalid{/ifError}
+            {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
+          </cds-text-input>
           <cds-button type="submit" kind="primary">Erstellen</cds-button>
         {/form}
       {/if}
@@ -257,11 +259,13 @@
             <label>Symbol</label>
             {#iconPicker selected.icon name="icon" /}
           </div>
-          <div class="form-group">
-            <label for="edit-title">Titel</label>
-            <input type="text" id="edit-title" name="title" value="{selected.title}" {#ifError 'title'}class="error"{/ifError}>
-            {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
-          </div>
+          <cds-text-input
+            label="Titel"
+            name="title"
+            value="{selected.title}"
+            {#ifError 'title'}invalid{/ifError}
+            {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
+          </cds-text-input>
           <cds-button type="submit" kind="primary">Speichern</cds-button>
         {/form}
       </div>
@@ -300,11 +304,13 @@
             <label>Symbol</label>
             {#iconPicker "folder" name="icon" /}
           </div>
-          <div class="form-group">
-            <label for="child-title">Titel</label>
-            <input type="text" id="child-title" name="title" placeholder="Name" {#ifError 'title'}class="error"{/ifError}>
-            {#ifError 'title'}<span class="error-text">{#error 'title'/}</span>{/ifError}
-          </div>
+          <cds-text-input
+            label="Titel"
+            name="title"
+            placeholder="Name"
+            {#ifError 'title'}invalid{/ifError}
+            {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
+          </cds-text-input>
           <cds-button type="submit" kind="secondary">Hinzufügen</cds-button>
         {/form}
       </div>

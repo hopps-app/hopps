@@ -172,44 +172,55 @@
   <div class="form-section">
     <h3>Grunddaten</h3>
     <div class="form-row">
-      <div class="form-group">
-        <label for="name">Name / Beschreibung</label>
-        <input type="text" id="name" name="name" placeholder="z.B. Büromaterial Bestellung" value="{transaction.name ?: ''}">
-      </div>
-      <div class="form-group">
-        <label for="transactionDate">Transaktionsdatum</label>
-        <input type="date" id="transactionDate" name="transactionDate" value="{transaction.displayDateIso ?: ''}">
-      </div>
+      <cds-text-input
+        label="Name / Beschreibung"
+        name="name"
+        placeholder="z.B. Büromaterial Bestellung"
+        value="{transaction.name ?: ''}">
+      </cds-text-input>
+      <cds-date-picker>
+        <cds-date-picker-input
+          label="Transaktionsdatum"
+          name="transactionDate"
+          value="{transaction.displayDateIso ?: ''}"
+          placeholder="dd.mm.yyyy">
+        </cds-date-picker-input>
+      </cds-date-picker>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label for="total">Betrag *</label>
-        <input type="number" id="total" name="total" step="0.01" required placeholder="0.00" value="{transaction.total}">
-      </div>
-      <div class="form-group">
-        <label for="currencyCode">Währung</label>
-        <select id="currencyCode" name="currencyCode">
-          <option value="EUR" {#if transaction.currencyCode == 'EUR'}selected{/if}>EUR</option>
-          <option value="USD" {#if transaction.currencyCode == 'USD'}selected{/if}>USD</option>
-          <option value="CHF" {#if transaction.currencyCode == 'CHF'}selected{/if}>CHF</option>
-          <option value="GBP" {#if transaction.currencyCode == 'GBP'}selected{/if}>GBP</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="bommelId">Bommel zuweisen</label>
-        <select id="bommelId" name="bommelId">
-          <option value="">— Nicht zugewiesen —</option>
-          {#for bommel in bommels}
-          <option value="{bommel.id}" {#if transaction.bommel && transaction.bommel.id == bommel.id}selected{/if}>{bommel.title}</option>
-          {/for}
-        </select>
-      </div>
+      <cds-number-input
+        label="Betrag *"
+        name="total"
+        step="0.01"
+        required
+        placeholder="0.00"
+        value="{transaction.total}">
+      </cds-number-input>
+      <cds-select
+        label="Währung"
+        name="currencyCode"
+        value="{transaction.currencyCode}">
+        <cds-select-item value="EUR">EUR</cds-select-item>
+        <cds-select-item value="USD">USD</cds-select-item>
+        <cds-select-item value="CHF">CHF</cds-select-item>
+        <cds-select-item value="GBP">GBP</cds-select-item>
+      </cds-select>
+      <cds-select
+        label="Bommel zuweisen"
+        name="bommelId"
+        value="{transaction.bommel.id ?: ''}">
+        <cds-select-item value="">— Nicht zugewiesen —</cds-select-item>
+        {#for bommel in bommels}
+        <cds-select-item value="{bommel.id}">{bommel.title}</cds-select-item>
+        {/for}
+      </cds-select>
     </div>
     <div class="form-row">
-      <div class="form-group checkbox">
-        <input type="checkbox" id="privatelyPaid" name="privatelyPaid" {#if transaction.privatelyPaid}checked{/if}>
-        <label for="privatelyPaid">Privat bezahlt</label>
-      </div>
+      <cds-checkbox
+        name="privatelyPaid"
+        label-text="Privat bezahlt"
+        {#if transaction.privatelyPaid}checked{/if}>
+      </cds-checkbox>
     </div>
   </div>
 
@@ -217,24 +228,29 @@
   <div class="form-section">
     <h3>Absender</h3>
     <div class="form-row">
-      <div class="form-group">
-        <label for="senderName">Name / Firma</label>
-        <input type="text" id="senderName" name="senderName" placeholder="z.B. Lieferant GmbH" value="{transaction.senderName ?: ''}">
-      </div>
+      <cds-text-input
+        label="Name / Firma"
+        name="senderName"
+        placeholder="z.B. Lieferant GmbH"
+        value="{transaction.senderName ?: ''}">
+      </cds-text-input>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label for="senderStreet">Straße</label>
-        <input type="text" id="senderStreet" name="senderStreet" value="{transaction.senderStreet ?: ''}">
-      </div>
-      <div class="form-group">
-        <label for="senderZipCode">PLZ</label>
-        <input type="text" id="senderZipCode" name="senderZipCode" value="{transaction.senderZipCode ?: ''}">
-      </div>
-      <div class="form-group">
-        <label for="senderCity">Ort</label>
-        <input type="text" id="senderCity" name="senderCity" value="{transaction.senderCity ?: ''}">
-      </div>
+      <cds-text-input
+        label="Straße"
+        name="senderStreet"
+        value="{transaction.senderStreet ?: ''}">
+      </cds-text-input>
+      <cds-text-input
+        label="PLZ"
+        name="senderZipCode"
+        value="{transaction.senderZipCode ?: ''}">
+      </cds-text-input>
+      <cds-text-input
+        label="Ort"
+        name="senderCity"
+        value="{transaction.senderCity ?: ''}">
+      </cds-text-input>
     </div>
   </div>
 
