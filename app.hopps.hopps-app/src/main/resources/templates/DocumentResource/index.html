@@ -305,6 +305,75 @@
       transform: translateY(-3px);
     }
   }
+
+  /* Transaction Creation Alert Banner */
+  .transaction-alert {
+    background: linear-gradient(135deg, #0f62fe 0%, #0043ce 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    margin-bottom: var(--cds-spacing-05);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 4px 12px rgba(15, 98, 254, 0.3);
+    animation: slideIn 0.3s ease-out;
+  }
+  .transaction-alert-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .transaction-alert-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+  }
+  .transaction-alert-content {
+    flex: 1;
+  }
+  .transaction-alert-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .transaction-alert-content p {
+    margin: 0;
+    opacity: 0.95;
+    font-size: 0.875rem;
+  }
+  .transaction-btn {
+    background: white;
+    color: #0043ce;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .transaction-btn:hover {
+    background: #f4f4f4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  .transaction-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
 </style>
 {/moreStyles}
 
@@ -337,6 +406,27 @@
       Ersten prüfen
     </a>
     {/if}
+  </div>
+</div>
+{/if}
+
+{#if !documentsNeedingTransaction.isEmpty}
+<div class="transaction-alert">
+  <div class="transaction-alert-icon">
+    <svg viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+  </div>
+  <div class="transaction-alert-content">
+    <h3>{#if documentsNeedingTransaction.size() == 1}💰 Ein Beleg kann in eine Transaktion umgewandelt werden!{#else}💰 {documentsNeedingTransaction.size()} Belege können in Transaktionen umgewandelt werden!{/if}</h3>
+    <p>Diese Belege wurden geprüft und sind bereit, in Ihre Buchhaltung übernommen zu werden.</p>
+  </div>
+  <div class="review-alert-actions">
+    <form method="POST" action="/belege/{documentsNeedingTransaction.get(0).id}/create-transaction" style="display: inline;">
+      {#authenticityToken /}
+      <button type="submit" class="transaction-btn">
+        <svg viewBox="0 0 32 32"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+        {#if documentsNeedingTransaction.size() == 1}Transaktion erstellen{#else}Erste erstellen{/if}
+      </button>
+    </form>
   </div>
 </div>
 {/if}
