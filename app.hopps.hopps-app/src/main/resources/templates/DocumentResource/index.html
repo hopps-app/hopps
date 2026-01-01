@@ -388,49 +388,32 @@
 </div>
 
 {#if !documentsNeedingReview.isEmpty}
-<div class="review-alert">
-  <div class="review-alert-icon">
-    <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><circle cx="16" cy="10" r="1.5"/><path d="M16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
-  </div>
-  <div class="review-alert-content">
-    <h3>{#if documentsNeedingReview.size() == 1}🎉 Ein Beleg wartet auf Ihre Prüfung!{#else}🎉 {documentsNeedingReview.size()} Belege warten auf Ihre Prüfung!{/if}</h3>
-    <p>Die KI hat die Daten bereits extrahiert. Schauen Sie sie kurz durch und bestätigen Sie sie mit einem Klick.</p>
-  </div>
-  <div class="review-alert-actions">
-    {#if documentsNeedingReview.size() == 1}
-    <a href="/belege/{documentsNeedingReview.get(0).id}/pruefen" class="review-btn">
-      <svg viewBox="0 0 32 32"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
-      Jetzt prüfen
-    </a>
-    {#else}
-    <a href="/belege/{documentsNeedingReview.get(0).id}/pruefen" class="review-btn">
-      <svg viewBox="0 0 32 32"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
-      Ersten prüfen
-    </a>
-    {/if}
-  </div>
-</div>
+<cds-actionable-notification
+  kind="info"
+  title="{#if documentsNeedingReview.size() == 1}🎉 Ein Beleg wartet auf Ihre Prüfung!{#else}🎉 {documentsNeedingReview.size()} Belege warten auf Ihre Prüfung!{/if}"
+  subtitle="Die KI hat die Daten bereits extrahiert. Schauen Sie sie kurz durch und bestätigen Sie sie mit einem Klick."
+  low-contrast
+  style="margin-bottom: var(--cds-spacing-05);">
+  <cds-actionable-notification-button slot="action" onclick="window.location='/belege/{documentsNeedingReview.get(0).id}/pruefen'">
+    {#if documentsNeedingReview.size() == 1}Jetzt prüfen{#else}Ersten prüfen{/if}
+  </cds-actionable-notification-button>
+</cds-actionable-notification>
 {/if}
 
 {#if !documentsNeedingTransaction.isEmpty}
-<div class="transaction-alert">
-  <div class="transaction-alert-icon">
-    <svg viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
-  </div>
-  <div class="transaction-alert-content">
-    <h3>{#if documentsNeedingTransaction.size() == 1}💰 Ein Beleg kann in eine Transaktion umgewandelt werden!{#else}💰 {documentsNeedingTransaction.size()} Belege können in Transaktionen umgewandelt werden!{/if}</h3>
-    <p>Diese Belege wurden geprüft und sind bereit, in Ihre Buchhaltung übernommen zu werden.</p>
-  </div>
-  <div class="review-alert-actions">
-    <form method="POST" action="/belege/{documentsNeedingTransaction.get(0).id}/create-transaction" style="display: inline;">
-      {#authenticityToken /}
-      <button type="submit" class="transaction-btn">
-        <svg viewBox="0 0 32 32"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
-        {#if documentsNeedingTransaction.size() == 1}Transaktion erstellen{#else}Erste erstellen{/if}
-      </button>
-    </form>
-  </div>
-</div>
+<form id="create-transaction-form" method="POST" action="/belege/{documentsNeedingTransaction.get(0).id}/create-transaction" style="display: none;">
+  {#authenticityToken /}
+</form>
+<cds-actionable-notification
+  kind="info"
+  title="{#if documentsNeedingTransaction.size() == 1}💰 Ein Beleg kann in eine Transaktion umgewandelt werden!{#else}💰 {documentsNeedingTransaction.size()} Belege können in Transaktionen umgewandelt werden!{/if}"
+  subtitle="Diese Belege wurden geprüft und sind bereit, in Ihre Buchhaltung übernommen zu werden."
+  low-contrast
+  style="margin-bottom: var(--cds-spacing-05);">
+  <cds-actionable-notification-button slot="action" onclick="document.getElementById('create-transaction-form').submit()">
+    {#if documentsNeedingTransaction.size() == 1}Transaktion erstellen{#else}Erste erstellen{/if}
+  </cds-actionable-notification-button>
+</cds-actionable-notification>
 {/if}
 
 <div class="box">
