@@ -28,139 +28,19 @@ body {
   background-color: var(--cds-layer-01);
 }
 
-/* Side Navigation */
-.side-nav {
-  position: fixed;
-  top: 48px;
-  left: 0;
-  bottom: 0;
-  width: var(--side-nav-width);
-  background-color: var(--cds-layer-02);
-  border-right: 1px solid var(--cds-border-subtle-01);
-  overflow-y: auto;
-  z-index: 100;
-  transition: transform 0.11s cubic-bezier(0.2, 0, 1, 0.9);
-}
+/* Carbon UI Shell Layout Adjustments */
+/* Carbon side-nav is position: fixed, so we need to offset the content */
 
-.side-nav-header {
-  padding: var(--cds-spacing-05);
-  border-bottom: 1px solid var(--cds-border-subtle-01);
-}
-
-.side-nav-header h2 {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--cds-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.32px;
-}
-
-.side-nav-section {
-  padding: 0.5rem 0;
-}
-
-.side-nav-section-title {
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--cds-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.32px;
-}
-
-.side-nav-items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.side-nav-item {
-  display: block;
-}
-
-.side-nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  color: var(--cds-text-primary);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 400;
-  border-left: 4px solid transparent;
-  transition: background-color 0.11s, border-color 0.11s;
-}
-
-.side-nav-link:hover {
-  background-color: var(--cds-background-hover);
-}
-
-.side-nav-link.active {
-  background-color: var(--cds-background-hover);
-  border-left-color: var(--cds-border-interactive);
-  font-weight: 600;
-}
-
-.side-nav-link svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  flex-shrink: 0;
-}
-
-/* Coming soon / disabled menu items */
-.side-nav-link.coming-soon {
-  color: var(--cds-text-disabled);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.side-nav-link.coming-soon:hover {
-  background-color: transparent;
-}
-
-.coming-soon-tag {
-  margin-left: auto;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: var(--cds-link-primary);
-  color: white;
-  border-radius: 10px;
-  white-space: nowrap;
-  animation: tag-sparkle 2s ease-in-out 3;
-}
-
-@keyframes tag-sparkle {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.02); }
-}
-
-.coming-soon-tag::before {
-  content: "✨ ";
-}
-
-.side-nav-divider {
-  height: 1px;
-  background-color: var(--cds-border-subtle-01);
-  margin: 0.5rem 0;
-}
-
-/* Content area with side nav */
+/* Default: side nav in rail mode (collapsed, 48px wide) */
 .app-container {
-  display: flex;
-  min-height: calc(100vh - 48px);
-  margin-top: 48px;
+  margin-top: 48px; /* Height of cds-header */
+  margin-left: 48px; /* Width of collapsed rail side-nav */
+  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9);
 }
 
 .content {
-  flex: 1;
   padding: var(--cds-spacing-07);
-  margin-left: var(--side-nav-width);
-  max-width: calc(100% - var(--side-nav-width));
+  min-height: calc(100vh - 48px);
 }
 
 .content-inner {
@@ -168,36 +48,16 @@ body {
   margin: 0 auto;
 }
 
-/* Responsive: collapse side nav on small screens */
+/* When side nav is expanded (256px wide) - handled by JS */
+body.side-nav-expanded .app-container {
+  margin-left: 256px;
+}
+
+/* Responsive: side nav overlays content on mobile */
 @media (max-width: 1056px) {
-  .side-nav {
-    transform: translateX(-100%);
+  .app-container {
+    margin-left: 0 !important;
   }
-
-  .side-nav.expanded {
-    transform: translateX(0);
-  }
-
-  .content {
-    margin-left: 0;
-    max-width: 100%;
-  }
-}
-
-/* Overlay for mobile */
-.side-nav-overlay {
-  display: none;
-  position: fixed;
-  top: 48px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 99;
-}
-
-.side-nav-overlay.visible {
-  display: block;
 }
 
 /* Shared layout utilities */
