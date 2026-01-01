@@ -37,7 +37,7 @@
   <body>
     {#include tags/header.html /}
 
-    <cds-side-nav aria-label="Hauptnavigation" collapse-mode="rail" expanded>
+    <cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed" expanded>
       <cds-side-nav-items>
         <cds-side-nav-link href="/" {#if inject:vertxRequest.path == '/'}active{/if}>
           Dashboard
