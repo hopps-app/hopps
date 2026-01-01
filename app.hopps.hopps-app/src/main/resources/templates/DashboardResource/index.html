@@ -79,34 +79,8 @@
         <span class="chart-subtitle">Verteilung nach Typ</span>
       </div>
     </div>
-    <div class="donut-chart">
-      <svg viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="38" stroke="#e0e0e0" />
-        <circle cx="50" cy="50" r="38" stroke="#0f62fe" stroke-dasharray="143.26 238.76" stroke-dashoffset="0" />
-        <circle cx="50" cy="50" r="38" stroke="#24a148" stroke-dasharray="71.63 238.76" stroke-dashoffset="-143.26" />
-        <circle cx="50" cy="50" r="38" stroke="#f1c21b" stroke-dasharray="23.88 238.76" stroke-dashoffset="-214.89" />
-      </svg>
-      <div class="donut-center">
-        <div class="donut-center-value">24</div>
-        <div class="donut-center-label">Gesamt</div>
-      </div>
-    </div>
-    <div class="donut-legend">
-      <div class="donut-legend-item">
-        <span class="donut-legend-color" style="background: #0f62fe;"></span>
-        <span>Rechnungen</span>
-        <span class="donut-legend-value">14</span>
-      </div>
-      <div class="donut-legend-item">
-        <span class="donut-legend-color" style="background: #24a148;"></span>
-        <span>Quittungen</span>
-        <span class="donut-legend-value">7</span>
-      </div>
-      <div class="donut-legend-item">
-        <span class="donut-legend-color" style="background: #f1c21b;"></span>
-        <span>Sonstige</span>
-        <span class="donut-legend-value">3</span>
-      </div>
+    <div style="max-width: 300px; margin: 0 auto;">
+      <canvas id="documentTypesChart"></canvas>
     </div>
   </div>
 
@@ -122,59 +96,8 @@
         <span class="chart-subtitle">Letzte 6 Monate</span>
       </div>
     </div>
-    <div class="bar-chart">
-      <div class="bar-group">
-        <div class="bar-wrapper">
-          <div class="bar income" style="height: 60%;"></div>
-          <div class="bar expense" style="height: 45%;"></div>
-        </div>
-        <span class="bar-label">Jul</span>
-      </div>
-      <div class="bar-group">
-        <div class="bar-wrapper">
-          <div class="bar income" style="height: 75%;"></div>
-          <div class="bar expense" style="height: 50%;"></div>
-        </div>
-        <span class="bar-label">Aug</span>
-      </div>
-      <div class="bar-group">
-        <div class="bar-wrapper">
-          <div class="bar income" style="height: 55%;"></div>
-          <div class="bar expense" style="height: 65%;"></div>
-        </div>
-        <span class="bar-label">Sep</span>
-      </div>
-      <div class="bar-group">
-        <div class="bar-wrapper">
-          <div class="bar income" style="height: 80%;"></div>
-          <div class="bar expense" style="height: 40%;"></div>
-        </div>
-        <span class="bar-label">Okt</span>
-      </div>
-      <div class="bar-group">
-        <div class="bar-wrapper">
-          <div class="bar income" style="height: 90%;"></div>
-          <div class="bar expense" style="height: 55%;"></div>
-        </div>
-        <span class="bar-label">Nov</span>
-      </div>
-      <div class="bar-group">
-        <div class="bar-wrapper">
-          <div class="bar income" style="height: 100%;"></div>
-          <div class="bar expense" style="height: 65%;"></div>
-        </div>
-        <span class="bar-label">Dez</span>
-      </div>
-    </div>
-    <div class="bar-chart-legend">
-      <div class="bar-legend-item">
-        <span class="bar-legend-color" style="background: #24a148;"></span>
-        <span>Einnahmen</span>
-      </div>
-      <div class="bar-legend-item">
-        <span class="bar-legend-color" style="background: #da1e28;"></span>
-        <span>Ausgaben</span>
-      </div>
+    <div style="height: 280px;">
+      <canvas id="incomeExpenseChart"></canvas>
     </div>
   </div>
 </div>
@@ -236,5 +159,176 @@
     </li>
   </ul>
 </div>
+
+{#moreScripts}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Donut Chart - Document Types
+    const documentTypesCtx = document.getElementById('documentTypesChart');
+    if (documentTypesCtx) {
+      new Chart(documentTypesCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Rechnungen', 'Quittungen', 'Sonstige'],
+          datasets: [{
+            data: [14, 7, 3],
+            backgroundColor: [
+              '#0f62fe',  // IBM Blue 60
+              '#24a148',  // IBM Green 60
+              '#f1c21b'   // IBM Yellow 30
+            ],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                font: {
+                  family: 'IBM Plex Sans',
+                  size: 14
+                },
+                usePointStyle: true,
+                pointStyle: 'circle',
+                generateLabels: function(chart) {
+                  const data = chart.data;
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map(function(label, i) {
+                      const value = data.datasets[0].data[i];
+                      return {
+                        text: label + ': ' + value,
+                        fillStyle: data.datasets[0].backgroundColor[i],
+                        hidden: false,
+                        index: i
+                      };
+                    });
+                  }
+                  return [];
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#262626',
+              titleFont: {
+                family: 'IBM Plex Sans',
+                size: 14
+              },
+              bodyFont: {
+                family: 'IBM Plex Sans',
+                size: 14
+              },
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': ' + context.parsed;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Bar Chart - Income vs Expense
+    const incomeExpenseCtx = document.getElementById('incomeExpenseChart');
+    if (incomeExpenseCtx) {
+      new Chart(incomeExpenseCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+          datasets: [
+            {
+              label: 'Einnahmen',
+              data: [7200, 9000, 6600, 9600, 10800, 12000],
+              backgroundColor: '#24a148',  // IBM Green 60
+              borderRadius: 4,
+              borderSkipped: false
+            },
+            {
+              label: 'Ausgaben',
+              data: [5400, 6000, 7800, 4800, 6600, 7800],
+              backgroundColor: '#da1e28',  // IBM Red 60
+              borderRadius: 4,
+              borderSkipped: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                font: {
+                  family: 'IBM Plex Sans',
+                  size: 14
+                },
+                usePointStyle: true,
+                pointStyle: 'rect'
+              }
+            },
+            tooltip: {
+              backgroundColor: '#262626',
+              titleFont: {
+                family: 'IBM Plex Sans',
+                size: 14
+              },
+              bodyFont: {
+                family: 'IBM Plex Sans',
+                size: 14
+              },
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.parsed.y.toLocaleString('de-DE') + ' €';
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                font: {
+                  family: 'IBM Plex Sans',
+                  size: 12
+                },
+                callback: function(value) {
+                  return value.toLocaleString('de-DE') + ' €';
+                }
+              },
+              grid: {
+                color: '#e0e0e0',
+                drawBorder: false
+              }
+            },
+            x: {
+              ticks: {
+                font: {
+                  family: 'IBM Plex Sans',
+                  size: 12
+                }
+              },
+              grid: {
+                display: false,
+                drawBorder: false
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+{/moreScripts}
 
 {/include}
