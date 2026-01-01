@@ -92,116 +92,6 @@
     100% { background-position: -200% 0; }
   }
 
-  /* AI Styling */
-  .ai-gradient-box {
-    background: linear-gradient(135deg, rgba(105, 41, 196, 0.05) 0%, rgba(166, 108, 255, 0.08) 100%);
-    border: 1px solid rgba(105, 41, 196, 0.2);
-  }
-  .ai-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: var(--cds-spacing-05);
-    padding-bottom: var(--cds-spacing-05);
-    border-bottom: 1px solid rgba(105, 41, 196, 0.2);
-  }
-  .ai-header h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #6929c4;
-  }
-  .ai-message {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: rgba(105, 41, 196, 0.08);
-    border-radius: 4px;
-    margin-bottom: var(--cds-spacing-05);
-  }
-  .ai-message svg {
-    width: 20px;
-    height: 20px;
-    fill: #6929c4;
-    flex-shrink: 0;
-  }
-  .ai-message p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #491d8b;
-  }
-  .ai-explainer {
-    padding: 0.5rem;
-  }
-  .ai-explainer .secondary {
-    font-size: 0.75rem;
-    color: #525252;
-    margin: 0 0 0.25rem 0;
-  }
-  .ai-explainer .bold {
-    font-weight: 600;
-  }
-
-  /* AI Form Input Styling */
-  .form-group cds-ai-label {
-    margin-left: 0.25rem;
-  }
-  .form-group input.ai-value,
-  .form-group select.ai-value {
-    background: linear-gradient(135deg, rgba(232, 218, 255, 0.3) 0%, rgba(212, 187, 255, 0.3) 100%);
-    border-bottom-color: #8a3ffc;
-  }
-  .input-with-clear {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .input-with-clear input,
-  .input-with-clear select {
-    flex: 1;
-    padding-right: 2rem;
-  }
-  .clear-ai-btn, .restore-ai-btn {
-    position: absolute;
-    right: 0.5rem;
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    line-height: 1;
-    opacity: 0.8;
-    transition: opacity 0.15s, background-color 0.15s;
-  }
-  .clear-ai-btn {
-    background: #8a3ffc;
-    color: white;
-  }
-  .clear-ai-btn:hover {
-    opacity: 1;
-    background: #6929c4;
-  }
-  .restore-ai-btn {
-    background: #6929c4;
-    color: white;
-    display: none;
-  }
-  .restore-ai-btn:hover {
-    opacity: 1;
-    background: #8a3ffc;
-  }
-  .clear-ai-btn svg, .restore-ai-btn svg {
-    width: 10px;
-    height: 10px;
-    fill: currentColor;
-  }
-
   /* Analysis Error */
   .analysis-error {
     display: flex;
@@ -358,37 +248,6 @@
         });
     }
   });
-
-  function clearAiValue(inputId) {
-    var input = document.getElementById(inputId);
-    if (input) {
-      if (!input.dataset.aiValue) {
-        input.dataset.aiValue = input.value;
-      }
-      if (input.tagName === 'SELECT') {
-        input.selectedIndex = 0;
-      } else {
-        input.value = '';
-      }
-      input.classList.remove('ai-value');
-      var clearBtn = input.parentElement.querySelector('.clear-ai-btn');
-      var restoreBtn = input.parentElement.querySelector('.restore-ai-btn');
-      if (clearBtn) clearBtn.style.display = 'none';
-      if (restoreBtn) restoreBtn.style.display = 'flex';
-    }
-  }
-
-  function restoreAiValue(inputId) {
-    var input = document.getElementById(inputId);
-    if (input && input.dataset.aiValue) {
-      input.value = input.dataset.aiValue;
-      input.classList.add('ai-value');
-      var clearBtn = input.parentElement.querySelector('.clear-ai-btn');
-      var restoreBtn = input.parentElement.querySelector('.restore-ai-btn');
-      if (clearBtn) clearBtn.style.display = 'flex';
-      if (restoreBtn) restoreBtn.style.display = 'none';
-    }
-  }
 </script>
 {/moreScripts}
 
@@ -403,7 +262,7 @@
 </div>
 
 <!-- Loading State -->
-<div class="box ai-gradient-box" id="loadingContainer">
+<div class="box" id="loadingContainer">
   <div class="loading-container">
     <div class="loading-spinner"></div>
     <h3>KI analysiert Ihren Beleg...</h3>
@@ -464,16 +323,18 @@
 
     <!-- Form Panel -->
     <div class="form-panel">
-      <div class="box ai-gradient-box">
-        <div class="ai-header">
-          <cds-ai-label size="sm" autoalign alignment="bottom-left">
-            <div slot="body-text" class="ai-explainer">
-              <p class="secondary">KI-Erklärung</p>
-              <p class="secondary bold">Dokumentenanalyse</p>
-              <p class="secondary">Unsere KI analysiert hochgeladene Belege und extrahiert automatisch relevante Daten wie Beträge, Daten und Absenderinformationen.</p>
-            </div>
-          </cds-ai-label>
-          <h3>Erkannte Daten</h3>
+      <div class="box">
+        <div class="box-header">
+          <h3>
+            <cds-ai-label size="sm" autoalign alignment="bottom-left">
+              <div slot="body-text" class="ai-explainer">
+                <p class="secondary">KI-Erklärung</p>
+                <p class="secondary bold">Dokumentenanalyse</p>
+                <p class="secondary">Unsere KI analysiert hochgeladene Belege und extrahiert automatisch relevante Daten wie Beträge, Daten und Absenderinformationen.</p>
+              </div>
+            </cds-ai-label>
+            Erkannte Daten
+          </h3>
         </div>
 
         {#if document.analysisStatus.name == 'FAILED'}
@@ -485,20 +346,23 @@
           </div>
         </div>
         {#else if document.analysisStatus.name == 'COMPLETED'}
-        <div class="ai-message">
-          <svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/></svg>
-          <div>
-            <p>Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern.</p>
-            {#if document.displayExtractionSource}
-            <p style="margin-top: 0.5rem; font-size: 0.75rem; color: #6929c4;">Extrahiert via <strong>{document.displayExtractionSource}</strong></p>
-            {/if}
-          </div>
-        </div>
+        <cds-inline-notification
+          kind="success"
+          title="Daten erfolgreich extrahiert"
+          subtitle="Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern. {#if document.displayExtractionSource}Extrahiert via {document.displayExtractionSource}.{/if}"
+          hide-close-button
+          low-contrast
+          style="margin-bottom: var(--cds-spacing-05);">
+        </cds-inline-notification>
         {#else}
-        <div class="ai-message">
-          <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
-          <p>Bitte füllen Sie die Belegdaten manuell aus.</p>
-        </div>
+        <cds-inline-notification
+          kind="info"
+          title="Manuelle Eingabe erforderlich"
+          subtitle="Bitte füllen Sie die Belegdaten manuell aus."
+          hide-close-button
+          low-contrast
+          style="margin-bottom: var(--cds-spacing-05);">
+        </cds-inline-notification>
         {/if}
 
         <form action="/belege/{document.id}/complete-review" method="POST" id="reviewFormElement">
