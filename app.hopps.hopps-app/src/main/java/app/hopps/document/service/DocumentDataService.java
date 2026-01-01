@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
 
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.shared.domain.Tag;
@@ -79,9 +78,6 @@ public class DocumentDataService
 		// Sender information
 		applySenderData(document, userInput);
 
-		// Invoice-specific fields
-		applyInvoiceFields(document, userInput);
-
 		LOG.infof("Form data applied successfully: documentId=%s", document.getId());
 	}
 
@@ -110,43 +106,6 @@ public class DocumentDataService
 			sender.setStreet(senderStreet);
 			sender.setZipCode(senderZipCode);
 			sender.setCity(senderCity);
-		}
-	}
-
-	private void applyInvoiceFields(Document document, Map<String, Object> userInput)
-	{
-		if (document.getDocumentType() != DocumentType.INVOICE)
-		{
-			return;
-		}
-
-		if (userInput.containsKey("invoiceId"))
-		{
-			document.setInvoiceId((String)userInput.get("invoiceId"));
-		}
-
-		if (userInput.containsKey("orderNumber"))
-		{
-			document.setOrderNumber((String)userInput.get("orderNumber"));
-		}
-
-		if (userInput.containsKey("dueDate") && userInput.get("dueDate") != null)
-		{
-			String dueDateStr = userInput.get("dueDate").toString();
-			if (!dueDateStr.isBlank())
-			{
-				LocalDate dueDate = LocalDate.parse(dueDateStr);
-				document.setDueDate(dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-			}
-		}
-
-		if (userInput.containsKey("amountDue") && userInput.get("amountDue") != null)
-		{
-			String amountDueStr = userInput.get("amountDue").toString();
-			if (!amountDueStr.isBlank())
-			{
-				document.setAmountDue(new BigDecimal(amountDueStr));
-			}
 		}
 	}
 

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.transaction.domain.TransactionRecord;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -102,7 +101,6 @@ class TransactionRecordRepositoryTest
 	{
 		TransactionRecord transaction = new TransactionRecord();
 		transaction.setName(name);
-		transaction.setDocumentType(DocumentType.RECEIPT);
 		transaction.setTotal(BigDecimal.TEN);
 		transaction.setUploader("test@example.com");
 		transaction.setBommel(bommel);

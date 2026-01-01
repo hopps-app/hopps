@@ -27,10 +27,6 @@ public class Document extends PanacheEntity
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Bommel bommel;
 
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private DocumentType documentType;
-
 	private String name;
 
 	@Column(nullable = false)
@@ -50,12 +46,6 @@ public class Document extends PanacheEntity
 	private List<DocumentTag> documentTags = new ArrayList<>();
 
 	private boolean privatelyPaid;
-
-	// Invoice-specific fields
-	private String orderNumber;
-	private String invoiceId;
-	private Instant dueDate;
-	private BigDecimal amountDue;
 
 	// Tax field for Verein bookkeeping
 	private BigDecimal totalTax;
@@ -113,16 +103,6 @@ public class Document extends PanacheEntity
 	public void setBommel(Bommel bommel)
 	{
 		this.bommel = bommel;
-	}
-
-	public DocumentType getDocumentType()
-	{
-		return documentType;
-	}
-
-	public void setDocumentType(DocumentType documentType)
-	{
-		this.documentType = documentType;
 	}
 
 	public String getName()
@@ -238,46 +218,6 @@ public class Document extends PanacheEntity
 		this.privatelyPaid = privatelyPaid;
 	}
 
-	public String getOrderNumber()
-	{
-		return orderNumber;
-	}
-
-	public void setOrderNumber(String orderNumber)
-	{
-		this.orderNumber = orderNumber;
-	}
-
-	public String getInvoiceId()
-	{
-		return invoiceId;
-	}
-
-	public void setInvoiceId(String invoiceId)
-	{
-		this.invoiceId = invoiceId;
-	}
-
-	public Instant getDueDate()
-	{
-		return dueDate;
-	}
-
-	public void setDueDate(Instant dueDate)
-	{
-		this.dueDate = dueDate;
-	}
-
-	public BigDecimal getAmountDue()
-	{
-		return amountDue;
-	}
-
-	public void setAmountDue(BigDecimal amountDue)
-	{
-		this.amountDue = amountDue;
-	}
-
 	/**
 	 * Calculates Nettobetrag (net amount before tax). Netto = Brutto - MwSt
 	 */
@@ -303,11 +243,6 @@ public class Document extends PanacheEntity
 	public Instant getCreatedAt()
 	{
 		return createdAt;
-	}
-
-	public String getDisplayType()
-	{
-		return documentType == DocumentType.INVOICE ? "Rechnung" : "Beleg";
 	}
 
 	public String getDisplayTotal()
@@ -345,7 +280,7 @@ public class Document extends PanacheEntity
 		{
 			return sender.getName();
 		}
-		return getDisplayType() + " #" + id;
+		return "Beleg #" + id;
 	}
 
 	public String getTransactionDateForInput()
@@ -355,15 +290,6 @@ public class Document extends PanacheEntity
 			return "";
 		}
 		return transactionTime.atZone(ZoneId.systemDefault()).toLocalDate().toString();
-	}
-
-	public String getDueDateForInput()
-	{
-		if (dueDate == null)
-		{
-			return "";
-		}
-		return dueDate.atZone(ZoneId.systemDefault()).toLocalDate().toString();
 	}
 
 	public String getSenderName()
@@ -667,14 +593,17 @@ public class Document extends PanacheEntity
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("{");
-		sb.append("\"type\": \"").append(documentType).append("\"");
 		if (name != null)
 		{
-			sb.append(", \"name\": \"").append(name).append("\"");
+			sb.append("\"name\": \"").append(name).append("\"");
 		}
 		if (total != null)
 		{
-			sb.append(", \"total\": ").append(total);
+			if (name != null)
+			{
+				sb.append(", ");
+			}
+			sb.append("\"total\": ").append(total);
 			if (currencyCode != null)
 			{
 				sb.append(", \"currency\": \"").append(currencyCode).append("\"");
@@ -682,15 +611,11 @@ public class Document extends PanacheEntity
 		}
 		if (sender != null && sender.getName() != null)
 		{
-			sb.append(", \"sender\": \"").append(sender.getName()).append("\"");
-		}
-		if (invoiceId != null)
-		{
-			sb.append(", \"invoiceId\": \"").append(invoiceId).append("\"");
-		}
-		if (orderNumber != null)
-		{
-			sb.append(", \"orderNumber\": \"").append(orderNumber).append("\"");
+			if (name != null || total != null)
+			{
+				sb.append(", ");
+			}
+			sb.append("\"sender\": \"").append(sender.getName()).append("\"");
 		}
 		sb.append("}");
 		return sb.toString();

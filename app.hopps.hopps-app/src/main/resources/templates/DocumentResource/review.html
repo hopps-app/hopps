@@ -392,7 +392,6 @@
 
 <div class="page-header">
   <h1>
-    <span class="doc-type {document.documentType.name.toLowerCase}">{document.displayType}</span>
     Beleg prüfen
   </h1>
   <a href="/belege" class="cds-btn cds-btn-secondary">
@@ -505,7 +504,6 @@
           <input type="hidden" name="id" value="{document.id}">
           <input type="hidden" name="confirmed" id="confirmed" value="true">
           <input type="hidden" name="reanalyze" id="reanalyze" value="false">
-          <input type="hidden" name="documentType" value="{document.documentType.name}">
 
           {#include DocumentResource/partials/reviewFormFields document=document bommels=bommels /}
 

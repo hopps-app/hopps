@@ -54,10 +54,7 @@ public class DocumentDataApplier
 
 		fieldsUpdated += applyTotal(document, data);
 		fieldsUpdated += applyCurrencyCode(document, data);
-		fieldsUpdated += applyInvoiceId(document, data);
-		fieldsUpdated += applyOrderNumber(document, data);
 		fieldsUpdated += applyTransactionTime(document, data);
-		fieldsUpdated += applyDueDate(document, data);
 		fieldsUpdated += applyTotalTax(document, data);
 		fieldsUpdated += applySender(document, data);
 		fieldsUpdated += applyDocumentName(document, data);
@@ -90,28 +87,6 @@ public class DocumentDataApplier
 		return 0;
 	}
 
-	private int applyInvoiceId(Document document, DocumentData data)
-	{
-		if (data.documentId() != null && document.getInvoiceId() == null)
-		{
-			document.setInvoiceId(data.documentId());
-			LOG.debug("Autofilled invoiceId: {}", data.documentId());
-			return 1;
-		}
-		return 0;
-	}
-
-	private int applyOrderNumber(Document document, DocumentData data)
-	{
-		if (data.purchaseOrderNumber() != null && document.getOrderNumber() == null)
-		{
-			document.setOrderNumber(data.purchaseOrderNumber());
-			LOG.debug("Autofilled orderNumber: {}", data.purchaseOrderNumber());
-			return 1;
-		}
-		return 0;
-	}
-
 	private int applyTransactionTime(Document document, DocumentData data)
 	{
 		if (data.date() != null && document.getTransactionTime() == null)
@@ -122,18 +97,6 @@ public class DocumentDataApplier
 				.atZone(ZoneId.systemDefault())
 				.toInstant());
 			LOG.debug("Autofilled transactionTime: {} {}", data.date(), time);
-			return 1;
-		}
-		return 0;
-	}
-
-	private int applyDueDate(Document document, DocumentData data)
-	{
-		if (data.dueDate() != null && document.getDueDate() == null)
-		{
-			document.setDueDate(data.dueDate()
-				.atStartOfDay(ZoneId.systemDefault()).toInstant());
-			LOG.debug("Autofilled dueDate: {}", data.dueDate());
 			return 1;
 		}
 		return 0;

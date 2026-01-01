@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -50,7 +49,7 @@ class DocumentResourceTest
 	void shouldShowDocumentsInTable()
 	{
 		deleteAllData();
-		createDocument("Rechnung Test", DocumentType.INVOICE, new BigDecimal("100.00"));
+		createDocument("Rechnung Test", new BigDecimal("100.00"));
 
 		given()
 			.when()
@@ -66,7 +65,7 @@ class DocumentResourceTest
 	void shouldShowDocumentDetailPage()
 	{
 		deleteAllData();
-		Long docId = createDocument("Quittung Detail", DocumentType.RECEIPT, new BigDecimal("50.00"));
+		Long docId = createDocument("Quittung Detail", new BigDecimal("50.00"));
 
 		given()
 			.when()
@@ -111,7 +110,7 @@ class DocumentResourceTest
 	{
 		deleteAllData();
 		Long bommelId = createBommel("Test Bommel");
-		Long docId = createDocumentWithBommel("Rechnung mit Bommel", DocumentType.INVOICE, new BigDecimal("200.00"),
+		Long docId = createDocumentWithBommel("Rechnung mit Bommel", new BigDecimal("200.00"),
 			bommelId);
 
 		given()
@@ -160,7 +159,7 @@ class DocumentResourceTest
 	void shouldReturn404ForDownloadWithNoFile()
 	{
 		deleteAllData();
-		Long docId = createDocument("No File Doc", DocumentType.RECEIPT, new BigDecimal("10.00"));
+		Long docId = createDocument("No File Doc", new BigDecimal("10.00"));
 
 		given()
 			.when()
@@ -203,7 +202,7 @@ class DocumentResourceTest
 	void shouldShowUploadFormOnDetailPage()
 	{
 		deleteAllData();
-		Long docId = createDocument("Doc without File", DocumentType.RECEIPT, new BigDecimal("25.00"));
+		Long docId = createDocument("Doc without File", new BigDecimal("25.00"));
 
 		given()
 			.when()
@@ -236,8 +235,8 @@ class DocumentResourceTest
 	{
 		deleteAllData();
 		Long bommelId = createBommel("Filter Bommel");
-		createDocumentWithBommel("Filtered Doc", DocumentType.RECEIPT, new BigDecimal("10.00"), bommelId);
-		createDocument("Other Doc", DocumentType.INVOICE, new BigDecimal("20.00"));
+		createDocumentWithBommel("Filtered Doc", new BigDecimal("10.00"), bommelId);
+		createDocument("Other Doc", new BigDecimal("20.00"));
 
 		given()
 			.queryParam("bommelId", bommelId)
@@ -256,11 +255,10 @@ class DocumentResourceTest
 	}
 
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocument(String name, DocumentType type, BigDecimal total)
+	Long createDocument(String name, BigDecimal total)
 	{
 		Document document = new Document();
 		document.setName(name);
-		document.setDocumentType(type);
 		document.setTotal(total);
 		document.setCurrencyCode("EUR");
 		documentRepository.persist(document);
@@ -268,12 +266,11 @@ class DocumentResourceTest
 	}
 
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createDocumentWithBommel(String name, DocumentType type, BigDecimal total, Long bommelId)
+	Long createDocumentWithBommel(String name, BigDecimal total, Long bommelId)
 	{
 		Bommel bommel = bommelRepository.findById(bommelId);
 		Document document = new Document();
 		document.setName(name);
-		document.setDocumentType(type);
 		document.setTotal(total);
 		document.setCurrencyCode("EUR");
 		document.setBommel(bommel);
@@ -296,7 +293,6 @@ class DocumentResourceTest
 	{
 		Document document = new Document();
 		document.setName(name);
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
 

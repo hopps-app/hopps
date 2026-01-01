@@ -16,7 +16,6 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentStatus;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
@@ -128,12 +127,6 @@ public class ReviewDocumentTask extends UserTask
 	private void applyFormDataToDocument(Document document, Map<String, Object> userInput)
 	{
 		// Basic fields
-		String documentType = getString(userInput, "documentType");
-		if (documentType != null)
-		{
-			document.setDocumentType(DocumentType.valueOf(documentType));
-		}
-
 		document.setName(getString(userInput, "name"));
 
 		BigDecimal total = getBigDecimal(userInput, "total");
@@ -194,21 +187,6 @@ public class ReviewDocumentTask extends UserTask
 		else if (document.getSender() != null)
 		{
 			document.setSender(null);
-		}
-
-		// Invoice-specific fields
-		document.setInvoiceId(getString(userInput, "invoiceId"));
-		document.setOrderNumber(getString(userInput, "orderNumber"));
-
-		String dueDate = getString(userInput, "dueDate");
-		if (dueDate != null && !dueDate.isBlank())
-		{
-			LocalDate date = LocalDate.parse(dueDate);
-			document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		}
-		else
-		{
-			document.setDueDate(null);
 		}
 
 		// Tags

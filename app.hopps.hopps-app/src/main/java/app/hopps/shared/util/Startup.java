@@ -20,7 +20,6 @@ import io.quarkus.runtime.StartupEvent;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
@@ -131,7 +130,6 @@ public class Startup
 		sender1.persist();
 
 		Document doc1 = new Document();
-		doc1.setDocumentType(DocumentType.RECEIPT);
 		doc1.setName("Büromaterial");
 		doc1.setTotal(new BigDecimal("89.99"));
 		doc1.setCurrencyCode("EUR");
@@ -150,13 +148,11 @@ public class Startup
 		sender2.persist();
 
 		Document doc2 = new Document();
-		doc2.setDocumentType(DocumentType.INVOICE);
 		doc2.setName("Notenständer (5 Stück)");
 		doc2.setTotal(new BigDecimal("249.50"));
 		doc2.setTotalTax(new BigDecimal("39.83"));
 		doc2.setCurrencyCode("EUR");
 		doc2.setTransactionTime(toInstant(LocalDate.of(2024, 12, 10)));
-		doc2.setInvoiceId("INV-2024-78234");
 		doc2.setSender(sender2);
 		doc2.setBommel(orchester);
 		doc2.addTag(tagMusik, TagSource.AI);
@@ -172,7 +168,6 @@ public class Startup
 		sender3.persist();
 
 		Document doc3 = new Document();
-		doc3.setDocumentType(DocumentType.RECEIPT);
 		doc3.setName("Catering Jugendtreffen");
 		doc3.setTotal(new BigDecimal("156.80"));
 		doc3.setCurrencyCode("EUR");
@@ -192,13 +187,11 @@ public class Startup
 		sender4.persist();
 
 		Document doc4 = new Document();
-		doc4.setDocumentType(DocumentType.INVOICE);
 		doc4.setName("Busfahrt zum Wettbewerb");
 		doc4.setTotal(new BigDecimal("850.00"));
 		doc4.setTotalTax(new BigDecimal("135.71"));
 		doc4.setCurrencyCode("EUR");
 		doc4.setTransactionTime(toInstant(LocalDate.of(2024, 11, 25)));
-		doc4.setInvoiceId("2024-1892");
 		doc4.setSender(sender4);
 		doc4.setBommel(orchester);
 		doc4.setPrivatelyPaid(true);
@@ -215,7 +208,6 @@ public class Startup
 		sender5.persist();
 
 		Document doc5 = new Document();
-		doc5.setDocumentType(DocumentType.RECEIPT);
 		doc5.setName("Drucker Toner");
 		doc5.setTotal(new BigDecimal("45.99"));
 		doc5.setCurrencyCode("EUR");
@@ -234,13 +226,11 @@ public class Startup
 		sender6.persist();
 
 		Document doc6 = new Document();
-		doc6.setDocumentType(DocumentType.INVOICE);
 		doc6.setName("Stromrechnung Q3 2024");
 		doc6.setTotal(new BigDecimal("342.67"));
 		doc6.setTotalTax(new BigDecimal("54.73"));
 		doc6.setCurrencyCode("EUR");
 		doc6.setTransactionTime(toInstant(LocalDate.of(2024, 10, 1)));
-		doc6.setInvoiceId("SWM-2024-892347");
 		doc6.setSender(sender6);
 		doc6.setBommel(root);
 		documentRepository.persist(doc6);

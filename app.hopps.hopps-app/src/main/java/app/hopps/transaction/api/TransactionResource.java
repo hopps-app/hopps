@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
@@ -96,7 +95,6 @@ public class TransactionResource extends Controller
 	@Transactional
 	@Path("/create")
 	public void save(
-		@RestForm @NotNull String documentType,
 		@RestForm @NotNull BigDecimal total,
 		@RestForm String name,
 		@RestForm String transactionDate,
@@ -106,17 +104,12 @@ public class TransactionResource extends Controller
 		@RestForm String senderZipCode,
 		@RestForm String senderCity,
 		@RestForm boolean privatelyPaid,
-		@RestForm String invoiceId,
-		@RestForm String orderNumber,
-		@RestForm String dueDate,
 		@RestForm String currencyCode,
-		@RestForm BigDecimal amountDue,
 		@RestForm String tags)
 	{
 		// Create transaction
 		TransactionRecord transaction = new TransactionRecord(
 			total,
-			DocumentType.valueOf(documentType),
 			securityIdentity.getPrincipal().getName());
 
 		// Set core fields
@@ -149,16 +142,6 @@ public class TransactionResource extends Controller
 			transaction.setSender(sender);
 		}
 
-		// Set invoice fields
-		transaction.setInvoiceId(invoiceId);
-		transaction.setOrderNumber(orderNumber);
-		if (dueDate != null && !dueDate.isBlank())
-		{
-			LocalDate dueDateParsed = LocalDate.parse(dueDate);
-			transaction.setDueDate(dueDateParsed.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		}
-		transaction.setAmountDue(amountDue);
-
 		// Persist transaction
 		transactionRepository.persist(transaction);
 
@@ -188,7 +171,6 @@ public class TransactionResource extends Controller
 	@Transactional
 	public void update(
 		@RestForm @NotNull Long id,
-		@RestForm @NotNull String documentType,
 		@RestForm @NotNull BigDecimal total,
 		@RestForm String name,
 		@RestForm String transactionDate,
@@ -198,11 +180,7 @@ public class TransactionResource extends Controller
 		@RestForm String senderZipCode,
 		@RestForm String senderCity,
 		@RestForm boolean privatelyPaid,
-		@RestForm String invoiceId,
-		@RestForm String orderNumber,
-		@RestForm String dueDate,
 		@RestForm String currencyCode,
-		@RestForm BigDecimal amountDue,
 		@RestForm String tags)
 	{
 		TransactionRecord transaction = transactionRepository.findById(id);
@@ -214,7 +192,6 @@ public class TransactionResource extends Controller
 		}
 
 		// Update core fields
-		transaction.setDocumentType(DocumentType.valueOf(documentType));
 		transaction.setTotal(total);
 		transaction.setName(name);
 		transaction.setPrivatelyPaid(privatelyPaid);
@@ -258,20 +235,6 @@ public class TransactionResource extends Controller
 		{
 			transaction.setSender(null);
 		}
-
-		// Update invoice fields
-		transaction.setInvoiceId(invoiceId);
-		transaction.setOrderNumber(orderNumber);
-		if (dueDate != null && !dueDate.isBlank())
-		{
-			LocalDate dueDateParsed = LocalDate.parse(dueDate);
-			transaction.setDueDate(dueDateParsed.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		}
-		else
-		{
-			transaction.setDueDate(null);
-		}
-		transaction.setAmountDue(amountDue);
 
 		// Update tags
 		updateTransactionTags(transaction, tags);

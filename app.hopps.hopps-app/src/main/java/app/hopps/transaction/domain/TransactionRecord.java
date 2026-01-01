@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.shared.domain.Tag;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
@@ -54,21 +53,11 @@ public class TransactionRecord extends PanacheEntity
 	@Column(nullable = false)
 	private boolean privatelyPaid;
 
-	@Column(nullable = false)
-	@Enumerated(EnumType.STRING)
-	private DocumentType documentType;
-
 	@Column(name = "transaction_time")
 	private Instant transactionTime;
 
 	// Optional descriptive fields
 	private String name;
-
-	// Invoice-specific fields
-	private String orderNumber;
-	private String invoiceId;
-	private Instant dueDate;
-	private BigDecimal amountDue;
 	private String currencyCode;
 
 	@Column(nullable = false, updatable = false)
@@ -80,11 +69,10 @@ public class TransactionRecord extends PanacheEntity
 		this.privatelyPaid = false;
 	}
 
-	public TransactionRecord(BigDecimal total, DocumentType documentType, String uploader)
+	public TransactionRecord(BigDecimal total, String uploader)
 	{
 		this();
 		this.total = total;
-		this.documentType = documentType;
 		this.uploader = uploader;
 	}
 
@@ -144,16 +132,6 @@ public class TransactionRecord extends PanacheEntity
 		this.privatelyPaid = privatelyPaid;
 	}
 
-	public DocumentType getDocumentType()
-	{
-		return documentType;
-	}
-
-	public void setDocumentType(DocumentType documentType)
-	{
-		this.documentType = documentType;
-	}
-
 	public Instant getTransactionTime()
 	{
 		return transactionTime;
@@ -202,46 +180,6 @@ public class TransactionRecord extends PanacheEntity
 	public void setName(String name)
 	{
 		this.name = name;
-	}
-
-	public String getOrderNumber()
-	{
-		return orderNumber;
-	}
-
-	public void setOrderNumber(String orderNumber)
-	{
-		this.orderNumber = orderNumber;
-	}
-
-	public String getInvoiceId()
-	{
-		return invoiceId;
-	}
-
-	public void setInvoiceId(String invoiceId)
-	{
-		this.invoiceId = invoiceId;
-	}
-
-	public Instant getDueDate()
-	{
-		return dueDate;
-	}
-
-	public void setDueDate(Instant dueDate)
-	{
-		this.dueDate = dueDate;
-	}
-
-	public BigDecimal getAmountDue()
-	{
-		return amountDue;
-	}
-
-	public void setAmountDue(BigDecimal amountDue)
-	{
-		this.amountDue = amountDue;
 	}
 
 	public String getCurrencyCode()
@@ -323,7 +261,7 @@ public class TransactionRecord extends PanacheEntity
 	}
 
 	/**
-	 * Returns display name for the transaction (name, sender name, or type+ID).
+	 * Returns display name for the transaction (name, sender name, or default).
 	 */
 	public String getDisplayName()
 	{
@@ -335,15 +273,7 @@ public class TransactionRecord extends PanacheEntity
 		{
 			return sender.getName();
 		}
-		return getDisplayType() + " #" + id;
-	}
-
-	/**
-	 * Returns display type ("Rechnung" or "Beleg").
-	 */
-	public String getDisplayType()
-	{
-		return documentType == DocumentType.INVOICE ? "Rechnung" : "Beleg";
+		return "Transaktion #" + id;
 	}
 
 	/**
@@ -429,25 +359,5 @@ public class TransactionRecord extends PanacheEntity
 	public String getDisplayDateIso()
 	{
 		return getTransactionDateForInput();
-	}
-
-	/**
-	 * Returns due date formatted for HTML input (yyyy-MM-dd).
-	 */
-	public String getDueDateForInput()
-	{
-		if (dueDate == null)
-		{
-			return "";
-		}
-		return dueDate.atZone(ZoneId.systemDefault()).toLocalDate().toString();
-	}
-
-	/**
-	 * Returns due date in ISO format (alias for getDueDateForInput).
-	 */
-	public String getDisplayDueDateIso()
-	{
-		return getDueDateForInput();
 	}
 }

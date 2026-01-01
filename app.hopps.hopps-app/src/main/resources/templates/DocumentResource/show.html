@@ -37,7 +37,6 @@
 
 <div class="page-header">
   <h1>
-    <span class="doc-type {document.documentType.name.toLowerCase}">{document.displayType}</span>
     {document.displayName}
     {#if document.documentStatus}
     <span class="status-badge {document.documentStatus.name.toLowerCase}" style="margin-left: 1rem; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 500;">
@@ -166,7 +165,6 @@
 <div class="box">
   {#form uri:DocumentResource.update()}
     <input type="hidden" name="id" value="{document.id}">
-    <input type="hidden" name="documentType" value="{document.documentType.name}">
 
     <div class="form-section">
       <h3>Belegdaten{#if document.displayExtractionSource} <span style="font-size: 0.75rem; font-weight: normal; color: #6929c4; margin-left: 0.5rem;">(Extrahiert via {document.displayExtractionSource})</span>{/if}</h3>
@@ -240,24 +238,6 @@
         <div class="form-group">
           <label for="senderCity">Ort</label>
           <input type="text" id="senderCity" name="senderCity" value="{document.senderCity}">
-        </div>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <h3>Rechnungsdetails</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="invoiceId">Rechnungsnummer</label>
-          <input type="text" id="invoiceId" name="invoiceId" value="{document.invoiceId ?: ''}">
-        </div>
-        <div class="form-group">
-          <label for="orderNumber">Bestellnummer</label>
-          <input type="text" id="orderNumber" name="orderNumber" value="{document.orderNumber ?: ''}">
-        </div>
-        <div class="form-group">
-          <label for="dueDate">Fälligkeitsdatum</label>
-          <input type="date" id="dueDate" name="dueDate" value="{document.dueDateForInput}">
         </div>
       </div>
     </div>
