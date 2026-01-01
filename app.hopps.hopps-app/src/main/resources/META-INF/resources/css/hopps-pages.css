@@ -5,20 +5,21 @@
 /* Dashboard Grid */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr); /* Default to 2 columns for better fit */
   gap: var(--cds-spacing-05);
   margin-bottom: var(--cds-spacing-07);
+  width: 100%; /* Force grid to respect container width */
 }
 
-@media (max-width: 1200px) {
+@media (min-width: 1600px) {
   .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* 4 columns only on very wide screens */
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* 1 column on narrow screens */
   }
 }
 
@@ -82,14 +83,15 @@
 /* Charts Row */
 .charts-row {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr; /* Stack charts by default for better fit */
   gap: var(--cds-spacing-05);
   margin-bottom: var(--cds-spacing-07);
+  width: 100%; /* Force grid to respect container width */
 }
 
-@media (max-width: 900px) {
+@media (min-width: 1400px) {
   .charts-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 2fr; /* Side-by-side only on wide screens */
   }
 }
 
@@ -726,51 +728,7 @@ cds-table-row.needs-review {
   100% { background-position: -200% 0; }
 }
 
-/* AI Styling (changed from purple to blue) */
-.ai-gradient-box {
-  background: linear-gradient(135deg, rgba(15, 98, 254, 0.05) 0%, rgba(166, 200, 255, 0.08) 100%);
-  border: 1px solid rgba(15, 98, 254, 0.2);
-}
-
-.ai-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: var(--cds-spacing-05);
-  padding-bottom: var(--cds-spacing-05);
-  border-bottom: 1px solid rgba(15, 98, 254, 0.2);
-}
-
-.ai-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--cds-link-primary-hover);
-}
-
-.ai-message {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(15, 98, 254, 0.08);
-  border-radius: 4px;
-  margin-bottom: var(--cds-spacing-05);
-}
-
-.ai-message svg {
-  width: 20px;
-  height: 20px;
-  fill: var(--cds-link-primary-hover);
-  flex-shrink: 0;
-}
-
-.ai-message p {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #003a6d;
-}
-
+/* AI Label Styling (used with Carbon AI labels) */
 .ai-explainer {
   padding: 0.5rem;
 }
@@ -783,17 +741,6 @@ cds-table-row.needs-review {
 
 .ai-explainer .bold {
   font-weight: 600;
-}
-
-/* AI Form Input Styling */
-.form-group cds-ai-label {
-  margin-left: 0.25rem;
-}
-
-.form-group input.ai-value,
-.form-group select.ai-value {
-  background: linear-gradient(135deg, rgba(208, 226, 255, 0.3) 0%, rgba(166, 200, 255, 0.3) 100%);
-  border-bottom-color: var(--cds-link-primary);
 }
 
 /* Review Layout */

@@ -1,5 +1,10 @@
 /* Hopps Core Styles - Global Layout, Navigation, and Utilities */
 
+/* Box sizing border-box for all elements */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 /* Carbon Design System Overrides (Gray 10 theme will be loaded via CDN) */
 :root {
   --cds-spacing-03: 0.5rem;
@@ -26,6 +31,7 @@ body {
   margin: 0;
   font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--cds-layer-01);
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Carbon UI Shell Layout Adjustments */
@@ -36,6 +42,8 @@ body {
   margin-top: 48px; /* Height of cds-header */
   margin-left: 48px; /* Width of collapsed rail side-nav */
   transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9);
+  width: calc(100vw - 48px); /* Constrain to viewport width minus side-nav */
+  overflow-x: hidden;
 }
 
 .content {
@@ -43,14 +51,10 @@ body {
   min-height: calc(100vh - 48px);
 }
 
-.content-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
 /* When side nav is expanded (256px wide) - handled by JS */
 body.side-nav-expanded .app-container {
   margin-left: 256px;
+  width: calc(100vw - 256px); /* Constrain to viewport width minus expanded side-nav */
 }
 
 /* Responsive: side nav overlays content on mobile */
