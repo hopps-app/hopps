@@ -246,6 +246,22 @@ class DocumentResourceTest
 			.body(containsString("Filtered Doc"));
 	}
 
+	@Test
+	@TestSecurity(user = "bob", roles = "user")
+	void shouldShowTransactionCreationAlertForConfirmedDocuments()
+	{
+		deleteAllData();
+		createConfirmedDocument("Confirmed Doc", new BigDecimal("100.00"));
+
+		given()
+			.when()
+			.get("/belege")
+			.then()
+			.statusCode(200)
+			.body(containsString("kann in eine Transaktion umgewandelt werden"))
+			.body(containsString("Transaktion erstellen"));
+	}
+
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	void deleteAllData()
 	{
@@ -304,6 +320,18 @@ class DocumentResourceTest
 		// Upload to S3
 		storageService.uploadFile(fileKey, content, "text/plain");
 
+		documentRepository.persist(document);
+		return document.getId();
+	}
+
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	Long createConfirmedDocument(String name, BigDecimal total)
+	{
+		Document document = new Document();
+		document.setName(name);
+		document.setTotal(total);
+		document.setCurrencyCode("EUR");
+		document.setDocumentStatus(app.hopps.document.domain.DocumentStatus.CONFIRMED);
 		documentRepository.persist(document);
 		return document.getId();
 	}

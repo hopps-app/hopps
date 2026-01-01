@@ -86,7 +86,7 @@ public class DocumentResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
-		public static native TemplateInstance index(List<Document> documents, List<Document> documentsNeedingReview);
+		public static native TemplateInstance index(List<Document> documents, List<Document> documentsNeedingReview, List<Document> documentsNeedingTransaction);
 
 		public static native TemplateInstance create();
 
@@ -117,7 +117,14 @@ public class DocumentResource extends Controller
 			.filter(d -> d.getDocumentStatus() != null && d.getDocumentStatus() == DocumentStatus.ANALYZED)
 			.toList();
 
-		return Templates.index(documents, documentsNeedingReview);
+		// Filter documents that need transaction creation (confirmed but no
+		// transactions)
+		List<Document> documentsNeedingTransaction = documents.stream()
+			.filter(d -> d.getDocumentStatus() != null && d.getDocumentStatus() == DocumentStatus.CONFIRMED)
+			.filter(d -> d.getTransactionCount() == 0)
+			.toList();
+
+		return Templates.index(documents, documentsNeedingReview, documentsNeedingTransaction);
 	}
 
 	@GET
