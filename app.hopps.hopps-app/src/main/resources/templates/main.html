@@ -37,97 +37,59 @@
   <body>
     {#include tags/header.html /}
 
-    <div class="side-nav-overlay" onclick="toggleSideNav()"></div>
+    <cds-side-nav aria-label="Hauptnavigation" collapse-mode="rail" expanded>
+      <cds-side-nav-items>
+        <cds-side-nav-link href="/" {#if inject:vertxRequest.path == '/'}active{/if}>
+          Dashboard
+          <svg slot="title-icon" viewBox="0 0 32 32"><path d="M16.61 2.21a1 1 0 0 0-1.24 0L1 13.42 2.24 15 4 13.55V26a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V13.55L29.76 15 31 13.42ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.06l10-8.14 10 8.14V26Z"/></svg>
+        </cds-side-nav-link>
 
-    <nav class="side-nav" aria-label="Hauptnavigation">
-      <div class="side-nav-section">
-        <ul class="side-nav-items">
-          <li class="side-nav-item">
-            <a href="/" class="side-nav-link {#if inject:vertxRequest.path == '/'}active{/if}">
-              <svg viewBox="0 0 32 32"><path d="M16.61 2.21a1 1 0 0 0-1.24 0L1 13.42 2.24 15 4 13.55V26a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V13.55L29.76 15 31 13.42ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.06l10-8.14 10 8.14V26Z"/></svg>
-              Dashboard
-            </a>
-          </li>
-        </ul>
-      </div>
+        <cds-side-nav-divider></cds-side-nav-divider>
 
-      <div class="side-nav-divider"></div>
+        <cds-side-nav-menu title="Organisation">
+          <svg slot="title-icon" viewBox="0 0 32 32"><path d="M16,15h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6V2h-2v22c0,1.1025.897,2,2,2h9v3c0,.5522.4477,1,1,1h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6v-13h9v3c0,.5522.4477,1,1,1ZM17,6h2.76l.45.89.55,1.11h5.24v5h-9v-7ZM17,21h2.76l.45.89.55,1.11h5.24v5h-9v-7Z"/></svg>
+          <cds-side-nav-menu-item href="/bommels" {#if inject:vertxRequest.path.startsWith('/bommels')}active{/if}>
+            Bommels
+          </cds-side-nav-menu-item>
+        </cds-side-nav-menu>
 
-      <div class="side-nav-section">
-        <div class="side-nav-section-title">Organisation</div>
-        <ul class="side-nav-items">
-          <li class="side-nav-item">
-            <a href="/bommels" class="side-nav-link {#if inject:vertxRequest.path.startsWith('/bommels')}active{/if}">
-              <svg viewBox="0 0 32 32"><path d="M16,15h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6V2h-2v22c0,1.1025.897,2,2,2h9v3c0,.5522.4477,1,1,1h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6v-13h9v3c0,.5522.4477,1,1,1ZM17,6h2.76l.45.89.55,1.11h5.24v5h-9v-7ZM17,21h2.76l.45.89.55,1.11h5.24v5h-9v-7Z"/></svg>
-              Bommels
-            </a>
-          </li>
-        </ul>
-      </div>
+        <cds-side-nav-divider></cds-side-nav-divider>
 
-      <div class="side-nav-divider"></div>
+        <cds-side-nav-menu title="Stammdaten">
+          <svg slot="title-icon" viewBox="0 0 32 32"><path d="M12 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM22 30h-2v-5a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v5H2v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7ZM22 4h10v2H22zM22 9h10v2H22zM22 14h7v2h-7z"/></svg>
+          <cds-side-nav-menu-item href="/mitglieder" {#if inject:vertxRequest.path.startsWith('/mitglieder')}active{/if}>
+            Mitglieder
+          </cds-side-nav-menu-item>
+          <cds-side-nav-menu-item href="#" disabled>
+            Kategorien
+          </cds-side-nav-menu-item>
+        </cds-side-nav-menu>
 
-      <div class="side-nav-section">
-        <div class="side-nav-section-title">Stammdaten</div>
-        <ul class="side-nav-items">
-          <li class="side-nav-item">
-            <a href="/mitglieder" class="side-nav-link {#if inject:vertxRequest.path.startsWith('/mitglieder')}active{/if}">
-              <svg viewBox="0 0 32 32"><path d="M12 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM22 30h-2v-5a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v5H2v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7ZM22 4h10v2H22zM22 9h10v2H22zM22 14h7v2h-7z"/></svg>
-              Mitglieder
-            </a>
-          </li>
-          <li class="side-nav-item">
-            <a href="#" class="side-nav-link coming-soon">
-              <svg viewBox="0 0 32 32"><path d="M8 18h6v2H8zM8 24h10v2H8zM26 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 22H6V6h20Z"/><path d="M18 10h4v4h-4z"/></svg>
-              Kategorien
-              <span class="coming-soon-tag">Bald</span>
-            </a>
-          </li>
-        </ul>
-      </div>
+        <cds-side-nav-divider></cds-side-nav-divider>
 
-      <div class="side-nav-divider"></div>
+        <cds-side-nav-menu title="Finanzen">
+          <svg slot="title-icon" viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+          <cds-side-nav-menu-item href="/belege" {#if inject:vertxRequest.path.startsWith('/belege')}active{/if}>
+            Belege
+          </cds-side-nav-menu-item>
+          <cds-side-nav-menu-item href="/transaktionen" {#if inject:vertxRequest.path.startsWith('/transaktionen')}active{/if}>
+            Transaktionen
+          </cds-side-nav-menu-item>
+        </cds-side-nav-menu>
 
-      <div class="side-nav-section">
-        <div class="side-nav-section-title">Finanzen</div>
-        <ul class="side-nav-items">
-          <li class="side-nav-item">
-            <a href="/belege" class="side-nav-link {#if inject:vertxRequest.path.startsWith('/belege')}active{/if}">
-              <svg viewBox="0 0 32 32"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/><path d="M10 22h12v2H10zM10 16h12v2H10z"/></svg>
-              Belege
-            </a>
-          </li>
-          <li class="side-nav-item">
-            <a href="/transaktionen" class="side-nav-link {#if inject:vertxRequest.path.startsWith('/transaktionen')}active{/if}">
-              <svg viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
-              Transaktionen
-            </a>
-          </li>
-        </ul>
-      </div>
+        <cds-side-nav-divider></cds-side-nav-divider>
 
-      <div class="side-nav-divider"></div>
-
-      <div class="side-nav-section">
-        <div class="side-nav-section-title">System</div>
-        <ul class="side-nav-items">
-          <li class="side-nav-item">
-            <a href="#" class="side-nav-link coming-soon">
-              <svg viewBox="0 0 32 32"><path d="M28 16a12 12 0 0 0-.8-4.3l1.8-.7a14.2 14.2 0 0 1 0 10l-1.8-.7A12 12 0 0 0 28 16ZM16 28a12 12 0 0 1-4.3-.8l-.7 1.8a14.2 14.2 0 0 0 10 0l-.7-1.8A12 12 0 0 1 16 28ZM4 16a12 12 0 0 1 .8-4.3l-1.8-.7a14.2 14.2 0 0 0 0 10l1.8-.7A12 12 0 0 1 4 16ZM16 4a12 12 0 0 1 4.3.8l.7-1.8a14.2 14.2 0 0 0-10 0l.7 1.8A12 12 0 0 1 16 4Z"/><path d="M16 24a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"/></svg>
-              Einstellungen
-              <span class="coming-soon-tag">Bald</span>
-            </a>
-          </li>
-          <li class="side-nav-item">
-            <a href="#" class="side-nav-link coming-soon">
-              <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M15 8h2v11h-2zM15 21h2v3h-2z"/></svg>
-              Audit-Log
-              <span class="coming-soon-tag">Bald</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+        <cds-side-nav-menu title="System">
+          <svg slot="title-icon" viewBox="0 0 32 32"><path d="M28 16a12 12 0 0 0-.8-4.3l1.8-.7a14.2 14.2 0 0 1 0 10l-1.8-.7A12 12 0 0 0 28 16ZM16 28a12 12 0 0 1-4.3-.8l-.7 1.8a14.2 14.2 0 0 0 10 0l-.7-1.8A12 12 0 0 1 16 28ZM4 16a12 12 0 0 1 .8-4.3l-1.8-.7a14.2 14.2 0 0 0 0 10l1.8-.7A12 12 0 0 1 4 16ZM16 4a12 12 0 0 1 4.3.8l.7-1.8a14.2 14.2 0 0 0-10 0l.7 1.8A12 12 0 0 1 16 4Z"/><path d="M16 24a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"/></svg>
+          <cds-side-nav-menu-item href="#" disabled>
+            Einstellungen
+          </cds-side-nav-menu-item>
+          <cds-side-nav-menu-item href="#" disabled>
+            Audit-Log
+          </cds-side-nav-menu-item>
+        </cds-side-nav-menu>
+      </cds-side-nav-items>
+    </cds-side-nav>
 
     <div class="app-container">
       <main class="content">
@@ -139,9 +101,50 @@
 
     <script>
       function toggleSideNav() {
-        document.querySelector('.side-nav').classList.toggle('expanded');
-        document.querySelector('.side-nav-overlay').classList.toggle('visible');
+        var sideNav = document.querySelector('cds-side-nav');
+        if (sideNav) {
+          sideNav.expanded = !sideNav.expanded;
+        }
       }
+
+      // Handle side-nav expand/collapse for content layout
+      document.addEventListener('DOMContentLoaded', function() {
+        var sideNav = document.querySelector('cds-side-nav');
+        if (sideNav) {
+          // Set initial state
+          function updateLayout() {
+            if (sideNav.expanded) {
+              document.body.classList.add('side-nav-expanded');
+            } else {
+              document.body.classList.remove('side-nav-expanded');
+            }
+          }
+
+          // Update on initial load
+          updateLayout();
+
+          // Watch for changes to the expanded attribute
+          var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.attributeName === 'expanded') {
+                updateLayout();
+              }
+            });
+          });
+
+          observer.observe(sideNav, { attributes: true });
+
+          // Also listen for property changes (when set via JS)
+          var originalExpanded = sideNav.expanded;
+          Object.defineProperty(sideNav, '_expanded', {
+            get: function() { return originalExpanded; },
+            set: function(value) {
+              originalExpanded = value;
+              updateLayout();
+            }
+          });
+        }
+      });
 
       // Shared tag handling functionality
       function initTagHandling() {
