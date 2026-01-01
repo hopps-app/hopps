@@ -1,9 +1,0 @@
-{
-  "name": "hopps-frontend",
-  "private": true,
-  "version": "1.0.0",
-  "workspaces": [
-    "spa",
-    "api-client"
-  ]
-}
