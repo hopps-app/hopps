@@ -20,7 +20,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import app.hopps.document.client.WireMockTestProfile;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
 import app.hopps.workflow.WorkflowInstance;
@@ -106,7 +105,6 @@ class ZugFerdIT
 
 		Document document = new Document();
 		document.setName(null);
-		document.setDocumentType(DocumentType.INVOICE);
 		document.setCurrencyCode(null);
 		document.setTotal(BigDecimal.ZERO);
 
@@ -133,7 +131,6 @@ class ZugFerdIT
 		assertThat(found.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
 		assertThat(found.getTotal(), equalTo(new BigDecimal("1005.55")));
 		assertThat(found.getCurrencyCode(), equalTo("EUR"));
-		assertThat(found.getInvoiceId(), equalTo("RE-2024-001"));
 		assertThat(found.getSender(), is(notNullValue()));
 		assertThat(found.getSender().getName(), equalTo("Test Lieferant GmbH"));
 	}
@@ -184,7 +181,6 @@ class ZugFerdIT
 
 		Document document = new Document();
 		document.setName(null);
-		document.setDocumentType(DocumentType.INVOICE);
 		document.setCurrencyCode(null);
 		document.setTotal(BigDecimal.ZERO);
 
@@ -210,7 +206,6 @@ class ZugFerdIT
 		Document found = documentRepository.findById(document.getId());
 		assertThat(found.getAnalysisStatus(), is(AnalysisStatus.COMPLETED));
 		assertThat(found.getTotal(), equalTo(new BigDecimal("500.00")));
-		assertThat(found.getInvoiceId(), equalTo("AI-EXTRACTED-001"));
 		assertThat(found.getName(), equalTo("AI Detected Merchant"));
 	}
 
@@ -255,7 +250,6 @@ class ZugFerdIT
 
 		Document document = new Document();
 		document.setName(null);
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setCurrencyCode(null);
 		document.setTotal(BigDecimal.ZERO);
 

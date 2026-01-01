@@ -117,24 +117,9 @@
 <div class="box">
   {#form uri:TransactionResource.save()}
 
-  <!-- Section 1: Typ & Grunddaten -->
+  <!-- Section 1: Grunddaten -->
   <div class="form-section">
     <h3>Grunddaten</h3>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Typ</label>
-        <div class="radio-group">
-          <label>
-            <input type="radio" name="documentType" value="INVOICE" checked>
-            Rechnung
-          </label>
-          <label>
-            <input type="radio" name="documentType" value="RECEIPT">
-            Beleg
-          </label>
-        </div>
-      </div>
-    </div>
     <div class="form-row">
       <div class="form-group">
         <label for="name">Name / Beschreibung</label>
@@ -202,32 +187,7 @@
     </div>
   </div>
 
-  <!-- Section 3: Rechnungsdetails (conditional) -->
-  <div class="form-section" id="invoiceDetails">
-    <h3>Rechnungsdetails</h3>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="invoiceId">Rechnungsnummer</label>
-        <input type="text" id="invoiceId" name="invoiceId">
-      </div>
-      <div class="form-group">
-        <label for="orderNumber">Bestellnummer</label>
-        <input type="text" id="orderNumber" name="orderNumber">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="dueDate">Fälligkeitsdatum</label>
-        <input type="date" id="dueDate" name="dueDate">
-      </div>
-      <div class="form-group">
-        <label for="amountDue">Fälliger Betrag</label>
-        <input type="number" id="amountDue" name="amountDue" step="0.01">
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 4: Tags -->
+  <!-- Section 3: Tags -->
   <div class="form-section">
     <h3>Tags</h3>
     <div class="form-row">
@@ -247,25 +207,6 @@
 
   {/form}
 </div>
-
-<script>
-  // Show/hide invoice details based on type selection
-  const invoiceDetails = document.getElementById('invoiceDetails');
-  const documentTypeInputs = document.querySelectorAll('input[name="documentType"]');
-
-  // Initial state
-  invoiceDetails.style.display = 'block';
-
-  documentTypeInputs.forEach(input => {
-    input.addEventListener('change', (e) => {
-      if (e.target.value === 'INVOICE') {
-        invoiceDetails.style.display = 'block';
-      } else {
-        invoiceDetails.style.display = 'none';
-      }
-    });
-  });
-</script>
 
 {#flashNotifications /}
 

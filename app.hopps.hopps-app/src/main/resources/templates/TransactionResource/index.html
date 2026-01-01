@@ -12,23 +12,6 @@
   .page-header h1 {
     margin: 0;
   }
-  .doc-type {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-  .doc-type.invoice {
-    background: linear-gradient(135deg, #d0e2ff 0%, #a6c8ff 100%);
-    color: #0043ce;
-  }
-  .doc-type.receipt {
-    background: linear-gradient(135deg, #defbe6 0%, #a7f0ba 100%);
-    color: #0e6027;
-  }
   .amount {
     font-weight: 600;
     font-family: 'IBM Plex Mono', monospace;
@@ -151,7 +134,6 @@
     <cds-table size="lg">
       <cds-table-head>
         <cds-table-header-row>
-          <cds-table-header-cell>Typ</cds-table-header-cell>
           <cds-table-header-cell>Name</cds-table-header-cell>
           <cds-table-header-cell>Datum</cds-table-header-cell>
           <cds-table-header-cell>Betrag</cds-table-header-cell>
@@ -163,11 +145,6 @@
       <cds-table-body>
         {#for t in transactions}
         <cds-table-row onclick="window.location='/transaktionen/{t.id}'">
-          <cds-table-cell>
-            <span class="doc-type {#if t.documentType.name == 'INVOICE'}invoice{#else}receipt{/if}">
-              {t.displayType}
-            </span>
-          </cds-table-cell>
           <cds-table-cell>
             <div class="transaction-name">
               <strong>{t.displayName}</strong>

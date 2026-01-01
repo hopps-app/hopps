@@ -16,7 +16,6 @@ import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.DocumentTag;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
@@ -232,13 +231,11 @@ public class DocumentResource extends Controller
 	}
 
 	/**
-	 * Step 1: Upload file and create document (simplified - just file and type)
+	 * Step 1: Upload file and create document
 	 */
 	@POST
 	@Path("/upload")
-	public void upload(
-		@RestForm @NotNull String documentType,
-		@RestForm("file") FileUpload file)
+	public void upload(@RestForm("file") FileUpload file)
 	{
 		if (validationFailed())
 		{
@@ -257,17 +254,16 @@ public class DocumentResource extends Controller
 		// Create and persist document in a separate transaction
 		// This prevents transaction rollback when redirect() throws
 		// RedirectException
-		Long documentId = createAndPersistDocument(documentType, file);
+		Long documentId = createAndPersistDocument(file);
 
 		// Redirect to review page where user can see AI results
 		redirect(DocumentResource.class).review(documentId);
 	}
 
 	@Transactional(Transactional.TxType.REQUIRES_NEW)
-	Long createAndPersistDocument(String documentType, FileUpload file)
+	Long createAndPersistDocument(FileUpload file)
 	{
 		Document document = new Document();
-		document.setDocumentType(DocumentType.valueOf(documentType));
 		document.setTotal(java.math.BigDecimal.ZERO); // Placeholder, will be
 														// filled by AI
 		document.setCurrencyCode("EUR");
@@ -348,7 +344,6 @@ public class DocumentResource extends Controller
 		@RestForm @NotNull Long id,
 		@RestForm @NotNull Boolean confirmed,
 		@RestForm @NotNull Boolean reanalyze,
-		@RestForm @NotNull String documentType,
 		@RestForm String name,
 		@RestForm @NotNull BigDecimal total,
 		@RestForm BigDecimal totalTax,
@@ -360,9 +355,6 @@ public class DocumentResource extends Controller
 		@RestForm String senderZipCode,
 		@RestForm String senderCity,
 		@RestForm boolean privatelyPaid,
-		@RestForm String invoiceId,
-		@RestForm String orderNumber,
-		@RestForm String dueDate,
 		@RestForm String tags)
 	{
 		Document document = documentRepository.findById(id);
@@ -378,7 +370,6 @@ public class DocumentResource extends Controller
 		userInput.put("id", id);
 		userInput.put("confirmed", confirmed);
 		userInput.put("reanalyze", reanalyze);
-		userInput.put("documentType", documentType);
 		userInput.put("name", name);
 		userInput.put("total", total);
 		userInput.put("totalTax", totalTax);
@@ -390,9 +381,6 @@ public class DocumentResource extends Controller
 		userInput.put("senderZipCode", senderZipCode);
 		userInput.put("senderCity", senderCity);
 		userInput.put("privatelyPaid", privatelyPaid);
-		userInput.put("invoiceId", invoiceId);
-		userInput.put("orderNumber", orderNumber);
-		userInput.put("dueDate", dueDate);
 		userInput.put("tags", tags);
 
 		// Complete the UserTask in the workflow
@@ -470,7 +458,6 @@ public class DocumentResource extends Controller
 	@Transactional
 	public void save(
 		@RestForm @NotNull Long id,
-		@RestForm @NotNull String documentType,
 		@RestForm String name,
 		@RestForm @NotNull BigDecimal total,
 		@RestForm BigDecimal totalTax,
@@ -482,9 +469,6 @@ public class DocumentResource extends Controller
 		@RestForm String senderZipCode,
 		@RestForm String senderCity,
 		@RestForm boolean privatelyPaid,
-		@RestForm String invoiceId,
-		@RestForm String orderNumber,
-		@RestForm String dueDate,
 		@RestForm String tags)
 	{
 		Document document = documentRepository.findById(id);
@@ -495,7 +479,6 @@ public class DocumentResource extends Controller
 			return;
 		}
 
-		document.setDocumentType(DocumentType.valueOf(documentType));
 		document.setName(name);
 		document.setTotal(total);
 		document.setTotalTax(totalTax);
@@ -540,19 +523,6 @@ public class DocumentResource extends Controller
 			document.setSender(null);
 		}
 
-		// Invoice-specific fields (saved for all document types now)
-		document.setInvoiceId(invoiceId);
-		document.setOrderNumber(orderNumber);
-		if (dueDate != null && !dueDate.isBlank())
-		{
-			LocalDate date = LocalDate.parse(dueDate);
-			document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		}
-		else
-		{
-			document.setDueDate(null);
-		}
-
 		// Handle tags
 		updateDocumentTags(document, tags);
 
@@ -569,7 +539,6 @@ public class DocumentResource extends Controller
 	@Transactional
 	public void update(
 		@RestForm @NotNull Long id,
-		@RestForm @NotNull String documentType,
 		@RestForm String name,
 		@RestForm @NotNull BigDecimal total,
 		@RestForm BigDecimal totalTax,
@@ -581,9 +550,6 @@ public class DocumentResource extends Controller
 		@RestForm String senderZipCode,
 		@RestForm String senderCity,
 		@RestForm boolean privatelyPaid,
-		@RestForm String invoiceId,
-		@RestForm String orderNumber,
-		@RestForm String dueDate,
 		@RestForm String tags)
 	{
 		Document document = documentRepository.findById(id);
@@ -594,7 +560,6 @@ public class DocumentResource extends Controller
 			return;
 		}
 
-		document.setDocumentType(DocumentType.valueOf(documentType));
 		document.setName(name);
 		document.setTotal(total);
 		document.setTotalTax(totalTax);
@@ -637,19 +602,6 @@ public class DocumentResource extends Controller
 		else if (sender != null)
 		{
 			document.setSender(null);
-		}
-
-		// Invoice-specific fields (saved for all document types now)
-		document.setInvoiceId(invoiceId);
-		document.setOrderNumber(orderNumber);
-		if (dueDate != null && !dueDate.isBlank())
-		{
-			LocalDate date = LocalDate.parse(dueDate);
-			document.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-		}
-		else
-		{
-			document.setDueDate(null);
 		}
 
 		// Handle tags
@@ -855,7 +807,6 @@ public class DocumentResource extends Controller
 		// Create transaction from document
 		TransactionRecord transaction = new TransactionRecord(
 			document.getTotal(),
-			document.getDocumentType(),
 			securityIdentity.getPrincipal().getName());
 
 		// Link to document
@@ -880,13 +831,6 @@ public class DocumentResource extends Controller
 			sender.setCity(document.getSender().getCity());
 			transaction.setSender(sender);
 		}
-
-		// Copy invoice fields
-		transaction.setInvoiceId(document.getInvoiceId());
-		transaction.setOrderNumber(document.getOrderNumber());
-		transaction.setDueDate(document.getDueDate());
-		transaction.setAmountDue(
-			document.getDueDate() != null ? document.getTotal() : null);
 
 		// Copy tags (preserve AI source)
 		for (DocumentTag docTag : document.getDocumentTags())

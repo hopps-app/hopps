@@ -35,7 +35,6 @@ class DocumentTagTest
 
 		Document document = new Document();
 		document.setName("Test Document");
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
 
@@ -63,7 +62,6 @@ class DocumentTagTest
 
 		Document doc1 = new Document();
 		doc1.setName("Doc 1");
-		doc1.setDocumentType(DocumentType.RECEIPT);
 		doc1.setTotal(new BigDecimal("10.00"));
 		doc1.setCurrencyCode("EUR");
 		for (Tag tag : tags1)
@@ -74,7 +72,6 @@ class DocumentTagTest
 
 		Document doc2 = new Document();
 		doc2.setName("Doc 2");
-		doc2.setDocumentType(DocumentType.RECEIPT);
 		doc2.setTotal(new BigDecimal("10.00"));
 		doc2.setCurrencyCode("EUR");
 		for (Tag tag : tags2)
@@ -115,7 +112,6 @@ class DocumentTagTest
 
 		Document document = new Document();
 		document.setName("Test Doc");
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
 
@@ -173,7 +169,6 @@ class DocumentTagTest
 
 		Document document = new Document();
 		document.setName("Test Doc");
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
 
@@ -203,7 +198,6 @@ class DocumentTagTest
 
 		Document document = new Document();
 		document.setName("Test Doc");
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
 
@@ -260,7 +254,6 @@ class DocumentTagTest
 	{
 		Document document = new Document();
 		document.setName("No Tags Doc");
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
 
@@ -276,7 +269,6 @@ class DocumentTagTest
 	void shouldIdentifyAiGeneratedTags()
 	{
 		Document doc = new Document();
-		doc.setDocumentType(DocumentType.RECEIPT);
 		doc.setTotal(BigDecimal.TEN);
 
 		Tag aiTag = new Tag("food");
@@ -303,7 +295,6 @@ class DocumentTagTest
 	void shouldTrackTagSourceCorrectly()
 	{
 		Document doc = new Document();
-		doc.setDocumentType(DocumentType.RECEIPT);
 		doc.setTotal(BigDecimal.TEN);
 
 		Tag tag1 = new Tag("ai-tag");
@@ -333,7 +324,6 @@ class DocumentTagTest
 	void shouldReturnFalseForNoAiTags()
 	{
 		Document doc = new Document();
-		doc.setDocumentType(DocumentType.RECEIPT);
 		doc.setTotal(BigDecimal.TEN);
 
 		Tag tag = new Tag("test");

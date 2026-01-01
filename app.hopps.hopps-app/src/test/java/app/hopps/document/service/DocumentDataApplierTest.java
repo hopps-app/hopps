@@ -22,7 +22,6 @@ import org.mockito.MockitoAnnotations;
 import app.hopps.document.client.DocumentData;
 import app.hopps.document.client.TradePartyData;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.shared.domain.Tag;
@@ -43,7 +42,6 @@ class DocumentDataApplierTest
 	{
 		MockitoAnnotations.openMocks(this);
 		document = new Document();
-		document.setDocumentType(DocumentType.INVOICE);
 	}
 
 	// Helper method to create DocumentData with all null fields except
@@ -57,7 +55,6 @@ class DocumentDataApplierTest
 		String merchantName,
 		TradePartyData merchantAddress,
 		String customerName,
-		LocalDate dueDate,
 		BigDecimal totalTax,
 		String purchaseOrderNumber,
 		List<String> tags)
@@ -76,8 +73,6 @@ class DocumentDataApplierTest
 			null, // customerAddress
 			null, // billingAddress
 			null, // shippingAddress
-			dueDate,
-			null, // amountDue
 			null, // subTotal
 			totalTax,
 			null, // totalDiscount
@@ -123,7 +118,7 @@ class DocumentDataApplierTest
 		// given
 		DocumentData data = createDocumentData(
 			BigDecimal.valueOf(100.50),
-			null, null, null, null, null, null, null, null, null, null, null);
+			null, null, null, null, null, null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -140,7 +135,7 @@ class DocumentDataApplierTest
 		document.setTotal(BigDecimal.ZERO);
 		DocumentData data = createDocumentData(
 			BigDecimal.valueOf(100.50),
-			null, null, null, null, null, null, null, null, null, null, null);
+			null, null, null, null, null, null, null, null, null, null);
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -199,36 +194,6 @@ class DocumentDataApplierTest
 	}
 
 	@Test
-	void shouldApplyInvoiceId()
-	{
-		// given
-		DocumentData data = createDocumentData(
-			null, null, null, null, "INV-2024-001", null, null, null, null, null, null, null);
-
-		// when
-		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
-
-		// then
-		assertEquals(1, fieldsUpdated);
-		assertEquals("INV-2024-001", document.getInvoiceId());
-	}
-
-	@Test
-	void shouldApplyOrderNumber()
-	{
-		// given
-		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, null, null, null, null, "PO-123", null);
-
-		// when
-		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
-
-		// then
-		assertEquals(1, fieldsUpdated);
-		assertEquals("PO-123", document.getOrderNumber());
-	}
-
-	@Test
 	void shouldApplyTransactionTimeWithDate()
 	{
 		// given
@@ -269,25 +234,6 @@ class DocumentDataApplierTest
 			.atZone(ZoneId.systemDefault())
 			.toInstant();
 		assertEquals(expected, document.getTransactionTime());
-	}
-
-	@Test
-	void shouldApplyDueDate()
-	{
-		// given
-		LocalDate dueDate = LocalDate.of(2025, 1, 15);
-		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, null, null, dueDate, null, null, null);
-
-		// when
-		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
-
-		// then
-		assertEquals(1, fieldsUpdated);
-		assertNotNull(document.getDueDate());
-
-		Instant expected = dueDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-		assertEquals(expected, document.getDueDate());
 	}
 
 	@Test
@@ -502,7 +448,7 @@ class DocumentDataApplierTest
 	{
 		// given
 		DocumentData data = createDocumentData(
-			null, null, null, null, null, null, null, null, null, null, null, List.of());
+			null, null, null, null, null, null, null, null, null, null, List.of());
 
 		// when
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
@@ -526,7 +472,6 @@ class DocumentDataApplierTest
 			"Test Merchant",
 			null,
 			null,
-			null,
 			BigDecimal.valueOf(19.00),
 			null,
 			null);
@@ -535,12 +480,10 @@ class DocumentDataApplierTest
 		int fieldsUpdated = applier.applyDocumentData(document, data, TagSource.AI);
 
 		// then
-		// Should update: total, currency, date, invoiceId, sender, document
-		// name, totalTax
-		assertEquals(7, fieldsUpdated);
+		// Should update: total, currency, date, sender, document name, totalTax
+		assertEquals(6, fieldsUpdated);
 		assertEquals(BigDecimal.valueOf(100.50), document.getTotal());
 		assertEquals("EUR", document.getCurrencyCode());
-		assertEquals("INV-001", document.getInvoiceId());
 		assertEquals("Test Merchant", document.getName());
 		assertEquals(BigDecimal.valueOf(19.00), document.getTotalTax());
 		assertNotNull(document.getTransactionTime());
@@ -552,7 +495,6 @@ class DocumentDataApplierTest
 		// given
 		LocalDate date = LocalDate.of(2024, 12, 27);
 		LocalTime time = LocalTime.of(14, 30);
-		LocalDate dueDate = LocalDate.of(2025, 1, 15);
 		TradePartyData merchantAddress = createTradePartyData("ACME", "Main St", "12345", "Berlin");
 		List<String> tagNames = List.of("tag1");
 
@@ -568,7 +510,6 @@ class DocumentDataApplierTest
 			"Test Merchant",
 			merchantAddress,
 			null,
-			dueDate,
 			BigDecimal.valueOf(19.00),
 			"PO-123",
 			tagNames);
@@ -578,14 +519,11 @@ class DocumentDataApplierTest
 
 		// then
 		// Should update all applicable fields
-		assertTrue(fieldsUpdated >= 8); // At least 8 fields should be updated
+		assertTrue(fieldsUpdated >= 6); // At least 6 fields should be updated
 		assertEquals(BigDecimal.valueOf(100.50), document.getTotal());
 		assertEquals("EUR", document.getCurrencyCode());
-		assertEquals("INV-001", document.getInvoiceId());
-		assertEquals("PO-123", document.getOrderNumber());
 		assertEquals(BigDecimal.valueOf(19.00), document.getTotalTax());
 		assertNotNull(document.getTransactionTime());
-		assertNotNull(document.getDueDate());
 		assertNotNull(document.getSender());
 		assertEquals("Test Merchant", document.getSender().getName());
 		assertEquals(1, document.getDocumentTags().size());

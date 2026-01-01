@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
@@ -66,7 +65,6 @@ class TransactionResourceTest
 			.when().get("/transaktionen/neu")
 			.then()
 			.statusCode(200)
-			.body(containsString("documentType"))
 			.body(containsString("total"))
 			.body(containsString("Transaktion erstellen"));
 	}
@@ -83,7 +81,6 @@ class TransactionResourceTest
 			.then()
 			.statusCode(200)
 			.body(containsString("Test Transaction"))
-			.body(containsString("documentType"))
 			.body(containsString("update"));
 	}
 
@@ -135,7 +132,6 @@ class TransactionResourceTest
 	{
 		TransactionRecord t = new TransactionRecord(
 			new BigDecimal(total),
-			DocumentType.RECEIPT,
 			"test-user");
 		t.setName(name);
 		transactionRepository.persist(t);
@@ -146,7 +142,6 @@ class TransactionResourceTest
 	Document createTestDocument(String name, String total)
 	{
 		Document d = new Document();
-		d.setDocumentType(DocumentType.INVOICE);
 		d.setName(name);
 		d.setTotal(new BigDecimal(total));
 		documentRepository.persist(d);
@@ -157,7 +152,6 @@ class TransactionResourceTest
 	Document createTestDocumentWithAiTag(String name, String total, String tagName)
 	{
 		Document d = new Document();
-		d.setDocumentType(DocumentType.INVOICE);
 		d.setName(name);
 		d.setTotal(new BigDecimal(total));
 

@@ -25,7 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
@@ -63,12 +62,6 @@ class DocumentDataServiceTest
 		userInput.put("senderStreet", "123 Main St");
 		userInput.put("senderZipCode", "12345");
 		userInput.put("senderCity", "Springfield");
-		userInput.put("invoiceId", "INV-001");
-		userInput.put("orderNumber", "PO-123");
-		userInput.put("dueDate", "2024-04-15");
-		userInput.put("amountDue", "150.50");
-
-		document.setDocumentType(DocumentType.INVOICE);
 
 		// When
 		documentDataService.applyFormData(document, userInput);
@@ -85,11 +78,6 @@ class DocumentDataServiceTest
 		assertEquals("123 Main St", document.getSender().getStreet());
 		assertEquals("12345", document.getSender().getZipCode());
 		assertEquals("Springfield", document.getSender().getCity());
-
-		assertEquals("INV-001", document.getInvoiceId());
-		assertEquals("PO-123", document.getOrderNumber());
-		assertNotNull(document.getDueDate());
-		assertEquals(new BigDecimal("150.50"), document.getAmountDue());
 	}
 
 	@Test
@@ -107,22 +95,6 @@ class DocumentDataServiceTest
 		assertEquals("Partial Data", document.getName());
 		assertNull(document.getCurrencyCode());
 		assertFalse(document.isPrivatelyPaid());
-	}
-
-	@Test
-	void shouldNotApplyInvoiceFieldsForReceipts()
-	{
-		// Given
-		document.setDocumentType(DocumentType.RECEIPT);
-		userInput.put("invoiceId", "INV-001");
-		userInput.put("dueDate", "2024-04-15");
-
-		// When
-		documentDataService.applyFormData(document, userInput);
-
-		// Then
-		assertNull(document.getInvoiceId());
-		assertNull(document.getDueDate());
 	}
 
 	@Test

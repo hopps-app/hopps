@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
@@ -43,7 +42,6 @@ class TransactionRecordTest
 		Set<Tag> tags = tagRepository.findOrCreateTags(Set.of("food", "travel"));
 
 		TransactionRecord transaction = new TransactionRecord();
-		transaction.setDocumentType(DocumentType.RECEIPT);
 		transaction.setTotal(new BigDecimal("42.50"));
 		transaction.setUploader("test@example.com");
 
@@ -69,7 +67,6 @@ class TransactionRecordTest
 		bommelRepository.persist(bommel);
 
 		TransactionRecord transaction = new TransactionRecord();
-		transaction.setDocumentType(DocumentType.INVOICE);
 		transaction.setTotal(new BigDecimal("100.00"));
 		transaction.setUploader("test@example.com");
 		transaction.setBommel(bommel);
@@ -86,12 +83,10 @@ class TransactionRecordTest
 	void shouldLinkToDocument()
 	{
 		Document document = new Document();
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setTotal(new BigDecimal("25.00"));
 		documentRepository.persist(document);
 
 		TransactionRecord transaction = new TransactionRecord();
-		transaction.setDocumentType(DocumentType.RECEIPT);
 		transaction.setTotal(new BigDecimal("25.00"));
 		transaction.setUploader("test@example.com");
 		transaction.setDocument(document);
@@ -110,14 +105,12 @@ class TransactionRecordTest
 		Set<Tag> tags = tagRepository.findOrCreateTags(Set.of("shared-tag"));
 
 		TransactionRecord t1 = new TransactionRecord();
-		t1.setDocumentType(DocumentType.RECEIPT);
 		t1.setTotal(BigDecimal.TEN);
 		t1.setUploader("user1@example.com");
 		tags.forEach(tag -> t1.addTag(tag, TagSource.MANUAL));
 		repository.persist(t1);
 
 		TransactionRecord t2 = new TransactionRecord();
-		t2.setDocumentType(DocumentType.INVOICE);
 		t2.setTotal(BigDecimal.ONE);
 		t2.setUploader("user2@example.com");
 		tags.forEach(tag -> t2.addTag(tag, TagSource.MANUAL));

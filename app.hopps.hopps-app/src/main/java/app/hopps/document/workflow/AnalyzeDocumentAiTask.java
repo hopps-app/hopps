@@ -94,8 +94,8 @@ public class AnalyzeDocumentAiTask extends SystemTask
 			document.setDocumentStatus(DocumentStatus.ANALYZING);
 		}
 
-		LOG.info("Starting document analysis: id={}, type={}, fileName={}",
-			documentId, document.getDocumentType(), document.getFileName());
+		LOG.info("Starting document analysis: id={}, fileName={}",
+			documentId, document.getFileName());
 
 		try (InputStream fileStream = storageService.downloadFile(document.getFileKey()))
 		{

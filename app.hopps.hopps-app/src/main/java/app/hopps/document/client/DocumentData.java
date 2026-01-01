@@ -19,8 +19,6 @@ public record DocumentData(
 	TradePartyData customerAddress,
 	TradePartyData billingAddress,
 	TradePartyData shippingAddress,
-	LocalDate dueDate,
-	BigDecimal amountDue,
 	BigDecimal subTotal,
 	BigDecimal totalTax,
 	BigDecimal totalDiscount,

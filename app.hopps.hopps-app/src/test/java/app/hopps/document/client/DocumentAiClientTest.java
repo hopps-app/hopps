@@ -68,8 +68,6 @@ class DocumentAiClientTest
 				"description": null
 			},
 			"shippingAddress": null,
-			"dueDate": "2024-04-15",
-			"amountDue": 1234.56,
 			"subTotal": 1037.45,
 			"totalTax": 197.11,
 			"totalDiscount": null,
@@ -110,8 +108,6 @@ class DocumentAiClientTest
 			assertThat(result.merchantTaxId(), equalTo("DE123456789"));
 			assertThat(result.customerName(), equalTo("Hopps GmbH"));
 			assertThat(result.customerId(), equalTo("CUST-001"));
-			assertThat(result.dueDate(), equalTo(LocalDate.of(2024, 4, 15)));
-			assertThat(result.amountDue(), equalTo(new BigDecimal("1234.56")));
 			assertThat(result.subTotal(), equalTo(new BigDecimal("1037.45")));
 			assertThat(result.totalTax(), equalTo(new BigDecimal("197.11")));
 			assertThat(result.purchaseOrderNumber(), equalTo("PO-2024-001"));
@@ -149,8 +145,6 @@ class DocumentAiClientTest
 				"customerAddress": null,
 				"billingAddress": null,
 				"shippingAddress": null,
-				"dueDate": null,
-				"amountDue": null,
 				"subTotal": null,
 				"totalTax": null,
 				"totalDiscount": null,

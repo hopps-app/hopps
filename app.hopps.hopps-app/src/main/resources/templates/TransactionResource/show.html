@@ -128,23 +128,6 @@
     align-items: center;
     gap: 1rem;
   }
-  .doc-type {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-  .doc-type.invoice {
-    background: linear-gradient(135deg, #d0e2ff 0%, #a6c8ff 100%);
-    color: #0043ce;
-  }
-  .doc-type.receipt {
-    background: linear-gradient(135deg, #defbe6 0%, #a7f0ba 100%);
-    color: #0e6027;
-  }
   .doc-date {
     font-size: 0.75rem;
     color: var(--cds-text-secondary, #525252);
@@ -170,9 +153,6 @@
     <h3>📄 Verknüpftes Dokument</h3>
     <div class="document-link-card">
       <div class="doc-info">
-        <span class="doc-type {#if transaction.document.documentType.name == 'INVOICE'}invoice{#else}receipt{/if}">
-          {transaction.document.displayType}
-        </span>
         <strong>{transaction.document.displayName}</strong>
         <span class="doc-date">{transaction.document.displayDate}</span>
       </div>
@@ -188,24 +168,9 @@
   {#form uri:TransactionResource.update()}
   <input type="hidden" name="id" value="{transaction.id}">
 
-  <!-- Section 1: Typ & Grunddaten -->
+  <!-- Section 1: Grunddaten -->
   <div class="form-section">
     <h3>Grunddaten</h3>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Typ</label>
-        <div class="radio-group">
-          <label>
-            <input type="radio" name="documentType" value="INVOICE" {#if transaction.documentType.name == 'INVOICE'}checked{/if}>
-            Rechnung
-          </label>
-          <label>
-            <input type="radio" name="documentType" value="RECEIPT" {#if transaction.documentType.name == 'RECEIPT'}checked{/if}>
-            Beleg
-          </label>
-        </div>
-      </div>
-    </div>
     <div class="form-row">
       <div class="form-group">
         <label for="name">Name / Beschreibung</label>
@@ -273,32 +238,7 @@
     </div>
   </div>
 
-  <!-- Section 3: Rechnungsdetails (conditional) -->
-  <div class="form-section" id="invoiceDetails">
-    <h3>Rechnungsdetails</h3>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="invoiceId">Rechnungsnummer</label>
-        <input type="text" id="invoiceId" name="invoiceId" value="{transaction.invoiceId ?: ''}">
-      </div>
-      <div class="form-group">
-        <label for="orderNumber">Bestellnummer</label>
-        <input type="text" id="orderNumber" name="orderNumber" value="{transaction.orderNumber ?: ''}">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="dueDate">Fälligkeitsdatum</label>
-        <input type="date" id="dueDate" name="dueDate" value="{transaction.displayDueDateIso ?: ''}">
-      </div>
-      <div class="form-group">
-        <label for="amountDue">Fälliger Betrag</label>
-        <input type="number" id="amountDue" name="amountDue" step="0.01" value="{transaction.amountDue ?: ''}">
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 4: Tags -->
+  <!-- Section 3: Tags -->
   <div class="form-section">
     <h3>Tags</h3>
     <div class="form-row">
@@ -333,26 +273,6 @@
     {/form}
   </div>
 </div>
-
-<script>
-  // Show/hide invoice details based on type selection
-  const invoiceDetails = document.getElementById('invoiceDetails');
-  const documentTypeInputs = document.querySelectorAll('input[name="documentType"]');
-
-  // Initial state
-  const selectedType = document.querySelector('input[name="documentType"]:checked').value;
-  invoiceDetails.style.display = selectedType === 'INVOICE' ? 'block' : 'none';
-
-  documentTypeInputs.forEach(input => {
-    input.addEventListener('change', (e) => {
-      if (e.target.value === 'INVOICE') {
-        invoiceDetails.style.display = 'block';
-      } else {
-        invoiceDetails.style.display = 'none';
-      }
-    });
-  });
-</script>
 
 {#flashNotifications /}
 

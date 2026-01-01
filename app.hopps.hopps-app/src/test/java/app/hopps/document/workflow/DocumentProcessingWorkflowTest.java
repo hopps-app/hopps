@@ -11,7 +11,6 @@ import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.shared.domain.Tag;
@@ -49,7 +48,6 @@ class DocumentProcessingWorkflowTest
 	{
 		Document document = new Document();
 		document.setName("Test Invoice");
-		document.setDocumentType(DocumentType.INVOICE);
 		document.setCurrencyCode("EUR");
 		document.setTotal(new BigDecimal("0.00"));
 
@@ -73,7 +71,6 @@ class DocumentProcessingWorkflowTest
 	{
 		Document document = new Document();
 		document.setName("No File Document");
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setCurrencyCode("EUR");
 		document.setTotal(new BigDecimal("0.00"));
 
@@ -94,10 +91,8 @@ class DocumentProcessingWorkflowTest
 	{
 		Document document = new Document();
 		document.setName("Existing Invoice");
-		document.setDocumentType(DocumentType.INVOICE);
 		document.setTotal(new BigDecimal("100.00"));
 		document.setCurrencyCode("EUR");
-		document.setInvoiceId("EXISTING-123");
 
 		String fileKey = "test-analysis/" + System.currentTimeMillis() + "/existing.pdf";
 		document.setFileKey(fileKey);
@@ -120,7 +115,6 @@ class DocumentProcessingWorkflowTest
 		Document found = documentRepository.findById(document.getId());
 		assertThat(found.getTotal(), equalTo(new BigDecimal("100.00")));
 		assertThat(found.getCurrencyCode(), equalTo("EUR"));
-		assertThat(found.getInvoiceId(), equalTo("EXISTING-123"));
 	}
 
 	@TestTransaction
@@ -129,7 +123,6 @@ class DocumentProcessingWorkflowTest
 	{
 		Document document = new Document();
 		document.setName("Document with Tags");
-		document.setDocumentType(DocumentType.RECEIPT);
 		document.setCurrencyCode("EUR");
 		document.setTotal(new BigDecimal("50.00"));
 

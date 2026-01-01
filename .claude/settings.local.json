@@ -49,7 +49,9 @@
       "Bash(xargs -I {} bash -c 'echo \"\"\"\"=== API Package: {} ===\"\"\"\" && ls -1 {}')",
       "Bash(tree:*)",
       "Bash(xargs jar tf:*)",
-      "Bash(./mvnw dependency:tree:*)"
+      "Bash(./mvnw dependency:tree:*)",
+      "Bash(./mvnw clean test-compile:*)",
+      "Bash(perl -i -pe:*)"
     ]
   }
 }
