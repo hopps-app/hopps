@@ -244,13 +244,358 @@ Form POST endpoints require CSRF tokens. For testing:
 
 ## Frontend
 
-- Use boxes (`<div class="box">`) to structure layout
-- Use [Carbon Design System](https://carbondesignsystem.com/) for UI
-- Use [@carbon/web-components](https://web-components.carbondesignsystem.com/)
-- Common components: `cds-inline-notification`, tables, buttons
-- Custom CSS follows Carbon design tokens (e.g., `--cds-spacing-05`)
-- If there are long-running requests, use the best practices from
-  Carbon (https://carbondesignsystem.com/patterns/loading-pattern/)
+This application uses [Carbon Design System v2](https://carbondesignsystem.com/) with [@carbon/web-components](https://web-components.carbondesignsystem.com/).
+
+**Important:** Use actual Carbon web components, not custom HTML/CSS mimicking Carbon styles.
+
+### Carbon Web Components
+
+Carbon components are loaded via CDN in `main.html`:
+
+```html
+<script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/button.min.js"></script>
+<script type="module" src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/text-input.min.js"></script>
+<!-- etc. -->
+```
+
+**Form components:**
+
+```html
+<!-- Text input -->
+<cds-text-input
+  label="Name"
+  name="name"
+  placeholder="z.B. Büromaterial"
+  value="{document.name ?: ''}">
+</cds-text-input>
+
+<!-- Number input -->
+<cds-number-input
+  label="Bruttobetrag"
+  name="total"
+  step="0.01"
+  required
+  value="{document.total}">
+</cds-number-input>
+
+<!-- Select -->
+<cds-select label="Währung" name="currencyCode">
+  <cds-select-item value="EUR">EUR</cds-select-item>
+  <cds-select-item value="USD">USD</cds-select-item>
+</cds-select>
+
+<!-- Date picker -->
+<cds-date-picker>
+  <cds-date-picker-input
+    label="Belegdatum"
+    name="documentDate"
+    placeholder="dd.mm.yyyy">
+  </cds-date-picker-input>
+</cds-date-picker>
+
+<!-- Checkbox -->
+<cds-checkbox
+  name="privatelyPaid"
+  label-text="Privat bezahlt"
+  {#if privatelyPaid}checked{/if}>
+</cds-checkbox>
+
+<!-- Textarea -->
+<cds-textarea
+  label="Beschreibung"
+  name="description"
+  rows="4"
+  value="{description ?: ''}">
+</cds-textarea>
+```
+
+**Buttons:**
+
+```html
+<!-- Primary action -->
+<cds-button type="submit" kind="primary">
+  Speichern
+  <svg slot="icon">...</svg>
+</cds-button>
+
+<!-- Secondary action -->
+<cds-button href="/belege" kind="secondary">
+  Abbrechen
+</cds-button>
+
+<!-- Danger action -->
+<cds-button kind="danger" onclick="deleteItem()">
+  Löschen
+</cds-button>
+
+<!-- Icon-only button -->
+<cds-button
+  kind="ghost"
+  size="sm"
+  has-icon-only
+  icon-description="Löschen">
+  <svg slot="icon">...</svg>
+</cds-button>
+```
+
+**Notifications:**
+
+```html
+<cds-actionable-notification
+  kind="info"
+  title="Ein Beleg wartet auf Ihre Prüfung!"
+  subtitle="Die KI hat die Daten bereits extrahiert."
+  low-contrast>
+  <cds-actionable-notification-button slot="action">
+    Jetzt prüfen
+  </cds-actionable-notification-button>
+</cds-actionable-notification>
+```
+
+**AI Labels:**
+
+Carbon provides `<cds-ai-label>` for AI-generated content. Use `slot="label-text"` to add it to form fields:
+
+```html
+<cds-text-input
+  label="Bezeichnung"
+  name="name"
+  value="{document.name ?: ''}">
+  {#if document.name != null && document.analysisStatus.name == 'COMPLETED'}
+  <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+    <div slot="body-text" class="ai-explainer">
+      <p class="secondary">KI-erkannt</p>
+      <p class="secondary bold">Bezeichnung</p>
+      <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+    </div>
+  </cds-ai-label>
+  {/if}
+</cds-text-input>
+```
+
+### Carbon UI Shell (Navigation)
+
+The application uses Carbon UI Shell components for header and side navigation:
+
+```html
+<cds-header aria-label="Hopps Buchhaltung">
+  <cds-header-menu-button onclick="toggleSideNav()">
+  </cds-header-menu-button>
+  <cds-header-name href="/" prefix="">hopps</cds-header-name>
+  <cds-header-global-bar>
+    <cds-header-global-action aria-label="Profil">
+      <svg slot="icon">...</svg>
+    </cds-header-global-action>
+  </cds-header-global-bar>
+</cds-header>
+
+<cds-side-nav aria-label="Hauptnavigation" collapse-mode="fixed" expanded>
+  <cds-side-nav-items>
+    <cds-side-nav-link href="/" active>
+      Dashboard
+      <svg slot="title-icon">...</svg>
+    </cds-side-nav-link>
+    <cds-side-nav-menu title="Finanzen">
+      <svg slot="title-icon">...</svg>
+      <cds-side-nav-menu-item href="/belege">Belege</cds-side-nav-menu-item>
+    </cds-side-nav-menu>
+  </cds-side-nav-items>
+</cds-side-nav>
+```
+
+**CRITICAL: Carbon UI Shell Layout**
+
+Carbon's `<cds-side-nav>` uses `position: fixed` and does NOT automatically offset content. You must manually add margin to your content container:
+
+```css
+/* Default: side nav in rail mode (collapsed, 48px wide) */
+.app-container {
+  margin-top: 48px; /* Height of cds-header */
+  margin-left: 48px; /* Width of collapsed rail side-nav */
+  transition: margin-left 0.11s cubic-bezier(0.2, 0, 1, 0.9);
+}
+
+/* When side nav is expanded (256px wide) - handled by JS */
+body.side-nav-expanded .app-container {
+  margin-left: 256px;
+}
+
+/* Responsive: side nav overlays content on mobile */
+@media (max-width: 1056px) {
+  .app-container {
+    margin-left: 0 !important;
+  }
+}
+```
+
+Use JavaScript to track side-nav state and toggle body class:
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+  var sideNav = document.querySelector('cds-side-nav');
+  if (sideNav) {
+    function updateLayout() {
+      if (sideNav.expanded) {
+        document.body.classList.add('side-nav-expanded');
+      } else {
+        document.body.classList.remove('side-nav-expanded');
+      }
+    }
+    updateLayout();
+
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.attributeName === 'expanded') {
+          updateLayout();
+        }
+      });
+    });
+    observer.observe(sideNav, { attributes: true });
+  }
+});
+```
+
+**Collapse modes:**
+
+- `collapse-mode="rail"` - Auto-collapses to icons when mouse leaves (annoying for main nav)
+- `collapse-mode="fixed"` - Stays in user-selected state (recommended for main navigation)
+
+### Charts
+
+Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
+
+```html
+<!-- In main.html -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- In template -->
+<div style="max-width: 300px; margin: 0 auto;">
+  <canvas id="myChart"></canvas>
+</div>
+
+{#moreScripts}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('myChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Rechnungen', 'Quittungen', 'Sonstige'],
+          datasets: [{
+            data: [14, 7, 3],
+            backgroundColor: ['#0f62fe', '#24a148', '#f1c21b'], // IBM colors
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                font: { family: 'IBM Plex Sans', size: 14 }
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+{/moreScripts}
+```
+
+**Use IBM Carbon colors:**
+- Blue 60: `#0f62fe`
+- Green 60: `#24a148`
+- Red 60: `#da1e28`
+- Yellow 30: `#f1c21b`
+
+### Custom CSS
+
+Keep custom CSS minimal - Carbon handles most styling. Use Carbon design tokens:
+
+```css
+:root {
+  --cds-spacing-03: 0.5rem;
+  --cds-spacing-05: 1rem;
+  --cds-spacing-07: 2rem;
+  --cds-layer-01: #f4f4f4;
+  --cds-layer-02: #ffffff;
+  --cds-border-subtle-01: #e0e0e0;
+  --cds-text-primary: #161616;
+  --cds-text-secondary: #525252;
+}
+```
+
+**Layout utilities:**
+
+```css
+.box {
+  background-color: var(--cds-layer-02);
+  border: 1px solid var(--cds-border-subtle-01);
+  padding: var(--cds-spacing-07);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--cds-spacing-05);
+}
+```
+
+### Qute Template Syntax with Carbon
+
+**Conditional attributes:**
+
+```html
+<cds-side-nav-link href="/" {#if inject:vertxRequest.path == '/'}active{/if}>
+  Dashboard
+</cds-side-nav-link>
+
+<cds-checkbox
+  name="privatelyPaid"
+  {#if privatelyPaid}checked{/if}>
+</cds-checkbox>
+```
+
+**Dynamic values:**
+
+Use Elvis operator `?:` for null safety (NOT safe navigation `?.` which is unsupported):
+
+```html
+<!-- CORRECT -->
+<cds-text-input value="{document.name ?: ''}">
+</cds-text-input>
+
+<!-- WRONG - Qute doesn't support ?. operator -->
+<cds-text-input value="{document?.name ?: ''}">
+</cds-text-input>
+```
+
+**Loops with Carbon components:**
+
+```html
+{#for item in items}
+<cds-select-item value="{item.id}">{item.name}</cds-select-item>
+{/for}
+```
+
+### Loading States
+
+For long-running requests, use Carbon loading components:
+
+```html
+<!-- Inline loading -->
+<cds-inline-loading status="active"></cds-inline-loading>
+
+<!-- Full page loading -->
+<cds-loading></cds-loading>
+```
+
+See [Carbon loading patterns](https://carbondesignsystem.com/patterns/loading-pattern/) for best practices.
 
 ## Common Gotchas
 
@@ -261,6 +606,15 @@ Form POST endpoints require CSRF tokens. For testing:
 4. **.gitignore patterns** - Use `/tags` not `tags` to avoid ignoring
    `templates/tags/`
 5. **S3 dependency** - Requires `url-connection-client` for HTTP transport
+6. **Carbon UI Shell layout** - `<cds-side-nav>` is position fixed and does NOT
+   auto-offset content. Must manually add margin-left to content container (see
+   Frontend section)
+7. **Qute section blocks** - `{#moreStyles}` must close with `{/moreStyles}`,
+   not `{/if}`. Mismatched closing tags cause template parser errors
+8. **Safe navigation operator** - Qute does NOT support `?.` operator. Use
+   Elvis operator instead: `{object.property ?: ''}` not `{object?.property}`
+9. **Carbon collapse modes** - Use `collapse-mode="fixed"` for main navigation,
+   not `collapse-mode="rail"` which auto-collapses on mouse leave
 
 ## Git
 
