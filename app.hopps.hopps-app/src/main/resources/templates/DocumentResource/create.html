@@ -55,71 +55,6 @@
   .form-group select:focus {
     border-bottom: 2px solid #0f62fe;
   }
-  .file-drop-zone {
-    border: 2px dashed #8d8d8d;
-    border-radius: 4px;
-    padding: 3rem 2rem;
-    text-align: center;
-    background-color: #f4f4f4;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .file-drop-zone:hover,
-  .file-drop-zone.dragover {
-    border-color: #0f62fe;
-    background-color: #e8f0fe;
-  }
-  .file-drop-zone svg {
-    width: 48px;
-    height: 48px;
-    fill: #525252;
-    margin-bottom: 1rem;
-  }
-  .file-drop-zone h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-  .file-drop-zone p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: #525252;
-  }
-  .file-drop-zone input[type="file"] {
-    display: none;
-  }
-  .file-selected {
-    display: none;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: #defbe6;
-    border-radius: 4px;
-    margin-top: 1rem;
-  }
-  .file-selected.visible {
-    display: flex;
-  }
-  .file-selected svg {
-    width: 24px;
-    height: 24px;
-    fill: #0e6027;
-  }
-  .file-selected-name {
-    flex: 1;
-    font-weight: 500;
-    color: #0e6027;
-  }
-  .file-selected button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.25rem;
-    color: #525252;
-  }
-  .file-selected button:hover {
-    color: #da1e28;
-  }
   .button-row {
     display: flex;
     gap: 1rem;
@@ -280,76 +215,71 @@
 {#moreScripts}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var dropZone = document.querySelector('.file-drop-zone');
+    var fileUploader = document.querySelector('cds-file-uploader');
     var fileInput = document.getElementById('file');
-    var fileSelected = document.querySelector('.file-selected');
-    var fileSelectedName = document.querySelector('.file-selected-name');
     var submitBtn = document.getElementById('submitBtn');
     var uploadForm = document.getElementById('uploadForm');
     var uploadOverlay = document.getElementById('uploadOverlay');
 
-    dropZone.addEventListener('click', function() {
-      fileInput.click();
-    });
+    // Listen for Carbon file uploader change event
+    if (fileUploader) {
+      fileUploader.addEventListener('cds-file-uploader-changed', function(e) {
+        if (e.detail && e.detail.addedFiles && e.detail.addedFiles.length > 0) {
+          submitBtn.disabled = false;
+        } else {
+          submitBtn.disabled = true;
+        }
+      });
 
-    dropZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', function() {
-      dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        fileInput.files = e.dataTransfer.files;
-        updateFileDisplay();
-      }
-    });
-
-    fileInput.addEventListener('change', updateFileDisplay);
-
-    function updateFileDisplay() {
-      if (fileInput.files.length > 0) {
-        fileSelectedName.textContent = fileInput.files[0].name;
-        fileSelected.classList.add('visible');
-        submitBtn.disabled = false;
-      } else {
-        fileSelected.classList.remove('visible');
+      fileUploader.addEventListener('cds-file-uploader-deleted', function(e) {
         submitBtn.disabled = true;
-      }
+      });
     }
 
-    document.querySelector('.file-selected button').addEventListener('click', function(e) {
-      e.preventDefault();
-      fileInput.value = '';
-      fileSelected.classList.remove('visible');
-      submitBtn.disabled = true;
-    });
+    // Also listen to native input change as fallback
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) {
+          submitBtn.disabled = false;
+        } else {
+          submitBtn.disabled = true;
+        }
+      });
+    }
 
     // Handle form submission with loading state
-    uploadForm.addEventListener('submit', function(e) {
-      // Show loading overlay
-      uploadOverlay.classList.add('visible');
+    if (uploadForm) {
+      uploadForm.addEventListener('submit', function(e) {
+        // Show loading overlay
+        if (uploadOverlay) {
+          uploadOverlay.classList.add('visible');
+        }
 
-      // Update button to loading state
-      submitBtn.classList.add('loading');
-      submitBtn.innerHTML = '<span class="btn-spinner"></span> Wird hochgeladen...';
+        // Update button to loading state
+        if (submitBtn) {
+          submitBtn.classList.add('loading');
+          submitBtn.innerHTML = '<span class="btn-spinner"></span> Wird hochgeladen...';
+        }
 
-      // Animate through steps
-      var steps = document.querySelectorAll('.upload-step');
-      steps[0].classList.add('active');
+        // Animate through steps
+        var steps = document.querySelectorAll('.upload-step');
+        if (steps.length > 0) {
+          steps[0].classList.add('active');
 
-      setTimeout(function() {
-        steps[0].classList.remove('active');
-        steps[0].classList.add('done');
-        steps[0].querySelector('.step-spinner').outerHTML = '<svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>';
-        steps[1].classList.add('active');
-      }, 800);
-    });
+          setTimeout(function() {
+            steps[0].classList.remove('active');
+            steps[0].classList.add('done');
+            var spinner = steps[0].querySelector('.step-spinner');
+            if (spinner) {
+              spinner.outerHTML = '<svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>';
+            }
+            if (steps.length > 1) {
+              steps[1].classList.add('active');
+            }
+          }, 800);
+        }
+      });
+    }
   });
 </script>
 {/moreScripts}
@@ -368,19 +298,13 @@
 
     <div class="form-section">
       <h3>Datei hochladen</h3>
-      <div class="file-drop-zone">
-        <svg viewBox="0 0 32 32"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
-        <h4>Datei hierher ziehen</h4>
-        <p>oder klicken zum Auswählen (PDF, PNG, JPG)</p>
-        <input type="file" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp" required>
-      </div>
-      <div class="file-selected">
-        <svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/></svg>
-        <span class="file-selected-name"></span>
-        <button type="button" title="Entfernen">
-          <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4l6.6 6.6L8 22.6 9.4 24l6.6-6.6 6.6 6.6 1.4-1.4-6.6-6.6L24 9.4z"/></svg>
-        </button>
-      </div>
+      <cds-file-uploader
+        accept=".pdf,.png,.jpg,.jpeg,.gif,.webp"
+        label-title="Beleg hochladen"
+        label-description="Unterstützte Formate: PDF, PNG, JPG, GIF, WebP"
+        button-label="Datei auswählen">
+        <input type="file" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp" required />
+      </cds-file-uploader>
     </div>
 
     <div class="ai-info">
