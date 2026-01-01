@@ -144,7 +144,7 @@
 
 <div class="page-header">
   <h1>{transaction.displayName}</h1>
-  <a href="/transaktionen" class="cds-btn cds-btn-secondary">← Zurück</a>
+  <cds-button href="/transaktionen" kind="secondary">← Zurück</cds-button>
 </div>
 
 {#if transaction.document}
@@ -156,9 +156,9 @@
         <strong>{transaction.document.displayName}</strong>
         <span class="doc-date">{transaction.document.displayDate}</span>
       </div>
-      <a href="/belege/{transaction.document.id}" class="cds-btn cds-btn-secondary">
+      <cds-button href="/belege/{transaction.document.id}" kind="secondary">
         Beleg öffnen →
-      </a>
+      </cds-button>
     </div>
   </div>
 </div>
@@ -249,11 +249,11 @@
   </div>
 
   <div class="button-row">
-    <button type="submit" class="cds-btn cds-btn-primary">
-      <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+    <cds-button type="submit" kind="primary">
       Änderungen speichern
-    </button>
-    <a href="/transaktionen" class="cds-btn cds-btn-secondary">Abbrechen</a>
+      <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+    </cds-button>
+    <cds-button href="/transaktionen" kind="secondary">Abbrechen</cds-button>
   </div>
 
   {/form}
@@ -266,10 +266,10 @@
     <p style="margin-bottom: 1rem;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
     {#form uri:TransactionResource.delete()}
       <input type="hidden" name="id" value="{transaction.id}">
-      <button type="submit" class="cds-btn cds-btn-danger" onclick="return confirm('Transaktion wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')">
-        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zM12 2h8v2h-8z"/></svg>
+      <cds-button type="submit" kind="danger" onclick="return confirm('Transaktion wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')">
         Transaktion löschen
-      </button>
+        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zM12 2h8v2h-8z"/></svg>
+      </cds-button>
     {/form}
   </div>
 </div>

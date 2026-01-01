@@ -381,10 +381,10 @@
 
 <div class="page-header">
   <h1>Belege</h1>
-  <a href="/belege/neu" class="cds-btn cds-btn-primary">
-    <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+  <cds-button href="/belege/neu" kind="primary">
     Neuer Beleg
-  </a>
+    <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+  </cds-button>
 </div>
 
 {#if !documentsNeedingReview.isEmpty}
@@ -438,7 +438,7 @@
     <div class="empty-state">
       <svg viewBox="0 0 32 32"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/><path d="M10 22h12v2H10zM10 16h12v2H10z"/></svg>
       <p>Noch keine Belege vorhanden.</p>
-      <a href="/belege/neu" class="cds-btn cds-btn-primary">Ersten Beleg anlegen</a>
+      <cds-button href="/belege/neu" kind="primary">Ersten Beleg anlegen</cds-button>
     </div>
   {#else}
     <cds-table size="lg">

@@ -114,10 +114,10 @@
 
 <div class="page-header">
   <h1>Transaktionen</h1>
-  <a href="/transaktionen/neu" class="cds-btn cds-btn-primary">
-    <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+  <cds-button href="/transaktionen/neu" kind="primary">
     Neue Transaktion
-  </a>
+    <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+  </cds-button>
 </div>
 
 <div class="box">
@@ -126,9 +126,9 @@
       <svg viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
       <h2>Keine Transaktionen vorhanden</h2>
       <p>Erstellen Sie Ihre erste Transaktion oder konvertieren Sie einen Beleg.</p>
-      <a href="/transaktionen/neu" class="cds-btn cds-btn-primary">
+      <cds-button href="/transaktionen/neu" kind="primary">
         Neue Transaktion erstellen
-      </a>
+      </cds-button>
     </div>
   {#else}
     <cds-table size="lg">

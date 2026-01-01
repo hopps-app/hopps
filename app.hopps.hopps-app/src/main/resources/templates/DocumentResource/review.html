@@ -396,10 +396,10 @@
   <h1>
     Beleg prüfen
   </h1>
-  <a href="/belege" class="cds-btn cds-btn-secondary">
-    <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M10 16L20 6l1.4 1.4-8.6 8.6 8.6 8.6L20 26z"/></svg>
+  <cds-button href="/belege" kind="secondary">
     Abbrechen
-  </a>
+    <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M10 16L20 6l1.4 1.4-8.6 8.6 8.6 8.6L20 26z"/></svg>
+  </cds-button>
 </div>
 
 <!-- Loading State -->
@@ -454,10 +454,10 @@
           {/if}
         </div>
         <div class="preview-actions">
-          <a href="/belege/{document.id}/download" target="_blank" class="cds-btn cds-btn-secondary" style="height: 36px; font-size: 0.8rem;">
-            <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 28H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v2H6v20h20V16h2v10a2 2 0 0 1-2 2z"/><path d="M20 2v2h6.586L18 12.586 19.414 14 28 5.414V12h2V2H20z"/></svg>
+          <cds-button href="/belege/{document.id}/download" target="_blank" kind="secondary" style="height: 36px; font-size: 0.8rem;">
             In neuem Tab öffnen
-          </a>
+            <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 28H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v2H6v20h20V16h2v10a2 2 0 0 1-2 2z"/><path d="M20 2v2h6.586L18 12.586 19.414 14 28 5.414V12h2V2H20z"/></svg>
+          </cds-button>
         </div>
       </div>
     </div>
@@ -510,21 +510,21 @@
           {#include DocumentResource/partials/reviewFormFields document=document bommels=bommels /}
 
           <div class="button-row" style="margin-top: var(--cds-spacing-07); gap: 0.5rem;">
-            <button type="submit" class="cds-btn cds-btn-primary">
-              <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>
+            <cds-button type="submit" kind="primary">
               Bestätigen & Speichern
-            </button>
+              <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>
+            </cds-button>
             {#if document.analysisStatus.name == 'COMPLETED'}
-            <button type="button" class="cds-btn cds-btn-secondary" onclick="submitReanalyze()">
-              <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 10H6.78A11 11 0 0 1 27 16h2A13 13 0 0 0 5 7.37V2H3v8h8zM20 22h5.22A11 11 0 0 1 5 16H3a13 13 0 0 0 24 8.63V30h2v-8h-8z"/></svg>
+            <cds-button kind="secondary" onclick="submitReanalyze()">
               Erneut analysieren
-            </button>
-            <button type="button" class="cds-btn cds-btn-secondary" onclick="submitManual()">
-              <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 22v-8h-4v2h2v6h-3v2h8v-2h-3zM16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8z"/><path d="M16 30a14 14 0 1 1 14-14 14 14 0 0 1-14 14zm0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4z"/></svg>
+              <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 10H6.78A11 11 0 0 1 27 16h2A13 13 0 0 0 5 7.37V2H3v8h8zM20 22h5.22A11 11 0 0 1 5 16H3a13 13 0 0 0 24 8.63V30h2v-8h-8z"/></svg>
+            </cds-button>
+            <cds-button kind="secondary" onclick="submitManual()">
               Manuell eingeben
-            </button>
+              <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 22v-8h-4v2h2v6h-3v2h8v-2h-3zM16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8z"/><path d="M16 30a14 14 0 1 1 14-14 14 14 0 0 1-14 14zm0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4z"/></svg>
+            </cds-button>
             {/if}
-            <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
+            <cds-button href="/belege" kind="secondary">Abbrechen</cds-button>
           </div>
         </form>
 

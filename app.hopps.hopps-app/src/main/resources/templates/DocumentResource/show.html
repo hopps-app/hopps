@@ -44,10 +44,10 @@
     </span>
     {/if}
   </h1>
-  <a href="/belege" class="cds-btn cds-btn-secondary">
-    <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M10 16L20 6l1.4 1.4-8.6 8.6 8.6 8.6L20 26z"/></svg>
+  <cds-button href="/belege" kind="secondary">
     Zurück
-  </a>
+    <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M10 16L20 6l1.4 1.4-8.6 8.6 8.6 8.6L20 26z"/></svg>
+  </cds-button>
 </div>
 
 {#if document.hasTransactions}
@@ -60,15 +60,15 @@
       </p>
     </div>
     <div style="display: flex; gap: 0.75rem;">
-      <a href="/transaktionen?documentId={document.id}" class="cds-btn cds-btn-secondary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
-        <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
+      <cds-button href="/transaktionen?documentId={document.id}" kind="secondary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
         Transaktionen anzeigen
-      </a>
+        <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
+      </cds-button>
       {#form uri:DocumentResource.createTransactionFromDocument(document.id)}
-        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
-          <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+        <cds-button type="submit" kind="primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
           Weitere erstellen
-        </button>
+          <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+        </cds-button>
       {/form}
     </div>
   </div>
@@ -84,10 +84,10 @@
     </div>
     <div>
       {#form uri:DocumentResource.createTransactionFromDocument(document.id)}
-        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
-          <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+        <cds-button type="submit" kind="primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
           Transaktion erstellen →
-        </button>
+          <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+        </cds-button>
       {/form}
     </div>
   </div>
@@ -108,17 +108,17 @@
             <div class="file-meta">{document.fileContentType} &bull; {document.displayFileSize}</div>
           </div>
           <div class="file-actions">
-            <a href="/belege/{document.id}/download" class="cds-btn cds-btn-primary" style="height: 36px; font-size: 0.8rem;">
-              <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM26 14l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10 10-10z"/></svg>
+            <cds-button href="/belege/{document.id}/download" kind="primary" style="height: 36px; font-size: 0.8rem;">
               Download
-            </a>
+              <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM26 14l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10 10-10z"/></svg>
+            </cds-button>
             <form action="/belege/deleteFile" method="POST" style="display: inline;">
               {#authenticityToken /}
               <input type="hidden" name="documentId" value="{document.id}">
-              <button type="submit" class="cds-btn cds-btn-danger" style="height: 36px; font-size: 0.8rem;">
-                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
+              <cds-button type="submit" kind="danger" style="height: 36px; font-size: 0.8rem;">
                 Löschen
-              </button>
+                <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
+              </cds-button>
             </form>
           </div>
         </div>
@@ -132,10 +132,10 @@
           <span class="file-hint">PDF, PNG, JPG, GIF oder WebP (max. 10 MB)</span>
         </div>
         <div style="margin-top: 1rem;">
-          <button type="submit" class="cds-btn cds-btn-primary" style="height: 36px; font-size: 0.8rem;">
-            <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
+          <cds-button type="submit" kind="primary" style="height: 36px; font-size: 0.8rem;">
             Datei hochladen
-          </button>
+            <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
+          </cds-button>
         </div>
       </form>
     {/if}
@@ -152,10 +152,10 @@
       </div>
       <form action="/belege/{document.id}/analyze" method="POST">
         {#authenticityToken /}
-        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap;">
-          <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><circle cx="16" cy="10" r="1.5"/><path d="M16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
+        <cds-button type="submit" kind="primary" style="white-space: nowrap;">
           KI-Analyse starten
-        </button>
+          <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><circle cx="16" cy="10" r="1.5"/><path d="M16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
+        </cds-button>
       </form>
     </div>
   </div>
@@ -252,11 +252,11 @@
     </div>
 
     <div class="button-row">
-      <button type="submit" class="cds-btn cds-btn-primary">
-        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+      <cds-button type="submit" kind="primary">
         Speichern
-      </button>
-      <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
+        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+      </cds-button>
+      <cds-button href="/belege" kind="secondary">Abbrechen</cds-button>
     </div>
   {/form}
 </div>
@@ -279,10 +279,10 @@
     <p>Das Löschen eines Belegs kann nicht rückgängig gemacht werden.</p>
     {#form uri:DocumentResource.delete()}
       <input type="hidden" name="id" value="{document.id}">
-      <button type="submit" class="cds-btn cds-btn-danger">
-        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
+      <cds-button type="submit" kind="danger">
         Beleg löschen
-      </button>
+        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
+      </cds-button>
     {/form}
   </div>
 </div>
