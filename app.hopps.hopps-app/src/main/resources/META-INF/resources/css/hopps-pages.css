@@ -225,7 +225,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.0625rem 0.375rem;
+  margin-left: 0.5rem;
   background: var(--cds-link-primary);
   color: white;
   font-size: 0.625rem;

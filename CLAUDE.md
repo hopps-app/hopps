@@ -395,10 +395,15 @@ The application uses Carbon UI Shell components for header and side navigation:
       Dashboard
       <svg slot="title-icon">...</svg>
     </cds-side-nav-link>
-    <cds-side-nav-menu title="Finanzen">
+    <cds-side-nav-divider></cds-side-nav-divider>
+    <cds-side-nav-link href="/belege">
+      Belege
       <svg slot="title-icon">...</svg>
-      <cds-side-nav-menu-item href="/belege">Belege</cds-side-nav-menu-item>
-    </cds-side-nav-menu>
+    </cds-side-nav-link>
+    <cds-side-nav-link href="#" disabled>
+      Einstellungen <span class="bald-tag">Bald</span>
+      <svg slot="title-icon">...</svg>
+    </cds-side-nav-link>
   </cds-side-nav-items>
 </cds-side-nav>
 ```
