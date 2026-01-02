@@ -131,7 +131,8 @@ class DocumentResourceTest
 			.statusCode(200)
 			.body(containsString("enctype=\"multipart/form-data\""))
 			.body(containsString("name=\"file\""))
-			.body(containsString("Datei hierher ziehen"));
+			.body(containsString("cds-file-uploader"))
+			.body(containsString("Datei auswählen"));
 	}
 
 	@Test
