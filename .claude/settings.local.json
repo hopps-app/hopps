@@ -52,7 +52,8 @@
       "Bash(./mvnw dependency:tree:*)",
       "Bash(./mvnw clean test-compile:*)",
       "Bash(perl -i -pe:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(./mvnw formatter:validate:*)"
     ]
   }
 }
