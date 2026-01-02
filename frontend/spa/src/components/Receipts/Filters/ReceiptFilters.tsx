@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
+import { ReceiptFiltersState, SetFilterFn } from '@/components/Receipts/types';
 import { SearchFilter } from '@/components/Receipts/Filters/fields/SearchFilter';
 import { StatusFilter } from '@/components/Receipts/Filters/fields/StatusFilter';
-import { DateRangeFilter } from '@/components/Receipts/Filters/fields/DateRangeFilter';
+import StartDateFilter from './fields/StartDateFilter';
+import EndDateFilter from './fields/EndDateFilter';
 import ProjectFilter from '@/components/Receipts/Filters/fields/ProjectFilter';
 import CategoryFilter from '@/components/Receipts/Filters/fields/CategoryFilter';
 import TypeFilter from '@/components/Receipts/Filters/fields/TypeFilter';
 import DisplayFilter from '@/components/Receipts/Filters/fields/DisplayFilter';
-import { BaseButton } from '@/components/ui/shadecn/BaseButton';
-import { ReceiptFiltersState, SetFilterFn } from '@/components/Receipts/types';
+import Button from '@/components/ui/Button';
 
 type ReceiptFiltersProps = {
     filters: ReceiptFiltersState;
@@ -18,46 +21,67 @@ type ReceiptFiltersProps = {
 
 export const ReceiptFilters = ({ filters, setFilter, resetFilters }: ReceiptFiltersProps) => {
     const { t } = useTranslation();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const handleToggleExpanded = () => {
+        const newValue = !isExpanded;
+        if (isExpanded) {
+            setIsExpanded(newValue);
+        } else {
+            setIsExpanded(newValue);
+        }
+    };
 
     return (
-        <div className="rounded-2xl border border-[--grey-200] p-6">
-            <div
-                className="
-                    flex flex-wrap gap-4
-                    2xl:grid 2xl:grid-cols-4 2xl:gap-x-8 2xl:gap-y-6
-                "
-            >
-                <SearchFilter value={filters.search} onChange={(v) => setFilter('search', v)} label={t('receipts.filters.searchReceipt')} />
-                <DateRangeFilter filters={filters} onChange={setFilter} label={t('receipts.filters.receiptDate')} />
-                <ProjectFilter filters={filters} onChange={setFilter} label={t('receipts.filters.bommel')} />
-                <DisplayFilter filters={filters} onChange={setFilter} label={t('receipts.filters.displayType')} />
-                <CategoryFilter filters={filters} onChange={setFilter} label={t('receipts.filters.category')} />
-                <TypeFilter
-                    filters={filters.type}
-                    onChange={(key, value) => {
-                        setFilter('type', { ...filters.type, [key]: value });
-                    }}
-                    label={t('receipts.filters.type')}
-                />
-                <StatusFilter filters={filters} onChange={setFilter} label={t('receipts.filters.status')} />
+        <div className="rounded-2xl border border-gray-300 p-5">
+            <div className="flex items-center gap-3 mb-5">
+                <div className="flex-[8]">
+                    <SearchFilter value={filters.search} onChange={(v) => setFilter('search', v)} />
+                </div>
 
-                <div className="flex items-end justify-end w-full">
-                    <BaseButton
-                        variant="outline"
-                        onClick={resetFilters}
-                        className="h-10 px-6 text-sm font-medium
-                            rounded-[var(--radius-l)]
-                            border border-[var(--purple-300)]
-                            text-[var(--purple-900)]
-                            bg-[var(--purple-100)]
-                            hover:bg-[var(--purple-200)]
-                            transition-colors w-full
-                            lg:w-auto"
-                    >
-                        {t('receipts.filters.reset')}
-                    </BaseButton>
+                <div className="flex-[1]">
+                    <Button onClick={handleToggleExpanded} variant="secondary" className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium h-full">
+                        {isExpanded ? (
+                            <>
+                                {t('receipts.filters.hideFilters')}
+                                <ChevronUp className="w-4 h-4" />
+                            </>
+                        ) : (
+                            <>
+                                {t('receipts.filters.showFilters')}
+                                <ChevronDown className="w-4 h-4" />
+                            </>
+                        )}
+                    </Button>
                 </div>
             </div>
+
+            {isExpanded && (
+                <div className="flex flex-col gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <StartDateFilter date={filters.startDate} onChange={setFilter} />
+                        <EndDateFilter date={filters.endDate} onChange={setFilter} />
+                        <CategoryFilter filters={filters} onChange={setFilter} label={t('receipts.filters.category')} />
+                        <ProjectFilter filters={filters} onChange={setFilter} label={t('receipts.filters.bommel')} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                        <TypeFilter
+                            filters={filters.type}
+                            onChange={(key, value) => {
+                                setFilter('type', { ...filters.type, [key]: value });
+                            }}
+                            label={t('receipts.filters.type')}
+                        />
+                        <StatusFilter filters={filters} onChange={setFilter} label={t('receipts.filters.status')} />
+                        <DisplayFilter filters={filters} onChange={setFilter} />
+
+                        <div className="flex items-end justify-end w-full">
+                            <Button variant="secondary" onClick={resetFilters} className="px-6 h-10 text-sm text-gray-700 font-medium">
+                                {t('receipts.filters.reset')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
