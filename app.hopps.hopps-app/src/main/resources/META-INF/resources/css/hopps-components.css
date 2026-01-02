@@ -69,6 +69,38 @@
   margin-top: var(--cds-spacing-05);
 }
 
+/* Default button spacing - ensures buttons always have proper margins */
+cds-button {
+  margin-top: var(--cds-spacing-05);
+}
+
+/* Button next to another button - horizontal spacing */
+cds-button + cds-button {
+  margin-left: var(--cds-spacing-05);
+}
+
+/* Button after form inputs - add top margin */
+cds-text-input + cds-button,
+cds-number-input + cds-button,
+cds-select + cds-button,
+cds-dropdown + cds-button,
+cds-date-picker + cds-button,
+cds-textarea + cds-button,
+cds-checkbox + cds-button {
+  margin-top: var(--cds-spacing-05);
+}
+
+/* Buttons in forms with flex/grid layouts - prevent margin collapse */
+form cds-button {
+  margin-top: var(--cds-spacing-05);
+}
+
+/* Button rows override - when explicitly using .button-row class */
+.button-row cds-button {
+  margin-top: 0; /* Reset since parent handles spacing */
+  margin-left: 0; /* Reset since parent handles spacing */
+}
+
 /* Tag Input Styles */
 .tag-container {
   display: flex;
