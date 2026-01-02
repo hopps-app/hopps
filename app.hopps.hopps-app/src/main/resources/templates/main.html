@@ -50,7 +50,7 @@
 
         <cds-side-nav-divider></cds-side-nav-divider>
 
-        <cds-side-nav-menu title="Organisation">
+        <cds-side-nav-menu title="Organisation" {#if inject:vertxRequest.path.startsWith('/bommels')}expanded="true"{/if}>
           <svg slot="title-icon" viewBox="0 0 32 32"><path d="M16,15h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6V2h-2v22c0,1.1025.897,2,2,2h9v3c0,.5522.4477,1,1,1h11c.5523,0,1-.4478,1-1v-7c0-.5523-.4477-1-1-1h-5l-.72-1.45c-.1711-.3395-.5199-.5527-.9-.55h-4.38c-.5523,0-1,.4477-1,1v4H6v-13h9v3c0,.5522.4477,1,1,1ZM17,6h2.76l.45.89.55,1.11h5.24v5h-9v-7ZM17,21h2.76l.45.89.55,1.11h5.24v5h-9v-7Z"/></svg>
           <cds-side-nav-menu-item href="/bommels" {#if inject:vertxRequest.path.startsWith('/bommels')}active{/if}>
             Bommels
@@ -59,7 +59,7 @@
 
         <cds-side-nav-divider></cds-side-nav-divider>
 
-        <cds-side-nav-menu title="Stammdaten">
+        <cds-side-nav-menu title="Stammdaten" {#if inject:vertxRequest.path.startsWith('/mitglieder')}expanded="true"{/if}>
           <svg slot="title-icon" viewBox="0 0 32 32"><path d="M12 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM22 30h-2v-5a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v5H2v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7ZM22 4h10v2H22zM22 9h10v2H22zM22 14h7v2h-7z"/></svg>
           <cds-side-nav-menu-item href="/mitglieder" {#if inject:vertxRequest.path.startsWith('/mitglieder')}active{/if}>
             Mitglieder
@@ -71,7 +71,7 @@
 
         <cds-side-nav-divider></cds-side-nav-divider>
 
-        <cds-side-nav-menu title="Finanzen">
+        <cds-side-nav-menu title="Finanzen" {#if inject:vertxRequest.path.startsWith('/belege') || inject:vertxRequest.path.startsWith('/transaktionen')}expanded="true"{/if}>
           <svg slot="title-icon" viewBox="0 0 32 32"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
           <cds-side-nav-menu-item href="/belege" {#if inject:vertxRequest.path.startsWith('/belege')}active{/if}>
             Belege
