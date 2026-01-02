@@ -27,11 +27,15 @@
   --side-nav-width: 256px;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+body {
   font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--cds-layer-01);
-  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Carbon UI Shell Layout Adjustments */
@@ -49,6 +53,8 @@ body {
 .content {
   padding: var(--cds-spacing-07);
   min-height: calc(100vh - 48px);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* When side nav is expanded (256px wide) - handled by JS */
