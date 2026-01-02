@@ -5,15 +5,16 @@
 /* Dashboard Grid */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Default to 2 columns for better fit */
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* Prevent columns from overflowing */
   gap: var(--cds-spacing-05);
   margin-bottom: var(--cds-spacing-07);
-  width: 100%; /* Force grid to respect container width */
+  max-width: 100%;
+  width: 100%;
 }
 
 @media (min-width: 1600px) {
   .dashboard-grid {
-    grid-template-columns: repeat(4, 1fr); /* 4 columns only on very wide screens */
+    grid-template-columns: repeat(4, minmax(0, 1fr)); /* Prevent columns from overflowing */
   }
 }
 
@@ -31,6 +32,7 @@
   padding: var(--cds-spacing-05);
   position: relative;
   overflow: hidden;
+  min-width: 0; /* Allow grid item to shrink below content size */
 }
 
 .stat-tile::before {
@@ -83,15 +85,16 @@
 /* Charts Row */
 .charts-row {
   display: grid;
-  grid-template-columns: 1fr; /* Stack charts by default for better fit */
+  grid-template-columns: minmax(0, 1fr); /* Prevent overflow */
   gap: var(--cds-spacing-05);
   margin-bottom: var(--cds-spacing-07);
-  width: 100%; /* Force grid to respect container width */
+  max-width: 100%;
+  width: 100%;
 }
 
 @media (min-width: 1400px) {
   .charts-row {
-    grid-template-columns: 1fr 2fr; /* Side-by-side only on wide screens */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); /* Prevent overflow */
   }
 }
 
@@ -101,6 +104,7 @@
   border: 1px solid var(--cds-border-subtle-01);
   border-radius: 4px;
   padding: var(--cds-spacing-05);
+  min-width: 0; /* Allow grid item to shrink below content size */
 }
 
 .chart-header {
