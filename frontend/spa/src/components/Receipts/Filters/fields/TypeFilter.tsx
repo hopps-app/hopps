@@ -25,7 +25,7 @@ const TypeFilter = ({ filters, onChange, label }: TypeFilterProps) => {
 
     return (
         <ReceiptFilterField label={label}>
-            <div className="flex items-center gap-4 h-10 xl:min-w-[350px] ">
+            <div className="flex items-center h-10">
                 <div className="flex items-center gap-2 flex-1">
                     <Checkbox
                         id="type-income"

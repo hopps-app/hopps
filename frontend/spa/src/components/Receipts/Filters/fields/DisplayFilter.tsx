@@ -9,7 +9,7 @@ type DisplayFilterProps = {
         displayAll?: boolean;
     };
     onChange: (key: 'displayAll', value: boolean) => void;
-    label: string;
+    label?: string;
 };
 
 const DisplayFilter = ({ filters, onChange, label }: DisplayFilterProps) => {
