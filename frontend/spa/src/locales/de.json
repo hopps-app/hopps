@@ -13,7 +13,8 @@
         "goBack": "Zurück",
         "cancel": "Abbrechen",
         "save": "Speichern",
-        "delete": "Löschen"
+        "delete": "Löschen",
+        "dateFormat": "{{day}}.{{month}}.{{year}}"
     },
     "header": {
         "logout": "Abmelden",
@@ -173,7 +174,9 @@
         },
         "filters": {
             "searchReceipt": "Beleg suchen",
-            "searchPlaceholder": "Suche",
+            "searchPlaceholder": "Suche nach Belegname oder Belegnummer",
+            "searchCategoryPlaceholder": "Kategorie auswählen",
+            "searchBommelPlaceholder": "Bommel auswählen",
             "receiptDate": "Belegdatum",
             "startDate": "Startzeitraum",
             "endDate": "Endzeitraum",
@@ -188,7 +191,9 @@
             "displayType": "Anzeigeart",
             "displayAll": "Alles ausklappen",
             "reset": "Zurücksetzen",
-            "noResults": "Keine Ergebnisse"
+            "noResults": "Keine Ergebnisse",
+            "hideFilters": "Filter ausblenden",
+            "showFilters": "Filter anzeigen"
         }
     },
     "datePicker": {
