@@ -310,7 +310,7 @@
   background: linear-gradient(135deg, #d0e2ff 0%, #a6c8ff 100%);
   border-radius: 0.75rem;
   font-size: 0.75rem;
-  color: #0043ce;
+  color: var(--hopps-primary-active);
 }
 
 .has-file svg {
@@ -331,7 +331,7 @@
 }
 
 .tags-cell cds-tag[type="blue"] {
-  background: rgba(15, 98, 254, 0.1);
+  background: rgba(144, 88, 197, 0.1);
   border-color: var(--cds-link-primary);
 }
 
@@ -359,7 +359,7 @@ cds-table-cell a:hover {
   align-items: center;
   gap: 0.25rem;
   padding: 0.125rem 0.5rem;
-  background: rgba(15, 98, 254, 0.1);
+  background: rgba(144, 88, 197, 0.1);
   border-radius: 0.75rem;
   font-size: 0.75rem;
   color: var(--cds-link-primary-hover);
@@ -383,7 +383,7 @@ cds-table-cell a:hover {
 
 .status-badge.analyzing {
   background-color: #d0e2ff;
-  color: #0043ce;
+  color: var(--hopps-primary-active);
 }
 
 .status-badge.analyzed {
@@ -433,7 +433,7 @@ a.status-badge.analyzed:hover {
 }
 
 .transaction-status.no-transaction {
-  background: rgba(15, 98, 254, 0.1);
+  background: rgba(144, 88, 197, 0.1);
   color: var(--cds-link-primary-hover);
 }
 
@@ -445,7 +445,7 @@ a.status-badge.analyzed:hover {
 
 /* Make analyzed rows stand out - removed glow/bounce animations, replaced with static highlight */
 cds-table-row.needs-review {
-  background: rgba(15, 98, 254, 0.04);
+  background: rgba(144, 88, 197, 0.04);
   border-left: 3px solid var(--cds-link-primary);
 }
 

@@ -93,7 +93,7 @@
 }
 
 .tag-container cds-tag[type="blue"] {
-  background: rgba(15, 98, 254, 0.1);
+  background: rgba(144, 88, 197, 0.1);  /* Hopps purple with 10% opacity */
   border-color: var(--cds-link-primary);
 }
 

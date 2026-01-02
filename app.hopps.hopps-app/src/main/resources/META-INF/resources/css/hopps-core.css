@@ -7,11 +7,20 @@
 
 /* Carbon Design System Overrides (Gray 10 theme will be loaded via CDN) */
 :root {
+  /* Hopps Brand Colors */
+  --hopps-primary: #9058c5;           /* Main purple brand color */
+  --hopps-primary-hover: #7d4ab5;     /* Darker purple for hover states */
+  --hopps-primary-active: #6a3d9f;    /* Even darker for active states */
+  --hopps-primary-light: #e6d9f2;     /* Light purple for backgrounds */
+
+  /* Carbon spacing tokens */
   --cds-spacing-03: 0.5rem;
   --cds-spacing-04: 0.75rem;
   --cds-spacing-05: 1rem;
   --cds-spacing-07: 2rem;
   --cds-spacing-09: 3rem;
+
+  /* Carbon color tokens */
   --cds-layer-01: #f4f4f4;
   --cds-layer-02: #ffffff;
   --cds-border-subtle-01: #e0e0e0;
@@ -21,9 +30,22 @@
   --cds-icon-primary: #161616;
   --cds-background-hover: rgba(141, 141, 141, 0.12);
   --cds-background-active: rgba(141, 141, 141, 0.5);
-  --cds-border-interactive: #0f62fe;
-  --cds-link-primary: #0f62fe;
-  --cds-link-primary-hover: #0353e9;
+
+  /* Carbon interactive colors - mapped to Hopps brand */
+  --cds-interactive-01: #9058c5 !important;      /* Primary interactive color */
+  --cds-interactive-02: #393939 !important;      /* Secondary interactive (keep gray) */
+  --cds-interactive-03: #ffffff !important;      /* Tertiary interactive (keep white) */
+  --cds-interactive-04: #6a3d9f !important;      /* Active state */
+  --cds-border-interactive: #9058c5 !important;  /* Interactive borders */
+  --cds-link-primary: #9058c5 !important;        /* Link color */
+  --cds-link-primary-hover: #7d4ab5 !important;  /* Link hover */
+  --cds-ui-focus: #9058c5 !important;           /* Focus indicators */
+  --cds-button-primary: #9058c5 !important;      /* Primary button background */
+  --cds-button-primary-hover: #7d4ab5 !important; /* Primary button hover */
+  --cds-button-primary-active: #6a3d9f !important; /* Primary button active */
+  --cds-focus: #9058c5 !important;              /* Focus color */
+
+  /* Layout */
   --side-nav-width: 256px;
 }
 
@@ -138,4 +160,20 @@ cds-dropdown::part(menu-body) {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
+}
+
+/* Carbon Button Overrides - Force purple theme */
+cds-button[kind="primary"] {
+  --cds-button-primary: var(--hopps-primary) !important;
+  --cds-button-primary-hover: var(--hopps-primary-hover) !important;
+  --cds-button-primary-active: var(--hopps-primary-active) !important;
+  background-color: var(--hopps-primary) !important;
+}
+
+cds-button[kind="primary"]:hover {
+  background-color: var(--hopps-primary-hover) !important;
+}
+
+cds-button[kind="primary"]:active {
+  background-color: var(--hopps-primary-active) !important;
 }

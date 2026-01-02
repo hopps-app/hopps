@@ -484,7 +484,7 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
           labels: ['Rechnungen', 'Quittungen', 'Sonstige'],
           datasets: [{
             data: [14, 7, 3],
-            backgroundColor: ['#0f62fe', '#24a148', '#f1c21b'], // IBM colors
+            backgroundColor: ['#9058c5', '#24a148', '#f1c21b'], // Hopps purple, green, yellow
             borderWidth: 0
           }]
         },
@@ -506,11 +506,39 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
 {/moreScripts}
 ```
 
-**Use IBM Carbon colors:**
-- Blue 60: `#0f62fe`
-- Green 60: `#24a148`
-- Red 60: `#da1e28`
-- Yellow 30: `#f1c21b`
+**Use Hopps brand colors:**
+- **Hopps Purple (Primary)**: `#9058c5` - Main brand color for buttons, links, interactive elements
+- **Hopps Purple Hover**: `#7d4ab5` - Darker shade for hover states
+- **Hopps Purple Active**: `#6a3d9f` - Even darker for active/pressed states
+- **Hopps Purple Light**: `#e6d9f2` - Light purple for backgrounds and accents
+- Green 60: `#24a148` - Success/positive states
+- Red 60: `#da1e28` - Error/danger states
+- Yellow 30: `#f1c21b` - Warning states
+
+**CSS Custom Properties:**
+The application uses CSS custom properties for theming. Always use these variables instead of hardcoding colors:
+
+```css
+/* Hopps Brand Colors (defined in hopps-core.css) */
+var(--hopps-primary)        /* #9058c5 - Main purple */
+var(--hopps-primary-hover)  /* #7d4ab5 - Hover state */
+var(--hopps-primary-active) /* #6a3d9f - Active state */
+var(--hopps-primary-light)  /* #e6d9f2 - Light purple */
+
+/* Carbon Design Tokens (mapped to Hopps colors) */
+var(--cds-interactive-01)      /* Primary interactive color */
+var(--cds-border-interactive)  /* Interactive borders */
+var(--cds-link-primary)        /* Link color */
+var(--cds-link-primary-hover)  /* Link hover */
+var(--cds-ui-focus)           /* Focus indicators */
+```
+
+**Chart.js colors:**
+When creating charts, use the Hopps purple as the primary color:
+
+```javascript
+backgroundColor: ['#9058c5', '#24a148', '#f1c21b'],  // Purple, Green, Yellow
+```
 
 ### Custom CSS
 
