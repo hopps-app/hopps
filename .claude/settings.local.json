@@ -51,7 +51,8 @@
       "Bash(xargs jar tf:*)",
       "Bash(./mvnw dependency:tree:*)",
       "Bash(./mvnw clean test-compile:*)",
-      "Bash(perl -i -pe:*)"
+      "Bash(perl -i -pe:*)",
+      "Bash(wc:*)"
     ]
   }
 }
