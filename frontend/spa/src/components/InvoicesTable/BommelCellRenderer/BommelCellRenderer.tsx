@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import BommelCellList from '@/components/InvoicesTable/BommelCellRenderer/BommelCellList';
 import Button from '@/components/ui/Button.tsx';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
-import SearchField from '@/components/ui/SearchField/SearchField';
+import SearchField from '@/components/ui/SearchField';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';

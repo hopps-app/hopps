@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button';
-import SearchField from '@/components/ui/SearchField/SearchField';
+import SearchField from '@/components/ui/SearchField';
 
 type InvoiceTableHeaderPropsType = {
     onUploadInvoiceChange: () => void;
