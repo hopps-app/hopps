@@ -162,6 +162,20 @@ cds-dropdown::part(menu-body) {
   right: 1rem;
 }
 
+/* Prevent navigation icon FOUC */
+cds-side-nav-link svg[slot="title-icon"],
+cds-header-global-action svg[slot="icon"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Hide navigation until Carbon components are defined */
+cds-side-nav:not(:defined),
+cds-header:not(:defined) {
+  visibility: hidden;
+}
+
 /* Carbon Button Overrides - Force purple theme */
 cds-button[kind="primary"] {
   --cds-button-primary: var(--hopps-primary) !important;
