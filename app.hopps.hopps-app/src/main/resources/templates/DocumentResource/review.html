@@ -1,126 +1,8 @@
 {#include main.html}
 {#title}Beleg prüfen - Hopps Buchhaltung{/title}
 
-{#moreStyles /}
-
-{#if false}
+{#moreStyles}
 <style>
-  /* Loading State */
-  .loading-container {
-    text-align: center;
-    padding: 3rem 2rem;
-  }
-  .loading-spinner {
-    width: 48px;
-    height: 48px;
-    border: 3px solid #e0e0e0;
-    border-top-color: #6929c4;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1.5rem;
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  .loading-container h3 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #161616;
-  }
-  .loading-container p {
-    margin: 0;
-    color: #525252;
-  }
-  .loading-progress {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    font-size: 0.875rem;
-    color: #6929c4;
-  }
-  .loading-progress svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-  .loading-elapsed {
-    margin-top: 0.5rem;
-    font-size: 0.75rem;
-    color: #8d8d8d;
-  }
-
-  /* Skeleton placeholders */
-  .skeleton-form {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(105, 41, 196, 0.2);
-  }
-  .skeleton-row {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  .skeleton-field {
-    flex: 1;
-  }
-  .skeleton-label {
-    height: 14px;
-    width: 80px;
-    background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.5s ease-in-out infinite;
-    border-radius: 2px;
-    margin-bottom: 0.5rem;
-  }
-  .skeleton-input {
-    height: 40px;
-    background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.5s ease-in-out infinite;
-    border-radius: 2px;
-  }
-  @keyframes skeleton-shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-
-  /* Analysis Error */
-  .analysis-error {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: #fff1f1;
-    border: 1px solid #da1e28;
-    border-radius: 4px;
-    margin-bottom: var(--cds-spacing-05);
-  }
-  .analysis-error svg {
-    width: 20px;
-    height: 20px;
-    fill: #da1e28;
-    flex-shrink: 0;
-  }
-  .analysis-error-content h4 {
-    margin: 0 0 0.25rem 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #da1e28;
-  }
-  .analysis-error-content p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: #750e13;
-  }
-
   /* Visibility states */
   .review-form { display: none; }
   .review-form.visible { display: block; }
@@ -197,7 +79,7 @@
     min-width: 0;
   }
 </style>
-{/if}
+{/moreStyles}
 
 {#moreScripts}
 <script>
@@ -262,28 +144,18 @@
 </div>
 
 <!-- Loading State -->
-<div class="box" id="loadingContainer">
-  <div class="loading-container">
-    <div class="loading-spinner"></div>
-    <h3>KI analysiert Ihren Beleg...</h3>
-    <p>Wir extrahieren automatisch Betrag, Datum, Absender und weitere Informationen.</p>
-    <div class="loading-progress">
-      <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
-      Dies kann einige Sekunden dauern
-    </div>
-    <div class="loading-elapsed" id="loadingElapsed"></div>
-    <div class="skeleton-form">
-      <div class="skeleton-row">
-        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
-        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
-      </div>
-      <div class="skeleton-row">
-        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
-        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
-        <div class="skeleton-field"><div class="skeleton-label"></div><div class="skeleton-input"></div></div>
-      </div>
-    </div>
-  </div>
+<div class="box" id="loadingContainer" style="text-align: center; padding: 3rem 2rem;">
+  <cds-loading></cds-loading>
+  <h3 style="margin-top: 2rem;">KI analysiert Ihren Beleg...</h3>
+  <p style="color: var(--cds-text-secondary); margin-bottom: 1rem;">Wir extrahieren automatisch Betrag, Datum, Absender und weitere Informationen.</p>
+  <cds-inline-notification
+    kind="info"
+    subtitle="Dies kann einige Sekunden dauern"
+    hide-close-button
+    low-contrast
+    style="margin: 1rem auto; max-width: 600px;">
+  </cds-inline-notification>
+  <div class="loading-elapsed" id="loadingElapsed" style="margin-top: 1rem; color: var(--cds-text-secondary); font-size: 0.875rem;"></div>
 </div>
 
 <!-- Review Form (shown after analysis) -->
