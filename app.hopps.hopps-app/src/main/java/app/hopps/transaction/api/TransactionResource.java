@@ -80,7 +80,9 @@ public class TransactionResource extends Controller
 			transactions = transactionRepository.findAllOrderedByDate();
 		}
 
-		return Templates.index(transactions);
+		return Templates.index(transactions)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@GET
@@ -88,7 +90,9 @@ public class TransactionResource extends Controller
 	public TemplateInstance create()
 	{
 		List<Bommel> bommels = bommelRepository.listAll();
-		return Templates.create(bommels);
+		return Templates.create(bommels)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@POST
@@ -164,7 +168,9 @@ public class TransactionResource extends Controller
 			return null;
 		}
 		List<Bommel> bommels = bommelRepository.listAll();
-		return Templates.show(transaction, bommels);
+		return Templates.show(transaction, bommels)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@POST

@@ -4,6 +4,8 @@ import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
@@ -11,6 +13,9 @@ import jakarta.ws.rs.Path;
 @Path("/")
 public class DashboardResource extends Controller
 {
+	@Inject
+	SecurityIdentity securityIdentity;
+
 	@CheckedTemplate
 	public static class Templates
 	{
@@ -21,6 +26,8 @@ public class DashboardResource extends Controller
 	@Path("")
 	public TemplateInstance index()
 	{
-		return Templates.index();
+		return Templates.index()
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 }

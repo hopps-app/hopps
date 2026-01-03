@@ -124,14 +124,18 @@ public class DocumentResource extends Controller
 			.filter(d -> d.getTransactionCount() == 0)
 			.toList();
 
-		return Templates.index(documents, documentsNeedingReview, documentsNeedingTransaction);
+		return Templates.index(documents, documentsNeedingReview, documentsNeedingTransaction)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@GET
 	@Path("/neu")
 	public TemplateInstance create()
 	{
-		return Templates.create();
+		return Templates.create()
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@GET
@@ -146,7 +150,9 @@ public class DocumentResource extends Controller
 			return null;
 		}
 		List<Bommel> bommels = bommelRepository.listAll();
-		return Templates.review(document, bommels);
+		return Templates.review(document, bommels)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@GET
@@ -191,7 +197,9 @@ public class DocumentResource extends Controller
 		document.setTransactionCount(count);
 
 		List<Bommel> bommels = bommelRepository.listAll();
-		return Templates.show(document, bommels);
+		return Templates.show(document, bommels)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	/**

@@ -3,6 +3,7 @@ package app.hopps.bommel.api;
 import java.util.List;
 
 import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -33,6 +34,9 @@ public class BommelResource extends Controller
 	@Inject
 	MemberRepository memberRepository;
 
+	@Inject
+	SecurityIdentity securityIdentity;
+
 	@CheckedTemplate
 	public static class Templates
 	{
@@ -46,7 +50,9 @@ public class BommelResource extends Controller
 		Bommel root = bommelRepository.findRoot();
 		Bommel selected = selectedId != null ? bommelRepository.findById(selectedId) : null;
 		List<Member> members = memberRepository.findAllOrderedByName();
-		return Templates.index(root, selected, members);
+		return Templates.index(root, selected, members)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@POST
