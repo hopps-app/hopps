@@ -7,9 +7,10 @@ import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterF
 type DateFilterProps = {
     date?: string | null;
     onChange: (key: 'startDate', value: string | null) => void;
+    label?: string;
 };
 
-const StartDateFilter = ({ date, onChange }: DateFilterProps) => {
+const StartDateFilter = ({ date, onChange, label }: DateFilterProps) => {
     const { t } = useTranslation();
 
     const handleSelect = useCallback(
@@ -20,8 +21,8 @@ const StartDateFilter = ({ date, onChange }: DateFilterProps) => {
     );
 
     return (
-        <ReceiptFilterField label={t('receipts.filters.startDate')}>
-            <DatePicker date={date ? new Date(date) : undefined} onSelect={handleSelect} className="w-full text-sm h-10" />
+        <ReceiptFilterField label={label}>
+            <DatePicker date={date ? new Date(date) : undefined} onSelect={handleSelect} className="w-full text-sm h-10" placeholder={t('datePicker.from')} />
         </ReceiptFilterField>
     );
 };
