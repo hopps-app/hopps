@@ -59,8 +59,8 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             type="button"
                             disabled={disabled}
                             className={cn(
-                                'w-full text-gray-800 text-sm border border-gray-300 h-11 rounded-md outline-primary bg-primary-foreground',
-                                'placeholder:text-muted focus:border-primary transition-colors',
+                                'w-full text-[var(--grey-black)] text-sm border border-gray-300 h-11 rounded-[10px] outline-primary bg-primary-foreground',
+                                'placeholder:text-muted focus:border-primary hover:border-primary transition-colors',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 'flex items-center justify-start text-left font-normal',
                                 !date && 'text-muted-foreground',
@@ -77,7 +77,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             {date ? (
                                 format(date, dateFormat || 'dd.MM.yyyy', { locale: getDateLocale() })
                             ) : (
-                                <span className="text-gray-500">{defaultPlaceholder}</span>
+                                <span className="text-gray-400">{defaultPlaceholder}</span>
                             )}
                         </button>
                     </PopoverTrigger>
