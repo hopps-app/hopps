@@ -28,7 +28,13 @@ export const SearchFilter = ({ value, onChange, label }: SearchFilterProps) => {
     return (
         <ReceiptFilterField label={label}>
             <div className="relative w-full">
-                <TextField onChange={handleChange} value={value} prependIcon="MagnifyingGlass" placeholder={t('receipts.filters.searchPlaceholder')} />
+                <TextField
+                    onChange={handleChange}
+                    value={value}
+                    prependIcon="MagnifyingGlass"
+                    placeholder={t('receipts.filters.searchPlaceholder')}
+                    className="h-10"
+                />
 
                 {value && (
                     <button
