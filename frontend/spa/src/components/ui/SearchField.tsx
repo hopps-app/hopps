@@ -52,17 +52,19 @@ const SearchField: FC<SearchFieldPropsType> = ({ items, onSearch, placeholder })
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild className={cn(open && '')}>
                     <BaseButton
-                        variant="outline"
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
                         aria-haspopup="listbox"
                         aria-expanded={open}
                         className={cn(
                             'relative w-full justify-between text-sm font-normal',
                             'h-10 rounded-md border border-slate-300 bg-white',
                             'px-3 py-0 text-gray-600',
-                            'flex items-center'
+                            'flex items-center',
+                            'focus:outline-none focus:border-primary hover:bg-white hover:border-primary'
                         )}
                     >
-                        <span className="truncate">{selectedItem ?? placeholder}</span>
+                        <span className="truncate select-none">{selectedItem ?? placeholder}</span>
 
                         {selectedItem ? (
                             <button
