@@ -37,7 +37,7 @@ const DisplayFilter = ({ filters, onChange, label }: DisplayFilterProps) => {
                                hover:data-[state=checked]:bg-[var(--purple-400)]
                                transition-colors focus-visible:ring-0 focus-visible:outline-none"
                 />
-                <label htmlFor="display-all" className="text-base font-medium text-[var(--grey-900)] leading-none cursor-pointer select-none">
+                <label htmlFor="display-all" className="text-base text-[var(--grey-black)] leading-none cursor-pointer select-none">
                     {t('receipts.filters.displayAll')}
                 </label>
             </div>

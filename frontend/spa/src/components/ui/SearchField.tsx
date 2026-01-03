@@ -58,36 +58,42 @@ const SearchField: FC<SearchFieldPropsType> = ({ items, onSearch, placeholder })
                         aria-expanded={open}
                         className={cn(
                             'relative w-full justify-between text-sm font-normal',
-                            'h-10 rounded-md border border-slate-300 bg-white',
-                            'px-3 py-0 text-gray-600',
+                            'h-10 rounded-[10px] border border-slate-300 bg-white',
+                            'px-3 py-0 text-[var(--grey-black)]',
                             'flex items-center',
                             'focus:outline-none focus:border-primary hover:bg-white hover:border-primary'
                         )}
                     >
-                        <span className="truncate select-none">{selectedItem ?? placeholder}</span>
+                        {selectedItem}
+                        {!selectedItem && <span className="truncate select-none text-gray-400">{placeholder}</span>}
 
                         {selectedItem ? (
                             <button
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleSelect(null); // 👈 clear
+                                    handleSelect(null);
                                 }}
-                                className="p-1 rounded hover:bg-slate-100"
+                                className="flex items-center justify-center w-4 h-4 text-[var(--purple-500)] hover:text-[var(--purple-700)] transition"
                             >
-                                <Cross2Icon className="h-4 w-4 text-slate-500" />
+                                <Cross2Icon className="w-4 h-4" />
                             </button>
                         ) : (
-                            <ChevronDownIcon className="h-4 w-4 opacity-50" />
+                            <ChevronDownIcon className="h-4 w-4 text-gray-600" />
                         )}
                     </BaseButton>
                 </PopoverTrigger>
 
                 <PopoverContent align="start" sideOffset={4} className="w-[var(--radix-popover-trigger-width)] p-0">
                     <Command shouldFilter={false}>
-                        <CommandInput placeholder={t('common.search')} value={search} onValueChange={handleInputChange} className="h-9 text-sm border-b" />
+                        <CommandInput
+                            placeholder={t('common.search')}
+                            value={search}
+                            onValueChange={handleInputChange}
+                            className="h-9 text-sm text-gray-400 border-b"
+                        />
 
-                        <CommandList className="pt-0">
+                        <CommandList className="pt-1">
                             <CommandEmpty>{t('receipts.filters.noResults')}</CommandEmpty>
 
                             <CommandGroup className="pt-0">

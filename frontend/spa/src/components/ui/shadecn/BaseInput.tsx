@@ -8,8 +8,8 @@ const BaseInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<H
             type={type}
             className={cn(
                 'w-full text-gray-800 text-sm border border-gray-300 px-4 h-11 rounded-[10px] bg-primary-foreground ' +
-                    'placeholder:text-muted ' +
-                    'focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ' +
+                    'placeholder:text-gray-400 ' +
+                    'focus:border-primary focus:outline-none focus:ring-0 focus:ring-primary ' +
                     'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground ' +
                     'disabled:cursor-not-allowed disabled:opacity-50',
                 className

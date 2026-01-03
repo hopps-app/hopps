@@ -31,7 +31,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         onCheckedChange={(checked: boolean) => handleToggle('unpaid', !!checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <label htmlFor="status-unpaid" className="text-base font-medium text-[var(--grey-900)] leading-none cursor-pointer select-none">
+                    <label htmlFor="status-unpaid" className="text-base text-[var(--grey-black)] leading-none cursor-pointer select-none">
                         {t('receipts.filters.onlyUnpaid')}
                     </label>
                 </div>
@@ -43,7 +43,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         onCheckedChange={(checked: boolean) => handleToggle('draft', !!checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <label htmlFor="status-draft" className="text-base font-medium text-[var(--grey-900)] leading-none cursor-pointer select-none">
+                    <label htmlFor="status-draft" className="text-base text-[var(--grey-black)] leading-none cursor-pointer select-none">
                         {t('receipts.filters.drafts')}
                     </label>
                 </div>
