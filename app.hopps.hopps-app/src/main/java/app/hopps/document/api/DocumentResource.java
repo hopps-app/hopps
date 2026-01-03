@@ -27,6 +27,7 @@ import app.hopps.document.service.DocumentFileService;
 import app.hopps.document.workflow.DocumentProcessingWorkflow;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
+import app.hopps.shared.util.FlashKeys;
 import app.hopps.workflow.ProcessEngine;
 import app.hopps.workflow.WorkflowInstance;
 import io.quarkiverse.renarde.Controller;
@@ -141,7 +142,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return null;
 		}
@@ -181,7 +182,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return null;
 		}
@@ -253,7 +254,7 @@ public class DocumentResource extends Controller
 		boolean hasFile = file != null && file.fileName() != null && !file.fileName().isBlank();
 		if (!hasFile)
 		{
-			flash("error", "Bitte wählen Sie eine Datei aus");
+			flash(FlashKeys.ERROR, "Bitte wählen Sie eine Datei aus");
 			redirect(DocumentResource.class).create();
 			return;
 		}
@@ -304,14 +305,14 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
 
 		if (!document.hasFile())
 		{
-			flash("error", "Kein Dokument vorhanden zum Analysieren");
+			flash(FlashKeys.ERROR, "Kein Dokument vorhanden zum Analysieren");
 			redirect(DocumentResource.class).show(id);
 			return;
 		}
@@ -319,7 +320,7 @@ public class DocumentResource extends Controller
 		if (document.getDocumentStatus() != DocumentStatus.UPLOADED
 			&& document.getDocumentStatus() != DocumentStatus.FAILED)
 		{
-			flash("warning", "Dokument wurde bereits analysiert");
+			flash(FlashKeys.WARNING, "Dokument wurde bereits analysiert");
 			redirect(DocumentResource.class).show(id);
 			return;
 		}
@@ -329,13 +330,13 @@ public class DocumentResource extends Controller
 
 		if (analysisStarted)
 		{
-			flash("info", "Analyse gestartet");
+			flash(FlashKeys.INFO, "Analyse gestartet");
 		}
 		else
 		{
 			analysisService.markAnalysisFailed(document,
 				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
-			flash("error", "KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+			flash(FlashKeys.ERROR, "KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
 		}
 
 		redirect(DocumentResource.class).review(id);
@@ -367,7 +368,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -407,7 +408,7 @@ public class DocumentResource extends Controller
 			{
 				LOG.error("Failed to complete workflow user task: documentId={}, error={}",
 					id, e.getMessage(), e);
-				flash("error", "Fehler beim Abschließen der Prüfung: " + e.getMessage());
+				flash(FlashKeys.ERROR, "Fehler beim Abschließen der Prüfung: " + e.getMessage());
 				redirect(DocumentResource.class).review(id);
 				return;
 			}
@@ -423,17 +424,17 @@ public class DocumentResource extends Controller
 
 		if (Boolean.TRUE.equals(confirmed))
 		{
-			flash("success", "Beleg gespeichert");
+			flash(FlashKeys.SUCCESS, "Beleg gespeichert");
 			redirect(DocumentResource.class).show(id);
 		}
 		else if (Boolean.TRUE.equals(reanalyze))
 		{
-			flash("info", "Beleg wird erneut analysiert");
+			flash(FlashKeys.INFO, "Beleg wird erneut analysiert");
 			redirect(DocumentResource.class).review(id);
 		}
 		else
 		{
-			flash("info", "Beleg zur manuellen Eingabe vorbereitet");
+			flash(FlashKeys.INFO, "Beleg zur manuellen Eingabe vorbereitet");
 			redirect(DocumentResource.class).show(id);
 		}
 	}
@@ -481,7 +482,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -533,7 +534,7 @@ public class DocumentResource extends Controller
 		// Handle tags
 		updateDocumentTags(document, tags);
 
-		flash("success", "Beleg gespeichert");
+		flash(FlashKeys.SUCCESS, "Beleg gespeichert");
 		redirect(DocumentResource.class).show(document.getId());
 	}
 
@@ -562,7 +563,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -614,7 +615,7 @@ public class DocumentResource extends Controller
 		// Handle tags
 		updateDocumentTags(document, tags);
 
-		flash("success", "Beleg aktualisiert");
+		flash(FlashKeys.SUCCESS, "Beleg aktualisiert");
 		redirect(DocumentResource.class).show(id);
 	}
 
@@ -630,7 +631,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -642,7 +643,7 @@ public class DocumentResource extends Controller
 		}
 
 		documentRepository.delete(document);
-		flash("success", "Beleg gelöscht");
+		flash(FlashKeys.SUCCESS, "Beleg gelöscht");
 		redirect(DocumentResource.class).index(null);
 	}
 
@@ -654,14 +655,14 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(documentId);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
 
 		if (file == null || file.fileName() == null || file.fileName().isBlank())
 		{
-			flash("error", "Keine Datei ausgewählt");
+			flash(FlashKeys.ERROR, "Keine Datei ausgewählt");
 			redirect(DocumentResource.class).show(documentId);
 			return;
 		}
@@ -679,13 +680,13 @@ public class DocumentResource extends Controller
 
 		if (analysisStarted)
 		{
-			flash("success", "Datei hochgeladen: " + file.fileName() + ". KI-Analyse gestartet.");
+			flash(FlashKeys.SUCCESS, "Datei hochgeladen: " + file.fileName() + ". KI-Analyse gestartet.");
 		}
 		else
 		{
 			analysisService.markAnalysisFailed(document,
 				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
-			flash("warning", "Datei hochgeladen: " + file.fileName() + ". KI-Dienst nicht verfügbar - bitte Felder manuell ausfüllen.");
+			flash(FlashKeys.WARNING, "Datei hochgeladen: " + file.fileName() + ". KI-Dienst nicht verfügbar - bitte Felder manuell ausfüllen.");
 		}
 
 		redirect(DocumentResource.class).show(documentId);
@@ -699,7 +700,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(documentId);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -711,11 +712,11 @@ public class DocumentResource extends Controller
 			document.setFileName(null);
 			document.setFileContentType(null);
 			document.setFileSize(null);
-			flash("success", "Datei gelöscht");
+			flash(FlashKeys.SUCCESS, "Datei gelöscht");
 		}
 		else
 		{
-			flash("error", "Keine Datei vorhanden");
+			flash(FlashKeys.ERROR, "Keine Datei vorhanden");
 		}
 
 		redirect(DocumentResource.class).show(documentId);
@@ -774,7 +775,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(documentId);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -783,12 +784,12 @@ public class DocumentResource extends Controller
 		{
 			Bommel bommel = bommelRepository.findById(bommelId);
 			document.setBommel(bommel);
-			flash("success", "Beleg zugewiesen zu: " + bommel.getTitle());
+			flash(FlashKeys.SUCCESS, "Beleg zugewiesen zu: " + bommel.getTitle());
 		}
 		else
 		{
 			document.setBommel(null);
-			flash("success", "Bommel-Zuweisung entfernt");
+			flash(FlashKeys.SUCCESS, "Bommel-Zuweisung entfernt");
 		}
 
 		redirect(DocumentResource.class).show(documentId);
@@ -806,7 +807,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findById(id);
 		if (document == null)
 		{
-			flash("error", "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -852,7 +853,7 @@ public class DocumentResource extends Controller
 
 		LOG.info("Transaction created from document: documentId={}, transactionId={}",
 			document.getId(), transaction.getId());
-		flash("success", "Transaktion erstellt aus Beleg \"" + document.getDisplayName() + "\"");
+		flash(FlashKeys.SUCCESS, "Transaktion erstellt aus Beleg \"" + document.getDisplayName() + "\"");
 		redirect(app.hopps.transaction.api.TransactionResource.class).show(transaction.getId());
 	}
 }
