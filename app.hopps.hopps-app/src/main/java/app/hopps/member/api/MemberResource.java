@@ -52,18 +52,14 @@ public class MemberResource extends Controller
 	public TemplateInstance index()
 	{
 		List<Member> members = memberRepository.findAllOrderedByName();
-		return Templates.index(members)
-			.data("currentUser", securityIdentity.getPrincipal().getName())
-			.data("userRoles", securityIdentity.getRoles());
+		return Templates.index(members);
 	}
 
 	@GET
 	@Path("/neu")
 	public TemplateInstance create()
 	{
-		return Templates.create()
-			.data("currentUser", securityIdentity.getPrincipal().getName())
-			.data("userRoles", securityIdentity.getRoles());
+		return Templates.create();
 	}
 
 	@GET
@@ -77,9 +73,7 @@ public class MemberResource extends Controller
 			redirect(MemberResource.class).index();
 			return null;
 		}
-		return Templates.detail(member)
-			.data("currentUser", securityIdentity.getPrincipal().getName())
-			.data("userRoles", securityIdentity.getRoles());
+		return Templates.detail(member);
 	}
 
 	@POST

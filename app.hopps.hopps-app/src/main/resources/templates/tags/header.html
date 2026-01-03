@@ -96,16 +96,16 @@
   <div class="profile-section">
     <div class="profile-info">
       <div class="profile-avatar">
-        {#if currentUser}{currentUser.substring(0,1).toUpperCase()}{#else}?{/if}
+        {inject:userContext.firstLetter}
       </div>
       <div class="profile-details">
-        <div class="profile-name">{currentUser ?: 'Benutzer'}</div>
-        <div class="profile-email">{#if currentUser}{currentUser}@hopps.local{#else}benutzer@hopps.local{/if}</div>
+        <div class="profile-name">{inject:userContext.username ?: 'Benutzer'}</div>
+        <div class="profile-email">{inject:userContext.email ?: 'benutzer@hopps.local'}</div>
       </div>
     </div>
-    {#if userRoles}
+    {#if inject:userContext.roles.size() > 0}
     <div class="profile-roles">
-      {#for role in userRoles}
+      {#for role in inject:userContext.roles}
       <span class="profile-role">{role}</span>
       {/for}
     </div>
