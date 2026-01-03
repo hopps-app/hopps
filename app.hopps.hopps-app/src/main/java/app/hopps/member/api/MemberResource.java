@@ -13,6 +13,7 @@ import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -31,6 +32,9 @@ public class MemberResource extends Controller
 	@Inject
 	app.hopps.member.service.MemberKeycloakSyncService memberKeycloakSyncService;
 
+	@Inject
+	SecurityIdentity securityIdentity;
+
 	private static final Logger LOG = LoggerFactory.getLogger(MemberResource.class);
 
 	@CheckedTemplate
@@ -48,14 +52,18 @@ public class MemberResource extends Controller
 	public TemplateInstance index()
 	{
 		List<Member> members = memberRepository.findAllOrderedByName();
-		return Templates.index(members);
+		return Templates.index(members)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@GET
 	@Path("/neu")
 	public TemplateInstance create()
 	{
-		return Templates.create();
+		return Templates.create()
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@GET
@@ -69,7 +77,9 @@ public class MemberResource extends Controller
 			redirect(MemberResource.class).index();
 			return null;
 		}
-		return Templates.detail(member);
+		return Templates.detail(member)
+			.data("currentUser", securityIdentity.getPrincipal().getName())
+			.data("userRoles", securityIdentity.getRoles());
 	}
 
 	@POST

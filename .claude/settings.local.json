@@ -55,7 +55,8 @@
       "Bash(wc:*)",
       "Bash(./mvnw formatter:validate:*)",
       "WebFetch(domain:angular.carbondesignsystem.com)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(mvn surefire-report:report:*)"
     ]
   }
 }
