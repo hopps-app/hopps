@@ -23,7 +23,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
 
     return (
         <ReceiptFilterField label={label}>
-            <div className="flex items-center h-10">
+            <div className="flex items-center h-10 gap-4">
                 <div className="flex items-center gap-2 flex-1">
                     <Switch
                         id="status-unpaid"
@@ -31,7 +31,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         onCheckedChange={(checked: boolean) => handleToggle('unpaid', !!checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <label htmlFor="status-unpaid" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
+                    <label htmlFor="status-unpaid" className="text-base font-medium text-[var(--grey-900)] leading-none cursor-pointer select-none">
                         {t('receipts.filters.onlyUnpaid')}
                     </label>
                 </div>
@@ -43,7 +43,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         onCheckedChange={(checked: boolean) => handleToggle('draft', !!checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <label htmlFor="status-draft" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
+                    <label htmlFor="status-draft" className="text-base font-medium text-[var(--grey-900)] leading-none cursor-pointer select-none">
                         {t('receipts.filters.drafts')}
                     </label>
                 </div>
