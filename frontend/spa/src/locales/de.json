@@ -164,6 +164,8 @@
         "categories": "Kategorien"
     },
     "receipts": {
+        "title": "Belege",
+        "upload": "Beleg hochladen",
         "draft": "Entwurf",
         "dueDate": "Fällig am",
         "status": {
@@ -173,23 +175,23 @@
             "failed": "Fehlgeschlagen"
         },
         "filters": {
-            "searchReceipt": "Beleg suchen",
-            "searchPlaceholder": "Suche nach Belegname oder Belegnummer",
+            "searchReceipt": "Beleg",
+            "searchPlaceholder": "Suche nach Belegname",
             "searchCategoryPlaceholder": "Kategorie auswählen",
             "searchBommelPlaceholder": "Bommel auswählen",
             "receiptDate": "Belegdatum",
-            "startDate": "Startzeitraum",
-            "endDate": "Endzeitraum",
+            "startDate": "Startdatum",
+            "endDate": "Enddatum",
             "bommel": "Bommel",
             "category": "Kategorie",
             "type": "Belegart",
             "income": "Einnahme",
             "expense": "Ausgabe",
             "status": "Status",
-            "onlyUnpaid": "Nur unbezahlt",
+            "onlyUnpaid": "Unbezahlt",
             "drafts": "Entwürfe",
             "displayType": "Anzeigeart",
-            "displayAll": "Alles ausklappen",
+            "displayAll": "Belege ausklappen",
             "reset": "Zurücksetzen",
             "noResults": "Keine Ergebnisse",
             "hideFilters": "Filter ausblenden",
@@ -197,7 +199,9 @@
         }
     },
     "datePicker": {
-        "selectDate": "Datum auswählen"
+        "selectDate": "Datum auswählen",
+        "from": "Von",
+        "to": "Bis"
     },
     "categories": {
         "title": "Admin Einstellungen: Kategorien",
