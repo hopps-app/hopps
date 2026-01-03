@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.shared.util.FlashKeys;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -69,7 +70,7 @@ public class MemberResource extends Controller
 		Member member = memberRepository.findById(id);
 		if (member == null)
 		{
-			flash("error", "Mitglied nicht gefunden");
+			flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
 			redirect(MemberResource.class).index();
 			return null;
 		}
@@ -103,12 +104,12 @@ public class MemberResource extends Controller
 		try
 		{
 			memberKeycloakSyncService.syncMemberToKeycloak(member);
-			flash("success", "Mitglied erstellt und mit Keycloak synchronisiert");
+			flash(FlashKeys.SUCCESS, "Mitglied erstellt und mit Keycloak synchronisiert");
 		}
 		catch (Exception e)
 		{
 			LOG.error("Failed to sync member to Keycloak: memberId={}", member.getId(), e);
-			flash("warning", "Mitglied erstellt, aber Keycloak-Synchronisation fehlgeschlagen");
+			flash(FlashKeys.WARNING, "Mitglied erstellt, aber Keycloak-Synchronisation fehlgeschlagen");
 		}
 
 		redirect(MemberResource.class).detail(member.getId());
@@ -134,7 +135,7 @@ public class MemberResource extends Controller
 		Member member = memberRepository.findById(id);
 		if (member == null)
 		{
-			flash("error", "Mitglied nicht gefunden");
+			flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
 			redirect(MemberResource.class).index();
 			return;
 		}
@@ -144,7 +145,7 @@ public class MemberResource extends Controller
 		member.setEmail(email);
 		member.setPhone(phone);
 
-		flash("success", "Mitglied aktualisiert");
+		flash(FlashKeys.SUCCESS, "Mitglied aktualisiert");
 		redirect(MemberResource.class).detail(id);
 	}
 
@@ -157,14 +158,14 @@ public class MemberResource extends Controller
 		Member member = memberRepository.findById(id);
 		if (member == null)
 		{
-			flash("error", "Mitglied nicht gefunden");
+			flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
 			redirect(MemberResource.class).index();
 			return;
 		}
 
 		if (!member.getResponsibleBommels().isEmpty())
 		{
-			flash("error", "Mitglied ist noch Bommelwart. Bitte zuerst die Zuweisungen entfernen.");
+			flash(FlashKeys.ERROR, "Mitglied ist noch Bommelwart. Bitte zuerst die Zuweisungen entfernen.");
 			redirect(MemberResource.class).detail(id);
 			return;
 		}
@@ -180,7 +181,7 @@ public class MemberResource extends Controller
 		}
 
 		memberRepository.delete(member);
-		flash("success", "Mitglied gelöscht");
+		flash(FlashKeys.SUCCESS, "Mitglied gelöscht");
 		redirect(MemberResource.class).index();
 	}
 }

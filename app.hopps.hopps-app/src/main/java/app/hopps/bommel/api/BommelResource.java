@@ -23,6 +23,7 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.shared.util.FlashKeys;
 
 @Authenticated
 @Path("/bommels")
@@ -68,7 +69,7 @@ public class BommelResource extends Controller
 
 		if (bommelRepository.hasRoot())
 		{
-			flash("error", "Hauptbommel existiert bereits");
+			flash(FlashKeys.ERROR, "Hauptbommel existiert bereits");
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -79,7 +80,7 @@ public class BommelResource extends Controller
 		root.parent = null;
 		bommelRepository.persist(root);
 
-		flash("success", "Hauptbommel erstellt");
+		flash(FlashKeys.SUCCESS, "Hauptbommel erstellt");
 		redirect(BommelResource.class).index(root.getId());
 	}
 
@@ -93,7 +94,7 @@ public class BommelResource extends Controller
 	{
 		if (parentId == null)
 		{
-			flash("error", "Eltern-ID ist erforderlich");
+			flash(FlashKeys.ERROR, "Eltern-ID ist erforderlich");
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -101,14 +102,14 @@ public class BommelResource extends Controller
 		Bommel parent = bommelRepository.findById(parentId);
 		if (parent == null)
 		{
-			flash("error", "Eltern-Bommel nicht gefunden");
+			flash(FlashKeys.ERROR, "Eltern-Bommel nicht gefunden");
 			redirect(BommelResource.class).index(null);
 			return;
 		}
 
 		if (title == null || title.isBlank())
 		{
-			flash("error", "Titel ist erforderlich");
+			flash(FlashKeys.ERROR, "Titel ist erforderlich");
 			redirect(BommelResource.class).index(parentId);
 			return;
 		}
@@ -119,7 +120,7 @@ public class BommelResource extends Controller
 		child.parent = parent;
 		bommelRepository.persist(child);
 
-		flash("success", "Kind-Bommel hinzugefügt");
+		flash(FlashKeys.SUCCESS, "Kind-Bommel hinzugefügt");
 		redirect(BommelResource.class).index(child.getId());
 	}
 
@@ -140,7 +141,7 @@ public class BommelResource extends Controller
 		Bommel bommel = bommelRepository.findById(id);
 		if (bommel == null)
 		{
-			flash("error", "Bommel nicht gefunden");
+			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -148,7 +149,7 @@ public class BommelResource extends Controller
 		bommel.setIcon(icon != null ? icon : bommel.getIcon());
 		bommel.setTitle(title);
 
-		flash("success", "Bommel aktualisiert");
+		flash(FlashKeys.SUCCESS, "Bommel aktualisiert");
 		redirect(BommelResource.class).index(id);
 	}
 
@@ -166,14 +167,14 @@ public class BommelResource extends Controller
 		Bommel bommel = bommelRepository.findById(id);
 		if (bommel == null)
 		{
-			flash("error", "Bommel nicht gefunden");
+			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
 			redirect(BommelResource.class).index(null);
 			return;
 		}
 
 		if (bommelRepository.hasChildren(bommel))
 		{
-			flash("error", "Bommel mit Kindern kann nicht gelöscht werden. Entfernen Sie zuerst alle Kinder.");
+			flash(FlashKeys.ERROR, "Bommel mit Kindern kann nicht gelöscht werden. Entfernen Sie zuerst alle Kinder.");
 			redirect(BommelResource.class).index(id);
 			return;
 		}
@@ -181,7 +182,7 @@ public class BommelResource extends Controller
 		Long redirectToId = bommel.parent != null ? bommel.parent.getId() : null;
 
 		bommelRepository.delete(bommel);
-		flash("success", "Bommel gelöscht");
+		flash(FlashKeys.SUCCESS, "Bommel gelöscht");
 		redirect(BommelResource.class).index(redirectToId);
 	}
 
@@ -195,7 +196,7 @@ public class BommelResource extends Controller
 		Bommel bommel = bommelRepository.findById(bommelId);
 		if (bommel == null)
 		{
-			flash("error", "Bommel nicht gefunden");
+			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -203,19 +204,19 @@ public class BommelResource extends Controller
 		if (memberId == null || memberId == 0)
 		{
 			bommel.setResponsibleMember(null);
-			flash("success", "Bommelwart entfernt");
+			flash(FlashKeys.SUCCESS, "Bommelwart entfernt");
 		}
 		else
 		{
 			Member member = memberRepository.findById(memberId);
 			if (member == null)
 			{
-				flash("error", "Mitglied nicht gefunden");
+				flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
 				redirect(BommelResource.class).index(bommelId);
 				return;
 			}
 			bommel.setResponsibleMember(member);
-			flash("success", "Bommelwart zugewiesen: " + member.getDisplayName());
+			flash(FlashKeys.SUCCESS, "Bommelwart zugewiesen: " + member.getDisplayName());
 		}
 
 		redirect(BommelResource.class).index(bommelId);

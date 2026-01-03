@@ -17,6 +17,7 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
+import app.hopps.shared.util.FlashKeys;
 import app.hopps.transaction.domain.TagSource;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
@@ -148,7 +149,7 @@ public class TransactionResource extends Controller
 		// Add tags
 		updateTransactionTags(transaction, tags);
 
-		flash("success", "Transaktion erstellt");
+		flash(FlashKeys.SUCCESS, "Transaktion erstellt");
 		redirect(TransactionResource.class).show(transaction.getId());
 	}
 
@@ -159,7 +160,7 @@ public class TransactionResource extends Controller
 		TransactionRecord transaction = transactionRepository.findById(id);
 		if (transaction == null)
 		{
-			flash("error", "Transaktion nicht gefunden");
+			flash(FlashKeys.ERROR, "Transaktion nicht gefunden");
 			redirect(TransactionResource.class).index(null, null);
 			return null;
 		}
@@ -186,7 +187,7 @@ public class TransactionResource extends Controller
 		TransactionRecord transaction = transactionRepository.findById(id);
 		if (transaction == null)
 		{
-			flash("error", "Transaktion nicht gefunden");
+			flash(FlashKeys.ERROR, "Transaktion nicht gefunden");
 			redirect(TransactionResource.class).index(null, null);
 			return;
 		}
@@ -239,7 +240,7 @@ public class TransactionResource extends Controller
 		// Update tags
 		updateTransactionTags(transaction, tags);
 
-		flash("success", "Transaktion aktualisiert");
+		flash(FlashKeys.SUCCESS, "Transaktion aktualisiert");
 		redirect(TransactionResource.class).show(transaction.getId());
 	}
 
@@ -250,14 +251,14 @@ public class TransactionResource extends Controller
 		TransactionRecord transaction = transactionRepository.findById(id);
 		if (transaction == null)
 		{
-			flash("error", "Transaktion nicht gefunden");
+			flash(FlashKeys.ERROR, "Transaktion nicht gefunden");
 			redirect(TransactionResource.class).index(null, null);
 			return;
 		}
 
 		transactionRepository.delete(transaction);
 
-		flash("success", "Transaktion gelöscht");
+		flash(FlashKeys.SUCCESS, "Transaktion gelöscht");
 		redirect(TransactionResource.class).index(null, null);
 	}
 
