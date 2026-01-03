@@ -50,9 +50,7 @@ public class BommelResource extends Controller
 		Bommel root = bommelRepository.findRoot();
 		Bommel selected = selectedId != null ? bommelRepository.findById(selectedId) : null;
 		List<Member> members = memberRepository.findAllOrderedByName();
-		return Templates.index(root, selected, members)
-			.data("currentUser", securityIdentity.getPrincipal().getName())
-			.data("userRoles", securityIdentity.getRoles());
+		return Templates.index(root, selected, members);
 	}
 
 	@POST

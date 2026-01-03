@@ -56,7 +56,8 @@
       "Bash(./mvnw formatter:validate:*)",
       "WebFetch(domain:angular.carbondesignsystem.com)",
       "Bash(kill:*)",
-      "Bash(mvn surefire-report:report:*)"
+      "Bash(mvn surefire-report:report:*)",
+      "Bash(timeout 60 ./mvnw quarkus:dev:*)"
     ]
   }
 }
