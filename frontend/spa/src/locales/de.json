@@ -177,8 +177,8 @@
         "filters": {
             "searchReceipt": "Beleg",
             "searchPlaceholder": "Suche nach Belegname",
-            "searchCategoryPlaceholder": "Kategorie auswählen",
-            "searchBommelPlaceholder": "Bommel auswählen",
+            "searchCategoryPlaceholder": "Suche",
+            "searchBommelPlaceholder": "Alle Bommels",
             "receiptDate": "Belegdatum",
             "startDate": "Startdatum",
             "endDate": "Enddatum",
@@ -207,7 +207,7 @@
         "title": "Admin Einstellungen: Kategorien",
         "addButton": "Neue Kategorie erstellen",
         "searchInput": {
-            "placeholder": "Schnellsuche"
+            "placeholder": "Kategorien suchen"
         },
         "dialog": {
             "creation": {
