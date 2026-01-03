@@ -39,7 +39,7 @@ const TypeFilter = ({ filters, onChange, label }: TypeFilterProps) => {
                                    hover:data-[state=checked]:bg-[var(--purple-400)]
                                    transition-colors focus-visible:ring-0 focus-visible:outline-none"
                     />
-                    <label htmlFor="type-income" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
+                    <label htmlFor="type-income" className="text-base font-medium text-[var(--grey-900)] leading-none cursor-pointer select-none">
                         {t('receipts.filters.income')}
                     </label>
                 </div>
@@ -57,7 +57,7 @@ const TypeFilter = ({ filters, onChange, label }: TypeFilterProps) => {
                                    hover:data-[state=checked]:bg-[var(--purple-400)]
                                    transition-colors focus-visible:ring-0 focus-visible:outline-none"
                     />
-                    <label htmlFor="type-expense" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
+                    <label htmlFor="type-expense" className="text-base font-medium text-[var(--grey-900)] leading-none cursor-pointer select-none">
                         {t('receipts.filters.expense')}
                     </label>
                 </div>
