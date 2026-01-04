@@ -4,4 +4,4 @@
 |  | |  |' '-' '| '-' '| '-' '.-'  `) 
 `--' `--' `---' |  |-' |  |-' `----'  
                 `--'   `--'
-      ZUGFeRD E-Rechnung Service
+      Core Service with UI

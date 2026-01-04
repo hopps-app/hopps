@@ -4,4 +4,4 @@
 |  | |  |' '-' '| '-' '| '-' '.-'  `) 
 `--' `--' `---' |  |-' |  |-' `----'  
                 `--'   `--'
-      ZUGFeRD E-Rechnung Service
+      Azure Document OCR AI Service
