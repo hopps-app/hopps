@@ -99,4 +99,64 @@ class DocumentAnalysisServiceTest
 		assertEquals(AnalysisStatus.FAILED, document.getAnalysisStatus());
 		assertEquals(null, document.getAnalysisError());
 	}
+
+	@Test
+	void shouldHandleBlankAnalyzedBy()
+	{
+		// Given
+		String analyzedBy = "";
+		when(documentProcessingWorkflow.startProcessing(document.getId())).thenReturn(workflowInstance);
+		when(workflowInstance.getId()).thenReturn("workflow-123");
+
+		// When
+		boolean result = documentAnalysisService.triggerAnalysis(document, analyzedBy);
+
+		// Then
+		assertTrue(result);
+		assertEquals("", document.getAnalyzedBy());
+	}
+
+	@Test
+	void shouldHandleBlankErrorMessage()
+	{
+		// When
+		documentAnalysisService.markAnalysisFailed(document, "");
+
+		// Then
+		assertEquals(AnalysisStatus.FAILED, document.getAnalysisStatus());
+		assertEquals("", document.getAnalysisError());
+	}
+
+	@Test
+	void shouldPreserveExistingWorkflowInstanceIdWhenTriggerFails()
+	{
+		// Given
+		String existingWorkflowId = "existing-workflow-123";
+		document.setWorkflowInstanceId(existingWorkflowId);
+		when(documentProcessingWorkflow.startProcessing(document.getId()))
+			.thenThrow(new RuntimeException("Service unavailable"));
+
+		// When
+		boolean result = documentAnalysisService.triggerAnalysis(document, "test-user");
+
+		// Then
+		assertFalse(result);
+		// Workflow ID should remain unchanged when trigger fails
+		assertEquals(existingWorkflowId, document.getWorkflowInstanceId());
+	}
+
+	@Test
+	void shouldMarkAlreadyFailedDocumentAsFailedAgain()
+	{
+		// Given
+		document.setAnalysisStatus(AnalysisStatus.FAILED);
+		document.setAnalysisError("First error");
+
+		// When
+		documentAnalysisService.markAnalysisFailed(document, "Second error");
+
+		// Then
+		assertEquals(AnalysisStatus.FAILED, document.getAnalysisStatus());
+		assertEquals("Second error", document.getAnalysisError());
+	}
 }

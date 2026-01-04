@@ -148,4 +148,122 @@ class DocumentFileServiceTest
 		assertEquals(mockInputStream, result);
 		verify(storageService).downloadFile(fileKey);
 	}
+
+	@Test
+	void shouldHandleSpecialCharactersInFileName()
+	{
+		// Given
+		Path filePath = Paths.get("/tmp/test (1) [draft].pdf");
+		when(fileUpload.fileName()).thenReturn("test (1) [draft].pdf");
+		when(fileUpload.uploadedFile()).thenReturn(filePath);
+		when(fileUpload.contentType()).thenReturn("application/pdf");
+		when(fileUpload.size()).thenReturn(2048L);
+
+		// When
+		documentFileService.handleFileUpload(document, fileUpload);
+
+		// Then
+		verify(storageService).uploadFile(any(String.class), eq(filePath), eq("application/pdf"));
+		assertEquals("test (1) [draft].pdf", document.getFileName());
+		assertTrue(document.getFileKey().endsWith("/test (1) [draft].pdf"));
+	}
+
+	@Test
+	void shouldGenerateUniqueFileKeysForMultipleUploads()
+	{
+		// Given
+		Document document2 = new Document();
+		Path filePath = Paths.get("/tmp/same-file.pdf");
+		when(fileUpload.fileName()).thenReturn("same-file.pdf");
+		when(fileUpload.uploadedFile()).thenReturn(filePath);
+		when(fileUpload.contentType()).thenReturn("application/pdf");
+		when(fileUpload.size()).thenReturn(1024L);
+
+		// When
+		documentFileService.handleFileUpload(document, fileUpload);
+		documentFileService.handleFileUpload(document2, fileUpload);
+
+		// Then - file keys should be different due to UUID
+		assertTrue(document.getFileKey().startsWith("documents/"));
+		assertTrue(document2.getFileKey().startsWith("documents/"));
+		assertTrue(!document.getFileKey().equals(document2.getFileKey()),
+			"File keys should be unique");
+	}
+
+	@Test
+	void shouldHandleDifferentContentTypes()
+	{
+		// Given - test JPEG
+		Path jpegPath = Paths.get("/tmp/image.jpg");
+		when(fileUpload.fileName()).thenReturn("image.jpg");
+		when(fileUpload.uploadedFile()).thenReturn(jpegPath);
+		when(fileUpload.contentType()).thenReturn("image/jpeg");
+		when(fileUpload.size()).thenReturn(512L);
+
+		// When
+		documentFileService.handleFileUpload(document, fileUpload);
+
+		// Then
+		assertEquals("image/jpeg", document.getFileContentType());
+		assertEquals("image.jpg", document.getFileName());
+
+		// Given - test PNG
+		Document pngDoc = new Document();
+		Path pngPath = Paths.get("/tmp/image.png");
+		when(fileUpload.fileName()).thenReturn("image.png");
+		when(fileUpload.uploadedFile()).thenReturn(pngPath);
+		when(fileUpload.contentType()).thenReturn("image/png");
+
+		// When
+		documentFileService.handleFileUpload(pngDoc, fileUpload);
+
+		// Then
+		assertEquals("image/png", pngDoc.getFileContentType());
+		assertEquals("image.png", pngDoc.getFileName());
+	}
+
+	@Test
+	void shouldHandleVeryLongFileNames()
+	{
+		// Given - filename with 200 characters
+		String longName = "a".repeat(190) + "-test.pdf";
+		Path filePath = Paths.get("/tmp/" + longName);
+		when(fileUpload.fileName()).thenReturn(longName);
+		when(fileUpload.uploadedFile()).thenReturn(filePath);
+		when(fileUpload.contentType()).thenReturn("application/pdf");
+		when(fileUpload.size()).thenReturn(1024L);
+
+		// When
+		documentFileService.handleFileUpload(document, fileUpload);
+
+		// Then
+		verify(storageService).uploadFile(any(String.class), eq(filePath), eq("application/pdf"));
+		assertEquals(longName, document.getFileName());
+		assertTrue(document.getFileKey().endsWith("/" + longName));
+	}
+
+	@Test
+	void shouldPreserveFileExtension()
+	{
+		// Given - test various extensions
+		String[] fileNames = { "document.pdf", "spreadsheet.xlsx", "presentation.pptx", "archive.zip" };
+
+		for (String fileName : fileNames)
+		{
+			Document doc = new Document();
+			Path filePath = Paths.get("/tmp/" + fileName);
+			when(fileUpload.fileName()).thenReturn(fileName);
+			when(fileUpload.uploadedFile()).thenReturn(filePath);
+			when(fileUpload.contentType()).thenReturn("application/octet-stream");
+			when(fileUpload.size()).thenReturn(1024L);
+
+			// When
+			documentFileService.handleFileUpload(doc, fileUpload);
+
+			// Then
+			assertEquals(fileName, doc.getFileName());
+			assertTrue(doc.getFileKey().endsWith("/" + fileName),
+				"File key should preserve extension for " + fileName);
+		}
+	}
 }
