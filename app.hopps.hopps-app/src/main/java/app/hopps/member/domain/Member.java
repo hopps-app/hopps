@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.hopps.bommel.domain.Bommel;
+import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -28,6 +31,10 @@ public class Member extends PanacheEntity
 
 	@Column(unique = true)
 	private String keycloakUserId;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "organization_id", nullable = false)
+	private Organization organization;
 
 	@OneToMany(mappedBy = "responsibleMember", fetch = FetchType.LAZY)
 	private List<Bommel> responsibleBommels = new ArrayList<>();
@@ -90,6 +97,16 @@ public class Member extends PanacheEntity
 	public void setKeycloakUserId(String keycloakUserId)
 	{
 		this.keycloakUserId = keycloakUserId;
+	}
+
+	public Organization getOrganization()
+	{
+		return organization;
+	}
+
+	public void setOrganization(Organization organization)
+	{
+		this.organization = organization;
 	}
 
 	public String getDisplayName()

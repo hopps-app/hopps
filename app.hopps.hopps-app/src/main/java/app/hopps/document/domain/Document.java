@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import app.hopps.bommel.domain.Bommel;
+import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -18,6 +19,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
@@ -26,6 +28,10 @@ public class Document extends PanacheEntity
 {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Bommel bommel;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "organization_id", nullable = false)
+	private Organization organization;
 
 	private String name;
 
@@ -103,6 +109,16 @@ public class Document extends PanacheEntity
 	public void setBommel(Bommel bommel)
 	{
 		this.bommel = bommel;
+	}
+
+	public Organization getOrganization()
+	{
+		return organization;
+	}
+
+	public void setOrganization(Organization organization)
+	{
+		this.organization = organization;
 	}
 
 	public String getName()

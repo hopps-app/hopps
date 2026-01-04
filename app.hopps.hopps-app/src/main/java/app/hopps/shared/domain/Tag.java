@@ -1,14 +1,23 @@
 package app.hopps.shared.domain;
 
+import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "organization_id", "name" }))
 public class Tag extends PanacheEntity
 {
-	@Column(unique = true, nullable = false)
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "organization_id", nullable = false)
+	private Organization organization;
+
+	@Column(nullable = false)
 	private String name;
 
 	public Tag()
@@ -23,6 +32,16 @@ public class Tag extends PanacheEntity
 	public Long getId()
 	{
 		return id;
+	}
+
+	public Organization getOrganization()
+	{
+		return organization;
+	}
+
+	public void setOrganization(Organization organization)
+	{
+		this.organization = organization;
 	}
 
 	public String getName()

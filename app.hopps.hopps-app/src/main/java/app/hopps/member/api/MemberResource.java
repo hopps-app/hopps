@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.security.OrganizationContext;
 import app.hopps.shared.util.FlashKeys;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
@@ -35,6 +37,9 @@ public class MemberResource extends Controller
 
 	@Inject
 	SecurityIdentity securityIdentity;
+
+	@Inject
+	OrganizationContext organizationContext;
 
 	private static final Logger LOG = LoggerFactory.getLogger(MemberResource.class);
 
@@ -67,7 +72,7 @@ public class MemberResource extends Controller
 	@Path("/{id}")
 	public TemplateInstance detail(@RestPath Long id)
 	{
-		Member member = memberRepository.findById(id);
+		Member member = memberRepository.findByIdScoped(id);
 		if (member == null)
 		{
 			flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
@@ -93,11 +98,21 @@ public class MemberResource extends Controller
 			return;
 		}
 
+		// Get current organization
+		Organization currentOrg = organizationContext.getCurrentOrganization();
+		if (currentOrg == null)
+		{
+			flash(FlashKeys.ERROR, "Keine Organisation gefunden");
+			redirect(MemberResource.class).index();
+			return;
+		}
+
 		Member member = new Member();
 		member.setFirstName(firstName);
 		member.setLastName(lastName);
 		member.setEmail(email);
 		member.setPhone(phone);
+		member.setOrganization(currentOrg);
 		memberRepository.persist(member);
 
 		// Sync to Keycloak
@@ -132,7 +147,7 @@ public class MemberResource extends Controller
 			return;
 		}
 
-		Member member = memberRepository.findById(id);
+		Member member = memberRepository.findByIdScoped(id);
 		if (member == null)
 		{
 			flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
@@ -155,7 +170,7 @@ public class MemberResource extends Controller
 	@RolesAllowed("admin")
 	public void delete(@RestForm Long id)
 	{
-		Member member = memberRepository.findById(id);
+		Member member = memberRepository.findByIdScoped(id);
 		if (member == null)
 		{
 			flash(FlashKeys.ERROR, "Mitglied nicht gefunden");

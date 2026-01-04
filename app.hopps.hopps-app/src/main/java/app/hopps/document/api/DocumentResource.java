@@ -25,8 +25,10 @@ import app.hopps.document.service.DocumentAnalysisService;
 import app.hopps.document.service.DocumentDataService;
 import app.hopps.document.service.DocumentFileService;
 import app.hopps.document.workflow.DocumentProcessingWorkflow;
+import app.hopps.organization.domain.Organization;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
+import app.hopps.shared.security.OrganizationContext;
 import app.hopps.shared.util.FlashKeys;
 import app.hopps.workflow.ProcessEngine;
 import app.hopps.workflow.WorkflowInstance;
@@ -84,6 +86,9 @@ public class DocumentResource extends Controller
 	@Inject
 	DocumentDataService dataService;
 
+	@Inject
+	OrganizationContext organizationContext;
+
 	@CheckedTemplate
 	public static class Templates
 	{
@@ -139,7 +144,7 @@ public class DocumentResource extends Controller
 	@Path("/{id}/pruefen")
 	public TemplateInstance review(Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -155,7 +160,7 @@ public class DocumentResource extends Controller
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAnalysisStatus(Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			return Response.status(Response.Status.NOT_FOUND).build();
@@ -179,7 +184,7 @@ public class DocumentResource extends Controller
 	@Path("/{id}")
 	public TemplateInstance show(Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -271,6 +276,13 @@ public class DocumentResource extends Controller
 	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createAndPersistDocument(FileUpload file)
 	{
+		// Get current organization
+		Organization currentOrg = organizationContext.getCurrentOrganization();
+		if (currentOrg == null)
+		{
+			throw new IllegalStateException("Keine Organisation gefunden");
+		}
+
 		Document document = new Document();
 		document.setTotal(java.math.BigDecimal.ZERO); // Placeholder, will be
 														// filled by AI
@@ -278,6 +290,7 @@ public class DocumentResource extends Controller
 		document.setAnalysisStatus(AnalysisStatus.PENDING);
 		document.setDocumentStatus(DocumentStatus.UPLOADED);
 		document.setUploadedBy(securityIdentity.getPrincipal().getName());
+		document.setOrganization(currentOrg);
 
 		handleFileUpload(document, file);
 		documentRepository.persist(document);
@@ -302,7 +315,7 @@ public class DocumentResource extends Controller
 	@Path("/{id}/analyze")
 	public void analyzeDocument(Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -365,7 +378,7 @@ public class DocumentResource extends Controller
 		@RestForm boolean privatelyPaid,
 		@RestForm String tags)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -447,7 +460,7 @@ public class DocumentResource extends Controller
 		Long bommelId = (Long)userInput.get("bommelId");
 		if (bommelId != null && bommelId > 0)
 		{
-			Bommel bommel = bommelRepository.findById(bommelId);
+			Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 			document.setBommel(bommel);
 		}
 		else
@@ -479,7 +492,7 @@ public class DocumentResource extends Controller
 		@RestForm boolean privatelyPaid,
 		@RestForm String tags)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -505,7 +518,7 @@ public class DocumentResource extends Controller
 
 		if (bommelId != null && bommelId > 0)
 		{
-			Bommel bommel = bommelRepository.findById(bommelId);
+			Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 			document.setBommel(bommel);
 		}
 		else
@@ -519,6 +532,7 @@ public class DocumentResource extends Controller
 			if (sender == null)
 			{
 				sender = new TradeParty();
+				sender.setOrganization(document.getOrganization());
 			}
 			sender.setName(senderName);
 			sender.setStreet(senderStreet);
@@ -560,7 +574,7 @@ public class DocumentResource extends Controller
 		@RestForm boolean privatelyPaid,
 		@RestForm String tags)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -586,7 +600,7 @@ public class DocumentResource extends Controller
 
 		if (bommelId != null && bommelId > 0)
 		{
-			Bommel bommel = bommelRepository.findById(bommelId);
+			Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 			document.setBommel(bommel);
 		}
 		else
@@ -600,6 +614,7 @@ public class DocumentResource extends Controller
 			if (sender == null)
 			{
 				sender = new TradeParty();
+				sender.setOrganization(document.getOrganization());
 			}
 			sender.setName(senderName);
 			sender.setStreet(senderStreet);
@@ -628,7 +643,7 @@ public class DocumentResource extends Controller
 	@Transactional
 	public void delete(@RestForm @NotNull Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -652,7 +667,7 @@ public class DocumentResource extends Controller
 	@Path("/uploadFile")
 	public void uploadFile(@RestForm @NotNull Long documentId, @RestForm("file") FileUpload file)
 	{
-		Document document = documentRepository.findById(documentId);
+		Document document = documentRepository.findByIdScoped(documentId);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -697,7 +712,7 @@ public class DocumentResource extends Controller
 	@Path("/deleteFile")
 	public void deleteFile(@RestForm @NotNull Long documentId)
 	{
-		Document document = documentRepository.findById(documentId);
+		Document document = documentRepository.findByIdScoped(documentId);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -727,7 +742,7 @@ public class DocumentResource extends Controller
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response downloadFile(Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null || !document.hasFile())
 		{
 			return Response.status(Response.Status.NOT_FOUND).build();
@@ -745,7 +760,7 @@ public class DocumentResource extends Controller
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response viewFile(Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null || !document.hasFile())
 		{
 			return Response.status(Response.Status.NOT_FOUND).build();
@@ -772,7 +787,7 @@ public class DocumentResource extends Controller
 	@Transactional
 	public void assignToBommel(@RestForm @NotNull Long documentId, @RestForm Long bommelId)
 	{
-		Document document = documentRepository.findById(documentId);
+		Document document = documentRepository.findByIdScoped(documentId);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -782,7 +797,7 @@ public class DocumentResource extends Controller
 
 		if (bommelId != null && bommelId > 0)
 		{
-			Bommel bommel = bommelRepository.findById(bommelId);
+			Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 			document.setBommel(bommel);
 			flash(FlashKeys.SUCCESS, "Beleg zugewiesen zu: " + bommel.getTitle());
 		}
@@ -804,7 +819,7 @@ public class DocumentResource extends Controller
 	@Path("/{id}/create-transaction")
 	public void createTransactionFromDocument(Long id)
 	{
-		Document document = documentRepository.findById(id);
+		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
 			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
@@ -816,6 +831,9 @@ public class DocumentResource extends Controller
 		TransactionRecord transaction = new TransactionRecord(
 			document.getTotal(),
 			securityIdentity.getPrincipal().getName());
+
+		// Set organization
+		transaction.setOrganization(document.getOrganization());
 
 		// Link to document
 		transaction.setDocument(document);
@@ -837,6 +855,7 @@ public class DocumentResource extends Controller
 			sender.setStreet(document.getSender().getStreet());
 			sender.setZipCode(document.getSender().getZipCode());
 			sender.setCity(document.getSender().getCity());
+			sender.setOrganization(document.getOrganization());
 			transaction.setSender(sender);
 		}
 
