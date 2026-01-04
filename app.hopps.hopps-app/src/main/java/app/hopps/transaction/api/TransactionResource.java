@@ -15,8 +15,10 @@ import org.slf4j.LoggerFactory;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.TradeParty;
+import app.hopps.organization.domain.Organization;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
+import app.hopps.shared.security.OrganizationContext;
 import app.hopps.shared.util.FlashKeys;
 import app.hopps.transaction.domain.TagSource;
 import app.hopps.transaction.domain.TransactionRecord;
@@ -52,6 +54,9 @@ public class TransactionResource extends Controller
 
 	@Inject
 	SecurityIdentity securityIdentity;
+
+	@Inject
+	OrganizationContext organizationContext;
 
 	@CheckedTemplate
 	public static class Templates
@@ -108,10 +113,22 @@ public class TransactionResource extends Controller
 		@RestForm String currencyCode,
 		@RestForm String tags)
 	{
+		// Get current organization
+		Organization currentOrg = organizationContext.getCurrentOrganization();
+		if (currentOrg == null)
+		{
+			flash(FlashKeys.ERROR, "Keine Organisation gefunden");
+			redirect(TransactionResource.class).index(null, null);
+			return;
+		}
+
 		// Create transaction
 		TransactionRecord transaction = new TransactionRecord(
 			total,
 			securityIdentity.getPrincipal().getName());
+
+		// Set organization
+		transaction.setOrganization(currentOrg);
 
 		// Set core fields
 		transaction.setName(name);
@@ -128,7 +145,7 @@ public class TransactionResource extends Controller
 		// Set bommel
 		if (bommelId != null && bommelId > 0)
 		{
-			Bommel bommel = bommelRepository.findById(bommelId);
+			Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 			transaction.setBommel(bommel);
 		}
 
@@ -140,6 +157,7 @@ public class TransactionResource extends Controller
 			sender.setStreet(senderStreet);
 			sender.setZipCode(senderZipCode);
 			sender.setCity(senderCity);
+			sender.setOrganization(currentOrg);
 			transaction.setSender(sender);
 		}
 
@@ -157,7 +175,7 @@ public class TransactionResource extends Controller
 	@Path("/{id}")
 	public TemplateInstance show(Long id)
 	{
-		TransactionRecord transaction = transactionRepository.findById(id);
+		TransactionRecord transaction = transactionRepository.findByIdScoped(id);
 		if (transaction == null)
 		{
 			flash(FlashKeys.ERROR, "Transaktion nicht gefunden");
@@ -184,7 +202,7 @@ public class TransactionResource extends Controller
 		@RestForm String currencyCode,
 		@RestForm String tags)
 	{
-		TransactionRecord transaction = transactionRepository.findById(id);
+		TransactionRecord transaction = transactionRepository.findByIdScoped(id);
 		if (transaction == null)
 		{
 			flash(FlashKeys.ERROR, "Transaktion nicht gefunden");
@@ -212,7 +230,7 @@ public class TransactionResource extends Controller
 		// Update bommel
 		if (bommelId != null && bommelId > 0)
 		{
-			Bommel bommel = bommelRepository.findById(bommelId);
+			Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 			transaction.setBommel(bommel);
 		}
 		else
@@ -225,7 +243,9 @@ public class TransactionResource extends Controller
 		{
 			if (transaction.getSender() == null)
 			{
-				transaction.setSender(new TradeParty());
+				TradeParty sender = new TradeParty();
+				sender.setOrganization(transaction.getOrganization());
+				transaction.setSender(sender);
 			}
 			transaction.getSender().setName(senderName);
 			transaction.getSender().setStreet(senderStreet);
@@ -248,7 +268,7 @@ public class TransactionResource extends Controller
 	@Transactional
 	public void delete(@RestForm @NotNull Long id)
 	{
-		TransactionRecord transaction = transactionRepository.findById(id);
+		TransactionRecord transaction = transactionRepository.findByIdScoped(id);
 		if (transaction == null)
 		{
 			flash(FlashKeys.ERROR, "Transaktion nicht gefunden");

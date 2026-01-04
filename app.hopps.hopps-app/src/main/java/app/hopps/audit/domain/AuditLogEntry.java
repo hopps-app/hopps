@@ -2,14 +2,21 @@ package app.hopps.audit.domain;
 
 import java.time.Instant;
 
+import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 
 @Entity
 public class AuditLogEntry extends PanacheEntity
 {
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "organization_id", nullable = false)
+	private Organization organization;
+
 	private String username;
 
 	@Column(nullable = false)
@@ -23,6 +30,16 @@ public class AuditLogEntry extends PanacheEntity
 	private String entityName;
 
 	private String entityId;
+
+	public Organization getOrganization()
+	{
+		return organization;
+	}
+
+	public void setOrganization(Organization organization)
+	{
+		this.organization = organization;
+	}
 
 	public String getUsername()
 	{

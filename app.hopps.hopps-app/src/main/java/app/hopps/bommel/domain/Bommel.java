@@ -4,13 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.hopps.member.domain.Member;
+import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "organization_id", "parent_id" }))
 public class Bommel extends PanacheEntity
 {
 	private String icon;
@@ -21,6 +26,10 @@ public class Bommel extends PanacheEntity
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Member responsibleMember;
+
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "organization_id", nullable = false)
+	private Organization organization;
 
 	@OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
 	public List<Bommel> children = new ArrayList<>();
@@ -73,5 +82,15 @@ public class Bommel extends PanacheEntity
 	public void setResponsibleMember(Member responsibleMember)
 	{
 		this.responsibleMember = responsibleMember;
+	}
+
+	public Organization getOrganization()
+	{
+		return organization;
+	}
+
+	public void setOrganization(Organization organization)
+	{
+		this.organization = organization;
 	}
 }

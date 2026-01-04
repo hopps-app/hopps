@@ -23,6 +23,8 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.security.OrganizationContext;
 import app.hopps.shared.util.FlashKeys;
 
 @Authenticated
@@ -38,6 +40,9 @@ public class BommelResource extends Controller
 	@Inject
 	SecurityIdentity securityIdentity;
 
+	@Inject
+	OrganizationContext organizationContext;
+
 	@CheckedTemplate
 	public static class Templates
 	{
@@ -49,7 +54,7 @@ public class BommelResource extends Controller
 	public TemplateInstance index(@RestQuery Long selectedId)
 	{
 		Bommel root = bommelRepository.findRoot();
-		Bommel selected = selectedId != null ? bommelRepository.findById(selectedId) : null;
+		Bommel selected = selectedId != null ? bommelRepository.findByIdScoped(selectedId) : null;
 		List<Member> members = memberRepository.findAllOrderedByName();
 		return Templates.index(root, selected, members);
 	}
@@ -74,10 +79,20 @@ public class BommelResource extends Controller
 			return;
 		}
 
+		// Get current organization
+		Organization currentOrg = organizationContext.getCurrentOrganization();
+		if (currentOrg == null)
+		{
+			flash(FlashKeys.ERROR, "Keine Organisation gefunden");
+			redirect(BommelResource.class).index(null);
+			return;
+		}
+
 		Bommel root = new Bommel();
 		root.setIcon(icon != null ? icon : "home");
 		root.setTitle(title);
 		root.parent = null;
+		root.setOrganization(currentOrg);
 		bommelRepository.persist(root);
 
 		flash(FlashKeys.SUCCESS, "Hauptbommel erstellt");
@@ -99,7 +114,7 @@ public class BommelResource extends Controller
 			return;
 		}
 
-		Bommel parent = bommelRepository.findById(parentId);
+		Bommel parent = bommelRepository.findByIdScoped(parentId);
 		if (parent == null)
 		{
 			flash(FlashKeys.ERROR, "Eltern-Bommel nicht gefunden");
@@ -114,10 +129,20 @@ public class BommelResource extends Controller
 			return;
 		}
 
+		// Get current organization
+		Organization currentOrg = organizationContext.getCurrentOrganization();
+		if (currentOrg == null)
+		{
+			flash(FlashKeys.ERROR, "Keine Organisation gefunden");
+			redirect(BommelResource.class).index(null);
+			return;
+		}
+
 		Bommel child = new Bommel();
 		child.setIcon(icon != null ? icon : "folder");
 		child.setTitle(title);
 		child.parent = parent;
+		child.setOrganization(currentOrg);
 		bommelRepository.persist(child);
 
 		flash(FlashKeys.SUCCESS, "Kind-Bommel hinzugefügt");
@@ -138,7 +163,7 @@ public class BommelResource extends Controller
 			return;
 		}
 
-		Bommel bommel = bommelRepository.findById(id);
+		Bommel bommel = bommelRepository.findByIdScoped(id);
 		if (bommel == null)
 		{
 			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
@@ -164,7 +189,7 @@ public class BommelResource extends Controller
 			return;
 		}
 
-		Bommel bommel = bommelRepository.findById(id);
+		Bommel bommel = bommelRepository.findByIdScoped(id);
 		if (bommel == null)
 		{
 			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
@@ -193,7 +218,7 @@ public class BommelResource extends Controller
 		@RestForm @NotNull Long bommelId,
 		@RestForm Long memberId)
 	{
-		Bommel bommel = bommelRepository.findById(bommelId);
+		Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 		if (bommel == null)
 		{
 			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
@@ -208,7 +233,7 @@ public class BommelResource extends Controller
 		}
 		else
 		{
-			Member member = memberRepository.findById(memberId);
+			Member member = memberRepository.findByIdScoped(memberId);
 			if (member == null)
 			{
 				flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
