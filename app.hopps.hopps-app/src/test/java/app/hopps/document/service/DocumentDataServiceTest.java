@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.TagSource;
+import app.hopps.document.domain.TradeParty;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 
@@ -258,5 +259,176 @@ class DocumentDataServiceTest
 
 		// Then
 		assertNull(document.getTransactionTime());
+	}
+
+	@Test
+	void shouldUpdateExistingSenderWithoutReplacing()
+	{
+		// Given - document already has a sender
+		TradeParty existingSender = new TradeParty();
+		existingSender.setName("Old Company");
+		existingSender.setStreet("Old Street");
+		document.setSender(existingSender);
+
+		userInput.put("senderName", "New Company");
+		userInput.put("senderStreet", "New Street");
+		userInput.put("senderZipCode", "54321");
+		userInput.put("senderCity", "New City");
+
+		// When
+		documentDataService.applyFormData(document, userInput);
+
+		// Then - sender should be updated, not replaced
+		TradeParty sender = document.getSender();
+		assertNotNull(sender);
+		assertEquals("New Company", sender.getName());
+		assertEquals("New Street", sender.getStreet());
+		assertEquals("54321", sender.getZipCode());
+		assertEquals("New City", sender.getCity());
+		// Verify it's the same instance, not a new one
+		assertTrue(sender == existingSender);
+	}
+
+	@Test
+	void shouldNotCreateSenderWhenAllFieldsBlank()
+	{
+		// Given - all sender fields are blank strings
+		userInput.put("senderName", "");
+		userInput.put("senderStreet", "");
+		userInput.put("senderZipCode", "");
+		userInput.put("senderCity", "");
+
+		// When
+		documentDataService.applyFormData(document, userInput);
+
+		// Then - sender should remain null
+		assertNull(document.getSender());
+	}
+
+	@Test
+	void shouldNotCreateSenderWhenAllFieldsNull()
+	{
+		// Given - all sender fields are null
+		userInput.put("senderName", null);
+		userInput.put("senderStreet", null);
+		userInput.put("senderZipCode", null);
+		userInput.put("senderCity", null);
+
+		// When
+		documentDataService.applyFormData(document, userInput);
+
+		// Then - sender should remain null
+		assertNull(document.getSender());
+	}
+
+	@Test
+	void shouldCreateSenderWithPartialData()
+	{
+		// Given - only sender name provided, other fields blank
+		userInput.put("senderName", "Partial Corp");
+		userInput.put("senderStreet", "");
+		userInput.put("senderZipCode", null);
+
+		// When
+		documentDataService.applyFormData(document, userInput);
+
+		// Then - sender should be created with available data
+		assertNotNull(document.getSender());
+		assertEquals("Partial Corp", document.getSender().getName());
+		assertEquals("", document.getSender().getStreet());
+		assertNull(document.getSender().getZipCode());
+		assertNull(document.getSender().getCity());
+	}
+
+	@Test
+	void shouldHandleNullValuesInUserInput()
+	{
+		// Given - null values in map (not missing keys)
+		userInput.put("total", null);
+		userInput.put("name", null);
+		userInput.put("transactionDate", null);
+		userInput.put("currencyCode", null);
+
+		// When
+		documentDataService.applyFormData(document, userInput);
+
+		// Then - null values should be handled gracefully
+		assertNull(document.getTotal());
+		assertNull(document.getName());
+		assertNull(document.getTransactionTime());
+		assertNull(document.getCurrencyCode());
+	}
+
+	@Test
+	void shouldIgnoreEmptyTagsInCommaSeparatedList()
+	{
+		// Given - tags with empty entries between commas
+		String tagsInput = "tag1,,tag2,,,tag3";
+		Tag tag1 = new Tag();
+		tag1.setName("tag1");
+		Tag tag2 = new Tag();
+		tag2.setName("tag2");
+		Tag tag3 = new Tag();
+		tag3.setName("tag3");
+
+		when(tagRepository.findOrCreateTags(any())).thenReturn(Set.of(tag1, tag2, tag3));
+
+		// When
+		documentDataService.updateTags(document, tagsInput);
+
+		// Then - should only create 3 tags, ignoring empty strings
+		assertEquals(3, document.getDocumentTags().size());
+	}
+
+	@Test
+	void shouldHandleTagsWithOnlyWhitespaceAndCommas()
+	{
+		// Given - input with only whitespace and commas
+		String tagsInput = " , , , ";
+
+		// When
+		documentDataService.updateTags(document, tagsInput);
+
+		// Then - should clear all manual tags (no valid tags to create)
+		assertEquals(0, document.getDocumentTags().size());
+	}
+
+	@Test
+	void shouldHandleWhitespaceOnlyDate()
+	{
+		// Given
+		String dateStr = "   ";
+
+		// When
+		Instant result = documentDataService.parseDate(dateStr);
+
+		// Then
+		assertNull(result);
+	}
+
+	@Test
+	void shouldHandleBlankCurrencyCode()
+	{
+		// Given
+		userInput.put("currencyCode", "");
+
+		// When
+		documentDataService.applyFormData(document, userInput);
+
+		// Then
+		assertEquals("", document.getCurrencyCode());
+	}
+
+	@Test
+	void shouldHandleBlankName()
+	{
+		// Given
+		userInput.put("name", "");
+
+		// When
+		documentDataService.applyFormData(document, userInput);
+
+		// Then
+		assertEquals("", document.getName());
 	}
 }
