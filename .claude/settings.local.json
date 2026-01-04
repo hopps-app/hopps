@@ -58,7 +58,9 @@
       "Bash(kill:*)",
       "Bash(mvn surefire-report:report:*)",
       "Bash(timeout 60 ./mvnw quarkus:dev:*)",
-      "Bash(./mvnw help:describe:*)"
+      "Bash(./mvnw help:describe:*)",
+      "Bash(./mvnw clean:*)",
+      "Bash(./mvnw verify:*)"
     ]
   }
 }
