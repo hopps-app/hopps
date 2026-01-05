@@ -1,5 +1,6 @@
 package app.hopps.org.service;
 
+
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
@@ -20,13 +21,9 @@ public class UserOrganizationService {
     /**
      * Retrieves the organization for the currently authenticated user.
      *
-     * @param securityContext
-     *            The security context containing user information
-     *
+     * @param securityContext The security context containing user information
      * @return The user's organization
-     *
-     * @throws WebApplicationException
-     *             if user is not found or has no organization
+     * @throws WebApplicationException if user is not found or has no organization
      */
     public Organization getUserOrganization(SecurityContext securityContext) {
         String userName = securityContext.getUserPrincipal().getName();
