@@ -205,3 +205,5 @@ age.agekey
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
+node_modules
+

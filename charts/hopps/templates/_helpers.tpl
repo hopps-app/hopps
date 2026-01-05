@@ -138,36 +138,34 @@ org fully qualified name
 {{- printf "%s-org" (include "hopps.fullname" .) -}}
 {{- end -}}
 
-
 {{/*
-fin labels
+fin-narrator labels
 */}}
-{{- define "hopps.finLabels" -}}
+{{- define "hopps.finNarratorLabels" -}}
 {{ include "hopps.commonLabels" . }}
-{{ include "hopps.finSelectorLabels" . }}
+{{ include "hopps.finNarratorSelectorLabels" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion }}
 {{- end -}}
 {{/*
 fin selector labels
 */}}
-{{- define "hopps.finSelectorLabels" -}}
+{{- define "hopps.finNarratorSelectorLabels" -}}
 {{ include "hopps.commonSelectorLabels" . }}
-app.kubernetes.io/name: {{ printf "%s-fin" (include "hopps.name" .) }}
-app.kubernetes.io/component: fin
+app.kubernetes.io/name: {{ printf "%s-fin-narrator" (include "hopps.name" .) }}
+app.kubernetes.io/component: fin-narrator
 {{- end -}}
 {{/*
 fin name
 */}}
-{{- define "hopps.finName" -}}
-{{- printf "%s-fin" (include "hopps.name" .) -}}
+{{- define "hopps.finNarratorName" -}}
+{{- printf "%s-fin-narrator" (include "hopps.name" .) -}}
 {{- end -}}
 {{/*
 fin fully qualified name
 */}}
-{{- define "hopps.finFullname" -}}
-{{- printf "%s-fin" (include "hopps.fullname" .) -}}
+{{- define "hopps.finNarratorFullname" -}}
+{{- printf "%s-fin-narrator" (include "hopps.fullname" .) -}}
 {{- end -}}
-
 
 {{/*
 frontend labels
@@ -196,4 +194,33 @@ frontend fully qualified name
 */}}
 {{- define "hopps.frontendFullname" -}}
 {{- printf "%s-frontend" (include "hopps.fullname" .) -}}
+{{- end -}}
+
+{{/*
+zugferd labels
+*/}}
+{{- define "hopps.zugferdLabels" -}}
+{{ include "hopps.commonLabels" . }}
+{{ include "hopps.zugferdSelectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
+{{- end -}}
+{{/*
+zugferd selector labels
+*/}}
+{{- define "hopps.zugferdSelectorLabels" -}}
+{{ include "hopps.commonSelectorLabels" . }}
+app.kubernetes.io/name: {{ printf "%s-zugferd" (include "hopps.name" .) }}
+app.kubernetes.io/component: zugferd
+{{- end -}}
+{{/*
+zugferd name
+*/}}
+{{- define "hopps.zugferdName" -}}
+{{- printf "%s-zugferd" (include "hopps.name" .) -}}
+{{- end -}}
+{{/*
+zugferd fully qualified name
+*/}}
+{{- define "hopps.zugferdFullname" -}}
+{{- printf "%s-zugferd" (include "hopps.fullname" .) -}}
 {{- end -}}

@@ -1,12 +1,11 @@
 global:
-  test: value
+  imagePullSecrets: []
 
 nameOverride: ""
 fullnameOverride: ""
 
 azDocumentAi:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
@@ -25,9 +24,11 @@ azDocumentAi:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:
@@ -120,30 +121,32 @@ azDocumentAi:
   volumeMounts:
     - name: cache
       mountPath: /tmp
-fin:
+
+finNarrator:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
     # ToDo: should also be globally configurable
     #registry: ghcr.io
-    repository: ghcr.io/hopps-app/hopps/fin
+    repository: ghcr.io/hopps-app/hopps/fin-narrator
     tag: ""
     pullPolicy: IfNotPresent
   envFrom: []
   #  - configMapRef:
   #      name: name
   envVars: []
-    #- name: ENV_VAR
+  #- name: ENV_VAR
   #  value: value
   ingress:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:
@@ -236,15 +239,9 @@ fin:
     - name: cache
       mountPath: /tmp
 
-postgresql-fin:
-  enabled: true
-  nameOverride: fin-postgresql
-  auth:
-    database: fin
 
 org:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
@@ -263,9 +260,11 @@ org:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:
@@ -358,15 +357,121 @@ org:
     - name: cache
       mountPath: /tmp
 
-postgresql-org:
+postgresqlOrg:
   enabled: true
   nameOverride: org-postgresql
   auth:
     database: org
+  # use bitnami legacy repository (https://news.broadcom.com/app-dev/broadcom-introduces-bitnami-secure-images-for-production-ready-containerized-applications)
+  image:
+    repository: bitnamilegacy/postgresql
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/os-shell
+  metrics:
+    image:
+      repository: bitnamilegacy/postgres-exporter
+
+zugferd:
+  replicaCount: 1
+  imagePullSecrets: []
+  image:
+    # ToDo: should also be globally configurable
+    #registry: ghcr.io
+    repository: ghcr.io/hopps-app/hopps/zugferd
+    tag: ""
+    pullPolicy: IfNotPresent
+  envFrom: []
+  #  - configMapRef:
+  #      name: name
+  envVars: []
+  #- name: ENV_VAR
+  #  value: value
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    port: 8080
+  strategy: {}
+  # type: Recreate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+    automount: false
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  # Node selector settings for scheduling the pod on specific nodes
+  nodeSelector: {}
+  # Tolerations settings for scheduling the pod based on node taints
+  tolerations: []
+  # Affinity settings for controlling pod scheduling
+  affinity: {}
+  livenessProbe:
+    httpGet:
+      path: /q/health/live
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 20
+    successThreshold: 1
+    timeoutSeconds: 2
+  readinessProbe:
+    httpGet:
+      path: /q/health/ready
+      port: management
+      scheme: HTTP
+    failureThreshold: 3
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  startupProbe:
+    httpGet:
+      scheme: HTTP
+      path: /q/health/started
+      port: management
+    failureThreshold: 1
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+    initialDelaySeconds: 1
+  volumes:
+    - name: cache
+      emptyDir: {}
+  volumeMounts:
+    - name: cache
+      mountPath: /tmp
 
 frontend:
   replicaCount: 1
-  # ToDo: should also be globally configurable
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
   image:
@@ -385,9 +490,11 @@ frontend:
     enabled: false
     annotations: {}
     ingressClassName: ~
-    path: /
     hosts:
-      - chart-example.local
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
     tls: []
     # - secretName: chart-example-tls
     #   hosts:
@@ -480,6 +587,54 @@ frontend:
 # external dependencies
 keycloak:
   enabled: false
+  image:
+    # use our keycloak image to provide hopps theme
+    repository: ghcr.io/hopps-app/hopps/hopps-keycloak
+    tag: 18-keycloak-26.2.1
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
+    seccompProfile:
+      type: RuntimeDefault
+
+# openfga enabled needs to be outside of openfga, as the values.schema of openfga doesn't allow this field
+openfgaEnabled: false
+openfga:
+  # configure securityContext
+  podSecurityContext:
+    fsGroup: 2000
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+    allowPrivilegeEscalation: false
+
+kafka:
+  enabled: false
+  # use bitnami legacy repository (https://news.broadcom.com/app-dev/broadcom-introduces-bitnami-secure-images-for-production-ready-containerized-applications)
+  image:
+    repository: bitnamilegacy/kafka
+  defaultInitContainers:
+    volumePermissions:
+      image:
+        repository: bitnamilegacy/os-shell
+    autodiscovery:
+      image:
+        repository: bitnamilegacy/kubectl
+  metrics:
+    jmx:
+      image:
+        repository: bitnamilegacy/jmx-exporter
 
 kafka-ui:
   enabled: false

@@ -1,6 +1,7 @@
 export type InvoicesTableData = {
-    id: number;
-    date: string;
-    amount: number;
-    bommel: number;
+    id?: number;
+    name?: string;
+    date?: string;
+    amount?: number;
+    bommel?: number;
 };

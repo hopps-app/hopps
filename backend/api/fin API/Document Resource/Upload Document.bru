@@ -1,0 +1,18 @@
+meta {
+  name: Upload Document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/document
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file()
+  bommelId: 1
+  type: INVOICE
+  privatelyPaid: false
+}

@@ -1,31 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>app.hopps</groupId>
         <artifactId>hopps</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>zugferd</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
 
     <name>Hopps ZugFerD Document Service</name>
     <description>Microservice which uses ZugFerD with Mustang to extract data from E-Invoices in PDF form</description>
 
     <properties>
-        <compiler-plugin.version>3.13.0</compiler-plugin.version>
+        <compiler-plugin.version>3.14.0</compiler-plugin.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.17.8</quarkus.platform.version>
+        <quarkus.platform.version>3.21.4</quarkus.platform.version>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.5.2</surefire-plugin.version>
+        <surefire-plugin.version>3.5.3</surefire-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.build.directory}/jacoco-report/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
@@ -44,11 +41,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>app.hopps</groupId>
-            <artifactId>commons</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
         <!-- quarkus -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -60,19 +52,11 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-messaging-kafka</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-health</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-oidc-client</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -82,7 +66,7 @@
         <dependency>
             <groupId>org.mustangproject</groupId>
             <artifactId>validator</artifactId>
-            <version>2.16.1</version>
+            <version>2.16.3</version>
             <classifier>shaded</classifier>
         </dependency>
         <!-- test -->
@@ -97,13 +81,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.smallrye.reactive</groupId>
-            <artifactId>smallrye-reactive-messaging-in-memory</artifactId>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

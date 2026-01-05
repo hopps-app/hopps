@@ -1,65 +1,86 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TransactionRecord } from '@hopps/api-client';
 
-import InvoicesTable from '../InvoicesTable/InvoicesTable';
-import SettingsPageHeader from '@/components/SettingsPage/SettingsPageHeader.tsx';
-import Button from '@/components/ui/Button.tsx';
+import InvoicesTable from '@/components/InvoicesTable/InvoicesTable';
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
-import apiService from '@/services/ApiService.ts';
-import { useToast } from '@/hooks/use-toast.ts';
+import Button from '@/components/ui/Button.tsx';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
-import organizationTreeService from '@/services/OrganizationTreeService.ts';
+import { useToast } from '@/hooks/use-toast.ts';
+import apiService from '@/services/ApiService.ts';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store.ts';
-import { Bommel } from '@/services/api/types/Bommel.ts';
+import Header from '@/components/ui/Header';
+
+async function getInvoices(): Promise<InvoicesTableData[]> {
+    const transactions: TransactionRecord[] = [];
+    const pageSize = 100;
+
+    let page = 0;
+
+    while (true) {
+        const data = await apiService.orgService.all(undefined, false, page, pageSize);
+
+        if (Array.isArray(data)) {
+            transactions.push(...data);
+            if (data.length < pageSize) {
+                break;
+            }
+        } else {
+            break;
+        }
+
+        page++;
+    }
+
+    return transactions.map((transaction) => ({
+        id: transaction.id,
+        amount: transaction.total,
+        bommel: transaction.bommelId,
+        name: transaction.name,
+        date: transaction.transactionTime ? new Date(transaction.transactionTime).toLocaleString() : '',
+    }));
+}
 
 function InvoicesView() {
-    const { showError } = useToast();
     const { t } = useTranslation();
+    const { showError } = useToast();
+
     const store = useStore();
+    const { loadBommels } = useBommelsStore();
+
     const [invoices, setInvoices] = useState<InvoicesTableData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
-    const [bommels, setBommels] = useState<Bommel[]>([]);
 
-    const loadBommels = useCallback(async () => {
-        const organization = store.organization;
-        if (!organization) {
-            throw new Error('Organization not found');
-        }
-
-        const rootBommel = await organizationTreeService.ensureRootBommelCreated(organization.id);
-        if (!rootBommel) {
-            throw new Error('Root bommel not found');
-        }
-
-        const bommels = await organizationTreeService.getOrganizationBommels(rootBommel.id!);
-        setBommels(bommels);
-    }, []);
-
-    const loadInvoices = useCallback(async () => {
+    const loadInvoices = async () => {
         setInvoices([]);
-
-        const invoices = await apiService.invoices.getInvoices();
-        setInvoices(invoices);
-    }, []);
-
-    const reload = useCallback(async () => {
-        setIsLoading(true);
-        await loadBommels().catch((e) => console.error(e));
-
         try {
-            await loadInvoices();
+            const invoices = await getInvoices();
+            setInvoices(invoices);
         } catch (e) {
             console.error(e);
             showError(t('invoices.loadFailed'));
             setIsError(true);
         }
-        setIsLoading(false);
-    }, []);
+    };
 
-    async function onClickRefresh() {
-        reload();
-    }
+    const reload = useCallback(async () => {
+        if (!store.organization) return;
+
+        setIsLoading(true);
+        setIsError(false);
+
+        try {
+            await loadBommels(store.organization.id);
+            await loadInvoices();
+        } catch (e) {
+            console.error(e);
+            setIsError(true);
+        }
+
+        setIsLoading(false);
+    }, [store.organization]);
 
     useEffect(() => {
         reload();
@@ -68,12 +89,16 @@ function InvoicesView() {
     return (
         <>
             <LoadingOverlay isEnabled={isLoading} />
-            <SettingsPageHeader>
-                <Button onClick={onClickRefresh} disabled={isLoading}>
-                    {t('common.refresh')}
-                </Button>
-            </SettingsPageHeader>
-            {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices} bommels={bommels} />}
+            <Header
+                title={t('settings.menu.invoices')}
+                icon="Archive"
+                actions={
+                    <Button onClick={reload} disabled={isLoading}>
+                        {t('common.refresh')}
+                    </Button>
+                }
+            />
+            {isError ? <div>{t('invoices.loadFailed')}</div> : <InvoicesTable invoices={invoices} reload={reload} />}
         </>
     );
 }

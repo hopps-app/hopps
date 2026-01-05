@@ -16,6 +16,7 @@ export type DropdownMenuItem =
           type?: 'label' | 'item';
           title: string;
           onClick?: () => void;
+          icon?: React.ReactNode;
       }
     | DropdownMenuSeparator;
 
@@ -37,7 +38,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ items, label, children, cla
 
         return (
             <BaseDropdownMenuItem key={index} onClick={item.onClick}>
-                {item.title}
+                {item.icon ? <span className="shrink-0">{item.icon}</span> : null}
+                <span>{item.title}</span>
             </BaseDropdownMenuItem>
         );
     }
@@ -45,7 +47,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ items, label, children, cla
     return (
         <BaseDropdownMenu>
             <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-            <DropdownMenuContent className={className}>
+            <DropdownMenuContent className={className} align="end">
                 {label && (
                     <>
                         <DropdownMenuLabel>{label}</DropdownMenuLabel>

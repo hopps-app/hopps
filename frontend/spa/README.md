@@ -1,6 +1,17 @@
 # Hopps Frontend SPA
 
+This is the Single Page Application that is used in the Web to manage the finances of an NGO. 
+It is written in [React](https://react.dev/). 
+
 ## Project setup
+
+### Prerequisites
+- Install [NodeJs v22.15.0+](https://nodejs.org/en) (if you want to handle several Node installations locally for different projects check [nvm](https://github.com/nvm-sh/nvm))
+
+### Optional
+- [Docker](https://www.docker.com/) if you want to run the Backend locally
+
+### Run
 
 ```bash
   pnpm i

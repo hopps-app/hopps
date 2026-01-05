@@ -1,5 +1,5 @@
 # Use an official node image to build the React app
-FROM node:18 AS build
+FROM node:22 AS build
 
 # General
 ENV VITE_TITLE="VITE_TITLE_VALUE"
@@ -11,23 +11,29 @@ ENV VITE_KEYCLOAK_CLIENT_ID="VITE_KEYCLOAK_CLIENT_ID_VALUE"
 ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
 ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
 
+ARG USE_WORKSPACES=false
+
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY ../package.json pnpm-lock.yaml ./
+# Kopieren Sie zuerst nur die Package-Dateien
+COPY package.json ./
 
-# Install dependencies
-RUN npm install -g pnpm && pnpm install
+# Install pnpm globally
+RUN npm install -g pnpm
 
-# Copy the rest of the application code
-COPY .. .
+# Install dependencies (lockfile may live outside context)
+RUN pnpm install --no-frozen-lockfile
+
+# Dann den Rest des Codes kopieren
+COPY . .
 
 # Build the React app
 RUN pnpm run build
 
+
 # Use an official node image to serve the React app
-FROM node:18
+FROM node:22
 
 # Set the working directory
 WORKDIR /app
@@ -36,8 +42,8 @@ WORKDIR /app
 COPY --from=build /app/dist ./build
 COPY ../docker/node/server.js .
 
-# Install express
-RUN npm install express
+# Install express and path-to-regexp explicitly
+RUN npm install express@5.1.0
 
 # Expose port 8080
 EXPOSE 8080
@@ -52,4 +58,4 @@ RUN chmod +x ./startup.sh
 RUN chown -R node:node /app
 
 # Start the server
-CMD ["/bin/bash", "-c", "/app/startup.sh"]
+CMD ["sh", "./startup.sh"]

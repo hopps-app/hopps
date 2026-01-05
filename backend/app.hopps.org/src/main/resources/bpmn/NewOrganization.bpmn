@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" xmlns:xsi="xsi" id="_jt2qIJ4aED2WTvQMzWKOhw" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
-  <bpmn2:itemDefinition id="_organizationItem" structureRef="app.hopps.org.jpa.Organization"/>
-  <bpmn2:itemDefinition id="_ownerItem" structureRef="app.hopps.org.jpa.Member"/>
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:bpsim="http://www.bpsim.org/schemas/1.0" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:drools="http://www.jboss.org/drools" xmlns:xsi="xsi" id="_JJNn8C9QED6c3JCRE80N8Q" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd http://www.jboss.org/drools drools.xsd http://www.bpsim.org/schemas/1.0 bpsim.xsd http://www.omg.org/spec/DD/20100524/DC DC.xsd http://www.omg.org/spec/DD/20100524/DI DI.xsd " exporter="jBPM Process Modeler" exporterVersion="2.0" targetNamespace="http://www.omg.org/bpmn20">
+  <bpmn2:itemDefinition id="_organizationItem" structureRef="app.hopps.organization.domain.Organization"/>
+  <bpmn2:itemDefinition id="_ownerItem" structureRef="app.hopps.member.domain.Member"/>
   <bpmn2:itemDefinition id="_newPasswordItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_newOrgInputXItem" structureRef="app.hopps.org.jpa.Organization"/>
-  <bpmn2:itemDefinition id="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ownerInputXItem" structureRef="app.hopps.org.jpa.Member"/>
+  <bpmn2:itemDefinition id="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_newOrgInputXItem" structureRef="app.hopps.organization.domain.Organization"/>
+  <bpmn2:itemDefinition id="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ownerInputXItem" structureRef="app.hopps.member.domain.Member"/>
   <bpmn2:itemDefinition id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__A936BDBF-871F-4660-BA9F-1E6BCB301BF5_memberInputXItem" structureRef="app.hopps.org.jpa.Member"/>
+  <bpmn2:itemDefinition id="__A936BDBF-871F-4660-BA9F-1E6BCB301BF5_memberInputXItem" structureRef="app.hopps.member.domain.Member"/>
   <bpmn2:itemDefinition id="__A936BDBF-871F-4660-BA9F-1E6BCB301BF5_newPasswordInputXItem" structureRef="String"/>
   <bpmn2:itemDefinition id="_7990A710-11AA-44F2-888D-D2FE3B907C70_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_7990A710-11AA-44F2-888D-D2FE3B907C70_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__7990A710-11AA-44F2-888D-D2FE3B907C70_organizationInputXItem" structureRef="app.hopps.org.jpa.Organization"/>
-  <bpmn2:itemDefinition id="__7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputXItem" structureRef="app.hopps.org.jpa.Member"/>
+  <bpmn2:itemDefinition id="__7990A710-11AA-44F2-888D-D2FE3B907C70_organizationInputXItem" structureRef="app.hopps.organization.domain.Organization"/>
+  <bpmn2:itemDefinition id="__7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputXItem" structureRef="app.hopps.member.domain.Member"/>
   <bpmn2:itemDefinition id="_74549AA2-3408-4AA2-9036-93ACF44E8392_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_74549AA2-3408-4AA2-9036-93ACF44E8392_OutMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_OutMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_InMessageType" structureRef=""/>
   <bpmn2:itemDefinition id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_OutMessageType" structureRef=""/>
-  <bpmn2:itemDefinition id="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_organizationInputXItem" structureRef="app.hopps.org.jpa.Organization"/>
-  <bpmn2:itemDefinition id="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ownerInputXItem" structureRef="app.hopps.org.jpa.Member"/>
-  <bpmn2:error id="app.hopps.org.validation.NonUniqueConstraintViolation" errorCode="app.hopps.org.validation.NonUniqueConstraintViolation"/>
+  <bpmn2:itemDefinition id="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_organizationInputXItem" structureRef="app.hopps.organization.domain.Organization"/>
+  <bpmn2:itemDefinition id="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ownerInputXItem" structureRef="app.hopps.member.domain.Member"/>
+  <bpmn2:error id="app.hopps.shared.validation.NonUniqueConstraintViolation" errorCode="app.hopps.shared.validation.NonUniqueConstraintViolation"/>
   <bpmn2:message id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_InMessage" itemRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_InMessageType"/>
   <bpmn2:message id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_OutMessage" itemRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_OutMessageType"/>
-  <bpmn2:interface id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ServiceInterface" name="app.hopps.org.delegates.CreationValidationDelegate" implementationRef="app.hopps.org.delegates.CreationValidationDelegate">
+  <bpmn2:interface id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ServiceInterface" name="app.hopps.organization.service.CreationValidationDelegate" implementationRef="app.hopps.organization.service.CreationValidationDelegate">
     <bpmn2:operation id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ServiceOperation" name="validateWithValidator" implementationRef="validateWithValidator">
       <bpmn2:inMessageRef>_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_OutMessage</bpmn2:outMessageRef>
@@ -34,7 +34,7 @@
   </bpmn2:interface>
   <bpmn2:message id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_InMessage" itemRef="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_InMessageType"/>
   <bpmn2:message id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_OutMessage" itemRef="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_OutMessageType"/>
-  <bpmn2:interface id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_ServiceInterface" name="app.hopps.org.delegates.CreateUserInKeycloak" implementationRef="app.hopps.org.delegates.CreateUserInKeycloak">
+  <bpmn2:interface id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_ServiceInterface" name="app.hopps.organization.service.CreateUserInKeycloak" implementationRef="app.hopps.organization.service.CreateUserInKeycloak">
     <bpmn2:operation id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_ServiceOperation" name="createUserInKeycloak" implementationRef="createUserInKeycloak">
       <bpmn2:inMessageRef>_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_OutMessage</bpmn2:outMessageRef>
@@ -42,7 +42,7 @@
   </bpmn2:interface>
   <bpmn2:message id="_7990A710-11AA-44F2-888D-D2FE3B907C70_InMessage" itemRef="_7990A710-11AA-44F2-888D-D2FE3B907C70_InMessageType"/>
   <bpmn2:message id="_7990A710-11AA-44F2-888D-D2FE3B907C70_OutMessage" itemRef="_7990A710-11AA-44F2-888D-D2FE3B907C70_OutMessageType"/>
-  <bpmn2:interface id="_7990A710-11AA-44F2-888D-D2FE3B907C70_ServiceInterface" name="app.hopps.org.delegates.PersistOrganizationDelegate" implementationRef="app.hopps.org.delegates.PersistOrganizationDelegate">
+  <bpmn2:interface id="_7990A710-11AA-44F2-888D-D2FE3B907C70_ServiceInterface" name="app.hopps.organization.service.PersistOrganizationDelegate" implementationRef="app.hopps.organization.service.PersistOrganizationDelegate">
     <bpmn2:operation id="_7990A710-11AA-44F2-888D-D2FE3B907C70_ServiceOperation" name="persistOrg" implementationRef="persistOrg">
       <bpmn2:inMessageRef>_7990A710-11AA-44F2-888D-D2FE3B907C70_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_7990A710-11AA-44F2-888D-D2FE3B907C70_OutMessage</bpmn2:outMessageRef>
@@ -50,7 +50,7 @@
   </bpmn2:interface>
   <bpmn2:message id="_74549AA2-3408-4AA2-9036-93ACF44E8392_InMessage" itemRef="_74549AA2-3408-4AA2-9036-93ACF44E8392_InMessageType"/>
   <bpmn2:message id="_74549AA2-3408-4AA2-9036-93ACF44E8392_OutMessage" itemRef="_74549AA2-3408-4AA2-9036-93ACF44E8392_OutMessageType"/>
-  <bpmn2:interface id="_74549AA2-3408-4AA2-9036-93ACF44E8392_ServiceInterface" name="app.hopps.org.delegates.NoopDelegate" implementationRef="app.hopps.org.delegates.NoopDelegate">
+  <bpmn2:interface id="_74549AA2-3408-4AA2-9036-93ACF44E8392_ServiceInterface" name="app.hopps.organization.service.NoopDelegate" implementationRef="app.hopps.organization.service.NoopDelegate">
     <bpmn2:operation id="_74549AA2-3408-4AA2-9036-93ACF44E8392_ServiceOperation" name="noop" implementationRef="noop">
       <bpmn2:inMessageRef>_74549AA2-3408-4AA2-9036-93ACF44E8392_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_74549AA2-3408-4AA2-9036-93ACF44E8392_OutMessage</bpmn2:outMessageRef>
@@ -58,7 +58,7 @@
   </bpmn2:interface>
   <bpmn2:message id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_InMessage" itemRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_InMessageType"/>
   <bpmn2:message id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_OutMessage" itemRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_OutMessageType"/>
-  <bpmn2:interface id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_ServiceInterface" name="app.hopps.org.delegates.NoopDelegate" implementationRef="app.hopps.org.delegates.NoopDelegate">
+  <bpmn2:interface id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_ServiceInterface" name="app.hopps.organization.service.NoopDelegate" implementationRef="app.hopps.organization.service.NoopDelegate">
     <bpmn2:operation id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_ServiceOperation" name="noop" implementationRef="noop">
       <bpmn2:inMessageRef>_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_OutMessage</bpmn2:outMessageRef>
@@ -66,20 +66,20 @@
   </bpmn2:interface>
   <bpmn2:message id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_InMessage" itemRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_InMessageType"/>
   <bpmn2:message id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_OutMessage" itemRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_OutMessageType"/>
-  <bpmn2:interface id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ServiceInterface" name="app.hopps.org.delegates.CreationValidationDelegate" implementationRef="app.hopps.org.delegates.CreationValidationDelegate">
+  <bpmn2:interface id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ServiceInterface" name="app.hopps.organization.service.CreationValidationDelegate" implementationRef="app.hopps.organization.service.CreationValidationDelegate">
     <bpmn2:operation id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ServiceOperation" name="validateUniqueness" implementationRef="validateUniqueness">
       <bpmn2:inMessageRef>_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_InMessage</bpmn2:inMessageRef>
       <bpmn2:outMessageRef>_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_OutMessage</bpmn2:outMessageRef>
     </bpmn2:operation>
   </bpmn2:interface>
-  <bpmn2:collaboration id="_C45D1DE9-2267-47AE-83CB-F3B8CF5BCEC1" name="Default Collaboration">
-    <bpmn2:participant id="_6496C4A5-0B1D-46A9-8347-8EFA9DD5ED08" name="Pool Participant" processRef="NewOrganization"/>
+  <bpmn2:collaboration id="_66528E87-FD34-43BC-A092-35605441785E" name="Default Collaboration">
+    <bpmn2:participant id="_2DB71BB5-8EF0-47D7-871F-6207BBB072E9" name="Pool Participant" processRef="NewOrganization"/>
   </bpmn2:collaboration>
   <bpmn2:process id="NewOrganization" drools:packageName="app.hopps.org" drools:version="1.0" drools:adHoc="false" name="NewOrganization" isExecutable="true" processType="Public">
     <bpmn2:extensionElements>
-      <drools:import name="app.hopps.org.jpa.Organization"/>
-      <drools:import name="app.hopps.org.jpa.Member"/>
-      <drools:import name="app.hopps.org.validation.NonUniqueConstraintViolation"/>
+      <drools:import name="app.hopps.organization.domain.Organization"/>
+      <drools:import name="app.hopps.member.domain.Member"/>
+      <drools:import name="app.hopps.shared.validation.NonUniqueConstraintViolation"/>
     </bpmn2:extensionElements>
     <bpmn2:property id="organization" itemSubjectRef="_organizationItem" name="organization">
       <bpmn2:extensionElements>
@@ -105,7 +105,6 @@
     <bpmn2:sequenceFlow id="_BAA6CB4D-FC5B-4453-94B8-64B9F6CE25AE" sourceRef="_B65D0829-BC5D-47A3-8708-D1F096BFEFB8" targetRef="_F78451E1-2919-4FF8-8439-026929CD8EA4"/>
     <bpmn2:sequenceFlow id="_C66E29BE-E4FC-45F9-BC66-DDA7B964D0C2" sourceRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E" targetRef="_B65D0829-BC5D-47A3-8708-D1F096BFEFB8"/>
     <bpmn2:sequenceFlow id="_23D16123-FADC-4946-8230-180645C7FA16" sourceRef="_74549AA2-3408-4AA2-9036-93ACF44E8392" targetRef="_B65D0829-BC5D-47A3-8708-D1F096BFEFB8"/>
-    <bpmn2:sequenceFlow id="_F6C8F584-EA6B-4026-839F-67DAFA0877E3" sourceRef="_5A05E219-752D-417B-B82B-59FE3DBA7BC1" targetRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E"/>
     <bpmn2:sequenceFlow id="_C7D729AB-0DE5-40BA-8ED0-C2649EBCF884" sourceRef="_5A05E219-752D-417B-B82B-59FE3DBA7BC1" targetRef="_74549AA2-3408-4AA2-9036-93ACF44E8392">
       <bpmn2:extensionElements>
         <drools:metaData name="isAutoConnection.target">
@@ -113,6 +112,7 @@
         </drools:metaData>
       </bpmn2:extensionElements>
     </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="_F6C8F584-EA6B-4026-839F-67DAFA0877E3" sourceRef="_5A05E219-752D-417B-B82B-59FE3DBA7BC1" targetRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E"/>
     <bpmn2:sequenceFlow id="_574498AF-2A70-4024-A4B4-2ECA6360F02D" sourceRef="_7990A710-11AA-44F2-888D-D2FE3B907C70" targetRef="_5A05E219-752D-417B-B82B-59FE3DBA7BC1"/>
     <bpmn2:sequenceFlow id="_0D059BE3-7B64-436C-8931-5C673605C578" sourceRef="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5" targetRef="_7990A710-11AA-44F2-888D-D2FE3B907C70"/>
     <bpmn2:sequenceFlow id="_B71B0E35-1727-4E64-B3BC-4CC2F3EA19D4" sourceRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0" targetRef="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5"/>
@@ -122,7 +122,7 @@
     <bpmn2:endEvent id="_B19031A2-932E-47C8-81AA-7AAE0FE4AD55">
       <bpmn2:incoming>_A7B5AA79-B3CC-4999-9489-46EBA6AF990B</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:serviceTask id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CreationValidationDelegate" drools:serviceoperation="validateUniqueness" name="Validate Uniqueness" implementation="Java" operationRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ServiceOperation">
+    <bpmn2:serviceTask id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.organization.service.CreationValidationDelegate" drools:serviceoperation="validateUniqueness" name="Validate Uniqueness" implementation="Java" operationRef="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
           <drools:metaValue><![CDATA[Validate Uniqueness]]></drools:metaValue>
@@ -131,8 +131,8 @@
       <bpmn2:incoming>_D5CF1FD8-A964-4C91-8E25-EA9B40F43069</bpmn2:incoming>
       <bpmn2:outgoing>_B71B0E35-1727-4E64-B3BC-4CC2F3EA19D4</bpmn2:outgoing>
       <bpmn2:ioSpecification>
-        <bpmn2:dataInput id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_organizationInputX" drools:dtype="app.hopps.org.jpa.Organization" itemSubjectRef="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_organizationInputXItem" name="organization"/>
-        <bpmn2:dataInput id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ownerInputX" drools:dtype="app.hopps.org.jpa.Member" itemSubjectRef="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ownerInputXItem" name="owner"/>
+        <bpmn2:dataInput id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_organizationInputX" drools:dtype="app.hopps.organization.domain.Organization" itemSubjectRef="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_organizationInputXItem" name="organization"/>
+        <bpmn2:dataInput id="_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ownerInputX" drools:dtype="app.hopps.member.domain.Member" itemSubjectRef="__DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ownerInputXItem" name="owner"/>
         <bpmn2:inputSet>
           <bpmn2:dataInputRefs>_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_organizationInputX</bpmn2:dataInputRefs>
           <bpmn2:dataInputRefs>_DB0D419F-AB1A-46FD-8093-CD25A927EAA0_ownerInputX</bpmn2:dataInputRefs>
@@ -160,7 +160,7 @@
       <bpmn2:incoming>_C66E29BE-E4FC-45F9-BC66-DDA7B964D0C2</bpmn2:incoming>
       <bpmn2:outgoing>_BAA6CB4D-FC5B-4453-94B8-64B9F6CE25AE</bpmn2:outgoing>
     </bpmn2:parallelGateway>
-    <bpmn2:serviceTask id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.NoopDelegate" drools:serviceoperation="noop" name="Send Confirmation Email to Owner" implementation="Java" operationRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_ServiceOperation">
+    <bpmn2:serviceTask id="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.organization.service.NoopDelegate" drools:serviceoperation="noop" name="Send Confirmation Email to Owner" implementation="Java" operationRef="_E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
           <drools:metaValue><![CDATA[Send Confirmation Email to Owner]]></drools:metaValue>
@@ -169,7 +169,7 @@
       <bpmn2:incoming>_F6C8F584-EA6B-4026-839F-67DAFA0877E3</bpmn2:incoming>
       <bpmn2:outgoing>_C66E29BE-E4FC-45F9-BC66-DDA7B964D0C2</bpmn2:outgoing>
     </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="_74549AA2-3408-4AA2-9036-93ACF44E8392" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.NoopDelegate" drools:serviceoperation="noop" name="Send Confirmation Email to Admins" implementation="Java" operationRef="_74549AA2-3408-4AA2-9036-93ACF44E8392_ServiceOperation">
+    <bpmn2:serviceTask id="_74549AA2-3408-4AA2-9036-93ACF44E8392" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.organization.service.NoopDelegate" drools:serviceoperation="noop" name="Send Confirmation Email to Admins" implementation="Java" operationRef="_74549AA2-3408-4AA2-9036-93ACF44E8392_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
           <drools:metaValue><![CDATA[Send Confirmation Email to Admins]]></drools:metaValue>
@@ -180,10 +180,10 @@
     </bpmn2:serviceTask>
     <bpmn2:parallelGateway id="_5A05E219-752D-417B-B82B-59FE3DBA7BC1" gatewayDirection="Diverging">
       <bpmn2:incoming>_574498AF-2A70-4024-A4B4-2ECA6360F02D</bpmn2:incoming>
-      <bpmn2:outgoing>_C7D729AB-0DE5-40BA-8ED0-C2649EBCF884</bpmn2:outgoing>
       <bpmn2:outgoing>_F6C8F584-EA6B-4026-839F-67DAFA0877E3</bpmn2:outgoing>
+      <bpmn2:outgoing>_C7D729AB-0DE5-40BA-8ED0-C2649EBCF884</bpmn2:outgoing>
     </bpmn2:parallelGateway>
-    <bpmn2:serviceTask id="_7990A710-11AA-44F2-888D-D2FE3B907C70" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.PersistOrganizationDelegate" drools:serviceoperation="persistOrg" name="Create JPA Entities" implementation="Java" operationRef="_7990A710-11AA-44F2-888D-D2FE3B907C70_ServiceOperation">
+    <bpmn2:serviceTask id="_7990A710-11AA-44F2-888D-D2FE3B907C70" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.organization.service.PersistOrganizationDelegate" drools:serviceoperation="persistOrg" name="Create JPA Entities" implementation="Java" operationRef="_7990A710-11AA-44F2-888D-D2FE3B907C70_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
           <drools:metaValue><![CDATA[Create JPA Entities]]></drools:metaValue>
@@ -192,8 +192,8 @@
       <bpmn2:incoming>_0D059BE3-7B64-436C-8931-5C673605C578</bpmn2:incoming>
       <bpmn2:outgoing>_574498AF-2A70-4024-A4B4-2ECA6360F02D</bpmn2:outgoing>
       <bpmn2:ioSpecification>
-        <bpmn2:dataInput id="_7990A710-11AA-44F2-888D-D2FE3B907C70_organizationInputX" drools:dtype="app.hopps.org.jpa.Organization" itemSubjectRef="__7990A710-11AA-44F2-888D-D2FE3B907C70_organizationInputXItem" name="organization"/>
-        <bpmn2:dataInput id="_7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputX" drools:dtype="app.hopps.org.jpa.Member" itemSubjectRef="__7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputXItem" name="owner"/>
+        <bpmn2:dataInput id="_7990A710-11AA-44F2-888D-D2FE3B907C70_organizationInputX" drools:dtype="app.hopps.organization.domain.Organization" itemSubjectRef="__7990A710-11AA-44F2-888D-D2FE3B907C70_organizationInputXItem" name="organization"/>
+        <bpmn2:dataInput id="_7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputX" drools:dtype="app.hopps.member.domain.Member" itemSubjectRef="__7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputXItem" name="owner"/>
         <bpmn2:inputSet>
           <bpmn2:dataInputRefs>_7990A710-11AA-44F2-888D-D2FE3B907C70_organizationInputX</bpmn2:dataInputRefs>
           <bpmn2:dataInputRefs>_7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputX</bpmn2:dataInputRefs>
@@ -208,7 +208,7 @@
         <bpmn2:targetRef>_7990A710-11AA-44F2-888D-D2FE3B907C70_ownerInputX</bpmn2:targetRef>
       </bpmn2:dataInputAssociation>
     </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CreateUserInKeycloak" drools:serviceoperation="createUserInKeycloak" name="Create User in Keycloak" implementation="Java" operationRef="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_ServiceOperation">
+    <bpmn2:serviceTask id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.organization.service.CreateUserInKeycloak" drools:serviceoperation="createUserInKeycloak" name="Create User in Keycloak" implementation="Java" operationRef="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
           <drools:metaValue><![CDATA[Create User in Keycloak]]></drools:metaValue>
@@ -217,7 +217,7 @@
       <bpmn2:incoming>_B71B0E35-1727-4E64-B3BC-4CC2F3EA19D4</bpmn2:incoming>
       <bpmn2:outgoing>_0D059BE3-7B64-436C-8931-5C673605C578</bpmn2:outgoing>
       <bpmn2:ioSpecification>
-        <bpmn2:dataInput id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_memberInputX" drools:dtype="app.hopps.org.jpa.Member" itemSubjectRef="__A936BDBF-871F-4660-BA9F-1E6BCB301BF5_memberInputXItem" name="member"/>
+        <bpmn2:dataInput id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_memberInputX" drools:dtype="app.hopps.member.domain.Member" itemSubjectRef="__A936BDBF-871F-4660-BA9F-1E6BCB301BF5_memberInputXItem" name="member"/>
         <bpmn2:dataInput id="_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_newPasswordInputX" drools:dtype="String" itemSubjectRef="__A936BDBF-871F-4660-BA9F-1E6BCB301BF5_newPasswordInputXItem" name="newPassword"/>
         <bpmn2:inputSet>
           <bpmn2:dataInputRefs>_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_memberInputX</bpmn2:dataInputRefs>
@@ -233,7 +233,7 @@
         <bpmn2:targetRef>_A936BDBF-871F-4660-BA9F-1E6BCB301BF5_newPasswordInputX</bpmn2:targetRef>
       </bpmn2:dataInputAssociation>
     </bpmn2:serviceTask>
-    <bpmn2:serviceTask id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.org.delegates.CreationValidationDelegate" drools:serviceoperation="validateWithValidator" name="Validate Constraints" implementation="Java" operationRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ServiceOperation">
+    <bpmn2:serviceTask id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E" drools:serviceimplementation="Java" drools:serviceinterface="app.hopps.organization.service.CreationValidationDelegate" drools:serviceoperation="validateWithValidator" name="Validate Constraints" implementation="Java" operationRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ServiceOperation">
       <bpmn2:extensionElements>
         <drools:metaData name="elementname">
           <drools:metaValue><![CDATA[Validate Constraints]]></drools:metaValue>
@@ -242,8 +242,8 @@
       <bpmn2:incoming>_C208651A-A205-4106-9C62-5BD663671B72</bpmn2:incoming>
       <bpmn2:outgoing>_D5CF1FD8-A964-4C91-8E25-EA9B40F43069</bpmn2:outgoing>
       <bpmn2:ioSpecification>
-        <bpmn2:dataInput id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_newOrgInputX" drools:dtype="app.hopps.org.jpa.Organization" itemSubjectRef="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_newOrgInputXItem" name="newOrg"/>
-        <bpmn2:dataInput id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ownerInputX" drools:dtype="app.hopps.org.jpa.Member" itemSubjectRef="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ownerInputXItem" name="owner"/>
+        <bpmn2:dataInput id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_newOrgInputX" drools:dtype="app.hopps.organization.domain.Organization" itemSubjectRef="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_newOrgInputXItem" name="newOrg"/>
+        <bpmn2:dataInput id="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ownerInputX" drools:dtype="app.hopps.member.domain.Member" itemSubjectRef="__5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ownerInputXItem" name="owner"/>
         <bpmn2:inputSet>
           <bpmn2:dataInputRefs>_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_newOrgInputX</bpmn2:dataInputRefs>
           <bpmn2:dataInputRefs>_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E_ownerInputX</bpmn2:dataInputRefs>
@@ -268,7 +268,7 @@
     </bpmn2:startEvent>
     <bpmn2:boundaryEvent id="_7B06B533-E6E5-4C47-82CA-3BAFD1F8B55F" drools:dockerinfo="49.78461538461539^74|" drools:boundaryca="true" attachedToRef="_5C2FBE1C-64A6-4033-A830-7A9E1FA3BC0E">
       <bpmn2:outgoing>_A7B5AA79-B3CC-4999-9489-46EBA6AF990B</bpmn2:outgoing>
-      <bpmn2:errorEventDefinition drools:erefname="app.hopps.org.validation.NonUniqueConstraintViolation" errorRef="app.hopps.org.validation.NonUniqueConstraintViolation"/>
+      <bpmn2:errorEventDefinition drools:erefname="app.hopps.shared.validation.NonUniqueConstraintViolation" errorRef="app.hopps.shared.validation.NonUniqueConstraintViolation"/>
     </bpmn2:boundaryEvent>
   </bpmn2:process>
   <bpmndi:BPMNDiagram>
@@ -334,14 +334,14 @@
         <di:waypoint x="1493" y="245"/>
         <di:waypoint x="1575" y="245"/>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="edge_shape__5A05E219-752D-417B-B82B-59FE3DBA7BC1_to_shape__E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E" bpmnElement="_F6C8F584-EA6B-4026-839F-67DAFA0877E3">
+        <di:waypoint x="1603" y="245"/>
+        <di:waypoint x="1726" y="245"/>
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__5A05E219-752D-417B-B82B-59FE3DBA7BC1_to_shape__74549AA2-3408-4AA2-9036-93ACF44E8392" bpmnElement="_C7D729AB-0DE5-40BA-8ED0-C2649EBCF884">
         <di:waypoint x="1603" y="245"/>
         <di:waypoint x="1603" y="401"/>
         <di:waypoint x="1754" y="350"/>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="edge_shape__5A05E219-752D-417B-B82B-59FE3DBA7BC1_to_shape__E6BC1F20-7A5F-4B5E-8E6D-FAF88750FB0E" bpmnElement="_F6C8F584-EA6B-4026-839F-67DAFA0877E3">
-        <di:waypoint x="1603" y="245"/>
-        <di:waypoint x="1726" y="245"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="edge_shape__74549AA2-3408-4AA2-9036-93ACF44E8392_to_shape__B65D0829-BC5D-47A3-8708-D1F096BFEFB8" bpmnElement="_23D16123-FADC-4946-8230-180645C7FA16">
         <di:waypoint x="1803" y="401"/>
@@ -493,7 +493,7 @@
         </bpsim:Scenario>
       </bpsim:BPSimData>
     </bpmn2:extensionElements>
-    <bpmn2:source>_jt2qIJ4aED2WTvQMzWKOhw</bpmn2:source>
-    <bpmn2:target>_jt2qIJ4aED2WTvQMzWKOhw</bpmn2:target>
+    <bpmn2:source>_JJNn8C9QED6c3JCRE80N8Q</bpmn2:source>
+    <bpmn2:target>_JJNn8C9QED6c3JCRE80N8Q</bpmn2:target>
   </bpmn2:relationship>
 </bpmn2:definitions>

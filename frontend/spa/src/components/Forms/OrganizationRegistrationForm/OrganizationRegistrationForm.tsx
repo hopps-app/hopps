@@ -1,12 +1,13 @@
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
+import { NewOrganizationInput } from '@hopps/api-client';
 
-import TextField from '@/components/ui/TextField.tsx';
 import Button from '@/components/ui/Button.tsx';
-import apiService from '@/services/ApiService.ts';
+import TextField from '@/components/ui/TextField.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
+import apiService from '@/services/ApiService.ts';
 
 const schema = z
     .object({
@@ -28,6 +29,15 @@ type Props = {
     onSuccess: () => void;
 };
 
+function createSlug(input: string): string {
+    return input
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+        .trim()
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-'); // Replace multiple hyphens with a single hyphen
+}
+
 export function OrganizationRegistrationForm(props: Props) {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
@@ -39,20 +49,22 @@ export function OrganizationRegistrationForm(props: Props) {
 
     async function onSubmit(data: FormFields) {
         try {
-            await apiService.organization.registerOrganization({
-                owner: {
-                    firstName: data.firstName,
-                    lastName: data.lastName,
+            await apiService.orgService.organizationPOST(
+                NewOrganizationInput.fromJS({
+                    owner: {
+                        firstName: data.firstName,
+                        lastName: data.lastName,
 
-                    email: data.email,
-                },
-                organization: {
-                    name: data.organizationName,
-                    type: 'EINGETRAGENER_VEREIN',
-                    slug: apiService.organization.createSlug(data.organizationName),
-                },
-                newPassword: data.password,
-            });
+                        email: data.email,
+                    },
+                    organization: {
+                        name: data.organizationName,
+                        type: 'EINGETRAGENER_VEREIN',
+                        slug: createSlug(data.organizationName),
+                    },
+                    newPassword: data.password,
+                })
+            );
 
             showSuccess(t('organization.registration.success'));
             props.onSuccess();

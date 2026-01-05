@@ -16,9 +16,9 @@ jobs:
         projectName:
           - "app.hopps.org"
           - "app.hopps.az-document-ai"
-          - "app.hopps.fin"
           - "app.hopps.zugferd"
           - "app.hopps.fin-narrator"
+          - "app.hopps.mailservice"
 
     steps:
       # Checkout the code

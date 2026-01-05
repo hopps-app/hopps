@@ -1,24 +1,12 @@
-import { BommelService } from '@/services/api/BommelService.ts';
-import { InvoicesService } from '@/services/api/invoicesService.ts';
-import { OrganizationService } from '@/services/api/OrganizationService.ts';
+import { createApiService, ApiService } from '@hopps/api-client';
 
-export class ApiService {
-    public orgUrl: string;
-    public finUrl: string;
+import authService from '@/services/auth/auth.service.ts';
 
-    public bommel: BommelService;
-    public invoices: InvoicesService;
-    public organization: OrganizationService;
+const orgBaseUrl = import.meta.env.VITE_API_ORG_URL;
 
-    constructor() {
-        this.orgUrl = import.meta.env.VITE_API_ORG_URL || '';
-        this.finUrl = import.meta.env.VITE_API_FIN_URL || '';
-
-        this.bommel = new BommelService(this.orgUrl);
-        this.invoices = new InvoicesService(this.finUrl);
-        this.organization = new OrganizationService(this.orgUrl);
-    }
-}
-
-const apiService = new ApiService();
+const apiService: ApiService = createApiService({
+    orgBaseUrl: orgBaseUrl,
+    getAccessToken: () => authService.getAuthToken(),
+    refreshToken: () => authService.refreshToken(),
+});
 export default apiService;

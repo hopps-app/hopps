@@ -1,9 +1,16 @@
 import { Suspense, lazy } from "react";
 import type { ClassKey } from "keycloakify/login";
+import DefaultPage from "keycloakify/login/DefaultPage";
+
 import type { KcContext } from "./KcContext";
 import { useI18n } from "./i18n";
-import DefaultPage from "keycloakify/login/DefaultPage";
-import Template from "keycloakify/login/Template";
+
+import DefaultTemplate from "keycloakify/login/Template";
+
+import hoppsLogo from "../assets/hopps-logo.svg";
+
+import "./main.css";
+
 const UserProfileFormFields = lazy(
     () => import("keycloakify/login/UserProfileFormFields")
 );
@@ -25,7 +32,28 @@ export default function KcPage(props: { kcContext: KcContext }) {
                                 kcContext={kcContext}
                                 i18n={i18n}
                                 classes={classes}
-                                Template={Template}
+                                Template={({ kcContext, i18n, children, ...props }) => (
+                                    <DefaultTemplate
+                                        {...props}
+                                        kcContext={kcContext}
+                                        i18n={i18n}
+                                    >
+                                        <div
+                                            id="kc-header-wrapper"
+                                            className="custom-header"
+                                        >
+                                            <img
+                                                src={hoppsLogo}
+                                                alt="Hopps Logo"
+                                                className="custom-logo"
+                                            />
+                                            <p className="custom-subtitle">
+                                                Welcome back! Please enter your valid data
+                                            </p>
+                                        </div>
+                                        {children}
+                                    </DefaultTemplate>
+                                )}
                                 doUseDefaultCss={true}
                                 UserProfileFormFields={UserProfileFormFields}
                                 doMakeUserConfirmPassword={doMakeUserConfirmPassword}

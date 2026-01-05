@@ -1,6 +1,6 @@
 services:
   org:
-    image: ghcr.io/hopps-app/hopps/org:286
+    image: ghcr.io/hopps-app/hopps/org:${TAG:-395}
     ports:
       - "8080:8080"
     depends_on:
@@ -17,7 +17,7 @@ services:
       - QUARKUS_OIDC_TLS_VERIFICATION=none
 
   fin:
-    image: ghcr.io/hopps-app/hopps/fin:286
+    image: ghcr.io/hopps-app/hopps/fin:${TAG:-395}
     ports:
       - "8081:8080"
     depends_on:
@@ -31,15 +31,30 @@ services:
       - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/realms/hopps/
       - QUARKUS_OPENFGA_URL=http://openfga:8080/
       - QUARKUS_S3_ENDPOINT_OVERRIDE=http://localstack:4566
+      - QUARKUS_S3_AWS_REGION=eu-central-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - APP_HOPPS_FIN_URL=http://fin
+      - quarkus.rest-client.org-service.uri=http://org:8080/
+
+  fin-narrator:
+    image: ghcr.io/hopps-app/hopps/fin-narrator:${TAG:-395}
+    ports:
+      - "8775:8080"
+    environment:
+      - QUARKUS_LANGCHAIN4J_OPENAI_API_KEY=${QUARKUS_LANGCHAIN4J_OPENAI_API_KEY:?Read README.md}
+      # - QUARKUS_LANGCHAIN4J_OPENAI_CHAT_MODEL_LOG_RESPONSES=true # uncomment this to see ChatGPT's responses
 
   az-document-ai:
-    image: ghcr.io/hopps-app/hopps/az-document-ai:286
+    image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-395}
+    ports:
+      - "8100:8080"
     depends_on:
-      - kafka
+      - fin
+    ports:
+      - "8100:8080"
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - HOPPS_AZURE_DOCUMENT_AI_ENDPOINT=${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT}
       - HOPPS_AZURE_DOCUMENT_AI_KEY=${HOPPS_AZURE_DOCUMENT_AI_KEY}
 
@@ -87,6 +102,7 @@ services:
       KEYCLOAK_EXTRA_ARGS: "--import-realm --hostname-backchannel-dynamic true"
     volumes:
       - ./keycloak_default_realm.json:/opt/bitnami/keycloak/data/import/keycloak.default.realm.json
+      - ../../frontend/keycloak-theme/dist_keycloak/keycloak-theme-for-kc-22-to-25.jar:/opt/keycloak/providers
 
   # OpenFGA
   openfga:

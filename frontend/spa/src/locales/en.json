@@ -1,45 +1,241 @@
 {
-  "banner": {
-    "text1": "Try hopps for 14 days free of",
-    "text2": "charge"
-  },
-  "common": {
-    "refresh": "Refresh"
-  },
-  "header": {
-    "login": "Login",
-    "register": "Register"
-  },
-  "invoices": {
-    "loadFailed": "Failed to load invoices",
-    "noInvoices": "No invoices to show"
-  },
-  "organization": {
-    "registration": {
-      "failed": "Failed to register organization",
-      "header": "Register Organization",
-      "success": "Organisation successfully created"
+    "banner": {
+        "text1": "Try hopps for 14 days free of",
+        "text2": "charge"
+    },
+    "common": {
+        "refresh": "Refresh",
+        "upload": "Upload",
+        "addNew": "Add new",
+        "close": "Close",
+        "search": "Search",
+        "noItems": "No items to show",
+        "goBack": "Back",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete"
+    },
+    "header": {
+        "logout": "Logout",
+        "login": "Login",
+        "register": "Register"
+    },
+    "invoiceUpload": {
+        "title": "Upload new Invoice",
+        "assign": "Assign to",
+        "chooseFile": "Choose file",
+        "upload": "Upload",
+        "uploadFailed": "Failed to upload invoice",
+        "uploadSuccess": "Invoice successfully uploaded",
+        "dragDrop": "Drag & Drop files here",
+        "fileType": "PDF or JPG file",
+        "dragFile": "Drop the files here...",
+        "fileTooLarge": "File is too large, maximum size 5MB",
+        "totalTooLarge": "Total file size exceeds the 20MB limit.",
+        "maxFilesExceeded": "Maximum of 10 files allowed.",
+        "selectBommel": "Select bommel",
+        "privately": "Privately paid",
+        "invoice": "Invoice",
+        "receipt": "Receipt",
+        "docType": "Transaction type"
+    },
+    "invoices": {
+        "loadFailed": "Failed to load invoices",
+        "noInvoices": "No invoices to show",
+        "assignPopover": {
+            "assign": "Assign",
+            "reassign": "Reassign",
+            "noBommels": "No available bommels",
+            "newBommel": "new Bommel",
+            "successAssign": "Successfully assigned!",
+            "failedAssign": "Failed to assign bommel!"
+        },
+        "summary": {
+            "totalFirstPart": "Total",
+            "invoicesPart": "invoices with sum"
+        },
+        "table": {
+            "newInvoice": "new Invoice",
+            "date": "Date",
+            "bommel": "Bommel",
+            "amount": "Amount",
+            "name": "Name"
+        }
+    },
+    "organization": {
+        "registration": {
+            "failed": "Failed to register organization",
+            "header": "Register Organization",
+            "success": "Organisation successfully created"
+        },
+        "settings": {
+            "error": "Failed to load organization structure",
+            "saveError": "Failed to save setting",
+            "saved": "Settings successfully saved",
+            "structure": "Structure"
+        },
+        "stats": {
+            "totalBommels": "Total Bommels",
+            "totalIncome": "Total Income",
+            "totalExpenses": "Total Expenses",
+            "totalReceipts": "Total Receipts"
+        },
+        "structure": {
+            "quickSearch": "Quick Search",
+            "edit": "Edit",
+            "done": "Done",
+            "treeView": "Tree View",
+            "tableView": "Table View",
+            "noData": "No data available",
+            "addItems": "Please add items to your organization structure",
+            "receiptsLabel": "Receipts",
+            "openLabel": "open",
+            "subBommelsLabel": "Sub-Bommels",
+            "editName": "Edit name",
+            "deleteBommel": "Delete Bommel",
+            "addChild": "Add Child",
+            "saveName": "Save",
+            "cancelEdit": "Cancel",
+            "editModeHint": "To move bommels, switch to the Table view",
+            "details": {
+                "title": "Details",
+                "selectBommel": "Select a Bommel to view details",
+                "income": "Income",
+                "expenses": "Expenses",
+                "revenue": "Result",
+                "receipts": "Receipts",
+                "openInvoices": "Open Invoices",
+                "drafts": "Drafts",
+                "subBommels": "Sub-Bommels",
+                "toReceipts": "To Receipts"
+            },
+            "deleteDialog": {
+                "title": "Delete Bommel",
+                "description": "This Bommel has {{count}} receipts. Are you sure you want to delete this Bommel?",
+                "confirm": "Yes, delete",
+                "cancel": "Cancel"
+            }
+        },
+        "noOrganization": {
+            "title": "No Organization Found",
+            "message": "You don't have access to any organization or the organization doesn't exist.",
+            "suggestion": "Please contact your administrator or sign out and try again with a different account."
+        },
+        "buttons": {
+            "addNew": "Add new"
+        }
+    },
+    "organizationTree": {
+        "createNode": "Add new"
+    },
+    "profile": {
+        "language": "Language",
+        "theme": "Theme",
+        "themes": {
+            "light": "Light",
+            "dark": "Dark"
+        },
+        "lang": {
+            "english": "English",
+            "german": "German",
+            "ukrainian": "Ukranian"
+        }
     },
     "settings": {
-      "error": "Failed to load organization structure",
-      "saveError": "Failed to save setting",
-      "saved": "Settings successfully saved"
-    }
-  },
-  "profile": {
-    "settings": {
-      "language": "Language",
-      "theme": "Theme"
-    }
-  },
-  "settings": {
+        "menu": {
+            "account": "My Account",
+            "invoices": "Invoices",
+            "organization": "Organization",
+            "profile": "Profile"
+        }
+    },
+    "settingsPage": {
+        "menu": "Menu"
+    },
     "menu": {
-      "invoices": "Invoices",
-      "organization": "Organization",
-      "profile": "Profile"
+        "dashboard": "Dashboard",
+        "receipts": "Receipts",
+        "all-receipt": "All Receipts",
+        "expense": "Expense",
+        "intake": "Intake",
+        "structure": "Bommel structure",
+        "admin": "Admin",
+        "ngo-details": "Ngo Details",
+        "categories": "Categories"
+    },
+    "datePicker": {
+        "selectDate": "Select date"
+    },
+    "categories": {
+        "title": "Admin Settings: Categories",
+        "addButton": "Create New Category",
+        "searchInput": {
+            "placeholder": "Quick Search"
+        },
+        "dialog": {
+            "creation": {
+                "title": "Create New Category",
+                "description": "Enter the details of the new category."
+            },
+            "deletion": {
+                "title": "Delete This Category",
+                "description_1": "Are you sure you want to delete this category?",
+                "description_2": "Receipts assigned to this category will be reassigned to the 'unknown' category."
+            },
+            "update": {
+                "title": "Edit Category",
+                "description": "Modify the details of the category."
+            }
+        },
+        "form": {
+            "name": "Name",
+            "description": "Description",
+            "error": {
+                "name": "This field cannot be empty.",
+                "categoryCreated": "An error occurred."
+            },
+            "success": {
+                "categoryCreated": "Category successfully created",
+                "creationError": ""
+            }
+        },
+        "table": {
+            "noDescription": "No description"
+        }
+    },
+    "dialogWrapper": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "no": "No",
+        "yes": "Yes"
+    },
+    "receipts": {
+        "draft": "Draft",
+        "dueDate": "Due on",
+        "status": {
+            "paid": "Status: Paid",
+            "unpaid": "Status: Unpaid",
+            "draft": "Status: Draft",
+            "failed": "Status: Failed"
+        },
+        "filters": {
+            "searchReceipt": "Search receipt",
+            "searchPlaceholder": "Search",
+            "receiptDate": "Receipt date",
+            "startDate": "Start period",
+            "endDate": "End period",
+            "bommel": "Bommel",
+            "category": "Category",
+            "type": "Receipt type",
+            "income": "Income",
+            "expense": "Expense",
+            "status": "Status",
+            "onlyUnpaid": "Only unpaid",
+            "drafts": "Drafts",
+            "displayType": "Display type",
+            "displayAll": "Expand all",
+            "reset": "Reset",
+            "noResults": "No results"
+        }
     }
-  },
-  "settingsPage": {
-    "menu": "Menu"
-  }
 }

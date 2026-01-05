@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hopps.zugferdFullname" . }}
+  labels:
+    {{- include "hopps.zugferdLabels" . | nindent 4 }}
+spec:
+  {{- if not .Values.zugferd.autoscaling.enabled }}
+  replicas: {{ .Values.zugferd.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hopps.zugferdSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.zugferd.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hopps.zugferdSelectorLabels" . | nindent 8 }}
+        {{- with .Values.zugferd.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if or .Values.global.imagePullSecrets .Values.zugferd.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+        {{- toYaml .Values.zugferd.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.zugferd.serviceAccount.create }}
+      serviceAccountName: {{ .Values.zugferd.serviceAccount.name | default (include "hopps.zugferdFullname" .) }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.zugferd.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- with .Values.zugferd.envVars }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.zugferd.securityContext | nindent 12 }}
+          image: "{{ .Values.zugferd.image.repository }}:{{ .Values.zugferd.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.zugferd.image.pullPolicy }}
+          {{- with .Values.zugferd.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.zugferd.service.port }}
+              protocol: TCP
+            - name: management
+              containerPort: 9000
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.zugferd.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.zugferd.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.zugferd.resources | nindent 12 }}
+          {{- with .Values.zugferd.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.zugferd.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.zugferd.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.zugferd.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.zugferd.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

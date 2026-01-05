@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { CaretSortIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -17,7 +17,7 @@ const SelectTrigger = React.forwardRef<React.ElementRef<typeof SelectPrimitive.T
             ref={ref}
             className={cn(
                 'flex w-full text-gray-800 text-sm items-center justify-between whitespace-nowrap ' +
-                    'border border-gray-300 px-4 py-3 rounded-md outline-none bg-primary-foreground transition-colors' +
+                    'border border-gray-300 px-4 py-3 rounded-xl outline-none bg-primary-foreground transition-colors' +
                     'shadow-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
                 className
             )}

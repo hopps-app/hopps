@@ -1,0 +1,23 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.test.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ],
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@hopps/api-client": ["../api-client/src"],
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  }
+}

@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -36,14 +38,18 @@ public class TaggingResource {
 
     @POST
     @Path("invoice")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Generates a list of tags for this invoice")
     @APIResponse(responseCode = "200", description = "Generated tags", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(contentSchema = String[].class), example = "[\"food\", \"pizza\"]"))
     public List<String> tagInvoice(JsonObject jsonData) throws JsonProcessingException {
-        return tagDocument("invoicoe", jsonData);
+        return tagDocument("invoice", jsonData);
     }
 
     @POST
     @Path("receipt")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Generates a list of tags for this receipt")
     @APIResponse(responseCode = "200", description = "Generated tags", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(contentSchema = String[].class), example = "[\"food\", \"pizza\"]"))
     public List<String> tagReceipt(JsonObject jsonData) throws JsonProcessingException {
@@ -58,7 +64,7 @@ public class TaggingResource {
                     Response.Status.BAD_REQUEST);
         }
 
-        return aiService.tagReceiptOrInvoice(type, jsonData)
+        return aiService.tagDocument(type, jsonData)
                 .stream()
                 .map(in -> in.replaceFirst("^ - ", ""))
                 .map(String::trim)

@@ -1,7 +1,7 @@
 package app.hopps.zugferd.model;
 
-import app.hopps.commons.InvoiceData;
 import org.mustangproject.Invoice;
+import org.mustangproject.TradeParty;
 import org.mustangproject.ZUGFeRD.TransactionCalculator;
 
 import java.math.BigDecimal;
@@ -14,7 +14,7 @@ public class InvoiceDataHandler {
         // only call the static method
     }
 
-    public static InvoiceData fromZugferd(Long referenceKey, Invoice invoice) {
+    public static InvoiceData fromZugferd(Invoice invoice) {
         TransactionCalculator tc = new TransactionCalculator(invoice);
 
         BigDecimal amountDue = tc.getGrandTotal();
@@ -22,18 +22,19 @@ public class InvoiceDataHandler {
             amountDue = amountDue.subtract(invoice.getTotalPrepaidAmount());
         }
 
+        TradeParty recipient = (invoice.getRecipient() != null) ? invoice.getRecipient() : invoice.getPayee();
+
         LocalDate dueDate = invoice.getDueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         return new InvoiceData(
-                referenceKey,
                 tc.getGrandTotal(),
                 invoice.getIssueDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
                 invoice.getCurrency(),
                 Optional.ofNullable(invoice.getRecipient().getName()),
-                Optional.of(AddressHelper.fromZugferd(invoice)),
                 Optional.ofNullable(invoice.getReferenceNumber()),
                 Optional.ofNullable(invoice.getNumber()),
-                Optional.ofNullable(dueDate),
-                Optional.of(amountDue));
+                Optional.ofNullable(dueDate), Optional.of(amountDue),
+                Optional.of(TradePartyHelper.fromTradeParty(invoice.getSender())),
+                Optional.of(TradePartyHelper.fromTradeParty(recipient)));
     }
 }

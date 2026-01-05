@@ -20,15 +20,15 @@ jobs:
           - key: "hopps-app_hopps-vereine"
             folder: "app.hopps.org"
             label: "Org"
-          - key: "hopps-app_hopps-fin"
-            folder: "app.hopps.fin"
-            label: "Finanzen"
           - key: "hopps-app_fin-narrator"
             folder: "app.hopps.fin-narrator"
             label: "FIN-Narrator"
           - key: "hopps-app_zugferd"
             folder: "app.hopps.zugferd"
             label: "ZUGFeRD"
+          - key: "hopps-app_mail-service"
+            folder: "app.hopps.mailservice"
+            label: "Mail-Service"
 
     steps:
       - uses: actions/checkout@v4
@@ -41,9 +41,6 @@ jobs:
 
       - name: mvn install parent
         run: mvn -B -N clean install --file backend/pom.xml
-
-      - name: mvn install commons
-        run: mvn -B install --file backend/app.hopps.commons/pom.xml
 
       - name: mvn package
         run: mvn -B verify --file backend/${{ matrix.sonar.folder }}/pom.xml

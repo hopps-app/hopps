@@ -1,7 +1,7 @@
 import Picker from '@emoji-mart/react';
-import { useState } from 'react';
 import { CaretSortIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
+import { useState } from 'react';
 
 import Emoji from '@/components/ui/Emoji.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';
@@ -44,7 +44,7 @@ function EmojiField(props: EmojiFieldProps) {
                             props.className
                         )}
                     >
-                        <div className="text-muted">{selectedEmoji ? <Emoji emoji={selectedEmoji} /> : <span className="px-[10px]"></span>}</div>
+                        <div className="text-muted">{selectedEmoji ? <Emoji emoji={selectedEmoji} /> : <span className="px-[var(--btn-radius)]"></span>}</div>
                         <SelectPrimitive.Icon asChild>
                             <CaretSortIcon className="h-4 w-4 opacity-50" />
                         </SelectPrimitive.Icon>

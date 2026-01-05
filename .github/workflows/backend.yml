@@ -6,16 +6,15 @@ on:
       - backend/**
       - .github/workflows/backend.yml
     branches: [ "**" ]
-    tags: [ 'org-*.*.*' ]
+    tags: [ 'hopps-*.*.*' ]
 
 env:
   BASE_IMAGE_NAME: ghcr.io/hopps-app/hopps
 
   # prefix which needs to be in front of version tags
-  VERSION_TAG_PREFIX: 'org-'
+  VERSION_TAG_PREFIX: 'hopps-'
 
-# FIXME: This builds and pushes every backend service anytime a change is made
-# inside 'backend/**'
+# FIXME: This builds and pushes every backend service anytime a change is made inside 'backend/**'
 
 jobs:
   build-code-and-container:
@@ -23,16 +22,22 @@ jobs:
       fail-fast: false
       matrix:
         service:
-          - label: fin
-            directory: app.hopps.fin
           - label: org
             directory: app.hopps.org
+            serviceName: org
           - label: az-document-ai
             directory: app.hopps.az-document-ai
+            serviceName: azDocumentAi
           - label: zugferd
             directory: app.hopps.zugferd
+            serviceName: zugferd
           - label: fin-narrator
             directory: app.hopps.fin-narrator
+            serviceName: finNarrator
+#          todo :enable again, as soon as the mail service is part of the helmchart
+#          - label: mail-service
+#            directory: app.hopps.mailservice
+#            serviceName: mailService
 
     runs-on: ubuntu-latest
     steps:
@@ -46,9 +51,6 @@ jobs:
 
       - name: mvn install parent
         run: mvn -B -N clean install --file backend/pom.xml
-
-      - name: mvn install commons
-        run: mvn -B install --file backend/app.hopps.commons/pom.xml
 
       # only build relevant service
       - name: mvn package
@@ -85,3 +87,23 @@ jobs:
           # don't push dependabot branches
           push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
           tags: ${{ steps.meta.outputs.tags }} # tags from the docker/metadata-action
+
+      - name: Trigger deploy workflow
+        uses: actions/github-script@v7
+        # only trigger deployment on main
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github-token: ${{ secrets.TECHNICAL_USER_PAT }}
+          script: |
+            const result = await github.rest.actions.createWorkflowDispatch({
+              owner: 'hopps-app',
+              repo: 'hopps.cloud',
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+              inputs: {
+                "environment": "dev",
+                "new-tag": "${{ github.run_number }}",
+                "service-name": "${{ matrix.service.serviceName }}"
+              }
+            })
+            console.log(result);

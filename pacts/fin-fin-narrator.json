@@ -1,0 +1,176 @@
+{
+  "consumer": {
+    "name": "fin"
+  },
+  "interactions": [
+    {
+      "comments": {
+        "testname": "app.hopps.document.client.FinNarratorPactConsumerTest.testInvoiceTagging()",
+        "text": [
+
+        ]
+      },
+      "description": "tag invoice request",
+      "key": "9cbe0fe4",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": {
+            "amountDue": null,
+            "currencyCode": "EUR",
+            "customerName": null,
+            "dueDate": null,
+            "invoiceDate": [
+              2024,
+              1,
+              20
+            ],
+            "invoiceId": null,
+            "purchaseOrderNumber": null,
+            "receiver": null,
+            "sender": null,
+            "total": 3.0
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "contentType",
+                  "value": "application/json"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/fin-narrator/tag/invoice"
+      },
+      "response": {
+        "body": {
+          "content": [
+            "food",
+            "pizza"
+          ],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "contentType",
+                  "value": "application/json"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "https",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "comments": {
+        "testname": "app.hopps.document.client.FinNarratorPactConsumerTest.testReceiptTagging()",
+        "text": [
+
+        ]
+      },
+      "description": "tag receipt request",
+      "key": "1a78c5d",
+      "pending": false,
+      "request": {
+        "body": {
+          "content": {
+            "storeAddress": null,
+            "storeName": null,
+            "total": 3.0,
+            "transactionTime": null
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "contentType",
+                  "value": "application/json"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/fin-narrator/tag/receipt"
+      },
+      "response": {
+        "body": {
+          "content": [
+            "aws",
+            "cloud"
+          ],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "contentType",
+                  "value": "application/json"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "https",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.11"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "fin-narrator"
+  }
+}

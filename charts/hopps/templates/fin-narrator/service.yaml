@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hopps.finNarratorFullname" . }}
+  labels:
+    {{- include "hopps.finNarratorLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.finNarrator.service.type }}
+  ports:
+    - port: {{ .Values.finNarrator.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: 9000
+      targetPort: management
+      protocol: TCP
+      name: management
+  selector:
+    {{- include "hopps.finNarratorSelectorLabels" . | nindent 4 }}

@@ -1,0 +1,22 @@
+auth {
+  mode: oauth2
+}
+
+auth:oauth2 {
+  grant_type: authorization_code
+  callback_url: {{keycloak_redirect_url}}
+  authorization_url: {{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/auth
+  access_token_url: {{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token
+  refresh_token_url: 
+  client_id: {{keycloak_client}}
+  client_secret: 
+  scope: 
+  state: 
+  pkce: true
+  credentials_placement: body
+  credentials_id: credentials
+  token_placement: header
+  token_header_prefix: Bearer 
+  auto_fetch_token: true
+  auto_refresh_token: false
+}

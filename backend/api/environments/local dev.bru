@@ -1,0 +1,9 @@
+vars {
+  keycloak_url: http://localhost:8554
+  org_baseUrl: http://localhost:8101
+  fin_narrator_baseUrl: http://localhost:8775
+  az_doc_ai_baseUrl: http://localhost:8100/api/az-document-ai
+  keycloak_client: account
+  keycloak_realm: quarkus
+  keycloak_redirect_url: {{keycloak_url}}/realms/{{keycloak_realm}}/account/
+}
