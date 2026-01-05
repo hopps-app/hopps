@@ -109,4 +109,25 @@ public class KeycloakAdminService
 		keycloak.realm(realm).users().delete(userId);
 		LOG.info("Deleted Keycloak user: {}", userId);
 	}
+
+	/**
+	 * Finds a Keycloak user by username and returns their user ID.
+	 *
+	 * @param username
+	 *            The username to search for
+	 * @return The Keycloak user ID, or null if not found
+	 */
+	public String findUserIdByUsername(String username)
+	{
+		List<UserRepresentation> users = keycloak.realm(realm).users().search(username, true);
+		if (users.isEmpty())
+		{
+			LOG.debug("No Keycloak user found with username: {}", username);
+			return null;
+		}
+
+		UserRepresentation user = users.get(0);
+		LOG.debug("Found Keycloak user: username={}, userId={}", username, user.getId());
+		return user.getId();
+	}
 }

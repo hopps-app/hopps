@@ -14,6 +14,18 @@ You can run your application in dev mode that enables live coding using:
 
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
 
+### Development Credentials
+
+When running in development mode, Quarkus DevServices automatically provisions a Keycloak instance with the following test users:
+
+| Username | Password | Roles | Description |
+|----------|----------|-------|-------------|
+| `admin` | `admin` | super_admin, admin, user | Super administrator with full access |
+| `member1` | `member1` | admin, user | Test admin user (Maria Admin) |
+| `member2` | `member2` | user | Test regular user (Thomas User) |
+
+Access the application at <http://localhost:8080> and use any of these credentials to log in.
+
 ## Packaging and running the application
 
 The application can be packaged using:

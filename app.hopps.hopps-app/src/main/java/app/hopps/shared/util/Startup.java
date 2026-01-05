@@ -51,6 +51,9 @@ public class Startup
 	MemberKeycloakSyncService memberKeycloakSyncService;
 
 	@Inject
+	app.hopps.member.service.KeycloakAdminService keycloakAdminService;
+
+	@Inject
 	OrganizationRepository organizationRepository;
 
 	private static final Logger LOG = LoggerFactory.getLogger(Startup.class);
@@ -67,8 +70,8 @@ public class Startup
 			// Get the default organization for demo data
 			Organization defaultOrg = getDefaultOrganization();
 
-			// Only seed Bommels if none exist
-			if (!bommelRepository.hasRoot())
+			// Only seed demo data if Max Mustermann doesn't exist yet
+			if (memberRepository.findByEmail("max.mustermann@example.com") == null)
 			{
 				// Create demo members
 				Member maxMustermann = new Member();
@@ -359,53 +362,104 @@ public class Startup
 	{
 		Organization defaultOrg = getDefaultOrganization();
 
-		// Bootstrap alice (admin)
-		Member alice = memberRepository.findByEmail("alice@hopps.local");
-		if (alice == null)
+		// Bootstrap member1 (admin user) - link to DevServices Keycloak user
+		Member member1 = memberRepository.findByEmail("member1@hopps.local");
+		if (member1 == null)
 		{
-			alice = new Member();
-			alice.setFirstName("Alice");
-			alice.setLastName("Admin");
-			alice.setEmail("alice@hopps.local");
-			alice.setPhone("+49 100 000001");
-			alice.setOrganization(defaultOrg);
-			memberRepository.persist(alice);
+			// Find the Keycloak user created by DevServices (with retries for
+			// timing)
+			String keycloakUserId = findKeycloakUserWithRetry("member1", 5, 500);
+			if (keycloakUserId != null)
+			{
+				member1 = new Member();
+				member1.setFirstName("Maria");
+				member1.setLastName("Admin");
+				member1.setEmail("member1@hopps.local");
+				member1.setPhone("+49 100 000001");
+				member1.setOrganization(defaultOrg);
+				member1.setKeycloakUserId(keycloakUserId);
+				memberRepository.persist(member1);
 
-			try
-			{
-				memberKeycloakSyncService.syncMemberToKeycloak(alice, List.of("admin"));
-				LOG.info("Bootstrapped alice: memberId={}, keycloakUserId={}",
-					alice.getId(), alice.getKeycloakUserId());
+				LOG.info("Bootstrapped member1: memberId={}, keycloakUserId={}",
+					member1.getId(), member1.getKeycloakUserId());
 			}
-			catch (Exception e)
+			else
 			{
-				LOG.error("Failed to sync alice to Keycloak", e);
+				LOG.warn("DevServices Keycloak user 'member1' not found. Skipping Member creation.");
 			}
 		}
 
-		// Bootstrap bob (user)
-		Member bob = memberRepository.findByEmail("bob@hopps.local");
-		if (bob == null)
+		// Bootstrap member2 (regular user) - link to DevServices Keycloak user
+		Member member2 = memberRepository.findByEmail("member2@hopps.local");
+		if (member2 == null)
 		{
-			bob = new Member();
-			bob.setFirstName("Bob");
-			bob.setLastName("User");
-			bob.setEmail("bob@hopps.local");
-			bob.setPhone("+49 100 000002");
-			bob.setOrganization(defaultOrg);
-			memberRepository.persist(bob);
+			// Find the Keycloak user created by DevServices (with retries for
+			// timing)
+			String keycloakUserId = findKeycloakUserWithRetry("member2", 5, 500);
+			if (keycloakUserId != null)
+			{
+				member2 = new Member();
+				member2.setFirstName("Thomas");
+				member2.setLastName("User");
+				member2.setEmail("member2@hopps.local");
+				member2.setPhone("+49 100 000002");
+				member2.setOrganization(defaultOrg);
+				member2.setKeycloakUserId(keycloakUserId);
+				memberRepository.persist(member2);
 
-			try
-			{
-				memberKeycloakSyncService.syncMemberToKeycloak(bob);
-				LOG.info("Bootstrapped bob: memberId={}, keycloakUserId={}",
-					bob.getId(), bob.getKeycloakUserId());
+				LOG.info("Bootstrapped member2: memberId={}, keycloakUserId={}",
+					member2.getId(), member2.getKeycloakUserId());
 			}
-			catch (Exception e)
+			else
 			{
-				LOG.error("Failed to sync bob to Keycloak", e);
+				LOG.warn("DevServices Keycloak user 'member2' not found. Skipping Member creation.");
 			}
 		}
+	}
+
+	/**
+	 * Finds a Keycloak user by username with retry logic. DevServices may still
+	 * be initializing users when this is called.
+	 *
+	 * @param username
+	 *            The username to search for
+	 * @param maxAttempts
+	 *            Maximum number of retry attempts
+	 * @param delayMs
+	 *            Delay in milliseconds between retries
+	 * @return The Keycloak user ID, or null if not found after all retries
+	 */
+	private String findKeycloakUserWithRetry(String username, int maxAttempts, long delayMs)
+	{
+		for (int attempt = 1; attempt <= maxAttempts; attempt++)
+		{
+			String userId = keycloakAdminService.findUserIdByUsername(username);
+			if (userId != null)
+			{
+				if (attempt > 1)
+				{
+					LOG.info("Found Keycloak user '{}' on attempt {}", username, attempt);
+				}
+				return userId;
+			}
+
+			if (attempt < maxAttempts)
+			{
+				LOG.debug("Keycloak user '{}' not found, retrying in {}ms (attempt {}/{})",
+					username, delayMs, attempt, maxAttempts);
+				try
+				{
+					Thread.sleep(delayMs);
+				}
+				catch (InterruptedException e)
+				{
+					Thread.currentThread().interrupt();
+					LOG.warn("Interrupted while waiting to retry finding Keycloak user '{}'", username);
+					return null;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
