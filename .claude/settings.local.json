@@ -60,7 +60,8 @@
       "Bash(timeout 60 ./mvnw quarkus:dev:*)",
       "Bash(./mvnw help:describe:*)",
       "Bash(./mvnw clean:*)",
-      "Bash(./mvnw verify:*)"
+      "Bash(./mvnw verify:*)",
+      "Bash(timeout 45 ./mvnw quarkus:dev:*)"
     ]
   }
 }

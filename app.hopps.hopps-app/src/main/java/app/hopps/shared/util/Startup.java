@@ -26,6 +26,8 @@ import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.domain.Tag;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
@@ -48,6 +50,9 @@ public class Startup
 	@Inject
 	MemberKeycloakSyncService memberKeycloakSyncService;
 
+	@Inject
+	OrganizationRepository organizationRepository;
+
 	private static final Logger LOG = LoggerFactory.getLogger(Startup.class);
 
 	/**
@@ -59,6 +64,9 @@ public class Startup
 		// in DEV mode we seed some data
 		if (LaunchMode.current() == LaunchMode.DEVELOPMENT)
 		{
+			// Get the default organization for demo data
+			Organization defaultOrg = getDefaultOrganization();
+
 			// Only seed Bommels if none exist
 			if (!bommelRepository.hasRoot())
 			{
@@ -68,12 +76,14 @@ public class Startup
 				maxMustermann.setLastName("Mustermann");
 				maxMustermann.setEmail("max.mustermann@example.com");
 				maxMustermann.setPhone("+49 123 456789");
+				maxMustermann.setOrganization(defaultOrg);
 				memberRepository.persist(maxMustermann);
 
 				Member lisaSchmidt = new Member();
 				lisaSchmidt.setFirstName("Lisa");
 				lisaSchmidt.setLastName("Schmidt");
 				lisaSchmidt.setEmail("lisa.schmidt@example.com");
+				lisaSchmidt.setOrganization(defaultOrg);
 				memberRepository.persist(lisaSchmidt);
 
 				// Create Bommels with assigned Bommelwarts
@@ -81,6 +91,7 @@ public class Startup
 				root.setIcon("home");
 				root.setTitle("Verein");
 				root.setResponsibleMember(maxMustermann);
+				root.setOrganization(defaultOrg);
 				bommelRepository.persist(root);
 
 				Bommel jugend = new Bommel();
@@ -88,22 +99,25 @@ public class Startup
 				jugend.setTitle("Jugend");
 				jugend.parent = root;
 				jugend.setResponsibleMember(lisaSchmidt);
+				jugend.setOrganization(defaultOrg);
 				bommelRepository.persist(jugend);
 
 				Bommel orchester = new Bommel();
 				orchester.setIcon("music");
 				orchester.setTitle("Orchester");
 				orchester.parent = root;
+				orchester.setOrganization(defaultOrg);
 				bommelRepository.persist(orchester);
 
 				Bommel anfaenger = new Bommel();
 				anfaenger.setIcon("education");
 				anfaenger.setTitle("Anfaenger");
 				anfaenger.parent = jugend;
+				anfaenger.setOrganization(defaultOrg);
 				bommelRepository.persist(anfaenger);
 
 				// Create demo documents
-				seedDocuments(root, jugend, orchester);
+				seedDocuments(root, jugend, orchester, defaultOrg);
 			}
 
 			// Bootstrap alice and bob users (always in DEV mode)
@@ -111,25 +125,25 @@ public class Startup
 		}
 	}
 
-	private void seedDocuments(Bommel root, Bommel jugend, Bommel orchester)
+	private void seedDocuments(Bommel root, Bommel jugend, Bommel orchester, Organization org)
 	{
-		DemoTags tags = createDemoTags();
+		DemoTags tags = createDemoTags(org);
 
 		// Confirmed documents without transactions (will trigger transaction
 		// creation alert)
-		seedOfficeSuppliesDocument(root, tags);
-		seedCateringDocument(jugend, tags);
+		seedOfficeSuppliesDocument(root, tags, org);
+		seedCateringDocument(jugend, tags, org);
 
 		// Confirmed documents with transactions
-		seedMusicEquipmentDocument(orchester, tags);
-		seedBusRentalDocument(orchester, tags);
+		seedMusicEquipmentDocument(orchester, tags, org);
+		seedBusRentalDocument(orchester, tags, org);
 
 		// Regular documents (no special status)
-		seedPrinterTonerDocument(tags);
-		seedElectricityBillDocument(root);
+		seedPrinterTonerDocument(tags, org);
+		seedElectricityBillDocument(root, org);
 
 		// Standalone transaction (not linked to a document)
-		seedMembershipFeeTransaction(root);
+		seedMembershipFeeTransaction(root, org);
 	}
 
 	private Instant toInstant(LocalDate date)
@@ -142,14 +156,20 @@ public class Startup
 	{
 	}
 
-	private DemoTags createDemoTags()
+	private DemoTags createDemoTags(Organization org)
 	{
 		Tag tagBuero = new Tag("Bürobedarf");
+		tagBuero.setOrganization(org);
 		Tag tagMusik = new Tag("Musik");
+		tagMusik.setOrganization(org);
 		Tag tagVeranstaltung = new Tag("Veranstaltung");
+		tagVeranstaltung.setOrganization(org);
 		Tag tagReise = new Tag("Reise");
+		tagReise.setOrganization(org);
 		Tag tagVerpflegung = new Tag("Verpflegung");
+		tagVerpflegung.setOrganization(org);
 		Tag tagAusruestung = new Tag("Ausrüstung");
+		tagAusruestung.setOrganization(org);
 
 		tagBuero.persist();
 		tagMusik.persist();
@@ -162,9 +182,10 @@ public class Startup
 			tagAusruestung);
 	}
 
-	private void seedOfficeSuppliesDocument(Bommel bommel, DemoTags tags)
+	private void seedOfficeSuppliesDocument(Bommel bommel, DemoTags tags, Organization org)
 	{
-		TradeParty sender = createTradeParty("Büro König GmbH", "Hauptstraße 42", "80331", "München");
+		TradeParty sender = createTradeParty("Büro König GmbH", "Hauptstraße 42", "80331", "München",
+			org);
 
 		Document doc = new Document();
 		doc.setName("Büromaterial");
@@ -173,15 +194,16 @@ public class Startup
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 15)));
 		doc.setSender(sender);
 		doc.setBommel(bommel);
+		doc.setOrganization(org);
 		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
 		doc.addTag(tags.buero, TagSource.AI);
 		documentRepository.persist(doc);
 	}
 
-	private void seedMusicEquipmentDocument(Bommel bommel, DemoTags tags)
+	private void seedMusicEquipmentDocument(Bommel bommel, DemoTags tags, Organization org)
 	{
 		TradeParty sender = createTradeParty("Musikhaus Thomann", "Treppendorf 30", "96138",
-			"Burgebrach");
+			"Burgebrach", org);
 
 		Document doc = new Document();
 		doc.setName("Notenständer (5 Stück)");
@@ -191,18 +213,20 @@ public class Startup
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 10)));
 		doc.setSender(sender);
 		doc.setBommel(bommel);
+		doc.setOrganization(org);
 		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
 		doc.addTag(tags.musik, TagSource.AI);
 		doc.addTag(tags.ausruestung, TagSource.AI);
 		documentRepository.persist(doc);
 
 		// Create transaction from document
-		createTransactionFromDocument(doc, tags.musik, tags.ausruestung);
+		createTransactionFromDocument(doc, org, tags.musik, tags.ausruestung);
 	}
 
-	private void seedCateringDocument(Bommel bommel, DemoTags tags)
+	private void seedCateringDocument(Bommel bommel, DemoTags tags, Organization org)
 	{
-		TradeParty sender = createTradeParty("Metzgerei Huber", "Marktplatz 5", "85354", "Freising");
+		TradeParty sender = createTradeParty("Metzgerei Huber", "Marktplatz 5", "85354", "Freising",
+			org);
 
 		Document doc = new Document();
 		doc.setName("Catering Jugendtreffen");
@@ -211,16 +235,17 @@ public class Startup
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 8)));
 		doc.setSender(sender);
 		doc.setBommel(bommel);
+		doc.setOrganization(org);
 		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
 		doc.addTag(tags.verpflegung, TagSource.AI);
 		doc.addTag(tags.veranstaltung, TagSource.MANUAL);
 		documentRepository.persist(doc);
 	}
 
-	private void seedBusRentalDocument(Bommel bommel, DemoTags tags)
+	private void seedBusRentalDocument(Bommel bommel, DemoTags tags, Organization org)
 	{
 		TradeParty sender = createTradeParty("Reisebus Schmidt", "Industriestraße 12", "80939",
-			"München");
+			"München", org);
 
 		Document doc = new Document();
 		doc.setName("Busfahrt zum Wettbewerb");
@@ -230,6 +255,7 @@ public class Startup
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 11, 25)));
 		doc.setSender(sender);
 		doc.setBommel(bommel);
+		doc.setOrganization(org);
 		doc.setPrivatelyPaid(true);
 		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
 		doc.addTag(tags.reise, TagSource.AI);
@@ -237,13 +263,13 @@ public class Startup
 		documentRepository.persist(doc);
 
 		// Create transaction from document
-		createTransactionFromDocument(doc, tags.reise, tags.veranstaltung);
+		createTransactionFromDocument(doc, org, tags.reise, tags.veranstaltung);
 	}
 
-	private void seedPrinterTonerDocument(DemoTags tags)
+	private void seedPrinterTonerDocument(DemoTags tags, Organization org)
 	{
 		TradeParty sender = createTradeParty("Amazon EU S.a.r.l.", "Marcel-Breuer-Str. 12", "80807",
-			"München");
+			"München", org);
 
 		Document doc = new Document();
 		doc.setName("Drucker Toner");
@@ -251,15 +277,16 @@ public class Startup
 		doc.setCurrencyCode("EUR");
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 20)));
 		doc.setSender(sender);
+		doc.setOrganization(org);
 		// No bommel assigned
 		doc.addTag(tags.buero, TagSource.AI);
 		documentRepository.persist(doc);
 	}
 
-	private void seedElectricityBillDocument(Bommel bommel)
+	private void seedElectricityBillDocument(Bommel bommel, Organization org)
 	{
 		TradeParty sender = createTradeParty("Stadtwerke München", "Emmy-Noether-Str. 2", "80992",
-			"München");
+			"München", org);
 
 		Document doc = new Document();
 		doc.setName("Stromrechnung Q3 2024");
@@ -269,37 +296,42 @@ public class Startup
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 10, 1)));
 		doc.setSender(sender);
 		doc.setBommel(bommel);
+		doc.setOrganization(org);
 		documentRepository.persist(doc);
 	}
 
-	private void seedMembershipFeeTransaction(Bommel bommel)
+	private void seedMembershipFeeTransaction(Bommel bommel, Organization org)
 	{
 		TransactionRecord tx = new TransactionRecord(new BigDecimal("125.00"), "system");
 		tx.setName("Mitgliedsbeitrag Januar 2025");
 		tx.setTransactionTime(toInstant(LocalDate.of(2025, 1, 1)));
 		tx.setBommel(bommel);
+		tx.setOrganization(org);
 		tx.setCurrencyCode("EUR");
 		transactionRepository.persist(tx);
 	}
 
-	private TradeParty createTradeParty(String name, String street, String zipCode, String city)
+	private TradeParty createTradeParty(String name, String street, String zipCode, String city,
+		Organization org)
 	{
 		TradeParty party = new TradeParty();
 		party.setName(name);
 		party.setStreet(street);
 		party.setZipCode(zipCode);
 		party.setCity(city);
+		party.setOrganization(org);
 		party.persist();
 		return party;
 	}
 
-	private void createTransactionFromDocument(Document doc, Tag... tags)
+	private void createTransactionFromDocument(Document doc, Organization org, Tag... tags)
 	{
 		TransactionRecord tx = new TransactionRecord(doc.getTotal(), "system");
 		tx.setDocument(doc);
 		tx.setName(doc.getName());
 		tx.setTransactionTime(doc.getTransactionTime());
 		tx.setBommel(doc.getBommel());
+		tx.setOrganization(org);
 		tx.setCurrencyCode(doc.getCurrencyCode());
 		tx.setPrivatelyPaid(doc.isPrivatelyPaid());
 
@@ -310,6 +342,7 @@ public class Startup
 			txSender.setStreet(doc.getSender().getStreet());
 			txSender.setZipCode(doc.getSender().getZipCode());
 			txSender.setCity(doc.getSender().getCity());
+			txSender.setOrganization(org);
 			tx.setSender(txSender);
 		}
 
@@ -324,6 +357,8 @@ public class Startup
 	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	public void bootstrapDefaultUsers()
 	{
+		Organization defaultOrg = getDefaultOrganization();
+
 		// Bootstrap alice (admin)
 		Member alice = memberRepository.findByEmail("alice@hopps.local");
 		if (alice == null)
@@ -333,6 +368,7 @@ public class Startup
 			alice.setLastName("Admin");
 			alice.setEmail("alice@hopps.local");
 			alice.setPhone("+49 100 000001");
+			alice.setOrganization(defaultOrg);
 			memberRepository.persist(alice);
 
 			try
@@ -356,6 +392,7 @@ public class Startup
 			bob.setLastName("User");
 			bob.setEmail("bob@hopps.local");
 			bob.setPhone("+49 100 000002");
+			bob.setOrganization(defaultOrg);
 			memberRepository.persist(bob);
 
 			try
@@ -369,5 +406,20 @@ public class Startup
 				LOG.error("Failed to sync bob to Keycloak", e);
 			}
 		}
+	}
+
+	/**
+	 * Gets the default organization. The bootstrap process ensures this always
+	 * exists.
+	 */
+	private Organization getDefaultOrganization()
+	{
+		Organization org = organizationRepository.findBySlug("default");
+		if (org == null)
+		{
+			throw new IllegalStateException(
+				"Default organization not found. Bootstrap may not have run correctly.");
+		}
+		return org;
 	}
 }

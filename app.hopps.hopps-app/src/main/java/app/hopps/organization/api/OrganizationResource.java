@@ -3,6 +3,7 @@ package app.hopps.organization.api;
 import java.util.List;
 
 import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.RestPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 
@@ -108,8 +110,10 @@ public class OrganizationResource extends Controller
 	/**
 	 * Show organization details (super admin only).
 	 */
+	@GET
+	@Path("/{id}")
 	@RolesAllowed("super_admin")
-	public TemplateInstance detail(Long id)
+	public TemplateInstance detail(@RestPath Long id)
 	{
 		Organization organization = organizationRepository.findById(id);
 		if (organization == null)

@@ -125,18 +125,36 @@ public class BootstrapService
 		member.setEmail(superAdminEmail);
 		member.setOrganization(organization);
 
-		// Create Keycloak user with super_admin, admin, and user roles
-		String keycloakUserId = keycloakAdminService.createUser(
-			superAdminUsername,
-			superAdminEmail,
-			superAdminFirstName,
-			superAdminLastName,
-			List.of("super_admin", "admin", "user"));
+		try
+		{
+			// Create Keycloak user with super_admin, admin, and user roles
+			String keycloakUserId = keycloakAdminService.createUser(
+				superAdminUsername,
+				superAdminEmail,
+				superAdminFirstName,
+				superAdminLastName,
+				List.of("super_admin", "admin", "user"));
 
-		member.setKeycloakUserId(keycloakUserId);
-		memberRepository.persist(member);
+			member.setKeycloakUserId(keycloakUserId);
+			memberRepository.persist(member);
 
-		LOG.info("Created super admin: {} ({})", member.getDisplayName(), member.getEmail());
+			LOG.info("Created super admin: {} ({})", member.getDisplayName(), member.getEmail());
+		}
+		catch (RuntimeException e)
+		{
+			// If Keycloak user already exists (HTTP 409), just log and continue
+			// The member record won't be created but that's okay - it will be
+			// synced later
+			if (e.getMessage() != null && e.getMessage().contains("User exists"))
+			{
+				LOG.warn("Super admin user already exists in Keycloak: {}", superAdminUsername);
+			}
+			else
+			{
+				// Re-throw other exceptions
+				throw e;
+			}
+		}
 	}
 
 	private void ensureRootBommel(Organization organization)
