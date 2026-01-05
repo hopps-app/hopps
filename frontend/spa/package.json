@@ -40,7 +40,7 @@
         "@types/lodash": "^4.17.11",
         "ag-grid-community": "^32.3.3",
         "ag-grid-react": "^32.3.3",
-        "axios": "^1.8.2",
+        "axios": "^1.13.2",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
         "cmdk": "1.0.0",
