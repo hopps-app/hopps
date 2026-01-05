@@ -1,0 +1,54 @@
+{#include main.html}
+{#title}Neue Organisation{/title}
+
+{#content}
+<div class="page-header">
+  <h1>Neue Organisation anlegen</h1>
+</div>
+
+<div class="box" style="max-width: 600px;">
+  <form action="/organisationen/save" method="post">
+    {#authenticityToken /}
+
+    <cds-text-input
+      label="Name"
+      name="name"
+      placeholder="z.B. ACME GmbH"
+      required
+      helper-text="Vollständiger Name der Organisation"
+      {#ifError 'name'}invalid{/ifError}
+      {#ifError 'name'}invalid-text="{#error 'name'/}"{/ifError}>
+    </cds-text-input>
+
+    <cds-text-input
+      label="Slug"
+      name="slug"
+      placeholder="z.B. acme-gmbh"
+      required
+      helper-text="Eindeutige URL-freundliche Kennung (nur Kleinbuchstaben, Zahlen und Bindestriche)"
+      {#ifError 'slug'}invalid{/ifError}
+      {#ifError 'slug'}invalid-text="{#error 'slug'/}"{/ifError}>
+    </cds-text-input>
+
+    <cds-text-input
+      label="Anzeigename"
+      name="displayName"
+      placeholder="z.B. ACME"
+      helper-text="Kurzer Name für die Anzeige (optional)">
+    </cds-text-input>
+
+    <div style="display: flex; gap: var(--cds-spacing-03); margin-top: var(--cds-spacing-07);">
+      <cds-button type="submit" kind="primary">
+        Speichern
+        <svg slot="icon" width="16" height="16" viewBox="0 0 16 16">
+          <path d="M13 3L6 10l-3-3" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </cds-button>
+      <cds-button href="/organisationen" kind="secondary">
+        Abbrechen
+      </cds-button>
+    </div>
+  </form>
+</div>
+{/content}
+{/include}

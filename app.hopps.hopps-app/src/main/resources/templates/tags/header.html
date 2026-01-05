@@ -8,6 +8,17 @@
     <img src="/svg/logo.svg" alt="hopps" style="height: 32px; width: auto;">
   </cds-header-name>
   <cds-header-global-bar>
+    {#if inject:organizationContext.isSuperAdmin()}
+    <cds-header-global-action
+      aria-label="Organisationen"
+      tooltip-text="Organisationen verwalten"
+      href="/organisationen">
+      <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
+        <path d="M21 2h-2v5h2V2zM11 2H9v5h2V2zM21 25h-2v5h2v-5zM11 25H9v5h2v-5zM2 11h5V9H2v2zM25 11h5V9h-5v2zM2 21h5v-2H2v2zM25 21h5v-2h-5v2z"/>
+        <rect x="9" y="9" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </cds-header-global-action>
+    {/if}
     <cds-header-global-action
       id="notificationButton"
       aria-label="Benachrichtigungen"
@@ -90,6 +101,7 @@
     <a href="#" onclick="alert('Bald verfügbar'); return false;">Alle Benachrichtigungen anzeigen</a>
   </div>
 </div>
+
 
 <!-- Profile Panel -->
 <div id="profilePanel" class="header-panel">

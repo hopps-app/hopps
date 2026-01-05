@@ -74,6 +74,13 @@
 
         <cds-side-nav-divider></cds-side-nav-divider>
 
+        {#if inject:organizationContext.isSuperAdmin()}
+        <cds-side-nav-link href="/organisationen" {#if inject:vertxRequest.path.startsWith('/organisationen')}active{/if}>
+          Organisationen
+          <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M21 2h-2v5h2V2zM11 2H9v5h2V2zM21 25h-2v5h2v-5zM11 25H9v5h2v-5zM2 11h5V9H2v2zM25 11h5V9h-5v2zM2 21h5v-2H2v2zM25 21h5v-2h-5v2z"/><rect x="9" y="9" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </cds-side-nav-link>
+        {/if}
+
         <cds-side-nav-link href="#" disabled>
           Einstellungen <span class="bald-tag">Bald</span>
           <svg slot="title-icon" viewBox="0 0 32 32" width="20" height="20"><path d="M28 16a12 12 0 0 0-.8-4.3l1.8-.7a14.2 14.2 0 0 1 0 10l-1.8-.7A12 12 0 0 0 28 16ZM16 28a12 12 0 0 1-4.3-.8l-.7 1.8a14.2 14.2 0 0 0 10 0l-.7-1.8A12 12 0 0 1 16 28ZM4 16a12 12 0 0 1 .8-4.3l-1.8-.7a14.2 14.2 0 0 0 0 10l1.8-.7A12 12 0 0 1 4 16ZM16 4a12 12 0 0 1 4.3.8l.7-1.8a14.2 14.2 0 0 0-10 0l.7 1.8A12 12 0 0 1 16 4Z"/><path d="M16 24a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"/></svg>

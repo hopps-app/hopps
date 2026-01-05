@@ -1,0 +1,114 @@
+{#include main.html}
+{#title}{organization.name}{/title}
+
+{#moreStyles}
+<style>
+  .detail-section {
+    margin-bottom: var(--cds-spacing-07);
+  }
+
+  .detail-label {
+    font-weight: 600;
+    color: var(--cds-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: var(--cds-spacing-02);
+  }
+
+  .detail-value {
+    font-size: 1rem;
+    margin-bottom: var(--cds-spacing-05);
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .status-active {
+    background-color: #24a148;
+    color: white;
+  }
+
+  .status-inactive {
+    background-color: var(--cds-text-disabled);
+    color: white;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-07);
+  }
+</style>
+{/moreStyles}
+
+{#content}
+<div class="page-header">
+  <h1>{organization.name}</h1>
+  <div style="display: flex; gap: var(--cds-spacing-03);">
+    <cds-button href="/organisationen" kind="secondary">
+      Zurück zur Übersicht
+    </cds-button>
+  </div>
+</div>
+
+{#if flash:success}
+<cds-actionable-notification
+  kind="success"
+  title="{flash:success}"
+  low-contrast
+  inline
+  hide-close-button>
+</cds-actionable-notification>
+{/if}
+
+<div class="box">
+  <div class="detail-section">
+    <div class="detail-label">Status</div>
+    <div class="detail-value">
+      <span class="status-badge {#if organization.active}status-active{#else}status-inactive{/if}">
+        {#if organization.active}Aktiv{#else}Inaktiv{/if}
+      </span>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-label">Name</div>
+    <div class="detail-value">{organization.name}</div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-label">Slug</div>
+    <div class="detail-value"><code>{organization.slug}</code></div>
+  </div>
+
+  {#if organization.displayName != null}
+  <div class="detail-section">
+    <div class="detail-label">Anzeigename</div>
+    <div class="detail-value">{organization.displayName}</div>
+  </div>
+  {/if}
+
+  <div class="detail-section">
+    <div class="detail-label">Erstellt am</div>
+    <div class="detail-value">{organization.createdAt.formatGerman}</div>
+  </div>
+
+  <div style="margin-top: var(--cds-spacing-07); padding-top: var(--cds-spacing-07); border-top: 1px solid var(--cds-border-subtle-01);">
+    <h3 style="margin-bottom: var(--cds-spacing-05);">Aktionen</h3>
+
+    <form action="/organisationen/toggle-active" method="post" style="display: inline;">
+      {#authenticityToken /}
+      <input type="hidden" name="id" value="{organization.id}">
+      <cds-button type="submit" kind="{#if organization.active}danger{#else}primary{/if}">
+        {#if organization.active}Deaktivieren{#else}Aktivieren{/if}
+      </cds-button>
+    </form>
+  </div>
+</div>
+{/content}
+{/include}

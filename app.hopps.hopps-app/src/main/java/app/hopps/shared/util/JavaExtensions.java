@@ -1,5 +1,10 @@
 package app.hopps.shared.util;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import io.quarkus.qute.TemplateExtension;
 
 /**
@@ -8,6 +13,11 @@ import io.quarkus.qute.TemplateExtension;
 @TemplateExtension
 public class JavaExtensions
 {
+	private static final DateTimeFormatter GERMAN_DATE_FORMATTER = DateTimeFormatter
+		.ofPattern("dd.MM.yyyy HH:mm")
+		.withLocale(Locale.GERMAN)
+		.withZone(ZoneId.systemDefault());
+
 	/**
 	 * This registers the String.capitalise extension method
 	 */
@@ -27,5 +37,17 @@ public class JavaExtensions
 			}
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Format an Instant in German format (dd.MM.yyyy HH:mm)
+	 */
+	public static String formatGerman(Instant instant)
+	{
+		if (instant == null)
+		{
+			return "";
+		}
+		return GERMAN_DATE_FORMATTER.format(instant);
 	}
 }
