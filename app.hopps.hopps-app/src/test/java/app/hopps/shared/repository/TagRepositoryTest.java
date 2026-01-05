@@ -11,13 +11,15 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import app.hopps.shared.domain.Tag;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class TagRepositoryTest
+class TagRepositoryTest extends BaseOrganizationTest
 {
 	@Inject
 	TagRepository tagRepository;
@@ -29,7 +31,10 @@ class TagRepositoryTest
 	@Test
 	void shouldCreateAndFindTagByName()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Tag tag = new Tag("food");
+		tag.setOrganization(org);
 		tagRepository.persist(tag);
 
 		Optional<Tag> found = tagRepository.findByName("food");
@@ -49,13 +54,18 @@ class TagRepositoryTest
 	@Test
 	void shouldFindAllTagsOrderedByName()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Tag tag1 = new Tag("zebra");
+		tag1.setOrganization(org);
 		tagRepository.persist(tag1);
 
 		Tag tag2 = new Tag("apple");
+		tag2.setOrganization(org);
 		tagRepository.persist(tag2);
 
 		Tag tag3 = new Tag("mango");
+		tag3.setOrganization(org);
 		tagRepository.persist(tag3);
 
 		List<Tag> tags = tagRepository.findAllOrderedByName();
@@ -69,6 +79,8 @@ class TagRepositoryTest
 	@Test
 	void shouldFindOrCreateNewTag()
 	{
+		getOrCreateTestOrganization(); // Ensure org exists for findOrCreateTag
+
 		Tag tag = tagRepository.findOrCreateTag("newtag");
 		assertNotNull(tag);
 		assertNotNull(tag.getId());
@@ -83,7 +95,10 @@ class TagRepositoryTest
 	@Test
 	void shouldFindExistingTagInsteadOfCreatingDuplicate()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Tag existing = new Tag("existing");
+		existing.setOrganization(org);
 		tagRepository.persist(existing);
 		long countBefore = tagRepository.count();
 
@@ -98,7 +113,10 @@ class TagRepositoryTest
 	@Test
 	void shouldFindOrCreateMultipleTags()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Tag existing = new Tag("existing1");
+		existing.setOrganization(org);
 		tagRepository.persist(existing);
 
 		Set<String> tagNames = Set.of("existing1", "new1", "new2");

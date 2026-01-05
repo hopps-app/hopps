@@ -12,6 +12,8 @@ import jakarta.transaction.Transactional;
 
 import app.hopps.audit.domain.AuditLogEntry;
 import app.hopps.audit.repository.AuditLogRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.security.OrganizationContext;
 import app.hopps.workflow.repository.WorkflowInstanceRepository;
 
 /**
@@ -30,6 +32,9 @@ public class ProcessEngine
 
 	@Inject
 	WorkflowInstanceRepository chainRepository;
+
+	@Inject
+	OrganizationContext organizationContext;
 
 	// Registry of process definitions by name (for recovery after restart)
 	private final Map<String, ProcessDefinition> processRegistry = new HashMap<>();
@@ -73,8 +78,11 @@ public class ProcessEngine
 	@Transactional
 	public WorkflowInstance startProcess(ProcessDefinition process, Map<String, Object> initialVariables)
 	{
+		Organization org = organizationContext.getCurrentOrganization();
+
 		WorkflowInstance instance = new WorkflowInstance(process.getName());
 		instance.setVariables(initialVariables);
+		instance.setOrganization(org);
 
 		// Register the process definition for later retrieval
 		registerProcess(process);
@@ -209,12 +217,15 @@ public class ProcessEngine
 
 	private void logAudit(WorkflowInstance instance, String taskName, String details, String username)
 	{
+		Organization org = organizationContext.getCurrentOrganization();
+
 		AuditLogEntry entry = new AuditLogEntry();
 		entry.setEntityName("WorkflowInstance");
 		entry.setEntityId(instance.getId());
 		entry.setTaskName(taskName);
 		entry.setDetails(details);
 		entry.setUsername(username);
+		entry.setOrganization(org);
 		auditLogRepository.persist(entry);
 	}
 }

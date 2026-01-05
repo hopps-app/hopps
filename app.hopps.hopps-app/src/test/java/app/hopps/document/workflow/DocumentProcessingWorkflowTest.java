@@ -16,6 +16,8 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.shared.domain.Tag;
 import app.hopps.document.service.StorageService;
 import app.hopps.shared.repository.TagRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import app.hopps.workflow.WorkflowInstance;
 import app.hopps.workflow.WorkflowStatus;
 import io.quarkus.test.TestTransaction;
@@ -28,7 +30,7 @@ import jakarta.inject.Inject;
  * to be mocked with WireMock or similar for full integration tests.
  */
 @QuarkusTest
-class DocumentProcessingWorkflowTest
+class DocumentProcessingWorkflowTest extends BaseOrganizationTest
 {
 	@Inject
 	DocumentRepository documentRepository;
@@ -46,10 +48,13 @@ class DocumentProcessingWorkflowTest
 	@Test
 	void shouldCompleteWorkflowForDocumentWithFile()
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName("Test Invoice");
 		document.setCurrencyCode("EUR");
 		document.setTotal(new BigDecimal("0.00"));
+		document.setOrganization(organization);
 
 		String fileKey = "test-analysis/" + System.currentTimeMillis() + "/test.pdf";
 		document.setFileKey(fileKey);
@@ -69,10 +74,13 @@ class DocumentProcessingWorkflowTest
 	@Test
 	void shouldCompleteWorkflowForDocumentWithoutFile()
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName("No File Document");
 		document.setCurrencyCode("EUR");
 		document.setTotal(new BigDecimal("0.00"));
+		document.setOrganization(organization);
 
 		documentRepository.persist(document);
 
@@ -89,10 +97,13 @@ class DocumentProcessingWorkflowTest
 	@Test
 	void shouldPreserveExistingMetadataOnWorkflowRun()
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName("Existing Invoice");
 		document.setTotal(new BigDecimal("100.00"));
 		document.setCurrencyCode("EUR");
+		document.setOrganization(organization);
 
 		String fileKey = "test-analysis/" + System.currentTimeMillis() + "/existing.pdf";
 		document.setFileKey(fileKey);
@@ -121,12 +132,15 @@ class DocumentProcessingWorkflowTest
 	@Test
 	void shouldNotOverwriteExistingTags()
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName("Document with Tags");
 		document.setCurrencyCode("EUR");
 		document.setTotal(new BigDecimal("50.00"));
+		document.setOrganization(organization);
 
-		for (Tag tag : tagRepository.findOrCreateTags(java.util.Set.of("existing")))
+		for (Tag tag : createTags(java.util.Set.of("existing"), organization))
 		{
 			document.addTag(tag, TagSource.MANUAL);
 		}

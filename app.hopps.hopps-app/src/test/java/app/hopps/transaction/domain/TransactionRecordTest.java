@@ -13,6 +13,8 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import app.hopps.transaction.repository.TransactionRecordRepository;
@@ -21,7 +23,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class TransactionRecordTest
+class TransactionRecordTest extends BaseOrganizationTest
 {
 	@Inject
 	TransactionRecordRepository repository;
@@ -39,11 +41,14 @@ class TransactionRecordTest
 	@Test
 	void shouldPersistTransactionWithTags()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Set<Tag> tags = tagRepository.findOrCreateTags(Set.of("food", "travel"));
 
 		TransactionRecord transaction = new TransactionRecord();
 		transaction.setTotal(new BigDecimal("42.50"));
 		transaction.setUploader("test@example.com");
+		transaction.setOrganization(org);
 
 		for (Tag tag : tags)
 		{
@@ -61,15 +66,19 @@ class TransactionRecordTest
 	@Test
 	void shouldLinkToBommel()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Bommel bommel = new Bommel();
 		bommel.setTitle("Test Bommel");
 		bommel.setIcon("folder");
+		bommel.setOrganization(org);
 		bommelRepository.persist(bommel);
 
 		TransactionRecord transaction = new TransactionRecord();
 		transaction.setTotal(new BigDecimal("100.00"));
 		transaction.setUploader("test@example.com");
 		transaction.setBommel(bommel);
+		transaction.setOrganization(org);
 
 		repository.persist(transaction);
 
@@ -82,14 +91,18 @@ class TransactionRecordTest
 	@Test
 	void shouldLinkToDocument()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setTotal(new BigDecimal("25.00"));
+		document.setOrganization(org);
 		documentRepository.persist(document);
 
 		TransactionRecord transaction = new TransactionRecord();
 		transaction.setTotal(new BigDecimal("25.00"));
 		transaction.setUploader("test@example.com");
 		transaction.setDocument(document);
+		transaction.setOrganization(org);
 
 		repository.persist(transaction);
 
@@ -102,17 +115,21 @@ class TransactionRecordTest
 	@Test
 	void shouldShareTagsAcrossTransactions()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Set<Tag> tags = tagRepository.findOrCreateTags(Set.of("shared-tag"));
 
 		TransactionRecord t1 = new TransactionRecord();
 		t1.setTotal(BigDecimal.TEN);
 		t1.setUploader("user1@example.com");
+		t1.setOrganization(org);
 		tags.forEach(tag -> t1.addTag(tag, TagSource.MANUAL));
 		repository.persist(t1);
 
 		TransactionRecord t2 = new TransactionRecord();
 		t2.setTotal(BigDecimal.ONE);
 		t2.setUploader("user2@example.com");
+		t2.setOrganization(org);
 		tags.forEach(tag -> t2.addTag(tag, TagSource.MANUAL));
 		repository.persist(t2);
 

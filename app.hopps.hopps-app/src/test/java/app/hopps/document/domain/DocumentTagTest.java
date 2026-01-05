@@ -12,6 +12,8 @@ import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import io.quarkus.test.TestTransaction;
@@ -19,7 +21,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class DocumentTagTest
+class DocumentTagTest extends BaseOrganizationTest
 {
 	@Inject
 	DocumentRepository documentRepository;
@@ -31,12 +33,15 @@ class DocumentTagTest
 	@Test
 	void shouldPersistDocumentWithTags()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Set<Tag> tags = tagRepository.findOrCreateTags(Set.of("food", "pizza"));
 
 		Document document = new Document();
 		document.setName("Test Document");
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
+		document.setOrganization(org);
 
 		for (Tag tag : tags)
 		{
@@ -57,6 +62,8 @@ class DocumentTagTest
 	@Test
 	void shouldShareTagsBetweenDocuments()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Set<Tag> tags1 = tagRepository.findOrCreateTags(Set.of("shared", "unique1"));
 		Set<Tag> tags2 = tagRepository.findOrCreateTags(Set.of("shared", "unique2"));
 
@@ -64,6 +71,7 @@ class DocumentTagTest
 		doc1.setName("Doc 1");
 		doc1.setTotal(new BigDecimal("10.00"));
 		doc1.setCurrencyCode("EUR");
+		doc1.setOrganization(org);
 		for (Tag tag : tags1)
 		{
 			doc1.addTag(tag, TagSource.MANUAL);
@@ -74,6 +82,7 @@ class DocumentTagTest
 		doc2.setName("Doc 2");
 		doc2.setTotal(new BigDecimal("10.00"));
 		doc2.setCurrencyCode("EUR");
+		doc2.setOrganization(org);
 		for (Tag tag : tags2)
 		{
 			doc2.addTag(tag, TagSource.MANUAL);
@@ -108,12 +117,15 @@ class DocumentTagTest
 	@Test
 	void shouldUpdateDocumentTags()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Set<Tag> oldTags = tagRepository.findOrCreateTags(Set.of("old"));
 
 		Document document = new Document();
 		document.setName("Test Doc");
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
+		document.setOrganization(org);
 
 		for (Tag tag : oldTags)
 		{
@@ -165,12 +177,15 @@ class DocumentTagTest
 	@Test
 	void shouldUpdateDocumentTagsWithSameTags()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Set<Tag> tags = tagRepository.findOrCreateTags(Set.of("food", "pizza"));
 
 		Document document = new Document();
 		document.setName("Test Doc");
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
+		document.setOrganization(org);
 
 		for (Tag tag : tags)
 		{
@@ -194,12 +209,15 @@ class DocumentTagTest
 	@Test
 	void shouldUpdateDocumentTagsWithPartialOverlap()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Set<Tag> initialTags = tagRepository.findOrCreateTags(Set.of("food", "old"));
 
 		Document document = new Document();
 		document.setName("Test Doc");
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
+		document.setOrganization(org);
 
 		for (Tag tag : initialTags)
 		{
@@ -252,10 +270,13 @@ class DocumentTagTest
 	@Test
 	void shouldHandleDocumentWithNoTags()
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName("No Tags Doc");
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
+		document.setOrganization(org);
 
 		documentRepository.persist(document);
 

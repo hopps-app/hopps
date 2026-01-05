@@ -13,12 +13,14 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class DocumentResourceTest
+class DocumentResourceTest extends BaseOrganizationTest
 {
 	@Inject
 	DocumentRepository documentRepository;
@@ -273,10 +275,13 @@ class DocumentResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createDocument(String name, BigDecimal total)
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName(name);
 		document.setTotal(total);
 		document.setCurrencyCode("EUR");
+		document.setOrganization(organization);
 		documentRepository.persist(document);
 		return document.getId();
 	}
@@ -284,12 +289,15 @@ class DocumentResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createDocumentWithBommel(String name, BigDecimal total, Long bommelId)
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Bommel bommel = bommelRepository.findById(bommelId);
 		Document document = new Document();
 		document.setName(name);
 		document.setTotal(total);
 		document.setCurrencyCode("EUR");
 		document.setBommel(bommel);
+		document.setOrganization(organization);
 		documentRepository.persist(document);
 		return document.getId();
 	}
@@ -297,9 +305,12 @@ class DocumentResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createBommel(String title)
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Bommel bommel = new Bommel();
 		bommel.setIcon("folder");
 		bommel.setTitle(title);
+		bommel.setOrganization(organization);
 		bommelRepository.persist(bommel);
 		return bommel.getId();
 	}
@@ -307,10 +318,13 @@ class DocumentResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createDocumentWithFile(String name, byte[] content)
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName(name);
 		document.setTotal(new BigDecimal("10.00"));
 		document.setCurrencyCode("EUR");
+		document.setOrganization(organization);
 
 		String fileKey = "test-documents/" + System.currentTimeMillis() + "/test-file.txt";
 		document.setFileKey(fileKey);
@@ -328,11 +342,14 @@ class DocumentResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createConfirmedDocument(String name, BigDecimal total)
 	{
+		Organization organization = getOrCreateTestOrganization();
+
 		Document document = new Document();
 		document.setName(name);
 		document.setTotal(total);
 		document.setCurrencyCode("EUR");
 		document.setDocumentStatus(app.hopps.document.domain.DocumentStatus.CONFIRMED);
+		document.setOrganization(organization);
 		documentRepository.persist(document);
 		return document.getId();
 	}

@@ -14,6 +14,8 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import app.hopps.transaction.domain.TransactionRecord;
@@ -26,7 +28,7 @@ import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
 
 @QuarkusTest
-class TransactionResourceTest
+class TransactionResourceTest extends BaseOrganizationTest
 {
 	@Inject
 	TransactionRecordRepository transactionRepository;
@@ -130,10 +132,13 @@ class TransactionResourceTest
 	@Transactional(TxType.REQUIRES_NEW)
 	TransactionRecord createTestTransaction(String name, String total)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		TransactionRecord t = new TransactionRecord(
 			new BigDecimal(total),
 			"test-user");
 		t.setName(name);
+		t.setOrganization(org);
 		transactionRepository.persist(t);
 		return t;
 	}
@@ -141,9 +146,12 @@ class TransactionResourceTest
 	@Transactional(TxType.REQUIRES_NEW)
 	Document createTestDocument(String name, String total)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Document d = new Document();
 		d.setName(name);
 		d.setTotal(new BigDecimal(total));
+		d.setOrganization(org);
 		documentRepository.persist(d);
 		return d;
 	}
@@ -151,12 +159,16 @@ class TransactionResourceTest
 	@Transactional(TxType.REQUIRES_NEW)
 	Document createTestDocumentWithAiTag(String name, String total, String tagName)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Document d = new Document();
 		d.setName(name);
 		d.setTotal(new BigDecimal(total));
+		d.setOrganization(org);
 
 		Tag tag = new Tag();
 		tag.setName(tagName);
+		tag.setOrganization(org);
 		tagRepository.persist(tag);
 
 		d.addTag(tag, app.hopps.document.domain.TagSource.AI);
@@ -167,8 +179,11 @@ class TransactionResourceTest
 	@Transactional(TxType.REQUIRES_NEW)
 	Bommel createTestBommel(String title)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Bommel b = new Bommel();
 		b.setTitle(title);
+		b.setOrganization(org);
 		bommelRepository.persist(b);
 		return b;
 	}

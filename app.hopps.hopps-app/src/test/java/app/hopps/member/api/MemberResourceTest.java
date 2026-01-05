@@ -13,13 +13,15 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.member.service.MemberKeycloakSyncService;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class MemberResourceTest
+class MemberResourceTest extends BaseOrganizationTest
 {
 	@Inject
 	MemberRepository memberRepository;
@@ -216,11 +218,14 @@ class MemberResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createMember(String firstName, String lastName, String email, String phone)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Member member = new Member();
 		member.setFirstName(firstName);
 		member.setLastName(lastName);
 		member.setEmail(email);
 		member.setPhone(phone);
+		member.setOrganization(org);
 		memberRepository.persist(member);
 		return member.getId();
 	}
@@ -228,11 +233,14 @@ class MemberResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createBommelWithWart(String title, Long memberId)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Member member = memberRepository.findById(memberId);
 		Bommel bommel = new Bommel();
 		bommel.setIcon("folder");
 		bommel.setTitle(title);
 		bommel.setResponsibleMember(member);
+		bommel.setOrganization(org);
 		bommelRepository.persist(bommel);
 		return bommel.getId();
 	}

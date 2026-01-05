@@ -8,12 +8,14 @@ import org.junit.jupiter.api.Test;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class BommelResourceTest
+class BommelResourceTest extends BaseOrganizationTest
 {
 	@Inject
 	BommelRepository bommelRepository;
@@ -155,9 +157,12 @@ class BommelResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createRootBommel(String icon, String title)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Bommel root = new Bommel();
 		root.setIcon(icon);
 		root.setTitle(title);
+		root.setOrganization(org);
 		bommelRepository.persist(root);
 		return root.getId();
 	}
@@ -165,11 +170,14 @@ class BommelResourceTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createChildBommel(Long parentId, String icon, String title)
 	{
+		Organization org = getOrCreateTestOrganization();
+
 		Bommel parent = bommelRepository.findById(parentId);
 		Bommel child = new Bommel();
 		child.setIcon(icon);
 		child.setTitle(title);
 		child.parent = parent;
+		child.setOrganization(org);
 		bommelRepository.persist(child);
 		return child.getId();
 	}

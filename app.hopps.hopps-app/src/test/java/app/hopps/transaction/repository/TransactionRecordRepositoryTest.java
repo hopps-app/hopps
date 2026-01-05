@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import app.hopps.transaction.domain.TransactionRecord;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -17,7 +19,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @QuarkusTest
-class TransactionRecordRepositoryTest
+class TransactionRecordRepositoryTest extends BaseOrganizationTest
 {
 	@Inject
 	TransactionRecordRepository repository;
@@ -37,11 +39,13 @@ class TransactionRecordRepositoryTest
 	@Test
 	void shouldFindByBommel()
 	{
-		Bommel bommel = createBommel("Test Bommel");
+		Organization org = getOrCreateTestOrganization();
 
-		TransactionRecord t1 = createTransaction("T1", bommel);
-		TransactionRecord t2 = createTransaction("T2", bommel);
-		TransactionRecord t3 = createTransaction("T3", null);
+		Bommel bommel = createBommel("Test Bommel", org);
+
+		TransactionRecord t1 = createTransaction("T1", bommel, org);
+		TransactionRecord t2 = createTransaction("T2", bommel, org);
+		TransactionRecord t3 = createTransaction("T3", null, org);
 
 		repository.persist(t1);
 		repository.persist(t2);
@@ -56,11 +60,13 @@ class TransactionRecordRepositoryTest
 	@Test
 	void shouldFindUnassigned()
 	{
-		Bommel bommel = createBommel("Assigned Bommel");
+		Organization org = getOrCreateTestOrganization();
 
-		TransactionRecord assigned = createTransaction("Assigned", bommel);
-		TransactionRecord unassigned1 = createTransaction("Unassigned 1", null);
-		TransactionRecord unassigned2 = createTransaction("Unassigned 2", null);
+		Bommel bommel = createBommel("Assigned Bommel", org);
+
+		TransactionRecord assigned = createTransaction("Assigned", bommel, org);
+		TransactionRecord unassigned1 = createTransaction("Unassigned 1", null, org);
+		TransactionRecord unassigned2 = createTransaction("Unassigned 2", null, org);
 
 		repository.persist(assigned);
 		repository.persist(unassigned1);
@@ -75,9 +81,11 @@ class TransactionRecordRepositoryTest
 	@Test
 	void shouldFindAllOrderedByDate()
 	{
-		TransactionRecord t1 = createTransaction("Transaction 1", null);
-		TransactionRecord t2 = createTransaction("Transaction 2", null);
-		TransactionRecord t3 = createTransaction("Transaction 3", null);
+		Organization org = getOrCreateTestOrganization();
+
+		TransactionRecord t1 = createTransaction("Transaction 1", null, org);
+		TransactionRecord t2 = createTransaction("Transaction 2", null, org);
+		TransactionRecord t3 = createTransaction("Transaction 3", null, org);
 
 		repository.persist(t1);
 		repository.persist(t2);
@@ -88,22 +96,24 @@ class TransactionRecordRepositoryTest
 		assertEquals(3, found.size());
 	}
 
-	private Bommel createBommel(String title)
+	private Bommel createBommel(String title, Organization org)
 	{
 		Bommel bommel = new Bommel();
 		bommel.setTitle(title);
 		bommel.setIcon("folder");
+		bommel.setOrganization(org);
 		bommelRepository.persist(bommel);
 		return bommel;
 	}
 
-	private TransactionRecord createTransaction(String name, Bommel bommel)
+	private TransactionRecord createTransaction(String name, Bommel bommel, Organization org)
 	{
 		TransactionRecord transaction = new TransactionRecord();
 		transaction.setName(name);
 		transaction.setTotal(BigDecimal.TEN);
 		transaction.setUploader("test@example.com");
 		transaction.setBommel(bommel);
+		transaction.setOrganization(org);
 		return transaction;
 	}
 }
