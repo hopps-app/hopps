@@ -1,0 +1,21 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: crossplane-core
+spec:
+  releaseName: crossplane-core
+  interval: 5m
+  chart:
+    spec:
+      chart: crossplane
+      version: '1.19.0'
+      sourceRef:
+        kind: HelmRepository
+        name: crossplane-repository
+        namespace: crossplane-system
+      interval: 1m
+  values:
+    provider:
+      packages:
+        - '{xpkg.crossplane.io/crossplane-contrib/provider-aws:v0.51.5}'
+

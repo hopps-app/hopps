@@ -201,4 +201,9 @@ $RECYCLE.BIN/
 *decrypted.env
 age.agekey
 
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
 node_modules
+

@@ -1,0 +1,39 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    # renovate: datasource=github-releases depName=fluxcd/flux2
+    version: "2.4.0"
+    registry: "ghcr.io/fluxcd"
+  components:
+    - source-controller
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    multitenant: false
+    # use cilium networkPolicy
+    networkPolicy: false
+    domain: "cluster.local"
+  sync:
+    kind: GitRepository
+    url: ssh://git@github.com/hopps-app/hopps
+    ref: "refs/heads/main"
+    path: "kubernetes/hopps/overlays/aws"
+    pullSecret: "flux-system"
+  kustomize:
+    patches:
+      - target:
+          kind: Deployment
+          name: "(kustomize-controller|helm-controller)"
+        patch: |
+          - op: add
+            path: /spec/template/spec/containers/0/args/-
+            value: --concurrent=10
+          - op: add
+            path: /spec/template/spec/containers/0/args/-
+            value: --requeue-dependency=5s
