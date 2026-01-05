@@ -76,11 +76,15 @@ public class BootstrapService
 			// 1. Ensure default organization exists
 			Organization defaultOrg = ensureDefaultOrganization();
 
-			// 2. Ensure super admin exists
+			// 2. Ensure test organization exists (for member1 and member2)
+			Organization testOrg = ensureTestOrganization();
+
+			// 3. Ensure super admin exists
 			ensureSuperAdmin(defaultOrg);
 
-			// 3. Ensure root bommel exists for the organization
+			// 4. Ensure root bommel exists for both organizations
 			ensureRootBommel(defaultOrg);
+			ensureRootBommel(testOrg);
 
 			LOG.info("Bootstrap process completed successfully");
 		}
@@ -107,6 +111,26 @@ public class BootstrapService
 		organizationRepository.persist(org);
 
 		LOG.info("Created default organization: {} (slug: {})", org.getName(), org.getSlug());
+		return org;
+	}
+
+	private Organization ensureTestOrganization()
+	{
+		String testOrgSlug = "musikverein-harmonie";
+		Organization org = organizationRepository.findBySlug(testOrgSlug);
+		if (org != null)
+		{
+			LOG.debug("Test organization already exists: {}", org.getName());
+			return org;
+		}
+
+		org = new Organization();
+		org.setName("Musikverein Harmonie e.V.");
+		org.setSlug(testOrgSlug);
+		org.setDisplayName("Musikverein Harmonie");
+		organizationRepository.persist(org);
+
+		LOG.info("Created test organization: {} (slug: {})", org.getName(), org.getSlug());
 		return org;
 	}
 

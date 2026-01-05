@@ -67,65 +67,78 @@ public class Startup
 		// in DEV mode we seed some data
 		if (LaunchMode.current() == LaunchMode.DEVELOPMENT)
 		{
-			// Get the default organization for demo data
 			Organization defaultOrg = getDefaultOrganization();
+			Organization testOrg = getTestOrganization();
 
-			// Only seed demo data if Max Mustermann doesn't exist yet
-			if (memberRepository.findByEmail("max.mustermann@example.com") == null)
-			{
-				// Create demo members
-				Member maxMustermann = new Member();
-				maxMustermann.setFirstName("Max");
-				maxMustermann.setLastName("Mustermann");
-				maxMustermann.setEmail("max.mustermann@example.com");
-				maxMustermann.setPhone("+49 123 456789");
-				maxMustermann.setOrganization(defaultOrg);
-				memberRepository.persist(maxMustermann);
+			// Seed demo data for both organizations
+			seedDemoDataForOrganization(defaultOrg, "max.mustermann@example.com", "Max", "Mustermann",
+				"+49 123 456789");
+			seedDemoDataForOrganization(testOrg, "maria.schmidt@harmonie.local", "Maria", "Schmidt",
+				"+49 89 123456");
 
-				Member lisaSchmidt = new Member();
-				lisaSchmidt.setFirstName("Lisa");
-				lisaSchmidt.setLastName("Schmidt");
-				lisaSchmidt.setEmail("lisa.schmidt@example.com");
-				lisaSchmidt.setOrganization(defaultOrg);
-				memberRepository.persist(lisaSchmidt);
-
-				// Create Bommels with assigned Bommelwarts
-				Bommel root = new Bommel();
-				root.setIcon("home");
-				root.setTitle("Verein");
-				root.setResponsibleMember(maxMustermann);
-				root.setOrganization(defaultOrg);
-				bommelRepository.persist(root);
-
-				Bommel jugend = new Bommel();
-				jugend.setIcon("group");
-				jugend.setTitle("Jugend");
-				jugend.parent = root;
-				jugend.setResponsibleMember(lisaSchmidt);
-				jugend.setOrganization(defaultOrg);
-				bommelRepository.persist(jugend);
-
-				Bommel orchester = new Bommel();
-				orchester.setIcon("music");
-				orchester.setTitle("Orchester");
-				orchester.parent = root;
-				orchester.setOrganization(defaultOrg);
-				bommelRepository.persist(orchester);
-
-				Bommel anfaenger = new Bommel();
-				anfaenger.setIcon("education");
-				anfaenger.setTitle("Anfaenger");
-				anfaenger.parent = jugend;
-				anfaenger.setOrganization(defaultOrg);
-				bommelRepository.persist(anfaenger);
-
-				// Create demo documents
-				seedDocuments(root, jugend, orchester, defaultOrg);
-			}
-
-			// Bootstrap alice and bob users (always in DEV mode)
+			// Bootstrap member1 and member2 users (always in DEV mode)
 			bootstrapDefaultUsers();
 		}
+	}
+
+	/**
+	 * Seeds demo data (members, bommels, documents) for a given organization.
+	 * Only seeds if the primary member doesn't exist yet.
+	 */
+	private void seedDemoDataForOrganization(Organization org, String checkEmail, String firstName,
+		String lastName, String phone)
+	{
+		// Only seed if demo member doesn't exist yet
+		if (memberRepository.findByEmail(checkEmail) == null)
+		{
+			// Create demo members for this org
+			Member primaryMember = createMember(firstName, lastName, checkEmail, phone, org);
+			Member secondaryMember = createMember("Lisa", "Schmidt",
+				"lisa.schmidt@" + org.getSlug() + ".local", null, org);
+
+			// Create Bommels
+			Bommel root = createBommel("home", "Verein", primaryMember, null, org);
+			Bommel jugend = createBommel("group", "Jugend", secondaryMember, root, org);
+			Bommel orchester = createBommel("music", "Orchester", null, root, org);
+			Bommel anfaenger = createBommel("education", "Anfaenger", null, jugend, org);
+
+			// Create demo documents
+			seedDocuments(root, jugend, orchester, org);
+
+			LOG.info("Seeded demo data for organization: {}", org.getName());
+		}
+	}
+
+	/**
+	 * Creates and persists a Member entity.
+	 */
+	private Member createMember(String firstName, String lastName, String email, String phone,
+		Organization org)
+	{
+		Member member = new Member();
+		member.setFirstName(firstName);
+		member.setLastName(lastName);
+		member.setEmail(email);
+		member.setPhone(phone);
+		member.setOrganization(org);
+		memberRepository.persist(member);
+		return member;
+	}
+
+	/**
+	 * Creates and persists a Bommel entity.
+	 */
+	private Bommel createBommel(String icon, String title, Member responsibleMember, Bommel parent,
+		Organization org)
+	{
+		Bommel bommel = new Bommel();
+		bommel.setIcon(icon);
+		bommel.setTitle(title);
+		bommel.setResponsibleMember(responsibleMember);
+		bommel.parent = parent;
+		bommel.setOrganization(org);
+		bommelRepository.persist(bommel);
+		return bommel;
 	}
 
 	private void seedDocuments(Bommel root, Bommel jugend, Bommel orchester, Organization org)
@@ -360,7 +373,7 @@ public class Startup
 	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	public void bootstrapDefaultUsers()
 	{
-		Organization defaultOrg = getDefaultOrganization();
+		Organization testOrg = getTestOrganization();
 
 		// Bootstrap member1 (admin user) - link to DevServices Keycloak user
 		Member member1 = memberRepository.findByEmail("member1@hopps.local");
@@ -368,15 +381,15 @@ public class Startup
 		{
 			// Find the Keycloak user created by DevServices (with retries for
 			// timing)
-			String keycloakUserId = findKeycloakUserWithRetry("member1", 5, 500);
+			String keycloakUserId = findKeycloakUserWithRetry("member1", 10, 1000);
 			if (keycloakUserId != null)
 			{
 				member1 = new Member();
 				member1.setFirstName("Maria");
-				member1.setLastName("Admin");
+				member1.setLastName("Schmidt");
 				member1.setEmail("member1@hopps.local");
-				member1.setPhone("+49 100 000001");
-				member1.setOrganization(defaultOrg);
+				member1.setPhone("+49 89 123456");
+				member1.setOrganization(testOrg);
 				member1.setKeycloakUserId(keycloakUserId);
 				memberRepository.persist(member1);
 
@@ -395,15 +408,15 @@ public class Startup
 		{
 			// Find the Keycloak user created by DevServices (with retries for
 			// timing)
-			String keycloakUserId = findKeycloakUserWithRetry("member2", 5, 500);
+			String keycloakUserId = findKeycloakUserWithRetry("member2", 10, 1000);
 			if (keycloakUserId != null)
 			{
 				member2 = new Member();
 				member2.setFirstName("Thomas");
-				member2.setLastName("User");
+				member2.setLastName("Müller");
 				member2.setEmail("member2@hopps.local");
-				member2.setPhone("+49 100 000002");
-				member2.setOrganization(defaultOrg);
+				member2.setPhone("+49 89 654321");
+				member2.setOrganization(testOrg);
 				member2.setKeycloakUserId(keycloakUserId);
 				memberRepository.persist(member2);
 
@@ -473,6 +486,21 @@ public class Startup
 		{
 			throw new IllegalStateException(
 				"Default organization not found. Bootstrap may not have run correctly.");
+		}
+		return org;
+	}
+
+	/**
+	 * Gets the test organization. The bootstrap process ensures this always
+	 * exists.
+	 */
+	private Organization getTestOrganization()
+	{
+		Organization org = organizationRepository.findBySlug("musikverein-harmonie");
+		if (org == null)
+		{
+			throw new IllegalStateException(
+				"Test organization not found. Bootstrap may not have run correctly.");
 		}
 		return org;
 	}
