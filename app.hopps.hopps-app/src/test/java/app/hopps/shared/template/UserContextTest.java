@@ -3,17 +3,30 @@ package app.hopps.shared.template;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-class UserContextTest
+class UserContextTest extends BaseOrganizationTest
 {
 	@Inject
 	UserContext userContext;
+
+	@BeforeEach
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	void setupTestMembers()
+	{
+		Organization org = getOrCreateTestOrganization();
+		createTestMember("alice", org);
+		createTestMember("bob", org);
+		createTestMember("x", org);
+	}
 
 	@Test
 	@TestSecurity(user = "alice", roles = { "admin", "user" })
@@ -33,7 +46,7 @@ class UserContextTest
 	@TestSecurity(user = "alice", roles = { "admin", "user" })
 	void shouldReturnMockEmailForAuthenticatedUser()
 	{
-		assertThat(userContext.getEmail(), is("alice@hopps.local"));
+		assertThat(userContext.getEmail(), is("alice@test.local"));
 	}
 
 	@Test

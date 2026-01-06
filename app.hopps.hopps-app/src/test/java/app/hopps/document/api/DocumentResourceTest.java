@@ -26,10 +26,17 @@ import jakarta.inject.Inject;
 class DocumentResourceTest extends BaseOrganizationTest
 {
 	@BeforeEach
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	void setupOrganizationContext()
 	{
-		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER_MARIA, testOrg);
+		// Use the bootstrap organization that maria is associated with
+		Organization org = organizationRepository.findBySlug("musikverein-harmonie");
+		if (org == null)
+		{
+			// Fallback to test org if bootstrap didn't run
+			org = getOrCreateTestOrganization();
+			createTestMember(TestSecurityHelper.TEST_USER_MARIA, org);
+		}
 	}
 
 	@Inject
@@ -270,7 +277,11 @@ class DocumentResourceTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createDocument(String name, BigDecimal total)
 	{
-		Organization organization = getOrCreateTestOrganization();
+		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
+		if (organization == null)
+		{
+			organization = getOrCreateTestOrganization();
+		}
 
 		Document document = new Document();
 		document.setName(name);
@@ -284,7 +295,11 @@ class DocumentResourceTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createDocumentWithBommel(String name, BigDecimal total, Long bommelId)
 	{
-		Organization organization = getOrCreateTestOrganization();
+		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
+		if (organization == null)
+		{
+			organization = getOrCreateTestOrganization();
+		}
 
 		Bommel bommel = bommelRepository.findById(bommelId);
 		Document document = new Document();
@@ -300,7 +315,11 @@ class DocumentResourceTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createBommel(String title)
 	{
-		Organization organization = getOrCreateTestOrganization();
+		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
+		if (organization == null)
+		{
+			organization = getOrCreateTestOrganization();
+		}
 
 		Bommel bommel = new Bommel();
 		bommel.setIcon("folder");
@@ -313,7 +332,11 @@ class DocumentResourceTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createDocumentWithFile(String name, byte[] content)
 	{
-		Organization organization = getOrCreateTestOrganization();
+		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
+		if (organization == null)
+		{
+			organization = getOrCreateTestOrganization();
+		}
 
 		Document document = new Document();
 		document.setName(name);
@@ -337,7 +360,11 @@ class DocumentResourceTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createConfirmedDocument(String name, BigDecimal total)
 	{
-		Organization organization = getOrCreateTestOrganization();
+		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
+		if (organization == null)
+		{
+			organization = getOrCreateTestOrganization();
+		}
 
 		Document document = new Document();
 		document.setName(name);

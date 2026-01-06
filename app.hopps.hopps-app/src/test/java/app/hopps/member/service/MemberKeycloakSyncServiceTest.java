@@ -35,6 +35,7 @@ class MemberKeycloakSyncServiceTest
 	{
 		member = new Member();
 		member.id = 123L;
+		member.setUserName("john.doe");
 		member.setFirstName("John");
 		member.setLastName("Doe");
 		member.setEmail("john.doe@example.com");
@@ -53,7 +54,7 @@ class MemberKeycloakSyncServiceTest
 		// Then
 		assertEquals("kc-user-123", result);
 		verify(keycloakAdminService).createUser(
-			eq("john.doe@example.com"),
+			eq("john.doe"),
 			eq("john.doe@example.com"),
 			eq("John"),
 			eq("Doe"),
@@ -74,7 +75,7 @@ class MemberKeycloakSyncServiceTest
 		// Then
 		assertEquals("kc-user-456", result);
 		verify(keycloakAdminService).createUser(
-			eq("john.doe@example.com"),
+			eq("john.doe"),
 			eq("john.doe@example.com"),
 			eq("John"),
 			eq("Doe"),
@@ -116,7 +117,7 @@ class MemberKeycloakSyncServiceTest
 
 		// Then
 		verify(keycloakAdminService).createUser(
-			eq("john.doe@example.com"), // username
+			eq("john.doe"), // username from userName field
 			eq("john.doe@example.com"), // email
 			eq("John"), // firstName
 			eq("Doe"), // lastName
@@ -124,25 +125,26 @@ class MemberKeycloakSyncServiceTest
 	}
 
 	@Test
-	void shouldGenerateCorrectUsername()
+	void shouldUseUserNameFieldDirectly()
 	{
 		// Given
-		Member memberWithoutEmail = new Member();
-		memberWithoutEmail.id = 456L;
-		memberWithoutEmail.setFirstName("Jane");
-		memberWithoutEmail.setLastName("Smith");
-		memberWithoutEmail.setEmail(null);
+		Member memberWithDifferentUsername = new Member();
+		memberWithDifferentUsername.id = 456L;
+		memberWithDifferentUsername.setUserName("jane.smith");
+		memberWithDifferentUsername.setFirstName("Jane");
+		memberWithDifferentUsername.setLastName("Smith");
+		memberWithDifferentUsername.setEmail("jane@example.com");
 
 		when(keycloakAdminService.createUser(any(), any(), any(), any(), any()))
 			.thenReturn("kc-user-555");
 
 		// When
-		syncService.syncMemberToKeycloak(memberWithoutEmail);
+		syncService.syncMemberToKeycloak(memberWithDifferentUsername);
 
-		// Then - username should be generated from name when email is null
+		// Then - username comes directly from userName field
 		verify(keycloakAdminService).createUser(
-			eq("jane.smith"), // username generated from name
-			eq(null), // email is null
+			eq("jane.smith"), // username from userName field
+			eq("jane@example.com"), // email
 			eq("Jane"),
 			eq("Smith"),
 			any());
