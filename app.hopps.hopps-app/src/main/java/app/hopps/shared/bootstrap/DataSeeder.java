@@ -78,16 +78,18 @@ public class DataSeeder
 		if (memberRepository.findByUsername("max.mustermann") == null)
 		{
 			// Create demo members (NOT auth-linked)
-			Member primaryMember = createMember("Max", "Mustermann", "max.mustermann",
+			createMember("Max", "Mustermann", "max.mustermann",
 				"max.mustermann@harmonie.local", "+49 89 123456", org);
 			Member secondaryMember = createMember("Lisa", "Schmidt", "lisa.schmidt",
 				"lisa.schmidt@harmonie.local", null, org);
 
+			// Find root bommel created by BootstrapService
+			Bommel root = findRootBommel(org);
+
 			// Create Bommels
-			Bommel root = createBommel("home", "Verein", primaryMember, null, org);
 			Bommel jugend = createBommel("group", "Jugend", secondaryMember, root, org);
 			Bommel orchester = createBommel("music", "Orchester", null, root, org);
-			Bommel anfaenger = createBommel("education", "Anfaenger", null, jugend, org);
+			createBommel("education", "Anfaenger", null, jugend, org);
 
 			// Create demo documents
 			seedDocuments(root, jugend, orchester, org);
@@ -110,8 +112,10 @@ public class DataSeeder
 			Member secondaryMember = createMember("Peter", "Huber", "peter.huber",
 				"peter.huber@alpenblick.local", null, org);
 
+			// Find root bommel created by BootstrapService
+			Bommel root = findRootBommel(org);
+
 			// Create Bommels
-			Bommel root = createBommel("home", "Verein", primaryMember, null, org);
 			Bommel fussball = createBommel("soccer", "Fußball", secondaryMember, root, org);
 			Bommel volleyball = createBommel("volleyball", "Volleyball", null, root, org);
 			Bommel jugend = createBommel("group", "Jugend", null, fussball, org);
@@ -121,6 +125,14 @@ public class DataSeeder
 
 			LOG.info("Seeded demo data for organization: {}", org.getName());
 		}
+	}
+
+	/**
+	 * Finds the root bommel for an organization (created by BootstrapService).
+	 */
+	private Bommel findRootBommel(Organization org)
+	{
+		return bommelRepository.find("parent is null and organization.id = ?1", org.id).firstResult();
 	}
 
 	/**
