@@ -38,18 +38,9 @@ class MemberResourceTest extends BaseOrganizationTest
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		// Create a test member for each test method's @TestSecurity user (bob)
-		Member testMember = memberRepository.findByKeycloakUserId("bob");
-		if (testMember == null)
-		{
-			testMember = new Member();
-			testMember.setKeycloakUserId("bob");
-			testMember.setEmail("bob@test.local");
-			testMember.setFirstName("Bob");
-			testMember.setLastName("Test");
-			testMember.setOrganization(testOrg);
-			memberRepository.persist(testMember);
-		}
+		// Create a test member for each test method's @TestSecurity user
+		// (bob@test.local)
+		createTestMember("bob@test.local", testOrg);
 	}
 
 	@BeforeEach
@@ -71,7 +62,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowEmptyStateWhenNoMembersExist()
 	{
 		deleteAllData();
@@ -87,7 +78,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowMembersInTable()
 	{
 		deleteAllData();
@@ -104,7 +95,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowMemberDetailPage()
 	{
 		deleteAllData();
@@ -120,7 +111,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowCreateMemberForm()
 	{
 		given()
@@ -134,7 +125,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowMultipleMembersOrderedByName()
 	{
 		deleteAllData();
@@ -151,7 +142,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowCopyButtonsForContactInfo()
 	{
 		deleteAllData();
@@ -167,7 +158,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowResponsibleBommelsOnDetailPage()
 	{
 		deleteAllData();
@@ -184,7 +175,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowNoBommelsMessageWhenNotBommelwart()
 	{
 		deleteAllData();
@@ -199,7 +190,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldShowBommelCountInMemberList()
 	{
 		deleteAllData();
@@ -216,7 +207,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
+	@TestSecurity(user = "bob@test.local", roles = "user")
 	void shouldRedirectToIndexForNonExistentMember()
 	{
 		deleteAllData();

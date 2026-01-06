@@ -33,7 +33,7 @@ class TransactionRecordTest extends BaseOrganizationTest
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+		createTestMember(TestSecurityHelper.TEST_USER, testOrg);
 	}
 
 	@Inject

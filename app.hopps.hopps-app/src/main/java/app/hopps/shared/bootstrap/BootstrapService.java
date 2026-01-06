@@ -315,28 +315,40 @@ public class BootstrapService
 	 */
 	private void createOrLinkMember(String keycloakUserId, UserConfig config, Organization org)
 	{
-		// Check if Member with this Keycloak ID already exists
+		// 1. Find by email (most reliable identifier - email doesn't change)
+		Member existingByEmail = memberRepository.findByEmail(config.email());
+
+		if (existingByEmail != null)
+		{
+			// Member exists - check if Keycloak ID needs update
+			if (!keycloakUserId.equals(existingByEmail.getKeycloakUserId()))
+			{
+				LOG.warn("Member {} has outdated Keycloak ID. Updating from {} to {}", config.email(),
+					existingByEmail.getKeycloakUserId(), keycloakUserId);
+				existingByEmail.setKeycloakUserId(keycloakUserId);
+				// Entity is managed, changes will be persisted automatically at
+				// transaction commit
+			}
+			else
+			{
+				LOG.debug("Member {} already linked to correct Keycloak user: {}", config.email(),
+					keycloakUserId);
+			}
+			return;
+		}
+
+		// 2. Check if another member has this Keycloak ID (data integrity
+		// check)
 		Member memberByKeycloakId = memberRepository.findByKeycloakUserId(keycloakUserId);
 		if (memberByKeycloakId != null)
 		{
-			LOG.debug("Member already linked to Keycloak user: {} (Member ID: {})", config.username(),
-				memberByKeycloakId.getId());
-			return;
+			LOG.error("Keycloak user {} is linked to member {} but config expects {}", keycloakUserId,
+				memberByKeycloakId.getEmail(), config.email());
+			throw new IllegalStateException(
+				"Keycloak ID already linked to different member: " + memberByKeycloakId.getEmail());
 		}
 
-		// Check if Member with this email exists (from demo data)
-		Member existingByEmail = memberRepository.findByEmail(config.email());
-		if (existingByEmail != null)
-		{
-			// Link existing member to Keycloak user
-			existingByEmail.setKeycloakUserId(keycloakUserId);
-			memberRepository.persist(existingByEmail);
-			LOG.info("Linked existing member {} to Keycloak user: {}", existingByEmail.getEmail(),
-				config.username());
-			return;
-		}
-
-		// Create new Member record
+		// 3. Create new Member record
 		Member newMember = new Member();
 		newMember.setKeycloakUserId(keycloakUserId);
 		newMember.setEmail(config.email());

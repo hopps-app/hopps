@@ -95,27 +95,31 @@ public class OrganizationContext
 		}
 
 		// Regular users: get from their member record
-		// Use the OIDC 'sub' claim (JWT subject) which contains the Keycloak
-		// user ID (UUID)
-		String keycloakUserId;
+		// Use email from JWT - email is stable and doesn't change when Keycloak
+		// restarts
+		String email;
 		try
 		{
-			// JWT is available in OIDC context - use subject which is the
-			// Keycloak UUID
-			keycloakUserId = jwt.getSubject();
+			// JWT is available in OIDC context - use email claim
+			email = jwt.getClaim("email");
+			if (email == null)
+			{
+				LOG.error("JWT does not contain email claim");
+				throw new IllegalStateException("JWT does not contain email claim");
+			}
 		}
 		catch (Exception e)
 		{
 			// Fallback to principal name for tests or non-OIDC scenarios
-			keycloakUserId = securityIdentity.getPrincipal().getName();
-			LOG.debug("JWT not available, using principal name: {}", keycloakUserId);
+			email = securityIdentity.getPrincipal().getName();
+			LOG.debug("JWT not available, using principal name as email: {}", email);
 		}
 
-		Member member = memberRepository.findByKeycloakUserId(keycloakUserId);
+		Member member = memberRepository.findByEmail(email);
 		if (member == null)
 		{
-			LOG.error("No member found for keycloak user ID: {}", keycloakUserId);
-			throw new IllegalStateException("No member found for keycloak user ID: " + keycloakUserId);
+			LOG.error("No member found for email: {}", email);
+			throw new IllegalStateException("No member found for email: " + email);
 		}
 
 		return member.getOrganization();

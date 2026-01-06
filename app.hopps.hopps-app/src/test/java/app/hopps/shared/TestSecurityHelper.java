@@ -7,19 +7,22 @@ package app.hopps.shared;
 public class TestSecurityHelper
 {
 	/**
-	 * Test user ID for regular user tests
+	 * Test user email for regular user tests (used as principal name
+	 * in @TestSecurity)
 	 */
-	public static final String TEST_USER = "test-user";
+	public static final String TEST_USER = "test-user@hopps.local";
 
 	/**
-	 * Test user ID for admin user tests
+	 * Test user email for admin user tests (used as principal name
+	 * in @TestSecurity)
 	 */
-	public static final String TEST_ADMIN = "test-admin";
+	public static final String TEST_ADMIN = "test-admin@hopps.local";
 
 	/**
-	 * Test user ID for super admin tests
+	 * Test user email for super admin tests (used as principal name
+	 * in @TestSecurity)
 	 */
-	public static final String TEST_SUPER_ADMIN = "super-admin-test";
+	public static final String TEST_SUPER_ADMIN = "super-admin@hopps.local";
 
 	private TestSecurityHelper()
 	{
