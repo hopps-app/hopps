@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,14 +29,14 @@ import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
 
 @QuarkusTest
-@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
+@TestSecurity(user = TestSecurityHelper.TEST_USER_MARIA, roles = "user")
 class TransactionResourceTest extends BaseOrganizationTest
 {
 	@BeforeEach
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER, testOrg);
+		createTestMember(TestSecurityHelper.TEST_USER_MARIA, testOrg);
 	}
 
 	@Inject

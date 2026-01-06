@@ -38,9 +38,6 @@ public class OrganizationContext
 	SecurityIdentity securityIdentity;
 
 	@Inject
-	JsonWebToken jwt;
-
-	@Inject
 	MemberRepository memberRepository;
 
 	@Inject
@@ -74,8 +71,8 @@ public class OrganizationContext
 		Member member = memberRepository.findByUsername(username);
 		if (member == null)
 		{
-			LOG.error("No member found for email: {}", email);
-			throw new IllegalStateException("No member found for email: " + email);
+			LOG.error("No member found for username: {}", username);
+			throw new IllegalStateException("No member found for username: " + username);
 		}
 
 		return member.getOrganization();

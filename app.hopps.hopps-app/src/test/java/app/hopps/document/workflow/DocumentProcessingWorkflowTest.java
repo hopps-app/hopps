@@ -33,14 +33,14 @@ import jakarta.inject.Inject;
  * to be mocked with WireMock or similar for full integration tests.
  */
 @QuarkusTest
-@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
+@TestSecurity(user = TestSecurityHelper.TEST_USER_MARIA, roles = "user")
 class DocumentProcessingWorkflowTest extends BaseOrganizationTest
 {
 	@BeforeEach
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER, testOrg);
+		createTestMember(TestSecurityHelper.TEST_USER_MARIA, testOrg);
 	}
 
 	@Inject

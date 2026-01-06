@@ -21,7 +21,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @QuarkusTest
-@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
+@TestSecurity(user = TestSecurityHelper.TEST_USER_MARIA, roles = "user")
 class TransactionRecordRepositoryTest extends BaseOrganizationTest
 {
 	@Inject
@@ -34,7 +34,7 @@ class TransactionRecordRepositoryTest extends BaseOrganizationTest
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER, testOrg);
+		createTestMember(TestSecurityHelper.TEST_USER_MARIA, testOrg);
 	}
 
 	@BeforeEach

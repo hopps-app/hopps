@@ -22,7 +22,7 @@ import app.hopps.audit.repository.AuditLogRepository;
 import app.hopps.workflow.repository.WorkflowInstanceRepository;
 
 @QuarkusTest
-@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
+@TestSecurity(user = TestSecurityHelper.TEST_USER_MARIA, roles = "user")
 class ProcessEngineTest extends BaseOrganizationTest
 {
 	@Inject
@@ -55,7 +55,7 @@ class ProcessEngineTest extends BaseOrganizationTest
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER, testOrg);
+		createTestMember(TestSecurityHelper.TEST_USER_MARIA, testOrg);
 	}
 
 	@TestTransaction

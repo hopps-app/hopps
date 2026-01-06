@@ -22,14 +22,14 @@ import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
-@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
+@TestSecurity(user = TestSecurityHelper.TEST_USER_MARIA, roles = "user")
 class TagRepositoryTest extends BaseOrganizationTest
 {
 	@BeforeEach
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER, testOrg);
+		createTestMember(TestSecurityHelper.TEST_USER_MARIA, testOrg);
 	}
 
 	@Inject

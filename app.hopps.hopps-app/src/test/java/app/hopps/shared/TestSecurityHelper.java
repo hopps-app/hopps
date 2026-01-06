@@ -7,22 +7,11 @@ package app.hopps.shared;
 public class TestSecurityHelper
 {
 	/**
-	 * Test user email for regular user tests (used as principal name
-	 * in @TestSecurity)
+	 * Represents a test user named "Maria". This constant is used within test
+	 * security contexts, typically with the @TestSecurity annotation, to
+	 * simulate an authenticated user with the identifier "maria".
 	 */
-	public static final String TEST_USER = "test-user@hopps.local";
-
-	/**
-	 * Test user email for admin user tests (used as principal name
-	 * in @TestSecurity)
-	 */
-	public static final String TEST_ADMIN = "test-admin@hopps.local";
-
-	/**
-	 * Test user email for super admin tests (used as principal name
-	 * in @TestSecurity)
-	 */
-	public static final String TEST_SUPER_ADMIN = "super-admin@hopps.local";
+	public static final String TEST_USER_MARIA = "maria";
 
 	private TestSecurityHelper()
 	{

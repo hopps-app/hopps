@@ -95,34 +95,31 @@ public abstract class BaseOrganizationTest
 	}
 
 	/**
-	 * Creates or gets a test member by email. This is used to set up
-	 * organization context for tests using @TestSecurity. Pass
-	 * TestSecurityHelper constants as the email to match @TestSecurity user
-	 * names.
+	 * Creates a test member with the specified username and associates it with
+	 * the given organization. If a member with the provided username already
+	 * exists, the existing member is returned.
 	 *
-	 * @param email
-	 *            The member's email (use TestSecurityHelper constants like
-	 *            TEST_USER)
+	 * @param username
+	 *            The username of the test member to create.
 	 * @param org
-	 *            The organization for this member
-	 * @return The created or existing member
+	 *            The organization to associate the test member with.
+	 * @return The created or existing member associated with the given username
+	 *         and organization.
 	 */
 	@Transactional(Transactional.TxType.REQUIRES_NEW)
-	protected Member createTestMember(String email, Organization org)
+	protected Member createTestMember(String username, Organization org)
 	{
-		Member member = memberRepository.findByEmail(email);
+		Member member = memberRepository.findByUsername(username);
 		if (member != null)
 		{
 			return member;
 		}
 
 		member = new Member();
-		member.setEmail(email);
+		member.setUserName(username);
 		member.setFirstName("Test");
 		member.setLastName("User");
 		member.setOrganization(org);
-		// No keycloakUserId needed for test members - OrganizationContext uses
-		// email
 		memberRepository.persist(member);
 		return member;
 	}
