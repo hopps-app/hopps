@@ -95,11 +95,13 @@ public class OrganizationContext
 		}
 
 		// Regular users: get from their member record
-		// Use the OIDC 'sub' claim (JWT subject) which contains the Keycloak user ID (UUID)
+		// Use the OIDC 'sub' claim (JWT subject) which contains the Keycloak
+		// user ID (UUID)
 		String keycloakUserId;
 		try
 		{
-			// JWT is available in OIDC context - use subject which is the Keycloak UUID
+			// JWT is available in OIDC context - use subject which is the
+			// Keycloak UUID
 			keycloakUserId = jwt.getSubject();
 		}
 		catch (Exception e)
