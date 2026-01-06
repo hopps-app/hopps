@@ -19,6 +19,31 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
+  align-items: start;
+}
+
+/* Ensure Carbon web components display labels properly */
+.form-row cds-text-input,
+.form-row cds-number-input,
+.form-row cds-select,
+.form-row cds-date-picker,
+.form-row cds-textarea,
+.form-row cds-checkbox {
+  display: block;
+  width: 100%;
+  min-height: 56px; /* Minimum height to accommodate label + input */
+}
+
+/* Force Carbon select to show label */
+cds-select {
+  display: inline-block;
+  width: 100%;
+}
+
+/* Force Carbon date-picker to show label */
+cds-date-picker {
+  display: block;
+  width: 100%;
 }
 
 .form-group {
@@ -31,8 +56,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
+  letter-spacing: 0.32px;
   color: var(--cds-text-secondary);
+  margin-bottom: 0.5rem;
 }
 
 .form-group input,

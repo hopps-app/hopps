@@ -180,10 +180,10 @@
       </cds-text-input>
       <cds-date-picker>
         <cds-date-picker-input
-          label="Transaktionsdatum"
           name="transactionDate"
           value="{transaction.displayDateIso ?: ''}"
           placeholder="dd.mm.yyyy">
+          <span slot="label-text">Transaktionsdatum</span>
         </cds-date-picker-input>
       </cds-date-picker>
     </div>
@@ -197,18 +197,18 @@
         value="{transaction.total}">
       </cds-number-input>
       <cds-select
-        label="Währung"
         name="currencyCode"
         value="{transaction.currencyCode}">
+        <span slot="label-text">Währung</span>
         <cds-select-item value="EUR">EUR</cds-select-item>
         <cds-select-item value="USD">USD</cds-select-item>
         <cds-select-item value="CHF">CHF</cds-select-item>
         <cds-select-item value="GBP">GBP</cds-select-item>
       </cds-select>
       <cds-select
-        label="Bommel zuweisen"
         name="bommelId"
         value="{transaction.bommel.id ?: ''}">
+        <span slot="label-text">Bommel zuweisen</span>
         <cds-select-item value="">— Nicht zugewiesen —</cds-select-item>
         {#for bommel in bommels}
         <cds-select-item value="{bommel.id}">{bommel.title}</cds-select-item>
@@ -216,11 +216,14 @@
       </cds-select>
     </div>
     <div class="form-row">
-      <cds-checkbox
-        name="privatelyPaid"
-        label-text="Privat bezahlt"
-        {#if transaction.privatelyPaid}checked{/if}>
-      </cds-checkbox>
+      <div class="form-group">
+        <label>Auslage</label>
+        <cds-checkbox
+          name="privatelyPaid"
+          label-text="Privat bezahlt"
+          {#if transaction.privatelyPaid}checked{/if}>
+        </cds-checkbox>
+      </div>
     </div>
   </div>
 
