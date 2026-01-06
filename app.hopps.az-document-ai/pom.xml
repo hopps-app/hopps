@@ -236,6 +236,7 @@
                 </executions>
                 <configuration>
                     <configFile>${project.basedir}/../formatter/java.xml</configFile>
+                    <lineEnding>LF</lineEnding>
                 </configuration>
             </plugin>
             <plugin>
