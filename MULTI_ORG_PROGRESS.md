@@ -3,7 +3,7 @@
 ## Overview
 Adding multi-organization support to enable complete data isolation between organizations, with organization-scoped admin roles and a super admin role that can switch between organizations.
 
-## Current Status: 15/22 Tasks Complete (68%)
+## Current Status: 19/22 Tasks Complete (86%)
 
 ---
 
@@ -34,38 +34,48 @@ Adding multi-organization support to enable complete data isolation between orga
 - [x] Update DocumentResource with organization support
 - [x] Update TransactionResource with organization support
 
+### Phase 5: Organization Management UI (4/4)
+- [x] Create OrganizationResource for organization management UI
+  - CRUD operations for organizations (index, create, save, detail)
+  - Organization switcher endpoint (POST /organisationen/switch)
+  - Toggle active/inactive status (POST /organisationen/{id}/toggle-active)
+  - Restricted to super_admin role
+
+- [x] Create organization management templates
+  - `/templates/OrganizationResource/index.html` - List all organizations with current org indicator
+  - `/templates/OrganizationResource/create.html` - Create form with name, slug, displayName
+  - `/templates/OrganizationResource/detail.html` - Detail view with status and toggle action
+
+- [x] Add organization switcher to header template
+  - Modified `/templates/tags/header.html` (lines 11-20)
+  - Added organization management link in global action bar
+  - Visible only to super admins
+
+- [x] Add organization management link to navigation
+  - Modified `/templates/main.html` (lines 77-82)
+  - Added "Organisationen" nav link
+  - Visible only to super admins with proper icon
+
 ---
 
 ## 🔄 Remaining Tasks
 
-### Phase 5: Organization Management UI (4 tasks)
-- [ ] Create OrganizationResource for organization management UI
-  - CRUD operations for organizations
-  - Organization switcher endpoint (POST /organisationen/wechseln)
-  - Restricted to super_admin role
+### Phase 6: Testing & Validation (3 tasks)
+- [ ] Create OrganizationResourceTest for controller testing
+  - Test CRUD operations on organizations
+  - Test organization switching functionality
+  - Test toggle active/inactive status
+  - Verify proper role-based access control
 
-- [ ] Create organization management templates
-  - `/templates/OrganizationResource/index.html` - List all organizations
-  - `/templates/OrganizationResource/create.html` - Create form
-  - `/templates/OrganizationResource/detail.html` - Detail view
+- [ ] Verify data isolation between organizations
+  - Test repository scoping prevents cross-org access
+  - Validate all entity queries filter by organization
+  - Ensure findByIdScoped() prevents cross-org lookups
 
-- [ ] Add organization switcher to header template
-  - Modify `/templates/tags/header.html`
-  - Add dropdown for super admins
-  - Show current org (read-only) for regular users
-  - Update CSS in `/META-INF/resources/css/hopps-components.css`
-
-- [ ] Add organization management link to navigation
-  - Modify `/templates/main.html`
-  - Add nav link visible only to super admins
-
-### Phase 6: Testing & Validation (1 task)
-- [ ] Test and validate multi-organization support
-  - Verify data isolation between organizations
-  - Test super admin org switching
-  - Verify repository scoping prevents cross-org access
-  - Test bootstrap process
-  - Validate all CRUD operations work within org context
+- [ ] Validate system integrity
+  - Test bootstrap process idempotency
+  - Verify all CRUD operations work within org context
+  - Test super admin org switching doesn't leak data
 
 ---
 
@@ -138,11 +148,19 @@ public void create(...) {
 - TradePartyRepository.java
 - WorkflowInstanceRepository.java
 
-### Resources (3 files)
+### Resources (4 files)
 - MemberResource.java
 - BommelResource.java
 - DocumentResource.java
 - TransactionResource.java
+- OrganizationResource.java (NEW)
+
+### Templates (5 files)
+- OrganizationResource/index.html (NEW)
+- OrganizationResource/create.html (NEW)
+- OrganizationResource/detail.html (NEW)
+- tags/header.html (modified)
+- main.html (modified)
 
 ### Security & Services (4 files)
 - OrganizationContext.java (NEW)
@@ -153,15 +171,16 @@ public void create(...) {
 ### Configuration (1 file)
 - application.properties
 
+### Test Infrastructure (1 file)
+- BaseOrganizationTest.java (NEW) - Base test class with organization-scoped helper methods
+
 ---
 
 ## Next Steps
 
-1. **Create OrganizationResource** - Implement REST controller for organization management
-2. **Build UI Templates** - Create Qute templates for organization CRUD
-3. **Update Header** - Add organization switcher to header dropdown
-4. **Update Navigation** - Add organization management link for super admins
-5. **Test** - Comprehensive testing of multi-org features
+1. **Create OrganizationResourceTest** - Implement comprehensive controller tests
+2. **Verify Data Isolation** - Test cross-org access prevention
+3. **Validate System Integrity** - Test bootstrap process and org switching
 
 ---
 
@@ -175,5 +194,5 @@ public void create(...) {
 
 ---
 
-Last Updated: 2026-01-04
-Phase: Resource Layer Complete - Moving to UI Phase
+Last Updated: 2026-01-06
+Phase: Organization UI Complete - Testing Remaining
