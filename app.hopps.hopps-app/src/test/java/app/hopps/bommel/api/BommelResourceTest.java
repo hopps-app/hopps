@@ -4,24 +4,33 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
+@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
 class BommelResourceTest extends BaseOrganizationTest
 {
+	@BeforeEach
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+	}
+
 	@Inject
 	BommelRepository bommelRepository;
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowCreateRootFormWhenNoBommelsExist()
 	{
 		deleteAllBommels();
@@ -36,7 +45,6 @@ class BommelResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowTreeViewWithBommelTitle()
 	{
 		deleteAllBommels();
@@ -52,7 +60,6 @@ class BommelResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowEditFormWhenBommelSelected()
 	{
 		deleteAllBommels();
@@ -68,7 +75,6 @@ class BommelResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldReturn404ForInvalidSelectedId()
 	{
 		deleteAllBommels();
@@ -82,7 +88,6 @@ class BommelResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowNoSelectionForNonExistentId()
 	{
 		deleteAllBommels();
@@ -97,7 +102,6 @@ class BommelResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldDisableDeleteButtonWhenBommelHasChildren()
 	{
 		deleteAllBommels();
@@ -113,7 +117,6 @@ class BommelResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowChildBommelsInTree()
 	{
 		deleteAllBommels();
@@ -132,7 +135,6 @@ class BommelResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldEnableDeleteButtonWhenBommelHasNoChildren()
 	{
 		deleteAllBommels();

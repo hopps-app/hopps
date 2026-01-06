@@ -3,6 +3,8 @@ package app.hopps.shared;
 import java.util.HashSet;
 import java.util.Set;
 
+import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.domain.Tag;
@@ -21,6 +23,9 @@ public abstract class BaseOrganizationTest
 
 	@Inject
 	protected TagRepository tagRepository;
+
+	@Inject
+	protected MemberRepository memberRepository;
 
 	/**
 	 * Creates or gets the default test organization. Call this in test methods
@@ -87,6 +92,37 @@ public abstract class BaseOrganizationTest
 			tags.add(tag);
 		}
 		return tags;
+	}
+
+	/**
+	 * Creates or gets a test member linked to a Keycloak user ID. This is used
+	 * to set up organization context for tests using @TestSecurity.
+	 *
+	 * @param keycloakUserId
+	 *            The Keycloak user ID (use TestSecurityHelper constants)
+	 * @param email
+	 *            The member's email
+	 * @param org
+	 *            The organization for this member
+	 * @return The created or existing member
+	 */
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
+	protected Member createTestMember(String keycloakUserId, String email, Organization org)
+	{
+		Member member = memberRepository.findByKeycloakUserId(keycloakUserId);
+		if (member != null)
+		{
+			return member;
+		}
+
+		member = new Member();
+		member.setKeycloakUserId(keycloakUserId);
+		member.setEmail(email);
+		member.setFirstName("Test");
+		member.setLastName("User");
+		member.setOrganization(org);
+		memberRepository.persist(member);
+		return member;
 	}
 
 	/**

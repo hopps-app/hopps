@@ -3,6 +3,8 @@ package app.hopps.shared.security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.eclipse.microprofile.jwt.JsonWebToken;
+
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
@@ -33,6 +35,9 @@ public class OrganizationContext
 	SecurityIdentity securityIdentity;
 
 	@Inject
+	JsonWebToken jwt;
+
+	@Inject
 	MemberRepository memberRepository;
 
 	@Inject
@@ -53,7 +58,7 @@ public class OrganizationContext
 		// org
 		if (securityIdentity.isAnonymous())
 		{
-			return organizationRepository.findAll().firstResult();
+			throw new IllegalStateException("Anonymous users cannot have an organization");
 		}
 
 		// Super admin: use session-based org switcher
@@ -85,19 +90,30 @@ public class OrganizationContext
 			}
 			else
 			{
-				// No session (e.g., in tests) - just return first org
-				return organizationRepository.findAll().firstResult();
+				throw new IllegalStateException("No session available for organization context");
 			}
 		}
 
 		// Regular users: get from their member record
-		String username = securityIdentity.getPrincipal().getName();
-		Member member = memberRepository.findByKeycloakUserId(username);
+		// Use the OIDC 'sub' claim (JWT subject) which contains the Keycloak user ID (UUID)
+		String keycloakUserId;
+		try
+		{
+			// JWT is available in OIDC context - use subject which is the Keycloak UUID
+			keycloakUserId = jwt.getSubject();
+		}
+		catch (Exception e)
+		{
+			// Fallback to principal name for tests or non-OIDC scenarios
+			keycloakUserId = securityIdentity.getPrincipal().getName();
+			LOG.debug("JWT not available, using principal name: {}", keycloakUserId);
+		}
+
+		Member member = memberRepository.findByKeycloakUserId(keycloakUserId);
 		if (member == null)
 		{
-			LOG.warn("No member found for user: {} - using first available organization (test environment?)", username);
-			// In test environment, return first org if no member found
-			return organizationRepository.findAll().firstResult();
+			LOG.error("No member found for keycloak user ID: {}", keycloakUserId);
+			throw new IllegalStateException("No member found for keycloak user ID: " + keycloakUserId);
 		}
 
 		return member.getOrganization();

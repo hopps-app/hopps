@@ -18,13 +18,15 @@ You can run your application in dev mode that enables live coding using:
 
 When running in development mode, Quarkus DevServices automatically provisions a Keycloak instance with the following test users:
 
-| Username | Password | Roles | Description |
-|----------|----------|-------|-------------|
-| `admin` | `admin` | super_admin, admin, user | Super administrator with full access |
-| `member1` | `member1` | admin, user | Test admin user (Maria Admin) |
-| `member2` | `member2` | user | Test regular user (Thomas User) |
+| Username | Password | Organization | Roles | Description |
+|----------|----------|--------------|-------|-------------|
+| `admin` | `password` | Musikverein Harmonie | super_admin, admin, user | Super administrator with full access |
+| `maria` | `password` | Musikverein Harmonie | admin, user | Admin user for music club |
+| `thomas` | `password` | Sportverein Alpenblick | user | Regular user for sports club |
 
 Access the application at <http://localhost:8080> and use any of these credentials to log in.
+
+**Note:** Each user belongs to a specific organization. The super admin (`admin`) can switch between organizations.
 
 ## Packaging and running the application
 

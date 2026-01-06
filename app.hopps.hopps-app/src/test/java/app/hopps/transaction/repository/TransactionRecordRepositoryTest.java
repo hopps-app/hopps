@@ -12,13 +12,16 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import app.hopps.transaction.domain.TransactionRecord;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @QuarkusTest
+@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
 class TransactionRecordRepositoryTest extends BaseOrganizationTest
 {
 	@Inject
@@ -26,6 +29,13 @@ class TransactionRecordRepositoryTest extends BaseOrganizationTest
 
 	@Inject
 	BommelRepository bommelRepository;
+
+	@BeforeEach
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+	}
 
 	@BeforeEach
 	@Transactional(Transactional.TxType.REQUIRES_NEW)

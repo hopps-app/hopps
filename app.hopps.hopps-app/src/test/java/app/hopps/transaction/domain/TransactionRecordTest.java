@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.bommel.domain.Bommel;
@@ -15,16 +16,26 @@ import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import app.hopps.transaction.repository.TransactionRecordRepository;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
+@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
 class TransactionRecordTest extends BaseOrganizationTest
 {
+	@BeforeEach
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+	}
+
 	@Inject
 	TransactionRecordRepository repository;
 

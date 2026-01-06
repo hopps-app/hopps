@@ -8,16 +8,22 @@ import java.util.Map;
 
 import jakarta.inject.Inject;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import app.hopps.audit.domain.AuditLogEntry;
 import app.hopps.audit.repository.AuditLogRepository;
 import app.hopps.workflow.repository.WorkflowInstanceRepository;
 
 @QuarkusTest
-class ProcessEngineTest
+@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
+class ProcessEngineTest extends BaseOrganizationTest
 {
 	@Inject
 	ProcessEngine processEngine;
@@ -39,6 +45,18 @@ class ProcessEngineTest
 
 	@Inject
 	EnterOrderDetailsTask enterOrderDetailsTask;
+
+	/**
+	 * Set up organization context for all tests. This creates a test
+	 * organization and links a test member to it, so that
+	 * OrganizationContext.getCurrentOrganization() works correctly.
+	 */
+	@BeforeEach
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+	}
 
 	@TestTransaction
 	@Test
@@ -317,7 +335,7 @@ class ProcessEngineTest
 		WorkflowInstance waiting1 = processEngine.startProcess(waitingProcess);
 		WorkflowInstance waiting2 = processEngine.startProcess(waitingProcess);
 
-		List<WorkflowInstance> completedChains = chainRepository.findByStatus(WorkflowStatus.COMPLETED);
+		List<WorkflowInstance> completedChains = chainRepository.findByStatusInCurrentOrg(WorkflowStatus.COMPLETED);
 		List<WorkflowInstance> waitingChains = chainRepository.findWaitingChains();
 		List<WorkflowInstance> activeChains = chainRepository.findActiveChains();
 

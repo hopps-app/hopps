@@ -27,7 +27,7 @@ public class WorkflowInstanceRepository implements PanacheRepositoryBase<Workflo
 	 *            The workflow status
 	 * @return List of workflow instances
 	 */
-	public List<WorkflowInstance> findByStatus(WorkflowStatus status)
+	public List<WorkflowInstance> findByStatusInCurrentOrg(WorkflowStatus status)
 	{
 		Long orgId = organizationContext.getCurrentOrganizationId();
 		if (orgId == null)
@@ -35,6 +35,11 @@ public class WorkflowInstanceRepository implements PanacheRepositoryBase<Workflo
 			return List.of();
 		}
 		return list("status = ?1 and organization.id = ?2", status, orgId);
+	}
+
+	public List<WorkflowInstance> findByStatusInApplicationScope(WorkflowStatus status)
+	{
+		return list("status = ?1 ", status);
 	}
 
 	/**
@@ -64,7 +69,7 @@ public class WorkflowInstanceRepository implements PanacheRepositoryBase<Workflo
 	 */
 	public List<WorkflowInstance> findWaitingChains()
 	{
-		return findByStatus(WorkflowStatus.WAITING);
+		return findByStatusInCurrentOrg(WorkflowStatus.WAITING);
 	}
 
 	/**

@@ -1,4 +1,4 @@
-package app.hopps.shared.util;
+package app.hopps.shared.bootstrap;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -6,17 +6,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 
-import app.hopps.member.service.MemberKeycloakSyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-
-import io.quarkus.runtime.LaunchMode;
-import io.quarkus.runtime.StartupEvent;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.Document;
@@ -27,14 +19,22 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
-import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.domain.Tag;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
+/**
+ * Seeds demo data for development mode. Creates demo members, bommels,
+ * documents, and transactions for each organization.
+ */
 @ApplicationScoped
-public class Startup
+public class DataSeeder
 {
+	private static final Logger LOG = LoggerFactory.getLogger(DataSeeder.class);
+
 	@Inject
 	BommelRepository bommelRepository;
 
@@ -47,54 +47,41 @@ public class Startup
 	@Inject
 	TransactionRecordRepository transactionRepository;
 
-	@Inject
-	MemberKeycloakSyncService memberKeycloakSyncService;
-
-	@Inject
-	app.hopps.member.service.KeycloakAdminService keycloakAdminService;
-
-	@Inject
-	OrganizationRepository organizationRepository;
-
-	private static final Logger LOG = LoggerFactory.getLogger(Startup.class);
-
 	/**
-	 * This method is executed at the start of your application
+	 * Seeds demo data for all organizations.
+	 *
+	 * @param orgs
+	 *            List of organizations to seed
 	 */
 	@Transactional
-	public void start(@Observes StartupEvent evt)
+	public void seedDemoData(List<Organization> orgs)
 	{
-		// in DEV mode we seed some data
-		if (LaunchMode.current() == LaunchMode.DEVELOPMENT)
+		for (Organization org : orgs)
 		{
-			Organization defaultOrg = getDefaultOrganization();
-			Organization testOrg = getTestOrganization();
-
-			// Seed demo data for both organizations
-			seedDemoDataForOrganization(defaultOrg, "max.mustermann@example.com", "Max", "Mustermann",
-				"+49 123 456789");
-			seedDemoDataForOrganization(testOrg, "maria.schmidt@harmonie.local", "Maria", "Schmidt",
-				"+49 89 123456");
-
-			// Bootstrap member1 and member2 users (always in DEV mode)
-			bootstrapDefaultUsers();
+			if ("musikverein-harmonie".equals(org.getSlug()))
+			{
+				seedMusikvereinsDemo(org);
+			}
+			else if ("sportverein-alpenblick".equals(org.getSlug()))
+			{
+				seedSportvereinDemo(org);
+			}
 		}
 	}
 
 	/**
-	 * Seeds demo data (members, bommels, documents) for a given organization.
-	 * Only seeds if the primary member doesn't exist yet.
+	 * Seeds demo data for Musikverein Harmonie organization.
 	 */
-	private void seedDemoDataForOrganization(Organization org, String checkEmail, String firstName,
-		String lastName, String phone)
+	private void seedMusikvereinsDemo(Organization org)
 	{
 		// Only seed if demo member doesn't exist yet
-		if (memberRepository.findByEmail(checkEmail) == null)
+		if (memberRepository.findByEmail("max.mustermann@harmonie.local") == null)
 		{
-			// Create demo members for this org
-			Member primaryMember = createMember(firstName, lastName, checkEmail, phone, org);
-			Member secondaryMember = createMember("Lisa", "Schmidt",
-				"lisa.schmidt@" + org.getSlug() + ".local", null, org);
+			// Create demo members (NOT auth-linked)
+			Member primaryMember = createMember("Max", "Mustermann", "max.mustermann@harmonie.local",
+				"+49 89 123456", org);
+			Member secondaryMember = createMember("Lisa", "Schmidt", "lisa.schmidt@harmonie.local",
+				null, org);
 
 			// Create Bommels
 			Bommel root = createBommel("home", "Verein", primaryMember, null, org);
@@ -104,6 +91,33 @@ public class Startup
 
 			// Create demo documents
 			seedDocuments(root, jugend, orchester, org);
+
+			LOG.info("Seeded demo data for organization: {}", org.getName());
+		}
+	}
+
+	/**
+	 * Seeds demo data for Sportverein Alpenblick organization.
+	 */
+	private void seedSportvereinDemo(Organization org)
+	{
+		// Only seed if demo member doesn't exist yet
+		if (memberRepository.findByEmail("anna.weber@alpenblick.local") == null)
+		{
+			// Create demo members (NOT auth-linked)
+			Member primaryMember = createMember("Anna", "Weber", "anna.weber@alpenblick.local",
+				"+49 8051 987654", org);
+			Member secondaryMember = createMember("Peter", "Huber", "peter.huber@alpenblick.local",
+				null, org);
+
+			// Create Bommels
+			Bommel root = createBommel("home", "Verein", primaryMember, null, org);
+			Bommel fussball = createBommel("soccer", "Fußball", secondaryMember, root, org);
+			Bommel volleyball = createBommel("volleyball", "Volleyball", null, root, org);
+			Bommel jugend = createBommel("group", "Jugend", null, fussball, org);
+
+			// Create demo documents for sports club
+			seedSportsDocuments(root, fussball, volleyball, org);
 
 			LOG.info("Seeded demo data for organization: {}", org.getName());
 		}
@@ -145,8 +159,7 @@ public class Startup
 	{
 		DemoTags tags = createDemoTags(org);
 
-		// Confirmed documents without transactions (will trigger transaction
-		// creation alert)
+		// Confirmed documents without transactions
 		seedOfficeSuppliesDocument(root, tags, org);
 		seedCateringDocument(jugend, tags, org);
 
@@ -154,11 +167,28 @@ public class Startup
 		seedMusicEquipmentDocument(orchester, tags, org);
 		seedBusRentalDocument(orchester, tags, org);
 
-		// Regular documents (no special status)
+		// Regular documents
 		seedPrinterTonerDocument(tags, org);
 		seedElectricityBillDocument(root, org);
 
-		// Standalone transaction (not linked to a document)
+		// Standalone transaction
+		seedMembershipFeeTransaction(root, org);
+	}
+
+	private void seedSportsDocuments(Bommel root, Bommel fussball, Bommel volleyball,
+		Organization org)
+	{
+		SportsTags tags = createSportsTags(org);
+
+		// Sports equipment
+		seedSportsEquipmentDocument(fussball, tags, org);
+		seedTournamentRegistrationDocument(fussball, tags, org);
+
+		// Venue rental
+		seedHallRentalDocument(volleyball, tags, org);
+
+		// General expenses
+		seedSportsInsuranceDocument(root, org);
 		seedMembershipFeeTransaction(root, org);
 	}
 
@@ -169,6 +199,10 @@ public class Startup
 
 	private record DemoTags(Tag buero, Tag musik, Tag veranstaltung, Tag reise, Tag verpflegung,
 		Tag ausruestung)
+	{
+	}
+
+	private record SportsTags(Tag ausruestung, Tag turnier, Tag hallenvermietung, Tag versicherung)
 	{
 	}
 
@@ -197,6 +231,27 @@ public class Startup
 		return new DemoTags(tagBuero, tagMusik, tagVeranstaltung, tagReise, tagVerpflegung,
 			tagAusruestung);
 	}
+
+	private SportsTags createSportsTags(Organization org)
+	{
+		Tag tagAusruestung = new Tag("Ausrüstung");
+		tagAusruestung.setOrganization(org);
+		Tag tagTurnier = new Tag("Turnier");
+		tagTurnier.setOrganization(org);
+		Tag tagHallenvermietung = new Tag("Hallenvermietung");
+		tagHallenvermietung.setOrganization(org);
+		Tag tagVersicherung = new Tag("Versicherung");
+		tagVersicherung.setOrganization(org);
+
+		tagAusruestung.persist();
+		tagTurnier.persist();
+		tagHallenvermietung.persist();
+		tagVersicherung.persist();
+
+		return new SportsTags(tagAusruestung, tagTurnier, tagHallenvermietung, tagVersicherung);
+	}
+
+	// Music club documents
 
 	private void seedOfficeSuppliesDocument(Bommel bommel, DemoTags tags, Organization org)
 	{
@@ -235,7 +290,6 @@ public class Startup
 		doc.addTag(tags.ausruestung, TagSource.AI);
 		documentRepository.persist(doc);
 
-		// Create transaction from document
 		createTransactionFromDocument(doc, org, tags.musik, tags.ausruestung);
 	}
 
@@ -278,7 +332,6 @@ public class Startup
 		doc.addTag(tags.veranstaltung, TagSource.AI);
 		documentRepository.persist(doc);
 
-		// Create transaction from document
 		createTransactionFromDocument(doc, org, tags.reise, tags.veranstaltung);
 	}
 
@@ -294,7 +347,6 @@ public class Startup
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 20)));
 		doc.setSender(sender);
 		doc.setOrganization(org);
-		// No bommel assigned
 		doc.addTag(tags.buero, TagSource.AI);
 		documentRepository.persist(doc);
 	}
@@ -310,6 +362,85 @@ public class Startup
 		doc.setTotalTax(new BigDecimal("54.73"));
 		doc.setCurrencyCode("EUR");
 		doc.setTransactionTime(toInstant(LocalDate.of(2024, 10, 1)));
+		doc.setSender(sender);
+		doc.setBommel(bommel);
+		doc.setOrganization(org);
+		documentRepository.persist(doc);
+	}
+
+	// Sports club documents
+
+	private void seedSportsEquipmentDocument(Bommel bommel, SportsTags tags, Organization org)
+	{
+		TradeParty sender = createTradeParty("Sport Schuster", "Rosenstraße 1-5", "80331", "München",
+			org);
+
+		Document doc = new Document();
+		doc.setName("Fußbälle (10 Stück)");
+		doc.setTotal(new BigDecimal("189.90"));
+		doc.setTotalTax(new BigDecimal("30.33"));
+		doc.setCurrencyCode("EUR");
+		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 5)));
+		doc.setSender(sender);
+		doc.setBommel(bommel);
+		doc.setOrganization(org);
+		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
+		doc.addTag(tags.ausruestung, TagSource.AI);
+		documentRepository.persist(doc);
+
+		createTransactionFromDocument(doc, org, tags.ausruestung);
+	}
+
+	private void seedTournamentRegistrationDocument(Bommel bommel, SportsTags tags, Organization org)
+	{
+		TradeParty sender = createTradeParty("Bayerischer Fußballverband", "Brienner Str. 50",
+			"80333", "München", org);
+
+		Document doc = new Document();
+		doc.setName("Turnieranmeldung Jugendcup");
+		doc.setTotal(new BigDecimal("120.00"));
+		doc.setCurrencyCode("EUR");
+		doc.setTransactionTime(toInstant(LocalDate.of(2024, 11, 28)));
+		doc.setSender(sender);
+		doc.setBommel(bommel);
+		doc.setOrganization(org);
+		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
+		doc.addTag(tags.turnier, TagSource.AI);
+		documentRepository.persist(doc);
+	}
+
+	private void seedHallRentalDocument(Bommel bommel, SportsTags tags, Organization org)
+	{
+		TradeParty sender = createTradeParty("Gemeinde Alpenblick", "Rathausplatz 1", "83703",
+			"Gmund", org);
+
+		Document doc = new Document();
+		doc.setName("Hallenmiete Dezember");
+		doc.setTotal(new BigDecimal("450.00"));
+		doc.setTotalTax(new BigDecimal("71.85"));
+		doc.setCurrencyCode("EUR");
+		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 1)));
+		doc.setSender(sender);
+		doc.setBommel(bommel);
+		doc.setOrganization(org);
+		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
+		doc.addTag(tags.hallenvermietung, TagSource.AI);
+		documentRepository.persist(doc);
+
+		createTransactionFromDocument(doc, org, tags.hallenvermietung);
+	}
+
+	private void seedSportsInsuranceDocument(Bommel bommel, Organization org)
+	{
+		TradeParty sender = createTradeParty("ARAG Sportversicherung", "ARAG-Platz 1", "40472",
+			"Düsseldorf", org);
+
+		Document doc = new Document();
+		doc.setName("Vereinsversicherung 2025");
+		doc.setTotal(new BigDecimal("680.00"));
+		doc.setTotalTax(new BigDecimal("108.57"));
+		doc.setCurrencyCode("EUR");
+		doc.setTransactionTime(toInstant(LocalDate.of(2025, 1, 1)));
 		doc.setSender(sender);
 		doc.setBommel(bommel);
 		doc.setOrganization(org);
@@ -368,140 +499,5 @@ public class Startup
 		}
 
 		transactionRepository.persist(tx);
-	}
-
-	@Transactional(Transactional.TxType.REQUIRES_NEW)
-	public void bootstrapDefaultUsers()
-	{
-		Organization testOrg = getTestOrganization();
-
-		// Bootstrap member1 (admin user) - link to DevServices Keycloak user
-		Member member1 = memberRepository.findByEmail("member1@hopps.local");
-		if (member1 == null)
-		{
-			// Find the Keycloak user created by DevServices (with retries for
-			// timing)
-			String keycloakUserId = findKeycloakUserWithRetry("member1", 10, 1000);
-			if (keycloakUserId != null)
-			{
-				member1 = new Member();
-				member1.setFirstName("Maria");
-				member1.setLastName("Schmidt");
-				member1.setEmail("member1@hopps.local");
-				member1.setPhone("+49 89 123456");
-				member1.setOrganization(testOrg);
-				member1.setKeycloakUserId(keycloakUserId);
-				memberRepository.persist(member1);
-
-				LOG.info("Bootstrapped member1: memberId={}, keycloakUserId={}",
-					member1.getId(), member1.getKeycloakUserId());
-			}
-			else
-			{
-				LOG.warn("DevServices Keycloak user 'member1' not found. Skipping Member creation.");
-			}
-		}
-
-		// Bootstrap member2 (regular user) - link to DevServices Keycloak user
-		Member member2 = memberRepository.findByEmail("member2@hopps.local");
-		if (member2 == null)
-		{
-			// Find the Keycloak user created by DevServices (with retries for
-			// timing)
-			String keycloakUserId = findKeycloakUserWithRetry("member2", 10, 1000);
-			if (keycloakUserId != null)
-			{
-				member2 = new Member();
-				member2.setFirstName("Thomas");
-				member2.setLastName("Müller");
-				member2.setEmail("member2@hopps.local");
-				member2.setPhone("+49 89 654321");
-				member2.setOrganization(testOrg);
-				member2.setKeycloakUserId(keycloakUserId);
-				memberRepository.persist(member2);
-
-				LOG.info("Bootstrapped member2: memberId={}, keycloakUserId={}",
-					member2.getId(), member2.getKeycloakUserId());
-			}
-			else
-			{
-				LOG.warn("DevServices Keycloak user 'member2' not found. Skipping Member creation.");
-			}
-		}
-	}
-
-	/**
-	 * Finds a Keycloak user by username with retry logic. DevServices may still
-	 * be initializing users when this is called.
-	 *
-	 * @param username
-	 *            The username to search for
-	 * @param maxAttempts
-	 *            Maximum number of retry attempts
-	 * @param delayMs
-	 *            Delay in milliseconds between retries
-	 * @return The Keycloak user ID, or null if not found after all retries
-	 */
-	private String findKeycloakUserWithRetry(String username, int maxAttempts, long delayMs)
-	{
-		for (int attempt = 1; attempt <= maxAttempts; attempt++)
-		{
-			String userId = keycloakAdminService.findUserIdByUsername(username);
-			if (userId != null)
-			{
-				if (attempt > 1)
-				{
-					LOG.info("Found Keycloak user '{}' on attempt {}", username, attempt);
-				}
-				return userId;
-			}
-
-			if (attempt < maxAttempts)
-			{
-				LOG.debug("Keycloak user '{}' not found, retrying in {}ms (attempt {}/{})",
-					username, delayMs, attempt, maxAttempts);
-				try
-				{
-					Thread.sleep(delayMs);
-				}
-				catch (InterruptedException e)
-				{
-					Thread.currentThread().interrupt();
-					LOG.warn("Interrupted while waiting to retry finding Keycloak user '{}'", username);
-					return null;
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Gets the default organization. The bootstrap process ensures this always
-	 * exists.
-	 */
-	private Organization getDefaultOrganization()
-	{
-		Organization org = organizationRepository.findBySlug("default");
-		if (org == null)
-		{
-			throw new IllegalStateException(
-				"Default organization not found. Bootstrap may not have run correctly.");
-		}
-		return org;
-	}
-
-	/**
-	 * Gets the test organization. The bootstrap process ensures this always
-	 * exists.
-	 */
-	private Organization getTestOrganization()
-	{
-		Organization org = organizationRepository.findBySlug("musikverein-harmonie");
-		if (org == null)
-		{
-			throw new IllegalStateException(
-				"Test organization not found. Bootstrap may not have run correctly.");
-		}
-		return org;
 	}
 }

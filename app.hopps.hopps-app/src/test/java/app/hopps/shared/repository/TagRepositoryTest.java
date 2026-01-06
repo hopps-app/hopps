@@ -8,19 +8,30 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import app.hopps.shared.domain.Tag;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
+@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
 class TagRepositoryTest extends BaseOrganizationTest
 {
+	@BeforeEach
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+	}
+
 	@Inject
 	TagRepository tagRepository;
 

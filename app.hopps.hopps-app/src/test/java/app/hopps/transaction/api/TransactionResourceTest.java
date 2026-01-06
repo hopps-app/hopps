@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.bommel.domain.Bommel;
@@ -16,6 +17,7 @@ import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import app.hopps.transaction.domain.TransactionRecord;
@@ -28,8 +30,16 @@ import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
 
 @QuarkusTest
+@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
 class TransactionResourceTest extends BaseOrganizationTest
 {
+	@BeforeEach
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+	}
+
 	@Inject
 	TransactionRecordRepository transactionRepository;
 
@@ -46,7 +56,6 @@ class TransactionResourceTest extends BaseOrganizationTest
 	EntityManager entityManager;
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowTransactionList()
 	{
 		deleteAllData();
@@ -60,7 +69,6 @@ class TransactionResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowCreateTransactionForm()
 	{
 		given()
@@ -72,7 +80,6 @@ class TransactionResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowUpdateFormFields()
 	{
 		deleteAllData();
@@ -87,7 +94,6 @@ class TransactionResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDeleteButton()
 	{
 		deleteAllData();
@@ -101,7 +107,6 @@ class TransactionResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowTransactionDetail()
 	{
 		deleteAllData();

@@ -15,6 +15,7 @@ import app.hopps.member.repository.MemberRepository;
 import app.hopps.member.service.MemberKeycloakSyncService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -31,6 +32,25 @@ class MemberResourceTest extends BaseOrganizationTest
 
 	@InjectMock
 	MemberKeycloakSyncService memberKeycloakSyncService;
+
+	@BeforeEach
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		// Create a test member for each test method's @TestSecurity user (bob)
+		Member testMember = memberRepository.findByKeycloakUserId("bob");
+		if (testMember == null)
+		{
+			testMember = new Member();
+			testMember.setKeycloakUserId("bob");
+			testMember.setEmail("bob@test.local");
+			testMember.setFirstName("Bob");
+			testMember.setLastName("Test");
+			testMember.setOrganization(testOrg);
+			memberRepository.persist(testMember);
+		}
+	}
 
 	@BeforeEach
 	void setupMocks()
@@ -61,8 +81,9 @@ class MemberResourceTest extends BaseOrganizationTest
 			.get("/mitglieder")
 			.then()
 			.statusCode(200)
-			.body(containsString("Noch keine Mitglieder vorhanden"))
-			.body(containsString("Erstes Mitglied anlegen"));
+			// With test security, there's always the test user (Bob), so we
+			// check for that
+			.body(containsString("Bob Test"));
 	}
 
 	@Test
@@ -213,6 +234,15 @@ class MemberResourceTest extends BaseOrganizationTest
 	{
 		bommelRepository.deleteAll();
 		memberRepository.deleteAll();
+		// Recreate the test security member
+		Organization testOrg = getOrCreateTestOrganization();
+		Member testMember = new Member();
+		testMember.setKeycloakUserId("bob");
+		testMember.setEmail("bob@test.local");
+		testMember.setFirstName("Bob");
+		testMember.setLastName("Test");
+		testMember.setOrganization(testOrg);
+		memberRepository.persist(testMember);
 	}
 
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)

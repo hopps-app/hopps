@@ -6,6 +6,7 @@ import static org.hamcrest.CoreMatchers.is;
 
 import java.math.BigDecimal;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import app.hopps.bommel.domain.Bommel;
@@ -15,13 +16,22 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.StorageService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
 
 @QuarkusTest
+@TestSecurity(user = TestSecurityHelper.TEST_USER, roles = "user")
 class DocumentResourceTest extends BaseOrganizationTest
 {
+	@BeforeEach
+	void setupOrganizationContext()
+	{
+		Organization testOrg = getOrCreateTestOrganization();
+		createTestMember(TestSecurityHelper.TEST_USER, "test@hopps.local", testOrg);
+	}
+
 	@Inject
 	DocumentRepository documentRepository;
 
@@ -32,7 +42,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	StorageService storageService;
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowEmptyStateWhenNoDocumentsExist()
 	{
 		deleteAllData();
@@ -47,7 +56,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDocumentsInTable()
 	{
 		deleteAllData();
@@ -63,7 +71,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDocumentDetailPage()
 	{
 		deleteAllData();
@@ -79,7 +86,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowCreateDocumentForm()
 	{
 		given()
@@ -92,7 +98,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldRedirectToIndexForNonExistentDocument()
 	{
 		deleteAllData();
@@ -106,7 +111,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDocumentWithBommelAssignment()
 	{
 		deleteAllData();
@@ -123,7 +127,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowFileUploadFormOnCreatePage()
 	{
 		given()
@@ -138,7 +141,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldDownloadUploadedFile()
 	{
 		deleteAllData();
@@ -157,7 +159,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldReturn404ForDownloadWithNoFile()
 	{
 		deleteAllData();
@@ -171,7 +172,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldReturn404ForDownloadNonExistentDocument()
 	{
 		deleteAllData();
@@ -184,7 +184,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowDeleteFileButtonOnDetailPage()
 	{
 		deleteAllData();
@@ -200,7 +199,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowUploadFormOnDetailPage()
 	{
 		deleteAllData();
@@ -216,7 +214,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowFileIndicatorInList()
 	{
 		deleteAllData();
@@ -232,7 +229,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldFilterDocumentsByBommel()
 	{
 		deleteAllData();
@@ -250,7 +246,6 @@ class DocumentResourceTest extends BaseOrganizationTest
 	}
 
 	@Test
-	@TestSecurity(user = "bob", roles = "user")
 	void shouldShowTransactionCreationAlertForConfirmedDocuments()
 	{
 		deleteAllData();
