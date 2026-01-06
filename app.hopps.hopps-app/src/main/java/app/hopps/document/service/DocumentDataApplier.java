@@ -122,7 +122,7 @@ public class DocumentDataApplier
 
 		if (data.merchantAddress() != null)
 		{
-			TradeParty sender = mapTradeParty(data.merchantAddress());
+			TradeParty sender = mapTradeParty(data.merchantAddress(), document);
 			if (data.merchantName() != null)
 			{
 				sender.setName(data.merchantName());
@@ -135,6 +135,7 @@ public class DocumentDataApplier
 		{
 			TradeParty sender = new TradeParty();
 			sender.setName(data.merchantName());
+			sender.setOrganization(document.getOrganization());
 			document.setSender(sender);
 			LOG.debug("Autofilled sender name: {}", data.merchantName());
 			return 1;
@@ -181,7 +182,7 @@ public class DocumentDataApplier
 		return 0;
 	}
 
-	private TradeParty mapTradeParty(TradePartyData data)
+	private TradeParty mapTradeParty(TradePartyData data, Document document)
 	{
 		if (data == null)
 		{
@@ -193,6 +194,7 @@ public class DocumentDataApplier
 		party.setStreet(data.street());
 		party.setZipCode(data.postalCode());
 		party.setCity(data.city());
+		party.setOrganization(document.getOrganization());
 		return party;
 	}
 }

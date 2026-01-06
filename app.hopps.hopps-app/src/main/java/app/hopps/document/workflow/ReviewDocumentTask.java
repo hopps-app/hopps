@@ -180,6 +180,7 @@ public class ReviewDocumentTask extends UserTask
 			if (sender == null)
 			{
 				sender = new TradeParty();
+				sender.setOrganization(document.getOrganization());
 			}
 			sender.setName(senderName);
 			sender.setStreet(getString(userInput, "senderStreet"));

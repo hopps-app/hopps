@@ -104,6 +104,7 @@ public class DocumentDataService
 			if (sender == null)
 			{
 				sender = new TradeParty();
+				sender.setOrganization(document.getOrganization());
 				document.setSender(sender);
 			}
 
