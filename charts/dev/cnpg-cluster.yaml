@@ -1,0 +1,32 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-cluster
+spec:
+  instances: 1
+  primaryUpdateStrategy: unsupervised
+  storage:
+    size: 10Gi
+    storageClass: longhorn-postgres-replica-storage
+  walStorage:
+    storageClass: longhorn-postgres-replica-storage
+    size: 10Gi
+  monitoring:
+    enablePodMonitor: true
+  # ToDo: configure backup
+  managed:
+    roles:
+      # org
+      - name: org
+        login: true
+        comment: user for org service
+        disablePassword: false
+        passwordSecret:
+          name: org-db-secret
+      # keycloak
+      - name: keycloak
+        login: true
+        comment: user for keycloak service
+        disablePassword: false
+        passwordSecret:
+          name: keycloak-db-secret

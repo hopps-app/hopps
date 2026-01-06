@@ -1,0 +1,23 @@
+# keycloak
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: keycloak
+spec:
+  name: keycloak
+  owner: keycloak
+  cluster:
+    name: postgres-cluster
+  encoding: UTF8
+---
+# hopps-app
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: hopps-app
+spec:
+  name: hopps-app
+  owner: hopps-app
+  cluster:
+    name: postgres-cluster
+  encoding: UTF8

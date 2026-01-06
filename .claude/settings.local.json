@@ -63,7 +63,8 @@
       "Bash(./mvnw verify:*)",
       "Bash(timeout 45 ./mvnw quarkus:dev:*)",
       "Bash(tee:*)",
-      "Bash(timeout 120 ./mvnw test:*)"
+      "Bash(timeout 120 ./mvnw test:*)",
+      "Bash(git add:*)"
     ]
   }
 }

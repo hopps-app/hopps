@@ -1,24 +1,24 @@
-{{- if .Values.frontend.ingress.enabled -}}
-{{- $fullName := include "hopps.frontendFullname" . -}}
+{{- if .Values.hoppsApp.managementIngress.enabled -}}
+{{- $fullName := include "hopps.hoppsAppFullname" . -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ $fullName }}-management
   labels:
-    {{- include "hopps.frontendLabels" . | nindent 4 }}
-{{- with .Values.frontend.ingress.annotations }}
+    {{- include "hopps.hoppsAppLabels" . | nindent 4 }}
+{{- with .Values.hoppsApp.managementIngress.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
   {{- if or (.Capabilities.APIVersions.Has "networking.k8s.io/v1/IngressClass") (.Capabilities.APIVersions.Has "networking.k8s.io/v1beta1/IngressClass") }}
-  {{- if .Values.frontend.ingress.ingressClassName }}
-  ingressClassName: {{ .Values.frontend.ingress.ingressClassName }}
+  {{- if .Values.hoppsApp.managementIngress.ingressClassName }}
+  ingressClassName: {{ .Values.hoppsApp.managementIngress.ingressClassName }}
   {{- end }}
   {{- end }}
-{{- if .Values.frontend.ingress.tls }}
+{{- if .Values.hoppsApp.managementIngress.tls }}
   tls:
-  {{- range .Values.frontend.ingress.tls }}
+  {{- range .Values.hoppsApp.managementIngress.tls }}
     - hosts:
       {{- range .hosts }}
         - {{ . | quote }}
@@ -27,7 +27,7 @@ spec:
   {{- end }}
 {{- end }}
   rules:
-  {{- range .Values.frontend.ingress.hosts }}
+  {{- range .Values.hoppsApp.managementIngress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
@@ -38,7 +38,7 @@ spec:
               service:
                 name: {{ $fullName }}
                 port:
-                  name: http
+                  name: management
           {{- end }}
   {{- end }}
 {{- end }}

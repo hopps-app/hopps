@@ -1,0 +1,23 @@
+{{- if .Values.hoppsApp.serviceMonitor.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "hopps.hoppsAppFullname" . }}
+  namespace: {{ .Values.hoppsApp.serviceMonitor.namespace }}
+  labels:
+    {{- include "hopps.hoppsAppLabels" . | nindent 4 }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "hopps.hoppsAppSelectorLabels" . | nindent 6 }}
+  jobLabel: {{ include "hopps.hoppsAppFullname" . }}
+  endpoints:
+    - port: management
+      path: /q/metrics
+      interval: {{ .Values.hoppsApp.serviceMonitor.scrapeInterval }}
+      scrapeTimeout: {{ .Values.hoppsApp.serviceMonitor.scrapeTimeout }}
+{{- end }}

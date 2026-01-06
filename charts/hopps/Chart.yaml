@@ -15,13 +15,13 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.1.15
+version: 2.0.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "0.1.4"
+appVersion: "2.0.0"
 
 dependencies:
   - condition: keycloak.enabled
@@ -30,23 +30,8 @@ dependencies:
     version: 7.0.1
     repository: https://codecentric.github.io/helm-charts
     alias: keycloak
-  - condition: openfgaEnabled
-    name: openfga
-    # ToDo: make version controllable by dependabot
-    version: 0.2.16
-    repository: https://openfga.github.io/helm-charts
-  - condition: kafka-ui.enabled
-    name: kafka-ui
-    # ToDo: make version controllable by dependabot
-    version: 0.7.6
-    repository: https://provectus.github.io/kafka-ui-charts
-  - condition: kafka.enabled
-    name: kafka
-    # ToDo: make version controllable by dependabot
-    version: 32.4.3
-    repository: https://charts.bitnami.com/bitnami
-  - condition: postgresql-org.enabled
-    alias: postgresqlOrg
+  - condition: postgresqlHoppsApp.enabled
+    alias: postgresqlHoppsApp
     name: postgresql
     # ToDo: make version controllable by dependabot
     version: 16.4.5

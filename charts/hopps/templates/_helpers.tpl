@@ -110,90 +110,32 @@ azDocumentAi fully qualified name
 
 
 {{/*
-org labels
+hoppsApp labels
 */}}
-{{- define "hopps.orgLabels" -}}
+{{- define "hopps.hoppsAppLabels" -}}
 {{ include "hopps.commonLabels" . }}
-{{ include "hopps.orgSelectorLabels" . }}
+{{ include "hopps.hoppsAppSelectorLabels" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion }}
 {{- end -}}
 {{/*
-org selector labels
+hoppsApp selector labels
 */}}
-{{- define "hopps.orgSelectorLabels" -}}
+{{- define "hopps.hoppsAppSelectorLabels" -}}
 {{ include "hopps.commonSelectorLabels" . }}
-app.kubernetes.io/name: {{ printf "%s-org" (include "hopps.name" .) }}
-app.kubernetes.io/component: org
+app.kubernetes.io/name: {{ printf "%s-hopps-app" (include "hopps.name" .) }}
+app.kubernetes.io/component: hopps-app
 {{- end -}}
 {{/*
-org name
+hoppsApp name
 */}}
-{{- define "hopps.orgName" -}}
-{{- printf "%s-org" (include "hopps.name" .) -}}
+{{- define "hopps.hoppsAppName" -}}
+{{- printf "%s-hopps-app" (include "hopps.name" .) -}}
 {{- end -}}
 {{/*
-org fully qualified name
+hoppsApp fully qualified name
 */}}
-{{- define "hopps.orgFullname" -}}
-{{- printf "%s-org" (include "hopps.fullname" .) -}}
-{{- end -}}
-
-{{/*
-fin-narrator labels
-*/}}
-{{- define "hopps.finNarratorLabels" -}}
-{{ include "hopps.commonLabels" . }}
-{{ include "hopps.finNarratorSelectorLabels" . }}
-app.kubernetes.io/version: {{ .Chart.AppVersion }}
-{{- end -}}
-{{/*
-fin selector labels
-*/}}
-{{- define "hopps.finNarratorSelectorLabels" -}}
-{{ include "hopps.commonSelectorLabels" . }}
-app.kubernetes.io/name: {{ printf "%s-fin-narrator" (include "hopps.name" .) }}
-app.kubernetes.io/component: fin-narrator
-{{- end -}}
-{{/*
-fin name
-*/}}
-{{- define "hopps.finNarratorName" -}}
-{{- printf "%s-fin-narrator" (include "hopps.name" .) -}}
-{{- end -}}
-{{/*
-fin fully qualified name
-*/}}
-{{- define "hopps.finNarratorFullname" -}}
-{{- printf "%s-fin-narrator" (include "hopps.fullname" .) -}}
-{{- end -}}
-
-{{/*
-frontend labels
-*/}}
-{{- define "hopps.frontendLabels" -}}
-{{ include "hopps.commonLabels" . }}
-{{ include "hopps.frontendSelectorLabels" . }}
-app.kubernetes.io/version: {{ .Chart.AppVersion }}
-{{- end -}}
-{{/*
-frontend selector labels
-*/}}
-{{- define "hopps.frontendSelectorLabels" -}}
-{{ include "hopps.commonSelectorLabels" . }}
-app.kubernetes.io/name: {{ printf "%s-frontend" (include "hopps.name" .) }}
-app.kubernetes.io/component: frontend
-{{- end -}}
-{{/*
-frontend name
-*/}}
-{{- define "hopps.frontendName" -}}
-{{- printf "%s-frontend" (include "hopps.name" .) -}}
-{{- end -}}
-{{/*
-frontend fully qualified name
-*/}}
-{{- define "hopps.frontendFullname" -}}
-{{- printf "%s-frontend" (include "hopps.fullname" .) -}}
+{{- define "hopps.hoppsAppFullname" -}}
+{{- printf "%s-hopps-app" (include "hopps.fullname" .) -}}
 {{- end -}}
 
 {{/*
