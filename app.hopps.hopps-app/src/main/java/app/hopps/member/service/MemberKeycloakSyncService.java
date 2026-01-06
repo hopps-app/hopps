@@ -19,7 +19,7 @@ public class MemberKeycloakSyncService
 
 	public String syncMemberToKeycloak(Member member, List<String> additionalRoles)
 	{
-		String username = member.generateUsername();
+		String username = member.getUserName();
 		List<String> roles = new ArrayList<>(List.of("user"));
 		if (additionalRoles != null)
 		{

@@ -2,6 +2,8 @@ package app.hopps.shared.template;
 
 import java.util.Set;
 
+import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -23,6 +25,9 @@ public class UserContext
 	@Inject
 	OrganizationContext organizationContext;
 
+	@Inject
+	MemberRepository memberRepository;
+
 	public boolean isAuthenticated()
 	{
 		return securityIdentity != null && !securityIdentity.isAnonymous();
@@ -35,8 +40,14 @@ public class UserContext
 
 	public String getEmail()
 	{
-		// Mock email pattern - in production, get from OIDC UserInfo
-		return isAuthenticated() ? getUsername() + "@hopps.local" : null;
+		if (!isAuthenticated())
+		{
+			return null;
+		}
+		// Get email from Member record
+		String username = securityIdentity.getPrincipal().getName();
+		Member member = memberRepository.findByUsername(username);
+		return member != null ? member.getEmail() : null;
 	}
 
 	public Set<String> getRoles()

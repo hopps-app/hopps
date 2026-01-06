@@ -117,6 +117,7 @@ public abstract class BaseOrganizationTest
 
 		member = new Member();
 		member.setUserName(username);
+		member.setEmail(username + "@test.local");
 		member.setFirstName("Test");
 		member.setLastName("User");
 		member.setOrganization(org);

@@ -75,13 +75,13 @@ public class DataSeeder
 	private void seedMusikvereinsDemo(Organization org)
 	{
 		// Only seed if demo member doesn't exist yet
-		if (memberRepository.findByEmail("max.mustermann@harmonie.local") == null)
+		if (memberRepository.findByUsername("max.mustermann") == null)
 		{
 			// Create demo members (NOT auth-linked)
-			Member primaryMember = createMember("Max", "Mustermann", "max.mustermann@harmonie.local",
-				"+49 89 123456", org);
-			Member secondaryMember = createMember("Lisa", "Schmidt", "lisa.schmidt@harmonie.local",
-				null, org);
+			Member primaryMember = createMember("Max", "Mustermann", "max.mustermann",
+				"max.mustermann@harmonie.local", "+49 89 123456", org);
+			Member secondaryMember = createMember("Lisa", "Schmidt", "lisa.schmidt",
+				"lisa.schmidt@harmonie.local", null, org);
 
 			// Create Bommels
 			Bommel root = createBommel("home", "Verein", primaryMember, null, org);
@@ -102,13 +102,13 @@ public class DataSeeder
 	private void seedSportvereinDemo(Organization org)
 	{
 		// Only seed if demo member doesn't exist yet
-		if (memberRepository.findByEmail("anna.weber@alpenblick.local") == null)
+		if (memberRepository.findByUsername("anna.weber") == null)
 		{
 			// Create demo members (NOT auth-linked)
-			Member primaryMember = createMember("Anna", "Weber", "anna.weber@alpenblick.local",
-				"+49 8051 987654", org);
-			Member secondaryMember = createMember("Peter", "Huber", "peter.huber@alpenblick.local",
-				null, org);
+			Member primaryMember = createMember("Anna", "Weber", "anna.weber",
+				"anna.weber@alpenblick.local", "+49 8051 987654", org);
+			Member secondaryMember = createMember("Peter", "Huber", "peter.huber",
+				"peter.huber@alpenblick.local", null, org);
 
 			// Create Bommels
 			Bommel root = createBommel("home", "Verein", primaryMember, null, org);
@@ -126,12 +126,13 @@ public class DataSeeder
 	/**
 	 * Creates and persists a Member entity.
 	 */
-	private Member createMember(String firstName, String lastName, String email, String phone,
-		Organization org)
+	private Member createMember(String firstName, String lastName, String userName, String email,
+		String phone, Organization org)
 	{
 		Member member = new Member();
 		member.setFirstName(firstName);
 		member.setLastName(lastName);
+		member.setUserName(userName);
 		member.setEmail(email);
 		member.setPhone(phone);
 		member.setOrganization(org);

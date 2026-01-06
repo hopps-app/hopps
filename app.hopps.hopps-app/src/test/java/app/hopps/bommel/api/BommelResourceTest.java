@@ -21,10 +21,17 @@ import jakarta.inject.Inject;
 class BommelResourceTest extends BaseOrganizationTest
 {
 	@BeforeEach
+	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	void setupOrganizationContext()
 	{
-		Organization testOrg = getOrCreateTestOrganization();
-		createTestMember(TestSecurityHelper.TEST_USER_MARIA, testOrg);
+		// Use the bootstrap organization that maria is associated with
+		Organization org = organizationRepository.findBySlug("musikverein-harmonie");
+		if (org == null)
+		{
+			// Fallback to test org if bootstrap didn't run
+			org = getOrCreateTestOrganization();
+			createTestMember(TestSecurityHelper.TEST_USER_MARIA, org);
+		}
 	}
 
 	@Inject
@@ -159,7 +166,12 @@ class BommelResourceTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createRootBommel(String icon, String title)
 	{
-		Organization org = getOrCreateTestOrganization();
+		// Use the bootstrap organization that maria is associated with
+		Organization org = organizationRepository.findBySlug("musikverein-harmonie");
+		if (org == null)
+		{
+			org = getOrCreateTestOrganization();
+		}
 
 		Bommel root = new Bommel();
 		root.setIcon(icon);
@@ -172,7 +184,12 @@ class BommelResourceTest extends BaseOrganizationTest
 	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
 	Long createChildBommel(Long parentId, String icon, String title)
 	{
-		Organization org = getOrCreateTestOrganization();
+		// Use the bootstrap organization that maria is associated with
+		Organization org = organizationRepository.findBySlug("musikverein-harmonie");
+		if (org == null)
+		{
+			org = getOrCreateTestOrganization();
+		}
 
 		Bommel parent = bommelRepository.findById(parentId);
 		Bommel child = new Bommel();

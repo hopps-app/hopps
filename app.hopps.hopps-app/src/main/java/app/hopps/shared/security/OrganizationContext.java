@@ -16,8 +16,6 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import static org.eclipse.microprofile.jwt.Claims.email;
-
 /**
  * Request-scoped service that resolves the current organization for the
  * authenticated user.

@@ -116,13 +116,18 @@ public class Member extends PanacheEntity
 
 	public String generateUsername()
 	{
-		// Use email if available, otherwise generate from name
-		if (email != null && !email.isBlank())
+		// Return actual userName if set
+		if (userName != null && !userName.isBlank())
 		{
-			return email;
+			return userName;
 		}
-		return (firstName + "." + lastName).toLowerCase()
-			.replaceAll("\\s+", "")
-			.replaceAll("[^a-z0-9.]", "");
+		// Generate from name only if userName not set
+		if (firstName != null && lastName != null)
+		{
+			return (firstName + "." + lastName).toLowerCase()
+				.replaceAll("\\s+", "")
+				.replaceAll("[^a-z0-9.]", "");
+		}
+		return "user";
 	}
 }
