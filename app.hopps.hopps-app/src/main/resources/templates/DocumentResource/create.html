@@ -215,36 +215,30 @@
 {#moreScripts}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var fileUploader = document.querySelector('cds-file-uploader');
+    console.log('Document loaded, initializing file uploader...');
+
     var fileInput = document.getElementById('file');
     var submitBtn = document.getElementById('submitBtn');
     var uploadForm = document.getElementById('uploadForm');
     var uploadOverlay = document.getElementById('uploadOverlay');
 
-    // Listen for Carbon file uploader change event
-    if (fileUploader) {
-      fileUploader.addEventListener('cds-file-uploader-changed', function(e) {
-        if (e.detail && e.detail.addedFiles && e.detail.addedFiles.length > 0) {
-          submitBtn.disabled = false;
-        } else {
-          submitBtn.disabled = true;
-        }
-      });
+    console.log('Elements found:', { fileInput: !!fileInput, submitBtn: !!submitBtn, uploadForm: !!uploadForm });
 
-      fileUploader.addEventListener('cds-file-uploader-deleted', function(e) {
-        submitBtn.disabled = true;
-      });
-    }
-
-    // Also listen to native input change as fallback
-    if (fileInput) {
+    // Enable submit button when file is selected
+    if (fileInput && submitBtn) {
       fileInput.addEventListener('change', function() {
+        console.log('File input changed, files:', fileInput.files.length);
         if (fileInput.files.length > 0) {
+          console.log('Enabling submit button');
           submitBtn.disabled = false;
         } else {
+          console.log('Disabling submit button');
           submitBtn.disabled = true;
         }
       });
+      console.log('File input change listener attached');
+    } else {
+      console.error('Could not find fileInput or submitBtn elements');
     }
 
     // Handle form submission with loading state
@@ -298,13 +292,15 @@
 
     <div class="form-section">
       <h3>Datei hochladen</h3>
-      <cds-file-uploader
-        accept=".pdf,.png,.jpg,.jpeg,.gif,.webp"
-        label-title="Beleg hochladen"
-        label-description="Unterstützte Formate: PDF, PNG, JPG, GIF, WebP"
-        button-label="Datei auswählen">
-        <input type="file" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp" required />
-      </cds-file-uploader>
+      <input type="file"
+             id="file"
+             name="file"
+             accept=".pdf,.png,.jpg,.jpeg,.gif,.webp"
+             required
+             style="display: block; margin: 1rem 0; padding: 0.5rem; border: 1px solid #8d8d8d; background: #f4f4f4;" />
+      <p style="color: #525252; font-size: 0.875rem; margin-top: 0.5rem;">
+        Unterstützte Formate: PDF, PNG, JPG, GIF, WebP
+      </p>
     </div>
 
     <div class="ai-info">
@@ -316,11 +312,11 @@
     </div>
 
     <div class="button-row">
-      <cds-button type="submit" id="submitBtn" kind="primary" disabled>
+      <button type="submit" id="submitBtn" class="cds-btn cds-btn-primary" disabled>
         Hochladen & Analysieren
-        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
-      </cds-button>
-      <cds-button href="/belege" kind="secondary">Abbrechen</cds-button>
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor" style="margin-left: 0.5rem;"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
+      </button>
+      <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
     </div>
   </form>
 </div>
