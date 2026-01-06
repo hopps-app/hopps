@@ -49,14 +49,14 @@ class MemberResourceTest extends BaseOrganizationTest
 		Mockito.when(memberKeycloakSyncService.syncMemberToKeycloak(Mockito.any(Member.class)))
 			.thenAnswer(invocation -> {
 				Member member = invocation.getArgument(0);
-				member.setKeycloakUserId("mock-keycloak-id-" + member.getId());
+				member.setUserName("mock-username-" + member.getId());
 				return "mock-keycloak-id-" + member.getId();
 			});
 
 		Mockito.when(memberKeycloakSyncService.syncMemberToKeycloak(Mockito.any(Member.class), Mockito.anyList()))
 			.thenAnswer(invocation -> {
 				Member member = invocation.getArgument(0);
-				member.setKeycloakUserId("mock-keycloak-id-" + member.getId());
+				member.setUserName("mock-username-" + member.getId());
 				return "mock-keycloak-id-" + member.getId();
 			});
 	}
@@ -228,7 +228,7 @@ class MemberResourceTest extends BaseOrganizationTest
 		// Recreate the test security member
 		Organization testOrg = getOrCreateTestOrganization();
 		Member testMember = new Member();
-		testMember.setKeycloakUserId("bob");
+		testMember.setUserName("bob");
 		testMember.setEmail("bob@test.local");
 		testMember.setFirstName("Bob");
 		testMember.setLastName("Test");

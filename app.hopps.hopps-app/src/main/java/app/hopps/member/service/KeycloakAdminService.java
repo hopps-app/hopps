@@ -104,10 +104,20 @@ public class KeycloakAdminService
 		}
 	}
 
-	public void deleteUser(String userId)
+	public void deleteUser(String username)
 	{
-		keycloak.realm(realm).users().delete(userId);
-		LOG.info("Deleted Keycloak user: {}", userId);
+		UserRepresentation user = keycloak.realm(realm).users().search(username).stream().findFirst().orElse(null);
+		if (user == null)
+		{
+			LOG.warn("No Keycloak user to delete for {}", username);
+		}
+		else
+		{
+			try (Response response = keycloak.realm(realm).users().delete(user.getId()))
+			{
+				LOG.info("Deleted Keycloak user with status {}: {}", response.getStatus(), username);
+			}
+		}
 	}
 
 	/**
@@ -126,7 +136,7 @@ public class KeycloakAdminService
 			return null;
 		}
 
-		UserRepresentation user = users.get(0);
+		UserRepresentation user = users.getFirst();
 		LOG.debug("Found Keycloak user: username={}, userId={}", username, user.getId());
 		return user.getId();
 	}

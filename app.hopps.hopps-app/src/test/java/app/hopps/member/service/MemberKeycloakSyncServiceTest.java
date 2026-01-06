@@ -105,46 +105,6 @@ class MemberKeycloakSyncServiceTest
 	}
 
 	@Test
-	void shouldSetKeycloakUserIdOnMember()
-	{
-		// Given
-		when(keycloakAdminService.createUser(any(), any(), any(), any(), any()))
-			.thenReturn("kc-user-999");
-
-		// When
-		syncService.syncMemberToKeycloak(member);
-
-		// Then
-		assertEquals("kc-user-999", member.getKeycloakUserId());
-	}
-
-	@Test
-	void shouldDeleteKeycloakUserWhenIdExists()
-	{
-		// Given
-		member.setKeycloakUserId("kc-user-to-delete");
-
-		// When
-		syncService.deleteMemberKeycloakUser(member);
-
-		// Then
-		verify(keycloakAdminService).deleteUser("kc-user-to-delete");
-	}
-
-	@Test
-	void shouldNotDeleteWhenNoKeycloakUserId()
-	{
-		// Given
-		member.setKeycloakUserId(null);
-
-		// When
-		syncService.deleteMemberKeycloakUser(member);
-
-		// Then
-		verify(keycloakAdminService, never()).deleteUser(any());
-	}
-
-	@Test
 	void shouldPassCorrectUserDetailsToKeycloak()
 	{
 		// Given

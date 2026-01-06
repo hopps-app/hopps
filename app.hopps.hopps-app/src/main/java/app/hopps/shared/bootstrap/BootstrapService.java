@@ -190,12 +190,11 @@ public class BootstrapService
 			return;
 		}
 
-		// Check if Member already exists by email
-		Member existingMember = memberRepository.findByEmail(config.email());
-		if (existingMember != null && existingMember.getKeycloakUserId() != null)
+		// Check if Member already exists by username
+		Member existingMember = memberRepository.findByUsername(config.username());
+		if (existingMember != null)
 		{
-			LOG.debug("User {} already exists (Member ID: {}, Keycloak ID: {})", config.username(),
-				existingMember.getId(), existingMember.getKeycloakUserId());
+			LOG.info("User {} already exists (Member ID: {})", config.username(), existingMember.getId());
 			return;
 		}
 
@@ -208,8 +207,8 @@ public class BootstrapService
 			return;
 		}
 
-		// Create or link Member record
-		createOrLinkMember(keycloakUserId, config, org);
+		// Create Member record
+		createIfNotExisting(config, org);
 	}
 
 	/**
@@ -306,59 +305,31 @@ public class BootstrapService
 	/**
 	 * Creates or links a Member record to a Keycloak user.
 	 *
-	 * @param keycloakUserId
-	 *            Keycloak user ID
 	 * @param config
 	 *            User configuration
 	 * @param org
 	 *            Organization for this member
 	 */
-	private void createOrLinkMember(String keycloakUserId, UserConfig config, Organization org)
+	private void createIfNotExisting(UserConfig config, Organization org)
 	{
-		// 1. Find by email (most reliable identifier - email doesn't change)
-		Member existingByEmail = memberRepository.findByEmail(config.email());
-
-		if (existingByEmail != null)
+		Member existingByUsername = memberRepository.findByUsername(config.username());
+		if (existingByUsername != null)
 		{
-			// Member exists - check if Keycloak ID needs update
-			if (!keycloakUserId.equals(existingByEmail.getKeycloakUserId()))
-			{
-				LOG.warn("Member {} has outdated Keycloak ID. Updating from {} to {}", config.email(),
-					existingByEmail.getKeycloakUserId(), keycloakUserId);
-				existingByEmail.setKeycloakUserId(keycloakUserId);
-				// Entity is managed, changes will be persisted automatically at
-				// transaction commit
-			}
-			else
-			{
-				LOG.debug("Member {} already linked to correct Keycloak user: {}", config.email(),
-					keycloakUserId);
-			}
-			return;
+			LOG.info("Member {} already exists", existingByUsername.getUserName());
 		}
-
-		// 2. Check if another member has this Keycloak ID (data integrity
-		// check)
-		Member memberByKeycloakId = memberRepository.findByKeycloakUserId(keycloakUserId);
-		if (memberByKeycloakId != null)
+		else
 		{
-			LOG.error("Keycloak user {} is linked to member {} but config expects {}", keycloakUserId,
-				memberByKeycloakId.getEmail(), config.email());
-			throw new IllegalStateException(
-				"Keycloak ID already linked to different member: " + memberByKeycloakId.getEmail());
+			Member newMember = new Member();
+			newMember.setUserName(config.username);
+			newMember.setEmail(config.email());
+			newMember.setFirstName(config.firstName());
+			newMember.setLastName(config.lastName());
+			newMember.setOrganization(org);
+			memberRepository.persist(newMember);
+
+			LOG.info("Created member: {} {} ({}) linked to Keycloak user: {} via username equality", newMember.getFirstName(),
+				newMember.getLastName(), newMember.getEmail(), config.username());
 		}
-
-		// 3. Create new Member record
-		Member newMember = new Member();
-		newMember.setKeycloakUserId(keycloakUserId);
-		newMember.setEmail(config.email());
-		newMember.setFirstName(config.firstName());
-		newMember.setLastName(config.lastName());
-		newMember.setOrganization(org);
-		memberRepository.persist(newMember);
-
-		LOG.info("Created member: {} {} ({}) linked to Keycloak user: {}", newMember.getFirstName(),
-			newMember.getLastName(), newMember.getEmail(), config.username());
 	}
 
 	/**

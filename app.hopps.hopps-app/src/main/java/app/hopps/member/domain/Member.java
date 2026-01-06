@@ -30,7 +30,7 @@ public class Member extends PanacheEntity
 	private String phone;
 
 	@Column(unique = true)
-	private String keycloakUserId;
+	private String userName;
 
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "organization_id", nullable = false)
@@ -89,14 +89,14 @@ public class Member extends PanacheEntity
 		return responsibleBommels;
 	}
 
-	public String getKeycloakUserId()
+	public String getUserName()
 	{
-		return keycloakUserId;
+		return userName;
 	}
 
-	public void setKeycloakUserId(String keycloakUserId)
+	public void setUserName(String userName)
 	{
-		this.keycloakUserId = keycloakUserId;
+		this.userName = userName;
 	}
 
 	public Organization getOrganization()

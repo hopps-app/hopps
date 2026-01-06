@@ -1,5 +1,6 @@
 package app.hopps.shared.security;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,8 @@ import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+
+import static org.eclipse.microprofile.jwt.Claims.email;
 
 /**
  * Request-scoped service that resolves the current organization for the
@@ -64,58 +67,11 @@ public class OrganizationContext
 		// Super admin: use session-based org switcher
 		if (securityIdentity.hasRole("super_admin"))
 		{
-			// Check if session is available (might not be in tests)
-			if (routingContext != null && routingContext.session() != null)
-			{
-				Long orgId = routingContext.session().get(SESSION_ORG_ID);
-				if (orgId != null)
-				{
-					Organization org = organizationRepository.findById(orgId);
-					if (org != null)
-					{
-						return org;
-					}
-					// Invalid org ID in session, clear it
-					routingContext.session().remove(SESSION_ORG_ID);
-				}
-
-				// No org selected or invalid - default to first available
-				Organization firstOrg = organizationRepository.findAll().firstResult();
-				if (firstOrg != null)
-				{
-					// Store in session for next request
-					routingContext.session().put(SESSION_ORG_ID, firstOrg.id);
-				}
-				return firstOrg;
-			}
-			else
-			{
-				throw new IllegalStateException("No session available for organization context");
-			}
+			return getOrganizationForSuperAdmin();
 		}
 
-		// Regular users: get from their member record
-		// Use email from JWT - email is stable and doesn't change when Keycloak
-		// restarts
-		String email;
-		try
-		{
-			// JWT is available in OIDC context - use email claim
-			email = jwt.getClaim("email");
-			if (email == null)
-			{
-				LOG.error("JWT does not contain email claim");
-				throw new IllegalStateException("JWT does not contain email claim");
-			}
-		}
-		catch (Exception e)
-		{
-			// Fallback to principal name for tests or non-OIDC scenarios
-			email = securityIdentity.getPrincipal().getName();
-			LOG.debug("JWT not available, using principal name as email: {}", email);
-		}
-
-		Member member = memberRepository.findByEmail(email);
+		String username = securityIdentity.getPrincipal().getName();
+		Member member = memberRepository.findByUsername(username);
 		if (member == null)
 		{
 			LOG.error("No member found for email: {}", email);
@@ -123,6 +79,38 @@ public class OrganizationContext
 		}
 
 		return member.getOrganization();
+	}
+
+	private @Nullable Organization getOrganizationForSuperAdmin()
+	{
+		// Check if session is available (might not be in tests)
+		if (routingContext != null && routingContext.session() != null)
+		{
+			Long orgId = routingContext.session().get(SESSION_ORG_ID);
+			if (orgId != null)
+			{
+				Organization org = organizationRepository.findById(orgId);
+				if (org != null)
+				{
+					return org;
+				}
+				// Invalid org ID in session, clear it
+				routingContext.session().remove(SESSION_ORG_ID);
+			}
+
+			// No org selected or invalid - default to first available
+			Organization firstOrg = organizationRepository.findAll().firstResult();
+			if (firstOrg != null)
+			{
+				// Store in session for next request
+				routingContext.session().put(SESSION_ORG_ID, firstOrg.id);
+			}
+			return firstOrg;
+		}
+		else
+		{
+			throw new IllegalStateException("No session available for organization context");
+		}
 	}
 
 	/**

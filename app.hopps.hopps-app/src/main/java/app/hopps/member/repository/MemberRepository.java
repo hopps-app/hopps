@@ -90,4 +90,17 @@ public class MemberRepository implements PanacheRepository<Member>
 		}
 		return find("id = ?1 and organization.id = ?2", id, orgId).firstResult();
 	}
+
+	/**
+	 * Finds a member by their username.
+	 *
+	 * @param userName
+	 *            The username of the member to search for.
+	 * @return The member with the specified username, or null if no such member
+	 *         exists.
+	 */
+	public Member findByUsername(String userName)
+	{
+		return find("userName", userName).firstResult();
+	}
 }
