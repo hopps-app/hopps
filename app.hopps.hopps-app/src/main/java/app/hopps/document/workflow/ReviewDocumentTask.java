@@ -39,6 +39,9 @@ public class ReviewDocumentTask extends UserTask
 	private static final Logger LOG = LoggerFactory.getLogger(ReviewDocumentTask.class);
 
 	public static final String TASK_NAME = "ReviewDocument";
+	public static final String REVIEW_CONFIRMED = "reviewConfirmed";
+	public static final String REANALYZE_REQUESTED = "reanalyzeRequested";
+	public static final String MANUAL_ENTRY_REQUESTED = "manualEntryRequested";
 
 	@Inject
 	DocumentRepository documentRepository;
@@ -94,7 +97,7 @@ public class ReviewDocumentTask extends UserTask
 			// User confirmed - apply form data and mark as confirmed
 			applyFormDataToDocument(document, userInput);
 			document.setDocumentStatus(DocumentStatus.CONFIRMED);
-			instance.setVariable("reviewConfirmed", true);
+			instance.setVariable(REVIEW_CONFIRMED, true);
 			LOG.info("Document confirmed by user: documentId={}", documentId);
 		}
 		else if (Boolean.TRUE.equals(reanalyze))
@@ -104,8 +107,8 @@ public class ReviewDocumentTask extends UserTask
 			document.setAnalysisError(null);
 			document.setWorkflowInstanceId(null); // Clear workflow link for
 													// re-analysis
-			instance.setVariable("reviewConfirmed", false);
-			instance.setVariable("reanalyzeRequested", true);
+			instance.setVariable(REVIEW_CONFIRMED, false);
+			instance.setVariable(REANALYZE_REQUESTED, true);
 			LOG.info("Document rejected, re-analysis requested: documentId={}", documentId);
 		}
 		else
@@ -113,8 +116,8 @@ public class ReviewDocumentTask extends UserTask
 			// User rejected and wants manual entry
 			document.setDocumentStatus(DocumentStatus.UPLOADED);
 			document.setWorkflowInstanceId(null); // Clear workflow link
-			instance.setVariable("reviewConfirmed", false);
-			instance.setVariable("manualEntryRequested", true);
+			instance.setVariable(REVIEW_CONFIRMED, false);
+			instance.setVariable(MANUAL_ENTRY_REQUESTED, true);
 			LOG.info("Document rejected, manual entry selected: documentId={}", documentId);
 		}
 	}
@@ -259,37 +262,25 @@ public class ReviewDocumentTask extends UserTask
 	private Long getLong(Map<String, Object> map, String key)
 	{
 		Object value = map.get(key);
-		if (value == null)
+		return switch (value)
 		{
-			return null;
-		}
-		if (value instanceof Long)
-		{
-			return (Long)value;
-		}
-		if (value instanceof Number)
-		{
-			return ((Number)value).longValue();
-		}
-		return Long.parseLong(value.toString());
+			case null -> null;
+			case Long l -> l;
+			case Number number -> number.longValue();
+			default -> Long.parseLong(value.toString());
+		};
 	}
 
 	private BigDecimal getBigDecimal(Map<String, Object> map, String key)
 	{
 		Object value = map.get(key);
-		if (value == null)
+		return switch (value)
 		{
-			return null;
-		}
-		if (value instanceof BigDecimal)
-		{
-			return (BigDecimal)value;
-		}
-		if (value instanceof Number)
-		{
-			return BigDecimal.valueOf(((Number)value).doubleValue());
-		}
-		return new BigDecimal(value.toString());
+			case null -> null;
+			case BigDecimal bigDecimal -> bigDecimal;
+			case Number number -> BigDecimal.valueOf(number.doubleValue());
+			default -> new BigDecimal(value.toString());
+		};
 	}
 
 	private Boolean getBoolean(Map<String, Object> map, String key)
@@ -297,7 +288,7 @@ public class ReviewDocumentTask extends UserTask
 		Object value = map.get(key);
 		if (value == null)
 		{
-			return null;
+			throw new IllegalArgumentException("Missing boolean value for key: " + key);
 		}
 		if (value instanceof Boolean)
 		{

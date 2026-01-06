@@ -28,6 +28,7 @@ public class DocumentTag extends PanacheEntity
 
 	public DocumentTag()
 	{
+		// no args
 	}
 
 	public DocumentTag(Document document, Tag tag, TagSource source)

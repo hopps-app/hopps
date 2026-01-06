@@ -1,14 +1,8 @@
 package app.hopps.member.api;
 
-import java.util.List;
-
-import org.jboss.resteasy.reactive.RestForm;
-import org.jboss.resteasy.reactive.RestPath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.member.service.MemberKeycloakSyncService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.shared.util.FlashKeys;
@@ -24,6 +18,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.RestPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @Authenticated
 @Path("/mitglieder")
@@ -33,10 +33,7 @@ public class MemberResource extends Controller
 	MemberRepository memberRepository;
 
 	@Inject
-	app.hopps.member.service.MemberKeycloakSyncService memberKeycloakSyncService;
-
-	@Inject
-	SecurityIdentity securityIdentity;
+	MemberKeycloakSyncService memberKeycloakSyncService;
 
 	@Inject
 	OrganizationContext organizationContext;
@@ -46,6 +43,11 @@ public class MemberResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
+		private Templates()
+		{
+			// static
+		}
+
 		public static native TemplateInstance index(List<Member> members);
 
 		public static native TemplateInstance detail(Member member);

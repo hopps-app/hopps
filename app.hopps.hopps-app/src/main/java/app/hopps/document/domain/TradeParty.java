@@ -132,7 +132,7 @@ public class TradeParty extends PanacheEntity
 		}
 		if (zipCode != null || city != null)
 		{
-			if (sb.length() > 0)
+			if (!sb.isEmpty())
 			{
 				sb.append(", ");
 			}

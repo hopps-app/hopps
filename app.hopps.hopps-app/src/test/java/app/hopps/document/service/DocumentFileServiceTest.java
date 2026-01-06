@@ -1,6 +1,21 @@
 package app.hopps.document.service;
 
+import app.hopps.document.domain.Document;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,23 +24,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import app.hopps.document.domain.Document;
-import io.quarkus.test.junit.QuarkusTest;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentFileServiceTest
@@ -186,8 +184,7 @@ class DocumentFileServiceTest
 		// Then - file keys should be different due to UUID
 		assertTrue(document.getFileKey().startsWith("documents/"));
 		assertTrue(document2.getFileKey().startsWith("documents/"));
-		assertTrue(!document.getFileKey().equals(document2.getFileKey()),
-			"File keys should be unique");
+		assertNotEquals(document.getFileKey(), document2.getFileKey(), "File keys should be unique");
 	}
 
 	@Test

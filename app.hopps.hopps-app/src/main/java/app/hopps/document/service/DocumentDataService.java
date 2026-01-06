@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jboss.logging.Logger;
-
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
@@ -18,11 +16,18 @@ import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 @ApplicationScoped
 public class DocumentDataService
 {
-	private static final Logger LOG = Logger.getLogger(DocumentDataService.class);
+	private static final Logger LOG = getLogger(DocumentDataService.class);
+	public static final String KEY_TOTAL = "total";
+	public static final String KEY_TRANSACTION_DATE = "transactionDate";
+	public static final String KEY_CURRENCY_CODE = "currencyCode";
+	public static final String KEY_PRIVATELY_PAID = "privatelyPaid";
 
 	@Inject
 	TagRepository tagRepository;
@@ -37,12 +42,12 @@ public class DocumentDataService
 	 */
 	public void applyFormData(Document document, Map<String, Object> userInput)
 	{
-		LOG.infof("Applying form data directly to document: documentId=%s", document.getId());
+		LOG.info("Applying form data directly to document: documentId={}", document.getId());
 
 		// Extract and apply core fields
-		if (userInput.containsKey("total") && userInput.get("total") != null)
+		if (userInput.containsKey(KEY_TOTAL) && userInput.get(KEY_TOTAL) != null)
 		{
-			String totalStr = userInput.get("total").toString();
+			String totalStr = userInput.get(KEY_TOTAL).toString();
 			if (!totalStr.isBlank())
 			{
 				document.setTotal(new BigDecimal(totalStr));
@@ -54,9 +59,9 @@ public class DocumentDataService
 			document.setName((String)userInput.get("name"));
 		}
 
-		if (userInput.containsKey("transactionDate") && userInput.get("transactionDate") != null)
+		if (userInput.containsKey(KEY_TRANSACTION_DATE) && userInput.get(KEY_TRANSACTION_DATE) != null)
 		{
-			String dateStr = userInput.get("transactionDate").toString();
+			String dateStr = userInput.get(KEY_TRANSACTION_DATE).toString();
 			if (!dateStr.isBlank())
 			{
 				LocalDate date = LocalDate.parse(dateStr);
@@ -64,21 +69,21 @@ public class DocumentDataService
 			}
 		}
 
-		if (userInput.containsKey("currencyCode"))
+		if (userInput.containsKey(KEY_CURRENCY_CODE))
 		{
-			document.setCurrencyCode((String)userInput.get("currencyCode"));
+			document.setCurrencyCode((String)userInput.get(KEY_CURRENCY_CODE));
 		}
 
-		if (userInput.containsKey("privatelyPaid"))
+		if (userInput.containsKey(KEY_PRIVATELY_PAID))
 		{
-			boolean privatelyPaid = Boolean.parseBoolean(userInput.get("privatelyPaid").toString());
+			boolean privatelyPaid = Boolean.parseBoolean(userInput.get(KEY_PRIVATELY_PAID).toString());
 			document.setPrivatelyPaid(privatelyPaid);
 		}
 
 		// Sender information
 		applySenderData(document, userInput);
 
-		LOG.infof("Form data applied successfully: documentId=%s", document.getId());
+		LOG.info("Form data applied successfully: documentId={}", document.getId());
 	}
 
 	private void applySenderData(Document document, Map<String, Object> userInput)
@@ -137,7 +142,7 @@ public class DocumentDataService
 
 		// Remove manual tags not in new set (preserve AI tags)
 		document.getDocumentTags().removeIf(dt -> dt.getSource() == TagSource.MANUAL
-			&& !newTags.stream().anyMatch(tag -> tag.getName().equalsIgnoreCase(dt.getName())));
+			&& newTags.stream().noneMatch(tag -> tag.getName().equalsIgnoreCase(dt.getName())));
 
 		// Add new tags as MANUAL
 		for (Tag tag : newTags)
@@ -145,7 +150,7 @@ public class DocumentDataService
 			document.addTag(tag, TagSource.MANUAL);
 		}
 
-		LOG.debugf("Updated tags for document %s: %s", document.getId(), tagNames);
+		LOG.debug("Updated tags for document {}: {}", document.getId(), tagNames);
 	}
 
 	/**
@@ -153,7 +158,7 @@ public class DocumentDataService
 	 *
 	 * @param dateStr
 	 *            the date string
-	 * @return Instant or null if string is blank
+	 * @return Instant or null if the string is blank
 	 */
 	public Instant parseDate(String dateStr)
 	{

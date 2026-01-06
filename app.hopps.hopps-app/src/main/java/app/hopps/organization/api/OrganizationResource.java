@@ -2,6 +2,8 @@ package app.hopps.organization.api;
 
 import java.util.List;
 
+import app.hopps.shared.security.Roles;
+import app.hopps.shared.util.FlashKeys;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.slf4j.Logger;
@@ -41,6 +43,11 @@ public class OrganizationResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
+		private Templates()
+		{
+			// static
+		}
+
 		public static native TemplateInstance index(List<Organization> organizations, Organization currentOrg);
 
 		public static native TemplateInstance create();
@@ -49,9 +56,9 @@ public class OrganizationResource extends Controller
 	}
 
 	/**
-	 * Show list of all organizations (super admin only).
+	 * Show a list of all organizations (super admin only).
 	 */
-	@RolesAllowed("super_admin")
+	@RolesAllowed(Roles.SUPER_ADMIN)
 	public TemplateInstance index()
 	{
 		List<Organization> organizations = organizationRepository.listAll();
@@ -62,7 +69,7 @@ public class OrganizationResource extends Controller
 	/**
 	 * Show form to create new organization (super admin only).
 	 */
-	@RolesAllowed("super_admin")
+	@RolesAllowed(Roles.SUPER_ADMIN)
 	public TemplateInstance create()
 	{
 		return Templates.create();
@@ -73,7 +80,7 @@ public class OrganizationResource extends Controller
 	 */
 	@POST
 	@Path("/save")
-	@RolesAllowed("super_admin")
+	@RolesAllowed(Roles.SUPER_ADMIN)
 	@Transactional
 	public void save(
 		@NotBlank @RestForm String name,
@@ -85,7 +92,7 @@ public class OrganizationResource extends Controller
 			create();
 		}
 
-		// Check if slug already exists
+		// Check if a slug already exists
 		Organization existing = organizationRepository.findBySlug(slug);
 		if (existing != null)
 		{
@@ -102,7 +109,7 @@ public class OrganizationResource extends Controller
 		organizationRepository.persist(organization);
 
 		LOG.info("Organization created: {} ({})", organization.getName(), organization.getSlug());
-		flash("success", "Organisation erfolgreich erstellt");
+		flash(FlashKeys.SUCCESS, "Organisation erfolgreich erstellt");
 
 		index();
 	}
@@ -112,13 +119,13 @@ public class OrganizationResource extends Controller
 	 */
 	@GET
 	@Path("/{id}")
-	@RolesAllowed("super_admin")
+	@RolesAllowed(Roles.SUPER_ADMIN)
 	public TemplateInstance detail(@RestPath Long id)
 	{
 		Organization organization = organizationRepository.findById(id);
 		if (organization == null)
 		{
-			flash("error", "Organisation nicht gefunden");
+			flash(FlashKeys.ERROR, "Organisation nicht gefunden");
 			index();
 		}
 
@@ -130,7 +137,7 @@ public class OrganizationResource extends Controller
 	 */
 	@POST
 	@Path("/switch")
-	@RolesAllowed("super_admin")
+	@RolesAllowed(Roles.SUPER_ADMIN)
 	@Transactional
 	public void switchOrganization(@RestForm Long organizationId)
 	{
@@ -144,7 +151,7 @@ public class OrganizationResource extends Controller
 		organizationContext.switchOrganization(organizationId);
 
 		LOG.info("Super admin switched to organization: {}", organization.getName());
-		flash("success", "Zur Organisation \"" + organization.getName() + "\" gewechselt");
+		flash(FlashKeys.SUCCESS, "Zur Organisation \"" + organization.getName() + "\" gewechselt");
 
 		// Redirect to dashboard
 		redirect(DashboardResource.class);
@@ -155,14 +162,14 @@ public class OrganizationResource extends Controller
 	 */
 	@POST
 	@Path("/toggle-active")
-	@RolesAllowed("super_admin")
+	@RolesAllowed(Roles.SUPER_ADMIN)
 	@Transactional
 	public void toggleActive(@RestForm Long id)
 	{
 		Organization organization = organizationRepository.findById(id);
 		if (organization == null)
 		{
-			flash("error", "Organisation nicht gefunden");
+			flash(FlashKeys.ERROR, "Organisation nicht gefunden");
 			index();
 		}
 

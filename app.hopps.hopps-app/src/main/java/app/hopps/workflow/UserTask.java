@@ -6,7 +6,7 @@ import java.util.Map;
  * Abstract base class for user tasks. User tasks require human interaction to
  * complete. When executed, they put the chain in a waiting state until a user
  * completes the task.
- *
+ * <p>
  * Implementations should be CDI beans (e.g., @ApplicationScoped) so they can
  * have dependencies injected.
  */
@@ -22,13 +22,21 @@ public abstract class UserTask implements Task
 	}
 
 	/**
-	 * Called when a user completes this task with input data.
+	 * Completes the user task associated with the given workflow instance by
+	 * validating and processing user input. If the input validation fails or an
+	 * exception occurs during processing, the task is marked as failed. On
+	 * successful completion, the waiting state and associated user task
+	 * information are cleared, and the task is marked as completed.
 	 *
-	 * @param chain
-	 *            the process chain holding all state
+	 * @param instance
+	 *            the workflow instance representing the current state of the
+	 *            execution
 	 * @param userInput
-	 *            the data provided by the user
-	 * @return COMPLETED if successful, FAILED if validation fails
+	 *            a map of user-provided input values to be validated and
+	 *            processed
+	 * @return {@code TaskResult.COMPLETED} if the task is successfully
+	 *         completed, {@code TaskResult.FAILED} if the task fails during
+	 *         validation or processing
 	 */
 	public final TaskResult complete(WorkflowInstance instance, Map<String, Object> userInput)
 	{
@@ -57,14 +65,17 @@ public abstract class UserTask implements Task
 	}
 
 	/**
-	 * Validates the user input before processing. Override to add custom
-	 * validation logic.
+	 * Validates the user-provided input for the associated workflow instance.
+	 * This method is intended to be overridden by subclasses to implement
+	 * specific input validation logic.
 	 *
-	 * @param chain
-	 *            the process chain
+	 * @param instance
+	 *            the workflow instance representing the current state of the
+	 *            execution. This parameter must not be null.
 	 * @param userInput
-	 *            the input to validate
-	 * @return true if valid, false otherwise
+	 *            a map of user-provided input values to be validated. This map
+	 *            may include key-value pairs representing specific user inputs.
+	 * @return {@code true} if the input is valid; otherwise, {@code false}.
 	 */
 	protected boolean validateInput(WorkflowInstance instance, Map<String, Object> userInput)
 	{
@@ -72,26 +83,21 @@ public abstract class UserTask implements Task
 	}
 
 	/**
-	 * Processes the validated user input. Implementations should store results
-	 * in the instance.
+	 * Processes user input for the given workflow instance. This method is
+	 * intended to be implemented by subclasses to define the specific logic for
+	 * handling and processing user-provided input.
 	 *
-	 * @param chain
-	 *            the process chain
+	 * @param instance
+	 *            the workflow instance representing the current state of
+	 *            execution. This object contains all the workflow data and
+	 *            execution context. Must not be null.
 	 * @param userInput
-	 *            the validated user input
+	 *            a map of key-value pairs representing inputs provided by the
+	 *            user. The keys are expected to correspond to specific input
+	 *            fields or parameters required by the user task. The values
+	 *            contain the user-specified data for those fields. This
+	 *            parameter must not be null but may contain an empty map if no
+	 *            input is provided.
 	 */
 	protected abstract void processInput(WorkflowInstance instance, Map<String, Object> userInput);
-
-	/**
-	 * Returns the assignee for this user task, if any. Override to assign tasks
-	 * to specific users or roles.
-	 *
-	 * @param chain
-	 *            the process chain
-	 * @return the assignee username, or null for unassigned
-	 */
-	public String getAssignee(WorkflowInstance instance)
-	{
-		return null;
-	}
 }

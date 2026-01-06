@@ -1,15 +1,5 @@
 package app.hopps.document.api;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.AnalysisStatus;
@@ -19,19 +9,15 @@ import app.hopps.document.domain.DocumentTag;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.repository.DocumentRepository;
-import app.hopps.transaction.domain.TransactionRecord;
-import app.hopps.transaction.repository.TransactionRecordRepository;
 import app.hopps.document.service.DocumentAnalysisService;
 import app.hopps.document.service.DocumentDataService;
 import app.hopps.document.service.DocumentFileService;
-import app.hopps.document.workflow.DocumentProcessingWorkflow;
 import app.hopps.organization.domain.Organization;
-import app.hopps.shared.domain.Tag;
-import app.hopps.shared.repository.TagRepository;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.shared.util.FlashKeys;
+import app.hopps.transaction.domain.TransactionRecord;
+import app.hopps.transaction.repository.TransactionRecordRepository;
 import app.hopps.workflow.ProcessEngine;
-import app.hopps.workflow.WorkflowInstance;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -49,12 +35,23 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestQuery;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Authenticated
 @Path("/belege")
 public class DocumentResource extends Controller
 {
 	private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
+	public static final String BELEG_NICHT_GEFUNDEN = "Beleg nicht gefunden";
+	public static final String KI_DIENST_NICHT_VERFÜGBAR_BITTE_FÜLLEN_SIE_DIE_FELDER_MANUELL_AUS = "KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.";
 
 	@Inject
 	DocumentRepository documentRepository;
@@ -66,13 +63,7 @@ public class DocumentResource extends Controller
 	TransactionRecordRepository transactionRepository;
 
 	@Inject
-	DocumentProcessingWorkflow documentProcessingWorkflow;
-
-	@Inject
 	ProcessEngine processEngine;
-
-	@Inject
-	TagRepository tagRepository;
 
 	@Inject
 	SecurityIdentity securityIdentity;
@@ -92,6 +83,11 @@ public class DocumentResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
+		private Templates()
+		{
+			// static
+		}
+
 		public static native TemplateInstance index(List<Document> documents, List<Document> documentsNeedingReview, List<Document> documentsNeedingTransaction);
 
 		public static native TemplateInstance create();
@@ -147,7 +143,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return null;
 		}
@@ -187,7 +183,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return null;
 		}
@@ -264,7 +260,7 @@ public class DocumentResource extends Controller
 			return;
 		}
 
-		// Create and persist document in a separate transaction
+		// Create and persist a document in a separate transaction
 		// This prevents transaction rollback when redirect() throws
 		// RedirectException
 		Long documentId = createAndPersistDocument(file);
@@ -280,12 +276,12 @@ public class DocumentResource extends Controller
 		Organization currentOrg = organizationContext.getCurrentOrganization();
 		if (currentOrg == null)
 		{
-			throw new IllegalStateException("Keine Organisation gefunden");
+			throw new IllegalStateException("Organization not found");
 		}
 
 		Document document = new Document();
-		document.setTotal(java.math.BigDecimal.ZERO); // Placeholder, will be
-														// filled by AI
+		document.setTotal(java.math.BigDecimal.ZERO);
+		// Placeholder will be filled by AI
 		document.setCurrencyCode("EUR");
 		document.setAnalysisStatus(AnalysisStatus.PENDING);
 		document.setDocumentStatus(DocumentStatus.UPLOADED);
@@ -301,7 +297,7 @@ public class DocumentResource extends Controller
 		if (!analysisStarted)
 		{
 			analysisService.markAnalysisFailed(document,
-				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+				KI_DIENST_NICHT_VERFÜGBAR_BITTE_FÜLLEN_SIE_DIE_FELDER_MANUELL_AUS);
 		}
 
 		return document.getId();
@@ -318,7 +314,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -348,8 +344,8 @@ public class DocumentResource extends Controller
 		else
 		{
 			analysisService.markAnalysisFailed(document,
-				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
-			flash(FlashKeys.ERROR, "KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+				KI_DIENST_NICHT_VERFÜGBAR_BITTE_FÜLLEN_SIE_DIE_FELDER_MANUELL_AUS);
+			flash(FlashKeys.ERROR, KI_DIENST_NICHT_VERFÜGBAR_BITTE_FÜLLEN_SIE_DIE_FELDER_MANUELL_AUS);
 		}
 
 		redirect(DocumentResource.class).review(id);
@@ -381,7 +377,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -495,7 +491,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -577,7 +573,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -646,7 +642,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -670,7 +666,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(documentId);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -700,7 +696,7 @@ public class DocumentResource extends Controller
 		else
 		{
 			analysisService.markAnalysisFailed(document,
-				"KI-Dienst nicht verfügbar. Bitte füllen Sie die Felder manuell aus.");
+				KI_DIENST_NICHT_VERFÜGBAR_BITTE_FÜLLEN_SIE_DIE_FELDER_MANUELL_AUS);
 			flash(FlashKeys.WARNING, "Datei hochgeladen: " + file.fileName() + ". KI-Dienst nicht verfügbar - bitte Felder manuell ausfüllen.");
 		}
 
@@ -715,7 +711,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(documentId);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -790,7 +786,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(documentId);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}
@@ -822,7 +818,7 @@ public class DocumentResource extends Controller
 		Document document = documentRepository.findByIdScoped(id);
 		if (document == null)
 		{
-			flash(FlashKeys.ERROR, "Beleg nicht gefunden");
+			flash(FlashKeys.ERROR, BELEG_NICHT_GEFUNDEN);
 			redirect(DocumentResource.class).index(null);
 			return;
 		}

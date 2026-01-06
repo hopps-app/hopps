@@ -35,11 +35,19 @@ public abstract class SystemTask implements Task
 	}
 
 	/**
-	 * Implement this method to perform the system task logic. All state should
-	 * be read from and written to the instance.
+	 * Executes the logic specific to the system task. This method is called by
+	 * the {@link SystemTask#execute(WorkflowInstance)} method and encapsulates
+	 * the task's core functionality.
+	 * <p>
+	 * Implementations of this method should perform the necessary actions for
+	 * the system task and may update the state of the provided
+	 * {@code WorkflowInstance}. In case of an error during execution,
+	 * implementations can throw exceptions that will be captured and handled by
+	 * the {@code execute} method.
 	 *
-	 * @param chain
-	 *            the process chain holding all state
+	 * @param instance
+	 *            the {@link WorkflowInstance} representing the workflow state
+	 *            and context in which this system task is executed
 	 */
 	protected abstract void doExecute(WorkflowInstance instance);
 }

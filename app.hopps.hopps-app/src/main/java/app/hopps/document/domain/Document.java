@@ -1,15 +1,5 @@
 package app.hopps.document.domain;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
@@ -22,6 +12,17 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Entity
 public class Document extends PanacheEntity
@@ -88,7 +89,7 @@ public class Document extends PanacheEntity
 	private Instant createdAt;
 
 	// Transient field for transaction count (populated by controller)
-	@jakarta.persistence.Transient
+	@Transient
 	private Long transactionCount;
 
 	public Document()

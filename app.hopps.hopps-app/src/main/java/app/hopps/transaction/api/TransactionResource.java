@@ -1,17 +1,5 @@
 package app.hopps.transaction.api;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.domain.TradeParty;
@@ -22,6 +10,7 @@ import app.hopps.shared.security.OrganizationContext;
 import app.hopps.shared.util.FlashKeys;
 import app.hopps.transaction.domain.TagSource;
 import app.hopps.transaction.domain.TransactionRecord;
+import app.hopps.transaction.domain.TransactionTag;
 import app.hopps.transaction.repository.TransactionRecordRepository;
 import io.quarkiverse.renarde.Controller;
 import io.quarkus.qute.CheckedTemplate;
@@ -36,6 +25,16 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Authenticated
 @Path("/transaktionen")
@@ -61,6 +60,11 @@ public class TransactionResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
+		private Templates()
+		{
+			// static
+		}
+
 		public static native TemplateInstance index(List<TransactionRecord> transactions);
 
 		public static native TemplateInstance create(List<Bommel> bommels);
@@ -287,7 +291,7 @@ public class TransactionResource extends Controller
 		if (tagsInput == null || tagsInput.isBlank())
 		{
 			// Remove all manual tags, keep AI tags
-			transaction.getTransactionTags().removeIf(tt -> tt.isManual());
+			transaction.getTransactionTags().removeIf(TransactionTag::isManual);
 			return;
 		}
 
@@ -304,7 +308,7 @@ public class TransactionResource extends Controller
 		transaction.getTransactionTags().removeIf(tt -> {
 			if (tt.isManual())
 			{
-				return !newTags.stream().anyMatch(tag -> tag.getName().equalsIgnoreCase(tt.getName()));
+				return newTags.stream().noneMatch(tag -> tag.getName().equalsIgnoreCase(tt.getName()));
 			}
 			return false; // Keep AI tags
 		});

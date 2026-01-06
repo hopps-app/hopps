@@ -1,23 +1,10 @@
 package app.hopps.transaction.api;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.math.BigDecimal;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
 import app.hopps.shared.TestSecurityHelper;
-import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
@@ -27,6 +14,13 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 
 @QuarkusTest
 @TestSecurity(user = TestSecurityHelper.TEST_USER_MARIA, roles = "user")
@@ -121,7 +115,7 @@ class TransactionResourceTest extends BaseOrganizationTest
 	@Transactional(TxType.REQUIRES_NEW)
 	void deleteAllData()
 	{
-		// Delete in correct order to avoid foreign key violations
+		// Delete it in correct order to avoid foreign key violations
 		// Delete junction table records first
 		entityManager.createQuery("DELETE FROM TransactionTag").executeUpdate();
 		entityManager.createQuery("DELETE FROM DocumentTag").executeUpdate();
@@ -145,50 +139,5 @@ class TransactionResourceTest extends BaseOrganizationTest
 		t.setOrganization(org);
 		transactionRepository.persist(t);
 		return t;
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	Document createTestDocument(String name, String total)
-	{
-		Organization org = getOrCreateTestOrganization();
-
-		Document d = new Document();
-		d.setName(name);
-		d.setTotal(new BigDecimal(total));
-		d.setOrganization(org);
-		documentRepository.persist(d);
-		return d;
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	Document createTestDocumentWithAiTag(String name, String total, String tagName)
-	{
-		Organization org = getOrCreateTestOrganization();
-
-		Document d = new Document();
-		d.setName(name);
-		d.setTotal(new BigDecimal(total));
-		d.setOrganization(org);
-
-		Tag tag = new Tag();
-		tag.setName(tagName);
-		tag.setOrganization(org);
-		tagRepository.persist(tag);
-
-		d.addTag(tag, app.hopps.document.domain.TagSource.AI);
-		documentRepository.persist(d);
-		return d;
-	}
-
-	@Transactional(TxType.REQUIRES_NEW)
-	Bommel createTestBommel(String title)
-	{
-		Organization org = getOrCreateTestOrganization();
-
-		Bommel b = new Bommel();
-		b.setTitle(title);
-		b.setOrganization(org);
-		bommelRepository.persist(b);
-		return b;
 	}
 }

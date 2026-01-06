@@ -1,8 +1,5 @@
 package app.hopps.member.domain;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
@@ -14,6 +11,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Member extends PanacheEntity
@@ -112,22 +112,5 @@ public class Member extends PanacheEntity
 	public String getDisplayName()
 	{
 		return firstName + " " + lastName;
-	}
-
-	public String generateUsername()
-	{
-		// Return actual userName if set
-		if (userName != null && !userName.isBlank())
-		{
-			return userName;
-		}
-		// Generate from name only if userName not set
-		if (firstName != null && lastName != null)
-		{
-			return (firstName + "." + lastName).toLowerCase()
-				.replaceAll("\\s+", "")
-				.replaceAll("[^a-z0-9.]", "");
-		}
-		return "user";
 	}
 }

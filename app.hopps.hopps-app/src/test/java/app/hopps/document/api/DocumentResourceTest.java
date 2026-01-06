@@ -6,6 +6,7 @@ import static org.hamcrest.CoreMatchers.is;
 
 import java.math.BigDecimal;
 
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +27,7 @@ import jakarta.inject.Inject;
 class DocumentResourceTest extends BaseOrganizationTest
 {
 	@BeforeEach
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	void setupOrganizationContext()
 	{
 		// Use the bootstrap organization that maria is associated with
@@ -267,14 +268,14 @@ class DocumentResourceTest extends BaseOrganizationTest
 			.body(containsString("Transaktion erstellen"));
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	void deleteAllData()
 	{
 		documentRepository.deleteAll();
 		bommelRepository.deleteAll();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createDocument(String name, BigDecimal total)
 	{
 		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
@@ -292,7 +293,7 @@ class DocumentResourceTest extends BaseOrganizationTest
 		return document.getId();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createDocumentWithBommel(String name, BigDecimal total, Long bommelId)
 	{
 		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
@@ -312,7 +313,7 @@ class DocumentResourceTest extends BaseOrganizationTest
 		return document.getId();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createBommel(String title)
 	{
 		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
@@ -329,7 +330,7 @@ class DocumentResourceTest extends BaseOrganizationTest
 		return bommel.getId();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createDocumentWithFile(String name, byte[] content)
 	{
 		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
@@ -357,8 +358,8 @@ class DocumentResourceTest extends BaseOrganizationTest
 		return document.getId();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
-	Long createConfirmedDocument(String name, BigDecimal total)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
+	void createConfirmedDocument(String name, BigDecimal total)
 	{
 		Organization organization = organizationRepository.findBySlug("musikverein-harmonie");
 		if (organization == null)
@@ -373,6 +374,5 @@ class DocumentResourceTest extends BaseOrganizationTest
 		document.setDocumentStatus(app.hopps.document.domain.DocumentStatus.CONFIRMED);
 		document.setOrganization(organization);
 		documentRepository.persist(document);
-		return document.getId();
 	}
 }

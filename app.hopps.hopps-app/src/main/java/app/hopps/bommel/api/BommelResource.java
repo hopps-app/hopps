@@ -1,9 +1,16 @@
 package app.hopps.bommel.api;
 
-import java.util.List;
-
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.security.OrganizationContext;
+import app.hopps.shared.util.FlashKeys;
+import io.quarkiverse.renarde.Controller;
+import io.quarkus.qute.CheckedTemplate;
+import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -12,25 +19,21 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestQuery;
 
-import io.quarkus.qute.CheckedTemplate;
-import io.quarkus.qute.TemplateInstance;
-import io.quarkiverse.renarde.Controller;
-import app.hopps.bommel.domain.Bommel;
-import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.member.domain.Member;
-import app.hopps.member.repository.MemberRepository;
-import app.hopps.organization.domain.Organization;
-import app.hopps.shared.security.OrganizationContext;
-import app.hopps.shared.util.FlashKeys;
+import java.util.List;
 
 @Authenticated
 @Path("/bommels")
 public class BommelResource extends Controller
 {
+	public static final String BOMMEL_NICHT_GEFUNDEN = "Bommel nicht gefunden";
+	public static final String BOMMEL_AKTUALISIERT = "Bommel aktualisiert";
+	public static final String BOMMELWART_ENTFERNT = "Bommelwart entfernt";
+	public static final String MITGLIED_NICHT_GEFUNDEN = "Mitglied nicht gefunden";
+	public static final String BOMMEL_GELOESCHT = "Bommel gelöscht";
+
 	@Inject
 	BommelRepository bommelRepository;
 
@@ -38,14 +41,16 @@ public class BommelResource extends Controller
 	MemberRepository memberRepository;
 
 	@Inject
-	SecurityIdentity securityIdentity;
-
-	@Inject
 	OrganizationContext organizationContext;
 
 	@CheckedTemplate
 	public static class Templates
 	{
+		private Templates()
+		{
+			// static
+		}
+
 		public static native TemplateInstance index(Bommel root, Bommel selected, List<Member> members);
 	}
 
@@ -166,7 +171,7 @@ public class BommelResource extends Controller
 		Bommel bommel = bommelRepository.findByIdScoped(id);
 		if (bommel == null)
 		{
-			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
+			flash(FlashKeys.ERROR, BOMMEL_NICHT_GEFUNDEN);
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -174,7 +179,7 @@ public class BommelResource extends Controller
 		bommel.setIcon(icon != null ? icon : bommel.getIcon());
 		bommel.setTitle(title);
 
-		flash(FlashKeys.SUCCESS, "Bommel aktualisiert");
+		flash(FlashKeys.SUCCESS, BOMMEL_AKTUALISIERT);
 		redirect(BommelResource.class).index(id);
 	}
 
@@ -192,7 +197,7 @@ public class BommelResource extends Controller
 		Bommel bommel = bommelRepository.findByIdScoped(id);
 		if (bommel == null)
 		{
-			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
+			flash(FlashKeys.ERROR, BOMMEL_NICHT_GEFUNDEN);
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -207,7 +212,7 @@ public class BommelResource extends Controller
 		Long redirectToId = bommel.parent != null ? bommel.parent.getId() : null;
 
 		bommelRepository.delete(bommel);
-		flash(FlashKeys.SUCCESS, "Bommel gelöscht");
+		flash(FlashKeys.SUCCESS, BOMMEL_GELOESCHT);
 		redirect(BommelResource.class).index(redirectToId);
 	}
 
@@ -221,7 +226,7 @@ public class BommelResource extends Controller
 		Bommel bommel = bommelRepository.findByIdScoped(bommelId);
 		if (bommel == null)
 		{
-			flash(FlashKeys.ERROR, "Bommel nicht gefunden");
+			flash(FlashKeys.ERROR, BOMMEL_NICHT_GEFUNDEN);
 			redirect(BommelResource.class).index(null);
 			return;
 		}
@@ -229,14 +234,14 @@ public class BommelResource extends Controller
 		if (memberId == null || memberId == 0)
 		{
 			bommel.setResponsibleMember(null);
-			flash(FlashKeys.SUCCESS, "Bommelwart entfernt");
+			flash(FlashKeys.SUCCESS, BOMMELWART_ENTFERNT);
 		}
 		else
 		{
 			Member member = memberRepository.findByIdScoped(memberId);
 			if (member == null)
 			{
-				flash(FlashKeys.ERROR, "Mitglied nicht gefunden");
+				flash(FlashKeys.ERROR, MITGLIED_NICHT_GEFUNDEN);
 				redirect(BommelResource.class).index(bommelId);
 				return;
 			}

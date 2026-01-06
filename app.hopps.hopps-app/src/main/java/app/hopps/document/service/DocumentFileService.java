@@ -1,20 +1,21 @@
 package app.hopps.document.service;
 
-import java.util.UUID;
-
-import org.jboss.logging.Logger;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
-
 import app.hopps.document.domain.Document;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.slf4j.Logger;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+import java.util.UUID;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 @ApplicationScoped
 public class DocumentFileService
 {
-	private static final Logger LOG = Logger.getLogger(DocumentFileService.class);
+	private static final Logger LOG = getLogger(DocumentFileService.class);
 
 	@Inject
 	StorageService storageService;
@@ -35,7 +36,7 @@ public class DocumentFileService
 		try
 		{
 			storageService.uploadFile(fileKey, file.uploadedFile(), file.contentType());
-			LOG.infof("File uploaded to storage: key=%s, size=%d", fileKey, file.size());
+			LOG.info("File uploaded to storage: key={}, size={}", fileKey, file.size());
 
 			document.setFileKey(fileKey);
 			document.setFileName(file.fileName());
@@ -44,7 +45,7 @@ public class DocumentFileService
 		}
 		catch (Exception e)
 		{
-			LOG.errorf(e, "Failed to upload file: %s", e.getMessage());
+			LOG.error("Failed to upload file", e);
 			throw new RuntimeException("Fehler beim Hochladen der Datei", e);
 		}
 	}
@@ -65,11 +66,11 @@ public class DocumentFileService
 		try
 		{
 			storageService.deleteFile(fileKey);
-			LOG.infof("File deleted from storage: key=%s", fileKey);
+			LOG.info("File deleted from storage: key={}", fileKey);
 		}
 		catch (Exception e)
 		{
-			LOG.warnf(e, "Failed to delete file from storage: key=%s", fileKey);
+			LOG.warn("Failed to delete file from storage: key={}", fileKey, e);
 			// Don't fail the operation if file deletion fails
 		}
 	}

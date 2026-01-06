@@ -1,13 +1,5 @@
 package app.hopps.member.api;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
@@ -15,11 +7,17 @@ import app.hopps.member.repository.MemberRepository;
 import app.hopps.member.service.MemberKeycloakSyncService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
-import app.hopps.shared.TestSecurityHelper;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
 
 @QuarkusTest
 class MemberResourceTest extends BaseOrganizationTest
@@ -34,7 +32,7 @@ class MemberResourceTest extends BaseOrganizationTest
 	MemberKeycloakSyncService memberKeycloakSyncService;
 
 	@BeforeEach
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	void setupOrganizationContext()
 	{
 		Organization testOrg = getOrCreateTestOrganization();
@@ -219,7 +217,7 @@ class MemberResourceTest extends BaseOrganizationTest
 			.statusCode(303);
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	void deleteAllData()
 	{
 		bommelRepository.deleteAll();
@@ -235,7 +233,7 @@ class MemberResourceTest extends BaseOrganizationTest
 		memberRepository.persist(testMember);
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createMember(String firstName, String lastName, String email, String phone)
 	{
 		Organization org = getOrCreateTestOrganization();
@@ -250,7 +248,7 @@ class MemberResourceTest extends BaseOrganizationTest
 		return member.getId();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createBommelWithWart(String title, Long memberId)
 	{
 		Organization org = getOrCreateTestOrganization();

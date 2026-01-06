@@ -60,7 +60,7 @@ public class OrganizationContext
 		}
 
 		// Super admin: use session-based org switcher
-		if (securityIdentity.hasRole("super_admin"))
+		if (securityIdentity.hasRole(Roles.SUPER_ADMIN))
 		{
 			return getOrganizationForSuperAdmin();
 		}
@@ -118,7 +118,7 @@ public class OrganizationContext
 	 */
 	public void switchOrganization(Long organizationId)
 	{
-		if (!securityIdentity.hasRole("super_admin"))
+		if (!securityIdentity.hasRole(Roles.SUPER_ADMIN))
 		{
 			throw new SecurityException("Only super admins can switch organizations");
 		}
@@ -159,6 +159,6 @@ public class OrganizationContext
 	 */
 	public boolean isSuperAdmin()
 	{
-		return securityIdentity.hasRole("super_admin");
+		return securityIdentity.hasRole(Roles.SUPER_ADMIN);
 	}
 }

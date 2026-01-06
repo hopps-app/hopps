@@ -1,27 +1,27 @@
 package app.hopps.bommel.api;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-
-import app.hopps.shared.TestSecurityHelper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.BaseOrganizationTest;
+import app.hopps.shared.TestSecurityHelper;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 
 @QuarkusTest
 @TestSecurity(user = TestSecurityHelper.TEST_USER_MARIA, roles = "user")
 class BommelResourceTest extends BaseOrganizationTest
 {
 	@BeforeEach
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	void setupOrganizationContext()
 	{
 		// Use the bootstrap organization that maria is associated with
@@ -157,13 +157,13 @@ class BommelResourceTest extends BaseOrganizationTest
 			.body(containsString("Bommel löschen"));
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	void deleteAllBommels()
 	{
 		bommelRepository.deleteAll();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createRootBommel(String icon, String title)
 	{
 		// Use the bootstrap organization that maria is associated with
@@ -181,7 +181,7 @@ class BommelResourceTest extends BaseOrganizationTest
 		return root.getId();
 	}
 
-	@jakarta.transaction.Transactional(jakarta.transaction.Transactional.TxType.REQUIRES_NEW)
+	@Transactional(Transactional.TxType.REQUIRES_NEW)
 	Long createChildBommel(Long parentId, String icon, String title)
 	{
 		// Use the bootstrap organization that maria is associated with

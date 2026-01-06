@@ -14,6 +14,11 @@ public class DashboardResource extends Controller
 	@CheckedTemplate
 	public static class Templates
 	{
+		private Templates()
+		{
+			// static
+		}
+
 		public static native TemplateInstance index();
 	}
 

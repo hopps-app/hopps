@@ -43,7 +43,7 @@ public class Bommel extends PanacheEntity
 
 	public String getDisplayLabel()
 	{
-		return title;
+		return getTitle();
 	}
 
 	public Long getId()

@@ -24,7 +24,7 @@ import jakarta.persistence.Table;
 /**
  * WorkflowInstance holds all state for a workflow execution. It acts as a token
  * that flows through the workflow, carrying data between tasks.
- *
+ * <p>
  * Workflow instances are persisted to the database so they survive application
  * restarts. UserTasks can wait for user input across server reboots.
  */

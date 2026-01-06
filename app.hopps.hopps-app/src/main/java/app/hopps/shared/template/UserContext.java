@@ -6,6 +6,7 @@ import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.shared.security.Roles;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -73,7 +74,7 @@ public class UserContext
 	 */
 	public boolean isSuperAdmin()
 	{
-		return hasRole("super_admin");
+		return hasRole(Roles.SUPER_ADMIN);
 	}
 
 	/**

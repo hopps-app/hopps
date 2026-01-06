@@ -45,10 +45,4 @@ public class ApprovalTask extends UserTask
 			instance.setError("Request was rejected");
 		}
 	}
-
-	@Override
-	public String getAssignee(WorkflowInstance instance)
-	{
-		return "manager";
-	}
 }
