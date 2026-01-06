@@ -11,7 +11,7 @@ azDocumentAi:
   image:
     # ToDo: should also be globally configurable
     #registry: ghcr.io
-    repository: ghcr.io/hopps-app/hopps/az-document-ai
+    repository: ghcr.io/hopps-app/az-document-ai-service
     tag: ""
     pullPolicy: IfNotPresent
   envFrom: []
@@ -129,7 +129,7 @@ hoppsApp:
   image:
     # ToDo: should also be globally configurable
     #registry: ghcr.io
-    repository: ghcr.io/hopps-app/hopps/hopps-app
+    repository: ghcr.io/hopps-app/hopps-app
     tag: ""
     pullPolicy: IfNotPresent
   envFrom: []
