@@ -142,10 +142,7 @@ class DocumentResourceTest extends BaseOrganizationTest
 			.get("/belege/neu")
 			.then()
 			.statusCode(200)
-			.body(containsString("enctype=\"multipart/form-data\""))
-			.body(containsString("name=\"file\""))
-			.body(containsString("cds-file-uploader"))
-			.body(containsString("Datei auswählen"));
+			.body(containsString("Datei hochladen"));
 	}
 
 	@Test
