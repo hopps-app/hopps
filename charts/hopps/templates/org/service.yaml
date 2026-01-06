@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hopps.orgFullname" . }}
+  labels:
+    {{- include "hopps.orgLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.org.service.type }}
+  ports:
+    - port: {{ .Values.org.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: 9000
+      targetPort: management
+      protocol: TCP
+      name: management
+  selector:
+    {{- include "hopps.orgSelectorLabels" . | nindent 4 }}
