@@ -260,7 +260,7 @@ zugferd:
   image:
     # ToDo: should also be globally configurable
     #registry: ghcr.io
-    repository: ghcr.io/hopps-app/zugferd
+    repository: ghcr.io/hopps-app/zugferd-service
     tag: ""
     pullPolicy: IfNotPresent
   envFrom: []
