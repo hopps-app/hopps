@@ -108,12 +108,69 @@ public String getSenderName()
 
 **Logging:**
 
-- Use `org.slf4j.Logger` for logging
-- Create logger:
-  `private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);`
-- Add reasonable logging for important operations, errors, and debugging
-- Log levels: `error` for failures, `warn` for issues, `info` for operations,
-  `debug` for details
+**IMPORTANT:** Always use SLF4J for logging. Never use `System.out.println()` or other logging frameworks.
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);
+```
+
+Log levels:
+- `LOG.error()` - For failures and exceptions that need attention
+- `LOG.warn()` - For issues that might cause problems
+- `LOG.info()` - For important operations (user actions, service calls, state changes)
+- `LOG.debug()` - For detailed debugging information
+
+Examples:
+```java
+LOG.info("Created member: {} ({})", member.getFullName(), member.getEmail());
+LOG.warn("No Keycloak user found for username: {}", username);
+LOG.error("Failed to process document: id={}, error={}", docId, e.getMessage());
+LOG.debug("Processing workflow step: {}", stepName);
+```
+
+Add reasonable logging for:
+- Important operations (create, update, delete)
+- External service calls (Keycloak, S3, microservices)
+- State changes (workflow transitions, status updates)
+- Error conditions and exceptions
+
+**Roles and Security:**
+
+**IMPORTANT:** Always use role constants from `Roles.java` instead of hardcoded strings.
+
+```java
+import app.hopps.shared.security.Roles;
+```
+
+Available role constants:
+- `Roles.SUPER_ADMIN` = "super_admin" - System administrator with full access
+- `Roles.ADMIN` = "admin" - Organization administrator
+- `Roles.MEMBER` = "member" - Regular member
+
+Examples:
+
+```java
+// In service classes
+if (securityIdentity.hasRole(Roles.ADMIN)) {
+    // Admin-only operations
+}
+
+// In UserContext or template helpers
+public boolean isSuperAdmin() {
+    return hasRole(Roles.SUPER_ADMIN);
+}
+
+// In test classes
+@TestSecurity(user = "maria", roles = { Roles.ADMIN, Roles.MEMBER })
+void shouldAllowAdminAccess() {
+    // Test admin functionality
+}
+```
+
+**Note:** Some tests may use `"user"` as a role string for legacy reasons, but new code should use `Roles.MEMBER` for consistency. The application is configured to accept both "user" and "member" as valid roles.
 
 **Form handling:**
 
