@@ -74,11 +74,14 @@
     text-decoration: none;
   }
   button.cds-btn-primary {
-    background-color: #0f62fe;
+    background-color: var(--hopps-primary, #9058c5);
     color: white;
   }
   button.cds-btn-primary:hover {
-    background-color: #0353e9;
+    background-color: var(--hopps-primary-hover, #7d4ab5);
+  }
+  button.cds-btn-primary:active {
+    background-color: var(--hopps-primary-active, #6a3d9f);
   }
   button.cds-btn-primary:disabled {
     background-color: #c6c6c6;
@@ -86,7 +89,7 @@
   }
   /* Loading state for submit button */
   button.cds-btn-primary.loading {
-    background-color: #0353e9;
+    background-color: var(--hopps-primary-hover, #7d4ab5);
     pointer-events: none;
   }
   .btn-spinner {
@@ -292,6 +295,26 @@
 
     <div class="form-section">
       <h3>Datei hochladen</h3>
+      <!--
+        NOTE: We use a native HTML file input instead of Carbon's cds-file-uploader component.
+
+        Carbon's cds-file-uploader has several issues:
+        1. Requires nested cds-file-drop-container structure that's not well documented
+        2. Throws "Cannot set properties of null (setting 'disabled')" errors in console
+        3. Event names are inconsistent (cds-file-uploader-button-changed vs cds-file-uploader-changed)
+        4. Complex setup with minimal benefit for a simple single-file upload
+
+        The native input provides:
+        - Better reliability and browser compatibility
+        - Simpler event handling (standard 'change' event)
+        - No dependency on Carbon web components CDN
+        - Full form integration without additional JavaScript
+
+        If you need to add the Carbon uploader in the future, ensure:
+        - Load both file-uploader.min.js AND file-drop-container.min.js from CDN
+        - Use proper nested structure: <cds-file-uploader><cds-file-drop-container>...</cds-file-drop-container></cds-file-uploader>
+        - Listen for 'cds-file-uploader-button-changed' event (not 'cds-file-uploader-changed')
+      -->
       <input type="file"
              id="file"
              name="file"
