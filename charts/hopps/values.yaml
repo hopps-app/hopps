@@ -126,6 +126,12 @@ hoppsApp:
   replicaCount: 1
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
+
+  # Bootstrap configuration for demo organizations and users
+  # Set enabled: true to initialize demo data on startup
+  bootstrap:
+    enabled: false
+
   image:
     # ToDo: should also be globally configurable
     #registry: ghcr.io

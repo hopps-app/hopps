@@ -49,9 +49,15 @@ spec:
             {{- toYaml .Values.hoppsApp.securityContext | nindent 12 }}
           image: "{{ .Values.hoppsApp.image.repository }}:{{ .Values.hoppsApp.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.hoppsApp.image.pullPolicy }}
-          {{- with .Values.hoppsApp.envFrom }}
+          {{- if or .Values.hoppsApp.bootstrap.enabled .Values.hoppsApp.envFrom }}
           envFrom:
+            {{- if .Values.hoppsApp.bootstrap.enabled }}
+            - configMapRef:
+                name: {{ include "hopps.hoppsAppFullname" . }}-bootstrap
+            {{- end }}
+            {{- with .Values.hoppsApp.envFrom }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- end }}
           ports:
             - name: http
