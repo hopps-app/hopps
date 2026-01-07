@@ -90,8 +90,8 @@
     background: #e0e0e0;
   }
   .icon-option.selected {
-    border-color: #0f62fe;
-    background: #d0e2ff;
+    border-color: #9058c5;
+    background: #e6d9f2;
   }
   .icon-option input {
     display: none;
@@ -126,44 +126,6 @@
   .button-row {
     display: flex;
     gap: 1rem;
-  }
-  /* Native button styled like Carbon */
-  button.cds-btn {
-    height: 48px;
-    padding: 0 1rem;
-    border: none;
-    font-size: 0.875rem;
-    font-weight: 400;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  button.cds-btn-primary {
-    background-color: #0f62fe;
-    color: white;
-  }
-  button.cds-btn-primary:hover {
-    background-color: #0353e9;
-  }
-  button.cds-btn-secondary {
-    background-color: #393939;
-    color: white;
-  }
-  button.cds-btn-secondary:hover {
-    background-color: #4c4c4c;
-  }
-  button.cds-btn-danger {
-    background-color: #da1e28;
-    color: white;
-  }
-  button.cds-btn-danger:hover {
-    background-color: #b81921;
-  }
-  button.cds-btn:disabled {
-    background-color: #c6c6c6;
-    color: #8d8d8d;
-    cursor: not-allowed;
   }
 </style>
 {/moreStyles}
@@ -239,7 +201,7 @@
             {#ifError 'title'}invalid{/ifError}
             {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
           </cds-text-input>
-          <cds-button type="submit" kind="primary">Erstellen</cds-button>
+          <button type="submit" class="cds-btn cds-btn-primary">Erstellen</button>
         {/form}
       {/if}
     </div>
@@ -266,7 +228,7 @@
             {#ifError 'title'}invalid{/ifError}
             {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
           </cds-text-input>
-          <cds-button type="submit" kind="primary">Speichern</cds-button>
+          <button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
         {/form}
       </div>
 
@@ -288,7 +250,7 @@
               {/for}
             </cds-dropdown>
           </div>
-          <cds-button type="submit" kind="secondary">Speichern</cds-button>
+          <button type="submit" class="cds-btn cds-btn-secondary">Speichern</button>
         </form>
       </div>
 
@@ -311,7 +273,7 @@
             {#ifError 'title'}invalid{/ifError}
             {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
           </cds-text-input>
-          <cds-button type="submit" kind="secondary">Hinzufügen</cds-button>
+          <button type="submit" class="cds-btn cds-btn-secondary">Hinzufügen</button>
         {/form}
       </div>
 
@@ -319,11 +281,11 @@
         <h3 class="box-header">Gefahrenzone</h3>
         {#if selected.hasChildren}
           <p>Dieser Bommel kann nicht gelöscht werden, da er Kinder hat. Entfernen Sie zuerst alle Kinder.</p>
-          <cds-button kind="danger" disabled>Bommel löschen</cds-button>
+          <button type="button" class="cds-btn cds-btn-danger" disabled>Bommel löschen</button>
         {#else}
           {#form uri:BommelResource.delete()}
             <input type="hidden" name="id" value="{selected.id}">
-            <cds-button type="submit" kind="danger">Bommel löschen</cds-button>
+            <button type="submit" class="cds-btn cds-btn-danger">Bommel löschen</button>
           {/form}
         {/if}
       </div>

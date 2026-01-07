@@ -184,7 +184,7 @@
       </div>
 
       <div class="button-row">
-        <cds-button type="submit" kind="primary">Speichern</cds-button>
+        <button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
       </div>
     </form>
   </div>
@@ -214,11 +214,11 @@
     <form action="/mitglieder/loeschen" method="POST" onsubmit="return confirm('Möchten Sie dieses Mitglied wirklich löschen?')">
       {#authenticityToken /}
       <input type="hidden" name="id" value="{member.id}">
-      <cds-button type="submit" kind="danger">Mitglied löschen</cds-button>
+      <button type="submit" class="cds-btn cds-btn-danger">Mitglied löschen</button>
     </form>
   {#else}
     <p>Dieses Mitglied kann nicht gelöscht werden, da es noch als Bommelwart zugewiesen ist.</p>
-    <cds-button kind="danger" disabled>Mitglied löschen</cds-button>
+    <button type="button" class="cds-btn cds-btn-danger" disabled>Mitglied löschen</button>
   {/if}
 </div>
 

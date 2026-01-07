@@ -64,7 +64,9 @@
       "Bash(timeout 45 ./mvnw quarkus:dev:*)",
       "Bash(tee:*)",
       "Bash(timeout 120 ./mvnw test:*)",
-      "WebFetch(domain:codesandbox.io)"
+      "WebFetch(domain:codesandbox.io)",
+      "WebFetch(domain:unpkg.com)",
+      "WebFetch(domain:v10.carbondesignsystem.com)"
     ]
   }
 }

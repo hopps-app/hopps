@@ -246,10 +246,10 @@
           {#include DocumentResource/partials/reviewFormFields document=document bommels=bommels /}
 
           <div class="button-row" style="margin-top: var(--cds-spacing-07); gap: 0.5rem;">
-            <cds-button type="submit" kind="primary">
+            <button type="submit" class="cds-btn cds-btn-primary">
               Bestätigen & Speichern
-              <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>
-            </cds-button>
+              <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>
+            </button>
             {#if document.analysisStatus.name == 'COMPLETED'}
             <cds-button kind="secondary" onclick="submitReanalyze()">
               Erneut analysieren

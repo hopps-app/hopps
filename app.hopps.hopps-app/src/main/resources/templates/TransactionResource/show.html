@@ -268,10 +268,10 @@
   </div>
 
   <div class="button-row">
-    <cds-button type="submit" kind="primary">
+    <button type="submit" class="cds-btn cds-btn-primary">
       Änderungen speichern
-      <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
-    </cds-button>
+      <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+    </button>
     <cds-button href="/transaktionen" kind="secondary">Abbrechen</cds-button>
   </div>
 
@@ -285,10 +285,10 @@
     <p style="margin-bottom: 1rem;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
     {#form uri:TransactionResource.delete()}
       <input type="hidden" name="id" value="{transaction.id}">
-      <cds-button type="submit" kind="danger" onclick="return confirm('Transaktion wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')">
+      <button type="submit" class="cds-btn cds-btn-danger" onclick="return confirm('Transaktion wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')">
         Transaktion löschen
-        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zM12 2h8v2h-8z"/></svg>
-      </cds-button>
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zM12 2h8v2h-8z"/></svg>
+      </button>
     {/form}
   </div>
 </div>

@@ -130,6 +130,65 @@ form cds-button {
   margin-left: 0; /* Reset since parent handles spacing */
 }
 
+/* Native Button Styles (for form submission compatibility) */
+button.cds-btn {
+  height: 48px;
+  padding: 0 1rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Reset margin when native button is in a button-row */
+.button-row button.cds-btn {
+  margin-top: 0;
+}
+
+button.cds-btn-primary {
+  background-color: #9058c5 !important;
+  color: white;
+}
+
+button.cds-btn-primary:hover {
+  background-color: #7d4ab5 !important;
+}
+
+button.cds-btn-secondary {
+  background-color: #393939;
+  color: white;
+}
+
+button.cds-btn-secondary:hover {
+  background-color: #4c4c4c;
+}
+
+button.cds-btn-danger {
+  background-color: #da1e28;
+  color: white;
+}
+
+button.cds-btn-danger:hover {
+  background-color: #b81921;
+}
+
+button.cds-btn:disabled {
+  background-color: #c6c6c6;
+  color: #8d8d8d;
+  cursor: not-allowed;
+}
+
+/* Size variants */
+button.cds-btn[size="sm"] {
+  height: 32px;
+  font-size: 0.75rem;
+  padding: 0 0.75rem;
+}
+
 /* Tag Input Styles */
 .tag-container {
   display: flex;
