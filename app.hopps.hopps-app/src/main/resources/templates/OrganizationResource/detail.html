@@ -104,9 +104,9 @@
     <form action="/organisationen/toggle-active" method="post" style="display: inline;">
       {#authenticityToken /}
       <input type="hidden" name="id" value="{organization.id}">
-      <cds-button type="submit" kind="{#if organization.active}danger{#else}primary{/if}">
+      <button type="submit" class="cds-btn {#if organization.active}cds-btn-danger{#else}cds-btn-primary{/if}">
         {#if organization.active}Deaktivieren{#else}Aktivieren{/if}
-      </cds-button>
+      </button>
     </form>
   </div>
 </div>

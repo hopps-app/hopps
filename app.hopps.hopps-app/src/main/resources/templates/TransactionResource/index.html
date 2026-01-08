@@ -105,10 +105,6 @@
     font-size: 0.75rem;
     color: var(--cds-text-secondary, #525252);
   }
-  .linked-doc {
-    font-size: 0.75rem;
-    color: var(--cds-text-secondary, #525252);
-  }
 </style>
 {/moreStyles}
 
@@ -135,6 +131,7 @@
       <cds-table-head>
         <cds-table-header-row>
           <cds-table-header-cell>Name</cds-table-header-cell>
+          <cds-table-header-cell>Beleg</cds-table-header-cell>
           <cds-table-header-cell>Datum</cds-table-header-cell>
           <cds-table-header-cell>Betrag</cds-table-header-cell>
           <cds-table-header-cell>Bommel</cds-table-header-cell>
@@ -151,10 +148,14 @@
               {#if t.senderName}
               <div class="sender-name">{t.senderName}</div>
               {/if}
-              {#if t.document}
-              <div class="linked-doc">📄 Verknüpft mit Beleg</div>
-              {/if}
             </div>
+          </cds-table-cell>
+          <cds-table-cell>
+            {#if t.document}
+            <a href="/belege/{t.document.id}" onclick="event.stopPropagation();">📄 Beleg</a>
+            {#else}
+            <span style="color: var(--cds-text-disabled);">—</span>
+            {/if}
           </cds-table-cell>
           <cds-table-cell>{t.displayDate}</cds-table-cell>
           <cds-table-cell><span class="amount">{t.displayTotal}</span></cds-table-cell>

@@ -434,7 +434,7 @@ public class DocumentResource extends Controller
 		if (Boolean.TRUE.equals(confirmed))
 		{
 			flash(FlashKeys.SUCCESS, "Beleg gespeichert");
-			redirect(DocumentResource.class).show(id);
+			redirect(DocumentResource.class).index(null);
 		}
 		else if (Boolean.TRUE.equals(reanalyze))
 		{

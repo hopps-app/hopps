@@ -115,9 +115,9 @@
       <form action="/organisationen/switch" method="post" style="display: inline;">
         {#authenticityToken /}
         <input type="hidden" name="organizationId" value="{org.id}">
-        <cds-button type="submit" kind="secondary" size="sm">
+        <button type="submit" class="cds-btn cds-btn-secondary" size="sm">
           Wechseln
-        </cds-button>
+        </button>
       </form>
       {/if}
       <cds-button href="/organisationen/detail?id={org.id}" kind="ghost" size="sm">

@@ -65,10 +65,10 @@
         <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M16 8l-1.43 1.393L20.15 15H8v2h12.15l-5.58 5.573L16 24l8-8-8-8z"/></svg>
       </cds-button>
       {#form uri:DocumentResource.createTransactionFromDocument(document.id)}
-        <cds-button type="submit" kind="primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
+        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
           Weitere erstellen
-          <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
-        </cds-button>
+          <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+        </button>
       {/form}
     </div>
   </div>
@@ -84,10 +84,10 @@
     </div>
     <div>
       {#form uri:DocumentResource.createTransactionFromDocument(document.id)}
-        <cds-button type="submit" kind="primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
+        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap; height: 36px; font-size: 0.875rem;">
           Transaktion erstellen →
-          <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
-        </cds-button>
+          <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M28 6H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM4 24V8h24v16Z"/><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4Zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2ZM6 12h2v2H6zM6 18h2v2H6zM24 12h2v2h-2zM24 18h2v2h-2z"/></svg>
+        </button>
       {/form}
     </div>
   </div>
@@ -115,10 +115,10 @@
             <form action="/belege/deleteFile" method="POST" style="display: inline;">
               {#authenticityToken /}
               <input type="hidden" name="documentId" value="{document.id}">
-              <cds-button type="submit" kind="danger" style="height: 36px; font-size: 0.8rem;">
+              <button type="submit" class="cds-btn cds-btn-danger" style="height: 36px; font-size: 0.8rem;">
                 Löschen
-                <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
-              </cds-button>
+                <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
+              </button>
             </form>
           </div>
         </div>
@@ -132,10 +132,10 @@
           <span class="file-hint">PDF, PNG, JPG, GIF oder WebP (max. 10 MB)</span>
         </div>
         <div style="margin-top: 1rem;">
-          <cds-button type="submit" kind="primary" style="height: 36px; font-size: 0.8rem;">
+          <button type="submit" class="cds-btn cds-btn-primary" style="height: 36px; font-size: 0.8rem;">
             Datei hochladen
-            <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
-          </cds-button>
+            <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
+          </button>
         </div>
       </form>
     {/if}
@@ -152,10 +152,10 @@
       </div>
       <form action="/belege/{document.id}/analyze" method="POST">
         {#authenticityToken /}
-        <cds-button type="submit" kind="primary" style="white-space: nowrap;">
+        <button type="submit" class="cds-btn cds-btn-primary" style="white-space: nowrap;">
           KI-Analyse starten
-          <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><circle cx="16" cy="10" r="1.5"/><path d="M16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
-        </cds-button>
+          <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><circle cx="16" cy="10" r="1.5"/><path d="M16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
+        </button>
       </form>
     </div>
   </div>
@@ -177,10 +177,10 @@
         </cds-text-input>
         <cds-date-picker>
           <cds-date-picker-input
-            label="Datum"
             name="transactionDate"
             value="{document.transactionDateForInput}"
             placeholder="dd.mm.yyyy">
+            <span slot="label-text">Datum</span>
           </cds-date-picker-input>
         </cds-date-picker>
       </div>
@@ -205,9 +205,9 @@
           value="{document.totalTax}">
         </cds-number-input>
         <cds-select
-          label="Währung"
           name="currencyCode"
           value="{document.currencyCode ?: 'EUR'}">
+          <span slot="label-text">Währung</span>
           <cds-select-item value="EUR">EUR</cds-select-item>
           <cds-select-item value="USD">USD</cds-select-item>
           <cds-select-item value="CHF">CHF</cds-select-item>
@@ -216,19 +216,22 @@
       </div>
       <div class="form-row">
         <cds-select
-          label="Bommel zuweisen"
           name="bommelId"
           value="{document.bommel.id ?: ''}">
+          <span slot="label-text">Bommel zuweisen</span>
           <cds-select-item value="">— Nicht zugewiesen —</cds-select-item>
           {#for bommel in bommels}
           <cds-select-item value="{bommel.id}">{bommel.title}</cds-select-item>
           {/for}
         </cds-select>
-        <cds-checkbox
-          name="privatelyPaid"
-          label-text="Privat bezahlt"
-          {#if document.privatelyPaid}checked{/if}>
-        </cds-checkbox>
+        <div class="form-group">
+          <label>Auslage</label>
+          <cds-checkbox
+            name="privatelyPaid"
+            label-text="Privat bezahlt"
+            {#if document.privatelyPaid}checked{/if}>
+          </cds-checkbox>
+        </div>
       </div>
     </div>
 
@@ -271,10 +274,10 @@
     </div>
 
     <div class="button-row">
-      <cds-button type="submit" kind="primary">
+      <button type="submit" class="cds-btn cds-btn-primary">
         Speichern
-        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
-      </cds-button>
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+      </button>
       <cds-button href="/belege" kind="secondary">Abbrechen</cds-button>
     </div>
   {/form}
@@ -298,10 +301,10 @@
     <p>Das Löschen eines Belegs kann nicht rückgängig gemacht werden.</p>
     {#form uri:DocumentResource.delete()}
       <input type="hidden" name="id" value="{document.id}">
-      <cds-button type="submit" kind="danger">
+      <button type="submit" class="cds-btn cds-btn-danger">
         Beleg löschen
-        <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
-      </cds-button>
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6ZM8 28V8h16v20ZM12 2h8v2h-8z"/></svg>
+      </button>
     {/form}
   </div>
 </div>

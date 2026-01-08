@@ -368,32 +368,50 @@ Carbon components are loaded via CDN in `main.html`:
 
 **Buttons:**
 
-```html
-<!-- Primary action -->
-<cds-button type="submit" kind="primary">
-  Speichern
-  <svg slot="icon">...</svg>
-</cds-button>
+**IMPORTANT:** Always use native `<button>` elements for form submissions and actions. Use `<cds-button>` ONLY for navigation links (with `href` attribute). The Carbon web components `<cds-button type="submit">` does not properly submit forms.
 
-<!-- Secondary action -->
+```html
+<!-- Form submit button - USE NATIVE BUTTON -->
+<button type="submit" class="cds-btn cds-btn-primary">
+  Speichern
+  <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor">...</svg>
+</button>
+
+<!-- Danger action button - USE NATIVE BUTTON -->
+<button type="submit" class="cds-btn cds-btn-danger">
+  Löschen
+  <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor">...</svg>
+</button>
+
+<!-- Secondary action button - USE NATIVE BUTTON -->
+<button type="button" class="cds-btn cds-btn-secondary">
+  Aktion
+</button>
+
+<!-- Disabled button - USE NATIVE BUTTON -->
+<button type="submit" class="cds-btn cds-btn-primary" disabled>
+  Hochladen
+</button>
+
+<!-- Navigation link - USE CDS-BUTTON -->
 <cds-button href="/belege" kind="secondary">
   Abbrechen
 </cds-button>
 
-<!-- Danger action -->
-<cds-button kind="danger" onclick="deleteItem()">
-  Löschen
-</cds-button>
-
-<!-- Icon-only button -->
-<cds-button
-  kind="ghost"
-  size="sm"
-  has-icon-only
-  icon-description="Löschen">
+<!-- Link to another page - USE CDS-BUTTON -->
+<cds-button href="/transaktionen" kind="primary">
+  Zur Übersicht
   <svg slot="icon">...</svg>
 </cds-button>
 ```
+
+**Button styling classes:**
+- `.cds-btn` - Base button class (required)
+- `.cds-btn-primary` - Primary action (purple background)
+- `.cds-btn-secondary` - Secondary action
+- `.cds-btn-danger` - Destructive action (red)
+
+These styles are defined in `hopps-components.css` and automatically styled to match Carbon Design System.
 
 **Notifications:**
 
