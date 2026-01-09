@@ -74,7 +74,10 @@
       "Bash(yarn add:*)",
       "Bash(yarn remove:*)",
       "Bash(yarn lint:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npx expo-doctor)",
+      "Bash(npx expo run:android)"
     ]
   }
 }

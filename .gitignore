@@ -201,3 +201,8 @@ node_modules
 
 # Maven
 target
+
+# React Native / Expo
+frontend/mobile/android/
+frontend/mobile/ios/
+frontend/mobile/.expo/
