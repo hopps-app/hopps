@@ -1,83 +1,117 @@
-import React, {createContext, useContext} from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import axios from 'axios';
-import {AuthContext} from './AuthContext';
+import { AuthContext } from './AuthContext';
+import { ProfileContext } from './ProfileContext';
+import { KeycloakService } from '@/services/auth/keycloak-client';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import * as SecureStore from 'expo-secure-store';
 
 const AxiosContext = createContext<any | undefined>(undefined);
 
-const {Provider} = AxiosContext;
+const { Provider } = AxiosContext;
 
-const AxiosProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
+const AxiosProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
     const authContext = useContext(AuthContext);
+    const profileContext = useContext(ProfileContext);
 
-    const authAxios = axios.create({
-        baseURL: 'http://localhost:3000/api',
-    });
+    const baseURL =
+        profileContext?.activeProfile?.apiUrl || 'http://localhost:3000/api';
 
-    const publicAxios = axios.create({
-        baseURL: 'http://localhost:3000/api',
-    });
+    const authAxios = useMemo(() => {
+        const instance = axios.create({
+            baseURL: baseURL,
+        });
 
-    authAxios.interceptors.request.use(
-        config => {
-            if (!config.headers.Authorization) {
-                config.headers.Authorization = authContext ? `Bearer ${authContext.getAccessToken()}` : '';
+        instance.interceptors.request.use(
+            (config) => {
+                if (!config.headers.Authorization) {
+                    config.headers.Authorization = authContext
+                        ? `Bearer ${authContext.getAccessToken()}`
+                        : '';
+                }
+                return config;
+            },
+            (error) => {
+                return Promise.reject(error);
             }
+        );
 
-            return config;
-        },
-        error => {
-            return Promise.reject(error);
-        },
-    );
+        return instance;
+    }, [baseURL, authContext]);
 
-    const refreshAuthLogic = (failedRequest: { response: { config: { headers: { Authorization: string } } } }) => {
-        const data = {
-            refreshToken: authContext?.authState.refreshToken || null,
-        };
+    const publicAxios = useMemo(() => {
+        return axios.create({
+            baseURL: baseURL,
+        });
+    }, [baseURL]);
 
-        const options = {
-            method: 'POST',
-            data,
-            url: 'http://localhost:3001/api/refreshToken',
-        };
+    const refreshAuthLogic = (failedRequest: {
+        response: { config: { headers: { Authorization: string } } };
+    }) => {
+        const profile = profileContext?.activeProfile;
+        if (!profile) {
+            return Promise.reject(new Error('No active profile'));
+        }
 
-        return axios(options)
-            .then(async tokenRefreshResponse => {
+        const keycloakService = new KeycloakService({
+            url: profile.identityUrl,
+            realm: profile.realm,
+            clientId: profile.clientId,
+        });
+
+        const refreshToken = authContext?.authState.refreshToken;
+        if (!refreshToken) {
+            return Promise.reject(new Error('No refresh token'));
+        }
+
+        return keycloakService
+            .refreshToken(refreshToken)
+            .then(async (tokens) => {
                 failedRequest.response.config.headers.Authorization =
-                    'Bearer ' + tokenRefreshResponse.data.accessToken;
+                    'Bearer ' + tokens.access_token;
 
                 authContext?.setAuthState({
                     ...authContext.authState,
-                    accessToken: tokenRefreshResponse.data.accessToken,
+                    accessToken: tokens.access_token,
+                    refreshToken: tokens.refresh_token,
                 });
 
-                await SecureStore.setItemAsync('accessToken', tokenRefreshResponse.data.accessToken);
-                await SecureStore.setItemAsync('accessToken', tokenRefreshResponse.data.refreshToken);
+                await SecureStore.setItemAsync(
+                    'accessToken',
+                    tokens.access_token
+                );
+                await SecureStore.setItemAsync(
+                    'refreshToken',
+                    tokens.refresh_token
+                );
 
                 return Promise.resolve();
             })
-            .catch(e => {
+            .catch(() => {
                 authContext?.setAuthState({
                     accessToken: null,
                     refreshToken: null,
-                    authenticated: false
+                    authenticated: false,
                 });
             });
     };
 
-    createAuthRefreshInterceptor(authAxios, refreshAuthLogic, {});
+    useMemo(() => {
+        createAuthRefreshInterceptor(authAxios, refreshAuthLogic, {});
+    }, [authAxios]);
 
     return (
         <Provider
             value={{
                 authAxios,
                 publicAxios,
-            }}>
+            }}
+        >
             {children}
         </Provider>
     );
 };
 
-export {AxiosContext, AxiosProvider};
+export { AxiosContext, AxiosProvider };

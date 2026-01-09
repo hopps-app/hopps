@@ -68,7 +68,8 @@
       "WebFetch(domain:unpkg.com)",
       "WebFetch(domain:v10.carbondesignsystem.com)",
       "Bash(yarn add:*)",
-      "Bash(yarn remove:*)"
+      "Bash(yarn remove:*)",
+      "Bash(yarn lint:*)"
     ]
   }
 }

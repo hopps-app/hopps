@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import LoginView from '@/app/login';
 import { AuthContext, AuthProvider } from '@/contexts/AuthContext';
 import { AxiosProvider } from '@/contexts/AxiosContext';
+import { ProfileProvider } from '@/contexts/ProfileContext';
 import { Text } from 'react-native';
 import Spinner from '@/components/Spinner';
 import * as SecureStore from 'expo-secure-store';
@@ -26,7 +27,7 @@ function AppContent() {
     const loadJWT = useCallback(async () => {
         try {
             const accessToken = await SecureStore.getItemAsync('accessToken');
-            const refreshToken = await SecureStore.getItemAsync('accessToken');
+            const refreshToken = await SecureStore.getItemAsync('refreshToken');
 
             authContext?.setAuthState({
                 accessToken: accessToken,
@@ -86,10 +87,12 @@ export default function RootLayout() {
     }
 
     return (
-        <AuthProvider>
-            <AxiosProvider>
-                <AppContent />
-            </AxiosProvider>
-        </AuthProvider>
+        <ProfileProvider>
+            <AuthProvider>
+                <AxiosProvider>
+                    <AppContent />
+                </AxiosProvider>
+            </AuthProvider>
+        </ProfileProvider>
     );
 }
