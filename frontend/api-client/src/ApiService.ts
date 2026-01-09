@@ -1,25 +1,25 @@
-import { Client } from './services/OrgService';
+import { Client } from './services/HoppsAppService';
 import { AuthenticatedHttpClient } from './AuthenticatedHttpClient';
 
 export interface ApiServiceOptions {
-    orgBaseUrl: string;
+    hoppsAppBaseUrl: string;
     getAccessToken?: () => string | undefined;
     refreshToken?: () => Promise<void>;
 }
 
 export class ApiService {
     private authenticatedHttpClient: AuthenticatedHttpClient;
-    public orgService: Client;
+    public hoppsApp: Client;
 
     constructor(options: ApiServiceOptions) {
-        const { orgBaseUrl, getAccessToken, refreshToken } = options;
+        const { hoppsAppBaseUrl, getAccessToken, refreshToken } = options;
 
-        if (!orgBaseUrl || orgBaseUrl === '') {
-            throw new Error('orgBaseUrl for hopps api service is missing.');
+        if (!hoppsAppBaseUrl || hoppsAppBaseUrl === '') {
+            throw new Error('hoppsAppBaseUrl for hopps api service is missing.');
         }
 
         this.authenticatedHttpClient = new AuthenticatedHttpClient({ getAccessToken, refreshToken });
-        this.orgService = new Client(orgBaseUrl, this.authenticatedHttpClient);
+        this.hoppsApp = new Client(hoppsAppBaseUrl, this.authenticatedHttpClient);
 
     }
 }

@@ -18,7 +18,7 @@
   "scripts": {
     "release": "npm publish --access=public",
     "build": "tsc --build",
-    "generate:org-service": "nswag run org-service.nswag",
+    "generate:hopps-app": "nswag run hopps-app.nswag",
     "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o"
   },
   "devDependencies": {

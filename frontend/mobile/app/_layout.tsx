@@ -11,6 +11,7 @@ import LoginView from '@/app/login';
 import { AuthContext, AuthProvider } from '@/contexts/AuthContext';
 import { AxiosProvider } from '@/contexts/AxiosContext';
 import { ProfileProvider } from '@/contexts/ProfileContext';
+import { DocumentProvider } from '@/contexts/DocumentContext';
 import { Text } from 'react-native';
 import Spinner from '@/components/Spinner';
 import * as SecureStore from 'expo-secure-store';
@@ -63,6 +64,7 @@ function AppContent() {
                 ) : (
                     <Stack>
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="document/[id]" options={{ headerShown: false }} />
                         <Stack.Screen name="+not-found" />
                     </Stack>
                 )
@@ -90,7 +92,9 @@ export default function RootLayout() {
         <ProfileProvider>
             <AuthProvider>
                 <AxiosProvider>
-                    <AppContent />
+                    <DocumentProvider>
+                        <AppContent />
+                    </DocumentProvider>
                 </AxiosProvider>
             </AuthProvider>
         </ProfileProvider>

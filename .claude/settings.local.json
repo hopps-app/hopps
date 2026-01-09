@@ -69,7 +69,8 @@
       "WebFetch(domain:v10.carbondesignsystem.com)",
       "Bash(yarn add:*)",
       "Bash(yarn remove:*)",
-      "Bash(yarn lint:*)"
+      "Bash(yarn lint:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
