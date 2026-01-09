@@ -2,7 +2,7 @@ name: Build zugferd-service
 
 on:
   push:
-    branches: [ main, "2.0" ]
+    branches: [ main, deploy ]
     paths:
       - 'app.hopps.zugferd/**'
       - '.github/workflows/zugferd-service.yml'
@@ -64,4 +64,25 @@ jobs:
           context: app.hopps.zugferd
           push: true
           file: app.hopps.zugferd/src/main/docker/Dockerfile.jvm
-          tags: ghcr.io/hopps-app/zugferd-service:latest
+          tags: |
+            ghcr.io/hopps-app/zugferd-service:latest
+            ghcr.io/hopps-app/zugferd-service:${{ github.run_number }}
+
+      - name: Trigger deploy workflow
+        uses: actions/github-script@v7
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github-token: ${{ secrets.TECHNICAL_USER_PAT }}
+          script: |
+            const result = await github.rest.actions.createWorkflowDispatch({
+              owner: 'hopps-app',
+              repo: 'hopps.cloud',
+              workflow_id: 'deploy.yml',
+              ref: 'main',
+              inputs: {
+                "environment": "dev",
+                "new-tag": "${{ github.run_number }}",
+                "service-name": "zugferd"
+              }
+            })
+            console.log(result);

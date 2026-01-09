@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hopps.hoppsAppFullname" . }}
+  labels:
+    {{- include "hopps.hoppsAppLabels" . | nindent 4 }}
+spec:
+  {{- if not .Values.hoppsApp.autoscaling.enabled }}
+  replicas: {{ .Values.hoppsApp.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hopps.hoppsAppSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.hoppsApp.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hopps.hoppsAppSelectorLabels" . | nindent 8 }}
+        {{- with .Values.hoppsApp.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if or .Values.global.imagePullSecrets .Values.hoppsApp.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 8 }}
+        {{- toYaml .Values.hoppsApp.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.hoppsApp.serviceAccount.create }}
+      serviceAccountName: {{ .Values.hoppsApp.serviceAccount.name | default (include "hopps.hoppsAppFullname" .) }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.hoppsApp.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+            {{- if .Values.hoppsApp.envVars }}
+            {{- toYaml .Values.hoppsApp.envVars | nindent 12 }}
+            {{- end }}
+            # az-document-ai
+            - name: HOPPS_DOCUMENT_ANALYSIS_SERVICE_URL
+              value: http://{{ .Release.Name }}-az-document-ai:{{ .Values.azDocumentAi.service.port }}
+            # zugferd
+            - name: HOPPS_ZUGFERD_SERVICE_URL
+              value: http://{{ .Release.Name }}-zugferd:{{ .Values.zugferd.service.port }}/
+          securityContext:
+            {{- toYaml .Values.hoppsApp.securityContext | nindent 12 }}
+          image: "{{ .Values.hoppsApp.image.repository }}:{{ .Values.hoppsApp.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.hoppsApp.image.pullPolicy }}
+          {{- if or .Values.hoppsApp.bootstrap.enabled .Values.hoppsApp.envFrom }}
+          envFrom:
+            {{- if .Values.hoppsApp.bootstrap.enabled }}
+            - configMapRef:
+                name: {{ include "hopps.hoppsAppFullname" . }}-bootstrap
+            {{- end }}
+            {{- with .Values.hoppsApp.envFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.hoppsApp.service.port }}
+              protocol: TCP
+            - name: management
+              containerPort: 9000
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.hoppsApp.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.hoppsApp.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.hoppsApp.resources | nindent 12 }}
+          {{- with .Values.hoppsApp.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.hoppsApp.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hoppsApp.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hoppsApp.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.hoppsApp.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
