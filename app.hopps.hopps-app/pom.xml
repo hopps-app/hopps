@@ -128,13 +128,13 @@
         <dependency>
             <groupId>io.quarkiverse.wiremock</groupId>
             <artifactId>quarkus-wiremock</artifactId>
-            <version>1.5.1</version>
+            <version>1.5.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.quarkiverse.wiremock</groupId>
             <artifactId>quarkus-wiremock-test</artifactId>
-            <version>1.5.1</version>
+            <version>1.5.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -275,7 +275,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>5.0.0.4389</version>
+                <version>5.5.0.6356</version>
             </plugin>
         </plugins>
     </build>
