@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { OrganizationErrorView } from '@/components/OrganizationErrorView';
 import emojiService from '@/services/EmojiService';
 import languageService from '@/services/LanguageService.ts';
@@ -76,9 +77,11 @@ function App() {
     }
 
     return isInitialized ? (
-        <BrowserRouter>
-            <AppRoutes />
-        </BrowserRouter>
+        <ErrorBoundary>
+            <BrowserRouter>
+                <AppRoutes />
+            </BrowserRouter>
+        </ErrorBoundary>
     ) : null;
 }
 

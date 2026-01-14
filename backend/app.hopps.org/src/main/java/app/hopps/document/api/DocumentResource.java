@@ -58,9 +58,8 @@ public class DocumentResource {
     @Path("{documentKey}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public byte[] getDocumentByKey(@PathParam("documentKey") String documentKey) {
-        // TODO: How to verify that user has access? --> FGAC
+        // TODO: Verify that user has access to this document
         // TODO: Set the media type header dynamic dependent on PNG, JPEG or PDF
-        // Go against the database get the bommel id then towards openfga?
         try {
             return s3Handler.getFile(documentKey);
         } catch (NoSuchKeyException ignored) {

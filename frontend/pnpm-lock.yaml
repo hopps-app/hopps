@@ -378,6 +378,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.80.6
         version: 5.80.6(react@18.3.1)
+      '@tanstack/react-query-devtools':
+        specifier: ^5.80.6
+        version: 5.91.2(@tanstack/react-query@5.80.6(react@18.3.1))(react@18.3.1)
       '@types/lodash':
         specifier: ^4.17.11
         version: 4.17.17
@@ -405,9 +408,6 @@ importers:
       emoji-mart:
         specifier: ^5.6.0
         version: 5.6.0
-      eslint-plugin-import:
-        specifier: ^2.31.0
-        version: 2.31.0(@typescript-eslint/parser@8.34.0(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.3))(eslint@9.28.0(jiti@1.21.7))
       i18next:
         specifier: ^23.16.0
         version: 23.16.8
@@ -420,9 +420,6 @@ importers:
       lucide-react:
         specifier: ^0.487.0
         version: 0.487.0(react@18.3.1)
-      moment:
-        specifier: ^2.30.1
-        version: 2.30.1
       pdfjs-dist:
         specifier: ^4.10.38
         version: 4.10.38
@@ -526,6 +523,9 @@ importers:
       eslint-config-prettier:
         specifier: ^9.1.0
         version: 9.1.0(eslint@9.28.0(jiti@1.21.7))
+      eslint-plugin-import:
+        specifier: ^2.31.0
+        version: 2.31.0(@typescript-eslint/parser@8.34.0(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.3))(eslint@9.28.0(jiti@1.21.7))
       eslint-plugin-jest:
         specifier: ^28.8.3
         version: 28.13.3(@typescript-eslint/eslint-plugin@8.34.0(@typescript-eslint/parser@8.34.0(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.3))(eslint@9.28.0(jiti@1.21.7))(typescript@5.8.3))(eslint@9.28.0(jiti@1.21.7))(jest@30.2.0(@types/node@22.15.31))(typescript@5.8.3)
@@ -3914,6 +3914,15 @@ packages:
 
   '@tanstack/query-core@5.80.6':
     resolution: {integrity: sha512-nl7YxT/TAU+VTf+e2zTkObGTyY8YZBMnbgeA1ee66lIVqzKlYursAII6z5t0e6rXgwUMJSV4dshBTNacNpZHbQ==}
+
+  '@tanstack/query-devtools@5.92.0':
+    resolution: {integrity: sha512-N8D27KH1vEpVacvZgJL27xC6yPFUy0Zkezn5gnB3L3gRCxlDeSuiya7fKge8Y91uMTnC8aSxBQhcK6ocY7alpQ==}
+
+  '@tanstack/react-query-devtools@5.91.2':
+    resolution: {integrity: sha512-ZJ1503ay5fFeEYFUdo7LMNFzZryi6B0Cacrgr2h1JRkvikK1khgIq6Nq2EcblqEdIlgB/r7XDW8f8DQ89RuUgg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.90.14
+      react: ^18 || ^19
 
   '@tanstack/react-query@5.80.6':
     resolution: {integrity: sha512-izX+5CnkpON3NQGcEm3/d7LfFQNo9ZpFtX2QsINgCYK9LT2VCIdi8D3bMaMSNhrAJCznRoAkFic76uvLroALBw==}
@@ -14807,6 +14816,14 @@ snapshots:
 
   '@tanstack/query-core@5.80.6': {}
 
+  '@tanstack/query-devtools@5.92.0': {}
+
+  '@tanstack/react-query-devtools@5.91.2(@tanstack/react-query@5.80.6(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@tanstack/query-devtools': 5.92.0
+      '@tanstack/react-query': 5.80.6(react@18.3.1)
+      react: 18.3.1
+
   '@tanstack/react-query@5.80.6(react@18.3.1)':
     dependencies:
       '@tanstack/query-core': 5.80.6
@@ -19813,7 +19830,8 @@ snapshots:
       moment: 2.30.1
     optional: true
 
-  moment@2.30.1: {}
+  moment@2.30.1:
+    optional: true
 
   motion-dom@11.18.1:
     dependencies:

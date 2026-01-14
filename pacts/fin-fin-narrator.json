@@ -84,7 +84,7 @@
         },
         "status": 200
       },
-      "transport": "https",
+      "transport": "http",
       "type": "Synchronous/HTTP"
     },
     {
@@ -158,13 +158,13 @@
         },
         "status": 200
       },
-      "transport": "https",
+      "transport": "http",
       "type": "Synchronous/HTTP"
     }
   ],
   "metadata": {
     "pact-jvm": {
-      "version": "4.6.11"
+      "version": "4.6.16"
     },
     "pactSpecification": {
       "version": "4.0"

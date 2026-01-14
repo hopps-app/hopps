@@ -2,15 +2,16 @@ package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
 import app.hopps.organization.domain.Organization;
-import app.hopps.organization.model.CreateOrganizationResponse;
 import app.hopps.organization.model.NewOrganizationInput;
 import app.hopps.organization.repository.OrganizationRepository;
+import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.shared.security.SecurityUtils;
+import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import app.hopps.shared.validation.RestValidator;
 import app.hopps.shared.validation.RestValidator.ValidationResult;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -19,7 +20,6 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -28,13 +28,8 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.kie.kogito.Model;
-import org.kie.kogito.process.Process;
-import org.kie.kogito.process.ProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 @Path("/organization")
 public class OrganizationResource {
@@ -45,8 +40,7 @@ public class OrganizationResource {
     Validator validator;
 
     @Inject
-    @Named("NewOrganization")
-    Process<? extends Model> process;
+    OrganizationCreationService organizationCreationService;
 
     @Inject
     OrganizationRepository organizationRepository;
@@ -100,26 +94,31 @@ public class OrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new organization")
-    @APIResponse(responseCode = "202", description = "Creation started successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateOrganizationResponse.class)))
+    @APIResponse(responseCode = "201", description = "Organization created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
-    @APIResponse(responseCode = "500", description = "Process failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CreateOrganizationResponse.class)))
+    @APIResponse(responseCode = "409", description = "Email or slug already exists")
     public Response create(NewOrganizationInput input) {
-        Model model = process.createModel();
-        Map<String, Object> newOrganizationParameters = input.toModel();
-        model.fromMap(newOrganizationParameters);
-        ProcessInstance<? extends Model> instance = process.createInstance(model);
-        instance.start();
+        Organization organization = input.toOrganization();
+        Member owner = input.toOwner();
 
-        CreateOrganizationResponse createOrganizationResponse = new CreateOrganizationResponse(instance.id(),
-                instance.error().map(x -> x.errorCause().getCause().getMessage()).orElse(null));
-
-        if (instance.error().isPresent()) {
-            throw new WebApplicationException(
-                    Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(createOrganizationResponse).build());
+        try {
+            organizationCreationService.createOrganization(organization, owner, input.newPassword());
+        } catch (ConstraintViolationException e) {
+            LOG.warn("Validation failed for organization creation: {}", e.getMessage());
+            throw new BadRequestException(
+                    Response.status(Response.Status.BAD_REQUEST)
+                            .entity(e.getMessage())
+                            .build());
+        } catch (NonUniqueConstraintViolation.NonUniqueConstraintViolationException e) {
+            LOG.warn("Uniqueness constraint violation: {}", e.getMessage());
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .build();
         }
 
-        return Response.accepted()
-                .entity(createOrganizationResponse)
+        LOG.info("Successfully created organization: {}", organization.getSlug());
+        return Response.status(Response.Status.CREATED)
+                .entity(organization)
                 .build();
     }
 

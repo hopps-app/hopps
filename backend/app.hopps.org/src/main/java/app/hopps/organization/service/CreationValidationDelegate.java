@@ -38,19 +38,20 @@ public class CreationValidationDelegate {
     }
 
     /**
+     * Validates that the organization slug and owner email are unique in the database.
+     *
      * @param organization
      *            The Organization to be validated if the slug is already taken
      * @param owner
      *            The owner to be validated if the email is already registered
      *
-     * @throws Exception
-     *             if validation fails. It is intentionally java.lang.Exception, as Kogito cannot handle anything else
+     * @throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException
+     *             if email or slug already exists
      */
-    public void validateUniqueness(Organization organization, Member owner) throws Exception {
-
-        // Not having a proper Jakarta Validator is intentional, as a Hibernate Proxy might be valid, although its
-        // content
-        // is already in the database, ergo not unique
+    public void validateUniqueness(Organization organization, Member owner)
+            throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException {
+        // Not using Jakarta Validator is intentional, as a Hibernate Proxy might be valid,
+        // although its content is already in the database, ergo not unique
 
         Set<NonUniqueConstraintViolation> nonUniqueConstraintViolations = new HashSet<>();
         boolean ownerUnique = (memberRepository.findByEmail(owner.getEmail()) == null);

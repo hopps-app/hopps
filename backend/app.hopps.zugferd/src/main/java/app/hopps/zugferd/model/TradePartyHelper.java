@@ -1,7 +1,6 @@
 package app.hopps.zugferd.model;
 
 public class TradePartyHelper {
-
     private TradePartyHelper() {
         // use static method
     }

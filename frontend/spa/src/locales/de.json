@@ -13,7 +13,25 @@
         "goBack": "Zurück",
         "cancel": "Abbrechen",
         "save": "Speichern",
-        "delete": "Löschen"
+        "delete": "Löschen",
+        "loading": "Wird geladen...",
+        "validationError": "Bitte füllen Sie alle Pflichtfelder aus"
+    },
+    "errors": {
+        "boundary": {
+            "title": "Ein Fehler ist aufgetreten",
+            "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support."
+        }
+    },
+    "validation": {
+        "required": "Dieses Feld ist erforderlich",
+        "email": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        "passwordMin": "Das Passwort muss mindestens 8 Zeichen lang sein",
+        "passwordMatch": "Die Passwörter stimmen nicht überein",
+        "organizationNameRequired": "Organisationsname ist erforderlich",
+        "firstNameRequired": "Vorname ist erforderlich",
+        "lastNameRequired": "Nachname ist erforderlich",
+        "invalidFileType": "Ungültiger Dateityp"
     },
     "header": {
         "logout": "Abmelden",
@@ -65,7 +83,13 @@
         "registration": {
             "failed": "Fehler bei der Registrierung der Organisation",
             "header": "Organisation registrieren",
-            "success": "Organisation erfolgreich erstellt"
+            "success": "Organisation erfolgreich erstellt",
+            "organizationName": "Organisationsname",
+            "firstName": "Vorname",
+            "lastName": "Nachname",
+            "email": "E-Mail-Adresse",
+            "password": "Passwort",
+            "confirmPassword": "Passwort bestätigen"
         },
         "settings": {
             "error": "Fehler beim Laden der Organisationsstruktur",
@@ -154,6 +178,7 @@
     "menu": {
         "dashboard": "Übersicht",
         "receipts": "Belege",
+        "upload-receipt": "Beleg hochladen",
         "all-receipt": "Alle Belege anzeigen",
         "expense": "Ausgabe",
         "intake": "Einnahme",
@@ -165,6 +190,7 @@
     "receipts": {
         "draft": "Entwurf",
         "dueDate": "Fällig am",
+        "empty": "Keine Belege gefunden",
         "status": {
             "paid": "Status: Bezahlt",
             "unpaid": "Status: Offen",
@@ -189,7 +215,41 @@
             "displayAll": "Alles ausklappen",
             "reset": "Zurücksetzen",
             "noResults": "Keine Ergebnisse"
+        },
+        "upload": {
+            "title": "Hochladen",
+            "receiptNumber": "Belegnummer",
+            "receiptDate": "Belegdatum",
+            "transactionType": "Belegart",
+            "unpaid": "Unbezahlt",
+            "contractPartner": "Vertragspartner",
+            "bommel": "Bommel",
+            "dueDate": "Fälligkeitsdatum",
+            "category": "Kategorie",
+            "area": "Bereich",
+            "tags": "Tags",
+            "addTag": "Tag hinzufügen",
+            "taxAmount": "Steuerbetrag",
+            "netAmount": "Nettobetrag",
+            "autoRead": "Automatisches Auslesen",
+            "saveAsDraft": "Als Entwurf speichern",
+            "uploadSuccess": "Beleg erfolgreich hochgeladen",
+            "uploadFailed": "Upload fehlgeschlagen"
+        },
+        "areas": {
+            "ideell": "Ideeller Bereich",
+            "zweckbetrieb": "Zweckbetrieb",
+            "vermoegensverwaltung": "Vermögensverwaltung",
+            "wirtschaftlich": "Wirtschaftlicher Geschäftsbetrieb"
+        },
+        "types": {
+            "income": "Einnahme",
+            "expense": "Ausgabe"
         }
+    },
+    "bommel": {
+        "empty": "Keine Bommels gefunden",
+        "select": "Bommel auswählen"
     },
     "datePicker": {
         "selectDate": "Datum auswählen"

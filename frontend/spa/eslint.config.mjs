@@ -26,12 +26,15 @@ export default tseslint.config(
             ...reactHooks.configs.recommended.rules,
             'prettier/prettier': 'error',
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-            'react-hooks/exhaustive-deps': 'off',
+            'react-hooks/exhaustive-deps': 'warn',
+            '@typescript-eslint/no-explicit-any': 'warn',
+            '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
             'import/order': [
                 'error',
                 {
-                    groups: [['builtin', 'external', 'internal']],
+                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
                     'newlines-between': 'always',
+                    alphabetize: { order: 'asc', caseInsensitive: true },
                 },
             ],
         },

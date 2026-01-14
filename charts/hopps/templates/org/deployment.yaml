@@ -36,16 +36,8 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           env:
-            {{- if .Values.kafka.enabled }}
-            - name: kafka.bootstrap.servers
-              value: {{ .Release.Name }}-kafka:9092
-            {{- end }}
             {{- if .Values.org.envVars }}
             {{- toYaml .Values.org.envVars | nindent 12 }}
-            {{- end }}
-            {{- if .Values.openfgaEnabled }}
-            - name: QUARKUS_OPENFGA_URL
-              value: http://{{ .Release.Name }}-openfga:8080
             {{- end }}
             # fin-narrator
             - name: HOPPS_FIN_NARRATOR_SERVICE_URL

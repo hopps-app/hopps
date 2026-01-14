@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -9,21 +10,14 @@ import TextField from '@/components/ui/TextField.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 
-const schema = z
-    .object({
-        organizationName: z.string().min(1, 'Organization name is required'),
-        firstName: z.string().min(1, 'First name is required'),
-        lastName: z.string().min(1, 'Last name is required'),
-        email: z.string().email('Invalid email address'),
-        password: z.string().min(8, 'Password must be at least 8 characters long'),
-        passwordConfirm: z.string().min(8, 'Password must be at least 8 characters long'),
-    })
-    .refine((data) => data.password === data.passwordConfirm, {
-        message: "Passwords don't match",
-        path: ['passwordConfirm'],
-    });
-
-type FormFields = z.infer<typeof schema>;
+type FormFields = {
+    organizationName: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    passwordConfirm: string;
+};
 
 type Props = {
     onSuccess: () => void;
@@ -41,6 +35,25 @@ function createSlug(input: string): string {
 export function OrganizationRegistrationForm(props: Props) {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
+
+    const schema = useMemo(
+        () =>
+            z
+                .object({
+                    organizationName: z.string().min(1, t('validation.organizationNameRequired')),
+                    firstName: z.string().min(1, t('validation.firstNameRequired')),
+                    lastName: z.string().min(1, t('validation.lastNameRequired')),
+                    email: z.string().email(t('validation.email')),
+                    password: z.string().min(8, t('validation.passwordMin')),
+                    passwordConfirm: z.string().min(8, t('validation.passwordMin')),
+                })
+                .refine((data) => data.password === data.passwordConfirm, {
+                    message: t('validation.passwordMatch'),
+                    path: ['passwordConfirm'],
+                }),
+        [t]
+    );
+
     const { register, handleSubmit, formState } = useForm<FormFields>({
         mode: 'onBlur',
         resolver: zodResolver(schema),
@@ -78,21 +91,21 @@ export function OrganizationRegistrationForm(props: Props) {
         <form onSubmit={handleSubmit(onSubmit)} className="">
             <h1 className="text-center">{t('organization.registration.header')}</h1>
             <div className="my-4">
-                <TextField label="Organization name" {...register('organizationName')} error={errors.organizationName?.message} />
+                <TextField label={t('organization.registration.organizationName')} {...register('organizationName')} error={errors.organizationName?.message} />
             </div>
             <div className="my-4">
                 <div className="flex flex-row gap-2">
-                    <TextField label="Account First Name" {...register('firstName')} error={errors.firstName?.message} />
-                    <TextField label="Account Last Name" {...register('lastName')} error={errors.lastName?.message} />
+                    <TextField label={t('organization.registration.firstName')} {...register('firstName')} error={errors.firstName?.message} />
+                    <TextField label={t('organization.registration.lastName')} {...register('lastName')} error={errors.lastName?.message} />
                 </div>
             </div>
             <div className="my-4">
-                <TextField label="Account email" {...register('email')} error={errors.email?.message} />
+                <TextField label={t('organization.registration.email')} {...register('email')} error={errors.email?.message} />
             </div>
             <div className="my-4">
                 <div className="flex flex-row gap-2">
-                    <TextField label="Account password" type="password" {...register('password')} error={errors.password?.message} />
-                    <TextField label="Confirm password" type="password" {...register('passwordConfirm')} error={errors.passwordConfirm?.message} />
+                    <TextField label={t('organization.registration.password')} type="password" {...register('password')} error={errors.password?.message} />
+                    <TextField label={t('organization.registration.confirmPassword')} type="password" {...register('passwordConfirm')} error={errors.passwordConfirm?.message} />
                 </div>
             </div>
 

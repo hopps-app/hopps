@@ -2,13 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>app.hopps</groupId>
-        <artifactId>hopps</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
-    </parent>
-
+    <groupId>app.hopps</groupId>
     <artifactId>zugferd</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>Hopps ZugFerD Document Service</name>
     <description>Microservice which uses ZugFerD with Mustang to extract data from E-Invoices in PDF form</description>

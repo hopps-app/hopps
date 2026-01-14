@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
 import SettingsPage from '@/components/SettingsPage/SettingsPage.tsx';
-import OrganizationSettingsView from '@/components/views/OrganizationSettingsView.tsx';
+import { OrganizationSettingsView } from '@/components/views/OrganizationSettings';
 import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
 import languageService from '@/services/LanguageService.ts';
 import InvoicesView from './InvoicesView';

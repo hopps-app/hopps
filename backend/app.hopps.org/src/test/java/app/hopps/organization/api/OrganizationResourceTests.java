@@ -24,10 +24,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.notNullValue;
 
 @QuarkusTest
 @TestSecurity(authorizationEnabled = false)
@@ -93,7 +92,8 @@ class OrganizationResourceTests {
     }
 
     @Test
-    void shouldStartCreatingOrganization() throws MalformedURLException {
+    @DisplayName("should create organization successfully")
+    void shouldCreateOrganization() throws MalformedURLException {
         QuarkusTransaction.begin();
         organizationRepository.deleteAll();
         bommelRepository.deleteAll();
@@ -113,8 +113,9 @@ class OrganizationResourceTests {
                 .when()
                 .post()
                 .then()
-                .statusCode(202)
-                .body("id", any(String.class))
-                .body("error", nullValue());
+                .statusCode(201)
+                .body("slug", equalTo("schuetzenverein"))
+                .body("name", equalTo("Schützenverein"))
+                .body("id", notNullValue());
     }
 }

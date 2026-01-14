@@ -4,15 +4,15 @@ import app.hopps.member.domain.Member;
 import app.hopps.organization.domain.Organization;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public record NewOrganizationInput(@NotNull OwnerInput owner, @NotNull String newPassword,
         @NotNull OrganizationInput organization) {
 
-    public Map<String, Object> toModel() {
-        Map<String, Object> parameters = new HashMap<>();
-
+    /**
+     * Converts the organization input to an Organization entity.
+     *
+     * @return a new Organization entity populated with the input data
+     */
+    public Organization toOrganization() {
         Organization jpaOrg = new Organization();
         jpaOrg.setSlug(organization().slug());
         jpaOrg.setName(organization().name());
@@ -20,16 +20,19 @@ public record NewOrganizationInput(@NotNull OwnerInput owner, @NotNull String ne
         jpaOrg.setWebsite(organization().website());
         jpaOrg.setAddress(organization().address());
         jpaOrg.setProfilePicture(organization().profilePicture());
-        parameters.put("organization", jpaOrg);
+        return jpaOrg;
+    }
 
+    /**
+     * Converts the owner input to a Member entity.
+     *
+     * @return a new Member entity populated with the owner data
+     */
+    public Member toOwner() {
         Member member = new Member();
         member.setEmail(owner().email());
         member.setFirstName(owner().firstName());
         member.setLastName(owner().lastName());
-        parameters.put("owner", member);
-
-        parameters.put("newPassword", newPassword);
-
-        return parameters;
+        return member;
     }
 }

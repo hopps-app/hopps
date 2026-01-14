@@ -13,7 +13,25 @@
         "goBack": "Back",
         "cancel": "Cancel",
         "save": "Save",
-        "delete": "Delete"
+        "delete": "Delete",
+        "loading": "Loading...",
+        "validationError": "Please fill in all required fields"
+    },
+    "errors": {
+        "boundary": {
+            "title": "Something went wrong",
+            "description": "An unexpected error occurred. Please try again or contact support."
+        }
+    },
+    "validation": {
+        "required": "This field is required",
+        "email": "Please enter a valid email address",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordMatch": "Passwords do not match",
+        "organizationNameRequired": "Organization name is required",
+        "firstNameRequired": "First name is required",
+        "lastNameRequired": "Last name is required",
+        "invalidFileType": "Invalid file type"
     },
     "header": {
         "logout": "Logout",
@@ -66,7 +84,13 @@
         "registration": {
             "failed": "Failed to register organization",
             "header": "Register Organization",
-            "success": "Organisation successfully created"
+            "success": "Organisation successfully created",
+            "organizationName": "Organization name",
+            "firstName": "First name",
+            "lastName": "Last name",
+            "email": "Email address",
+            "password": "Password",
+            "confirmPassword": "Confirm password"
         },
         "settings": {
             "error": "Failed to load organization structure",
@@ -155,6 +179,7 @@
     "menu": {
         "dashboard": "Dashboard",
         "receipts": "Receipts",
+        "upload-receipt": "Upload Receipt",
         "all-receipt": "All Receipts",
         "expense": "Expense",
         "intake": "Intake",
@@ -212,6 +237,7 @@
     "receipts": {
         "draft": "Draft",
         "dueDate": "Due on",
+        "empty": "No receipts found",
         "status": {
             "paid": "Status: Paid",
             "unpaid": "Status: Unpaid",
@@ -236,6 +262,40 @@
             "displayAll": "Expand all",
             "reset": "Reset",
             "noResults": "No results"
+        },
+        "upload": {
+            "title": "Upload",
+            "receiptNumber": "Receipt number",
+            "receiptDate": "Receipt date",
+            "transactionType": "Transaction type",
+            "unpaid": "Unpaid",
+            "contractPartner": "Contract partner",
+            "bommel": "Bommel",
+            "dueDate": "Due date",
+            "category": "Category",
+            "area": "Area",
+            "tags": "Tags",
+            "addTag": "Add tag",
+            "taxAmount": "Tax amount",
+            "netAmount": "Net amount",
+            "autoRead": "Automatic reading",
+            "saveAsDraft": "Save as draft",
+            "uploadSuccess": "Receipt uploaded successfully",
+            "uploadFailed": "Upload failed"
+        },
+        "areas": {
+            "ideell": "Non-profit area",
+            "zweckbetrieb": "Purpose operation",
+            "vermoegensverwaltung": "Asset management",
+            "wirtschaftlich": "Commercial operation"
+        },
+        "types": {
+            "income": "Income",
+            "expense": "Expense"
         }
+    },
+    "bommel": {
+        "empty": "No Bommel found",
+        "select": "Select Bommel"
     }
 }

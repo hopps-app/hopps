@@ -35,15 +35,9 @@ spec:
         {{- toYaml .Values.azDocumentAi.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- if or .Values.azDocumentAi.envVars .Values.kafka.enabled }}
+          {{- if .Values.azDocumentAi.envVars }}
           env:
-            {{- if .Values.azDocumentAi.envVars }}
             {{- toYaml .Values.azDocumentAi.envVars | nindent 12 }}
-            {{- end }}
-            {{- if .Values.kafka.enabled }}
-            - name: kafka.bootstrap.servers
-              value: {{ .Release.Name }}-kafka:9092
-            {{- end }}
           {{- end }}
           securityContext:
             {{- toYaml .Values.azDocumentAi.securityContext | nindent 12 }}

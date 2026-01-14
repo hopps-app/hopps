@@ -19,20 +19,18 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class ZugFerdService
-{
+public class ZugFerdService {
     private static final Logger LOG = LoggerFactory.getLogger(ZugFerdService.class);
 
     @Inject
     TagGenerationService tagGenerationService;
 
     public DocumentData scanDocument(Long transactionRecordId, InputStream stream)
-        throws XPathExpressionException, ParseException
-    {
+            throws XPathExpressionException, ParseException {
         LOG.info("Starting scan of document (transactionRecordId={})", transactionRecordId);
         ZUGFeRDImporter importer = new ZUGFeRDImporter();
         importer.doIgnoreCalculationErrors(); // Ignore validation errors for
-        // incomplete invoices
+                                              // incomplete invoices
         importer.setInputStream(stream);
         Invoice invoice = importer.extractInvoice();
         // Get values directly from the importer (reads from XML header)
@@ -42,8 +40,8 @@ public class ZugFerdService
         BigDecimal totalTax = parseBigDecimal(importer.getTaxTotalAmount());
         BigDecimal taxBasis = parseBigDecimal(importer.getTaxBasisTotalAmount());
         LOG.info(
-            "Successfully extracted invoice from PDF (transactionRecordId={}, grandTotal={}, totalTax={})",
-            transactionRecordId, grandTotal, totalTax);
+                "Successfully extracted invoice from PDF (transactionRecordId={}, grandTotal={}, totalTax={})",
+                transactionRecordId, grandTotal, totalTax);
 
         // Generate AI-powered tags for the invoice
         List<String> tags = tagGenerationService.generateTagsForInvoice(invoice);
@@ -51,10 +49,8 @@ public class ZugFerdService
         return DocumentDataHandler.fromZugferd(invoice, grandTotal, totalTax, taxBasis, tags);
     }
 
-    private BigDecimal parseBigDecimal(String value)
-    {
-        if (value == null || value.isEmpty())
-        {
+    private BigDecimal parseBigDecimal(String value) {
+        if (value == null || value.isEmpty()) {
             return null;
         }
         return new BigDecimal(value);

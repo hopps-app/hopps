@@ -238,15 +238,7 @@ public class BommelResource {
      */
     private void checkUserHasPermission(long bommelId, String relation) throws WebApplicationException {
         isUserLoggedIn();
-        // FIXME implement this later after openfga is correctly implemented and has a schema
-        // var principal = securityContext.getUserPrincipal();
-        //
-        // String username = principal == null ? "anonymous" : principal.getName();
-        //
-        // var accessTuple = TupleKey.of("bommel:" + bommelId, relation, "user:" + username);
-        // if (this.authEnabled && Boolean.FALSE.equals(authModelClient.check(accessTuple).await().indefinitely())) {
-        // throw new WebApplicationException(Response.Status.FORBIDDEN);
-        // }
+        // TODO: Implement permission check
     }
 
     private Bommel throwOrGetBommel(Optional<Bommel> rootBommelOpt) {

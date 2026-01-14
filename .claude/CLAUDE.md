@@ -31,10 +31,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - **Build:** Maven
 - **Datenbank:** PostgreSQL mit Flyway Migrations
 - **ORM:** Hibernate mit Panache
-- **Messaging:** Apache Kafka (SmallRye Reactive Messaging)
 - **Auth:** Keycloak (OAuth2/OIDC)
-- **Authorization:** OpenFGA (Fine-Grained Authorization)
-- **BPM:** Kogito (jBPM)
 - **Storage:** AWS S3 (MinIO lokal)
 - **AI/ML:** LangChain4j mit OpenAI, Azure Document AI
 
@@ -59,10 +56,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - `/document` - Dokumenten-Upload und Abruf
 
 **Features:**
-- BPMN-Workflow für Organisationserstellung
 - Keycloak User Provisioning
-- OpenFGA Authorization Model
-- Kafka Event Consumption für Invoice/Receipt Daten
 - S3 Dokumentenspeicherung
 
 #### app.hopps.fin-narrator (Port 8775)
@@ -80,7 +74,7 @@ E-Mail-Benachrichtigungsservice (aktuell deaktiviert)
 ### Datenbank Setup
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
-- **Multi-Database:** Separate DBs für org, keycloak, openfga
+- **Multi-Database:** Separate DBs für org, keycloak
 - **Schema Version:** V1.0.2
 
 ### Bekannte Architektur-Issues
@@ -181,9 +175,7 @@ Der `frontend/figma_inspo` Ordner dient als **Inspiration für UI/UX Design und 
 - `fin-narrator` - AI Tagging (8775)
 - `az-document-ai` - Document Analysis (8100)
 - `postgres` - PostgreSQL 16
-- `kafka` - Bitnami Kafka 3.9 (KRaft)
 - `keycloak` - Bitnami Keycloak 26 (8092)
-- `openfga` - OpenFGA v1.5.9 (9080-9081, Playground 3000)
 - `localstack` - AWS S3 Mock
 
 **Benötigte Umgebungsvariablen:**
@@ -201,7 +193,7 @@ QUARKUS_LANGCHAIN4J_OPENAI_API_KEY
 
 ### Kubernetes/Helm
 **Chart:** `/charts/hopps` (Version 0.1.15)
-**Dependencies:** KeycloakX, OpenFGA, Kafka UI, Kafka, PostgreSQL
+**Dependencies:** KeycloakX, PostgreSQL
 
 ## Testing
 
@@ -242,7 +234,6 @@ src/main/java/app/hopps/{feature}/
 - Specs unter `target/openapi/openapi.json`
 - REST Assured für API-Tests
 - Keycloak-Integration für Auth
-- OpenFGA für Fine-Grained Authorization
 
 ### Frontend-Entwicklung
 - Komponenten in `components/ui/` folgen shadcn/ui Patterns
@@ -321,4 +312,3 @@ const { t } = useTranslation();
 2. API Client muss mit NSwag regeneriert werden
 3. Pact Tests für Consumer/Provider aktualisieren
 4. Keycloak Roles beachten
-5. OpenFGA Authorization Rules prüfen

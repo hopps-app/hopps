@@ -30,21 +30,6 @@ dependencies:
     version: 7.0.1
     repository: https://codecentric.github.io/helm-charts
     alias: keycloak
-  - condition: openfgaEnabled
-    name: openfga
-    # ToDo: make version controllable by dependabot
-    version: 0.2.16
-    repository: https://openfga.github.io/helm-charts
-  - condition: kafka-ui.enabled
-    name: kafka-ui
-    # ToDo: make version controllable by dependabot
-    version: 0.7.6
-    repository: https://provectus.github.io/kafka-ui-charts
-  - condition: kafka.enabled
-    name: kafka
-    # ToDo: make version controllable by dependabot
-    version: 32.4.3
-    repository: https://charts.bitnami.com/bitnami
   - condition: postgresql-org.enabled
     alias: postgresqlOrg
     name: postgresql

@@ -16,7 +16,7 @@ public record NonUniqueConstraintViolation(String field, Object root) {
     /**
      * Exception thrown when one or more uniqueness constraints are violated.
      */
-    public static final class NonUniqueConstraintViolationException extends Exception {
+    public static final class NonUniqueConstraintViolationException extends RuntimeException {
 
         private final Set<NonUniqueConstraintViolation> violations;
 

@@ -26,7 +26,6 @@ public class TransactionRecord {
     @Column(nullable = false, updatable = false)
     private String uploader;
 
-    // That's the only required common column in the kafka events
     @Column(nullable = false)
     private BigDecimal total;
 

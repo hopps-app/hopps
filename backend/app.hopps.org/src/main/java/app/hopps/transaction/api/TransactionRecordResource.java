@@ -79,7 +79,6 @@ public class TransactionRecordResource {
         }
 
         // TODO: Check that user has write permissions to bommel here
-        // TODO: OpenFGA
         var maybeBommel = bommelRepository.findByIdOptional(bommelId);
         maybeBommel.orElseThrow(() -> new BadRequestException(Response
                 .status(Response.Status.BAD_REQUEST)
