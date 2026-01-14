@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +22,14 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
+import app.hopps.shared.bootstrap.config.BootstrapData;
+import app.hopps.shared.bootstrap.config.BootstrapData.BommelData;
+import app.hopps.shared.bootstrap.config.BootstrapData.DemoData;
+import app.hopps.shared.bootstrap.config.BootstrapData.DocumentData;
+import app.hopps.shared.bootstrap.config.BootstrapData.MemberData;
+import app.hopps.shared.bootstrap.config.BootstrapData.OrganizationData;
+import app.hopps.shared.bootstrap.config.BootstrapData.TagData;
+import app.hopps.shared.bootstrap.config.BootstrapData.TransactionData;
 import app.hopps.shared.domain.Tag;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
@@ -27,13 +38,15 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 /**
- * Seeds demo data for development mode. Creates demo members, bommels,
- * documents, and transactions for each organization.
+ * Seeds demo data for development mode based on YAML configuration. Creates
+ * demo members, bommels, tags, documents, and transactions for each
+ * organization that has demo data configured.
  */
 @ApplicationScoped
 public class DataSeeder
 {
 	private static final Logger LOG = LoggerFactory.getLogger(DataSeeder.class);
+	private static final String ROOT_REF = "root";
 
 	@Inject
 	BommelRepository bommelRepository;
@@ -47,8 +60,11 @@ public class DataSeeder
 	@Inject
 	TransactionRecordRepository transactionRepository;
 
+	@Inject
+	BootstrapData bootstrapData;
+
 	/**
-	 * Seeds demo data for all organizations.
+	 * Seeds demo data for all organizations that have demo configuration.
 	 *
 	 * @param orgs
 	 *            List of organizations to seed
@@ -58,109 +74,135 @@ public class DataSeeder
 	{
 		for (Organization org : orgs)
 		{
-			if ("musikverein-harmonie".equals(org.getSlug()))
-			{
-				seedMusikvereinsDemo(org);
-			}
-			else if ("sportverein-alpenblick".equals(org.getSlug()))
-			{
-				seedSportvereinDemo(org);
-			}
+			// Find config for this organization
+			bootstrapData.getOrganizations().stream()
+				.filter(c -> c.getSlug().equals(org.getSlug())).findFirst()
+				.map(OrganizationData::getDemo).ifPresent(demo -> seedFromConfig(org, demo));
 		}
 	}
 
 	/**
-	 * Seeds demo data for Musikverein Harmonie organization.
+	 * Seeds demo data for a single organization from configuration.
 	 */
-	private void seedMusikvereinsDemo(Organization org)
+	private void seedFromConfig(Organization org, DemoData demo)
 	{
-		// Only seed if demo member doesn't exist yet
-		if (memberRepository.findByUsername("max.mustermann") == null)
+		if (demo == null)
 		{
-			// Create demo members (NOT auth-linked)
-			createMember("Max", "Mustermann", "max.mustermann",
-				"max.mustermann@harmonie.local", "+49 89 123456", org);
-			Member secondaryMember = createMember("Lisa", "Schmidt", "lisa.schmidt",
-				"lisa.schmidt@harmonie.local", null, org);
-
-			// Find root bommel created by BootstrapService
-			Bommel root = findRootBommel(org);
-
-			// Create Bommels
-			Bommel jugend = createBommel("group", "Jugend", secondaryMember, root, org);
-			Bommel orchester = createBommel("music", "Orchester", null, root, org);
-			createBommel("education", "Anfaenger", null, jugend, org);
-
-			// Create demo documents
-			seedDocuments(root, jugend, orchester, org);
-
-			LOG.info("Seeded demo data for organization: {}", org.getName());
+			return;
 		}
+
+		// Check if already seeded by looking for first demo member
+		if (!demo.getMembers().isEmpty())
+		{
+			String firstUsername = demo.getMembers().get(0).getUsername();
+			if (memberRepository.findByUsername(firstUsername) != null)
+			{
+				LOG.debug("Demo data already seeded for organization: {}", org.getName());
+				return;
+			}
+		}
+
+		LOG.info("Seeding demo data for organization: {}", org.getName());
+
+		// Create members first (needed for bommel responsibilities)
+		Map<String, Member> membersByUsername = new HashMap<>();
+		for (MemberData memberData : demo.getMembers())
+		{
+			Member member = createMember(memberData, org);
+			membersByUsername.put(memberData.getUsername(), member);
+		}
+
+		// Find root bommel
+		Bommel root = findRootBommel(org);
+
+		// Create bommels (need to handle parent references)
+		Map<String, Bommel> bommelsByRef = new HashMap<>();
+		bommelsByRef.put(ROOT_REF, root);
+		for (BommelData bommelData : demo.getBommels())
+		{
+			Bommel parent = bommelsByRef.get(bommelData.getParentRef());
+			if (parent == null)
+			{
+				LOG.warn("Parent bommel '{}' not found for bommel '{}', using root",
+					bommelData.getParentRef(), bommelData.getRef());
+				parent = root;
+			}
+
+			Member responsibleMember = bommelData.getResponsibleMember() != null
+				? membersByUsername.get(bommelData.getResponsibleMember())
+				: null;
+
+			Bommel bommel = createBommel(bommelData, parent, responsibleMember, org);
+			bommelsByRef.put(bommelData.getRef(), bommel);
+		}
+
+		// Create tags
+		Map<String, Tag> tagsByRef = new HashMap<>();
+		for (TagData tagData : demo.getTags())
+		{
+			Tag tag = createTag(tagData, org);
+			tagsByRef.put(tagData.getRef(), tag);
+		}
+
+		// Create documents
+		for (DocumentData docData : demo.getDocuments())
+		{
+			Bommel bommel = docData.getBommelRef() != null
+				? bommelsByRef.get(docData.getBommelRef())
+				: null;
+			List<Tag> docTags = docData.getTagRefs() != null
+				? Arrays.stream(docData.getTagRefs().split(",")).map(String::trim)
+					.map(tagsByRef::get).filter(t -> t != null).toList()
+				: List.of();
+
+			Document doc = createDocument(docData, bommel, docTags, org);
+
+			// Create transaction if configured
+			if (docData.isCreateTransaction())
+			{
+				createTransactionFromDocument(doc, docTags, org);
+			}
+		}
+
+		// Create standalone transactions
+		for (TransactionData txData : demo.getTransactions())
+		{
+			Bommel bommel = txData.getBommelRef() != null
+				? bommelsByRef.get(txData.getBommelRef())
+				: root;
+			createTransaction(txData, bommel, org);
+		}
+
+		LOG.info(
+			"Seeded demo data for organization: {} ({} members, {} bommels, {} tags, {} documents, {} transactions)",
+			org.getName(), demo.getMembers().size(), demo.getBommels().size(),
+			demo.getTags().size(), demo.getDocuments().size(), demo.getTransactions().size());
 	}
 
-	/**
-	 * Seeds demo data for Sportverein Alpenblick organization.
-	 */
-	private void seedSportvereinDemo(Organization org)
-	{
-		// Only seed if demo member doesn't exist yet
-		if (memberRepository.findByUsername("anna.weber") == null)
-		{
-			// Create demo members (NOT auth-linked)
-			Member primaryMember = createMember("Anna", "Weber", "anna.weber",
-				"anna.weber@alpenblick.local", "+49 8051 987654", org);
-			Member secondaryMember = createMember("Peter", "Huber", "peter.huber",
-				"peter.huber@alpenblick.local", null, org);
-
-			// Find root bommel created by BootstrapService
-			Bommel root = findRootBommel(org);
-
-			// Create Bommels
-			Bommel fussball = createBommel("soccer", "Fußball", secondaryMember, root, org);
-			Bommel volleyball = createBommel("volleyball", "Volleyball", null, root, org);
-			Bommel jugend = createBommel("group", "Jugend", null, fussball, org);
-
-			// Create demo documents for sports club
-			seedSportsDocuments(root, fussball, volleyball, org);
-
-			LOG.info("Seeded demo data for organization: {}", org.getName());
-		}
-	}
-
-	/**
-	 * Finds the root bommel for an organization (created by BootstrapService).
-	 */
 	private Bommel findRootBommel(Organization org)
 	{
 		return bommelRepository.find("parent is null and organization.id = ?1", org.id).firstResult();
 	}
 
-	/**
-	 * Creates and persists a Member entity.
-	 */
-	private Member createMember(String firstName, String lastName, String userName, String email,
-		String phone, Organization org)
+	private Member createMember(MemberData data, Organization org)
 	{
 		Member member = new Member();
-		member.setFirstName(firstName);
-		member.setLastName(lastName);
-		member.setUserName(userName);
-		member.setEmail(email);
-		member.setPhone(phone);
+		member.setFirstName(data.getFirstName());
+		member.setLastName(data.getLastName());
+		member.setUserName(data.getUsername());
+		member.setEmail(data.getEmail());
+		member.setPhone(data.getPhone());
 		member.setOrganization(org);
 		memberRepository.persist(member);
 		return member;
 	}
 
-	/**
-	 * Creates and persists a Bommel entity.
-	 */
-	private Bommel createBommel(String icon, String title, Member responsibleMember, Bommel parent,
+	private Bommel createBommel(BommelData data, Bommel parent, Member responsibleMember,
 		Organization org)
 	{
 		Bommel bommel = new Bommel();
-		bommel.setIcon(icon);
-		bommel.setTitle(title);
+		bommel.setIcon(data.getIcon());
+		bommel.setTitle(data.getTitle());
 		bommel.setResponsibleMember(responsibleMember);
 		bommel.parent = parent;
 		bommel.setOrganization(org);
@@ -168,323 +210,58 @@ public class DataSeeder
 		return bommel;
 	}
 
-	private void seedDocuments(Bommel root, Bommel jugend, Bommel orchester, Organization org)
+	private Tag createTag(TagData data, Organization org)
 	{
-		DemoTags tags = createDemoTags(org);
-
-		// Confirmed documents without transactions
-		seedOfficeSuppliesDocument(root, tags, org);
-		seedCateringDocument(jugend, tags, org);
-
-		// Confirmed documents with transactions
-		seedMusicEquipmentDocument(orchester, tags, org);
-		seedBusRentalDocument(orchester, tags, org);
-
-		// Regular documents
-		seedPrinterTonerDocument(tags, org);
-		seedElectricityBillDocument(root, org);
-
-		// Standalone transaction
-		seedMembershipFeeTransaction(root, org);
+		Tag tag = new Tag(data.getName());
+		tag.setOrganization(org);
+		tag.persist();
+		return tag;
 	}
 
-	private void seedSportsDocuments(Bommel root, Bommel fussball, Bommel volleyball,
-		Organization org)
+	private Document createDocument(DocumentData data, Bommel bommel, List<Tag> tags, Organization org)
 	{
-		SportsTags tags = createSportsTags(org);
-
-		// Sports equipment
-		seedSportsEquipmentDocument(fussball, tags, org);
-		seedTournamentRegistrationDocument(fussball, tags, org);
-
-		// Venue rental
-		seedHallRentalDocument(volleyball, tags, org);
-
-		// General expenses
-		seedSportsInsuranceDocument(root, org);
-		seedMembershipFeeTransaction(root, org);
-	}
-
-	private Instant toInstant(LocalDate date)
-	{
-		return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
-	}
-
-	private record DemoTags(Tag buero, Tag musik, Tag veranstaltung, Tag reise, Tag verpflegung,
-		Tag ausruestung)
-	{
-	}
-
-	private record SportsTags(Tag ausruestung, Tag turnier, Tag hallenvermietung, Tag versicherung)
-	{
-	}
-
-	private DemoTags createDemoTags(Organization org)
-	{
-		Tag tagBuero = new Tag("Bürobedarf");
-		tagBuero.setOrganization(org);
-		Tag tagMusik = new Tag("Musik");
-		tagMusik.setOrganization(org);
-		Tag tagVeranstaltung = new Tag("Veranstaltung");
-		tagVeranstaltung.setOrganization(org);
-		Tag tagReise = new Tag("Reise");
-		tagReise.setOrganization(org);
-		Tag tagVerpflegung = new Tag("Verpflegung");
-		tagVerpflegung.setOrganization(org);
-		Tag tagAusruestung = new Tag("Ausrüstung");
-		tagAusruestung.setOrganization(org);
-
-		tagBuero.persist();
-		tagMusik.persist();
-		tagVeranstaltung.persist();
-		tagReise.persist();
-		tagVerpflegung.persist();
-		tagAusruestung.persist();
-
-		return new DemoTags(tagBuero, tagMusik, tagVeranstaltung, tagReise, tagVerpflegung,
-			tagAusruestung);
-	}
-
-	private SportsTags createSportsTags(Organization org)
-	{
-		Tag tagAusruestung = new Tag("Ausrüstung");
-		tagAusruestung.setOrganization(org);
-		Tag tagTurnier = new Tag("Turnier");
-		tagTurnier.setOrganization(org);
-		Tag tagHallenvermietung = new Tag("Hallenvermietung");
-		tagHallenvermietung.setOrganization(org);
-		Tag tagVersicherung = new Tag("Versicherung");
-		tagVersicherung.setOrganization(org);
-
-		tagAusruestung.persist();
-		tagTurnier.persist();
-		tagHallenvermietung.persist();
-		tagVersicherung.persist();
-
-		return new SportsTags(tagAusruestung, tagTurnier, tagHallenvermietung, tagVersicherung);
-	}
-
-	// Music club documents
-
-	private void seedOfficeSuppliesDocument(Bommel bommel, DemoTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Büro König GmbH", "Hauptstraße 42", "80331", "München",
-			org);
-
 		Document doc = new Document();
-		doc.setName("Büromaterial");
-		doc.setTotal(new BigDecimal("89.99"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 15)));
-		doc.setSender(sender);
+		doc.setName(data.getName());
+		doc.setTotal(new BigDecimal(data.getTotal()));
+		if (data.getTotalTax() != null)
+		{
+			doc.setTotalTax(new BigDecimal(data.getTotalTax()));
+		}
+		doc.setCurrencyCode(data.getCurrencyCode());
+		doc.setTransactionTime(toInstant(LocalDate.parse(data.getDate())));
 		doc.setBommel(bommel);
 		doc.setOrganization(org);
-		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
-		doc.addTag(tags.buero, TagSource.AI);
+		doc.setPrivatelyPaid(data.isPrivatelyPaid());
+
+		if (data.isConfirmed())
+		{
+			doc.setDocumentStatus(DocumentStatus.CONFIRMED);
+		}
+
+		// Add tags
+		for (Tag tag : tags)
+		{
+			doc.addTag(tag, TagSource.AI);
+		}
+
+		// Create sender if configured
+		if (data.getSender() != null)
+		{
+			TradeParty sender = new TradeParty();
+			sender.setName(data.getSender().getName());
+			sender.setStreet(data.getSender().getStreet());
+			sender.setZipCode(data.getSender().getZipCode());
+			sender.setCity(data.getSender().getCity());
+			sender.setOrganization(org);
+			sender.persist();
+			doc.setSender(sender);
+		}
+
 		documentRepository.persist(doc);
+		return doc;
 	}
 
-	private void seedMusicEquipmentDocument(Bommel bommel, DemoTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Musikhaus Thomann", "Treppendorf 30", "96138",
-			"Burgebrach", org);
-
-		Document doc = new Document();
-		doc.setName("Notenständer (5 Stück)");
-		doc.setTotal(new BigDecimal("249.50"));
-		doc.setTotalTax(new BigDecimal("39.83"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 10)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
-		doc.addTag(tags.musik, TagSource.AI);
-		doc.addTag(tags.ausruestung, TagSource.AI);
-		documentRepository.persist(doc);
-
-		createTransactionFromDocument(doc, org, tags.musik, tags.ausruestung);
-	}
-
-	private void seedCateringDocument(Bommel bommel, DemoTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Metzgerei Huber", "Marktplatz 5", "85354", "Freising",
-			org);
-
-		Document doc = new Document();
-		doc.setName("Catering Jugendtreffen");
-		doc.setTotal(new BigDecimal("156.80"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 8)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
-		doc.addTag(tags.verpflegung, TagSource.AI);
-		doc.addTag(tags.veranstaltung, TagSource.MANUAL);
-		documentRepository.persist(doc);
-	}
-
-	private void seedBusRentalDocument(Bommel bommel, DemoTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Reisebus Schmidt", "Industriestraße 12", "80939",
-			"München", org);
-
-		Document doc = new Document();
-		doc.setName("Busfahrt zum Wettbewerb");
-		doc.setTotal(new BigDecimal("850.00"));
-		doc.setTotalTax(new BigDecimal("135.71"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 11, 25)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		doc.setPrivatelyPaid(true);
-		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
-		doc.addTag(tags.reise, TagSource.AI);
-		doc.addTag(tags.veranstaltung, TagSource.AI);
-		documentRepository.persist(doc);
-
-		createTransactionFromDocument(doc, org, tags.reise, tags.veranstaltung);
-	}
-
-	private void seedPrinterTonerDocument(DemoTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Amazon EU S.a.r.l.", "Marcel-Breuer-Str. 12", "80807",
-			"München", org);
-
-		Document doc = new Document();
-		doc.setName("Drucker Toner");
-		doc.setTotal(new BigDecimal("45.99"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 20)));
-		doc.setSender(sender);
-		doc.setOrganization(org);
-		doc.addTag(tags.buero, TagSource.AI);
-		documentRepository.persist(doc);
-	}
-
-	private void seedElectricityBillDocument(Bommel bommel, Organization org)
-	{
-		TradeParty sender = createTradeParty("Stadtwerke München", "Emmy-Noether-Str. 2", "80992",
-			"München", org);
-
-		Document doc = new Document();
-		doc.setName("Stromrechnung Q3 2024");
-		doc.setTotal(new BigDecimal("342.67"));
-		doc.setTotalTax(new BigDecimal("54.73"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 10, 1)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		documentRepository.persist(doc);
-	}
-
-	// Sports club documents
-
-	private void seedSportsEquipmentDocument(Bommel bommel, SportsTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Sport Schuster", "Rosenstraße 1-5", "80331", "München",
-			org);
-
-		Document doc = new Document();
-		doc.setName("Fußbälle (10 Stück)");
-		doc.setTotal(new BigDecimal("189.90"));
-		doc.setTotalTax(new BigDecimal("30.33"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 5)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
-		doc.addTag(tags.ausruestung, TagSource.AI);
-		documentRepository.persist(doc);
-
-		createTransactionFromDocument(doc, org, tags.ausruestung);
-	}
-
-	private void seedTournamentRegistrationDocument(Bommel bommel, SportsTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Bayerischer Fußballverband", "Brienner Str. 50",
-			"80333", "München", org);
-
-		Document doc = new Document();
-		doc.setName("Turnieranmeldung Jugendcup");
-		doc.setTotal(new BigDecimal("120.00"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 11, 28)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
-		doc.addTag(tags.turnier, TagSource.AI);
-		documentRepository.persist(doc);
-	}
-
-	private void seedHallRentalDocument(Bommel bommel, SportsTags tags, Organization org)
-	{
-		TradeParty sender = createTradeParty("Gemeinde Alpenblick", "Rathausplatz 1", "83703",
-			"Gmund", org);
-
-		Document doc = new Document();
-		doc.setName("Hallenmiete Dezember");
-		doc.setTotal(new BigDecimal("450.00"));
-		doc.setTotalTax(new BigDecimal("71.85"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2024, 12, 1)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		doc.setDocumentStatus(DocumentStatus.CONFIRMED);
-		doc.addTag(tags.hallenvermietung, TagSource.AI);
-		documentRepository.persist(doc);
-
-		createTransactionFromDocument(doc, org, tags.hallenvermietung);
-	}
-
-	private void seedSportsInsuranceDocument(Bommel bommel, Organization org)
-	{
-		TradeParty sender = createTradeParty("ARAG Sportversicherung", "ARAG-Platz 1", "40472",
-			"Düsseldorf", org);
-
-		Document doc = new Document();
-		doc.setName("Vereinsversicherung 2025");
-		doc.setTotal(new BigDecimal("680.00"));
-		doc.setTotalTax(new BigDecimal("108.57"));
-		doc.setCurrencyCode("EUR");
-		doc.setTransactionTime(toInstant(LocalDate.of(2025, 1, 1)));
-		doc.setSender(sender);
-		doc.setBommel(bommel);
-		doc.setOrganization(org);
-		documentRepository.persist(doc);
-	}
-
-	private void seedMembershipFeeTransaction(Bommel bommel, Organization org)
-	{
-		TransactionRecord tx = new TransactionRecord(new BigDecimal("125.00"), "system");
-		tx.setName("Mitgliedsbeitrag Januar 2025");
-		tx.setTransactionTime(toInstant(LocalDate.of(2025, 1, 1)));
-		tx.setBommel(bommel);
-		tx.setOrganization(org);
-		tx.setCurrencyCode("EUR");
-		transactionRepository.persist(tx);
-	}
-
-	private TradeParty createTradeParty(String name, String street, String zipCode, String city,
-		Organization org)
-	{
-		TradeParty party = new TradeParty();
-		party.setName(name);
-		party.setStreet(street);
-		party.setZipCode(zipCode);
-		party.setCity(city);
-		party.setOrganization(org);
-		party.persist();
-		return party;
-	}
-
-	private void createTransactionFromDocument(Document doc, Organization org, Tag... tags)
+	private void createTransactionFromDocument(Document doc, List<Tag> tags, Organization org)
 	{
 		TransactionRecord tx = new TransactionRecord(doc.getTotal(), "system");
 		tx.setDocument(doc);
@@ -512,5 +289,21 @@ public class DataSeeder
 		}
 
 		transactionRepository.persist(tx);
+	}
+
+	private void createTransaction(TransactionData data, Bommel bommel, Organization org)
+	{
+		TransactionRecord tx = new TransactionRecord(new BigDecimal(data.getAmount()), "system");
+		tx.setName(data.getName());
+		tx.setTransactionTime(toInstant(LocalDate.parse(data.getDate())));
+		tx.setBommel(bommel);
+		tx.setOrganization(org);
+		tx.setCurrencyCode(data.getCurrencyCode());
+		transactionRepository.persist(tx);
+	}
+
+	private Instant toInstant(LocalDate date)
+	{
+		return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
 	}
 }

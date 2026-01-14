@@ -1,0 +1,261 @@
+# Bootstrap Configuration
+# =======================
+# This file defines organizations, users, and demo data for development.
+# Add new organizations by adding to the lists below.
+
+organizations:
+  # Organization 0: Musikverein Harmonie
+  - name: Musikverein Harmonie e.V.
+    slug: musikverein-harmonie
+    displayName: Musikverein Harmonie
+    demo:
+      members:
+        - firstName: Max
+          lastName: Mustermann
+          username: max.mustermann
+          email: max.mustermann@harmonie.local
+          phone: "+49 89 123456"
+        - firstName: Lisa
+          lastName: Schmidt
+          username: lisa.schmidt
+          email: lisa.schmidt@harmonie.local
+
+      bommels:
+        - ref: jugend
+          title: Jugend
+          icon: group
+          parentRef: root
+          responsibleMember: lisa.schmidt
+        - ref: orchester
+          title: Orchester
+          icon: music
+          parentRef: root
+        - ref: anfaenger
+          title: Anfaenger
+          icon: education
+          parentRef: jugend
+
+      tags:
+        - ref: buero
+          name: Bürobedarf
+        - ref: musik
+          name: Musik
+        - ref: veranstaltung
+          name: Veranstaltung
+        - ref: reise
+          name: Reise
+        - ref: verpflegung
+          name: Verpflegung
+        - ref: ausruestung
+          name: Ausrüstung
+
+      documents:
+        - name: Büromaterial
+          total: "89.99"
+          date: "2024-12-15"
+          bommelRef: root
+          tagRefs: buero
+          confirmed: true
+          sender:
+            name: Büro König GmbH
+            street: Hauptstraße 42
+            zipCode: "80331"
+            city: München
+
+        - name: Notenständer (5 Stück)
+          total: "249.50"
+          totalTax: "39.83"
+          date: "2024-12-10"
+          bommelRef: orchester
+          tagRefs: musik,ausruestung
+          confirmed: true
+          createTransaction: true
+          sender:
+            name: Musikhaus Thomann
+            street: Treppendorf 30
+            zipCode: "96138"
+            city: Burgebrach
+
+        - name: Catering Jugendtreffen
+          total: "156.80"
+          date: "2024-12-08"
+          bommelRef: jugend
+          tagRefs: verpflegung,veranstaltung
+          confirmed: true
+          sender:
+            name: Metzgerei Huber
+            street: Marktplatz 5
+            zipCode: "85354"
+            city: Freising
+
+        - name: Busfahrt zum Wettbewerb
+          total: "850.00"
+          totalTax: "135.71"
+          date: "2024-11-25"
+          bommelRef: orchester
+          tagRefs: reise,veranstaltung
+          confirmed: true
+          privatelyPaid: true
+          createTransaction: true
+          sender:
+            name: Reisebus Schmidt
+            street: Industriestraße 12
+            zipCode: "80939"
+            city: München
+
+        - name: Drucker Toner
+          total: "45.99"
+          date: "2024-12-20"
+          tagRefs: buero
+          sender:
+            name: Amazon EU S.a.r.l.
+            street: Marcel-Breuer-Str. 12
+            zipCode: "80807"
+            city: München
+
+        - name: Stromrechnung Q3 2024
+          total: "342.67"
+          totalTax: "54.73"
+          date: "2024-10-01"
+          bommelRef: root
+          sender:
+            name: Stadtwerke München
+            street: Emmy-Noether-Str. 2
+            zipCode: "80992"
+            city: München
+
+      transactions:
+        - name: Mitgliedsbeitrag Januar 2025
+          amount: "125.00"
+          date: "2025-01-01"
+          bommelRef: root
+
+  # Organization 1: Sportverein Alpenblick
+  - name: Sportverein Alpenblick e.V.
+    slug: sportverein-alpenblick
+    displayName: Sportverein Alpenblick
+    demo:
+      members:
+        - firstName: Anna
+          lastName: Weber
+          username: anna.weber
+          email: anna.weber@alpenblick.local
+          phone: "+49 8051 987654"
+        - firstName: Peter
+          lastName: Huber
+          username: peter.huber
+          email: peter.huber@alpenblick.local
+
+      bommels:
+        - ref: fussball
+          title: Fußball
+          icon: soccer
+          parentRef: root
+          responsibleMember: peter.huber
+        - ref: volleyball
+          title: Volleyball
+          icon: volleyball
+          parentRef: root
+        - ref: jugend
+          title: Jugend
+          icon: group
+          parentRef: fussball
+
+      tags:
+        - ref: ausruestung
+          name: Ausrüstung
+        - ref: turnier
+          name: Turnier
+        - ref: hallenvermietung
+          name: Hallenvermietung
+        - ref: versicherung
+          name: Versicherung
+
+      documents:
+        - name: Fußbälle (10 Stück)
+          total: "189.90"
+          totalTax: "30.33"
+          date: "2024-12-05"
+          bommelRef: fussball
+          tagRefs: ausruestung
+          confirmed: true
+          createTransaction: true
+          sender:
+            name: Sport Schuster
+            street: Rosenstraße 1-5
+            zipCode: "80331"
+            city: München
+
+        - name: Turnieranmeldung Jugendcup
+          total: "120.00"
+          date: "2024-11-28"
+          bommelRef: fussball
+          tagRefs: turnier
+          confirmed: true
+          sender:
+            name: Bayerischer Fußballverband
+            street: Brienner Str. 50
+            zipCode: "80333"
+            city: München
+
+        - name: Hallenmiete Dezember
+          total: "450.00"
+          totalTax: "71.85"
+          date: "2024-12-01"
+          bommelRef: volleyball
+          tagRefs: hallenvermietung
+          confirmed: true
+          createTransaction: true
+          sender:
+            name: Gemeinde Alpenblick
+            street: Rathausplatz 1
+            zipCode: "83703"
+            city: Gmund
+
+        - name: Vereinsversicherung 2025
+          total: "680.00"
+          totalTax: "108.57"
+          date: "2025-01-01"
+          bommelRef: root
+          sender:
+            name: ARAG Sportversicherung
+            street: ARAG-Platz 1
+            zipCode: "40472"
+            city: Düsseldorf
+
+      transactions:
+        - name: Mitgliedsbeitrag Januar 2025
+          amount: "125.00"
+          date: "2025-01-01"
+          bommelRef: root
+
+users:
+  # User 0: Super Admin (Org 0)
+  - username: admin
+    email: admin@musikverein.local
+    firstName: Super
+    lastName: Admin
+    roles:
+      - super_admin
+      - admin
+      - user
+    organizationSlug: musikverein-harmonie
+
+  # User 1: Admin (Org 0)
+  - username: maria
+    email: maria.schmidt@musikverein.local
+    firstName: Maria
+    lastName: Schmidt
+    roles:
+      - admin
+      - user
+    organizationSlug: musikverein-harmonie
+
+  # User 2: Regular User (Org 1)
+  - username: thomas
+    email: thomas.mueller@alpenblick.local
+    firstName: Thomas
+    lastName: Müller
+    roles:
+      - user
+    organizationSlug: sportverein-alpenblick

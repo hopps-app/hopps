@@ -77,7 +77,8 @@
       "Bash(npx tsc:*)",
       "Bash(npx expo install:*)",
       "Bash(npx expo-doctor)",
-      "Bash(npx expo run:android)"
+      "Bash(npx expo run:android)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\chris\\\\.claude\\\\hooks\\\\cc_ring\\\\play-sound-windows.ps1\")"
     ]
   }
 }
