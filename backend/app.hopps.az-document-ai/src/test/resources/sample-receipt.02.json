@@ -1,0 +1,673 @@
+{
+  "documentType": "invoice",
+  "boundingRegions": [
+    {
+      "pageNumber": 1,
+      "polygon": [
+        0.0,
+        0.0,
+        1164.0,
+        0.0,
+        1164.0,
+        2826.0,
+        0.0,
+        2826.0
+      ]
+    }
+  ],
+  "spans": [
+    {
+      "offset": 0,
+      "length": 632
+    }
+  ],
+  "fields": {
+    "InvoiceDate": {
+      "type": "date",
+      "valueString": null,
+      "valueDate": "2020-01-02",
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": null,
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": "02.01.2020",
+      "boundingRegions": [
+        {
+          "pageNumber": 1,
+          "polygon": [
+            906.0,
+            387.0,
+            1131.0,
+            386.0,
+            1131.0,
+            432.0,
+            907.0,
+            433.0
+          ]
+        }
+      ],
+      "spans": [
+        {
+          "offset": 42,
+          "length": 10
+        }
+      ],
+      "confidence": 0.975,
+      "valueList": null,
+      "valueMap": null
+    },
+    "InvoiceId": {
+      "type": "string",
+      "valueString": "1/1/1/1001",
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": null,
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": "1/1/1/1001",
+      "boundingRegions": [
+        {
+          "pageNumber": 1,
+          "polygon": [
+            892.0,
+            329.0,
+            1126.0,
+            328.0,
+            1126.0,
+            377.0,
+            892.0,
+            378.0
+          ]
+        }
+      ],
+      "spans": [
+        {
+          "offset": 24,
+          "length": 10
+        }
+      ],
+      "confidence": 0.974,
+      "valueList": null,
+      "valueMap": null
+    },
+    "InvoiceTotal": {
+      "type": "currency",
+      "valueString": null,
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": {
+        "amount": 84.03,
+        "currencySymbol": "€",
+        "currencyCode": "EUR"
+      },
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": "84,03 €",
+      "boundingRegions": [
+        {
+          "pageNumber": 1,
+          "polygon": [
+            992.0,
+            1387.0,
+            1132.0,
+            1386.0,
+            1132.0,
+            1430.0,
+            992.0,
+            1431.0
+          ]
+        }
+      ],
+      "spans": [
+        {
+          "offset": 231,
+          "length": 7
+        }
+      ],
+      "confidence": 0.542,
+      "valueList": null,
+      "valueMap": null
+    },
+    "Items": {
+      "type": "array",
+      "valueString": null,
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": null,
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": null,
+      "boundingRegions": null,
+      "spans": null,
+      "confidence": null,
+      "valueList": [
+        {
+          "type": "object",
+          "valueString": null,
+          "valueDate": null,
+          "valueTime": null,
+          "valuePhoneNumber": null,
+          "valueNumber": null,
+          "valueInteger": null,
+          "valueSelectionMark": null,
+          "valueSignature": null,
+          "valueCountryRegion": null,
+          "valueCurrency": null,
+          "valueAddress": null,
+          "valueBoolean": null,
+          "valueSelectionGroup": null,
+          "content": "1\n226391\n1\n100,00 €\nHerrenuhr",
+          "boundingRegions": [
+            {
+              "pageNumber": 1,
+              "polygon": [
+                34.0,
+                789.0,
+                1132.0,
+                789.0,
+                1132.0,
+                893.0,
+                34.0,
+                893.0
+              ]
+            }
+          ],
+          "spans": [
+            {
+              "offset": 86,
+              "length": 29
+            }
+          ],
+          "confidence": 0.828,
+          "valueList": null,
+          "valueMap": {
+            "Amount": {
+              "type": "currency",
+              "valueString": null,
+              "valueDate": null,
+              "valueTime": null,
+              "valuePhoneNumber": null,
+              "valueNumber": null,
+              "valueInteger": null,
+              "valueSelectionMark": null,
+              "valueSignature": null,
+              "valueCountryRegion": null,
+              "valueCurrency": {
+                "amount": 100.0,
+                "currencySymbol": "€",
+                "currencyCode": "EUR"
+              },
+              "valueAddress": null,
+              "valueBoolean": null,
+              "valueSelectionGroup": null,
+              "content": "100,00 €",
+              "boundingRegions": [
+                {
+                  "pageNumber": 1,
+                  "polygon": [
+                    940.0,
+                    790.0,
+                    1132.0,
+                    789.0,
+                    1132.0,
+                    839.0,
+                    940.0,
+                    840.0
+                  ]
+                }
+              ],
+              "spans": [
+                {
+                  "offset": 97,
+                  "length": 8
+                }
+              ],
+              "confidence": 0.922,
+              "valueList": null,
+              "valueMap": null
+            },
+            "Description": {
+              "type": "string",
+              "valueString": "226391\nHerrenuhr",
+              "valueDate": null,
+              "valueTime": null,
+              "valuePhoneNumber": null,
+              "valueNumber": null,
+              "valueInteger": null,
+              "valueSelectionMark": null,
+              "valueSignature": null,
+              "valueCountryRegion": null,
+              "valueCurrency": null,
+              "valueAddress": null,
+              "valueBoolean": null,
+              "valueSelectionGroup": null,
+              "content": "226391\nHerrenuhr",
+              "boundingRegions": [
+                {
+                  "pageNumber": 1,
+                  "polygon": [
+                    129.0,
+                    790.0,
+                    332.0,
+                    790.0,
+                    332.0,
+                    893.0,
+                    129.0,
+                    893.0
+                  ]
+                }
+              ],
+              "spans": [
+                {
+                  "offset": 88,
+                  "length": 6
+                },
+                {
+                  "offset": 106,
+                  "length": 9
+                }
+              ],
+              "confidence": 0.614,
+              "valueList": null,
+              "valueMap": null
+            },
+            "Quantity": {
+              "type": "number",
+              "valueString": null,
+              "valueDate": null,
+              "valueTime": null,
+              "valuePhoneNumber": null,
+              "valueNumber": 1.0,
+              "valueInteger": null,
+              "valueSelectionMark": null,
+              "valueSignature": null,
+              "valueCountryRegion": null,
+              "valueCurrency": null,
+              "valueAddress": null,
+              "valueBoolean": null,
+              "valueSelectionGroup": null,
+              "content": "1",
+              "boundingRegions": [
+                {
+                  "pageNumber": 1,
+                  "polygon": [
+                    806.0,
+                    792.0,
+                    826.0,
+                    792.0,
+                    826.0,
+                    833.0,
+                    806.0,
+                    833.0
+                  ]
+                }
+              ],
+              "spans": [
+                {
+                  "offset": 95,
+                  "length": 1
+                }
+              ],
+              "confidence": 0.921,
+              "valueList": null,
+              "valueMap": null
+            }
+          }
+        }
+      ],
+      "valueMap": null
+    },
+    "PaymentTerm": {
+      "type": "string",
+      "valueString": "VISA",
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": null,
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": "VISA",
+      "boundingRegions": [
+        {
+          "pageNumber": 1,
+          "polygon": [
+            30.0,
+            1540.0,
+            121.0,
+            1541.0,
+            121.0,
+            1581.0,
+            30.0,
+            1581.0
+          ]
+        }
+      ],
+      "spans": [
+        {
+          "offset": 254,
+          "length": 4
+        }
+      ],
+      "confidence": 0.619,
+      "valueList": null,
+      "valueMap": null
+    },
+    "SubTotal": {
+      "type": "currency",
+      "valueString": null,
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": {
+        "amount": 100.0,
+        "currencySymbol": "€",
+        "currencyCode": "EUR"
+      },
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": "100,00 €",
+      "boundingRegions": [
+        {
+          "pageNumber": 1,
+          "polygon": [
+            941.0,
+            1255.0,
+            1131.0,
+            1255.0,
+            1131.0,
+            1305.0,
+            941.0,
+            1305.0
+          ]
+        }
+      ],
+      "spans": [
+        {
+          "offset": 171,
+          "length": 8
+        }
+      ],
+      "confidence": 0.702,
+      "valueList": null,
+      "valueMap": null
+    },
+    "TaxDetails": {
+      "type": "array",
+      "valueString": null,
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": null,
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": null,
+      "boundingRegions": null,
+      "spans": null,
+      "confidence": null,
+      "valueList": [
+        {
+          "type": "object",
+          "valueString": null,
+          "valueDate": null,
+          "valueTime": null,
+          "valuePhoneNumber": null,
+          "valueNumber": null,
+          "valueInteger": null,
+          "valueSelectionMark": null,
+          "valueSignature": null,
+          "valueCountryRegion": null,
+          "valueCurrency": null,
+          "valueAddress": null,
+          "valueBoolean": null,
+          "valueSelectionGroup": null,
+          "content": "MwSt. (19,00 %)\n15,97 €",
+          "boundingRegions": [
+            {
+              "pageNumber": 1,
+              "polygon": [
+                31.0,
+                1319.0,
+                1128.0,
+                1319.0,
+                1128.0,
+                1373.0,
+                31.0,
+                1373.0
+              ]
+            }
+          ],
+          "spans": [
+            {
+              "offset": 180,
+              "length": 23
+            }
+          ],
+          "confidence": 0.906,
+          "valueList": null,
+          "valueMap": {
+            "Amount": {
+              "type": "currency",
+              "valueString": null,
+              "valueDate": null,
+              "valueTime": null,
+              "valuePhoneNumber": null,
+              "valueNumber": null,
+              "valueInteger": null,
+              "valueSelectionMark": null,
+              "valueSignature": null,
+              "valueCountryRegion": null,
+              "valueCurrency": {
+                "amount": 15.97,
+                "currencySymbol": "€",
+                "currencyCode": "EUR"
+              },
+              "valueAddress": null,
+              "valueBoolean": null,
+              "valueSelectionGroup": null,
+              "content": "15,97 €",
+              "boundingRegions": [
+                {
+                  "pageNumber": 1,
+                  "polygon": [
+                    974.0,
+                    1321.0,
+                    1128.0,
+                    1321.0,
+                    1128.0,
+                    1370.0,
+                    974.0,
+                    1370.0
+                  ]
+                }
+              ],
+              "spans": [
+                {
+                  "offset": 196,
+                  "length": 7
+                }
+              ],
+              "confidence": 0.915,
+              "valueList": null,
+              "valueMap": null
+            },
+            "Rate": {
+              "type": "string",
+              "valueString": "(19,00 %)",
+              "valueDate": null,
+              "valueTime": null,
+              "valuePhoneNumber": null,
+              "valueNumber": null,
+              "valueInteger": null,
+              "valueSelectionMark": null,
+              "valueSignature": null,
+              "valueCountryRegion": null,
+              "valueCurrency": null,
+              "valueAddress": null,
+              "valueBoolean": null,
+              "valueSelectionGroup": null,
+              "content": "(19,00 %)",
+              "boundingRegions": [
+                {
+                  "pageNumber": 1,
+                  "polygon": [
+                    178.0,
+                    1319.0,
+                    371.0,
+                    1319.0,
+                    371.0,
+                    1373.0,
+                    178.0,
+                    1373.0
+                  ]
+                }
+              ],
+              "spans": [
+                {
+                  "offset": 186,
+                  "length": 9
+                }
+              ],
+              "confidence": 0.922,
+              "valueList": null,
+              "valueMap": null
+            }
+          }
+        }
+      ],
+      "valueMap": null
+    },
+    "TotalTax": {
+      "type": "currency",
+      "valueString": null,
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": {
+        "amount": 15.97,
+        "currencySymbol": "€",
+        "currencyCode": "EUR"
+      },
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": "15,97 €",
+      "boundingRegions": [
+        {
+          "pageNumber": 1,
+          "polygon": [
+            974.0,
+            1321.0,
+            1128.0,
+            1321.0,
+            1128.0,
+            1370.0,
+            974.0,
+            1370.0
+          ]
+        }
+      ],
+      "spans": [
+        {
+          "offset": 196,
+          "length": 7
+        }
+      ],
+      "confidence": 0.93,
+      "valueList": null,
+      "valueMap": null
+    },
+    "VendorName": {
+      "type": "string",
+      "valueString": "Kassenbeleg",
+      "valueDate": null,
+      "valueTime": null,
+      "valuePhoneNumber": null,
+      "valueNumber": null,
+      "valueInteger": null,
+      "valueSelectionMark": null,
+      "valueSignature": null,
+      "valueCountryRegion": null,
+      "valueCurrency": null,
+      "valueAddress": null,
+      "valueBoolean": null,
+      "valueSelectionGroup": null,
+      "content": "Kassenbeleg",
+      "boundingRegions": [
+        {
+          "pageNumber": 1,
+          "polygon": [
+            317.0,
+            136.0,
+            842.0,
+            144.0,
+            842.0,
+            242.0,
+            317.0,
+            230.0
+          ]
+        }
+      ],
+      "spans": [
+        {
+          "offset": 0,
+          "length": 11
+        }
+      ],
+      "confidence": 0.819,
+      "valueList": null,
+      "valueMap": null
+    }
+  },
+  "confidence": 1.0
+}

@@ -1,11 +1,12 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.az.document.ai.model.InvoiceData;
-import app.hopps.az.document.ai.model.InvoiceDataHelper;
-import app.hopps.az.document.ai.model.ReceiptData;
-import app.hopps.az.document.ai.model.ReceiptDataHelper;
+import app.hopps.az.document.ai.model.DocumentData;
+import app.hopps.az.document.ai.model.DocumentDataHelper;
+import app.hopps.az.document.ai.service.DocumentTagService;
 import com.azure.ai.documentintelligence.models.AnalyzeResult;
 import com.azure.ai.documentintelligence.models.AnalyzedDocument;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -13,70 +14,67 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @ApplicationScoped
 public class AzureAiService {
-
     private static final Logger LOG = LoggerFactory.getLogger(AzureAiService.class);
 
-    private final AzureDocumentConnector azureDocumentConnector;
-
-    @ConfigProperty(name = "app.hopps.az-document-ai.azure.invoiceModelId")
-    String invoiceModelId;
-
-    @ConfigProperty(name = "app.hopps.az-document-ai.azure.receiptModelId")
-    String receiptModelId;
+    @Inject
+    AzureDocumentConnector azureDocumentConnector;
 
     @Inject
-    public AzureAiService(AzureDocumentConnector azureDocumentConnector) {
-        this.azureDocumentConnector = azureDocumentConnector;
-    }
+    DocumentTagService documentTagService;
 
-    public Optional<ReceiptData> scanReceipt(Path documentData, String documentName) {
-        var document = scanDocument(receiptModelId, documentData, documentName);
-        if (document.isEmpty()) {
-            return Optional.empty();
-        }
+    @Inject
+    ObjectMapper objectMapper;
 
-        LOG.info("Scanned receipt: {}", document.get().getFields());
+    @ConfigProperty(name = "app.hopps.az-document-ai.azure.modelId")
+    String modelId;
 
-        ReceiptData receiptData = ReceiptDataHelper.fromDocument(document.get());
-        if (receiptData == null) {
-            LOG.warn("Could not extract receipt data from document '{}' - missing required fields", documentName);
-            return Optional.empty();
-        }
-        return Optional.of(receiptData);
-    }
+    public DocumentData scanDocument(Path documentData, String documentName) throws OcrException {
+        LOG.info("Starting scan of document: '{}'", documentName);
 
-    public Optional<InvoiceData> scanInvoice(Path documentData, String documentName) {
-        var document = scanDocument(invoiceModelId, documentData, documentName);
-        if (document.isEmpty()) {
-            return Optional.empty();
-        }
-
-        LOG.info("Scanned invoice: {}", document.get().getFields());
-
-        InvoiceData invoiceData = InvoiceDataHelper.fromDocument(document.get());
-        return Optional.of(invoiceData);
-    }
-
-    private Optional<AnalyzedDocument> scanDocument(String modelId, Path document, String documentName) {
-        LOG.info("(model={}) Starting scan of document: '{}'", modelId, documentName);
-
-        AnalyzeResult analyzeLayoutResult = azureDocumentConnector.getAnalyzeResult(modelId, document);
+        AnalyzeResult analyzeLayoutResult = azureDocumentConnector.getAnalyzeResult(modelId, documentData);
         List<AnalyzedDocument> documents = analyzeLayoutResult.getDocuments();
 
         if (documents.isEmpty()) {
             LOG.error("Couldn't analyze document '{}'", documentName);
-            return Optional.empty();
+            throw new OcrException("Could not analyze document, AI's return value is empty");
         } else if (documents.size() > 1) {
             LOG.warn("Document analysis for '{}' found {} documents, using first one", documentName, documents.size());
         }
 
-        LOG.info("(model={}) Scan successfully completed for: '{}'", modelId, documentName);
+        AnalyzedDocument document = documents.getFirst();
+        LOG.info("Scanned document '{}': docType={}, fields={}", documentName, document.getDocumentType(),
+                document.getFields().keySet());
 
-        return Optional.ofNullable(documents.getFirst());
+        List<String> tags = generateTags(document, documentName);
+
+        return DocumentDataHelper.fromDocument(document, tags);
+    }
+
+    private List<String> generateTags(AnalyzedDocument document, String documentName) {
+        try {
+            String documentJson = objectMapper.writeValueAsString(document);
+            LOG.debug("Generating tags for document '{}', JSON length: {}", documentName, documentJson.length());
+
+            List<String> tags = documentTagService.generateTags(documentJson);
+
+            if (tags != null && !tags.isEmpty()) {
+                LOG.info("Generated {} tags for document '{}': {}", tags.size(), documentName, tags);
+                return tags;
+            } else {
+                LOG.info("No tags generated for document '{}'", documentName);
+                return Collections.emptyList();
+            }
+        } catch (JsonProcessingException e) {
+            LOG.warn("Failed to serialize document for tag generation: {}", e.getMessage());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            LOG.warn("Failed to generate tags for document '{}': {}", documentName, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 }

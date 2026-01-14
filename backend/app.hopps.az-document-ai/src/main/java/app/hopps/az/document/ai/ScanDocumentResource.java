@@ -1,7 +1,6 @@
 package app.hopps.az.document.ai;
 
-import app.hopps.az.document.ai.model.InvoiceData;
-import app.hopps.az.document.ai.model.ReceiptData;
+import app.hopps.az.document.ai.model.DocumentData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -18,12 +17,14 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 @ApplicationScoped
 @Path("/document/scan")
 public class ScanDocumentResource {
-    public static final WebApplicationException COULD_NOT_EXTRACT_DOCUMENT_EXCEPTION = new WebApplicationException(
-            "Could not extract document", Response.Status.BAD_REQUEST);
+    private static final Logger LOG = getLogger(ScanDocumentResource.class);
 
     private final AzureAiService aiService;
 
@@ -33,30 +34,18 @@ public class ScanDocumentResource {
     }
 
     @POST
-    @Path("/invoice")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Scans the invoice uploaded with this request. The transactionRecordId is used for logging purposes only.", description = "Uses Azure Document AI to scan an invoice")
-    @APIResponse(responseCode = "200", description = "Data about this invoice. Reference key from this should be ignored", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = InvoiceData.class)))
+    @Operation(summary = "Scans the document uploaded with this request", description = "Uses Azure Document AI to extract data from invoices and receipts")
+    @APIResponse(responseCode = "200", description = "Extracted document data", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentData.class)))
     @APIResponse(responseCode = "400", description = "Couldn't extract data / invalid request")
-    public InvoiceData scanInvoice(@RestForm @PartType(MediaType.APPLICATION_OCTET_STREAM) FileUpload document,
+    public DocumentData scanDocument(@RestForm @PartType(MediaType.APPLICATION_OCTET_STREAM) FileUpload document,
             @RestForm long transactionRecordId) {
-        return aiService.scanInvoice(document.uploadedFile(), String.valueOf(transactionRecordId))
-                .orElseThrow(
-                        () -> new WebApplicationException("Could not extract document", Response.Status.BAD_REQUEST));
+        try {
+            return aiService.scanDocument(document.uploadedFile(), String.valueOf(transactionRecordId));
+        } catch (OcrException e) {
+            LOG.error("Could not extract document", e);
+            throw new WebApplicationException("Could not extract document", Response.Status.BAD_REQUEST);
+        }
     }
-
-    @POST
-    @Path("/receipt")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Scans the receipt uploaded with this request. The transactionRecordId is used for logging purposes only.", description = "Uses Azure Document AI to scan a receipt")
-    @APIResponse(responseCode = "200", description = "Data about this receipt. Reference key from this should be ignored", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ReceiptData.class)))
-    @APIResponse(responseCode = "400", description = "Couldn't extract data / Invalid URL / other")
-    public ReceiptData scanReceipt(@RestForm @PartType(MediaType.APPLICATION_OCTET_STREAM) FileUpload document,
-            @RestForm long transactionRecordId) {
-        return aiService.scanReceipt(document.uploadedFile(), String.valueOf(transactionRecordId))
-                .orElseThrow(() -> COULD_NOT_EXTRACT_DOCUMENT_EXCEPTION);
-    }
-
 }
