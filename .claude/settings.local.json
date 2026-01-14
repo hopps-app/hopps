@@ -78,7 +78,10 @@
       "Bash(npx expo install:*)",
       "Bash(npx expo-doctor)",
       "Bash(npx expo run:android)",
-      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\chris\\\\.claude\\\\hooks\\\\cc_ring\\\\play-sound-windows.ps1\")"
+      "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\chris\\\\.claude\\\\hooks\\\\cc_ring\\\\play-sound-windows.ps1\")",
+      "Bash(helm template:*)",
+      "Bash(Select-String -Pattern \"bootstrap\" -Context 0,20)",
+      "Bash(helm dependency build:*)"
     ]
   }
 }

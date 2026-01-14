@@ -6,37 +6,129 @@ metadata:
   labels:
     {{- include "hopps.hoppsAppLabels" . | nindent 4 }}
 data:
-  # Organization A
-  HOPPS_BOOTSTRAP_ORG_A_NAME: "Musikverein Harmonie e.V."
-  HOPPS_BOOTSTRAP_ORG_A_SLUG: "musikverein-harmonie"
-  HOPPS_BOOTSTRAP_ORG_A_DISPLAY_NAME: "Musikverein Harmonie"
+  bootstrap-data.yaml: |
+    # Bootstrap Configuration (generated from Helm values)
+    organizations:
+      {{- if .Values.hoppsApp.bootstrap.organizations }}
+      {{- range .Values.hoppsApp.bootstrap.organizations }}
+      - name: {{ .name | quote }}
+        slug: {{ .slug | quote }}
+        {{- if .displayName }}
+        displayName: {{ .displayName | quote }}
+        {{- end }}
+        {{- if .demo }}
+        demo:
+          {{- if .demo.members }}
+          members:
+            {{- range .demo.members }}
+            - firstName: {{ .firstName | quote }}
+              lastName: {{ .lastName | quote }}
+              username: {{ .username | quote }}
+              {{- if .email }}
+              email: {{ .email | quote }}
+              {{- end }}
+              {{- if .phone }}
+              phone: {{ .phone | quote }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .demo.bommels }}
+          bommels:
+            {{- range .demo.bommels }}
+            - ref: {{ .ref | quote }}
+              title: {{ .title | quote }}
+              icon: {{ .icon | quote }}
+              {{- if .parentRef }}
+              parentRef: {{ .parentRef | quote }}
+              {{- end }}
+              {{- if .responsibleMember }}
+              responsibleMember: {{ .responsibleMember | quote }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .demo.tags }}
+          tags:
+            {{- range .demo.tags }}
+            - ref: {{ .ref | quote }}
+              name: {{ .name | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .demo.documents }}
+          documents:
+            {{- range .demo.documents }}
+            - name: {{ .name | quote }}
+              total: {{ .total | quote }}
+              {{- if .totalTax }}
+              totalTax: {{ .totalTax | quote }}
+              {{- end }}
+              {{- if .currencyCode }}
+              currencyCode: {{ .currencyCode | quote }}
+              {{- end }}
+              date: {{ .date | quote }}
+              {{- if .bommelRef }}
+              bommelRef: {{ .bommelRef | quote }}
+              {{- end }}
+              {{- if .tagRefs }}
+              tagRefs: {{ .tagRefs | quote }}
+              {{- end }}
+              {{- if .confirmed }}
+              confirmed: {{ .confirmed }}
+              {{- end }}
+              {{- if .privatelyPaid }}
+              privatelyPaid: {{ .privatelyPaid }}
+              {{- end }}
+              {{- if .createTransaction }}
+              createTransaction: {{ .createTransaction }}
+              {{- end }}
+              {{- if .sender }}
+              sender:
+                name: {{ .sender.name | quote }}
+                {{- if .sender.street }}
+                street: {{ .sender.street | quote }}
+                {{- end }}
+                {{- if .sender.zipCode }}
+                zipCode: {{ .sender.zipCode | quote }}
+                {{- end }}
+                {{- if .sender.city }}
+                city: {{ .sender.city | quote }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .demo.transactions }}
+          transactions:
+            {{- range .demo.transactions }}
+            - name: {{ .name | quote }}
+              amount: {{ .amount | quote }}
+              {{- if .currencyCode }}
+              currencyCode: {{ .currencyCode | quote }}
+              {{- end }}
+              date: {{ .date | quote }}
+              {{- if .bommelRef }}
+              bommelRef: {{ .bommelRef | quote }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- else }}
+      []
+      {{- end }}
 
-  # Organization B
-  HOPPS_BOOTSTRAP_ORG_B_NAME: "Sportverein Alpenblick e.V."
-  HOPPS_BOOTSTRAP_ORG_B_SLUG: "sportverein-alpenblick"
-  HOPPS_BOOTSTRAP_ORG_B_DISPLAY_NAME: "Sportverein Alpenblick"
-
-  # User: Admin (Super Admin)
-  HOPPS_BOOTSTRAP_USERS_ADMIN_USERNAME: "admin"
-  HOPPS_BOOTSTRAP_USERS_ADMIN_EMAIL: "admin@musikverein.local"
-  HOPPS_BOOTSTRAP_USERS_ADMIN_FIRST_NAME: "Super"
-  HOPPS_BOOTSTRAP_USERS_ADMIN_LAST_NAME: "Admin"
-  HOPPS_BOOTSTRAP_USERS_ADMIN_ROLES: "super_admin,admin,user"
-  HOPPS_BOOTSTRAP_USERS_ADMIN_ORGANIZATION: "musikverein-harmonie"
-
-  # User: Maria
-  HOPPS_BOOTSTRAP_USERS_MARIA_USERNAME: "maria"
-  HOPPS_BOOTSTRAP_USERS_MARIA_EMAIL: "maria.schmidt@musikverein.local"
-  HOPPS_BOOTSTRAP_USERS_MARIA_FIRST_NAME: "Maria"
-  HOPPS_BOOTSTRAP_USERS_MARIA_LAST_NAME: "Schmidt"
-  HOPPS_BOOTSTRAP_USERS_MARIA_ROLES: "admin,user"
-  HOPPS_BOOTSTRAP_USERS_MARIA_ORGANIZATION: "musikverein-harmonie"
-
-  # User: Thomas
-  HOPPS_BOOTSTRAP_USERS_THOMAS_USERNAME: "thomas"
-  HOPPS_BOOTSTRAP_USERS_THOMAS_EMAIL: "thomas.mueller@alpenblick.local"
-  HOPPS_BOOTSTRAP_USERS_THOMAS_FIRST_NAME: "Thomas"
-  HOPPS_BOOTSTRAP_USERS_THOMAS_LAST_NAME: "Müller"
-  HOPPS_BOOTSTRAP_USERS_THOMAS_ROLES: "user"
-  HOPPS_BOOTSTRAP_USERS_THOMAS_ORGANIZATION: "sportverein-alpenblick"
+    users:
+      {{- if .Values.hoppsApp.bootstrap.users }}
+      {{- range .Values.hoppsApp.bootstrap.users }}
+      - username: {{ .username | quote }}
+        email: {{ .email | quote }}
+        firstName: {{ .firstName | quote }}
+        lastName: {{ .lastName | quote }}
+        roles:
+          {{- range .roles }}
+          - {{ . | quote }}
+          {{- end }}
+        organizationSlug: {{ .organizationSlug | quote }}
+      {{- end }}
+      {{- else }}
+      []
+      {{- end }}
 {{- end }}

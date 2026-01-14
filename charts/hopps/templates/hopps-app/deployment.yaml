@@ -49,15 +49,9 @@ spec:
             {{- toYaml .Values.hoppsApp.securityContext | nindent 12 }}
           image: "{{ .Values.hoppsApp.image.repository }}:{{ .Values.hoppsApp.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.hoppsApp.image.pullPolicy }}
-          {{- if or .Values.hoppsApp.bootstrap.enabled .Values.hoppsApp.envFrom }}
+          {{- with .Values.hoppsApp.envFrom }}
           envFrom:
-            {{- if .Values.hoppsApp.bootstrap.enabled }}
-            - configMapRef:
-                name: {{ include "hopps.hoppsAppFullname" . }}-bootstrap
-            {{- end }}
-            {{- with .Values.hoppsApp.envFrom }}
             {{- toYaml . | nindent 12 }}
-            {{- end }}
           {{- end }}
           ports:
             - name: http
@@ -72,13 +66,28 @@ spec:
             {{- toYaml .Values.hoppsApp.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.hoppsApp.resources | nindent 12 }}
-          {{- with .Values.hoppsApp.volumeMounts }}
+          {{- if or .Values.hoppsApp.volumeMounts .Values.hoppsApp.bootstrap.enabled }}
           volumeMounts:
+            {{- with .Values.hoppsApp.volumeMounts }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.hoppsApp.bootstrap.enabled }}
+            - name: bootstrap-config
+              mountPath: /deployments/config/bootstrap-data.yaml
+              subPath: bootstrap-data.yaml
+              readOnly: true
+            {{- end }}
           {{- end }}
-      {{- with .Values.hoppsApp.volumes }}
+      {{- if or .Values.hoppsApp.volumes .Values.hoppsApp.bootstrap.enabled }}
       volumes:
+        {{- with .Values.hoppsApp.volumes }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.hoppsApp.bootstrap.enabled }}
+        - name: bootstrap-config
+          configMap:
+            name: {{ include "hopps.hoppsAppFullname" . }}-bootstrap
+        {{- end }}
       {{- end }}
       {{- with .Values.hoppsApp.nodeSelector }}
       nodeSelector:
