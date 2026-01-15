@@ -2,177 +2,348 @@ package app.hopps.document.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.document.domain.DocumentType;
-import app.hopps.document.service.SubmitService;
-import app.hopps.member.domain.Member;
-import app.hopps.member.repository.MemberRepository;
+import app.hopps.document.api.dto.DocumentResponse;
+import app.hopps.document.api.dto.DocumentUpdateRequest;
+import app.hopps.document.domain.*;
+import app.hopps.document.repository.DocumentRepository;
+import app.hopps.document.service.DocumentAnalysisService;
+import app.hopps.document.service.DocumentFileService;
 import app.hopps.organization.domain.Organization;
-import app.hopps.shared.infrastructure.storage.S3Handler;
-import app.hopps.transaction.domain.TransactionRecord;
+import app.hopps.shared.security.OrganizationContext;
 import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
+/**
+ * REST API for document management. Handles document upload, retrieval, and updates.
+ */
 @Authenticated
-@Path("/document")
+@Path("/documents")
 public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
-
-    private static final List<String> ALLOWED_DOCUMENT_TYPES = List.of("image/png", "image/jpeg", "application/pdf");
-
-    @Inject
-    S3Handler s3Handler;
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
+            "image/png", "image/jpeg", "application/pdf");
 
     @Inject
-    SubmitService submitService;
+    DocumentRepository documentRepository;
 
     @Inject
-    SecurityContext securityContext;
+    BommelRepository bommelRepository;
 
     @Inject
-    BommelRepository bommelRepo;
+    DocumentFileService fileService;
 
     @Inject
-    MemberRepository memberRepo;
+    DocumentAnalysisService analysisService;
 
-    @GET
-    @Path("{documentKey}")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public byte[] getDocumentByKey(@PathParam("documentKey") String documentKey) {
-        // TODO: Verify that user has access to this document
-        // TODO: Set the media type header dynamic dependent on PNG, JPEG or PDF
-        try {
-            return s3Handler.getFile(documentKey);
-        } catch (NoSuchKeyException ignored) {
-            LOG.info("File with key {} not found", documentKey);
-            throw new NotFoundException(Response.status(Response.Status.NOT_FOUND)
-                    .entity("Document with key " + documentKey + " not found")
-                    .build());
-        }
-    }
+    @Inject
+    OrganizationContext organizationContext;
+
+    @Inject
+    SecurityIdentity securityIdentity;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Operation(summary = "Uploads a document, creates a transaction record for it and attaches that to a bommel.")
-    @APIResponse(responseCode = "200", description = "Newly created transaction record", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(contentSchema = TransactionRecord.class), example = """
-            {
-                "id": 1,
-                "bommelId": 23,
-                "documentKey": "0deb7f16-3521-4fdf-9bf4-ac097fef2d9e",
-                "uploader": "alice@example.test",
-                "total": 89.9,
-                "privatelyPaid": false,
-                "document": "INVOICE",
-                "transactionTime": "2024-07-17T22:00:00Z",
-                "sender": null,
-                "recipient": null,
-                "tags": [ "consulting", "services" ],
-                "name": "Herr Max Mustermann",
-                "orderNumber": "20249324596397",
-                "invoiceId": "20249324596397",
-                "dueDate": null,
-                "amountDue": null,
-                "currencyCode": "EUR"
-            }"""))
-    @APIResponse(responseCode = "400", description = """
-            Invalid input, either invalid bommel/bommel from another org, missing 'file' or 'type' inputs,
-            the user not being attached to exactly one organisation,
-            or an invalid MIME type on the uploaded file.
-            """)
-    public TransactionRecord uploadDocument(
+    @Operation(summary = "Upload a document", description = "Uploads a document file, persists it, and starts async analysis. Returns immediately with the document ID.")
+    @APIResponse(responseCode = "201", description = "Document created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "400", description = "Invalid input (missing file, invalid bommel, or unsupported file type)")
+    @APIResponse(responseCode = "401", description = "Not authenticated")
+    public Response uploadDocument(
             @RestForm("file") FileUpload file,
-            @RestForm("bommelId") Long bommelId,
-            @RestForm("privatelyPaid") boolean privatelyPaid,
-            @RestForm("type") DocumentType type) throws IOException {
-        if (file == null || type == null) {
-            throw new BadRequestException(
-                    Response.status(Response.Status.BAD_REQUEST).entity("'file' or 'type' not set!").build());
+            @RestForm("bommelId") @Parameter(description = "ID of the bommel to attach the document to") Long bommelId,
+            @RestForm("privatelyPaid") @Parameter(description = "Whether the document was privately paid") boolean privatelyPaid,
+            @RestForm("type") @Parameter(description = "Type of document: INVOICE or RECEIPT") DocumentType type) {
+        // Validate input
+        if (file == null || file.fileName() == null || file.fileName().isBlank()) {
+            throw new BadRequestException("File is required");
         }
 
-        if (!ALLOWED_DOCUMENT_TYPES.contains(file.contentType())) {
-            throw new ClientErrorException(Response.status(Response.Status.UNSUPPORTED_MEDIA_TYPE)
-                    .entity("Invalid content type, allowed values: " + ALLOWED_DOCUMENT_TYPES)
-                    .build());
+        if (type == null) {
+            throw new BadRequestException("Document type is required");
         }
 
-        Member member = memberRepo.find("email", securityContext.getUserPrincipal().getName()).firstResult();
-
-        if (member == null) {
+        if (!ALLOWED_CONTENT_TYPES.contains(file.contentType())) {
             throw new ClientErrorException(
-                    Response.status(Response.Status.UNAUTHORIZED).entity("Member not found in database").build());
+                    "Unsupported file type. Allowed: " + ALLOWED_CONTENT_TYPES,
+                    Response.Status.UNSUPPORTED_MEDIA_TYPE);
         }
 
-        var orgs = member.getOrganizations();
-
-        if (orgs.isEmpty()) {
-            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Member is not part of an organisation")
-                    .build());
+        // Get current organization
+        Organization organization = organizationContext.getCurrentOrganization();
+        if (organization == null) {
+            throw new BadRequestException("User is not part of an organization");
         }
 
-        if (orgs.size() > 1) {
-            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST)
-                    .entity("User (currently) cannot be part of multiple organisations")
-                    .build());
-        }
-
-        Organization userOrganisation = orgs.stream().findFirst().get();
-
-        if (bommelId == null) {
-            // if the user didn't supply an id, we'll just default to their organisation's root bommel
-            bommelId = userOrganisation.getRootBommel().id;
-        } else {
-            // if the user did supply an id, make sure it exists and is in the correct organisation
-            Bommel bommel = bommelRepo.findById(bommelId);
-
+        // Validate and resolve bommel
+        Bommel bommel = null;
+        if (bommelId != null) {
+            bommel = bommelRepository.findById(bommelId);
             if (bommel == null) {
-                throw new BadRequestException(
-                        Response.status(Response.Status.BAD_REQUEST).entity("Bommel not found").build());
+                throw new BadRequestException("Bommel not found");
             }
 
-            Organization bommelOrganisation = bommelRepo.getOrganization(bommel);
-
-            if (!Objects.equals(bommelOrganisation.getId(), userOrganisation.getId())) {
-                throw new BadRequestException(
-                        Response.status(Response.Status.BAD_REQUEST).entity("Bommel not found").build());
+            // Verify bommel belongs to user's organization
+            Organization bommelOrg = bommelRepository.getOrganization(bommel);
+            if (!Objects.equals(bommelOrg.getId(), organization.getId())) {
+                throw new BadRequestException("Bommel not found");
             }
         }
 
-        UUID documentKey = UUID.randomUUID();
-        LOG.info("Uploading document (documentKey={}, bommel={})", documentKey, bommelId);
-        byte[] fileContents = Files.readAllBytes(file.uploadedFile());
-        s3Handler.saveFile(documentKey.toString(), file.contentType(), fileContents);
+        // Create document entity
+        Document document = new Document();
+        document.setOrganization(organization);
+        document.setBommel(bommel);
+        document.setDocumentType(type);
+        document.setPrivatelyPaid(privatelyPaid);
+        document.setAnalysisStatus(AnalysisStatus.PENDING);
+        document.setUploadedBy(securityIdentity.getPrincipal().getName());
 
-        SubmitService.DocumentSubmissionRequest request = new SubmitService.DocumentSubmissionRequest(
-                documentKey.toString(),
-                bommelId,
-                type,
-                privatelyPaid,
-                securityContext.getUserPrincipal().getName(),
-                file.contentType(),
-                fileContents);
+        // Upload file to S3 and set file metadata
+        fileService.handleFileUpload(document, file);
 
-        return submitService.submitDocument(request);
+        // Persist document
+        documentRepository.persist(document);
+        LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
+
+        // Trigger async analysis
+        analysisService.analyzeAsync(document.getId());
+
+        // Return response with 201 Created status
+        DocumentResponse response = DocumentResponse.from(document);
+        return Response.status(Response.Status.CREATED).entity(response).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "List all documents", description = "Returns all documents for the current organization")
+    @APIResponse(responseCode = "200", description = "List of documents", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse[].class)))
+    public List<DocumentResponse> listDocuments(
+            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId) {
+        List<Document> documents;
+        if (bommelId != null) {
+            documents = documentRepository.findByBommelId(bommelId);
+        } else {
+            documents = documentRepository.findAllOrderedByDate();
+        }
+
+        return documents.stream()
+                .map(DocumentResponse::from)
+                .toList();
+    }
+
+    @GET
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get a document", description = "Returns a document by ID including its analysis status and results")
+    @APIResponse(responseCode = "200", description = "Document found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "404", description = "Document not found")
+    public DocumentResponse getDocument(
+            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+
+        return DocumentResponse.from(document);
+    }
+
+    @PATCH
+    @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Operation(summary = "Update a document", description = "Updates a document with user-provided data. Sets extraction source to MANUAL if fields are modified.")
+    @APIResponse(responseCode = "200", description = "Document updated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "404", description = "Document not found")
+    public DocumentResponse updateDocument(
+            @PathParam("id") @Parameter(description = "Document ID") Long id,
+            DocumentUpdateRequest request) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+
+        // Track if any fields were manually modified
+        boolean modified = false;
+
+        // Update fields if provided
+        if (request.name() != null) {
+            document.setName(request.name());
+            modified = true;
+        }
+
+        if (request.total() != null) {
+            document.setTotal(request.total());
+            modified = true;
+        }
+
+        if (request.totalTax() != null) {
+            document.setTotalTax(request.totalTax());
+            modified = true;
+        }
+
+        if (request.currencyCode() != null) {
+            document.setCurrencyCode(request.currencyCode());
+            modified = true;
+        }
+
+        if (request.transactionDate() != null && !request.transactionDate().isBlank()) {
+            LocalDate date = LocalDate.parse(request.transactionDate());
+            document.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            modified = true;
+        }
+
+        if (request.bommelId() != null) {
+            if (request.bommelId() > 0) {
+                Bommel bommel = bommelRepository.findById(request.bommelId());
+                if (bommel != null) {
+                    document.setBommel(bommel);
+                }
+            } else {
+                document.setBommel(null);
+            }
+        }
+
+        // Update sender information
+        if (request.senderName() != null && !request.senderName().isBlank()) {
+            TradeParty sender = document.getSender();
+            if (sender == null) {
+                sender = new TradeParty();
+                sender.setOrganization(document.getOrganization());
+                document.setSender(sender);
+            }
+            sender.setName(request.senderName());
+            sender.setStreet(request.senderStreet());
+            sender.setZipCode(request.senderZipCode());
+            sender.setCity(request.senderCity());
+            modified = true;
+        }
+
+        document.setPrivatelyPaid(request.privatelyPaid());
+
+        // Update tags if provided
+        if (request.tags() != null) {
+            updateDocumentTags(document, request.tags());
+            modified = true;
+        }
+
+        // Mark as manually edited if modified
+        if (modified) {
+            document.setExtractionSource(ExtractionSource.MANUAL);
+        }
+
+        LOG.info("Document updated: id={}", document.getId());
+        return DocumentResponse.from(document);
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Transactional
+    @Operation(summary = "Delete a document", description = "Deletes a document and its associated file from storage")
+    @APIResponse(responseCode = "204", description = "Document deleted")
+    @APIResponse(responseCode = "404", description = "Document not found")
+    public void deleteDocument(
+            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+
+        // Delete file from storage
+        if (document.hasFile()) {
+            fileService.deleteFile(document.getFileKey());
+        }
+
+        documentRepository.delete(document);
+        LOG.info("Document deleted: id={}", id);
+    }
+
+    @GET
+    @Path("/{id}/file")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(summary = "Download document file", description = "Downloads the document file from storage")
+    @APIResponse(responseCode = "200", description = "File content")
+    @APIResponse(responseCode = "404", description = "Document or file not found")
+    public Response downloadFile(
+            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null || !document.hasFile()) {
+            throw new NotFoundException("Document or file not found");
+        }
+
+        var inputStream = fileService.downloadFile(document.getFileKey());
+        return Response.ok(inputStream)
+                .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
+                .header("Content-Type", document.getFileContentType())
+                .build();
+    }
+
+    @POST
+    @Path("/{id}/reanalyze")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Operation(summary = "Re-analyze a document", description = "Triggers a new analysis for an existing document")
+    @APIResponse(responseCode = "200", description = "Analysis started", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "404", description = "Document not found")
+    @APIResponse(responseCode = "400", description = "Document has no file to analyze")
+    public DocumentResponse reanalyzeDocument(
+            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+
+        if (!document.hasFile()) {
+            throw new BadRequestException("Document has no file to analyze");
+        }
+
+        // Reset analysis status
+        document.setAnalysisStatus(AnalysisStatus.PENDING);
+        document.setAnalysisError(null);
+
+        // Trigger async analysis
+        analysisService.analyzeAsync(document.getId());
+
+        LOG.info("Re-analysis triggered: id={}", id);
+        return DocumentResponse.from(document);
+    }
+
+    /**
+     * Updates document tags from a list of tag names.
+     */
+    private void updateDocumentTags(Document document, List<String> tagNames) {
+        // Clear existing manual tags
+        document.getDocumentTags().removeIf(dt -> dt.getSource() == TagSource.MANUAL);
+
+        // Add new tags
+        for (String tagName : tagNames) {
+            if (tagName != null && !tagName.isBlank()) {
+                // Create or find tag
+                app.hopps.shared.domain.Tag tag = new app.hopps.shared.domain.Tag();
+                tag.setName(tagName.trim());
+                tag.setOrganization(document.getOrganization());
+                document.addTag(tag, TagSource.MANUAL);
+            }
+        }
     }
 }

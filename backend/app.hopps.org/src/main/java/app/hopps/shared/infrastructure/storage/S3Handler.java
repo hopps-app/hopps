@@ -32,7 +32,7 @@ public class S3Handler {
     private final S3Client s3;
     private final Cache documentCache;
 
-    @ConfigProperty(name = "app.hopps.fin.bucket.name")
+    @ConfigProperty(name = "bucket.name")
     String bucketName;
 
     @Inject

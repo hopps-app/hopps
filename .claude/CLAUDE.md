@@ -200,12 +200,13 @@ src/
    ```
    Dies generiert die OpenAPI-Spec unter `target/openapi/openapi.json`
 
-3. **API Client regenerieren**
+3. **API Client regenerieren und bauen**
    ```bash
    cd frontend/api-client
    pnpm run generate-local
+   pnpm run build
    ```
-   Dies generiert TypeScript-Typen und Client-Methoden aus der lokalen OpenAPI-Spec.
+   Dies generiert TypeScript-Typen und Client-Methoden aus der lokalen OpenAPI-Spec und kompiliert sie zu JavaScript im `dist` Ordner. **WICHTIG:** Der Build-Schritt ist zwingend erforderlich, da SPA und Mobile die kompilierten JavaScript-Dateien aus `dist/` importieren.
 
 4. **Neue Methoden im Frontend verwenden**
 

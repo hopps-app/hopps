@@ -10,9 +10,9 @@ import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.InputStream;
 
-@Path("/api/zugferd/document/scan")
-@RegisterRestClient(configKey = "zugferd")
-public interface ZugFerdClient {
+@Path("/api/az-document-ai/document/scan")
+@RegisterRestClient(configKey = "document-ai")
+public interface DocumentAiClient {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)

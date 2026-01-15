@@ -256,6 +256,9 @@ org:
   envVars: []
   #- name: ENV_VAR
   #  value: value
+  # S3 bucket configuration
+  s3:
+    bucketName: documents
   ingress:
     enabled: false
     annotations: {}

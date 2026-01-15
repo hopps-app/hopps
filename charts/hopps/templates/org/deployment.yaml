@@ -48,6 +48,9 @@ spec:
             # zugferd
             - name: HOPPS_ZUGFERD_SERVICE_URL
               value: http://{{ .Release.Name }}-zugferd:{{ .Values.zugferd.service.port }}/
+            # S3 bucket name
+            - name: BUCKET_NAME
+              value: {{ .Values.org.s3.bucketName | default "documents" }}
           securityContext:
             {{- toYaml .Values.org.securityContext | nindent 12 }}
           image: "{{ .Values.org.image.repository }}:{{ .Values.org.image.tag | default .Chart.AppVersion }}"

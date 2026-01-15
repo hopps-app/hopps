@@ -181,6 +181,7 @@ function useToast() {
         show: (props: Toast) => toast({ ...props, variant: 'success' }),
         showSuccess: (message: string, props?: Toast) => toast({ title: message, ...props, variant: 'success' }),
         showError: (message: string, props?: Toast) => toast({ title: message, ...props, variant: 'error' }),
+        showWarning: (message: string, props?: Toast) => toast({ title: message, ...props, variant: 'warning' }),
     };
 }
 

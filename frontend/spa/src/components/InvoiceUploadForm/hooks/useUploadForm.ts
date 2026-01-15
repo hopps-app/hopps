@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isEqual } from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileWithPath } from 'react-dropzone';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -10,13 +10,37 @@ import { InvoiceUploadType } from '@/components/InvoiceUploadForm/types/index';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 
+// Polling interval in milliseconds
+const POLL_INTERVAL = 2000;
+
+// Analysis status types (should match backend AnalysisStatus enum)
+type AnalysisStatus = 'PENDING' | 'ANALYZING' | 'COMPLETED' | 'FAILED' | 'SKIPPED';
+
+interface UploadedDocument {
+    id: number;
+    analysisStatus: AnalysisStatus;
+    analysisError?: string;
+    // Analysis results
+    name?: string;
+    total?: number;
+    currencyCode?: string;
+    transactionTime?: string;
+    senderName?: string;
+    tags?: string[];
+}
+
 export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
-    const { showError, showSuccess } = useToast();
+    const { showError, showSuccess, showWarning } = useToast();
 
     const [selectedFiles, setSelectedFiles] = useState<FileWithPath[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [fileProgress, setFileProgress] = useState<Record<string, number>>({});
     const [isInvoicesQuantityLimit, setIsInvoicesQuantityLimit] = useState(false);
+    const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
+    const [isPolling, setIsPolling] = useState(false);
+
+    // Keep track of polling intervals
+    const pollingIntervals = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
     const invoiceUploadSchema = z.object({
         bommelId: z.number().refine((val) => val !== null, {
@@ -63,11 +87,24 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         }
     }, [selectedFiles]);
 
+    // Cleanup polling intervals on unmount
+    useEffect(() => {
+        return () => {
+            pollingIntervals.current.forEach((interval) => clearInterval(interval));
+            pollingIntervals.current.clear();
+        };
+    }, []);
+
     const clearState = () => {
         setSelectedFiles([]);
         setValue('documentType', '');
         setValue('bommelId', 0);
         setValue('isPrivatelyPaid', false);
+        setUploadedDocuments([]);
+        // Clear all polling intervals
+        pollingIntervals.current.forEach((interval) => clearInterval(interval));
+        pollingIntervals.current.clear();
+        setIsPolling(false);
     };
 
     const updateFileProgress = (fileName: string, progress: number) => {
@@ -142,13 +179,76 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         [fileProgress, selectedFiles]
     );
 
+    /**
+     * Starts polling for analysis status of a document
+     */
+    const startPolling = (docId: number) => {
+        setIsPolling(true);
+
+        const interval = setInterval(async () => {
+            try {
+                // Fetch document status
+                // Note: Method name will be updated after API client regeneration
+                const doc = await apiService.orgService.documentsGET(docId);
+
+                // Update the document in our state
+                setUploadedDocuments((prev) =>
+                    prev.map((d) => (d.id === docId ? { ...d, ...doc } : d))
+                );
+
+                // Check if analysis is complete
+                if (doc.analysisStatus === 'COMPLETED') {
+                    clearInterval(interval);
+                    pollingIntervals.current.delete(docId);
+
+                    // Check if all documents are done
+                    const allDone = pollingIntervals.current.size === 0;
+                    if (allDone) {
+                        setIsPolling(false);
+                        showSuccess('Analysis completed for all documents');
+                        onUploadInvoiceChange();
+                    }
+                } else if (doc.analysisStatus === 'FAILED') {
+                    clearInterval(interval);
+                    pollingIntervals.current.delete(docId);
+
+                    showWarning(`Analysis failed for document: ${doc.analysisError || 'Unknown error'}`);
+
+                    // Check if all documents are done
+                    const allDone = pollingIntervals.current.size === 0;
+                    if (allDone) {
+                        setIsPolling(false);
+                    }
+                } else if (doc.analysisStatus === 'SKIPPED') {
+                    clearInterval(interval);
+                    pollingIntervals.current.delete(docId);
+
+                    // Check if all documents are done
+                    const allDone = pollingIntervals.current.size === 0;
+                    if (allDone) {
+                        setIsPolling(false);
+                        showSuccess('Upload completed');
+                        onUploadInvoiceChange();
+                    }
+                }
+            } catch (e) {
+                console.error('Error polling document status:', e);
+                // Don't stop polling on error, might be transient
+            }
+        }, POLL_INTERVAL);
+
+        pollingIntervals.current.set(docId, interval);
+    };
+
     const uploadInvoices = async () => {
         setIsUploading(true);
         try {
             if (selectedBommelId) {
-                await Promise.all(
+                // Upload all files
+                const uploadResults = await Promise.all(
                     selectedFiles.map((file) =>
-                        apiService.orgService.documentPOST(
+                        // Note: Method name will be updated after API client regeneration
+                        apiService.orgService.documentsPOST(
                             {
                                 data: file,
                                 fileName: file.name,
@@ -159,10 +259,23 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
                         )
                     )
                 );
+
+                // Store uploaded documents
+                setUploadedDocuments(uploadResults as UploadedDocument[]);
+
+                // Start polling for each uploaded document
+                uploadResults.forEach((doc: any) => {
+                    if (doc.id) {
+                        startPolling(doc.id);
+                    }
+                });
+
+                showSuccess('Files uploaded, analysis in progress...');
+                setSelectedFiles([]);
+                setValue('documentType', '');
+                setValue('bommelId', 0);
+                setValue('isPrivatelyPaid', false);
             }
-            showSuccess('All files uploaded successfully');
-            clearState();
-            onUploadInvoiceChange();
         } catch (e) {
             console.error(e);
             showError('Failed to upload invoices');
@@ -192,13 +305,15 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
     };
 
     const isValidUpload = useMemo(
-        () => isUploading || !selectedFiles.length || isInvoicesQuantityLimit || isInvoiceSizeLimit || !selectedBommelId || !documentType,
-        [isUploading, selectedFiles, isInvoicesQuantityLimit, isInvoiceSizeLimit, selectedBommelId, documentType]
+        () => isUploading || isPolling || !selectedFiles.length || isInvoicesQuantityLimit || isInvoiceSizeLimit || !selectedBommelId || !documentType,
+        [isUploading, isPolling, selectedFiles, isInvoicesQuantityLimit, isInvoiceSizeLimit, selectedBommelId, documentType]
     );
 
     return {
         selectedFiles,
         isUploading,
+        isPolling,
+        uploadedDocuments,
         fileProgress,
         isInvoicesQuantityLimit,
         isPrivatelyPaid,

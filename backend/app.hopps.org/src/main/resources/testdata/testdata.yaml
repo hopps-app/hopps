@@ -1,0 +1,361 @@
+# Test Data Configuration
+# This file is loaded by TestdataBootstrapper in dev and test profiles
+# Entity order matters: organizations first, then members, then bommels (due to foreign key relationships)
+
+organizations:
+  - id: 2
+    slug: "gruenes-herz-ev"
+    name: "Grünes Herz e.V."
+    type: "EINGETRAGENER_VEREIN"
+    website: "https://gruenes-herz.de/"
+    address:
+      plz: "27324"
+      city: "Schweringen"
+      street: "Am Lennestein"
+      number: "110"
+    rootBommelId: 2
+
+  - id: 3
+    slug: "kaeltekrieger"
+    name: "Eishockeyclub Kältekrieger e.V."
+    type: "EINGETRAGENER_VEREIN"
+    website: "https://kaeltekrieger.de/"
+    address:
+      plz: "89129"
+      city: "Langenau"
+      street: "August-Brust-Straße"
+      number: "78"
+    rootBommelId: 11
+
+  - id: 4
+    slug: "buehnefrei-ev"
+    name: "Theatervereine Bühnefrei e.V."
+    type: "EINGETRAGENER_VEREIN"
+    website: "https://bühnefrei.de/"
+    address:
+      plz: "33397"
+      city: "Rietberg"
+      street: "Dechant-Karthaus-Straße"
+      number: "172"
+    rootBommelId: 23
+
+members:
+  # gruenes-herz-ev members
+  - id: 2
+    email: "emanuel_urban@domain.none"
+    firstName: "Emanuel"
+    lastName: "Urban"
+    organizationIds: [2]
+
+  - id: 3
+    email: "hartlieb-reuter@xyz.none"
+    firstName: "Hartlieb"
+    lastName: "Reuter"
+    organizationIds: [2]
+
+  - id: 4
+    email: "elgard-nicklas@trashmail.none"
+    firstName: "Elgard"
+    lastName: "Nicklas"
+    organizationIds: [2]
+
+  - id: 5
+    email: "gerald.geiger@company.none"
+    firstName: "Gerald"
+    lastName: "Geiger"
+    organizationIds: [2]
+
+  - id: 6
+    email: "jannick.1923@net-mail.none"
+    firstName: "Jannick"
+    lastName: "Cao"
+    organizationIds: [2]
+
+  - id: 7
+    email: "constance.wendling@justmail.none"
+    firstName: "Constance"
+    lastName: "Wendling"
+    organizationIds: [2]
+
+  - id: 8
+    email: "florenz-huefner@spam-mail.none"
+    firstName: "Florenz"
+    lastName: "Häfner"
+    organizationIds: [2]
+
+  # kaeltekrieger members
+  - id: 9
+    email: "h1978@company.none"
+    firstName: "Herlind"
+    lastName: "Kutscher"
+    organizationIds: [3]
+
+  - id: 10
+    email: "annekathrinfeldhoff@inter-mail.none"
+    firstName: "Annekathrin"
+    lastName: "Feldhof"
+    organizationIds: [3]
+
+  - id: 11
+    email: "rosegunde-19@anymail.none"
+    firstName: "Rosegunde"
+    lastName: "Wilhelmy"
+    organizationIds: [3]
+
+  - id: 12
+    email: "eckhardweirich@spam-mail.none"
+    firstName: "Eckhard"
+    lastName: "Weirich"
+    organizationIds: [3]
+
+  - id: 13
+    email: "g_2011@inter-mail.none"
+    firstName: "Godo"
+    lastName: "Beckers"
+    organizationIds: [3]
+
+  - id: 14
+    email: "klothilde1916@net-mail.none"
+    firstName: "Klothilde"
+    lastName: "Püppel"
+    organizationIds: [3]
+
+  # buehnefrei-ev members
+  - id: 15
+    email: "samantha1284@net-mail.none"
+    firstName: "Samantha"
+    lastName: "Adomeit"
+    organizationIds: [4]
+
+  - id: 16
+    email: "m-linner@private.none"
+    firstName: "Margund"
+    lastName: "Linner"
+    organizationIds: [4]
+
+  - id: 17
+    email: "b-bork@mymail.none"
+    firstName: "Birgit"
+    lastName: "Bork"
+    organizationIds: [4]
+
+  - id: 18
+    email: "gkalb@quickmail.none"
+    firstName: "Gunther"
+    lastName: "Kalb"
+    organizationIds: [4]
+
+  - id: 19
+    email: "b-schlicker@trashmail.none"
+    firstName: "Burckhard"
+    lastName: "Schlicker"
+    organizationIds: [4]
+
+  - id: 20
+    email: "alix1980@validmail.none"
+    firstName: "Alix"
+    lastName: "Raff"
+    organizationIds: [4]
+
+  # Test users (used in tests)
+  - id: 21
+    email: "alice@example.test"
+    firstName: "Alice"
+    lastName: "Musterfrau"
+    organizationIds: [4]
+
+  - id: 22
+    email: "jdoe@example.test"
+    firstName: "Jdoe"
+    lastName: "Mustermann"
+    organizationIds: [4]
+
+  - id: 23
+    email: "bob@example.test"
+    firstName: "Bob"
+    lastName: "Mustermann"
+    organizationIds: [4]
+
+bommels:
+  # gruenes-herz-ev (organization id=2)
+  - id: 2
+    name: "Grünes Herz e.V."
+    parentId: null
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 3
+    name: "Fundraising & Spenden"
+    parentId: 2
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 4
+    name: "Bildungs-Projekte"
+    parentId: 2
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 5
+    name: "Naturschutz-Projekte"
+    parentId: 2
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 6
+    name: "Schulvorträge"
+    parentId: 4
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 7
+    name: "Online Seminare"
+    parentId: 4
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 8
+    name: "Vortrag 1"
+    parentId: 6
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 9
+    name: "Vortrag 2"
+    parentId: 6
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 10
+    name: "Schutz eines Feuchte-Gebietes"
+    parentId: 5
+    emoji: null
+    responsibleMemberId: null
+
+  # kaeltekrieger (organization id=3)
+  - id: 11
+    name: "Kältekrieger e.V."
+    parentId: null
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 12
+    name: "Verkauf"
+    parentId: 11
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 13
+    name: "Öffentlicher Lauf"
+    parentId: 11
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 14
+    name: "Mannschaften"
+    parentId: 11
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 15
+    name: "Stadion"
+    parentId: 11
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 16
+    name: "Kiosk"
+    parentId: 12
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 17
+    name: "Shop"
+    parentId: 12
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 18
+    name: "1. Liga"
+    parentId: 14
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 19
+    name: "2. Liga"
+    parentId: 14
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 20
+    name: "3. Liga"
+    parentId: 14
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 21
+    name: "Jugend"
+    parentId: 14
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 22
+    name: "Eis Pflege"
+    parentId: 15
+    emoji: null
+    responsibleMemberId: null
+
+  # buehnefrei-ev (organization id=4)
+  - id: 23
+    name: "Bühnefrei e.V."
+    parentId: null
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 24
+    name: "Kiosk"
+    parentId: 23
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 25
+    name: "Räumlichkeiten"
+    parentId: 23
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 26
+    name: "Workshops"
+    parentId: 23
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 27
+    name: "Projekte"
+    parentId: 23
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 28
+    name: "Der kleine Lord"
+    parentId: 27
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 29
+    name: "Das Hässliche Entlein"
+    parentId: 27
+    emoji: null
+    responsibleMemberId: null
+
+  - id: 30
+    name: "König der Löwen"
+    parentId: 27
+    emoji: null
+    responsibleMemberId: null
+
+# Sequence configuration for ID generators
+sequences:
+  Bommel_SEQ: 30
+  Organization_SEQ: 4
+  Member_SEQ: 23

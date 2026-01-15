@@ -30,7 +30,7 @@ class S3HandlerTest {
     @Inject
     S3Client lowLevels3Client;
 
-    @ConfigProperty(name = "app.hopps.fin.bucket.name")
+    @ConfigProperty(name = "bucket.name")
     String bucketName;
 
     @BeforeEach
