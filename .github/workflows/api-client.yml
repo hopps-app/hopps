@@ -57,7 +57,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Generate Org Service client (NSwag)
-        run: pnpm run generate:org-service
+        run: pnpm run generate
 
       - name: Build package
         run: pnpm run build

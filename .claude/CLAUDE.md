@@ -159,6 +159,81 @@ src/
 - Type-safe API Calls
 - Token Refresh Handling
 - Verwendet von SPA und Mobile
+- **Lokale Referenz:** SPA und Mobile verwenden `workspace:*` um direkt auf den lokalen API Client zuzugreifen
+
+#### API Client Workflow
+
+**WICHTIG:** Der API Client ist die EINZIGE erlaubte Methode, um Backend-Endpoints aus dem Frontend aufzurufen. Direkte fetch/axios Calls zum Backend sind NICHT erlaubt.
+
+**Workflow bei Backend-Änderungen:**
+
+1. **Swagger-Dokumentation im Backend hinzufügen**
+
+   Jeder Endpoint im org-Service MUSS präzise dokumentiert werden mit:
+   - `@Operation(summary = "...", description = "...")` - Beschreibung des Endpoints
+   - `@APIResponse(responseCode = "...", description = "...", content = ...)` - Alle möglichen Responses
+   - `@Parameter(description = "...")` - Beschreibung der Parameter
+   - `@Schema` - Schema-Definitionen für Request/Response Bodies
+
+   **Beispiel:**
+   ```java
+   @GET
+   @Path("/{id}")
+   @Operation(summary = "Fetch a bommel by its id", description = "Returns a single bommel entity")
+   @APIResponse(responseCode = "200", description = "Bommel found",
+       content = @Content(mediaType = MediaType.APPLICATION_JSON,
+       schema = @Schema(implementation = Bommel.class)))
+   @APIResponse(responseCode = "401", description = "User not logged in")
+   @APIResponse(responseCode = "403", description = "User not authorized")
+   @APIResponse(responseCode = "404", description = "Bommel not found")
+   public Bommel getBommel(@PathParam("id") @Parameter(description = "The bommel ID") Long id) {
+       // ...
+   }
+   ```
+
+2. **Backend bauen um OpenAPI-Spec zu generieren**
+   ```bash
+   cd backend/app.hopps.org
+   ./mvnw compile quarkus:dev
+   # oder
+   ./mvnw package
+   ```
+   Dies generiert die OpenAPI-Spec unter `target/openapi/openapi.json`
+
+3. **API Client regenerieren**
+   ```bash
+   cd frontend/api-client
+   pnpm run generate-local
+   ```
+   Dies generiert TypeScript-Typen und Client-Methoden aus der lokalen OpenAPI-Spec.
+
+4. **Neue Methoden im Frontend verwenden**
+
+   Die generierten Methoden stehen sofort in SPA und Mobile zur Verfügung:
+   ```typescript
+   import { Client, Bommel } from '@hopps/api-client';
+
+   const client = new Client(baseUrl, httpClient);
+   const bommel = await client.bommelGET(bommelId);
+   ```
+
+**Verfügbare Scripts:**
+- `pnpm run generate` - Generiert API Client von der Remote Dev-API (https://api.dev.hopps.cloud)
+- `pnpm run generate-local` - Generiert API Client von der lokalen OpenAPI-Spec
+- `pnpm run build` - Kompiliert den TypeScript API Client
+
+**Dateistruktur:**
+```
+frontend/api-client/
+├── src/
+│   ├── services/
+│   │   └── OrgService.ts      # Auto-generiert von NSwag
+│   ├── ApiService.ts          # Service-Wrapper
+│   ├── AuthenticatedHttpClient.ts  # HTTP Client mit Auth
+│   └── index.ts               # Exports
+├── org-service.nswag          # NSwag Config (Remote)
+└── org-service-local.nswag    # NSwag Config (Lokal)
+```
 
 ### figma_inspo Ordner
 Der `frontend/figma_inspo` Ordner dient als **Inspiration für UI/UX Design und Komponenten**. Dieser Ordner enthält Referenzimplementierungen und Designvorlagen, die als Grundlage für die Entwicklung neuer Features verwendet werden können.
@@ -308,7 +383,12 @@ const { t } = useTranslation();
 4. Dokumentiere Kontext bei mehrdeutigen Begriffen
 
 ### Bei API-Änderungen:
-1. OpenAPI-Spec wird automatisch generiert
-2. API Client muss mit NSwag regeneriert werden
-3. Pact Tests für Consumer/Provider aktualisieren
-4. Keycloak Roles beachten
+**WICHTIG:** Folge dem API Client Workflow (siehe "API Client Workflow" oben)
+
+1. **Swagger-Annotationen hinzufügen:** Jeder Endpoint MUSS mit `@Operation`, `@APIResponse`, `@Parameter` dokumentiert werden
+2. **Backend bauen:** `./mvnw compile` oder `./mvnw package` um OpenAPI-Spec zu generieren
+3. **API Client regenerieren:** `cd frontend/api-client && pnpm run generate-local`
+4. **Neue Methoden verwenden:** Importiere die generierten Typen und Methoden aus `@hopps/api-client`
+5. **NIEMALS:** Direkte fetch/axios Calls zum Backend - immer den API Client verwenden
+6. Pact Tests für Consumer/Provider aktualisieren
+7. Keycloak Roles beachten

@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -199,6 +199,63 @@ export class Client {
             });
         }
         return Promise.resolve<Bommel>(null as any);
+    }
+
+    /**
+     * Fetch all bommels for user's organization
+     * @return All bommels for organization
+     */
+    organizationAll(): Promise<TreeSearchBommel[]> {
+        let url_ = this.baseUrl + "/bommel/organization";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizationAll(_response);
+        });
+    }
+
+    protected processOrganizationAll(response: Response): Promise<TreeSearchBommel[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TreeSearchBommel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User not authorized", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization or root bommel not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TreeSearchBommel[]>(null as any);
     }
 
     /**
@@ -948,660 +1005,6 @@ export class Client {
     }
 
     /**
-     * Get Processes
-     * @return OK
-     */
-    processes(): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processProcesses(_response);
-        });
-    }
-
-    protected processProcesses(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Source File By Uri
-     * @param uri (optional) 
-     * @return OK
-     */
-    sources(uri: string | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/sources?";
-        if (uri === null)
-            throw new Error("The parameter 'uri' cannot be null.");
-        else if (uri !== undefined)
-            url_ += "uri=" + encodeURIComponent("" + uri) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSources(_response);
-        });
-    }
-
-    protected processSources(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Process Info
-     * @return OK
-     */
-    processes2(processId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processProcesses2(_response);
-        });
-    }
-
-    protected processProcesses2(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Cancel Process Instance Id
-     * @return OK
-     */
-    instancesDELETE(processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processInstancesDELETE(_response);
-        });
-    }
-
-    protected processInstancesDELETE(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Instance In Error
-     * @return OK
-     */
-    error(processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/error";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processError(_response);
-        });
-    }
-
-    protected processError(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Migrate Instance
-     * @return OK
-     */
-    migrate(processId: string, processInstanceId: string, body: ProcessMigrationSpec): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/migrate";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processMigrate(_response);
-        });
-    }
-
-    protected processMigrate(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Work Items In Process Instance
-     * @return OK
-     */
-    nodeInstancesGET(processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/nodeInstances";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processNodeInstancesGET(_response);
-        });
-    }
-
-    protected processNodeInstancesGET(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Retrigger Node Instance Id
-     * @return OK
-     */
-    nodeInstancesPOST(nodeInstanceId: string, processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/nodeInstances/{nodeInstanceId}";
-        if (nodeInstanceId === undefined || nodeInstanceId === null)
-            throw new Error("The parameter 'nodeInstanceId' must be defined.");
-        url_ = url_.replace("{nodeInstanceId}", encodeURIComponent("" + nodeInstanceId));
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processNodeInstancesPOST(_response);
-        });
-    }
-
-    protected processNodeInstancesPOST(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Cancel Node Instance Id
-     * @return OK
-     */
-    nodeInstancesDELETE(nodeInstanceId: string, processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/nodeInstances/{nodeInstanceId}";
-        if (nodeInstanceId === undefined || nodeInstanceId === null)
-            throw new Error("The parameter 'nodeInstanceId' must be defined.");
-        url_ = url_.replace("{nodeInstanceId}", encodeURIComponent("" + nodeInstanceId));
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processNodeInstancesDELETE(_response);
-        });
-    }
-
-    protected processNodeInstancesDELETE(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Trigger Node Instance Id
-     * @return OK
-     */
-    nodesPOST(nodeId: string, processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/nodes/{nodeId}";
-        if (nodeId === undefined || nodeId === null)
-            throw new Error("The parameter 'nodeId' must be defined.");
-        url_ = url_.replace("{nodeId}", encodeURIComponent("" + nodeId));
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processNodesPOST(_response);
-        });
-    }
-
-    protected processNodesPOST(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Retrigger Instance In Error
-     * @return OK
-     */
-    retrigger(processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/retrigger";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRetrigger(_response);
-        });
-    }
-
-    protected processRetrigger(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Skip Instance In Error
-     * @return OK
-     */
-    skip(processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/instances/{processInstanceId}/skip";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSkip(_response);
-        });
-    }
-
-    protected processSkip(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Migrate All Instances
-     * @return OK
-     */
-    migrate2(processId: string, body: ProcessMigrationSpec): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/migrate";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(body);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processMigrate2(_response);
-        });
-    }
-
-    protected processMigrate2(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Process Nodes
-     * @return OK
-     */
-    nodesGET(processId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/nodes";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processNodesGET(_response);
-        });
-    }
-
-    protected processNodesGET(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Source File By Process Id
-     * @return OK
-     */
-    source(processId: string): Promise<void> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/source";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSource(_response);
-        });
-    }
-
-    protected processSource(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Source Files By Process Id
-     * @return OK
-     */
-    sourcesAll(processId: string): Promise<SourceFile[]> {
-        let url_ = this.baseUrl + "/management/processes/{processId}/sources";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSourcesAll(_response);
-        });
-    }
-
-    protected processSourcesAll(response: Response): Promise<SourceFile[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(SourceFile.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<SourceFile[]>(null as any);
-    }
-
-    /**
      * Validates the member input
      * @return Validation successful
      */
@@ -1659,44 +1062,10 @@ export class Client {
     }
 
     /**
-     * Get Topics
-     * @return OK
-     */
-    topics(): Promise<void> {
-        let url_ = this.baseUrl + "/messaging/topics";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processTopics(_response);
-        });
-    }
-
-    protected processTopics(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
      * Create a new organization
-     * @return Creation started successfully
+     * @return Organization created successfully
      */
-    organizationPOST(body: NewOrganizationInput): Promise<CreateOrganizationResponse> {
+    organizationPOST(body: NewOrganizationInput): Promise<Organization> {
         let url_ = this.baseUrl + "/organization";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1716,15 +1085,15 @@ export class Client {
         });
     }
 
-    protected processOrganizationPOST(response: Response): Promise<CreateOrganizationResponse> {
+    protected processOrganizationPOST(response: Response): Promise<Organization> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 202) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result202: any = null;
-            let resultData202 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result202 = CreateOrganizationResponse.fromJS(resultData202);
-            return result202;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = Organization.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -1733,26 +1102,23 @@ export class Client {
             result400 = ValidationResult.fromJS(resultData400);
             return throwException("Validation of fields failed", status, _responseText, _headers, result400);
             });
-        } else if (status === 500) {
+        } else if (status === 409) {
             return response.text().then((_responseText) => {
-            let result500: any = null;
-            let resultData500 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result500 = CreateOrganizationResponse.fromJS(resultData500);
-            return throwException("Process failed", status, _responseText, _headers, result500);
+            return throwException("Email or slug already exists", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<CreateOrganizationResponse>(null as any);
+        return Promise.resolve<Organization>(null as any);
     }
 
     /**
      * Get my organization
      * @return Own organization retrieved successfully
      */
-    my(): Promise<Organization1> {
+    my(): Promise<Organization> {
         let url_ = this.baseUrl + "/organization/my";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1768,14 +1134,14 @@ export class Client {
         });
     }
 
-    protected processMy(response: Response): Promise<Organization1> {
+    protected processMy(response: Response): Promise<Organization> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = Organization1.fromJS(resultData200);
+            result200 = Organization.fromJS(resultData200);
             return result200;
             });
         } else if (status === 404) {
@@ -1795,14 +1161,14 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Organization1>(null as any);
+        return Promise.resolve<Organization>(null as any);
     }
 
     /**
      * Validates the organization input
      * @return Validation successful
      */
-    validate2(body: Organization1): Promise<ValidationResult> {
+    validate2(body: Organization): Promise<ValidationResult> {
         let url_ = this.baseUrl + "/organization/validate";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1851,7 +1217,7 @@ export class Client {
      * Get organization
      * @return Organization retrieved successfully
      */
-    organizationGET(slug: string): Promise<Organization1> {
+    organizationGET(slug: string): Promise<Organization> {
         let url_ = this.baseUrl + "/organization/{slug}";
         if (slug === undefined || slug === null)
             throw new Error("The parameter 'slug' must be defined.");
@@ -1870,14 +1236,14 @@ export class Client {
         });
     }
 
-    protected processOrganizationGET(response: Response): Promise<Organization1> {
+    protected processOrganizationGET(response: Response): Promise<Organization> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = Organization1.fromJS(resultData200);
+            result200 = Organization.fromJS(resultData200);
             return result200;
             });
         } else if (status === 404) {
@@ -1897,7 +1263,7 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Organization1>(null as any);
+        return Promise.resolve<Organization>(null as any);
     }
 
     /**
@@ -1961,88 +1327,11 @@ export class Client {
     }
 
     /**
-     * Get Process Svg
-     * @return OK
-     */
-    processes3(processId: string): Promise<void> {
-        let url_ = this.baseUrl + "/svg/processes/{processId}";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processProcesses3(_response);
-        });
-    }
-
-    protected processProcesses3(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Get Execution Path By Process Instance Id
-     * @return OK
-     */
-    instancesGET(processId: string, processInstanceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/svg/processes/{processId}/instances/{processInstanceId}";
-        if (processId === undefined || processId === null)
-            throw new Error("The parameter 'processId' must be defined.");
-        url_ = url_.replace("{processId}", encodeURIComponent("" + processId));
-        if (processInstanceId === undefined || processInstanceId === null)
-            throw new Error("The parameter 'processInstanceId' must be defined.");
-        url_ = url_.replace("{processInstanceId}", encodeURIComponent("" + processInstanceId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processInstancesGET(_response);
-        });
-    }
-
-    protected processInstancesGET(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
      * Add a transaction record to a bommel
      * @param bommelId (optional) 
      * @return Specified transaction record was attached to bommel
      */
-    bommelPATCH(id: number, bommelId: number | undefined): Promise<void> {
+    bommelPATCH(id: number, bommelId: number | undefined): Promise<any> {
         let url_ = this.baseUrl + "/{id}/bommel?";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2056,6 +1345,7 @@ export class Client {
         let options_: RequestInit = {
             method: "PATCH",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -2064,12 +1354,16 @@ export class Client {
         });
     }
 
-    protected processBommelPATCH(response: Response): Promise<void> {
+    protected processBommelPATCH(response: Response): Promise<any> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -2092,8 +1386,81 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<any>(null as any);
     }
+}
+
+/** An example of a valid address */
+export class Address implements IAddress {
+    street?: string;
+    number?: string;
+    city?: string;
+    plz?: string;
+    additionalLine?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IAddress) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.street = _data["street"];
+            this.number = _data["number"];
+            this.city = _data["city"];
+            this.plz = _data["plz"];
+            this.additionalLine = _data["additionalLine"];
+        }
+    }
+
+    static fromJS(data: any): Address {
+        data = typeof data === 'object' ? data : {};
+        let result = new Address();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["street"] = this.street;
+        data["number"] = this.number;
+        data["city"] = this.city;
+        data["plz"] = this.plz;
+        data["additionalLine"] = this.additionalLine;
+        return data;
+    }
+
+    clone(): Address {
+        const json = this.toJSON();
+        let result = new Address();
+        result.init(json);
+        return result;
+    }
+}
+
+/** An example of a valid address */
+export interface IAddress {
+    street?: string;
+    number?: string;
+    city?: string;
+    plz?: string;
+    additionalLine?: string;
+
+    [key: string]: any;
 }
 
 export class Bommel implements IBommel {
@@ -2101,7 +1468,7 @@ export class Bommel implements IBommel {
     name?: string;
     emoji?: string;
     responsibleMember?: Member;
-    organization?: Organization1;
+    organization?: Organization;
     parent?: Bommel;
     children?: Bommel[];
 
@@ -2126,7 +1493,7 @@ export class Bommel implements IBommel {
             this.name = _data["name"];
             this.emoji = _data["emoji"];
             this.responsibleMember = _data["responsibleMember"] ? Member.fromJS(_data["responsibleMember"]) : <any>undefined;
-            this.organization = _data["organization"] ? Organization1.fromJS(_data["organization"]) : <any>undefined;
+            this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : <any>undefined;
             this.parent = _data["parent"] ? Bommel.fromJS(_data["parent"]) : <any>undefined;
             if (Array.isArray(_data["children"])) {
                 this.children = [] as any;
@@ -2176,7 +1543,7 @@ export interface IBommel {
     name?: string;
     emoji?: string;
     responsibleMember?: Member;
-    organization?: Organization1;
+    organization?: Organization;
     parent?: Bommel;
     children?: Bommel[];
 
@@ -2189,7 +1556,7 @@ export class Category implements ICategory {
     name!: string;
     description?: string;
     /** The organization this category belongs to */
-    organization!: Organization1;
+    organization!: Organization;
 
     [key: string]: any;
 
@@ -2201,7 +1568,7 @@ export class Category implements ICategory {
             }
         }
         if (!data) {
-            this.organization = new Organization1();
+            this.organization = new Organization();
         }
     }
 
@@ -2214,7 +1581,7 @@ export class Category implements ICategory {
             this.id = _data["id"];
             this.name = _data["name"];
             this.description = _data["description"];
-            this.organization = _data["organization"] ? Organization1.fromJS(_data["organization"]) : new Organization1();
+            this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : new Organization();
         }
     }
 
@@ -2252,7 +1619,7 @@ export interface ICategory {
     name: string;
     description?: string;
     /** The organization this category belongs to */
-    organization: Organization1;
+    organization: Organization;
 
     [key: string]: any;
 }
@@ -2322,65 +1689,6 @@ export interface ICategoryInput {
     [key: string]: any;
 }
 
-export class CreateOrganizationResponse implements ICreateOrganizationResponse {
-    id?: string;
-    error?: string;
-
-    [key: string]: any;
-
-    constructor(data?: ICreateOrganizationResponse) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.error = _data["error"];
-        }
-    }
-
-    static fromJS(data: any): CreateOrganizationResponse {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreateOrganizationResponse();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["error"] = this.error;
-        return data;
-    }
-
-    clone(): CreateOrganizationResponse {
-        const json = this.toJSON();
-        let result = new CreateOrganizationResponse();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ICreateOrganizationResponse {
-    id?: string;
-    error?: string;
-
-    [key: string]: any;
-}
-
 export type DocumentType = "RECEIPT" | "INVOICE";
 
 /** An example of a Hopps Member */
@@ -2391,7 +1699,7 @@ export class Member implements IMember {
     /** Last Name of the Member */
     lastName!: string;
     email!: string;
-    organizations?: Organization1[];
+    organizations?: Organization[];
 
     [key: string]: any;
 
@@ -2417,7 +1725,7 @@ export class Member implements IMember {
             if (Array.isArray(_data["organizations"])) {
                 this.organizations = [] as any;
                 for (let item of _data["organizations"])
-                    this.organizations!.push(Organization1.fromJS(item));
+                    this.organizations!.push(Organization.fromJS(item));
             }
         }
     }
@@ -2463,7 +1771,7 @@ export interface IMember {
     /** Last Name of the Member */
     lastName: string;
     email: string;
-    organizations?: Organization1[];
+    organizations?: Organization[];
 
     [key: string]: any;
 }
@@ -2535,131 +1843,17 @@ export interface INewOrganizationInput {
     [key: string]: any;
 }
 
-export class NewOrganizationModelInput implements INewOrganizationModelInput {
-    owner?: Member;
-    organization?: Organization1;
-    newPassword?: string;
-
-    [key: string]: any;
-
-    constructor(data?: INewOrganizationModelInput) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.owner = _data["owner"] ? Member.fromJS(_data["owner"]) : <any>undefined;
-            this.organization = _data["organization"] ? Organization1.fromJS(_data["organization"]) : <any>undefined;
-            this.newPassword = _data["newPassword"];
-        }
-    }
-
-    static fromJS(data: any): NewOrganizationModelInput {
-        data = typeof data === 'object' ? data : {};
-        let result = new NewOrganizationModelInput();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["owner"] = this.owner ? this.owner.toJSON() : <any>undefined;
-        data["organization"] = this.organization ? this.organization.toJSON() : <any>undefined;
-        data["newPassword"] = this.newPassword;
-        return data;
-    }
-
-    clone(): NewOrganizationModelInput {
-        const json = this.toJSON();
-        let result = new NewOrganizationModelInput();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface INewOrganizationModelInput {
-    owner?: Member;
-    organization?: Organization1;
-    newPassword?: string;
-
-    [key: string]: any;
-}
-
-export class NewOrganizationModelOutput implements INewOrganizationModelOutput {
-    id?: string;
-
-    [key: string]: any;
-
-    constructor(data?: INewOrganizationModelOutput) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-        }
-    }
-
-    static fromJS(data: any): NewOrganizationModelOutput {
-        data = typeof data === 'object' ? data : {};
-        let result = new NewOrganizationModelOutput();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        return data;
-    }
-
-    clone(): NewOrganizationModelOutput {
-        const json = this.toJSON();
-        let result = new NewOrganizationModelOutput();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface INewOrganizationModelOutput {
-    id?: string;
-
-    [key: string]: any;
-}
-
-/** An example of a valid address */
+/** An example of a Hopps Organization, i.e. Verein */
 export class Organization implements IOrganization {
-    street?: string;
-    number?: string;
-    city?: string;
-    plz?: string;
-    additionalLine?: string;
+    id?: number;
+    name!: string;
+    slug!: string;
+    type!: TYPE;
+    address?: Address;
+    rootBommel?: Bommel;
+    members?: Member[];
+    website?: string;
+    profilePicture?: string;
 
     [key: string]: any;
 
@@ -2678,88 +1872,11 @@ export class Organization implements IOrganization {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.street = _data["street"];
-            this.number = _data["number"];
-            this.city = _data["city"];
-            this.plz = _data["plz"];
-            this.additionalLine = _data["additionalLine"];
-        }
-    }
-
-    static fromJS(data: any): Organization {
-        data = typeof data === 'object' ? data : {};
-        let result = new Organization();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["street"] = this.street;
-        data["number"] = this.number;
-        data["city"] = this.city;
-        data["plz"] = this.plz;
-        data["additionalLine"] = this.additionalLine;
-        return data;
-    }
-
-    clone(): Organization {
-        const json = this.toJSON();
-        let result = new Organization();
-        result.init(json);
-        return result;
-    }
-}
-
-/** An example of a valid address */
-export interface IOrganization {
-    street?: string;
-    number?: string;
-    city?: string;
-    plz?: string;
-    additionalLine?: string;
-
-    [key: string]: any;
-}
-
-/** An example of a Hopps Organization, i.e. Verein */
-export class Organization1 implements IOrganization1 {
-    id?: number;
-    name!: string;
-    slug!: string;
-    type!: TYPE;
-    address?: Organization;
-    rootBommel?: Bommel;
-    members?: Member[];
-    website?: string;
-    profilePicture?: string;
-
-    [key: string]: any;
-
-    constructor(data?: IOrganization1) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
             this.id = _data["id"];
             this.name = _data["name"];
             this.slug = _data["slug"];
             this.type = _data["type"];
-            this.address = _data["address"] ? Organization.fromJS(_data["address"]) : <any>undefined;
+            this.address = _data["address"] ? Address.fromJS(_data["address"]) : <any>undefined;
             this.rootBommel = _data["rootBommel"] ? Bommel.fromJS(_data["rootBommel"]) : <any>undefined;
             if (Array.isArray(_data["members"])) {
                 this.members = [] as any;
@@ -2771,9 +1888,9 @@ export class Organization1 implements IOrganization1 {
         }
     }
 
-    static fromJS(data: any): Organization1 {
+    static fromJS(data: any): Organization {
         data = typeof data === 'object' ? data : {};
-        let result = new Organization1();
+        let result = new Organization();
         result.init(data);
         return result;
     }
@@ -2800,21 +1917,21 @@ export class Organization1 implements IOrganization1 {
         return data;
     }
 
-    clone(): Organization1 {
+    clone(): Organization {
         const json = this.toJSON();
-        let result = new Organization1();
+        let result = new Organization();
         result.init(json);
         return result;
     }
 }
 
 /** An example of a Hopps Organization, i.e. Verein */
-export interface IOrganization1 {
+export interface IOrganization {
     id?: number;
     name: string;
     slug: string;
     type: TYPE;
-    address?: Organization;
+    address?: Address;
     rootBommel?: Bommel;
     members?: Member[];
     website?: string;
@@ -2829,7 +1946,7 @@ export class OrganizationInput implements IOrganizationInput {
     type?: TYPE;
     website?: string;
     profilePicture?: string;
-    address?: Organization;
+    address?: Address;
 
     [key: string]: any;
 
@@ -2853,7 +1970,7 @@ export class OrganizationInput implements IOrganizationInput {
             this.type = _data["type"];
             this.website = _data["website"];
             this.profilePicture = _data["profilePicture"];
-            this.address = _data["address"] ? Organization.fromJS(_data["address"]) : <any>undefined;
+            this.address = _data["address"] ? Address.fromJS(_data["address"]) : <any>undefined;
         }
     }
 
@@ -2893,7 +2010,7 @@ export interface IOrganizationInput {
     type?: TYPE;
     website?: string;
     profilePicture?: string;
-    address?: Organization;
+    address?: Address;
 
     [key: string]: any;
 }
@@ -2961,200 +2078,7 @@ export interface IOwnerInput {
     [key: string]: any;
 }
 
-export class ProcessMigrationSpec implements IProcessMigrationSpec {
-    targetProcessId?: string;
-    targetProcessVersion?: string;
-
-    [key: string]: any;
-
-    constructor(data?: IProcessMigrationSpec) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.targetProcessId = _data["targetProcessId"];
-            this.targetProcessVersion = _data["targetProcessVersion"];
-        }
-    }
-
-    static fromJS(data: any): ProcessMigrationSpec {
-        data = typeof data === 'object' ? data : {};
-        let result = new ProcessMigrationSpec();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["targetProcessId"] = this.targetProcessId;
-        data["targetProcessVersion"] = this.targetProcessVersion;
-        return data;
-    }
-
-    clone(): ProcessMigrationSpec {
-        const json = this.toJSON();
-        let result = new ProcessMigrationSpec();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IProcessMigrationSpec {
-    targetProcessId?: string;
-    targetProcessVersion?: string;
-
-    [key: string]: any;
-}
-
-export class SourceFile implements ISourceFile {
-    uri?: string;
-
-    [key: string]: any;
-
-    constructor(data?: ISourceFile) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.uri = _data["uri"];
-        }
-    }
-
-    static fromJS(data: any): SourceFile {
-        data = typeof data === 'object' ? data : {};
-        let result = new SourceFile();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["uri"] = this.uri;
-        return data;
-    }
-
-    clone(): SourceFile {
-        const json = this.toJSON();
-        let result = new SourceFile();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ISourceFile {
-    uri?: string;
-
-    [key: string]: any;
-}
-
 export type TYPE = "EINGETRAGENER_VEREIN";
-
-export class TaskModel implements ITaskModel {
-    id?: string;
-    name?: string;
-    state?: number;
-    phase?: string;
-    phaseStatus?: string;
-    parameters?: any;
-    results?: any;
-
-    [key: string]: any;
-
-    constructor(data?: ITaskModel) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.name = _data["name"];
-            this.state = _data["state"];
-            this.phase = _data["phase"];
-            this.phaseStatus = _data["phaseStatus"];
-            this.parameters = _data["parameters"];
-            this.results = _data["results"];
-        }
-    }
-
-    static fromJS(data: any): TaskModel {
-        data = typeof data === 'object' ? data : {};
-        let result = new TaskModel();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["name"] = this.name;
-        data["state"] = this.state;
-        data["phase"] = this.phase;
-        data["phaseStatus"] = this.phaseStatus;
-        data["parameters"] = this.parameters;
-        data["results"] = this.results;
-        return data;
-    }
-
-    clone(): TaskModel {
-        const json = this.toJSON();
-        let result = new TaskModel();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ITaskModel {
-    id?: string;
-    name?: string;
-    state?: number;
-    phase?: string;
-    phaseStatus?: string;
-    parameters?: any;
-    results?: any;
-
-    [key: string]: any;
-}
 
 export class TradeParty implements ITradeParty {
     id?: number;

@@ -328,8 +328,8 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.68.0(react@18.3.1))
       '@hopps/api-client':
-        specifier: 1.0.6
-        version: 1.0.6
+        specifier: workspace:*
+        version: link:../api-client
       '@minoru/react-dnd-treeview':
         specifier: ^3.4.4
         version: 3.5.2(dnd-core@16.0.1)(react-dnd@16.0.1(@types/node@22.15.31)(@types/react@18.3.23)(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1936,9 +1936,6 @@ packages:
     resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
     peerDependencies:
       react-hook-form: ^7.55.0
-
-  '@hopps/api-client@1.0.6':
-    resolution: {integrity: sha512-QnXYV5V+Tx6Hk9McuXsD50vKkeJGE5b0EcuZyfihk/4HNAXw/SMUOHe3/dIu7HDrhC6pV+W/xRoRc0Jo81Id2g==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -12458,8 +12455,6 @@ snapshots:
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.68.0(react@18.3.1)
-
-  '@hopps/api-client@1.0.6': {}
 
   '@humanfs/core@0.19.1': {}
 
