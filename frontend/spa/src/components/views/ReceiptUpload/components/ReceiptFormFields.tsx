@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { useCategories } from '@/hooks/queries';
 import Radio from '@/components/ui/Radio';
 import Select, { SelectItem } from '@/components/ui/Select';
 import Switch from '@/components/ui/Switch';
@@ -66,6 +68,7 @@ export function ReceiptFormFields({
     loadingStates,
 }: ReceiptFormFieldsProps) {
     const { t } = useTranslation();
+    const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
     const areaItems: SelectItem[] = [
         { value: 'ideeller-bereich', label: t('receipts.areas.ideell') },
@@ -74,7 +77,14 @@ export function ReceiptFormFields({
         { value: 'wirtschaftlicher-gb', label: t('receipts.areas.wirtschaftlich') },
     ];
 
-    const categoryItems: SelectItem[] = [{ value: 'lizenzen-it-infrastruktur', label: 'Lizenzen IT-Infrastruktur' }]; // TODO: Load from API
+    const categoryItems: SelectItem[] = useMemo(
+        () =>
+            categories.map((cat) => ({
+                value: String(cat.id),
+                label: cat.name ?? '',
+            })),
+        [categories]
+    );
 
     const radioItems = [
         { value: 'intake', label: t('receipts.types.income') },
@@ -85,7 +95,7 @@ export function ReceiptFormFields({
     void bommelId;
 
     return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
             <TextField
                 label={t('receipts.upload.receiptNumber')}
                 value={receiptNumber}
@@ -126,16 +136,22 @@ export function ReceiptFormFields({
                 className="w-full"
                 loading={loadingStates.dueDate}
             />
-            <Select label={t('receipts.upload.category')} value={category} onValueChanged={onCategoryChange} items={categoryItems} />
+            <Select
+                label={t('receipts.upload.category')}
+                value={category}
+                onValueChanged={onCategoryChange}
+                items={categoryItems}
+                placeholder={categoriesLoading ? t('common.loading') : t('receipts.upload.selectCategory')}
+            />
             <Select
                 label={t('receipts.upload.area')}
                 value={area}
                 onValueChanged={onAreaChange}
                 items={areaItems}
-                className="col-span-2"
+                className="sm:col-span-2"
             />
 
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
                 <Tags
                     label={t('receipts.upload.tags')}
                     value={tags}

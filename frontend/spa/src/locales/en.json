@@ -273,6 +273,7 @@
             "bommel": "Bommel",
             "dueDate": "Due date",
             "category": "Category",
+            "selectCategory": "Select category",
             "area": "Area",
             "tags": "Tags",
             "addTag": "Add tag",
@@ -281,7 +282,17 @@
             "autoRead": "Automatic reading",
             "saveAsDraft": "Save as draft",
             "uploadSuccess": "Receipt uploaded successfully",
-            "uploadFailed": "Upload failed"
+            "uploadFailed": "Upload failed",
+            "analysis": {
+                "pending": "Preparing document...",
+                "analyzing": "Analyzing document...",
+                "completed": "Data successfully extracted",
+                "completedDescription": "The AI has extracted the following data from your receipt. Please review the values and adjust them if necessary before saving.",
+                "extractedViaDocumentAI": "Extracted via Document AI",
+                "extractedViaZugferd": "Extracted via ZUGFeRD",
+                "failed": "Analysis failed",
+                "error": "Analysis error: {{error}}"
+            }
         },
         "areas": {
             "ideell": "Non-profit area",

@@ -110,12 +110,12 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
             const isPdf = previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.pdf');
             if (isPdf) {
                 return (
-                    <div className="w-full h-full flex items-center justify-center bg-white rounded-2xl">
-                        <canvas ref={canvasRef} className="max-h-[700px] w-auto h-auto" />
+                    <div className="w-full h-full flex items-center justify-center bg-white rounded-2xl overflow-hidden">
+                        <canvas ref={canvasRef} className="max-h-full w-auto h-auto object-contain" />
                     </div>
                 );
             }
-            return <img src={previewUrl} alt={previewFile.name} className="w-full h-[700px] object-contain rounded-2xl bg-white" />;
+            return <img src={previewUrl} alt={previewFile.name} className="max-w-full max-h-full object-contain rounded-2xl bg-white" />;
         }
 
         return (
@@ -138,7 +138,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
         <div
             {...getRootProps()}
             className={cn(
-                'border-2 border-dashed border-gray-400 rounded-lg flex flex-col justify-center items-center dropzone text-center w-full flex-1 min-h-full overflow-hidden bg-background-secondary',
+                'border-2 border-dashed border-gray-400 rounded-lg flex flex-col justify-center items-center dropzone text-center w-full h-full overflow-hidden bg-background-secondary',
                 {
                     'border-gray-400': isHighlightDrop,
                 }

@@ -878,15 +878,12 @@ export class Client {
     }
 
     /**
-     * Uploads a document, creates a transaction record for it and attaches that to a bommel.
+     * Upload a document
      * @param file (optional) 
-     * @param bommelId (optional) 
-     * @param privatelyPaid (optional) 
-     * @param type (optional) 
-     * @return Newly created transaction record
+     * @return Document created successfully
      */
-    documentPOST(file: FileParameter | undefined, bommelId: number | undefined, privatelyPaid: boolean | undefined, type: DocumentType | undefined): Promise<any> {
-        let url_ = this.baseUrl + "/document";
+    documentsPOST(file: FileParameter | undefined): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/documents";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -894,18 +891,6 @@ export class Client {
             throw new Error("The parameter 'file' cannot be null.");
         else
             content_.append("file", file.data, file.fileName ? file.fileName : "file");
-        if (bommelId === null || bommelId === undefined)
-            throw new Error("The parameter 'bommelId' cannot be null.");
-        else
-            content_.append("bommelId", bommelId.toString());
-        if (privatelyPaid === null || privatelyPaid === undefined)
-            throw new Error("The parameter 'privatelyPaid' cannot be null.");
-        else
-            content_.append("privatelyPaid", privatelyPaid.toString());
-        if (type === null || type === undefined)
-            throw new Error("The parameter 'type' cannot be null.");
-        else
-            content_.append("type", type.toString());
 
         let options_: RequestInit = {
             body: content_,
@@ -916,24 +901,81 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDocumentPOST(_response);
+            return this.processDocumentsPOST(_response);
         });
     }
 
-    protected processDocumentPOST(response: Response): Promise<any> {
+    protected processDocumentsPOST(response: Response): Promise<DocumentResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = DocumentResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input (missing file, invalid bommel, or unsupported file type)", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not authenticated", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentResponse>(null as any);
+    }
+
+    /**
+     * List all documents
+     * @param bommelId (optional) Filter by bommel ID
+     * @return List of documents
+     */
+    documentsAll(bommelId: number | undefined): Promise<DocumentResponse[]> {
+        let url_ = this.baseUrl + "/documents?";
+        if (bommelId === null)
+            throw new Error("The parameter 'bommelId' cannot be null.");
+        else if (bommelId !== undefined)
+            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentsAll(_response);
+        });
+    }
+
+    protected processDocumentsAll(response: Response): Promise<DocumentResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DocumentResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
             return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            return throwException("Invalid input, either invalid bommel/bommel from another org, missing \'file\' or \'type\' inputs,\nthe user not being attached to exactly one organisation,\nor an invalid MIME type on the uploaded file.\n", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -948,18 +990,181 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<any>(null as any);
+        return Promise.resolve<DocumentResponse[]>(null as any);
     }
 
     /**
-     * Get Document By Key
-     * @return OK
+     * Update a document
+     * @param id Document ID
+     * @return Document updated
      */
-    documentGET(documentKey: string): Promise<FileResponse> {
-        let url_ = this.baseUrl + "/document/{documentKey}";
-        if (documentKey === undefined || documentKey === null)
-            throw new Error("The parameter 'documentKey' must be defined.");
-        url_ = url_.replace("{documentKey}", encodeURIComponent("" + documentKey));
+    documentsPATCH(id: number, body: DocumentUpdateRequest): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/documents/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentsPATCH(_response);
+        });
+    }
+
+    protected processDocumentsPATCH(response: Response): Promise<DocumentResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentResponse>(null as any);
+    }
+
+    /**
+     * Get a document
+     * @param id Document ID
+     * @return Document found
+     */
+    documentsGET(id: number): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/documents/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentsGET(_response);
+        });
+    }
+
+    protected processDocumentsGET(response: Response): Promise<DocumentResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentResponse>(null as any);
+    }
+
+    /**
+     * Delete a document
+     * @param id Document ID
+     * @return Document deleted
+     */
+    documentsDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/documents/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentsDELETE(_response);
+        });
+    }
+
+    protected processDocumentsDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Download document file
+     * @param id Document ID
+     * @return File content
+     */
+    file(id: number): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/documents/{id}/file";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -970,11 +1175,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDocumentGET(_response);
+            return this.processFile(_response);
         });
     }
 
-    protected processDocumentGET(response: Response): Promise<FileResponse> {
+    protected processFile(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200 || status === 206) {
@@ -988,6 +1193,10 @@ export class Client {
                 fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
             }
             return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document or file not found", status, _responseText, _headers);
+            });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
             return throwException("Not Authorized", status, _responseText, _headers);
@@ -1002,6 +1211,64 @@ export class Client {
             });
         }
         return Promise.resolve<FileResponse>(null as any);
+    }
+
+    /**
+     * Re-analyze a document
+     * @param id Document ID
+     * @return Analysis started
+     */
+    reanalyze(id: number): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/documents/{id}/reanalyze";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReanalyze(_response);
+        });
+    }
+
+    protected processReanalyze(response: Response): Promise<DocumentResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Document has no file to analyze", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentResponse>(null as any);
     }
 
     /**
@@ -1463,6 +1730,8 @@ export interface IAddress {
     [key: string]: any;
 }
 
+export type AnalysisStatus = "PENDING" | "ANALYZING" | "COMPLETED" | "FAILED" | "SKIPPED";
+
 export class Bommel implements IBommel {
     id?: number;
     name?: string;
@@ -1689,7 +1958,263 @@ export interface ICategoryInput {
     [key: string]: any;
 }
 
+export class DocumentResponse implements IDocumentResponse {
+    id?: number;
+    fileName?: string;
+    fileContentType?: string;
+    fileSize?: number;
+    bommelId?: number;
+    documentType?: DocumentType;
+    privatelyPaid?: boolean;
+    analysisStatus?: AnalysisStatus;
+    analysisError?: string;
+    extractionSource?: ExtractionSource;
+    name?: string;
+    total?: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionTime?: Date;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
+    createdAt?: Date;
+    uploadedBy?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IDocumentResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.fileName = _data["fileName"];
+            this.fileContentType = _data["fileContentType"];
+            this.fileSize = _data["fileSize"];
+            this.bommelId = _data["bommelId"];
+            this.documentType = _data["documentType"];
+            this.privatelyPaid = _data["privatelyPaid"];
+            this.analysisStatus = _data["analysisStatus"];
+            this.analysisError = _data["analysisError"];
+            this.extractionSource = _data["extractionSource"];
+            this.name = _data["name"];
+            this.total = _data["total"];
+            this.totalTax = _data["totalTax"];
+            this.currencyCode = _data["currencyCode"];
+            this.transactionTime = _data["transactionTime"] ? new Date(_data["transactionTime"].toString()) : <any>undefined;
+            this.senderName = _data["senderName"];
+            this.senderStreet = _data["senderStreet"];
+            this.senderZipCode = _data["senderZipCode"];
+            this.senderCity = _data["senderCity"];
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(item);
+            }
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.uploadedBy = _data["uploadedBy"];
+        }
+    }
+
+    static fromJS(data: any): DocumentResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new DocumentResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["fileName"] = this.fileName;
+        data["fileContentType"] = this.fileContentType;
+        data["fileSize"] = this.fileSize;
+        data["bommelId"] = this.bommelId;
+        data["documentType"] = this.documentType;
+        data["privatelyPaid"] = this.privatelyPaid;
+        data["analysisStatus"] = this.analysisStatus;
+        data["analysisError"] = this.analysisError;
+        data["extractionSource"] = this.extractionSource;
+        data["name"] = this.name;
+        data["total"] = this.total;
+        data["totalTax"] = this.totalTax;
+        data["currencyCode"] = this.currencyCode;
+        data["transactionTime"] = this.transactionTime ? this.transactionTime.toISOString() : <any>undefined;
+        data["senderName"] = this.senderName;
+        data["senderStreet"] = this.senderStreet;
+        data["senderZipCode"] = this.senderZipCode;
+        data["senderCity"] = this.senderCity;
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item);
+        }
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["uploadedBy"] = this.uploadedBy;
+        return data;
+    }
+
+    clone(): DocumentResponse {
+        const json = this.toJSON();
+        let result = new DocumentResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDocumentResponse {
+    id?: number;
+    fileName?: string;
+    fileContentType?: string;
+    fileSize?: number;
+    bommelId?: number;
+    documentType?: DocumentType;
+    privatelyPaid?: boolean;
+    analysisStatus?: AnalysisStatus;
+    analysisError?: string;
+    extractionSource?: ExtractionSource;
+    name?: string;
+    total?: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionTime?: Date;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
+    createdAt?: Date;
+    uploadedBy?: string;
+
+    [key: string]: any;
+}
+
 export type DocumentType = "RECEIPT" | "INVOICE";
+
+export class DocumentUpdateRequest implements IDocumentUpdateRequest {
+    name?: string;
+    total?: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionDate?: string;
+    bommelId?: number;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    privatelyPaid?: boolean;
+    tags?: string[];
+
+    [key: string]: any;
+
+    constructor(data?: IDocumentUpdateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.total = _data["total"];
+            this.totalTax = _data["totalTax"];
+            this.currencyCode = _data["currencyCode"];
+            this.transactionDate = _data["transactionDate"];
+            this.bommelId = _data["bommelId"];
+            this.senderName = _data["senderName"];
+            this.senderStreet = _data["senderStreet"];
+            this.senderZipCode = _data["senderZipCode"];
+            this.senderCity = _data["senderCity"];
+            this.privatelyPaid = _data["privatelyPaid"];
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): DocumentUpdateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DocumentUpdateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["total"] = this.total;
+        data["totalTax"] = this.totalTax;
+        data["currencyCode"] = this.currencyCode;
+        data["transactionDate"] = this.transactionDate;
+        data["bommelId"] = this.bommelId;
+        data["senderName"] = this.senderName;
+        data["senderStreet"] = this.senderStreet;
+        data["senderZipCode"] = this.senderZipCode;
+        data["senderCity"] = this.senderCity;
+        data["privatelyPaid"] = this.privatelyPaid;
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item);
+        }
+        return data;
+    }
+
+    clone(): DocumentUpdateRequest {
+        const json = this.toJSON();
+        let result = new DocumentUpdateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDocumentUpdateRequest {
+    name?: string;
+    total?: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionDate?: string;
+    bommelId?: number;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    privatelyPaid?: boolean;
+    tags?: string[];
+
+    [key: string]: any;
+}
+
+export type ExtractionSource = "ZUGFERD" | "AI" | "MANUAL";
 
 /** An example of a Hopps Member */
 export class Member implements IMember {

@@ -6,8 +6,8 @@ import app.hopps.document.api.dto.DocumentResponse;
 import app.hopps.document.api.dto.DocumentUpdateRequest;
 import app.hopps.document.domain.*;
 import app.hopps.document.repository.DocumentRepository;
-import app.hopps.document.service.DocumentAnalysisService;
 import app.hopps.document.service.DocumentFileService;
+import jakarta.enterprise.event.Event;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import io.quarkus.security.Authenticated;
@@ -52,7 +52,7 @@ public class DocumentResource {
     DocumentFileService fileService;
 
     @Inject
-    DocumentAnalysisService analysisService;
+    Event<DocumentCreatedEvent> documentCreatedEvent;
 
     @Inject
     OrganizationContext organizationContext;
@@ -66,25 +66,22 @@ public class DocumentResource {
     @Transactional
     @Operation(summary = "Upload a document", description = "Uploads a document file, persists it, and starts async analysis. Returns immediately with the document ID.")
     @APIResponse(responseCode = "201", description = "Document created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
-    @APIResponse(responseCode = "400", description = "Invalid input (missing file, invalid bommel, or unsupported file type)")
+    @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "Not authenticated")
     public Response uploadDocument(
-            @RestForm("file") FileUpload file,
-            @RestForm("bommelId") @Parameter(description = "ID of the bommel to attach the document to") Long bommelId,
-            @RestForm("privatelyPaid") @Parameter(description = "Whether the document was privately paid") boolean privatelyPaid,
-            @RestForm("type") @Parameter(description = "Type of document: INVOICE or RECEIPT") DocumentType type) {
+            @RestForm("file") FileUpload file) {
         // Validate input
+        LOG.info("Upload request received - file: {}", file);
         if (file == null || file.fileName() == null || file.fileName().isBlank()) {
+            LOG.warn("File validation failed: file={}, fileName={}", file, file != null ? file.fileName() : "null");
             throw new BadRequestException("File is required");
         }
 
-        if (type == null) {
-            throw new BadRequestException("Document type is required");
-        }
-
+        LOG.info("File details: name={}, contentType={}, size={}", file.fileName(), file.contentType(), file.size());
         if (!ALLOWED_CONTENT_TYPES.contains(file.contentType())) {
+            LOG.warn("Unsupported content type: {}", file.contentType());
             throw new ClientErrorException(
-                    "Unsupported file type. Allowed: " + ALLOWED_CONTENT_TYPES,
+                    "Unsupported file type: " + file.contentType() + ". Allowed: " + ALLOWED_CONTENT_TYPES,
                     Response.Status.UNSUPPORTED_MEDIA_TYPE);
         }
 
@@ -94,27 +91,9 @@ public class DocumentResource {
             throw new BadRequestException("User is not part of an organization");
         }
 
-        // Validate and resolve bommel
-        Bommel bommel = null;
-        if (bommelId != null) {
-            bommel = bommelRepository.findById(bommelId);
-            if (bommel == null) {
-                throw new BadRequestException("Bommel not found");
-            }
-
-            // Verify bommel belongs to user's organization
-            Organization bommelOrg = bommelRepository.getOrganization(bommel);
-            if (!Objects.equals(bommelOrg.getId(), organization.getId())) {
-                throw new BadRequestException("Bommel not found");
-            }
-        }
-
         // Create document entity
         Document document = new Document();
         document.setOrganization(organization);
-        document.setBommel(bommel);
-        document.setDocumentType(type);
-        document.setPrivatelyPaid(privatelyPaid);
         document.setAnalysisStatus(AnalysisStatus.PENDING);
         document.setUploadedBy(securityIdentity.getPrincipal().getName());
 
@@ -125,8 +104,8 @@ public class DocumentResource {
         documentRepository.persist(document);
         LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
 
-        // Trigger async analysis
-        analysisService.analyzeAsync(document.getId());
+        // Fire event to trigger async analysis after transaction commits
+        documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
 
         // Return response with 201 Created status
         DocumentResponse response = DocumentResponse.from(document);
@@ -321,8 +300,8 @@ public class DocumentResource {
         document.setAnalysisStatus(AnalysisStatus.PENDING);
         document.setAnalysisError(null);
 
-        // Trigger async analysis
-        analysisService.analyzeAsync(document.getId());
+        // Fire event to trigger async analysis after transaction commits
+        documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
 
         LOG.info("Re-analysis triggered: id={}", id);
         return DocumentResponse.from(document);

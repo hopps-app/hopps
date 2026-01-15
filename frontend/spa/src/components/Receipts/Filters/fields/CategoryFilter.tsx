@@ -6,6 +6,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList, CommandEmpty } from '@/components/ui/Command';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
+import { useCategories } from '@/hooks/queries';
 import { cn } from '@/lib/utils';
 
 type CategoryFilterProps = {
@@ -16,17 +17,18 @@ type CategoryFilterProps = {
     label: string;
 };
 
-const mockCategories = ['Verein', 'MVP', 'Designwork', 'Mockups', 'Miete', 'Fixkosten', 'Langfristig', 'Bahn', 'Fahrtkosten', 'Zahlung', 'Technisch'];
-
 const CategoryFilter = ({ filters, onChange, label }: CategoryFilterProps) => {
     const { t } = useTranslation();
+    const { data: categories = [] } = useCategories();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
 
+    const categoryNames = useMemo(() => categories.map((c) => c.name), [categories]);
+
     const filteredCategories = useMemo(() => {
-        if (!search) return mockCategories;
-        return mockCategories.filter((c) => c.toLowerCase().includes(search.toLowerCase()));
-    }, [search]);
+        if (!search) return categoryNames;
+        return categoryNames.filter((c) => c.toLowerCase().includes(search.toLowerCase()));
+    }, [search, categoryNames]);
 
     const selectedCategory = filters.category;
 

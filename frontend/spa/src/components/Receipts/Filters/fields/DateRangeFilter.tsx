@@ -7,7 +7,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { cn } from '@/lib/utils';
 import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
-import { Calendar } from '@/components/ui/Calendar';
+import { Calendar } from '@/components/ui/shadecn/Calendar';
 
 type DateRangeFilterProps = {
     filters: {

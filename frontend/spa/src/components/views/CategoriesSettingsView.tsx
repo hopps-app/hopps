@@ -3,7 +3,7 @@ import { Category } from '@hopps/api-client';
 import { useTranslation } from 'react-i18next';
 
 import { useSearch } from '@/hooks/use-search';
-import { useCategories } from '../Categories/hooks/useCategories';
+import { useCategories } from '@/hooks/queries';
 import DialogWrapper from '@/components/ui/DialogWrapper';
 import CategoryTable from '../Categories/CategoryTable';
 import TextField from '../ui/TextField';
@@ -13,7 +13,7 @@ import Header from '../ui/Header';
 
 function CategoriesSettingsView() {
     const { t } = useTranslation();
-    const { categories, refetch } = useCategories();
+    const { data: categories = [], refetch } = useCategories();
     const [query, setQuery] = useState('');
     const results: Category[] = useSearch(categories, query, ['name']);
 

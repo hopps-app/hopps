@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
+import type { AnalysisStatus, DocumentResponse, ExtractionSource } from '@hopps/api-client';
+
 type Tag = string;
 
 export interface ReceiptFormState {
@@ -58,6 +60,12 @@ export function useReceiptForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAutoRead, setIsAutoRead] = useState(true);
     const [loadingStates, setLoadingStates] = useState<LoadingStates>(initialLoadingStates);
+
+    // Document analysis tracking
+    const [documentId, setDocumentId] = useState<number | null>(null);
+    const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null);
+    const [analysisError, setAnalysisError] = useState<string | null>(null);
+    const [extractionSource, setExtractionSource] = useState<ExtractionSource | null>(null);
 
     const setFieldLoading = useCallback((field: keyof LoadingStates, loading: boolean) => {
         setLoadingStates((prev) => ({ ...prev, [field]: loading }));
@@ -123,6 +131,57 @@ export function useReceiptForm() {
         [setFieldLoading]
     );
 
+    const applyAnalysisResult = useCallback((response: DocumentResponse) => {
+        // Track extraction source
+        if (response.extractionSource) {
+            setExtractionSource(response.extractionSource);
+        }
+
+        // Apply extracted data to form fields
+        if (response.name) {
+            setReceiptNumber(response.name);
+            setFieldLoading('receiptNumber', false);
+        }
+
+        if (response.transactionTime) {
+            const date = new Date(response.transactionTime);
+            setReceiptDate(date);
+            setFieldLoading('receiptDate', false);
+            setDueDate(date);
+            setFieldLoading('dueDate', false);
+        }
+
+        if (response.senderName) {
+            setContractPartner(response.senderName);
+            setFieldLoading('contractPartner', false);
+        }
+
+        if (response.tags && response.tags.length > 0) {
+            setTags(response.tags);
+        }
+        setFieldLoading('tags', false);
+
+        // Calculate net amount from total and tax
+        if (response.total !== undefined && response.total !== null) {
+            const tax = response.totalTax ?? 0;
+            const net = response.total - tax;
+            setNetAmount(net.toFixed(2));
+            setFieldLoading('netAmount', false);
+        }
+
+        if (response.totalTax !== undefined && response.totalTax !== null) {
+            setTaxAmount(response.totalTax.toFixed(2));
+            setFieldLoading('taxAmount', false);
+        }
+
+        // Clear remaining loading states for fields that weren't filled
+        if (!response.transactionTime) {
+            setFieldLoading('dueDate', false);
+        }
+        setFieldLoading('category', false);
+        setFieldLoading('area', false);
+    }, [setFieldLoading]);
+
     const resetForm = useCallback(() => {
         setFile(null);
         setReceiptNumber('');
@@ -137,7 +196,13 @@ export function useReceiptForm() {
         setTags([]);
         setNetAmount('');
         setTaxAmount('');
-    }, []);
+        // Reset analysis state
+        setDocumentId(null);
+        setAnalysisStatus(null);
+        setAnalysisError(null);
+        setExtractionSource(null);
+        setAllFieldsLoading(false);
+    }, [setAllFieldsLoading]);
 
     const isValid = useMemo(() => {
         if (isSubmitting) return false;
@@ -182,10 +247,20 @@ export function useReceiptForm() {
         setIsAutoRead,
         loadingStates,
 
+        // Document analysis state
+        documentId,
+        setDocumentId,
+        analysisStatus,
+        setAnalysisStatus,
+        analysisError,
+        setAnalysisError,
+        extractionSource,
+
         // Actions
         setFieldLoading,
         setAllFieldsLoading,
         handleFieldUpdate,
+        applyAnalysisResult,
         resetForm,
         isValid,
     };

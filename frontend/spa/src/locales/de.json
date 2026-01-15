@@ -226,6 +226,7 @@
             "bommel": "Bommel",
             "dueDate": "Fälligkeitsdatum",
             "category": "Kategorie",
+            "selectCategory": "Kategorie auswählen",
             "area": "Bereich",
             "tags": "Tags",
             "addTag": "Tag hinzufügen",
@@ -234,7 +235,17 @@
             "autoRead": "Automatisches Auslesen",
             "saveAsDraft": "Als Entwurf speichern",
             "uploadSuccess": "Beleg erfolgreich hochgeladen",
-            "uploadFailed": "Upload fehlgeschlagen"
+            "uploadFailed": "Upload fehlgeschlagen",
+            "analysis": {
+                "pending": "Dokument wird vorbereitet...",
+                "analyzing": "Dokument wird analysiert...",
+                "completed": "Daten erfolgreich extrahiert",
+                "completedDescription": "Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern.",
+                "extractedViaDocumentAI": "Extrahiert via Document AI",
+                "extractedViaZugferd": "Extrahiert via ZUGFeRD",
+                "failed": "Analyse fehlgeschlagen",
+                "error": "Fehler bei der Analyse: {{error}}"
+            }
         },
         "areas": {
             "ideell": "Ideeller Bereich",
