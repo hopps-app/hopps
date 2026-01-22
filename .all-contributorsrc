@@ -9,10 +9,10 @@
   "contributorsPerLine": 7,
   "contributors": [
     {
-      "login": "byte-sized-emi",
+      "login": "schitcrafter",
       "name": "Emilia Jaser",
       "avatar_url": "https://avatars.githubusercontent.com/u/58911293?v=4",
-      "profile": "https://github.com/byte-sized-emi",
+      "profile": "https://github.com/schitcrafter",
       "contributions": [
         "tool",
         "code"
@@ -39,15 +39,6 @@
       ]
     },
     {
-      "login": "RabeaBonten",
-      "name": "Rabea Bonten",
-      "avatar_url": "https://avatars.githubusercontent.com/u/176834893?v=4",
-      "profile": "https://github.com/RabeaBonten",
-      "contributions": [
-        "design"
-      ]
-    },
-    {
       "login": "kzamurnyak",
       "name": "Kostya Zamurnyak",
       "avatar_url": "https://avatars.githubusercontent.com/u/45554106?v=4",
@@ -63,34 +54,6 @@
       "profile": "https://github.com/zom5583",
       "contributions": [
         "code"
-      ]
-    },
-    {
-      "login": "lukas-leonhardt",
-      "name": "lukas-leonhardt",
-      "avatar_url": "https://avatars.githubusercontent.com/u/143081806?v=4",
-      "profile": "https://github.com/lukas-leonhardt",
-      "contributions": [
-        "design"
-      ]
-    },
-    {
-      "login": "eliashehme",
-      "name": "Elias Hehme",
-      "avatar_url": "https://avatars.githubusercontent.com/u/176706065?v=4",
-      "profile": "https://github.com/eliashehme",
-      "contributions": [
-        "projectManagement",
-        "business"
-      ]
-    },
-    {
-      "login": "sk2675",
-      "name": "Simon Krumböck",
-      "avatar_url": "https://avatars.githubusercontent.com/u/119429802?v=4",
-      "profile": "http://www.nachhilfe-paf.de",
-      "contributions": [
-        "projectManagement"
       ]
     },
     {
