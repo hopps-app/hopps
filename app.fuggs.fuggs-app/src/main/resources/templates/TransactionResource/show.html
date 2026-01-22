@@ -1,0 +1,298 @@
+{#include main.html}
+{#title}{transaction.displayName} - Fuggs Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .form-section {
+    margin-bottom: var(--cds-spacing-07);
+  }
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: var(--cds-spacing-05);
+    padding-bottom: var(--cds-spacing-03);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+  }
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group input[type="date"],
+  .form-group select {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .radio-group {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .form-group.checkbox {
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .form-group.checkbox input {
+    width: auto;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: var(--cds-spacing-05);
+    padding-top: var(--cds-spacing-05);
+    border-top: 1px solid var(--cds-border-subtle-01);
+  }
+  button.cds-btn, a.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  button.cds-btn-primary, a.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  a.cds-btn-secondary {
+    background-color: transparent;
+    color: #0f62fe;
+    border: 1px solid #0f62fe;
+  }
+  a.cds-btn-secondary:hover {
+    background-color: #e8f0fe;
+  }
+  button.cds-btn-danger {
+    background-color: #da1e28;
+    color: white;
+  }
+  button.cds-btn-danger:hover {
+    background-color: #ba1b23;
+  }
+  .linked-document-section {
+    background: linear-gradient(135deg, #e8daff 0%, #d4bbff 100%);
+    border: 2px solid #8a3ffc;
+  }
+  .document-link-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .doc-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .doc-date {
+    font-size: 0.75rem;
+    color: var(--cds-text-secondary, #525252);
+  }
+  .danger-zone {
+    border: 2px solid #da1e28;
+    background: #fff1f1;
+  }
+  .danger-zone h3 {
+    color: #da1e28;
+  }
+</style>
+{/moreStyles}
+
+<div class="page-header">
+  <h1>{transaction.displayName}</h1>
+  <cds-button href="/transaktionen" kind="secondary">← Zurück</cds-button>
+</div>
+
+{#if transaction.document}
+<div class="box linked-document-section">
+  <div class="form-section">
+    <h3>📄 Verknüpftes Dokument</h3>
+    <div class="document-link-card">
+      <div class="doc-info">
+        <strong>{transaction.document.displayName}</strong>
+        <span class="doc-date">{transaction.document.displayDate}</span>
+      </div>
+      <cds-button href="/belege/{transaction.document.id}" kind="secondary">
+        Beleg öffnen →
+      </cds-button>
+    </div>
+  </div>
+</div>
+{/if}
+
+<div class="box">
+  {#form uri:TransactionResource.update()}
+  <input type="hidden" name="id" value="{transaction.id}">
+
+  <!-- Section 1: Grunddaten -->
+  <div class="form-section">
+    <h3>Grunddaten</h3>
+    <div class="form-row">
+      <cds-text-input
+        label="Name / Beschreibung"
+        name="name"
+        placeholder="z.B. Büromaterial Bestellung"
+        value="{transaction.name ?: ''}">
+      </cds-text-input>
+      <cds-date-picker>
+        <cds-date-picker-input
+          name="transactionDate"
+          value="{transaction.displayDateIso ?: ''}"
+          placeholder="dd.mm.yyyy">
+          <span slot="label-text">Transaktionsdatum</span>
+        </cds-date-picker-input>
+      </cds-date-picker>
+    </div>
+    <div class="form-row">
+      <cds-number-input
+        label="Betrag *"
+        name="total"
+        step="0.01"
+        required
+        placeholder="0.00"
+        value="{transaction.total}">
+      </cds-number-input>
+      <cds-select
+        name="currencyCode"
+        value="{transaction.currencyCode}">
+        <span slot="label-text">Währung</span>
+        <cds-select-item value="EUR">EUR</cds-select-item>
+        <cds-select-item value="USD">USD</cds-select-item>
+        <cds-select-item value="CHF">CHF</cds-select-item>
+        <cds-select-item value="GBP">GBP</cds-select-item>
+      </cds-select>
+      <cds-select
+        name="bommelId"
+        value="{transaction.bommel.id ?: ''}">
+        <span slot="label-text">Bommel zuweisen</span>
+        <cds-select-item value="">— Nicht zugewiesen —</cds-select-item>
+        {#for bommel in bommels}
+        <cds-select-item value="{bommel.id}">{bommel.title}</cds-select-item>
+        {/for}
+      </cds-select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Auslage</label>
+        <cds-checkbox
+          name="privatelyPaid"
+          label-text="Privat bezahlt"
+          {#if transaction.privatelyPaid}checked{/if}>
+        </cds-checkbox>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Absender -->
+  <div class="form-section">
+    <h3>Absender</h3>
+    <div class="form-row">
+      <cds-text-input
+        label="Name / Firma"
+        name="senderName"
+        placeholder="z.B. Lieferant GmbH"
+        value="{transaction.senderName ?: ''}">
+      </cds-text-input>
+    </div>
+    <div class="form-row">
+      <cds-text-input
+        label="Straße"
+        name="senderStreet"
+        value="{transaction.senderStreet ?: ''}">
+      </cds-text-input>
+      <cds-text-input
+        label="PLZ"
+        name="senderZipCode"
+        value="{transaction.senderZipCode ?: ''}">
+      </cds-text-input>
+      <cds-text-input
+        label="Ort"
+        name="senderCity"
+        value="{transaction.senderCity ?: ''}">
+      </cds-text-input>
+    </div>
+  </div>
+
+  <!-- Section 3: Tags -->
+  <div class="form-section">
+    <h3>Tags</h3>
+    <div class="form-row">
+      <div class="form-group" style="grid-column: 1 / -1;">
+        {#tagInput documentTags=transaction.transactionTags tagsAsString=transaction.tagsAsString /}
+      </div>
+    </div>
+  </div>
+
+  <div class="button-row">
+    <button type="submit" class="cds-btn cds-btn-primary">
+      Änderungen speichern
+      <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M27.71 9.29l-5-5A1 1 0 0 0 22 4H6a2 2 0 0 0-2 2v20a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2V10a1 1 0 0 0-.29-.71ZM12 6h8v4h-8Zm8 20h-8v-8h8Zm2 0v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8H6V6h4v4a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.41l4 4V26Z"/></svg>
+    </button>
+    <cds-button href="/transaktionen" kind="secondary">Abbrechen</cds-button>
+  </div>
+
+  {/form}
+</div>
+
+<!-- Danger Zone -->
+<div class="box danger-zone">
+  <div class="form-section">
+    <h3>⚠️ Gefahrenzone</h3>
+    <p style="margin-bottom: 1rem;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+    {#form uri:TransactionResource.delete()}
+      <input type="hidden" name="id" value="{transaction.id}">
+      <button type="submit" class="cds-btn cds-btn-danger" onclick="return confirm('Transaktion wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')">
+        Transaktion löschen
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 12h2v12h-2zM18 12h2v12h-2z"/><path d="M4 6v2h2v20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8h2V6zm4 22V8h16v20zM12 2h8v2h-8z"/></svg>
+      </button>
+    {/form}
+  </div>
+</div>
+
+{#flashNotifications /}
+
+{/include}

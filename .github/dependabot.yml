@@ -6,39 +6,39 @@ updates:
     schedule:
       interval: "daily"
 
-  # Maven dependencies - hopps-app service
+  # Maven dependencies - fuggs-app service
   - package-ecosystem: "maven"
-    directory: "/app.hopps.hopps-app"
+    directory: "/app.fuggs.fuggs-app"
     schedule:
       interval: "daily"
 
   # Maven dependencies - zugferd service
   - package-ecosystem: "maven"
-    directory: "/app.hopps.zugferd"
+    directory: "/app.fuggs.zugferd"
     schedule:
       interval: "daily"
 
   # Maven dependencies - az-document-ai service
   - package-ecosystem: "maven"
-    directory: "/app.hopps.az-document-ai"
+    directory: "/app.fuggs.az-document-ai"
     schedule:
       interval: "daily"
 
-  # Docker base images - hopps-app
+  # Docker base images - fuggs-app
   - package-ecosystem: "docker"
-    directory: "/app.hopps.hopps-app/src/main/docker"
+    directory: "/app.fuggs.fuggs-app/src/main/docker"
     schedule:
       interval: "daily"
 
   # Docker base images - zugferd service
   - package-ecosystem: "docker"
-    directory: "/app.hopps.zugferd/src/main/docker"
+    directory: "/app.fuggs.zugferd/src/main/docker"
     schedule:
       interval: "daily"
 
   # Docker base images - az-document-ai service
   - package-ecosystem: "docker"
-    directory: "/app.hopps.az-document-ai/src/main/docker"
+    directory: "/app.fuggs.az-document-ai/src/main/docker"
     schedule:
       interval: "daily"
 

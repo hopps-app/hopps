@@ -1,0 +1,201 @@
+{@app.fuggs.document.domain.Document document}
+{@java.util.List<app.fuggs.bommel.domain.Bommel> bommels}
+
+<div class="form-section">
+  <h3>Belegdaten</h3>
+  <div class="form-row">
+    <cds-text-input
+      label="Bezeichnung"
+      name="name"
+      placeholder="z.B. Büromaterial"
+      value="{document.name ?: ''}">
+      {#if document.name != null && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">Bezeichnung</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+    </cds-text-input>
+    <cds-date-picker>
+      <cds-date-picker-input
+        name="transactionDate"
+        value="{document.transactionDateForInput}"
+        placeholder="dd.mm.yyyy">
+        <span slot="label-text">Datum</span>
+        {#if document.transactionTime != null && document.analysisStatus.name == 'COMPLETED'}
+        <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+          <div slot="body-text" class="ai-explainer">
+            <p class="secondary">KI-erkannt</p>
+            <p class="secondary bold">Belegdatum</p>
+            <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+          </div>
+        </cds-ai-label>
+        {/if}
+      </cds-date-picker-input>
+    </cds-date-picker>
+  </div>
+  <div class="form-row">
+    <cds-number-input
+      label="Bruttobetrag *"
+      name="total"
+      step="0.01"
+      required
+      value="{document.total}">
+      {#if document.isTotalPositive && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">Gesamtbetrag</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+    </cds-number-input>
+    <cds-number-input
+      label="Nettobetrag (berechnet)"
+      step="0.01"
+      value="{document.subTotal}"
+      disabled>
+    </cds-number-input>
+    <cds-number-input
+      label="MwSt"
+      name="totalTax"
+      step="0.01"
+      value="{document.totalTax}">
+      {#if document.totalTax != null && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">Mehrwertsteuer</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+    </cds-number-input>
+    <cds-select
+      name="currencyCode"
+      value="{document.currencyCode ?: 'EUR'}">
+      <span slot="label-text">Währung</span>
+      {#if document.currencyCode != null && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">Währung</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+      <cds-select-item value="EUR">EUR</cds-select-item>
+      <cds-select-item value="USD">USD</cds-select-item>
+      <cds-select-item value="CHF">CHF</cds-select-item>
+      <cds-select-item value="GBP">GBP</cds-select-item>
+    </cds-select>
+  </div>
+  <div class="form-row">
+    <cds-select
+      name="bommelId"
+      value="{document.bommel.id ?: ''}">
+      <span slot="label-text">Bommel zuweisen</span>
+      <cds-select-item value="">— Nicht zugewiesen —</cds-select-item>
+      {#for bommel in bommels}
+      <cds-select-item value="{bommel.id}">{bommel.title}</cds-select-item>
+      {/for}
+    </cds-select>
+    <div class="form-group">
+      <label>Auslage</label>
+      <cds-checkbox
+        name="privatelyPaid"
+        label-text="Privat bezahlt"
+        {#if document.privatelyPaid}checked{/if}>
+      </cds-checkbox>
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>Absender</h3>
+  <div class="form-row">
+    <cds-text-input
+      label="Name / Firma"
+      name="senderName"
+      placeholder="z.B. Lieferant GmbH"
+      value="{document.senderName ?: ''}">
+      {#if document.senderName != null && document.senderName != '' && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">Absender</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+    </cds-text-input>
+  </div>
+  <div class="form-row">
+    <cds-text-input
+      label="Straße"
+      name="senderStreet"
+      value="{document.senderStreet ?: ''}">
+      {#if document.senderStreet != null && document.senderStreet != '' && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">Straße</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+    </cds-text-input>
+    <cds-text-input
+      label="PLZ"
+      name="senderZipCode"
+      value="{document.senderZipCode ?: ''}">
+      {#if document.senderZipCode != null && document.senderZipCode != '' && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">PLZ</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+    </cds-text-input>
+    <cds-text-input
+      label="Ort"
+      name="senderCity"
+      value="{document.senderCity ?: ''}">
+      {#if document.senderCity != null && document.senderCity != '' && document.analysisStatus.name == 'COMPLETED'}
+      <cds-ai-label slot="label-text" size="mini" autoalign alignment="bottom-left">
+        <div slot="body-text" class="ai-explainer">
+          <p class="secondary">KI-erkannt</p>
+          <p class="secondary bold">Ort</p>
+          <p class="secondary">Automatisch aus dem Beleg extrahiert.</p>
+        </div>
+      </cds-ai-label>
+      {/if}
+    </cds-text-input>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>
+    Tags
+    {#if document.hasAiTags}
+    <cds-ai-label size="mini" autoalign alignment="bottom-left">
+      <div slot="body-text" class="ai-explainer">
+        <p class="secondary">KI-generiert</p>
+        <p class="secondary bold">Automatische Tags</p>
+        <p class="secondary">Diese Tags wurden automatisch basierend auf dem Beleginhalt generiert.</p>
+      </div>
+    </cds-ai-label>
+    {/if}
+  </h3>
+  <div class="form-row">
+    <div class="form-group" style="grid-column: 1 / -1;">
+      {#tagInput documentTags=document.documentTags tagsAsString=document.tagsAsString /}
+    </div>
+  </div>
+</div>

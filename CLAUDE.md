@@ -45,7 +45,7 @@ rendering.
 Feature-based package structure:
 
 ```
-app.hopps.<feature>/
+app.fuggs.<feature>/
 ├── api/          - Renarde controllers (extend Controller)
 ├── domain/       - Entity classes (extend PanacheEntity)
 ├── model/        - DTOs/Input classes
@@ -53,7 +53,7 @@ app.hopps.<feature>/
 ├── service/      - Business logic (e.g., StorageService)
 └── messaging/    - Message producers/consumers
 
-app.hopps.shared/
+app.fuggs.shared/
 ├── filter/       - HTTP filters
 ├── infrastructure/storage/  - Storage handlers
 ├── security/     - Security utilities
@@ -72,8 +72,8 @@ Current features:
 
 **Microservices:**
 
-- `app.hopps.zugferd` - ZugFerd e-invoice extraction service (port 8103)
-- `app.hopps.az-document-ai` - Azure Document Intelligence integration (port 8200)
+- `app.fuggs.zugferd` - ZugFerd e-invoice extraction service (port 8103)
+- `app.fuggs.az-document-ai` - Azure Document Intelligence integration (port 8200)
 
 Templates: `src/main/resources/templates/<ControllerName>/<method>.html`
 
@@ -142,7 +142,7 @@ Add reasonable logging for:
 **IMPORTANT:** Always use role constants from `Roles.java` instead of hardcoded strings.
 
 ```java
-import app.hopps.shared.security.Roles;
+import app.fuggs.shared.security.Roles;
 ```
 
 Available role constants:
@@ -184,7 +184,7 @@ void shouldAllowAdminAccess() {
 Configuration in `application.properties`:
 
 ```properties
-bucket.name=hopps-documents
+bucket.name=fuggs-documents
 quarkus.s3.path-style-access=true
 quarkus.s3.devservices.buckets=${bucket.name}
 ```
@@ -225,7 +225,7 @@ The `ExtractionSource` enum tracks how data was extracted:
 - `AI` - Data from Azure Document Intelligence
 - `MANUAL` - User-entered data
 
-**ZugFerd service (`app.hopps.zugferd`):**
+**ZugFerd service (`app.fuggs.zugferd`):**
 
 Uses Mustang Project library (`org.mustangproject`) to extract ZugFerd XML:
 
@@ -411,7 +411,7 @@ Carbon components are loaded via CDN in `main.html`:
 - `.cds-btn-secondary` - Secondary action
 - `.cds-btn-danger` - Destructive action (red)
 
-These styles are defined in `hopps-components.css` and automatically styled to match Carbon Design System.
+These styles are defined in `fuggs-components.css` and automatically styled to match Carbon Design System.
 
 **Notifications:**
 
@@ -453,10 +453,10 @@ Carbon provides `<cds-ai-label>` for AI-generated content. Use `slot="label-text
 The application uses Carbon UI Shell components for header and side navigation:
 
 ```html
-<cds-header aria-label="Hopps Buchhaltung">
+<cds-header aria-label="Fuggs Buchhaltung">
   <cds-header-menu-button onclick="toggleSideNav()">
   </cds-header-menu-button>
-  <cds-header-name href="/" prefix="">hopps</cds-header-name>
+  <cds-header-name href="/" prefix="">fuggs</cds-header-name>
   <cds-header-global-bar>
     <cds-header-global-action aria-label="Profil">
       <svg slot="icon">...</svg>
@@ -564,7 +564,7 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
           labels: ['Rechnungen', 'Quittungen', 'Sonstige'],
           datasets: [{
             data: [14, 7, 3],
-            backgroundColor: ['#9058c5', '#24a148', '#f1c21b'], // Hopps purple, green, yellow
+            backgroundColor: ['#9058c5', '#24a148', '#f1c21b'], // Fuggs purple, green, yellow
             borderWidth: 0
           }]
         },
@@ -586,11 +586,11 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
 {/moreScripts}
 ```
 
-**Use Hopps brand colors:**
-- **Hopps Purple (Primary)**: `#9058c5` - Main brand color for buttons, links, interactive elements
-- **Hopps Purple Hover**: `#7d4ab5` - Darker shade for hover states
-- **Hopps Purple Active**: `#6a3d9f` - Even darker for active/pressed states
-- **Hopps Purple Light**: `#e6d9f2` - Light purple for backgrounds and accents
+**Use Fuggs brand colors:**
+- **Fuggs Purple (Primary)**: `#9058c5` - Main brand color for buttons, links, interactive elements
+- **Fuggs Purple Hover**: `#7d4ab5` - Darker shade for hover states
+- **Fuggs Purple Active**: `#6a3d9f` - Even darker for active/pressed states
+- **Fuggs Purple Light**: `#e6d9f2` - Light purple for backgrounds and accents
 - Green 60: `#24a148` - Success/positive states
 - Red 60: `#da1e28` - Error/danger states
 - Yellow 30: `#f1c21b` - Warning states
@@ -599,13 +599,13 @@ Use [Chart.js v4.4.0](https://www.chartjs.org/) for data visualization:
 The application uses CSS custom properties for theming. Always use these variables instead of hardcoding colors:
 
 ```css
-/* Hopps Brand Colors (defined in hopps-core.css) */
-var(--hopps-primary)        /* #9058c5 - Main purple */
-var(--hopps-primary-hover)  /* #7d4ab5 - Hover state */
-var(--hopps-primary-active) /* #6a3d9f - Active state */
-var(--hopps-primary-light)  /* #e6d9f2 - Light purple */
+/* Fuggs Brand Colors (defined in fuggs-core.css) */
+var(--fuggs-primary)        /* #9058c5 - Main purple */
+var(--fuggs-primary-hover)  /* #7d4ab5 - Hover state */
+var(--fuggs-primary-active) /* #6a3d9f - Active state */
+var(--fuggs-primary-light)  /* #e6d9f2 - Light purple */
 
-/* Carbon Design Tokens (mapped to Hopps colors) */
+/* Carbon Design Tokens (mapped to Fuggs colors) */
 var(--cds-interactive-01)      /* Primary interactive color */
 var(--cds-border-interactive)  /* Interactive borders */
 var(--cds-link-primary)        /* Link color */
@@ -614,7 +614,7 @@ var(--cds-ui-focus)           /* Focus indicators */
 ```
 
 **Chart.js colors:**
-When creating charts, use the Hopps purple as the primary color:
+When creating charts, use the Fuggs purple as the primary color:
 
 ```javascript
 backgroundColor: ['#9058c5', '#24a148', '#f1c21b'],  // Purple, Green, Yellow

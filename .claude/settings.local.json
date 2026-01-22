@@ -77,7 +77,8 @@
       "Bash(npx tsc:*)",
       "Bash(npx expo install:*)",
       "Bash(npx expo-doctor)",
-      "Bash(npx expo run:android)"
+      "Bash(npx expo run:android)",
+      "Bash(app.fuggs.fuggs-app/mvnw clean verify:*)"
     ]
   }
 }

@@ -1,4 +1,4 @@
-# Hopps
+# Fuggs
 
 Wir wollen eine cloudbasierte Open Source Buchhaltungssoftware mit AI entwickeln, damit Vereine mehr Zeit für ihre
 wesentlichen Ziele und Angebote haben und frustrierte Situationen mit der Buchhaltung der Vergangenheit angehören.
@@ -10,19 +10,11 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-![Frontend](https://github.com/hopps-app/hopps/actions/workflows/frontend.yml/badge.svg)
-![Backend](https://github.com/hopps-app/hopps/actions/workflows/backend.yml/badge.svg)
-![Keycloak](https://github.com/hopps-app/hopps/actions/workflows/keycloak.yml/badge.svg)
-
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-vereine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-vereine)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-fin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-fin)
-
 ## Features
 
 ### Intelligent Document Processing
 
-Hopps automatisiert die Belegverarbeitung mit einem intelligenten Multi-Schritt-Ansatz:
+Fuggs automatisiert die Belegverarbeitung mit einem intelligenten Multi-Schritt-Ansatz:
 
 1. **ZugFerd-Extraktion** - Automatische Erkennung und Extraktion von strukturierten ZugFerd/Factur-X e-Rechnungen aus PDFs
 2. **KI-gestützte Analyse** - Fallback auf Azure Document Intelligence für Belege ohne eingebettete Daten

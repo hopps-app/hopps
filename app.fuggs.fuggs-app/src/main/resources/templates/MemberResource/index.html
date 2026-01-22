@@ -1,0 +1,242 @@
+{#include main.html}
+{#title}Mitglieder - Fuggs Buchhaltung{/title}
+
+{#moreScripts}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var text = this.getAttribute('data-copy');
+        navigator.clipboard.writeText(text).then(function() {
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.classList.remove('copied');
+          }, 600);
+        });
+      });
+    });
+  });
+</script>
+{/moreScripts}
+
+{#moreStyles}
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .members-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--cds-layer-02);
+  }
+  .members-table th,
+  .members-table td {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+  }
+  .members-table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--cds-text-secondary);
+    background-color: var(--cds-layer-01);
+  }
+  .members-table tr:hover {
+    background-color: var(--cds-background-hover);
+  }
+  .members-table a {
+    color: var(--cds-link-primary, #0f62fe);
+    text-decoration: none;
+  }
+  .members-table a:hover {
+    text-decoration: underline;
+  }
+  .contact-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .contact-cell span {
+    flex: 1;
+  }
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--cds-icon-secondary, #525252);
+  }
+  .icon-btn:hover {
+    background: var(--cds-background-hover, #e8e8e8);
+    color: var(--cds-icon-primary, #161616);
+    transform: scale(1.1);
+  }
+  .icon-btn:active {
+    transform: scale(0.95);
+  }
+  .icon-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+  .icon-btn.copy-btn.copied {
+    color: #24a148;
+    animation: bounce 0.3s ease;
+  }
+  .icon-btn.mailto-btn:hover {
+    background: linear-gradient(135deg, #d0e2ff 0%, #a6c8ff 100%);
+    color: #0043ce;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+  .no-contact {
+    color: var(--cds-text-disabled, #c6c6c6);
+  }
+  .empty-state {
+    text-align: center;
+    padding: var(--cds-spacing-09);
+    color: var(--cds-text-secondary);
+  }
+  .empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--cds-spacing-05);
+    fill: var(--cds-icon-secondary, #525252);
+  }
+  button.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  button.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  a.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  a.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  a.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+</style>
+{/moreStyles}
+
+<div class="page-header">
+  <h1>Mitglieder</h1>
+  <cds-button href="/mitglieder/neu" kind="primary">
+    Neues Mitglied
+    <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+  </cds-button>
+</div>
+
+<div class="box">
+  {#if members.isEmpty}
+    <div class="empty-state">
+      <svg viewBox="0 0 32 32"><path d="M12 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM22 30h-2v-5a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v5H2v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7ZM22 4h10v2H22zM22 9h10v2H22zM22 14h7v2h-7z"/></svg>
+      <p>Noch keine Mitglieder vorhanden.</p>
+      <cds-button href="/mitglieder/neu" kind="primary">Erstes Mitglied anlegen</cds-button>
+    </div>
+  {#else}
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>E-Mail</th>
+          <th>Telefon</th>
+          <th>Bommelwart für</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#for member in members}
+        <tr>
+          <td><a href="/mitglieder/{member.id}">{member.displayName}</a></td>
+          <td>
+            {#if member.email}
+            <div class="contact-cell">
+              <span>{member.email}</span>
+              <button type="button" class="icon-btn copy-btn" title="E-Mail kopieren" data-copy="{member.email}">
+                <svg viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z"/><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z"/></svg>
+              </button>
+              <a href="mailto:{member.email}" class="icon-btn mailto-btn" title="E-Mail senden">
+                <svg viewBox="0 0 32 32"><path d="M28,6H4A2,2,0,0,0,2,8V24a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V8A2,2,0,0,0,28,6ZM25.8,8,16,14.78,6.2,8ZM4,24V8.91l11.43,7.91a1,1,0,0,0,1.14,0L28,8.91V24Z"/></svg>
+              </a>
+            </div>
+            {#else}
+            <span class="no-contact">—</span>
+            {/if}
+          </td>
+          <td>
+            {#if member.phone}
+            <div class="contact-cell">
+              <span>{member.phone}</span>
+              <button type="button" class="icon-btn copy-btn" title="Telefon kopieren" data-copy="{member.phone}">
+                <svg viewBox="0 0 32 32"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z"/><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z"/></svg>
+              </button>
+            </div>
+            {#else}
+            <span class="no-contact">—</span>
+            {/if}
+          </td>
+          <td>{member.responsibleBommels.size} Bommel(s)</td>
+        </tr>
+        {/for}
+      </tbody>
+    </table>
+  {/if}
+</div>
+
+{#if flash:success}
+  <cds-inline-notification
+    kind="success"
+    title="Erfolg"
+    subtitle="{flash:success}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Fehler"
+    subtitle="{flash:error}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{/include}

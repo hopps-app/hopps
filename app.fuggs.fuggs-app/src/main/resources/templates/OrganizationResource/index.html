@@ -1,0 +1,132 @@
+{#include main.html}
+{#title}Organisationen{/title}
+
+{#moreStyles}
+<style>
+  .org-card {
+    background-color: var(--cds-layer-01);
+    border: 1px solid var(--cds-border-subtle-01);
+    border-radius: 4px;
+    padding: var(--cds-spacing-05);
+    margin-bottom: var(--cds-spacing-05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .org-info {
+    flex: 1;
+  }
+
+  .org-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--cds-spacing-02);
+  }
+
+  .org-slug {
+    color: var(--cds-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .org-actions {
+    display: flex;
+    gap: var(--cds-spacing-03);
+    align-items: center;
+  }
+
+  .current-badge {
+    background-color: var(--fuggs-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .inactive-badge {
+    background-color: var(--cds-text-disabled);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-07);
+  }
+</style>
+{/moreStyles}
+
+{#content}
+<div class="page-header">
+  <h1>Organisationen</h1>
+  <cds-button href="/organisationen/create" kind="primary">
+    Neue Organisation
+    <svg slot="icon" width="16" height="16" viewBox="0 0 16 16">
+      <path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="2"/>
+    </svg>
+  </cds-button>
+</div>
+
+{#if flash:success}
+<cds-actionable-notification
+  kind="success"
+  title="{flash:success}"
+  low-contrast
+  inline
+  hide-close-button>
+</cds-actionable-notification>
+{/if}
+
+{#if organizations.isEmpty()}
+<cds-tile>
+  <p class="secondary">Noch keine Organisationen vorhanden.</p>
+  <p style="margin-top: var(--cds-spacing-03);">
+    <a href="/organisationen/create">Erste Organisation anlegen</a>
+  </p>
+</cds-tile>
+{#else}
+<div>
+  {#for org in organizations}
+  <div class="org-card">
+    <div class="org-info">
+      <div class="org-name">
+        {org.name}
+        {#if currentOrg != null && org.id == currentOrg.id}
+        <span class="current-badge">AKTUELL</span>
+        {/if}
+        {#if !org.active}
+        <span class="inactive-badge">INAKTIV</span>
+        {/if}
+      </div>
+      <div class="org-slug">
+        {org.slug}
+        {#if org.displayName != null && org.displayName != org.name}
+        · {org.displayName}
+        {/if}
+      </div>
+    </div>
+    <div class="org-actions">
+      {#if currentOrg == null || org.id != currentOrg.id}
+      <form action="/organisationen/switch" method="post" style="display: inline;">
+        {#authenticityToken /}
+        <input type="hidden" name="organizationId" value="{org.id}">
+        <button type="submit" class="cds-btn cds-btn-secondary" size="sm">
+          Wechseln
+        </button>
+      </form>
+      {/if}
+      <cds-button href="/organisationen/detail?id={org.id}" kind="ghost" size="sm">
+        Details
+      </cds-button>
+    </div>
+  </div>
+  {/for}
+</div>
+{/if}
+{/content}
+{/include}

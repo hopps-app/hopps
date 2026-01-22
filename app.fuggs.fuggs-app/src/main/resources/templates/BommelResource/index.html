@@ -1,0 +1,319 @@
+{#include main.html}
+{#title}Bommels - Fuggs Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .bommels-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cds-spacing-05);
+  }
+  @media (max-width: 900px) {
+    .bommels-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+  .tree-panel {
+    min-width: 0;
+  }
+  .tree-panel .box {
+    height: 100%;
+    overflow-x: auto;
+  }
+  .detail-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cds-spacing-05);
+    min-width: 0;
+  }
+  .detail-panel .box {
+    margin-bottom: 0;
+  }
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    margin-bottom: 1rem;
+  }
+  .form-group.icon-input {
+    max-width: 140px;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+  }
+  .form-group input,
+  .form-group select {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .form-group input.error,
+  .form-group select.error {
+    border-bottom: 2px solid #da1e28;
+  }
+  .icon-picker {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+  }
+  .icon-option {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: #f4f4f4;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .icon-option:hover {
+    background: #e0e0e0;
+  }
+  .icon-option.selected {
+    border-color: #9058c5;
+    background: #e6d9f2;
+  }
+  .icon-option input {
+    display: none;
+  }
+  .icon-option svg {
+    width: 24px;
+    height: 24px;
+  }
+  .error-text {
+    color: #da1e28;
+    font-size: 0.75rem;
+  }
+  cds-tree-node {
+    cursor: pointer;
+  }
+  cds-dropdown {
+    position: relative;
+    z-index: 10;
+    --cds-field-01: #ffffff;
+    --cds-field-02: #ffffff;
+    --cds-layer: #ffffff;
+    --cds-layer-01: #ffffff;
+    --cds-layer-02: #ffffff;
+    --cds-background: #ffffff;
+  }
+  cds-dropdown-item {
+    background-color: #ffffff;
+  }
+  cds-dropdown-item:hover {
+    background-color: #e8e8e8;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+  }
+</style>
+{/moreStyles}
+
+{#moreScripts}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Fix dropdown transparent background by injecting styles into shadow DOM
+    document.querySelectorAll('cds-dropdown').forEach(function(dropdown) {
+      var checkShadow = setInterval(function() {
+        if (dropdown.shadowRoot) {
+          var style = document.createElement('style');
+          style.textContent = '.cds--list-box__menu { background-color: #ffffff; } .cds--list-box__menu-item { background-color: #ffffff; } .cds--list-box__menu-item:hover { background-color: #e8e8e8; }';
+          dropdown.shadowRoot.appendChild(style);
+          clearInterval(checkShadow);
+        }
+      }, 100);
+    });
+
+    var badgeSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="width:14px;height:14px;fill:#0043ce;flex-shrink:0;"><polygon points="23 2 24.593 5 28 5.414 25.5 7.667 26 11 23 9.125 20 11 20.5 7.667 18 5.414 21.5 5 23 2"/><path d="M22.7168,13.249l-1.9375-.498A6.9942,6.9942,0,1,1,15.7505,4.22l.499-1.9365A8.99,8.99,0,0,0,8,17.689V30l6-4,6,4V17.7078A8.9627,8.9627,0,0,0,22.7168,13.249ZM18,26.2627l-4-2.6665-4,2.6665V19.05a8.9238,8.9238,0,0,0,8,.0062Z"/></svg>';
+
+    document.querySelectorAll('cds-tree-node').forEach(function(node) {
+      node.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = this.getAttribute('data-id');
+        if (id) {
+          window.location.href = '/bommels?selectedId=' + id;
+        }
+      });
+
+      var bommelwart = node.getAttribute('data-bommelwart');
+      if (bommelwart) {
+        setTimeout(function() {
+          var shadowRoot = node.shadowRoot;
+          if (shadowRoot) {
+            var labelEl = shadowRoot.querySelector('.cds--tree-node__label');
+            if (labelEl && !labelEl.querySelector('.bommelwart-badge')) {
+              var badge = document.createElement('span');
+              badge.style.cssText = 'display:inline-flex;align-items:center;gap:0.25rem;margin-left:0.75rem;padding:0.125rem 0.5rem 0.125rem 0.375rem;background:linear-gradient(135deg,#d0e2ff 0%,#a6c8ff 100%);border-radius:12px;font-size:0.75rem;font-weight:500;color:#0043ce;letter-spacing:0.01em;white-space:nowrap;';
+              badge.innerHTML = badgeSvg + bommelwart;
+              labelEl.appendChild(badge);
+            }
+          }
+        }, 100);
+      }
+    });
+  });
+</script>
+{/moreScripts}
+
+<div class="bommels-layout">
+  <div class="tree-panel">
+    <div class="box">
+      <h2 class="box-header">Bommels</h2>
+
+      {#if root}
+        <cds-tree-view label="Bommels">
+          {#bommelNode root selected=selected /}
+        </cds-tree-view>
+      {#else}
+        <p>Noch keine Bommels vorhanden.</p>
+
+        <h3 style="margin-top: 1rem;">Wurzel-Bommel erstellen</h3>
+        {#form uri:BommelResource.createRoot()}
+          <div class="form-group">
+            <label>Symbol</label>
+            {#iconPicker "home" name="icon" /}
+          </div>
+          <cds-text-input
+            label="Titel"
+            name="title"
+            placeholder="Organisationsname"
+            {#ifError 'title'}invalid{/ifError}
+            {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
+          </cds-text-input>
+          <button type="submit" class="cds-btn cds-btn-primary">Erstellen</button>
+        {/form}
+      {/if}
+    </div>
+  </div>
+
+  <div class="detail-panel">
+    {#if selected}
+      <div class="box">
+        <h2 class="box-header" style="display: flex; align-items: center; gap: 0.5rem;">
+          {#carbonIcon selected.icon /}
+          Bearbeiten: {selected.getDisplayLabel}
+        </h2>
+
+        {#form uri:BommelResource.update()}
+          <input type="hidden" name="id" value="{selected.id}">
+          <div class="form-group">
+            <label>Symbol</label>
+            {#iconPicker selected.icon name="icon" /}
+          </div>
+          <cds-text-input
+            label="Titel"
+            name="title"
+            value="{selected.title}"
+            {#ifError 'title'}invalid{/ifError}
+            {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
+          </cds-text-input>
+          <button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
+        {/form}
+      </div>
+
+      <div class="box">
+        <h3 class="box-header">Bommelwart</h3>
+
+        <form action="/bommels/assignBommelwart" method="POST" style="display: flex; gap: 1rem; align-items: flex-end;">
+          {#authenticityToken /}
+          <input type="hidden" name="bommelId" value="{selected.id}">
+          <div style="flex: 1;">
+            <cds-dropdown
+              name="memberId"
+              title-text="Verantwortliches Mitglied"
+              label="Mitglied auswählen"
+              value="{#if selected.responsibleMember}{selected.responsibleMember.id}{#else}0{/if}">
+              <cds-dropdown-item value="0">— Kein Bommelwart —</cds-dropdown-item>
+              {#for member in members}
+              <cds-dropdown-item value="{member.id}" {#if selected.responsibleMember != null && selected.responsibleMember.id == member.id}selected{/if}>{member.displayName}</cds-dropdown-item>
+              {/for}
+            </cds-dropdown>
+          </div>
+          <button type="submit" class="cds-btn cds-btn-secondary">Speichern</button>
+        </form>
+      </div>
+
+      <div class="box">
+        <h3 class="box-header" style="display: flex; align-items: center; gap: 0.5rem;">
+          {#carbonIcon selected.icon /}
+          Kind hinzufügen zu {selected.getDisplayLabel}
+        </h3>
+
+        {#form uri:BommelResource.addChild()}
+          <input type="hidden" name="parentId" value="{selected.id}">
+          <div class="form-group">
+            <label>Symbol</label>
+            {#iconPicker "folder" name="icon" /}
+          </div>
+          <cds-text-input
+            label="Titel"
+            name="title"
+            placeholder="Name"
+            {#ifError 'title'}invalid{/ifError}
+            {#ifError 'title'}invalid-text="{#error 'title'/}"{/ifError}>
+          </cds-text-input>
+          <button type="submit" class="cds-btn cds-btn-secondary">Hinzufügen</button>
+        {/form}
+      </div>
+
+      <div class="box">
+        <h3 class="box-header">Gefahrenzone</h3>
+        {#if selected.hasChildren}
+          <p>Dieser Bommel kann nicht gelöscht werden, da er Kinder hat. Entfernen Sie zuerst alle Kinder.</p>
+          <button type="button" class="cds-btn cds-btn-danger" disabled>Bommel löschen</button>
+        {#else}
+          {#form uri:BommelResource.delete()}
+            <input type="hidden" name="id" value="{selected.id}">
+            <button type="submit" class="cds-btn cds-btn-danger">Bommel löschen</button>
+          {/form}
+        {/if}
+      </div>
+    {#else if root}
+      <div class="box">
+        <h2 class="box-header">Bommel auswählen</h2>
+        <p>Klicken Sie auf einen Bommel im Baum, um seine Details anzuzeigen und zu bearbeiten.</p>
+      </div>
+    {/if}
+  </div>
+</div>
+
+{#if flash:success}
+  <cds-inline-notification
+    kind="success"
+    title="Erfolg"
+    subtitle="{flash:success}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Fehler"
+    subtitle="{flash:error}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{/include}

@@ -1,0 +1,142 @@
+{#include main.html}
+{#title}Neues Mitglied - Fuggs Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .page-header {
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .breadcrumb {
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .breadcrumb a {
+    color: var(--cds-link-primary, #0f62fe);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+    font-weight: 400;
+  }
+  .form-group input {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group input:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .form-group input.error {
+    border-bottom: 2px solid #da1e28;
+  }
+  .error-text {
+    color: #da1e28;
+    font-size: 0.75rem;
+  }
+  .form-row {
+    display: flex;
+    gap: 1rem;
+  }
+  .form-row .form-group {
+    flex: 1;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: var(--cds-spacing-05);
+  }
+  button.cds-btn, a.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  button.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  a.cds-btn-secondary {
+    background-color: #393939;
+    color: white;
+  }
+  a.cds-btn-secondary:hover {
+    background-color: #4c4c4c;
+  }
+</style>
+{/moreStyles}
+
+<div class="breadcrumb">
+  <a href="/mitglieder">Mitglieder</a> / Neu
+</div>
+
+<div class="page-header">
+  <h1>Neues Mitglied</h1>
+</div>
+
+<div class="box">
+  <form action="/mitglieder/erstellen" method="POST">
+    {#authenticityToken /}
+
+    <div class="form-row">
+      <cds-text-input
+        label="Vorname *"
+        name="firstName"
+        required
+        {#ifError 'firstName'}invalid{/ifError}
+        {#ifError 'firstName'}invalid-text="{#error 'firstName'/}"{/ifError}>
+      </cds-text-input>
+      <cds-text-input
+        label="Nachname *"
+        name="lastName"
+        required
+        {#ifError 'lastName'}invalid{/ifError}
+        {#ifError 'lastName'}invalid-text="{#error 'lastName'/}"{/ifError}>
+      </cds-text-input>
+    </div>
+
+    <div class="form-row">
+      <cds-text-input
+        label="E-Mail"
+        name="email"
+        type="email">
+      </cds-text-input>
+      <cds-text-input
+        label="Telefon"
+        name="phone"
+        type="tel">
+      </cds-text-input>
+    </div>
+
+    <div class="button-row">
+      <button type="submit" class="cds-btn cds-btn-primary">Mitglied erstellen</button>
+      <cds-button href="/mitglieder" kind="secondary">Abbrechen</cds-button>
+    </div>
+  </form>
+</div>
+
+{/include}

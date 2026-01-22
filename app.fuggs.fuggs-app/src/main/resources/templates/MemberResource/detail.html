@@ -1,0 +1,243 @@
+{#include main.html}
+{#title}{member.displayName} - Fuggs Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .page-header {
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .breadcrumb {
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .breadcrumb a {
+    color: var(--cds-link-primary, #0f62fe);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+  .detail-layout {
+    display: flex;
+    gap: var(--cds-spacing-05);
+    flex-wrap: wrap;
+  }
+  .detail-layout .box {
+    flex: 1;
+    min-width: 300px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+    font-weight: 400;
+  }
+  .form-group input {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group input:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .form-group input.error {
+    border-bottom: 2px solid #da1e28;
+  }
+  .error-text {
+    color: #da1e28;
+    font-size: 0.75rem;
+  }
+  .form-row {
+    display: flex;
+    gap: 1rem;
+  }
+  .form-row .form-group {
+    flex: 1;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+  }
+  button.cds-btn {
+    height: 48px;
+    padding: 0 1rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  button.cds-btn-primary {
+    background-color: #0f62fe;
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: #0353e9;
+  }
+  button.cds-btn-danger {
+    background-color: #da1e28;
+    color: white;
+  }
+  button.cds-btn-danger:hover {
+    background-color: #b81921;
+  }
+  button.cds-btn:disabled {
+    background-color: #c6c6c6;
+    color: #8d8d8d;
+    cursor: not-allowed;
+  }
+  .bommel-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .bommel-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .bommel-list li:last-child {
+    border-bottom: none;
+  }
+  .bommel-list a {
+    color: var(--cds-link-primary, #0f62fe);
+    text-decoration: none;
+  }
+  .bommel-list a:hover {
+    text-decoration: underline;
+  }
+  .bommel-list svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+  .empty-note {
+    color: var(--cds-text-secondary);
+    font-style: italic;
+  }
+</style>
+{/moreStyles}
+
+<div class="breadcrumb">
+  <a href="/mitglieder">Mitglieder</a> / {member.displayName}
+</div>
+
+<div class="page-header">
+  <h1>{member.displayName}</h1>
+</div>
+
+<div class="detail-layout">
+  <div class="box">
+    <h2 class="box-header">Stammdaten bearbeiten</h2>
+
+    <form action="/mitglieder/aktualisieren" method="POST">
+      {#authenticityToken /}
+      <input type="hidden" name="id" value="{member.id}">
+
+      <div class="form-row">
+        <cds-text-input
+          label="Vorname *"
+          name="firstName"
+          value="{member.firstName}"
+          required
+          {#ifError 'firstName'}invalid{/ifError}
+          {#ifError 'firstName'}invalid-text="{#error 'firstName'/}"{/ifError}>
+        </cds-text-input>
+        <cds-text-input
+          label="Nachname *"
+          name="lastName"
+          value="{member.lastName}"
+          required
+          {#ifError 'lastName'}invalid{/ifError}
+          {#ifError 'lastName'}invalid-text="{#error 'lastName'/}"{/ifError}>
+        </cds-text-input>
+      </div>
+
+      <div class="form-row">
+        <cds-text-input
+          label="E-Mail"
+          name="email"
+          value="{member.email}"
+          type="email">
+        </cds-text-input>
+        <cds-text-input
+          label="Telefon"
+          name="phone"
+          value="{member.phone}"
+          type="tel">
+        </cds-text-input>
+      </div>
+
+      <div class="button-row">
+        <button type="submit" class="cds-btn cds-btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="box">
+    <h2 class="box-header">Bommelwart für</h2>
+
+    {#if member.responsibleBommels.isEmpty}
+      <p class="empty-note">Noch keinem Bommel als Bommelwart zugewiesen.</p>
+      <p>Die Zuweisung erfolgt in der <a href="/bommels">Strukturverwaltung</a>.</p>
+    {#else}
+      <ul class="bommel-list">
+        {#for bommel in member.responsibleBommels}
+        <li>
+          {#carbonIcon bommel.icon /}
+          <a href="/bommels?selectedId={bommel.id}">{bommel.title}</a>
+        </li>
+        {/for}
+      </ul>
+    {/if}
+  </div>
+</div>
+
+<div class="box" style="margin-top: var(--cds-spacing-05);">
+  <h3 class="box-header">Gefahrenzone</h3>
+  {#if member.responsibleBommels.isEmpty}
+    <form action="/mitglieder/loeschen" method="POST" onsubmit="return confirm('Möchten Sie dieses Mitglied wirklich löschen?')">
+      {#authenticityToken /}
+      <input type="hidden" name="id" value="{member.id}">
+      <button type="submit" class="cds-btn cds-btn-danger">Mitglied löschen</button>
+    </form>
+  {#else}
+    <p>Dieses Mitglied kann nicht gelöscht werden, da es noch als Bommelwart zugewiesen ist.</p>
+    <button type="button" class="cds-btn cds-btn-danger" disabled>Mitglied löschen</button>
+  {/if}
+</div>
+
+{#if flash:success}
+  <cds-inline-notification
+    kind="success"
+    title="Erfolg"
+    subtitle="{flash:success}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Fehler"
+    subtitle="{flash:error}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{/include}

@@ -1,0 +1,21 @@
+{@app.fuggs.document.domain.Document document}
+
+<div class="preview-container">
+  {#if document.image}
+  <img src="/belege/{document.id}/view" alt="{document.fileName}">
+  {#else if document.pdf}
+  <iframe src="/belege/{document.id}/view#navpanes=0" title="{document.fileName}"></iframe>
+  {#else}
+  <div class="no-preview">
+    <svg viewBox="0 0 32 32" width="48" height="48" fill="currentColor"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/></svg>
+    <p>Vorschau nicht verfügbar</p>
+    <p style="font-size: 0.75rem;">{document.fileContentType}</p>
+  </div>
+  {/if}
+</div>
+<div class="preview-actions">
+  <cds-button href="/belege/{document.id}/download" target="_blank" kind="secondary" style="height: 36px; font-size: 0.8rem;">
+    In neuem Tab öffnen
+    <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 28H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v2H6v20h20V16h2v10a2 2 0 0 1-2 2z"/><path d="M20 2v2h6.586L18 12.586 19.414 14 28 5.414V12h2V2H20z"/></svg>
+  </cds-button>
+</div>

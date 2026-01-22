@@ -4,13 +4,13 @@ on:
   push:
     branches: [ main, deploy ]
     paths:
-      - 'app.hopps.az-document-ai/**'
+      - 'app.fuggs.az-document-ai/**'
       - '.github/workflows/az-document-ai-service.yml'
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: app.hopps.az-document-ai
+    working-directory: app.fuggs.az-document-ai
 
 jobs:
   build:
@@ -47,8 +47,8 @@ jobs:
         run: |
           ./mvnw -B sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=hopps-app \
-            -Dsonar.projectKey=hopps-app_hopps-document-ai
+            -Dsonar.organization=fuggs-app \
+            -Dsonar.projectKey=fuggs-app_fuggs-document-ai
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -61,12 +61,12 @@ jobs:
         if: ${{ success() }}
         uses: docker/build-push-action@v6
         with:
-          context: app.hopps.az-document-ai
+          context: app.fuggs.az-document-ai
           push: true
-          file: app.hopps.az-document-ai/src/main/docker/Dockerfile.jvm
+          file: app.fuggs.az-document-ai/src/main/docker/Dockerfile.jvm
           tags: |
-            ghcr.io/hopps-app/az-document-ai-service:latest
-            ghcr.io/hopps-app/az-document-ai-service:${{ github.run_number }}
+            ghcr.io/fuggs-app/az-document-ai-service:latest
+            ghcr.io/fuggs-app/az-document-ai-service:${{ github.run_number }}
 
       - name: Trigger deploy workflow
         uses: actions/github-script@v8
@@ -75,8 +75,8 @@ jobs:
           github-token: ${{ secrets.TECHNICAL_USER_PAT }}
           script: |
             const result = await github.rest.actions.createWorkflowDispatch({
-              owner: 'hopps-app',
-              repo: 'hopps.cloud',
+              owner: 'fuggs-app',
+              repo: 'fuggs.cloud',
               workflow_id: 'deploy.yml',
               ref: 'main',
               inputs: {

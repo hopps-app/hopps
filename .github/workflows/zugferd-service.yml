@@ -4,13 +4,13 @@ on:
   push:
     branches: [ main, deploy ]
     paths:
-      - 'app.hopps.zugferd/**'
+      - 'app.fuggs.zugferd/**'
       - '.github/workflows/zugferd-service.yml'
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: app.hopps.zugferd
+    working-directory: app.fuggs.zugferd
 
 jobs:
   build:
@@ -47,8 +47,8 @@ jobs:
         run: |
           ./mvnw -B sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=hopps-app \
-            -Dsonar.projectKey=hopps-app_zugferd
+            -Dsonar.organization=fuggs-app \
+            -Dsonar.projectKey=fuggs-app_zugferd
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -61,12 +61,12 @@ jobs:
         if: ${{ success() }}
         uses: docker/build-push-action@v6
         with:
-          context: app.hopps.zugferd
+          context: app.fuggs.zugferd
           push: true
-          file: app.hopps.zugferd/src/main/docker/Dockerfile.jvm
+          file: app.fuggs.zugferd/src/main/docker/Dockerfile.jvm
           tags: |
-            ghcr.io/hopps-app/zugferd-service:latest
-            ghcr.io/hopps-app/zugferd-service:${{ github.run_number }}
+            ghcr.io/fuggs-app/zugferd-service:latest
+            ghcr.io/fuggs-app/zugferd-service:${{ github.run_number }}
 
       - name: Trigger deploy workflow
         uses: actions/github-script@v8
@@ -75,8 +75,8 @@ jobs:
           github-token: ${{ secrets.TECHNICAL_USER_PAT }}
           script: |
             const result = await github.rest.actions.createWorkflowDispatch({
-              owner: 'hopps-app',
-              repo: 'hopps.cloud',
+              owner: 'fuggs-app',
+              repo: 'fuggs.cloud',
               workflow_id: 'deploy.yml',
               ref: 'main',
               inputs: {

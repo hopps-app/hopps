@@ -1,0 +1,287 @@
+{#include main.html}
+{#title}Beleg prüfen - Fuggs Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  /* Visibility states */
+  .review-form { display: none; }
+  .review-form.visible { display: block; }
+
+  /* Split Layout */
+  .review-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cds-spacing-05);
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .review-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+  .document-preview-panel {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
+  }
+  .document-preview-panel .box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 500px;
+  }
+  .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--cds-spacing-04);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    margin-bottom: var(--cds-spacing-04);
+  }
+  .preview-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .preview-header .file-info {
+    font-size: 0.75rem;
+    color: #525252;
+  }
+  .document-viewer {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #262626;
+    border-radius: 4px;
+    overflow: hidden;
+    min-height: 400px;
+  }
+  .document-viewer img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .document-viewer iframe,
+  .document-viewer object {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    border: none;
+  }
+  .form-panel {
+    min-width: 0;
+  }
+</style>
+{/moreStyles}
+
+{#moreScripts}
+<script>
+  var analysisComplete = {document.isAnalysisComplete};
+  var documentId = {document.id};
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var loadingContainer = document.getElementById('loadingContainer');
+    var reviewForm = document.getElementById('reviewForm');
+    var loadingElapsed = document.getElementById('loadingElapsed');
+    var startTime = Date.now();
+
+    if (analysisComplete) {
+      loadingContainer.style.display = 'none';
+      reviewForm.classList.add('visible');
+    } else {
+      pollAnalysisStatus();
+      updateElapsedTime();
+    }
+
+    function updateElapsedTime() {
+      var elapsed = Math.floor((Date.now() - startTime) / 1000);
+      if (elapsed < 60) {
+        loadingElapsed.textContent = elapsed + ' Sekunde' + (elapsed !== 1 ? 'n' : '') + ' vergangen';
+      } else {
+        var minutes = Math.floor(elapsed / 60);
+        var seconds = elapsed % 60;
+        loadingElapsed.textContent = minutes + ' Minute' + (minutes !== 1 ? 'n' : '') + ' ' + seconds + ' Sekunden vergangen';
+      }
+      if (!analysisComplete) {
+        setTimeout(updateElapsedTime, 1000);
+      }
+    }
+
+    function pollAnalysisStatus() {
+      fetch('/belege/' + documentId + '/analysis-status')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+          if (data.complete) {
+            window.location.reload();
+          } else {
+            setTimeout(pollAnalysisStatus, 1000);
+          }
+        })
+        .catch(function(error) {
+          console.error('Error checking analysis status:', error);
+          setTimeout(pollAnalysisStatus, 2000);
+        });
+    }
+  });
+</script>
+{/moreScripts}
+
+<div class="page-header">
+  <h1>
+    Beleg prüfen
+  </h1>
+  <cds-button href="/belege" kind="secondary">
+    Abbrechen
+    <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M10 16L20 6l1.4 1.4-8.6 8.6 8.6 8.6L20 26z"/></svg>
+  </cds-button>
+</div>
+
+<!-- Loading State -->
+<div class="box" id="loadingContainer" style="text-align: center; padding: 3rem 2rem;">
+  <cds-loading></cds-loading>
+  <h3 style="margin-top: 2rem;">KI analysiert Ihren Beleg...</h3>
+  <p style="color: var(--cds-text-secondary); margin-bottom: 1rem;">Wir extrahieren automatisch Betrag, Datum, Absender und weitere Informationen.</p>
+  <cds-inline-notification
+    kind="info"
+    subtitle="Dies kann einige Sekunden dauern"
+    hide-close-button
+    low-contrast
+    style="margin: 1rem auto; max-width: 600px;">
+  </cds-inline-notification>
+  <div class="loading-elapsed" id="loadingElapsed" style="margin-top: 1rem; color: var(--cds-text-secondary); font-size: 0.875rem;"></div>
+</div>
+
+<!-- Review Form (shown after analysis) -->
+<div class="review-form" id="reviewForm">
+  <div class="review-layout">
+    <!-- Document Preview Panel -->
+    <div class="document-preview-panel">
+      <div class="box">
+        <div class="preview-header">
+          <h3>
+            <svg viewBox="0 0 32 32" width="18" height="18" fill="currentColor"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/></svg>
+            {document.fileName}
+          </h3>
+          <span class="file-info">{document.displayFileSize}</span>
+        </div>
+        <div class="document-viewer">
+          {#if document.image}
+          <img src="/belege/{document.id}/view" alt="{document.fileName}">
+          {#else if document.pdf}
+          <iframe src="/belege/{document.id}/view#navpanes=0" title="{document.fileName}"></iframe>
+          {#else}
+          <div style="color: #a8a8a8; text-align: center; padding: 2rem;">
+            <svg viewBox="0 0 32 32" width="48" height="48" fill="currentColor" style="opacity: 0.5; margin-bottom: 1rem;"><path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/></svg>
+            <p>Vorschau nicht verfügbar</p>
+            <p style="font-size: 0.75rem;">{document.fileContentType}</p>
+          </div>
+          {/if}
+        </div>
+        <div class="preview-actions">
+          <cds-button href="/belege/{document.id}/download" target="_blank" kind="secondary" style="height: 36px; font-size: 0.8rem;">
+            In neuem Tab öffnen
+            <svg slot="icon" viewBox="0 0 32 32" width="14" height="14" fill="currentColor"><path d="M26 28H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10v2H6v20h20V16h2v10a2 2 0 0 1-2 2z"/><path d="M20 2v2h6.586L18 12.586 19.414 14 28 5.414V12h2V2H20z"/></svg>
+          </cds-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="form-panel">
+      <div class="box">
+        <div class="box-header">
+          <h3>
+            <cds-ai-label size="sm" autoalign alignment="bottom-left">
+              <div slot="body-text" class="ai-explainer">
+                <p class="secondary">KI-Erklärung</p>
+                <p class="secondary bold">Dokumentenanalyse</p>
+                <p class="secondary">Unsere KI analysiert hochgeladene Belege und extrahiert automatisch relevante Daten wie Beträge, Daten und Absenderinformationen.</p>
+              </div>
+            </cds-ai-label>
+            Erkannte Daten
+          </h3>
+        </div>
+
+        {#if document.analysisStatus.name == 'FAILED'}
+        <div class="analysis-error">
+          <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M15 8h2v11h-2zM15 21h2v3h-2z"/></svg>
+          <div class="analysis-error-content">
+            <h4>Analyse fehlgeschlagen</h4>
+            <p>Die automatische Analyse konnte nicht durchgeführt werden. Bitte füllen Sie die Felder manuell aus.</p>
+          </div>
+        </div>
+        {#else if document.analysisStatus.name == 'COMPLETED'}
+        <cds-inline-notification
+          kind="success"
+          title="Daten erfolgreich extrahiert"
+          subtitle="Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern. {#if document.displayExtractionSource}Extrahiert via {document.displayExtractionSource}.{/if}"
+          hide-close-button
+          low-contrast
+          style="margin-bottom: var(--cds-spacing-05);">
+        </cds-inline-notification>
+        {#else}
+        <cds-inline-notification
+          kind="info"
+          title="Manuelle Eingabe erforderlich"
+          subtitle="Bitte füllen Sie die Belegdaten manuell aus."
+          hide-close-button
+          low-contrast
+          style="margin-bottom: var(--cds-spacing-05);">
+        </cds-inline-notification>
+        {/if}
+
+        <form action="/belege/{document.id}/complete-review" method="POST" id="reviewFormElement">
+          {#authenticityToken /}
+          <input type="hidden" name="id" value="{document.id}">
+          <input type="hidden" name="confirmed" id="confirmed" value="true">
+          <input type="hidden" name="reanalyze" id="reanalyze" value="false">
+
+          {#include DocumentResource/partials/reviewFormFields document=document bommels=bommels /}
+
+          <div class="button-row" style="margin-top: var(--cds-spacing-07); gap: 0.5rem;">
+            <button type="submit" class="cds-btn cds-btn-primary">
+              Bestätigen & Speichern
+              <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>
+            </button>
+            {#if document.analysisStatus.name == 'COMPLETED'}
+            <cds-button kind="secondary" onclick="submitReanalyze()">
+              Erneut analysieren
+              <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M12 10H6.78A11 11 0 0 1 27 16h2A13 13 0 0 0 5 7.37V2H3v8h8zM20 22h5.22A11 11 0 0 1 5 16H3a13 13 0 0 0 24 8.63V30h2v-8h-8z"/></svg>
+            </cds-button>
+            <cds-button kind="secondary" onclick="submitManual()">
+              Manuell eingeben
+              <svg slot="icon" viewBox="0 0 32 32" width="16" height="16" fill="currentColor"><path d="M17 22v-8h-4v2h2v6h-3v2h8v-2h-3zM16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8z"/><path d="M16 30a14 14 0 1 1 14-14 14 14 0 0 1-14 14zm0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4z"/></svg>
+            </cds-button>
+            {/if}
+            <cds-button href="/belege" kind="secondary">Abbrechen</cds-button>
+          </div>
+        </form>
+
+        <script>
+          function submitReanalyze() {
+            document.getElementById('confirmed').value = 'false';
+            document.getElementById('reanalyze').value = 'true';
+            document.getElementById('reviewFormElement').submit();
+          }
+
+          function submitManual() {
+            document.getElementById('confirmed').value = 'false';
+            document.getElementById('reanalyze').value = 'false';
+            document.getElementById('reviewFormElement').submit();
+          }
+        </script>
+      </div>
+    </div>
+  </div>
+</div>
+
+{#flashNotifications /}
+
+{/include}

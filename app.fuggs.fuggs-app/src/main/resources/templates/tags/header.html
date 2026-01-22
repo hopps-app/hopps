@@ -1,0 +1,224 @@
+<cds-header aria-label="Fuggs Buchhaltung">
+  <cds-header-menu-button
+    button-label-active="Menü schließen"
+    button-label-inactive="Menü öffnen"
+    onclick="toggleSideNav()">
+  </cds-header-menu-button>
+  <cds-header-name href="/" prefix="">
+    <img src="/svg/logo.svg" alt="fuggs" style="height: 32px; width: auto;">
+  </cds-header-name>
+  <cds-header-global-bar>
+    {#if inject:organizationContext.isSuperAdmin()}
+    <cds-header-global-action
+      aria-label="Organisationen"
+      tooltip-text="Organisationen verwalten"
+      href="/organisationen">
+      <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
+        <path d="M21 2h-2v5h2V2zM11 2H9v5h2V2zM21 25h-2v5h2v-5zM11 25H9v5h2v-5zM2 11h5V9H2v2zM25 11h5V9h-5v2zM2 21h5v-2H2v2zM25 21h5v-2h-5v2z"/>
+        <rect x="9" y="9" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </cds-header-global-action>
+    {/if}
+    <cds-header-global-action
+      id="notificationButton"
+      aria-label="Benachrichtigungen"
+      tooltip-text="Benachrichtigungen"
+      onclick="togglePanel('notificationPanel')">
+      <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
+        <path d="M28.707 19.293L26 16.586V13a10.014 10.014 0 0 0-9-9.95V1h-2v2.05A10.014 10.014 0 0 0 6 13v3.586l-2.707 2.707A1 1 0 0 0 3 20v3a1 1 0 0 0 1 1h7v.777a5.152 5.152 0 0 0 4.5 5.199A5.006 5.006 0 0 0 21 25v-1h7a1 1 0 0 0 1-1v-3a1 1 0 0 0-.293-.707ZM19 25a3 3 0 0 1-6 0v-1h6Zm8-3H5v-1.586l2.707-2.707A1 1 0 0 0 8 17v-4a8 8 0 0 1 16 0v4a1 1 0 0 0 .293.707L27 20.414Z"/>
+      </svg>
+    </cds-header-global-action>
+    <cds-header-global-action
+      id="profileButton"
+      aria-label="Profil"
+      tooltip-text="Profil"
+      onclick="togglePanel('profilePanel')">
+      <svg slot="icon" viewBox="0 0 32 32" width="20" height="20">
+        <path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z"/>
+      </svg>
+    </cds-header-global-action>
+  </cds-header-global-bar>
+</cds-header>
+
+<!-- Notification Panel -->
+<div id="notificationPanel" class="header-panel">
+  <div class="panel-header">
+    <h3 class="panel-title">
+      Benachrichtigungen
+      <span class="bald-tag">
+        <svg viewBox="0 0 32 32" width="12" height="12">
+          <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
+          <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
+        </svg>
+        Bald
+      </span>
+    </h3>
+  </div>
+  <div class="panel-content">
+    <!-- Notification 1: New document uploaded -->
+    <div class="notification-item">
+      <div class="notification-icon">
+        <svg viewBox="0 0 32 32">
+          <path d="M25.7 9.3l-7-7A.91.91 0 0 0 18 2H8a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a.91.91 0 0 0-.3-.7ZM18 4.4l5.6 5.6H18ZM24 28H8V4h8v6a2 2 0 0 0 2 2h6Z"/>
+        </svg>
+      </div>
+      <div class="notification-content">
+        <div class="notification-title">Neuer Beleg hochgeladen</div>
+        <div class="notification-message">Rechnung_2024_001.pdf wurde erfolgreich analysiert</div>
+        <div class="notification-time">Vor 2 Stunden</div>
+      </div>
+    </div>
+    <!-- Notification 2: Pending review -->
+    <div class="notification-item">
+      <div class="notification-icon">
+        <svg viewBox="0 0 32 32">
+          <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
+          <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
+        </svg>
+      </div>
+      <div class="notification-content">
+        <div class="notification-title">Prüfung ausstehend</div>
+        <div class="notification-message">3 Belege warten auf Ihre Bestätigung</div>
+        <div class="notification-time">Vor 1 Tag</div>
+      </div>
+    </div>
+    <!-- Notification 3: Transaction created -->
+    <div class="notification-item">
+      <div class="notification-icon">
+        <svg viewBox="0 0 32 32">
+          <path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/>
+          <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
+        </svg>
+      </div>
+      <div class="notification-content">
+        <div class="notification-title">Transaktion erstellt</div>
+        <div class="notification-message">Neue Buchung für Büromaterial wurde angelegt</div>
+        <div class="notification-time">Vor 3 Tagen</div>
+      </div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <a href="#" onclick="alert('Bald verfügbar'); return false;">Alle Benachrichtigungen anzeigen</a>
+  </div>
+</div>
+
+
+<!-- Profile Panel -->
+<div id="profilePanel" class="header-panel">
+  <div class="profile-section">
+    <div class="profile-info">
+      <div class="profile-avatar">
+        {inject:userContext.firstLetter}
+      </div>
+      <div class="profile-details">
+        <div class="profile-name">{inject:userContext.username ?: 'Benutzer'}</div>
+        <div class="profile-email">{inject:userContext.email ?: 'benutzer@fuggs.local'}</div>
+      </div>
+    </div>
+    {#if inject:userContext.roles.size() > 0}
+    <div class="profile-roles">
+      {#for role in inject:userContext.roles}
+      <span class="profile-role">{role}</span>
+      {/for}
+    </div>
+    {/if}
+  </div>
+
+  <ul class="profile-menu">
+    <li>
+      <a href="#" class="profile-menu-item" onclick="alert('Bald verfügbar'); return false;">
+        <svg viewBox="0 0 32 32">
+          <path d="M16 4a5 5 0 1 1-5 5 5 5 0 0 1 5-5m0-2a7 7 0 1 0 7 7 7 7 0 0 0-7-7ZM26 30h-2v-5a5 5 0 0 0-5-5h-6a5 5 0 0 0-5 5v5H6v-5a7 7 0 0 1 7-7h6a7 7 0 0 1 7 7Z"/>
+        </svg>
+        Profil bearbeiten
+        <span class="bald-tag">
+          <svg viewBox="0 0 32 32" width="12" height="12">
+            <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
+            <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
+          </svg>
+          Bald
+        </span>
+      </a>
+    </li>
+    <li>
+      <a href="#" class="profile-menu-item" onclick="alert('Bald verfügbar'); return false;">
+        <svg viewBox="0 0 32 32">
+          <path d="M28 16a12 12 0 0 0-.8-4.3l1.8-.7a14.2 14.2 0 0 1 0 10l-1.8-.7A12 12 0 0 0 28 16ZM16 28a12 12 0 0 1-4.3-.8l-.7 1.8a14.2 14.2 0 0 0 10 0l-.7-1.8A12 12 0 0 1 16 28ZM4 16a12 12 0 0 1 .8-4.3l-1.8-.7a14.2 14.2 0 0 0 0 10l1.8-.7A12 12 0 0 1 4 16ZM16 4a12 12 0 0 1 4.3.8l.7-1.8a14.2 14.2 0 0 0-10 0l.7 1.8A12 12 0 0 1 16 4Z"/>
+          <path d="M16 24a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm0-14a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"/>
+        </svg>
+        Einstellungen
+        <span class="bald-tag">
+          <svg viewBox="0 0 32 32" width="12" height="12">
+            <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/>
+            <path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/>
+          </svg>
+          Bald
+        </span>
+      </a>
+    </li>
+  </ul>
+
+  <div class="panel-footer">
+    <a href="/logout">
+      <svg viewBox="0 0 32 32" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 0.5rem;">
+        <path d="M6 30h12a2 2 0 0 0 2-2v-3h-2v3H6V4h12v3h2V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v24a2 2 0 0 0 2 2Z"/>
+        <path d="M20.586 20.586L24.172 17H10v-2h14.172l-3.586-3.586L22 10l6 6-6 6-1.414-1.414z"/>
+      </svg>
+      Abmelden
+    </a>
+  </div>
+</div>
+
+<script>
+  // Panel management
+  let currentPanel = null;
+
+  function togglePanel(panelId) {
+    const panel = document.getElementById(panelId);
+
+    // Close other panels first
+    if (currentPanel && currentPanel !== panel) {
+      currentPanel.classList.remove('active');
+      currentPanel.style.display = 'none';
+    }
+
+    // Toggle current panel
+    if (panel.classList.contains('active')) {
+      panel.classList.remove('active');
+      panel.style.display = 'none';
+      currentPanel = null;
+    } else {
+      panel.classList.add('active');
+      panel.style.display = 'block';
+      currentPanel = panel;
+    }
+  }
+
+  // Close panels when clicking outside
+  document.addEventListener('click', function(event) {
+    if (!currentPanel) return;
+
+    const notificationButton = document.getElementById('notificationButton');
+    const profileButton = document.getElementById('profileButton');
+
+    // Check if click is outside panel and buttons
+    const clickedInside = currentPanel.contains(event.target) ||
+                         notificationButton.contains(event.target) ||
+                         profileButton.contains(event.target);
+
+    if (!clickedInside) {
+      currentPanel.classList.remove('active');
+      currentPanel.style.display = 'none';
+      currentPanel = null;
+    }
+  });
+
+  // Close panels on escape key
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && currentPanel) {
+      currentPanel.classList.remove('active');
+      currentPanel.style.display = 'none';
+      currentPanel = null;
+    }
+  });
+</script>

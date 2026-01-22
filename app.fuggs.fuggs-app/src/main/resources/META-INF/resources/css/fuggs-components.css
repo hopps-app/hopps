@@ -1,0 +1,401 @@
+/* Fuggs Components - Forms, Buttons, Tags, File Upload, Status Badges */
+
+/* Form Styles */
+.form-section {
+  margin-bottom: var(--cds-spacing-07);
+}
+
+.form-section h3 {
+  margin-top: 0;
+  margin-bottom: var(--cds-spacing-05);
+  padding-bottom: var(--cds-spacing-03);
+  border-bottom: 1px solid var(--cds-border-subtle-01);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: start;
+}
+
+/* Ensure Carbon web components display labels properly */
+.form-row cds-text-input,
+.form-row cds-number-input,
+.form-row cds-select,
+.form-row cds-date-picker,
+.form-row cds-textarea,
+.form-row cds-checkbox {
+  display: block;
+  width: 100%;
+  min-height: 56px; /* Minimum height to accommodate label + input */
+}
+
+/* Force Carbon select to show label */
+cds-select {
+  display: inline-block;
+  width: 100%;
+}
+
+/* Force Carbon date-picker to show label */
+cds-date-picker {
+  display: block;
+  width: 100%;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
+  letter-spacing: 0.32px;
+  color: var(--cds-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select {
+  height: 40px;
+  padding: 0 1rem;
+  border: none;
+  border-bottom: 1px solid #8d8d8d;
+  background-color: var(--cds-layer-01);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-bottom: 2px solid var(--cds-link-primary);
+}
+
+.form-group.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group.checkbox input {
+  width: 20px;
+  height: 20px;
+}
+
+/* Button Styles */
+.button-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: var(--cds-spacing-05);
+}
+
+/* Default button spacing - ensures buttons always have proper margins */
+cds-button {
+  margin-top: var(--cds-spacing-05);
+}
+
+/* Button next to another button - horizontal spacing */
+cds-button + cds-button {
+  margin-left: var(--cds-spacing-05);
+}
+
+/* Button after form inputs - add top margin */
+cds-text-input + cds-button,
+cds-number-input + cds-button,
+cds-select + cds-button,
+cds-dropdown + cds-button,
+cds-date-picker + cds-button,
+cds-textarea + cds-button,
+cds-checkbox + cds-button {
+  margin-top: var(--cds-spacing-05);
+}
+
+/* Buttons in forms with flex/grid layouts - prevent margin collapse */
+form cds-button {
+  margin-top: var(--cds-spacing-05);
+}
+
+/* Button rows override - when explicitly using .button-row class */
+.button-row cds-button {
+  margin-top: 0; /* Reset since parent handles spacing */
+  margin-left: 0; /* Reset since parent handles spacing */
+}
+
+/* Native Button Styles (for form submission compatibility) */
+button.cds-btn {
+  height: 48px;
+  padding: 0 1rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Reset margin when native button is in a button-row */
+.button-row button.cds-btn {
+  margin-top: 0;
+}
+
+button.cds-btn-primary {
+  background-color: #9058c5 !important;
+  color: white;
+}
+
+button.cds-btn-primary:hover {
+  background-color: #7d4ab5 !important;
+}
+
+button.cds-btn-secondary {
+  background-color: #393939;
+  color: white;
+}
+
+button.cds-btn-secondary:hover {
+  background-color: #4c4c4c;
+}
+
+button.cds-btn-danger {
+  background-color: #da1e28;
+  color: white;
+}
+
+button.cds-btn-danger:hover {
+  background-color: #b81921;
+}
+
+button.cds-btn:disabled {
+  background-color: #c6c6c6;
+  color: #8d8d8d;
+  cursor: not-allowed;
+}
+
+/* Size variants */
+button.cds-btn[size="sm"] {
+  height: 32px;
+  font-size: 0.75rem;
+  padding: 0 0.75rem;
+}
+
+/* Tag Input Styles */
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding: 0.5rem;
+  background: var(--cds-layer-01);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.tag-container:empty::before {
+  content: 'Keine Tags vorhanden';
+  color: #8d8d8d;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.tag-container cds-tag {
+  --cds-layout-size-height: 2rem;
+}
+
+.tag-container cds-tag[type="blue"] {
+  background: rgba(144, 88, 197, 0.1);  /* Fuggs purple with 10% opacity */
+  border-color: var(--cds-link-primary);
+}
+
+.tag-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.tag-text-input {
+  flex: 1;
+  height: 40px;
+  padding: 0 1rem;
+  border: none;
+  border-bottom: 1px solid #8d8d8d;
+  background-color: var(--cds-layer-01);
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.tag-text-input:focus {
+  border-bottom: 2px solid var(--cds-link-primary);
+}
+
+.tag-add-btn {
+  height: 40px;
+  padding: 0 1rem;
+  border: none;
+  background: var(--cds-link-primary);
+  color: white;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.tag-add-btn:hover {
+  background: var(--cds-link-primary-hover);
+}
+
+.tag-add-btn:disabled {
+  background: #c6c6c6;
+  cursor: not-allowed;
+}
+
+.tag-hint {
+  font-size: 0.75rem;
+  color: var(--cds-text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Document Preview Styles */
+.preview-container {
+  background: #262626;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  max-height: 80vh;
+}
+
+.preview-container img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.preview-container iframe,
+.preview-container object {
+  width: 100%;
+  height: 70vh;
+  border: none;
+}
+
+.preview-container .no-preview {
+  color: #a8a8a8;
+  text-align: center;
+  padding: 2rem;
+}
+
+.preview-container .no-preview svg {
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+.preview-container .no-preview p {
+  margin: 0.25rem 0;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: var(--cds-spacing-04);
+}
+
+/* File Section Styles */
+.file-section {
+  background: var(--cds-layer-01);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.file-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cds-link-primary);
+  border-radius: 4px;
+  color: white;
+}
+
+.file-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.file-details {
+  flex: 1;
+}
+
+.file-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.file-meta {
+  font-size: 0.75rem;
+  color: var(--cds-text-secondary);
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.file-upload input[type="file"] {
+  height: auto;
+  padding: 0.5rem;
+  border: 1px dashed #8d8d8d;
+  background-color: var(--cds-layer-02);
+  cursor: pointer;
+}
+
+.file-upload input[type="file"]:hover {
+  border-color: var(--cds-link-primary);
+  background-color: #e8f0fe;
+}
+
+.file-hint {
+  font-size: 0.75rem;
+  color: var(--cds-text-secondary);
+}
+
+/* Danger Zone */
+.danger-zone {
+  border: 1px solid #da1e28;
+  background: #fff1f1;
+  padding: var(--cds-spacing-05);
+}
+
+.danger-zone h3 {
+  color: #da1e28;
+  border-bottom-color: #da1e28;
+}

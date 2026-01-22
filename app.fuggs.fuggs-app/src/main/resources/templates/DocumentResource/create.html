@@ -1,0 +1,375 @@
+{#include main.html}
+{#title}Beleg hochladen - Fuggs Buchhaltung{/title}
+
+{#moreStyles}
+<style>
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--cds-spacing-05);
+  }
+  .page-header h1 {
+    margin: 0;
+  }
+  .upload-container {
+    max-width: 600px;
+  }
+  .upload-intro {
+    margin-bottom: var(--cds-spacing-07);
+    color: var(--cds-text-secondary);
+  }
+  .upload-intro p {
+    margin: 0 0 0.5rem 0;
+  }
+  .form-section {
+    margin-bottom: var(--cds-spacing-07);
+  }
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: var(--cds-spacing-05);
+    padding-bottom: var(--cds-spacing-03);
+    border-bottom: 1px solid var(--cds-border-subtle-01);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+  }
+  .form-group label {
+    font-size: 0.875rem;
+    color: #525252;
+  }
+  .form-group select {
+    height: 40px;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    background-color: #f4f4f4;
+    font-size: 0.875rem;
+    outline: none;
+  }
+  .form-group select:focus {
+    border-bottom: 2px solid #0f62fe;
+  }
+  .button-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: var(--cds-spacing-07);
+  }
+  button.cds-btn,
+  a.cds-btn {
+    height: 48px;
+    padding: 0 1.5rem;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  button.cds-btn-primary {
+    background-color: var(--fuggs-primary, #9058c5);
+    color: white;
+  }
+  button.cds-btn-primary:hover {
+    background-color: var(--fuggs-primary-hover, #7d4ab5);
+  }
+  button.cds-btn-primary:active {
+    background-color: var(--fuggs-primary-active, #6a3d9f);
+  }
+  button.cds-btn-primary:disabled {
+    background-color: #c6c6c6;
+    cursor: not-allowed;
+  }
+  /* Loading state for submit button */
+  button.cds-btn-primary.loading {
+    background-color: var(--fuggs-primary-hover, #7d4ab5);
+    pointer-events: none;
+  }
+  .btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: btn-spin 0.8s linear infinite;
+  }
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
+  /* Upload overlay */
+  .upload-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(22, 22, 22, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .upload-overlay.visible {
+    display: flex;
+  }
+  .upload-modal {
+    background: white;
+    padding: 2rem 3rem;
+    border-radius: 4px;
+    text-align: center;
+    max-width: 400px;
+  }
+  .upload-modal-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #0f62fe;
+    border-radius: 50%;
+    animation: btn-spin 0.8s linear infinite;
+    margin: 0 auto 1.5rem;
+  }
+  .upload-modal h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .upload-modal p {
+    margin: 0;
+    color: #525252;
+    font-size: 0.875rem;
+  }
+  .upload-modal .upload-steps {
+    margin-top: 1.5rem;
+    text-align: left;
+  }
+  .upload-modal .upload-step {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: #525252;
+    font-size: 0.875rem;
+  }
+  .upload-modal .upload-step.active {
+    color: #0f62fe;
+    font-weight: 500;
+  }
+  .upload-modal .upload-step.done {
+    color: #0e6027;
+  }
+  .upload-modal .upload-step svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+  .upload-modal .step-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e0e0e0;
+    border-top-color: #0f62fe;
+    border-radius: 50%;
+    animation: btn-spin 0.8s linear infinite;
+  }
+  a.cds-btn-secondary {
+    background-color: #393939;
+    color: white;
+  }
+  a.cds-btn-secondary:hover {
+    background-color: #4c4c4c;
+  }
+  .ai-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #e8daff 0%, #d4bbff 100%);
+    border-radius: 4px;
+    margin-top: var(--cds-spacing-05);
+  }
+  .ai-info svg {
+    width: 20px;
+    height: 20px;
+    fill: #6929c4;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .ai-info-content h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6929c4;
+  }
+  .ai-info-content p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #491d8b;
+  }
+</style>
+{/moreStyles}
+
+{#moreScripts}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Document loaded, initializing file uploader...');
+
+    var fileInput = document.getElementById('file');
+    var submitBtn = document.getElementById('submitBtn');
+    var uploadForm = document.getElementById('uploadForm');
+    var uploadOverlay = document.getElementById('uploadOverlay');
+
+    console.log('Elements found:', { fileInput: !!fileInput, submitBtn: !!submitBtn, uploadForm: !!uploadForm });
+
+    // Enable submit button when file is selected
+    if (fileInput && submitBtn) {
+      fileInput.addEventListener('change', function() {
+        console.log('File input changed, files:', fileInput.files.length);
+        if (fileInput.files.length > 0) {
+          console.log('Enabling submit button');
+          submitBtn.disabled = false;
+        } else {
+          console.log('Disabling submit button');
+          submitBtn.disabled = true;
+        }
+      });
+      console.log('File input change listener attached');
+    } else {
+      console.error('Could not find fileInput or submitBtn elements');
+    }
+
+    // Handle form submission with loading state
+    if (uploadForm) {
+      uploadForm.addEventListener('submit', function(e) {
+        // Show loading overlay
+        if (uploadOverlay) {
+          uploadOverlay.classList.add('visible');
+        }
+
+        // Update button to loading state
+        if (submitBtn) {
+          submitBtn.classList.add('loading');
+          submitBtn.innerHTML = '<span class="btn-spinner"></span> Wird hochgeladen...';
+        }
+
+        // Animate through steps
+        var steps = document.querySelectorAll('.upload-step');
+        if (steps.length > 0) {
+          steps[0].classList.add('active');
+
+          setTimeout(function() {
+            steps[0].classList.remove('active');
+            steps[0].classList.add('done');
+            var spinner = steps[0].querySelector('.step-spinner');
+            if (spinner) {
+              spinner.outerHTML = '<svg viewBox="0 0 32 32"><path d="M14 21.414l-5-5.001L10.413 15 14 18.586 21.585 11 23 12.415l-9 8.999z"/></svg>';
+            }
+            if (steps.length > 1) {
+              steps[1].classList.add('active');
+            }
+          }, 800);
+        }
+      });
+    }
+  });
+</script>
+{/moreScripts}
+
+<div class="page-header">
+  <h1>Beleg hochladen</h1>
+</div>
+
+<div class="box upload-container">
+  <div class="upload-intro">
+    <p>Laden Sie einen Beleg hoch. Die KI analysiert das Dokument automatisch und extrahiert die wichtigsten Daten.</p>
+  </div>
+
+  <form id="uploadForm" action="/belege/upload" method="POST" enctype="multipart/form-data">
+    {#authenticityToken /}
+
+    <div class="form-section">
+      <h3>Datei hochladen</h3>
+      <!--
+        NOTE: We use a native HTML file input instead of Carbon's cds-file-uploader component.
+
+        Carbon's cds-file-uploader has several issues:
+        1. Requires nested cds-file-drop-container structure that's not well documented
+        2. Throws "Cannot set properties of null (setting 'disabled')" errors in console
+        3. Event names are inconsistent (cds-file-uploader-button-changed vs cds-file-uploader-changed)
+        4. Complex setup with minimal benefit for a simple single-file upload
+
+        The native input provides:
+        - Better reliability and browser compatibility
+        - Simpler event handling (standard 'change' event)
+        - No dependency on Carbon web components CDN
+        - Full form integration without additional JavaScript
+
+        If you need to add the Carbon uploader in the future, ensure:
+        - Load both file-uploader.min.js AND file-drop-container.min.js from CDN
+        - Use proper nested structure: <cds-file-uploader><cds-file-drop-container>...</cds-file-drop-container></cds-file-uploader>
+        - Listen for 'cds-file-uploader-button-changed' event (not 'cds-file-uploader-changed')
+      -->
+      <input type="file"
+             id="file"
+             name="file"
+             accept=".pdf,.png,.jpg,.jpeg,.gif,.webp"
+             required
+             style="display: block; margin: 1rem 0; padding: 0.5rem; border: 1px solid #8d8d8d; background: #f4f4f4;" />
+      <p style="color: #525252; font-size: 0.875rem; margin-top: 0.5rem;">
+        Unterstützte Formate: PDF, PNG, JPG, GIF, WebP
+      </p>
+    </div>
+
+    <div class="ai-info">
+      <svg viewBox="0 0 32 32"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/><path d="M16 8a1.5 1.5 0 1 0 1.5 1.5A1.5 1.5 0 0 0 16 8ZM16 13a1 1 0 0 0-1 1v8a1 1 0 0 0 2 0v-8a1 1 0 0 0-1-1Z"/></svg>
+      <div class="ai-info-content">
+        <h4>KI-gestützte Analyse</h4>
+        <p>Nach dem Hochladen analysiert unsere KI den Beleg und schlägt automatisch Werte für Betrag, Datum, Absender und weitere Felder vor. Sie können alle Vorschläge vor dem Speichern prüfen und anpassen.</p>
+      </div>
+    </div>
+
+    <div class="button-row">
+      <button type="submit" id="submitBtn" class="cds-btn cds-btn-primary" disabled>
+        Hochladen & Analysieren
+        <svg viewBox="0 0 32 32" width="16" height="16" fill="currentColor" style="margin-left: 0.5rem;"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zM6 12l1.41 1.41L15 5.83V24h2V5.83l7.59 7.58L26 12 16 2 6 12z"/></svg>
+      </button>
+      <a href="/belege" class="cds-btn cds-btn-secondary">Abbrechen</a>
+    </div>
+  </form>
+</div>
+
+<!-- Upload Loading Overlay -->
+<div id="uploadOverlay" class="upload-overlay">
+  <div class="upload-modal">
+    <div class="upload-modal-spinner"></div>
+    <h3>Beleg wird verarbeitet</h3>
+    <p>Bitte warten Sie, während Ihr Dokument hochgeladen und analysiert wird.</p>
+    <div class="upload-steps">
+      <div class="upload-step">
+        <span class="step-spinner"></span>
+        <span>Datei wird hochgeladen</span>
+      </div>
+      <div class="upload-step">
+        <span class="step-spinner"></span>
+        <span>KI analysiert Beleg</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{#if flash:error}
+  <cds-inline-notification
+    kind="error"
+    title="Fehler"
+    subtitle="{flash:error}"
+    style="position: fixed; bottom: 1rem; right: 1rem;">
+  </cds-inline-notification>
+{/if}
+
+{/include}
