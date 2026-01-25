@@ -23,9 +23,6 @@ jobs:
           - key: "hopps-app_zugferd"
             folder: "app.hopps.zugferd"
             label: "ZUGFeRD"
-          - key: "hopps-app_mail-service"
-            folder: "app.hopps.mailservice"
-            label: "Mail-Service"
 
     steps:
       - uses: actions/checkout@v4

@@ -65,9 +65,6 @@ Dokumentenanalyse mit Azure Document Intelligence (OCR, Datenextraktion)
 #### app.hopps.zugferd (Port 8103)
 ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 
-#### app.hopps.mailservice
-E-Mail-Benachrichtigungsservice (aktuell deaktiviert)
-
 ### Datenbank Setup
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)

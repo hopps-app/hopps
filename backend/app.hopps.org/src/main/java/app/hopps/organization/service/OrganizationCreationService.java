@@ -74,8 +74,5 @@ public class OrganizationCreationService {
         LOG.debug("Persisting organization entities");
         persistenceDelegate.persistOrg(organization, owner);
         LOG.info("Successfully created organization: {} ({})", organization.getName(), organization.getSlug());
-
-        // Note: Email notifications are currently not implemented (former NoopDelegate)
-        // TODO: Implement email notifications when mailservice is available
     }
 }
