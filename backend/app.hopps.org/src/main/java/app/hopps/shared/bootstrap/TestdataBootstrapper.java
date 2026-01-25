@@ -63,8 +63,12 @@ public class TestdataBootstrapper {
         loadTestdata();
     }
 
+    /**
+     * Loads testdata from the YAML configuration file. This method can be called from tests after Flyway clean/migrate
+     * operations to restore the test data state.
+     */
     @Transactional
-    void loadTestdata() {
+    public void loadTestdata() {
         try {
             Optional<TestdataConfig> configOpt = loadConfiguration();
 

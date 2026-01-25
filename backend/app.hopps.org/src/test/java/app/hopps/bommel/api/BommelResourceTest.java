@@ -58,6 +58,7 @@ class BommelResourceTest {
     void createBommelSuccessfully() {
         var bommels = resourceCreator.setupSimpleTree();
         var parent = bommels.getLast();
+        var initialCount = bommelRepo.count();
 
         given()
                 .body("{ \"name\": \"Test bommel\", \"emoji\": \"\", \"parent\": { \"id\":" + parent.id + "} }")
@@ -68,7 +69,7 @@ class BommelResourceTest {
                 .statusCode(201)
                 .body("id", notNullValue());
 
-        assertEquals(bommels.size() + 1, bommelRepo.count());
+        assertEquals(initialCount + 1, bommelRepo.count());
     }
 
     @Test

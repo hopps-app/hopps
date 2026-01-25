@@ -1,6 +1,7 @@
 package app.hopps.transaction.api;
 
 import app.hopps.document.domain.DocumentType;
+import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import app.hopps.transaction.domain.TransactionRecord;
 import app.hopps.transaction.repository.TransactionRecordRepository;
 import io.quarkus.panache.common.Page;
@@ -31,12 +32,16 @@ class TransactionRecordResourceTest {
     @Inject
     Flyway flyway;
 
+    @Inject
+    TestdataBootstrapper testdataBootstrapper;
+
     KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
     @BeforeEach
     void setup() {
         flyway.clean();
         flyway.migrate();
+        testdataBootstrapper.loadTestdata();
         setupTestData();
     }
 

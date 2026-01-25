@@ -5,6 +5,7 @@ import app.hopps.bommel.domain.TreeSearchBommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
+import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.narayana.jta.QuarkusTransactionException;
 import io.quarkus.test.TestTransaction;
@@ -13,7 +14,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import org.flywaydb.core.Flyway;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,6 +39,9 @@ class BommelTest {
 
     @Inject
     Flyway flyway;
+
+    @Inject
+    TestdataBootstrapper testdataBootstrapper;
 
     @BeforeEach
     @Transactional
@@ -117,6 +120,7 @@ class BommelTest {
         // Arrange
         flyway.clean();
         flyway.migrate();
+        testdataBootstrapper.loadTestdata();
 
         // bommel with id=2 is root
         // id=4 is child of id=2
@@ -384,17 +388,15 @@ class BommelTest {
     @Test
     void shouldNotCascadeParent() {
         // given
-        Bommel parent = Instancio.create(Bommel.class);
-        parent.id = null;
+        Bommel parent = new Bommel();
+        parent.setName("Parent bommel");
         parent.setParent(null);
-        parent.getOrganization().id = null;
 
-        Bommel child = Instancio.create(Bommel.class);
-        child.id = null;
+        Bommel child = new Bommel();
+        child.setName("Child bommel");
         child.setParent(parent);
-        child.setOrganization(null);
 
-        // when
+        // when - persisting child should not cascade to parent
         QuarkusTransaction.begin();
         repo.persist(child);
         assertThrows(QuarkusTransactionException.class, QuarkusTransaction::commit);

@@ -2,8 +2,6 @@ package app.hopps.organization.domain;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
-import app.hopps.organization.domain.Address;
-import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.narayana.jta.QuarkusTransactionException;
@@ -15,12 +13,10 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
-import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.not;
@@ -58,11 +54,10 @@ class OrganizationTests {
     void shouldPersistVerein() {
 
         // given
-        Organization organization = Instancio.create(Organization.class);
-        organization.setId(null);
-        organization.setSlug("i-am-a-valid-slug");
-        organization.setMembers(Collections.emptySet());
-        organization.setRootBommel(null);
+        Organization organization = new Organization();
+        organization.setName("Test Verein");
+        organization.setSlug("test-verein");
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
 
         // when
         organizationRepository.persist(organization);
@@ -77,22 +72,26 @@ class OrganizationTests {
     @TestTransaction
     void shouldHaveEmbeddedAddress() {
 
-        // Caveat: @TestTransaction will not trigger the Hibernate Validation
-
         // given
-        Organization organization = Instancio.create(Organization.class);
-        organization.setId(null);
-        organization.setMembers(Collections.emptySet());
-        organization.setSlug("i-am-a-valid-slug");
-        organization.setRootBommel(null);
+        Organization organization = new Organization();
+        organization.setName("Test Verein");
+        organization.setSlug("test-verein");
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+
+        Address address = new Address();
+        address.setStreet("Teststraße");
+        address.setNumber("42");
+        address.setPlz("12345");
+        address.setCity("Teststadt");
+        organization.setAddress(address);
 
         // when
         organizationRepository.persist(organization);
 
         // then
-        Address address = organizationRepository.listAll().getFirst().getAddress();
-        assertThat(address.getStreet(), not(emptyOrNullString()));
-        assertThat(address.getNumber(), not(emptyOrNullString()));
+        Address loadedAddress = organizationRepository.listAll().getFirst().getAddress();
+        assertThat(loadedAddress.getStreet(), not(emptyOrNullString()));
+        assertThat(loadedAddress.getNumber(), not(emptyOrNullString()));
     }
 
     @Test
@@ -100,11 +99,10 @@ class OrganizationTests {
     void mustEnforceANonBlankName() {
 
         // given
-        Organization organization = Instancio.create(Organization.class);
-        organization.setId(null);
+        Organization organization = new Organization();
         organization.setName("");
         organization.setSlug("foobar");
-        organization.setMembers(Collections.emptySet());
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
 
         // when
         Set<ConstraintViolation<Organization>> validations = validator.validate(organization);
@@ -122,11 +120,10 @@ class OrganizationTests {
     void mustNotPersistWithABlankName() {
 
         // given
-        Organization organization = Instancio.create(Organization.class);
-        organization.setId(null);
+        Organization organization = new Organization();
         organization.setName("");
-        organization.setMembers(Collections.emptySet());
-        organization.setRootBommel(null);
+        organization.setSlug("valid-slug");
+        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
 
         // when
         QuarkusTransaction.begin();

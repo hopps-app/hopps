@@ -1,6 +1,7 @@
 package app.hopps.organization.api;
 
 import app.hopps.organization.api.OrganizationResource;
+import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -21,10 +22,14 @@ class OrganizationResourceAuthorizedTests {
     @Inject
     Flyway flyway;
 
+    @Inject
+    TestdataBootstrapper testdataBootstrapper;
+
     @BeforeEach
     void cleanDatabase() {
         flyway.clean();
         flyway.migrate();
+        testdataBootstrapper.loadTestdata();
     }
 
     @Test
