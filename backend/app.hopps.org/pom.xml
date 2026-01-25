@@ -20,7 +20,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.30.4</quarkus.platform.version>
+        <quarkus.platform.version>3.30.8</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>
@@ -106,7 +106,7 @@
         <dependency>
             <groupId>io.quarkiverse.renarde</groupId>
             <artifactId>quarkus-renarde</artifactId>
-            <version>3.1.3</version>
+            <version>3.1.4</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
@@ -165,7 +165,7 @@
         <dependency>
             <groupId>au.com.dius.pact.consumer</groupId>
             <artifactId>junit5</artifactId>
-            <version>4.6.16</version>
+            <version>4.6.19</version>
             <scope>test</scope>
         </dependency>
         <dependency>
