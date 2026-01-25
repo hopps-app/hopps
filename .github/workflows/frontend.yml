@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - frontend/spa/**
+      - frontend/api-client/**
       - .github/workflows/frontend.yml
     branches: [ "**" ]
     tags:
@@ -11,6 +12,7 @@ on:
   pull_request:
     paths:
       - frontend/spa/**
+      - frontend/api-client/**
       - .github/workflows/frontend.yml
     branches:
       - main
@@ -18,10 +20,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        baseDirectory: [ "frontend/spa" ]
 
     steps:
       - name: Checkout code
@@ -37,21 +35,25 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-        working-directory: ${{ matrix.baseDirectory }}
+        working-directory: frontend
+
+      - name: Build api-client
+        run: pnpm run build
+        working-directory: frontend/api-client
 
       - name: Run tests
         run: pnpm run validate
-        working-directory: ${{ matrix.baseDirectory }}
+        working-directory: frontend/spa
 
       - name: Build project
         run: pnpm run build
-        working-directory: ${{ matrix.baseDirectory }}
+        working-directory: frontend/spa
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: ${{ matrix.baseDirectory }}/dist/
+          path: frontend/spa/dist/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -76,8 +78,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.baseDirectory }}
-          file: ${{ matrix.baseDirectory }}/docker/Dockerfile
+          context: frontend/spa
+          file: frontend/spa/docker/Dockerfile
           push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
           tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
 
