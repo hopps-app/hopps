@@ -55,7 +55,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>5.0.0.4389</version>
+                <version>5.5.0.6356</version>
             </plugin>
             <plugin>
                 <groupId>net.revelc.code.formatter</groupId>
@@ -84,7 +84,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
+                <version>0.8.14</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
