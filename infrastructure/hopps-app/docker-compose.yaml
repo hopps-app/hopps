@@ -31,23 +31,10 @@ services:
       - QUARKUS_S3_AWS_REGION=eu-central-1
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
-      - APP_HOPPS_FIN_URL=http://fin
       - quarkus.rest-client.org-service.uri=http://org:8080/
-
-  fin-narrator:
-    image: ghcr.io/hopps-app/hopps/fin-narrator:${TAG:-395}
-    ports:
-      - "8775:8080"
-    environment:
-      - QUARKUS_LANGCHAIN4J_OPENAI_API_KEY=${QUARKUS_LANGCHAIN4J_OPENAI_API_KEY:?Read README.md}
-      # - QUARKUS_LANGCHAIN4J_OPENAI_CHAT_MODEL_LOG_RESPONSES=true # uncomment this to see ChatGPT's responses
 
   az-document-ai:
     image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-395}
-    ports:
-      - "8100:8080"
-    depends_on:
-      - fin
     ports:
       - "8100:8080"
     environment:

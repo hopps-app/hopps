@@ -59,9 +59,6 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - Keycloak User Provisioning
 - S3 Dokumentenspeicherung
 
-#### app.hopps.fin-narrator (Port 8775)
-KI-gestützte Dokumenten-Tagging und Kategorisierung mit LangChain4j + OpenAI
-
 #### app.hopps.az-document-ai (Port 8100)
 Dokumentenanalyse mit Azure Document Intelligence (OCR, Datenextraktion)
 
@@ -248,7 +245,6 @@ Der `frontend/figma_inspo` Ordner dient als **Inspiration für UI/UX Design und 
 ### Docker (Lokale Entwicklung)
 **Services (docker-compose.yaml):**
 - `org` - Organization Service (8080)
-- `fin-narrator` - AI Tagging (8775)
 - `az-document-ai` - Document Analysis (8100)
 - `postgres` - PostgreSQL 16
 - `keycloak` - Bitnami Keycloak 26 (8092)

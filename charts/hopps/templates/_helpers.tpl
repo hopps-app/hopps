@@ -139,35 +139,6 @@ org fully qualified name
 {{- end -}}
 
 {{/*
-fin-narrator labels
-*/}}
-{{- define "hopps.finNarratorLabels" -}}
-{{ include "hopps.commonLabels" . }}
-{{ include "hopps.finNarratorSelectorLabels" . }}
-app.kubernetes.io/version: {{ .Chart.AppVersion }}
-{{- end -}}
-{{/*
-fin selector labels
-*/}}
-{{- define "hopps.finNarratorSelectorLabels" -}}
-{{ include "hopps.commonSelectorLabels" . }}
-app.kubernetes.io/name: {{ printf "%s-fin-narrator" (include "hopps.name" .) }}
-app.kubernetes.io/component: fin-narrator
-{{- end -}}
-{{/*
-fin name
-*/}}
-{{- define "hopps.finNarratorName" -}}
-{{- printf "%s-fin-narrator" (include "hopps.name" .) -}}
-{{- end -}}
-{{/*
-fin fully qualified name
-*/}}
-{{- define "hopps.finNarratorFullname" -}}
-{{- printf "%s-fin-narrator" (include "hopps.fullname" .) -}}
-{{- end -}}
-
-{{/*
 frontend labels
 */}}
 {{- define "hopps.frontendLabels" -}}

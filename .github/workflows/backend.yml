@@ -31,13 +31,6 @@ jobs:
           - label: zugferd
             directory: app.hopps.zugferd
             serviceName: zugferd
-          - label: fin-narrator
-            directory: app.hopps.fin-narrator
-            serviceName: finNarrator
-#          todo :enable again, as soon as the mail service is part of the helmchart
-#          - label: mail-service
-#            directory: app.hopps.mailservice
-#            serviceName: mailService
 
     runs-on: ubuntu-latest
     steps:
