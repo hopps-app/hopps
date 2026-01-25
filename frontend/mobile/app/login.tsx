@@ -2,7 +2,6 @@
 
 import React, { useContext, useState } from 'react';
 import { View } from 'react-native';
-import { Image } from 'expo-image';
 import { Text } from '@/components/Text';
 import { Input } from '@/components/Input';
 import { Checkbox } from '@/components/Checkbox';
@@ -10,14 +9,12 @@ import { Link } from 'expo-router';
 import { Button } from '@/components/Button';
 import Animated, { BounceInDown, BounceInRight } from 'react-native-reanimated';
 import { AuthContext } from '@/contexts/AuthContext';
+import { ProfileContext } from '@/contexts/ProfileContext';
 import { KeycloakService } from '@/services/auth/keycloak-client';
-
-// Initialize the Keycloak service
-const keycloakService = new KeycloakService({
-    url: 'https://id.hopps.cloud', // Replace with your Keycloak URL
-    realm: 'hopps', // Replace with your realm name
-    clientId: 'hopps-mobile', // Replace with your client ID
-});
+import { ProfileSelector } from '@/components/ProfileSelector';
+import { ProfileFormModal } from '@/components/ProfileFormModal';
+import { ServerProfile } from '@/services/profile/profile.types';
+import * as SecureStore from 'expo-secure-store';
 
 export default function LoginView() {
     const [checked, setChecked] = useState(false);
@@ -25,11 +22,34 @@ export default function LoginView() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showProfileForm, setShowProfileForm] = useState(false);
+    const [editingProfile, setEditingProfile] = useState<ServerProfile | null>(
+        null
+    );
+
     const authContext = useContext(AuthContext);
+    const profileContext = useContext(ProfileContext);
+
+    const getKeycloakService = () => {
+        const profile = profileContext?.activeProfile;
+        if (!profile) return null;
+
+        return new KeycloakService({
+            url: profile.identityUrl,
+            realm: profile.realm,
+            clientId: profile.clientId,
+        });
+    };
 
     async function login() {
         if (!email || !password) {
             setError('Please enter both email and password');
+            return;
+        }
+
+        const keycloakService = getKeycloakService();
+        if (!keycloakService) {
+            setError('Please select a server profile');
             return;
         }
 
@@ -42,17 +62,21 @@ export default function LoginView() {
                 password: password,
             });
 
-            // Update auth context with tokens
             authContext?.setAuthState({
                 accessToken: tokens.access_token,
                 refreshToken: tokens.refresh_token,
                 authenticated: true,
             });
 
-            // Save to secure storage if "Remember me" is checked
             if (checked) {
-                // Here you'd use expo-secure-store or similar to save refresh token
-                // await SecureStore.setItemAsync('refreshToken', tokens.refresh_token);
+                await SecureStore.setItemAsync(
+                    'accessToken',
+                    tokens.access_token
+                );
+                await SecureStore.setItemAsync(
+                    'refreshToken',
+                    tokens.refresh_token
+                );
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed');
@@ -61,38 +85,75 @@ export default function LoginView() {
         }
     }
 
+    const handleAddProfile = () => {
+        setEditingProfile(null);
+        setShowProfileForm(true);
+    };
+
+    const handleEditProfile = (profile: ServerProfile) => {
+        setEditingProfile(profile);
+        setShowProfileForm(true);
+    };
+
     return (
-        <View className='h-full w-full flex items-center justify-center'>
+        <View className="h-full w-full flex items-center justify-center">
             <Animated.Image
-                entering={BounceInDown.delay(200).duration(600).springify().damping(3)}
+                entering={BounceInDown.delay(200)
+                    .duration(600)
+                    .springify()
+                    .damping(3)}
                 width={240}
                 height={60}
                 source={require('@/assets/images/hopps-logo.png')}
             />
-            <Text className='pt-5'>Welcome back! Please enter your valid data</Text>
-            <View className='p-5 w-full'>
-                {error && <Text className='text-red-500'>{error}</Text>}
+            <Text className="pt-5">
+                Welcome back! Please enter your valid data
+            </Text>
+            <View className="p-5 w-full">
+                {error && <Text className="text-red-500 mb-4">{error}</Text>}
 
-                <Animated.Text entering={BounceInRight.delay(400).duration(600).springify()} className='pt-10 font-bold text-left w-full text-lg'>E-Mail</Animated.Text>
+                <ProfileSelector
+                    onAddProfile={handleAddProfile}
+                    onEditProfile={handleEditProfile}
+                />
+
+                <Animated.Text
+                    entering={BounceInRight.delay(400)
+                        .duration(600)
+                        .springify()}
+                    className="pt-6 font-bold text-left w-full text-lg"
+                >
+                    E-Mail
+                </Animated.Text>
                 <Input
-                    inputMode='email'
-                    keyboardType='email-address'
-                    className='w-full'
+                    inputMode="email"
+                    keyboardType="email-address"
+                    className="w-full"
                     value={email}
                     onChangeText={setEmail}
                 />
 
-                <Animated.Text entering={BounceInRight.delay(500).duration(600).springify()} className='pt-10 font-bold text-left w-full text-lg'>Password</Animated.Text>
+                <Animated.Text
+                    entering={BounceInRight.delay(500)
+                        .duration(600)
+                        .springify()}
+                    className="pt-6 font-bold text-left w-full text-lg"
+                >
+                    Password
+                </Animated.Text>
                 <Input
                     secureTextEntry={true}
-                    className='w-full'
+                    className="w-full"
                     value={password}
                     onChangeText={setPassword}
                 />
 
-                <View className="pt-10 flex flex-row items-center justify-between">
+                <View className="pt-6 flex flex-row items-center justify-between">
                     <View className="flex flex-row items-center">
-                        <Checkbox checked={checked} onCheckedChange={() => setChecked(!checked)} />
+                        <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => setChecked(!checked)}
+                        />
                         <Text className="pl-2">Remember me</Text>
                     </View>
 
@@ -101,14 +162,16 @@ export default function LoginView() {
                     </Link>
                 </View>
 
-                <Button
-                    onPress={login}
-                    className="mt-10"
-                    disabled={isLoading}
-                >
+                <Button onPress={login} className="mt-10" disabled={isLoading}>
                     <Text>{isLoading ? 'Logging in...' : 'Login'}</Text>
                 </Button>
             </View>
+
+            <ProfileFormModal
+                visible={showProfileForm}
+                profile={editingProfile}
+                onClose={() => setShowProfileForm(false)}
+            />
         </View>
     );
 }

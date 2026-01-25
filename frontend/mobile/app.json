@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.hopps.ios"
+      "bundleIdentifier": "app.hopps.ios",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,7 +40,8 @@
           "configureAndroidBackup": true,
           "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
