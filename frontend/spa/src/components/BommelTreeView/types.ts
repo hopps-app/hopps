@@ -1,6 +1,5 @@
-import { RawNodeDatum } from 'react-d3-tree';
-
 import { Bommel } from '@hopps/api-client';
+import { RawNodeDatum } from 'react-d3-tree';
 
 export interface TreeNodeData {
     name: string;

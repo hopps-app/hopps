@@ -1,7 +1,9 @@
+import type { AnalysisStatus } from '@hopps/api-client';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { AnalysisStatus } from '@hopps/api-client';
+import { ReceiptFormActions, ReceiptFormFields } from './components';
+import { useReceiptForm } from './hooks';
 
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import Switch from '@/components/ui/Switch';
@@ -9,9 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
-
-import { ReceiptFormActions, ReceiptFormFields } from './components';
-import { useReceiptForm } from './hooks';
 
 const POLLING_INTERVAL = 2000; // 2 seconds
 
@@ -290,11 +289,7 @@ function ReceiptUploadView() {
                     </div>
 
                     <div className="flex items-center">
-                        <Switch
-                            checked={isAutoRead}
-                            onCheckedChange={() => setIsAutoRead((v) => !v)}
-                            label={t('receipts.upload.autoRead')}
-                        />
+                        <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
                     </div>
 
                     <ReceiptFormActions isValid={isValid} onSubmit={handleSubmit} onSaveDraft={handleSaveDraft} onCancel={handleCancel} />

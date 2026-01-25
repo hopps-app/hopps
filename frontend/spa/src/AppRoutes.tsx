@@ -2,13 +2,13 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { LoadingState } from '@/components/common/LoadingState';
+import HomeView from '@/components/views/HomeView';
+import NotFoundView from '@/components/views/NotFoundView';
 import AuthGuard from '@/guards/AuthGuard';
 import AuthLayout from '@/layouts/default/AuthLayout';
 import DefaultLayout from '@/layouts/default/DefaultLayout.tsx';
 
 // Eagerly loaded - these are needed immediately
-import HomeView from '@/components/views/HomeView';
-import NotFoundView from '@/components/views/NotFoundView';
 
 // Lazy loaded - these are loaded on demand
 const DemoView = lazy(() => import('@/components/views/DemoView'));
@@ -17,12 +17,8 @@ const RegisterOrganizationView = lazy(() =>
 );
 const DashboardView = lazy(() => import('@/components/views/DashboardView'));
 const SettingsView = lazy(() => import('@/components/views/SettingsView'));
-const OrganizationSettingsView = lazy(() =>
-    import('./components/views/OrganizationSettings').then((module) => ({ default: module.OrganizationSettingsView }))
-);
-const ReceiptUploadView = lazy(() =>
-    import('./components/views/ReceiptUpload').then((module) => ({ default: module.ReceiptUploadView }))
-);
+const OrganizationSettingsView = lazy(() => import('./components/views/OrganizationSettings').then((module) => ({ default: module.OrganizationSettingsView })));
+const ReceiptUploadView = lazy(() => import('./components/views/ReceiptUpload').then((module) => ({ default: module.ReceiptUploadView })));
 const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
 const CategoriesSettingsView = lazy(() => import('./components/views/CategoriesSettingsView'));
 const ReceiptView = lazy(() => import('@/components/views/ReceiptView'));

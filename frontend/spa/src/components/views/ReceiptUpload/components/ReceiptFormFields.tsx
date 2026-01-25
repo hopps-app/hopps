@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { LoadingStates } from '../hooks/useReceiptForm';
+
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
-import { useCategories } from '@/hooks/queries';
 import Radio from '@/components/ui/Radio';
 import Select, { SelectItem } from '@/components/ui/Select';
+import { DatePicker } from '@/components/ui/shadecn/DatePicker';
 import Switch from '@/components/ui/Switch';
 import Tags from '@/components/ui/Tags';
 import TextField from '@/components/ui/TextField';
-import { DatePicker } from '@/components/ui/shadecn/DatePicker';
-
-import { LoadingStates } from '../hooks/useReceiptForm';
+import { useCategories } from '@/hooks/queries';
 
 interface ReceiptFormFieldsProps {
     receiptNumber: string;
@@ -110,12 +110,7 @@ export function ReceiptFormFields({
                 loading={loadingStates.receiptDate}
             />
 
-            <Radio
-                items={radioItems}
-                value={transactionKind}
-                onValueChange={(v) => onTransactionKindChange(v as 'intake' | 'expense')}
-                layout="horizontal"
-            />
+            <Radio items={radioItems} value={transactionKind} onValueChange={(v) => onTransactionKindChange(v as 'intake' | 'expense')} layout="horizontal" />
             <Switch checked={isUnpaid} onCheckedChange={onIsUnpaidChange} label={t('receipts.upload.unpaid')} />
 
             <TextField
@@ -129,13 +124,7 @@ export function ReceiptFormFields({
                 <InvoiceUploadFormBommelSelector onChange={(id) => onBommelIdChange((id as number) ?? null)} />
             </div>
 
-            <DatePicker
-                label={t('receipts.upload.dueDate')}
-                date={dueDate}
-                onSelect={onDueDateChange}
-                className="w-full"
-                loading={loadingStates.dueDate}
-            />
+            <DatePicker label={t('receipts.upload.dueDate')} date={dueDate} onSelect={onDueDateChange} className="w-full" loading={loadingStates.dueDate} />
             <Select
                 label={t('receipts.upload.category')}
                 value={category}
@@ -143,13 +132,7 @@ export function ReceiptFormFields({
                 items={categoryItems}
                 placeholder={categoriesLoading ? t('common.loading') : t('receipts.upload.selectCategory')}
             />
-            <Select
-                label={t('receipts.upload.area')}
-                value={area}
-                onValueChanged={onAreaChange}
-                items={areaItems}
-                className="sm:col-span-2"
-            />
+            <Select label={t('receipts.upload.area')} value={area} onValueChanged={onAreaChange} items={areaItems} className="sm:col-span-2" />
 
             <div className="sm:col-span-2">
                 <Tags
@@ -161,18 +144,8 @@ export function ReceiptFormFields({
                 />
             </div>
 
-            <TextField
-                label={t('receipts.upload.taxAmount')}
-                value={taxAmount}
-                onValueChange={onTaxAmountChange}
-                loading={loadingStates.taxAmount}
-            />
-            <TextField
-                label={t('receipts.upload.netAmount')}
-                value={netAmount}
-                onValueChange={onNetAmountChange}
-                loading={loadingStates.netAmount}
-            />
+            <TextField label={t('receipts.upload.taxAmount')} value={taxAmount} onValueChange={onTaxAmountChange} loading={loadingStates.taxAmount} />
+            <TextField label={t('receipts.upload.netAmount')} value={netAmount} onValueChange={onNetAmountChange} loading={loadingStates.netAmount} />
         </div>
     );
 }

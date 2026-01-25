@@ -5,7 +5,18 @@ export * from './shadecn';
 export { default as Button } from './Button';
 export { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter, CardAction } from './Card';
 export { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandShortcut, CommandSeparator } from './Command';
-export { Dialog, DialogPortal, DialogOverlay, DialogTrigger, DialogClose, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from './Dialog';
+export {
+    Dialog,
+    DialogPortal,
+    DialogOverlay,
+    DialogTrigger,
+    DialogClose,
+    DialogContent,
+    DialogHeader,
+    DialogFooter,
+    DialogTitle,
+    DialogDescription,
+} from './Dialog';
 export { default as DialogWrapper } from './DialogWrapper';
 export { default as DropdownMenu } from './DropdownMenu';
 export { default as Emoji } from './Emoji';

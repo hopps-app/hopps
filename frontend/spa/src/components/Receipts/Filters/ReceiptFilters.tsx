@@ -1,14 +1,14 @@
 import { useTranslation } from 'react-i18next';
 
+import CategoryFilter from '@/components/Receipts/Filters/fields/CategoryFilter';
+import { DateRangeFilter } from '@/components/Receipts/Filters/fields/DateRangeFilter';
+import DisplayFilter from '@/components/Receipts/Filters/fields/DisplayFilter';
+import ProjectFilter from '@/components/Receipts/Filters/fields/ProjectFilter';
 import { SearchFilter } from '@/components/Receipts/Filters/fields/SearchFilter';
 import { StatusFilter } from '@/components/Receipts/Filters/fields/StatusFilter';
-import { DateRangeFilter } from '@/components/Receipts/Filters/fields/DateRangeFilter';
-import ProjectFilter from '@/components/Receipts/Filters/fields/ProjectFilter';
-import CategoryFilter from '@/components/Receipts/Filters/fields/CategoryFilter';
 import TypeFilter from '@/components/Receipts/Filters/fields/TypeFilter';
-import DisplayFilter from '@/components/Receipts/Filters/fields/DisplayFilter';
-import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { ReceiptFiltersState, SetFilterFn } from '@/components/Receipts/types';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 
 type ReceiptFiltersProps = {
     filters: ReceiptFiltersState;

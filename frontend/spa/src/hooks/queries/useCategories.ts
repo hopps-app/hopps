@@ -50,8 +50,7 @@ export function useUpdateCategory() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: { name: string; description?: string | null } }) =>
-            apiService.orgService.categoryPUT(id, data),
+        mutationFn: ({ id, data }: { id: number; data: { name: string; description?: string | null } }) => apiService.orgService.categoryPUT(id, data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
             queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });

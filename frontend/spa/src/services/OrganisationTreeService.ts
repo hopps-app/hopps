@@ -1,5 +1,5 @@
-import * as _ from 'lodash';
 import { Bommel, IBommel } from '@hopps/api-client';
+import * as _ from 'lodash';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import apiService from '@/services/ApiService.ts';

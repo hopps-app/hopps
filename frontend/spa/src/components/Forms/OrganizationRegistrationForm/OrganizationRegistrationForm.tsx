@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { NewOrganizationInput } from '@hopps/api-client';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import { NewOrganizationInput } from '@hopps/api-client';
 
 import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
@@ -105,7 +105,12 @@ export function OrganizationRegistrationForm(props: Props) {
             <div className="my-4">
                 <div className="flex flex-row gap-2">
                     <TextField label={t('organization.registration.password')} type="password" {...register('password')} error={errors.password?.message} />
-                    <TextField label={t('organization.registration.confirmPassword')} type="password" {...register('passwordConfirm')} error={errors.passwordConfirm?.message} />
+                    <TextField
+                        label={t('organization.registration.confirmPassword')}
+                        type="password"
+                        {...register('passwordConfirm')}
+                        error={errors.passwordConfirm?.message}
+                    />
                 </div>
             </div>
 

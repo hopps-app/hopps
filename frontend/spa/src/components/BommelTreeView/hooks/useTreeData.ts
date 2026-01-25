@@ -1,10 +1,9 @@
+import { Bommel } from '@hopps/api-client';
 import { useMemo } from 'react';
 
-import { Bommel } from '@hopps/api-client';
+import { TreeNodeData } from '../types';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
-
-import { TreeNodeData } from '../types';
 
 interface UseTreeDataOptions {
     tree: OrganizationTreeNodeModel[];

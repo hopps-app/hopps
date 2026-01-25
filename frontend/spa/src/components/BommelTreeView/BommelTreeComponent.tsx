@@ -2,11 +2,11 @@ import { useCallback, useRef, useState } from 'react';
 import Tree, { CustomNodeElementProps } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
-import { EmptyState } from '@/components/common/EmptyState';
-
 import { BommelCard, TreeStyles } from './components';
 import { useTreeData } from './hooks/useTreeData';
 import { BommelTreeComponentProps } from './types';
+
+import { EmptyState } from '@/components/common/EmptyState';
 
 function BommelTreeComponent({
     tree,

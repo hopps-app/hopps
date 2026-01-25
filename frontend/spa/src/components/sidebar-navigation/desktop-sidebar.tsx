@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import Icon from '@/components/ui/Icon';
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem, SubMenuItem } from './shared/types';
+
+import Icon from '@/components/ui/Icon';
 
 const ROUNDED_R = 'rounded-r-[20px]';
 const ROUNDED = 'rounded-[20px]';

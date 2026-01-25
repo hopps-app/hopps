@@ -1,8 +1,8 @@
 import './styles/InvoiceuploadFormDropzone.scss';
 
-import { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?worker&url';
+import { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileWithPath, useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
@@ -50,7 +50,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
 
     useEffect(() => {
         onFilesChanged([...acceptedFiles]);
-    }, [acceptedFiles]);
+    }, [acceptedFiles, onFilesChanged]);
 
     useEffect(() => {
         if (fileRejections.length > 0) {
@@ -58,7 +58,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
                 errors.forEach(() => showError(t('invoiceUpload.fileTooLarge')));
             });
         }
-    }, [fileRejections]);
+    }, [fileRejections, showError, t]);
 
     const previewUrl = useMemo(() => {
         if (!previewFile) return '';

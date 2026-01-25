@@ -1,36 +1,26 @@
+import { Network, Grid3x3, Edit, Check } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Network, Grid3x3, Edit, Check } from 'lucide-react';
-
-import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree';
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
-import { BommelTreeComponent } from '@/components/BommelTreeView';
-import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
-import Button from '@/components/ui/Button';
 
 import { BommelDetailsPanel, EditModeBanner, OrganizationStats } from './components';
 import { useOrganizationTree, useTreeCalculations } from './hooks';
+
+import { BommelTreeComponent } from '@/components/BommelTreeView';
+import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree';
+import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import Button from '@/components/ui/Button';
+import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 
 function OrganizationSettingsView() {
     const { t } = useTranslation();
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
 
-    const {
-        isOrganizationError,
-        isLoading,
-        rootBommel,
-        tree,
-        createTreeNode,
-        createChildBommel,
-        updateTreeNode,
-        moveTreeNode,
-        deleteTreeNode,
-    } = useOrganizationTree();
+    const { isOrganizationError, isLoading, rootBommel, tree, createTreeNode, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } =
+        useOrganizationTree();
 
-    const { countTotalBommels, calculateTotalIncome, calculateTotalExpenses, calculateTotalReceipts, countSubBommels } =
-        useTreeCalculations(tree);
+    const { countTotalBommels, calculateTotalIncome, calculateTotalExpenses, calculateTotalReceipts, countSubBommels } = useTreeCalculations(tree);
 
     const handleBommelSelect = useCallback(
         (nodeId: number) => {

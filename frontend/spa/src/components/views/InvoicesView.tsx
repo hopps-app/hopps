@@ -1,16 +1,16 @@
+import { TransactionRecord } from '@hopps/api-client';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TransactionRecord } from '@hopps/api-client';
 
 import InvoicesTable from '@/components/InvoicesTable/InvoicesTable';
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import Button from '@/components/ui/Button.tsx';
+import Header from '@/components/ui/Header';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store.ts';
-import Header from '@/components/ui/Header';
 
 async function getInvoices(): Promise<InvoicesTableData[]> {
     const transactions: TransactionRecord[] = [];
@@ -53,7 +53,7 @@ function InvoicesView() {
     const [isLoading, setIsLoading] = useState(true);
     const [isError, setIsError] = useState(false);
 
-    const loadInvoices = async () => {
+    const loadInvoices = useCallback(async () => {
         setInvoices([]);
         try {
             const invoices = await getInvoices();
@@ -63,7 +63,7 @@ function InvoicesView() {
             showError(t('invoices.loadFailed'));
             setIsError(true);
         }
-    };
+    }, [showError, t]);
 
     const reload = useCallback(async () => {
         if (!store.organization) return;
@@ -80,11 +80,11 @@ function InvoicesView() {
         }
 
         setIsLoading(false);
-    }, [store.organization]);
+    }, [store.organization, loadBommels, loadInvoices]);
 
     useEffect(() => {
         reload();
-    }, []);
+    }, [reload]);
 
     return (
         <>

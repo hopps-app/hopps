@@ -8,11 +8,12 @@ import moment from 'moment';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import InvoiceTableHeader from './InvoiceTableHeader';
+
 import AgGridSetFilter from '@/components/AgGrid/agGridSetFilter';
 import BommelCellRenderer from '@/components/InvoicesTable/BommelCellRenderer/BommelCellRenderer.tsx';
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import InvoiceUploadForm from '@/components/InvoiceUploadForm/InvoiceUploadForm.tsx';
-import InvoiceTableHeader from './InvoiceTableHeader';
 
 interface Props {
     invoices: InvoicesTableData[];
@@ -32,27 +33,30 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isUploadInvoice, setIsUploadInvoice] = useState(false);
 
-    const formatNumber = (value: number) => {
-        return new Intl.NumberFormat(i18n.language, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }).format(value);
-    };
+    const formatNumber = useCallback(
+        (value: number) => {
+            return new Intl.NumberFormat(i18n.language, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(value);
+        },
+        [i18n.language]
+    );
 
     useEffect(() => {
         setRowData(invoices);
         setColumnDefs(getColumnDefs());
-    }, [invoices]);
+    }, [invoices, getColumnDefs]);
 
     useEffect(() => {
         api?.setGridOption('quickFilterText', searchQuery);
-    }, [searchQuery]);
+    }, [searchQuery, api]);
 
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + (invoice.amount || 0), 0);
 
         return `${t('invoices.summary.totalFirstPart')} ${filteredData.length} ${t('invoices.summary.invoicesPart')} ${formatNumber(totalAmount)}${currencySymbolAfter || ''}`;
-    }, [filteredData, currencySymbolAfter]);
+    }, [filteredData, currencySymbolAfter, formatNumber, t]);
 
     const updateFilteredData = useCallback(() => {
         const items: InvoicesTableData[] = [];
@@ -63,7 +67,7 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
         setFilteredData(items);
     }, [api]);
 
-    const getBommelFilterItems = () => {
+    const getBommelFilterItems = useCallback(() => {
         const ids: number[] = [];
         invoices.forEach((invoice) => {
             if (!ids.includes(invoice.bommel || -1)) {
@@ -72,9 +76,9 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
         });
 
         return ids.map((id) => ({ title: id, value: id }));
-    };
+    }, [invoices]);
 
-    function getColumnDefs(): ColDef<InvoicesTableData>[] {
+    const getColumnDefs = useCallback((): ColDef<InvoicesTableData>[] => {
         return [
             {
                 headerName: `${t('invoices.table.name')}`,
@@ -123,16 +127,19 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
                 cellRenderer: BommelCellRenderer,
             },
         ];
-    }
+    }, [t, getBommelFilterItems, formatNumber, currencySymbolAfter, dateFormat]);
 
     const onFilterChanged = useCallback(() => {
         updateFilteredData();
     }, [updateFilteredData]);
 
-    const onRowHover = (event: CellMouseOverEvent<InvoicesTableData>) => {
-        if (!event.data) return;
-        api?.refreshCells({ force: true });
-    };
+    const onRowHover = useCallback(
+        (event: CellMouseOverEvent<InvoicesTableData>) => {
+            if (!event.data) return;
+            api?.refreshCells({ force: true });
+        },
+        [api]
+    );
 
     const onGridReady = useCallback(
         (event: GridReadyEvent) => {
@@ -146,7 +153,7 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
         if (isUploadInvoice) {
             reload();
         }
-    }, [isUploadInvoice]);
+    }, [isUploadInvoice, reload]);
 
     const Grid = useMemo(
         () => (
@@ -164,7 +171,7 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
                 onCellMouseOver={onRowHover}
             />
         ),
-        [rowData, columnDefs, onFilterChanged]
+        [rowData, columnDefs, onFilterChanged, onGridReady, onRowHover, t, updateFilteredData]
     );
 
     return (

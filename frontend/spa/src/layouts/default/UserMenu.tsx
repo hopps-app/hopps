@@ -1,12 +1,12 @@
 import { PersonIcon } from '@radix-ui/react-icons';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
-import { useStore } from '@/store/store.ts';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
-import authService from '@/services/auth/auth.service.ts';
 import Icon from '@/components/ui/Icon';
+import authService from '@/services/auth/auth.service.ts';
+import { useStore } from '@/store/store.ts';
 
 function UserMenu() {
     const { user, isAuthenticated } = useStore();

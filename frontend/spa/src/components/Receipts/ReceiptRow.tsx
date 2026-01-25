@@ -1,11 +1,11 @@
-import { FC, memo } from 'react';
 import { ChevronDownIcon, ChevronRightIcon, InfoCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { FC, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getStatusTranslationKey, formatAmount, amountColorClass } from '@/components/Receipts/helpers/receiptHelpers';
+import { Receipt } from '@/components/Receipts/types';
 import { Checkbox } from '@/components/ui/shadecn/Checkbox';
 import { cn } from '@/lib/utils';
-import { Receipt } from '@/components/Receipts/types';
-import { getStatusTranslationKey, formatAmount, amountColorClass } from '@/components/Receipts/helpers/receiptHelpers';
 
 function stopEventPropagationHandlers<T extends HTMLElement>() {
     return {

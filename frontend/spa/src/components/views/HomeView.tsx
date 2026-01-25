@@ -12,7 +12,7 @@ function HomeView() {
         if (isInitialized && isAuthenticated) {
             navigate('/dashboard');
         }
-    }, [isAuthenticated, isInitialized]);
+    }, [isAuthenticated, isInitialized, navigate]);
 
     return (
         <div className="pt-16">

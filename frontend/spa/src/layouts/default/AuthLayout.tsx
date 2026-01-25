@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 
-import UserMenu from '@/layouts/default/UserMenu.tsx';
 import SidebarNavigation from '@/components/sidebar-navigation';
+import UserMenu from '@/layouts/default/UserMenu.tsx';
 
 export default function AuthLayout() {
     return (

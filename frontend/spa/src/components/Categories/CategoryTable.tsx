@@ -1,10 +1,12 @@
+import { Category } from '@hopps/api-client';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Category } from '@hopps/api-client';
 
-import Icon from '../ui/Icon';
-import CategoryForm from './CategoryForm';
 import DialogWrapper from '../ui/DialogWrapper';
+import Icon from '../ui/Icon';
+
+import CategoryForm from './CategoryForm';
+
 import apiService from '@/services/ApiService.ts';
 
 type TableProps = {

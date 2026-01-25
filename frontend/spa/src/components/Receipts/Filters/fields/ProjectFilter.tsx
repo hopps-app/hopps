@@ -1,11 +1,11 @@
-import { useTranslation } from 'react-i18next';
-import { useState, useMemo, useCallback } from 'react';
 import { CheckIcon, ChevronDownIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { useState, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
+import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList, CommandEmpty } from '@/components/ui/Command';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
-import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
 import { cn } from '@/lib/utils';
 
 type ProjectFilterProps = {

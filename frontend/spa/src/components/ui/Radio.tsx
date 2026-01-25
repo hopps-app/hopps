@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { RadioGroup, RadioGroupItem } from '@/components/ui/shadecn/RadioGroup.tsx';
 import { Label } from './Label.tsx';
+
+import { RadioGroup, RadioGroupItem } from '@/components/ui/shadecn/RadioGroup.tsx';
 
 interface RadioItem {
     label: string;

@@ -3,13 +3,13 @@ import { useState } from 'react';
 import { RawNodeDatum } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
-import Emoji from '@/components/ui/Emoji';
-
 import { BommelCardProps, TreeNodeData } from '../types';
 
 import { BommelCardActions } from './BommelCardActions';
 import { BommelCardEditForm } from './BommelCardEditForm';
 import { BommelCardStats } from './BommelCardStats';
+
+import Emoji from '@/components/ui/Emoji';
 
 export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelete, onAddChild, editable }: BommelCardProps) {
     const { t } = useTranslation();
@@ -114,27 +114,17 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                                     <Emoji emoji={nodeDatum.attributes.emoji as string} />
                                 </div>
                             )}
-                            <div className="text-white text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1">
-                                {nodeDatum.name}
-                            </div>
+                            <div className="text-white text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1">{nodeDatum.name}</div>
                         </>
                     )}
 
                     {/* Action buttons in edit mode */}
-                    {editable && !isEditing && (
-                        <BommelCardActions onEdit={() => setIsEditing(true)} onDelete={handleDelete} onAddChild={handleAddChild} />
-                    )}
+                    {editable && !isEditing && <BommelCardActions onEdit={() => setIsEditing(true)} onDelete={handleDelete} onAddChild={handleAddChild} />}
                 </div>
 
                 {/* Financial Stats - Only show in view mode */}
                 {!editable && (
-                    <BommelCardStats
-                        income={income}
-                        expenses={expenses}
-                        revenue={revenue}
-                        receiptsCount={receiptsCount}
-                        receiptsOpen={receiptsOpen}
-                    />
+                    <BommelCardStats income={income} expenses={expenses} revenue={revenue} receiptsCount={receiptsCount} receiptsOpen={receiptsOpen} />
                 )}
 
                 {/* Edit mode info */}

@@ -1,10 +1,11 @@
 import * as _ from 'lodash';
 import React, { useState, forwardRef } from 'react';
 
-import { BaseInput } from '@/components/ui/shadecn/BaseInput.tsx';
-import { Label } from './Label.tsx';
 import InputLoader from './InputLoader';
+import { Label } from './Label.tsx';
+
 import Icon, { RadixIcons } from '@/components/ui/Icon.tsx';
+import { BaseInput } from '@/components/ui/shadecn/BaseInput.tsx';
 
 interface TextFieldProps {
     label?: string;

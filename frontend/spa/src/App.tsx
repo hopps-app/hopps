@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import AppRoutes from './AppRoutes';
+
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { OrganizationErrorView } from '@/components/OrganizationErrorView';
+import authService from '@/services/auth/auth.service.ts';
 import emojiService from '@/services/EmojiService';
 import languageService from '@/services/LanguageService.ts';
-import { useStore } from '@/store/store.ts';
 import themeService from '@/services/ThemeService.ts';
-import authService from '@/services/auth/auth.service.ts';
-import AppRoutes from './AppRoutes';
+import { useStore } from '@/store/store.ts';
 
 function App() {
     const { isInitialized, setIsInitialized, organizationError, isAuthenticated } = useStore();
@@ -69,7 +70,7 @@ function App() {
             }
         };
         initApp();
-    }, []);
+    }, [setIsInitialized]);
 
     // Show organization error view if user is authenticated but has no organization
     if (isInitialized && isAuthenticated && organizationError) {

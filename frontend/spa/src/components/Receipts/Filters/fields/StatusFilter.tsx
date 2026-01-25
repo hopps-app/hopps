@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
-import { Switch } from '@/components/ui/shadecn/Switch';
 import { ReceiptFiltersState, SetFilterFn } from '@/components/Receipts/types';
+import { Switch } from '@/components/ui/shadecn/Switch';
 
 interface StatusFilterProps {
     filters: ReceiptFiltersState;
@@ -27,8 +27,8 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                 <div className="flex items-center gap-2 flex-1">
                     <Switch
                         id="status-unpaid"
-                        checked={!!filters.status.unpaid}
-                        onCheckedChange={(checked: boolean) => handleToggle('unpaid', !!checked)}
+                        checked={filters.status.unpaid}
+                        onCheckedChange={(checked: boolean) => handleToggle('unpaid', checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
                     <label htmlFor="status-unpaid" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
@@ -39,8 +39,8 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                 <div className="flex items-center gap-2 flex-1">
                     <Switch
                         id="status-draft"
-                        checked={!!filters.status.draft}
-                        onCheckedChange={(checked: boolean) => handleToggle('draft', !!checked)}
+                        checked={filters.status.draft}
+                        onCheckedChange={(checked: boolean) => handleToggle('draft', checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
                     <label htmlFor="status-draft" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">

@@ -1,5 +1,6 @@
-import { Receipt, ReceiptStatusCheck } from '@/components/Receipts/types';
 import { STATUS_DRAFT, STATUS_FAILED, STATUS_PAID, STATUS_UNPAID } from '../constants/constants';
+
+import { Receipt, ReceiptStatusCheck } from '@/components/Receipts/types';
 
 export function getStatusTranslationKey(status: Receipt['status']): string {
     switch (status) {

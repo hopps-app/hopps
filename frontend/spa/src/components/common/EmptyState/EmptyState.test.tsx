@@ -1,9 +1,9 @@
 import { Inbox } from 'lucide-react';
 import { describe, it, expect, vi } from 'vitest';
 
-import { renderWithProviders, screen } from '@/test/test-utils';
-
 import { EmptyState } from './EmptyState';
+
+import { renderWithProviders, screen } from '@/test/test-utils';
 
 describe('EmptyState', () => {
     it('renders title', () => {

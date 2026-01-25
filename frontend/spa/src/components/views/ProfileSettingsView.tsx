@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import Header from '@/components/ui/Header.tsx';
 import Radio from '@/components/ui/Radio.tsx';
 import Select from '@/components/ui/Select.tsx';
-import Header from '@/components/ui/Header.tsx';
 import languageService from '@/services/LanguageService.ts';
 import themeService, { Themes } from '@/services/ThemeService.ts';
 

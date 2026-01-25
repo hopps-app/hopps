@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-
 import { Bommel } from '@hopps/api-client';
+import { useCallback, useEffect, useState } from 'react';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
 import { useToast } from '@/hooks/use-toast';
@@ -16,20 +15,17 @@ export function useOrganizationTree() {
     const [rootBommel, setRootBommel] = useState<Bommel | null>(null);
     const [tree, setTree] = useState<OrganizationTreeNodeModel[]>([]);
 
-    const getNodeDepth = useCallback(
-        (node: OrganizationTreeNodeModel, allNodes: OrganizationTreeNodeModel[]): number => {
-            let depth = 0;
-            let currentNode = node;
-            while (currentNode.parent && currentNode.parent !== 0) {
-                depth++;
-                const parentNode = allNodes.find((n) => n.id === currentNode.parent);
-                if (!parentNode) break;
-                currentNode = parentNode;
-            }
-            return depth;
-        },
-        []
-    );
+    const getNodeDepth = useCallback((node: OrganizationTreeNodeModel, allNodes: OrganizationTreeNodeModel[]): number => {
+        let depth = 0;
+        let currentNode = node;
+        while (currentNode.parent && currentNode.parent !== 0) {
+            depth++;
+            const parentNode = allNodes.find((n) => n.id === currentNode.parent);
+            if (!parentNode) break;
+            currentNode = parentNode;
+        }
+        return depth;
+    }, []);
 
     const loadTree = useCallback(async () => {
         if (!rootBommel?.id) return;

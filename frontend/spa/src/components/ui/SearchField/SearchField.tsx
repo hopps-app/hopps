@@ -1,5 +1,5 @@
 import { debounce } from 'lodash';
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 
 import closeIcon from '@/assets/close.svg';
 import searchIcon from '@/assets/search.svg';
@@ -15,11 +15,12 @@ type SearchFieldPropsType = {
 const SearchField: FC<SearchFieldPropsType> = ({ onClose, onSearch, isClose }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
-    const handleOnSearch = useCallback(
-        debounce((query) => {
-            onSearch(query);
-        }, 300),
-        [setSearchQuery]
+    const handleOnSearch = useMemo(
+        () =>
+            debounce((query: string) => {
+                onSearch(query);
+            }, 300),
+        [onSearch]
     );
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {

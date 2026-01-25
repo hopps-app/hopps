@@ -1,12 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { DocumentType } from '@hopps/api-client';
 import { isEqual } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileWithPath } from 'react-dropzone';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import type { DocumentType } from '@hopps/api-client';
 
-import { InvoiceUploadType } from '@/components/InvoiceUploadForm/types/index';
+import { InvoiceUploadType } from '@/components/InvoiceUploadForm/types';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 
@@ -79,7 +79,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
     useEffect(() => {
         if (isInvoiceSizeLimit) showError('Total size too large');
         if (isInvoicesQuantityLimit) showError('Max number of files exceeded');
-    }, [isInvoiceSizeLimit, isInvoicesQuantityLimit]);
+    }, [isInvoiceSizeLimit, isInvoicesQuantityLimit, showError]);
 
     useEffect(() => {
         if (selectedFiles.length < 10) {
@@ -89,23 +89,12 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
 
     // Cleanup polling intervals on unmount
     useEffect(() => {
+        const intervals = pollingIntervals.current;
         return () => {
-            pollingIntervals.current.forEach((interval) => clearInterval(interval));
-            pollingIntervals.current.clear();
+            intervals.forEach((interval) => clearInterval(interval));
+            intervals.clear();
         };
     }, []);
-
-    const clearState = () => {
-        setSelectedFiles([]);
-        setValue('documentType', '');
-        setValue('bommelId', 0);
-        setValue('isPrivatelyPaid', false);
-        setUploadedDocuments([]);
-        // Clear all polling intervals
-        pollingIntervals.current.forEach((interval) => clearInterval(interval));
-        pollingIntervals.current.clear();
-        setIsPolling(false);
-    };
 
     const updateFileProgress = (fileName: string, progress: number) => {
         setFileProgress((prev) => ({
@@ -135,22 +124,30 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         }, 100);
     };
 
-    const onFileUploadValidation = (newFiles: FileWithPath[]): boolean => {
-        const totalSize = [...selectedFiles, ...newFiles].reduce((acc, file) => acc + file.size, 0);
-        const isDuplicate = selectedFiles.some((newFile) => newFiles.some((existingFile) => isEqual(existingFile.name, newFile.name)));
+    const onFileUploadValidation = useCallback(
+        (newFiles: FileWithPath[]): boolean => {
+            const totalSize = [...selectedFiles, ...newFiles].reduce((acc, file) => acc + file.size, 0);
+            const isDuplicate = selectedFiles.some((newFile) => newFiles.some((existingFile) => isEqual(existingFile.name, newFile.name)));
 
-        if (totalSize > 20000000) {
-            showError('Total size too large');
-            return false;
-        }
+            if (totalSize > 20000000) {
+                showError('Total size too large');
+                return false;
+            }
 
-        if (isDuplicate) {
-            showError('File already uploaded!');
-            return false;
-        }
+            if (isDuplicate) {
+                showError('File already uploaded!');
+                return false;
+            }
 
-        return true;
-    };
+            return true;
+        },
+        [selectedFiles, showError]
+    );
+
+    const simulateFileUploadCb = useCallback((file: FileWithPath) => {
+        simulateFileUpload(file);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const onFilesChanged = useCallback(
         (newFiles: FileWithPath[]) => {
@@ -158,12 +155,13 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
 
             if (!onFileUploadValidation(newFiles)) return;
 
-            const updatedProgress = { ...fileProgress };
-            newFiles.forEach((file) => {
-                updatedProgress[file.name] = 0;
+            setFileProgress((prev) => {
+                const updatedProgress = { ...prev };
+                newFiles.forEach((file) => {
+                    updatedProgress[file.name] = 0;
+                });
+                return updatedProgress;
             });
-
-            setFileProgress(updatedProgress);
 
             setSelectedFiles((prev) => {
                 if (prev.length < 10) {
@@ -174,9 +172,9 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
                 }
             });
 
-            newFiles.forEach(simulateFileUpload);
+            newFiles.forEach(simulateFileUploadCb);
         },
-        [fileProgress, selectedFiles]
+        [onFileUploadValidation, simulateFileUploadCb]
     );
 
     /**
@@ -192,9 +190,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
                 const doc = await apiService.orgService.documentsGET(docId);
 
                 // Update the document in our state
-                setUploadedDocuments((prev) =>
-                    prev.map((d) => (d.id === docId ? { ...d, ...doc } : d))
-                );
+                setUploadedDocuments((prev) => prev.map((d) => (d.id === docId ? { ...d, ...doc } : d)));
 
                 // Check if analysis is complete
                 if (doc.analysisStatus === 'COMPLETED') {
@@ -264,7 +260,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
                 setUploadedDocuments(uploadResults as UploadedDocument[]);
 
                 // Start polling for each uploaded document
-                uploadResults.forEach((doc: any) => {
+                uploadResults.forEach((doc: UploadedDocument) => {
                     if (doc.id) {
                         startPolling(doc.id);
                     }
@@ -293,7 +289,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         (id: number | null) => {
             setValue('bommelId', id as InvoiceUploadFormFields['bommelId']);
         },
-        [selectedBommelId]
+        [setValue]
     );
     const handleCheckboxChange = () => {
         setValue('isPrivatelyPaid', !isPrivatelyPaid);

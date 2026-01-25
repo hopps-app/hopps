@@ -1,8 +1,9 @@
 import { memo } from 'react';
 import { FileWithPath } from 'react-dropzone';
 
-import List from '@/components/ui/List/List';
 import InvoiceUploadFormDropzone from './InvoiceUploadFormDropzone';
+
+import List from '@/components/ui/List/List';
 
 type Props = {
     selectedFiles: FileWithPath[];

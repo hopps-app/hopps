@@ -1,9 +1,9 @@
 'use client';
 
+import { Bommel } from '@hopps/api-client';
 import { CheckIcon, ChevronDownIcon, TrashIcon } from '@radix-ui/react-icons';
 import { FC, memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bommel } from '@hopps/api-client';
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
@@ -32,7 +32,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
 
             setOpen(false);
         },
-        [selectedBommel]
+        [allBommels, onChange]
     );
 
     const onDeselectBommel = () => {

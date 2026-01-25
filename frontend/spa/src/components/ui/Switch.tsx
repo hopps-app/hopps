@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as React from 'react';
 
 import { Label } from './Label.tsx';
+
 import { BaseSwitch as BaseSwitch } from '@/components/ui/shadecn/BaseSwitch.tsx';
 
 type UISwitchProps = React.ComponentPropsWithoutRef<typeof BaseSwitch> & {

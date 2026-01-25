@@ -1,12 +1,12 @@
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CategoryInput, Category } from '@hopps/api-client';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 
-import { useToast } from '@/hooks/use-toast.ts';
 import TextArea from '@/components/ui/Textarea';
 import TextField from '@/components/ui/TextField';
+import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 
 type Props = {

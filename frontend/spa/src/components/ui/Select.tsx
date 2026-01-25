@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
 import { useState } from 'react';
 
-import { BaseSelect, SelectItem, SelectContent, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/shadecn/BaseSelect.tsx';
 import { Label } from './Label.tsx';
+
+import { BaseSelect, SelectItem, SelectContent, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/shadecn/BaseSelect.tsx';
 
 export interface SelectItem {
     label: string;

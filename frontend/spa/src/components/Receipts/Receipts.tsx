@@ -1,6 +1,6 @@
-import ReceiptsList from '@/components/Receipts/ReceiptsList';
 import { ReceiptFilters } from '@/components/Receipts/Filters/ReceiptFilters';
 import { useReceiptFilters } from '@/components/Receipts/hooks/useReceiptFilters';
+import ReceiptsList from '@/components/Receipts/ReceiptsList';
 
 const Receipts = () => {
     const { filters, setFilter, resetFilters } = useReceiptFilters();

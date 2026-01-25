@@ -19,11 +19,7 @@ export function LoadingState({ message, fullScreen, size = 'md', className }: Lo
     };
 
     return (
-        <div
-            className={cn('flex flex-col items-center justify-center', fullScreen && 'min-h-screen', className)}
-            role="status"
-            aria-live="polite"
-        >
+        <div className={cn('flex flex-col items-center justify-center', fullScreen && 'min-h-screen', className)} role="status" aria-live="polite">
             <svg
                 className={cn('animate-spin text-primary', sizeClasses[size])}
                 xmlns="http://www.w3.org/2000/svg"

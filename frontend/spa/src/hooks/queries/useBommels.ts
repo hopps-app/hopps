@@ -67,8 +67,7 @@ export function useUpdateBommel() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: { name?: string; emoji?: string; parentId?: number } }) =>
-            apiService.orgService.bommelPUT(id, data),
+        mutationFn: ({ id, data }: { id: number; data: { name?: string; emoji?: string; parentId?: number } }) => apiService.orgService.bommelPUT(id, data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             queryClient.invalidateQueries({ queryKey: bommelKeys.detail(variables.id) });

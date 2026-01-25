@@ -117,7 +117,7 @@ function OrganizationTreeNode(props: Props) {
             setEditEmoji(emoji);
             setIsEditing(true);
         }
-    }, [props.autoEdit, props.editable]);
+    }, [props.autoEdit, props.editable, isEditing, props.node.text, emoji]);
 
     const dragOverProps = useDragOver(id, props.isOpen, props.onToggle);
 

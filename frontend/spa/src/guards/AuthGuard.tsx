@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
-import { useStore } from '@/store/store.ts';
 import authService from '@/services/auth/auth.service.ts';
+import { useStore } from '@/store/store.ts';
 
 interface AuthGuardProps {
     children: ReactNode;

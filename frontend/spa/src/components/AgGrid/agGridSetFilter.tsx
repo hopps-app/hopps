@@ -51,7 +51,7 @@ const AgGridSetFilter = ({ model, onModelChange, items, ...props }: AgGridSetFil
         }
 
         onModelChange(newModel);
-    }, [checkboxes]);
+    }, [checkboxes, isInitialized, items.length, onModelChange]);
 
     useEffect(() => {
         const map = new Map<string, Checkbox>();
@@ -67,7 +67,7 @@ const AgGridSetFilter = ({ model, onModelChange, items, ...props }: AgGridSetFil
 
         setCheckboxes(map);
         setIsInitialized(true);
-    }, []);
+    }, [items, model]);
 
     useGridFilter({
         doesFilterPass,

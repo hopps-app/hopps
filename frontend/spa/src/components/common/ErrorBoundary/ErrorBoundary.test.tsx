@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { renderWithProviders, screen } from '@/test/test-utils';
-
 import { ErrorBoundary } from './ErrorBoundary';
+
+import { renderWithProviders, screen } from '@/test/test-utils';
 
 // Component that throws an error for testing
 function ThrowError({ shouldThrow }: { shouldThrow: boolean }) {

@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-
 import type { AnalysisStatus, DocumentResponse, ExtractionSource } from '@hopps/api-client';
+import { useCallback, useMemo, useState } from 'react';
 
 type Tag = string;
 
@@ -131,56 +130,59 @@ export function useReceiptForm() {
         [setFieldLoading]
     );
 
-    const applyAnalysisResult = useCallback((response: DocumentResponse) => {
-        // Track extraction source
-        if (response.extractionSource) {
-            setExtractionSource(response.extractionSource);
-        }
+    const applyAnalysisResult = useCallback(
+        (response: DocumentResponse) => {
+            // Track extraction source
+            if (response.extractionSource) {
+                setExtractionSource(response.extractionSource);
+            }
 
-        // Apply extracted data to form fields
-        if (response.name) {
-            setReceiptNumber(response.name);
-            setFieldLoading('receiptNumber', false);
-        }
+            // Apply extracted data to form fields
+            if (response.name) {
+                setReceiptNumber(response.name);
+                setFieldLoading('receiptNumber', false);
+            }
 
-        if (response.transactionTime) {
-            const date = new Date(response.transactionTime);
-            setReceiptDate(date);
-            setFieldLoading('receiptDate', false);
-            setDueDate(date);
-            setFieldLoading('dueDate', false);
-        }
+            if (response.transactionTime) {
+                const date = new Date(response.transactionTime);
+                setReceiptDate(date);
+                setFieldLoading('receiptDate', false);
+                setDueDate(date);
+                setFieldLoading('dueDate', false);
+            }
 
-        if (response.senderName) {
-            setContractPartner(response.senderName);
-            setFieldLoading('contractPartner', false);
-        }
+            if (response.senderName) {
+                setContractPartner(response.senderName);
+                setFieldLoading('contractPartner', false);
+            }
 
-        if (response.tags && response.tags.length > 0) {
-            setTags(response.tags);
-        }
-        setFieldLoading('tags', false);
+            if (response.tags && response.tags.length > 0) {
+                setTags(response.tags);
+            }
+            setFieldLoading('tags', false);
 
-        // Calculate net amount from total and tax
-        if (response.total !== undefined && response.total !== null) {
-            const tax = response.totalTax ?? 0;
-            const net = response.total - tax;
-            setNetAmount(net.toFixed(2));
-            setFieldLoading('netAmount', false);
-        }
+            // Calculate net amount from total and tax
+            if (response.total !== undefined && response.total !== null) {
+                const tax = response.totalTax ?? 0;
+                const net = response.total - tax;
+                setNetAmount(net.toFixed(2));
+                setFieldLoading('netAmount', false);
+            }
 
-        if (response.totalTax !== undefined && response.totalTax !== null) {
-            setTaxAmount(response.totalTax.toFixed(2));
-            setFieldLoading('taxAmount', false);
-        }
+            if (response.totalTax !== undefined && response.totalTax !== null) {
+                setTaxAmount(response.totalTax.toFixed(2));
+                setFieldLoading('taxAmount', false);
+            }
 
-        // Clear remaining loading states for fields that weren't filled
-        if (!response.transactionTime) {
-            setFieldLoading('dueDate', false);
-        }
-        setFieldLoading('category', false);
-        setFieldLoading('area', false);
-    }, [setFieldLoading]);
+            // Clear remaining loading states for fields that weren't filled
+            if (!response.transactionTime) {
+                setFieldLoading('dueDate', false);
+            }
+            setFieldLoading('category', false);
+            setFieldLoading('area', false);
+        },
+        [setFieldLoading]
+    );
 
     const resetForm = useCallback(() => {
         setFile(null);

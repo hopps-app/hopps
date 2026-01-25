@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next';
-import { useCallback } from 'react';
 import { MagnifyingGlassIcon, Cross2Icon } from '@radix-ui/react-icons';
+import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';

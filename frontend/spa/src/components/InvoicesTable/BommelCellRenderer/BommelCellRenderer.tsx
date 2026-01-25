@@ -62,7 +62,7 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
                 onClosePopover();
             }
         },
-        [isPopoverVisible]
+        [isPopoverVisible, node]
     );
 
     useEffect(() => {

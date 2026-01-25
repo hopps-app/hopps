@@ -1,5 +1,5 @@
-import Keycloak from 'keycloak-js';
 import { User } from '@hopps/api-client/dist/types/User.ts';
+import Keycloak from 'keycloak-js';
 
 import { useStore } from '@/store/store';
 

@@ -1,6 +1,6 @@
+import { Organization, User } from '@hopps/api-client';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Organization, User } from '@hopps/api-client';
 
 type AuthState = {
     isAuthenticated: boolean;

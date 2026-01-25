@@ -1,8 +1,9 @@
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
-import { Textarea as TextareaBase } from '@/components/ui/shadecn/textarea'; // no .tsx needed
 import { Label } from './Label';
+
+import { Textarea as TextareaBase } from '@/components/ui/shadecn/textarea'; // no .tsx needed
+import { cn } from '@/lib/utils';
 
 type TextareaProps = React.ComponentProps<'textarea'> & {
     label?: string;
