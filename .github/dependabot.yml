@@ -1,14 +1,41 @@
 version: 2
 updates:
+  # Maven dependencies - backend
   - package-ecosystem: "maven"
     directory: "/backend"
     schedule:
       interval: "daily"
+    groups:
+      maven-dependencies:
+        patterns:
+          - "*"
+
+  # npm dependencies - frontend
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "daily"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+
+  # Helm chart dependencies
   - package-ecosystem: "helm"
     directory: "/charts"
     schedule:
       interval: "daily"
+    groups:
+      helm-dependencies:
+        patterns:
+          - "*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

@@ -8,7 +8,11 @@
       "Bash(pnpm run lint:*)",
       "WebFetch(domain:github.com)",
       "Bash(mvn package:*)",
-      "Bash(mvn:*)"
+      "Bash(mvn:*)",
+      "Bash(cat:*)",
+      "Bash(./mvnw package:*)",
+      "Bash(./mvnw test:*)",
+      "Bash(git stash:*)"
     ]
   }
 }
