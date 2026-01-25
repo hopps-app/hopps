@@ -6,7 +6,9 @@
       "Bash(find:*)",
       "Bash(wc:*)",
       "Bash(pnpm run lint:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(mvn package:*)",
+      "Bash(mvn:*)"
     ]
   }
 }
