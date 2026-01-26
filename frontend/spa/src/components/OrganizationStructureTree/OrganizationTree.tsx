@@ -96,7 +96,7 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
                             sort={false}
                             dropTargetOffset={10}
                             initialOpen={true}
-                            canDrag={() => isEditable}
+                            canDrag={(node) => isEditable && !node?.data?.isRoot}
                             canDrop={(_, { dragSource, dropTargetId }) => {
                                 if (!isEditable) return false;
                                 if (dragSource?.parent === dropTargetId) {

@@ -4,6 +4,7 @@ export type OrganizationTreeNodeData = {
     id?: number;
     emoji: string;
     isNew?: boolean;
+    isRoot?: boolean;
     // Financial and statistics data
     receiptsCount?: number;
     receiptsOpen?: number;

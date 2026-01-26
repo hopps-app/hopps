@@ -48,9 +48,18 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
         maxSize: 5000000,
     });
 
+    // Track previous acceptedFiles to detect actual changes
+    const prevAcceptedFilesRef = useRef<FileWithPath[]>([]);
+
     useEffect(() => {
-        onFilesChanged([...acceptedFiles]);
-    }, [acceptedFiles, onFilesChanged]);
+        // Only call onFilesChanged when acceptedFiles actually changes (new file selection)
+        // Comparing by reference since react-dropzone creates new array on each file drop
+        if (acceptedFiles !== prevAcceptedFilesRef.current && acceptedFiles.length > 0) {
+            prevAcceptedFilesRef.current = acceptedFiles;
+            onFilesChanged([...acceptedFiles]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding onFilesChanged to prevent re-uploads on callback changes
+    }, [acceptedFiles]);
 
     useEffect(() => {
         if (fileRejections.length > 0) {

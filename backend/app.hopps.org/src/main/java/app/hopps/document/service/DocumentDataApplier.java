@@ -146,7 +146,8 @@ public class DocumentDataApplier {
 
     private int applyTags(Document document, DocumentData data, TagSource tagSource) {
         if (data.tags() != null && !data.tags().isEmpty() && document.getDocumentTags().isEmpty()) {
-            Set<Tag> tags = tagRepository.findOrCreateTags(new HashSet<>(data.tags()));
+            // Use organization from document to avoid requiring request-scoped context (for async processing)
+            Set<Tag> tags = tagRepository.findOrCreateTags(new HashSet<>(data.tags()), document.getOrganization());
             for (Tag tag : tags) {
                 document.addTag(tag, tagSource);
             }

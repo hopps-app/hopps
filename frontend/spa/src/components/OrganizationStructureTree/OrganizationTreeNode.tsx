@@ -41,6 +41,7 @@ function OrganizationTreeNode(props: Props) {
     const textFieldRef = useRef<HTMLInputElement>(null);
 
     const emoji = data?.emoji || '';
+    const isRoot = data?.isRoot ?? false;
 
     const handleToggle = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -58,7 +59,7 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onClickEdit = () => {
-        if (!props.editable) return;
+        if (!props.editable || isRoot) return;
         setEditValue(props.node.text);
         setEditEmoji(emoji);
         setIsEditing(true);
@@ -66,6 +67,7 @@ function OrganizationTreeNode(props: Props) {
 
     const onClickDelete = (e?: React.MouseEvent) => {
         e?.stopPropagation();
+        if (isRoot) return;
 
         // Check if bommel has receipts
         if (receiptsCount && receiptsCount > 0) {
@@ -246,14 +248,25 @@ function OrganizationTreeNode(props: Props) {
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2 flex-shrink-0">
-                                        <Button variant="outline" className="px-3" icon="Pencil1" onClick={onClickEdit}>
+                                        <Button
+                                            variant="outline"
+                                            className="px-3"
+                                            icon="Pencil1"
+                                            onClick={onClickEdit}
+                                            disabled={isRoot}
+                                            title={isRoot ? t('organization.structure.rootCannotEdit') : undefined}
+                                        >
                                             {t('organization.structure.edit')}
                                         </Button>
                                         <Button
                                             variant="outline"
-                                            className="px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 hover:border-red-400"
+                                            className={cn('px-3', {
+                                                'text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 hover:border-red-400': !isRoot,
+                                            })}
                                             icon="Trash"
                                             onClick={onClickDelete}
+                                            disabled={isRoot}
+                                            title={isRoot ? t('organization.structure.rootCannotDelete') : undefined}
                                         >
                                             {t('common.delete')}
                                         </Button>

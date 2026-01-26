@@ -16,6 +16,9 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
             return null;
         }
 
+        // Filter out the root bommel from tree nodes to avoid duplicate display
+        const treeWithoutRoot = tree.filter((node) => !node.data?.isRoot);
+
         const buildTreeNode = (nodes: OrganizationTreeNodeModel[], parentId: string | number = 0): TreeNodeData[] => {
             const filteredNodes = nodes.filter((node) => node.parent === parentId);
 
@@ -38,7 +41,7 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
             });
         };
 
-        const topLevelNodes = buildTreeNode(tree, 0);
+        const topLevelNodes = buildTreeNode(treeWithoutRoot, 0);
 
         // If no top-level nodes but we have a root bommel, return just the root
         if (topLevelNodes.length === 0 && rootBommel) {

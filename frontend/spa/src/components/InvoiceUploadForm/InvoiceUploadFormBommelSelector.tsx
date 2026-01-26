@@ -47,7 +47,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                     <button
                         type="button"
                         className={cn(
-                            'flex items-center justify-between w-full border border-gray-300 rounded-2xl px-3 py-2 text-left cursor-pointer',
+                            'flex items-center justify-between w-full text-sm border border-gray-300 rounded-xl px-4 py-3 text-left cursor-pointer bg-primary-foreground',
                             'focus:ring-2 focus:ring-primary focus:outline-none'
                         )}
                         aria-haspopup="listbox"

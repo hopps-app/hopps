@@ -24,17 +24,18 @@ export class OrganisationTreeService {
 
     bommelsToTreeNodes(bommels: Bommel[], rootBommelId?: number): OrganizationTreeNodeModel[] {
         return bommels.map((bommel) => {
-            return this.bommelToTreeNode(bommel, bommel.parent?.id && bommel.parent.id !== rootBommelId ? bommel.parent.id : 0);
+            const isRoot = bommel.id === rootBommelId;
+            return this.bommelToTreeNode(bommel, bommel.parent?.id && bommel.parent.id !== rootBommelId ? bommel.parent.id : 0, isRoot);
         });
     }
 
-    protected bommelToTreeNode(bommel: Bommel, parentId?: number) {
+    protected bommelToTreeNode(bommel: Bommel, parentId?: number, isRoot?: boolean) {
         const node: OrganizationTreeNodeModel = {
             id: bommel.id!,
             parent: parentId || 0,
             text: bommel.name ?? '',
-            droppable: true,
-            data: { emoji: bommel.emoji ?? '', id: bommel.id },
+            droppable: !isRoot,
+            data: { emoji: bommel.emoji ?? '', id: bommel.id, isRoot },
         };
 
         return node;

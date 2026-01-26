@@ -37,14 +37,21 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, 
                 isFailed && 'bg-[var(--error-100)]'
             )}
         >
-            <button
-                type="button"
+            <div
+                role="button"
+                tabIndex={0}
                 onClick={() => onToggle(receipt.id)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onToggle(receipt.id);
+                    }
+                }}
                 aria-expanded={isExpanded}
                 className={cn(
                     'grid w-full grid-cols-6 items-center cursor-pointer',
                     'rounded-[var(--radius)] py-1 pr-4 transition',
-                    'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-transparent'
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                 )}
             >
                 <div className="flex items-center min-w-0 pr-2">
@@ -83,7 +90,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, 
                         <Checkbox checked={isChecked} onCheckedChange={(v) => onCheckChange(receipt.id, Boolean(v))} />
                     </div>
                 </div>
-            </button>
+            </div>
 
             {isExpanded && (
                 <div className="pb-2 pt-3 pl-7 pr-16 space-y-6">

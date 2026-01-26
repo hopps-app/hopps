@@ -137,7 +137,9 @@
                 "description": "Dieser Bommel hat {{count}} Belege. Sind Sie sicher, dass Sie diesen Bommel löschen möchten?",
                 "confirm": "Ja, löschen",
                 "cancel": "Abbrechen"
-            }
+            },
+            "rootCannotEdit": "Der Wurzel-Bommel kann nicht bearbeitet werden",
+            "rootCannotDelete": "Der Wurzel-Bommel kann nicht gelöscht werden"
         },
         "noOrganization": {
             "title": "Keine Organisation gefunden",
@@ -244,7 +246,9 @@
                 "extractedViaDocumentAI": "Extrahiert via Document AI",
                 "extractedViaZugferd": "Extrahiert via ZUGFeRD",
                 "failed": "Analyse fehlgeschlagen",
-                "error": "Fehler bei der Analyse: {{error}}"
+                "error": "Fehler bei der Analyse: {{error}}",
+                "serviceUnavailable": "Der Analyse-Service ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
+                "pollingTimeout": "Die Analyse dauert länger als erwartet. Bitte versuchen Sie es später erneut."
             }
         },
         "areas": {

@@ -62,6 +62,23 @@ public class TagRepository implements PanacheRepository<Tag> {
     }
 
     /**
+     * Finds existing tags or creates new ones for the given tag names within the specified organization.
+     * Use this method when running outside of a request context (e.g., in background threads).
+     *
+     * @param tagNames
+     *            Set of tag names
+     * @param organization
+     *            The organization to scope tags to
+     *
+     * @return Set of tags
+     */
+    public Set<Tag> findOrCreateTags(Set<String> tagNames, Organization organization) {
+        return tagNames.stream()
+                .map(name -> findOrCreateTag(name, organization))
+                .collect(Collectors.toSet());
+    }
+
+    /**
      * Finds an existing tag by name within the current organization or creates a new one.
      *
      * @param name
@@ -80,6 +97,43 @@ public class TagRepository implements PanacheRepository<Tag> {
             persist(tag);
             return tag;
         });
+    }
+
+    /**
+     * Finds an existing tag by name within the specified organization or creates a new one.
+     * Use this method when running outside of a request context (e.g., in background threads).
+     *
+     * @param name
+     *            The tag name
+     * @param organization
+     *            The organization to scope the tag to
+     *
+     * @return The tag
+     */
+    public Tag findOrCreateTag(String name, Organization organization) {
+        return findByName(name, organization).orElseGet(() -> {
+            Tag tag = new Tag(name);
+            tag.setOrganization(organization);
+            persist(tag);
+            return tag;
+        });
+    }
+
+    /**
+     * Finds a tag by name within the specified organization.
+     *
+     * @param name
+     *            The tag name
+     * @param organization
+     *            The organization to scope the query to
+     *
+     * @return Optional containing the tag if found
+     */
+    public Optional<Tag> findByName(String name, Organization organization) {
+        if (organization == null || organization.getId() == null) {
+            return Optional.empty();
+        }
+        return find("name = ?1 and organization.id = ?2", name, organization.getId()).firstResultOptional();
     }
 
     /**

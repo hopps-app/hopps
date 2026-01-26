@@ -55,6 +55,7 @@ public class Document extends PanacheEntity {
     // AI analysis status
     @Enumerated(EnumType.STRING)
     private AnalysisStatus analysisStatus;
+    @Column(columnDefinition = "TEXT")
     private String analysisError;
 
     // Extraction source (which method extracted the data)

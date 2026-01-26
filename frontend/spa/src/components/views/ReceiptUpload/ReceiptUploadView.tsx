@@ -12,7 +12,10 @@ import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
-const POLLING_INTERVAL = 2000; // 2 seconds
+const POLLING_INTERVAL_BASE = 2000; // 2 seconds base interval
+const POLLING_MAX_INTERVAL = 30000; // 30 seconds max interval
+const POLLING_MAX_ERRORS = 5; // Stop polling after 5 consecutive errors
+const POLLING_MAX_DURATION = 5 * 60 * 1000; // 5 minutes max polling duration
 
 const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
@@ -74,26 +77,55 @@ function ReceiptUploadView() {
         applyAnalysisResult,
     } = useReceiptForm();
 
-    const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const consecutiveErrorsRef = useRef(0);
+    const pollingStartTimeRef = useRef<number | null>(null);
 
     // Helper to check if analysis is still in progress
     const isAnalyzing = analysisStatus === 'PENDING' || analysisStatus === 'ANALYZING';
 
-    // Poll for analysis results
+    // Calculate next polling interval with exponential backoff
+    const getNextPollingInterval = useCallback((errorCount: number) => {
+        if (errorCount === 0) return POLLING_INTERVAL_BASE;
+        // Exponential backoff: 2s, 4s, 8s, 16s, 30s (capped)
+        return Math.min(POLLING_INTERVAL_BASE * Math.pow(2, errorCount), POLLING_MAX_INTERVAL);
+    }, []);
+
+    // Poll for analysis results with retry logic and exponential backoff
     useEffect(() => {
         if (!documentId || !isAutoRead || !isAnalyzing) {
             if (pollingRef.current) {
-                clearInterval(pollingRef.current);
+                clearTimeout(pollingRef.current);
                 pollingRef.current = null;
             }
+            consecutiveErrorsRef.current = 0;
+            pollingStartTimeRef.current = null;
             return;
         }
 
+        // Initialize polling start time
+        if (pollingStartTimeRef.current === null) {
+            pollingStartTimeRef.current = Date.now();
+        }
+
         const pollAnalysisStatus = async () => {
+            // Check if max polling duration exceeded
+            if (pollingStartTimeRef.current && Date.now() - pollingStartTimeRef.current > POLLING_MAX_DURATION) {
+                console.warn('Polling timeout: exceeded maximum duration');
+                setAnalysisStatus('FAILED');
+                setAnalysisError(t('receipts.upload.analysis.pollingTimeout'));
+                setAllFieldsLoading(false);
+                showError(t('receipts.upload.analysis.pollingTimeout'));
+                return;
+            }
+
             try {
                 const response = await apiService.orgService.documentsGET(documentId);
                 const status = response.analysisStatus as AnalysisStatus;
                 setAnalysisStatus(status);
+
+                // Reset error count on successful response
+                consecutiveErrorsRef.current = 0;
 
                 if (status === 'COMPLETED') {
                     applyAnalysisResult(response);
@@ -102,25 +134,40 @@ function ReceiptUploadView() {
                     setAnalysisError(response.analysisError ?? null);
                     setAllFieldsLoading(false);
                     showError(t('receipts.upload.analysis.failed'));
+                } else {
+                    // Schedule next poll with base interval (no errors)
+                    pollingRef.current = setTimeout(pollAnalysisStatus, POLLING_INTERVAL_BASE);
                 }
             } catch (e) {
                 console.error('Failed to poll analysis status:', e);
+                consecutiveErrorsRef.current += 1;
+
+                if (consecutiveErrorsRef.current >= POLLING_MAX_ERRORS) {
+                    // Stop polling after too many consecutive errors
+                    console.warn(`Stopping polling after ${POLLING_MAX_ERRORS} consecutive errors`);
+                    setAnalysisStatus('FAILED');
+                    setAnalysisError(t('receipts.upload.analysis.serviceUnavailable'));
+                    setAllFieldsLoading(false);
+                    showError(t('receipts.upload.analysis.serviceUnavailable'));
+                } else {
+                    // Schedule next poll with exponential backoff
+                    const nextInterval = getNextPollingInterval(consecutiveErrorsRef.current);
+                    console.info(`Retrying poll in ${nextInterval}ms (attempt ${consecutiveErrorsRef.current}/${POLLING_MAX_ERRORS})`);
+                    pollingRef.current = setTimeout(pollAnalysisStatus, nextInterval);
+                }
             }
         };
-
-        // Start polling
-        pollingRef.current = setInterval(pollAnalysisStatus, POLLING_INTERVAL);
 
         // Poll immediately on mount
         pollAnalysisStatus();
 
         return () => {
             if (pollingRef.current) {
-                clearInterval(pollingRef.current);
+                clearTimeout(pollingRef.current);
                 pollingRef.current = null;
             }
         };
-    }, [documentId, isAutoRead, isAnalyzing, setAnalysisStatus, setAnalysisError, applyAnalysisResult, setAllFieldsLoading, showSuccess, showError, t]);
+    }, [documentId, isAutoRead, isAnalyzing, setAnalysisStatus, setAnalysisError, applyAnalysisResult, setAllFieldsLoading, showSuccess, showError, t, getNextPollingInterval]);
 
     useEffect(() => {
         if (!store.organization?.id) return;
