@@ -23,10 +23,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v6
         with:
           node-version: '18'
 
@@ -59,7 +59,7 @@ jobs:
           VITE_API_FIN_URL: "VITE_API_FIN_URL_VALUE"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build
           path: frontend/spa/dist/
@@ -93,7 +93,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
 
       - name: Trigger deploy workflow
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         # only trigger deployment on main
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
