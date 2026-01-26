@@ -20,7 +20,14 @@
       "Bash(pnpm exec tsc:*)",
       "Bash(./mvnw compile:*)",
       "Bash(pnpm run generate-local:*)",
-      "Bash(pnpm run typecheck:*)"
+      "Bash(pnpm run typecheck:*)",
+      "Bash(helm list:*)",
+      "Bash(kubectl get:*)",
+      "Bash(kubectl logs:*)",
+      "Bash(helm lint:*)",
+      "Bash(gzip:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(gh run list:*)"
     ]
   }
 }
