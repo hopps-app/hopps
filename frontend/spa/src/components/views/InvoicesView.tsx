@@ -66,7 +66,7 @@ function InvoicesView() {
     }, [showError, t]);
 
     const reload = useCallback(async () => {
-        if (!store.organization) return;
+        if (!store.organization?.id) return;
 
         setIsLoading(true);
         setIsError(false);

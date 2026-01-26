@@ -80,7 +80,7 @@ const BommelCellList = ({ filteredBommels, reassignTransaction, currentBommelId,
                 return (
                     <li
                         key={bommel.id}
-                        ref={(el) => (itemRefs.current[index] = el)}
+                        ref={(el) => { itemRefs.current[index] = el; }}
                         onMouseMove={() => handleMouseMove(index)}
                         className={`w-full flex justify-between items-center py-2 pl-5 pr-5 border-b-[1px] border-b-[var(--separator)] last-of-type:border-none text-sm hover:text-[var(--font-color)] ${getActiveBommel()}`}
                     >

@@ -1,4 +1,4 @@
-import { Component, ReactNode } from 'react';
+import React, { Component, ReactNode } from 'react';
 
 import Button from '@/components/ui/Button';
 
@@ -49,7 +49,7 @@ interface ErrorFallbackProps {
     onReset?: () => void;
 }
 
-function ErrorFallback({ error, onReset }: ErrorFallbackProps): JSX.Element {
+function ErrorFallback({ error, onReset }: ErrorFallbackProps): React.JSX.Element {
     return (
         <div role="alert" className="flex flex-col items-center justify-center p-8 text-center">
             <div className="rounded-full bg-destructive/10 p-4 mb-4">

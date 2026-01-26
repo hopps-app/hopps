@@ -13,7 +13,9 @@
       "Bash(./mvnw package:*)",
       "Bash(./mvnw test:*)",
       "Bash(git stash:*)",
-      "Bash(./mvnw net.revelc.code.formatter:formatter-maven-plugin:2.29.0:format:*)"
+      "Bash(./mvnw net.revelc.code.formatter:formatter-maven-plugin:2.29.0:format:*)",
+      "Bash(pnpm run build)",
+      "Bash(pnpm install:*)"
     ]
   }
 }

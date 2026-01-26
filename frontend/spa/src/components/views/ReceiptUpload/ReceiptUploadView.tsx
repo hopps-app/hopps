@@ -123,7 +123,7 @@ function ReceiptUploadView() {
     }, [documentId, isAutoRead, isAnalyzing, setAnalysisStatus, setAnalysisError, applyAnalysisResult, setAllFieldsLoading, showSuccess, showError, t]);
 
     useEffect(() => {
-        if (!store.organization) return;
+        if (!store.organization?.id) return;
         loadBommels(store.organization.id).catch(() => {});
     }, [store.organization, loadBommels]);
 

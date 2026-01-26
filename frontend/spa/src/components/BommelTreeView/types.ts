@@ -6,7 +6,6 @@ export interface TreeNodeData {
     attributes?: {
         id: number;
         emoji?: string;
-        bommelData?: Bommel;
         nodeId?: number;
         income?: number;
         expenses?: number;

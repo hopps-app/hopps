@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Bommel } from '@hopps/api-client';
 import { useTranslation } from 'react-i18next';
 
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +51,7 @@ export function useCreateBommel() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: (data: { name: string; emoji?: string; parentId: number }) => apiService.orgService.bommelPOST(data),
+        mutationFn: (data: { name: string; emoji?: string; parentId: number }) => apiService.orgService.bommelPOST(new Bommel(data)),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             showSuccess(t('organization.structure.saveName'));
@@ -67,7 +68,7 @@ export function useUpdateBommel() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: { name?: string; emoji?: string; parentId?: number } }) => apiService.orgService.bommelPUT(id, data),
+        mutationFn: ({ id, data }: { id: number; data: { name?: string; emoji?: string; parentId?: number } }) => apiService.orgService.bommelPUT(id, new Bommel(data)),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             queryClient.invalidateQueries({ queryKey: bommelKeys.detail(variables.id) });
@@ -85,7 +86,7 @@ export function useDeleteBommel() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: (id: number) => apiService.orgService.bommelDELETE(id),
+        mutationFn: (id: number) => apiService.orgService.bommelDELETE(id, undefined),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             showSuccess(t('organization.structure.deleteBommel'));

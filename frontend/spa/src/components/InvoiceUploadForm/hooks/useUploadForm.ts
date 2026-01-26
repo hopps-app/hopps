@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { DocumentType } from '@hopps/api-client';
+import type { DocumentType, DocumentResponse } from '@hopps/api-client';
 import { isEqual } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileWithPath } from 'react-dropzone';
@@ -13,22 +13,6 @@ import apiService from '@/services/ApiService.ts';
 // Polling interval in milliseconds
 const POLL_INTERVAL = 2000;
 
-// Analysis status types (should match backend AnalysisStatus enum)
-type AnalysisStatus = 'PENDING' | 'ANALYZING' | 'COMPLETED' | 'FAILED' | 'SKIPPED';
-
-interface UploadedDocument {
-    id: number;
-    analysisStatus: AnalysisStatus;
-    analysisError?: string;
-    // Analysis results
-    name?: string;
-    total?: number;
-    currencyCode?: string;
-    transactionTime?: string;
-    senderName?: string;
-    tags?: string[];
-}
-
 export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
     const { showError, showSuccess, showWarning } = useToast();
 
@@ -36,7 +20,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
     const [isUploading, setIsUploading] = useState(false);
     const [fileProgress, setFileProgress] = useState<Record<string, number>>({});
     const [isInvoicesQuantityLimit, setIsInvoicesQuantityLimit] = useState(false);
-    const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
+    const [uploadedDocuments, setUploadedDocuments] = useState<DocumentResponse[]>([]);
     const [isPolling, setIsPolling] = useState(false);
 
     // Keep track of polling intervals
@@ -190,7 +174,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
                 const doc = await apiService.orgService.documentsGET(docId);
 
                 // Update the document in our state
-                setUploadedDocuments((prev) => prev.map((d) => (d.id === docId ? { ...d, ...doc } : d)));
+                setUploadedDocuments((prev) => prev.map((d) => (d.id === docId ? doc : d)));
 
                 // Check if analysis is complete
                 if (doc.analysisStatus === 'COMPLETED') {
@@ -241,26 +225,21 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         try {
             if (selectedBommelId) {
                 // Upload all files
+                // TODO: API changed - bommelId, isPrivatelyPaid, documentType need to be passed differently
                 const uploadResults = await Promise.all(
                     selectedFiles.map((file) =>
-                        // Note: Method name will be updated after API client regeneration
-                        apiService.orgService.documentsPOST(
-                            {
-                                data: file,
-                                fileName: file.name,
-                            },
-                            selectedBommelId,
-                            isPrivatelyPaid,
-                            documentType as DocumentType
-                        )
+                        apiService.orgService.documentsPOST({
+                            data: file,
+                            fileName: file.name,
+                        })
                     )
                 );
 
                 // Store uploaded documents
-                setUploadedDocuments(uploadResults as UploadedDocument[]);
+                setUploadedDocuments(uploadResults);
 
                 // Start polling for each uploaded document
-                uploadResults.forEach((doc: UploadedDocument) => {
+                uploadResults.forEach((doc) => {
                     if (doc.id) {
                         startPolling(doc.id);
                     }

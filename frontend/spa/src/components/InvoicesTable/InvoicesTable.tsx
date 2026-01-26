@@ -44,11 +44,6 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
     );
 
     useEffect(() => {
-        setRowData(invoices);
-        setColumnDefs(getColumnDefs());
-    }, [invoices, getColumnDefs]);
-
-    useEffect(() => {
         api?.setGridOption('quickFilterText', searchQuery);
     }, [searchQuery, api]);
 
@@ -128,6 +123,11 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
             },
         ];
     }, [t, getBommelFilterItems, formatNumber, currencySymbolAfter, dateFormat]);
+
+    useEffect(() => {
+        setRowData(invoices);
+        setColumnDefs(getColumnDefs());
+    }, [invoices, getColumnDefs]);
 
     const onFilterChanged = useCallback(() => {
         updateFilteredData();
