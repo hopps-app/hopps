@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CategoryInput } from '@hopps/api-client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +34,8 @@ export function useCreateCategory() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: (data: { name: string; description?: string | null }) => apiService.orgService.categoryPOST(new CategoryInput({ name: data.name, description: data.description ?? undefined })),
+        mutationFn: (data: { name: string; description?: string | null }) =>
+            apiService.orgService.categoryPOST(new CategoryInput({ name: data.name, description: data.description ?? undefined })),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
             showSuccess(t('categories.form.success.categoryCreated'));
@@ -51,7 +52,8 @@ export function useUpdateCategory() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: { name: string; description?: string | null } }) => apiService.orgService.categoryPUT(id, new CategoryInput({ name: data.name, description: data.description ?? undefined })),
+        mutationFn: ({ id, data }: { id: number; data: { name: string; description?: string | null } }) =>
+            apiService.orgService.categoryPUT(id, new CategoryInput({ name: data.name, description: data.description ?? undefined })),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
             queryClient.invalidateQueries({ queryKey: categoryKeys.detail(variables.id) });

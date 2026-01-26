@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bommel } from '@hopps/api-client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { useToast } from '@/hooks/use-toast';
@@ -68,7 +68,8 @@ export function useUpdateBommel() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: ({ id, data }: { id: number; data: { name?: string; emoji?: string; parentId?: number } }) => apiService.orgService.bommelPUT(id, new Bommel(data)),
+        mutationFn: ({ id, data }: { id: number; data: { name?: string; emoji?: string; parentId?: number } }) =>
+            apiService.orgService.bommelPUT(id, new Bommel(data)),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             queryClient.invalidateQueries({ queryKey: bommelKeys.detail(variables.id) });
