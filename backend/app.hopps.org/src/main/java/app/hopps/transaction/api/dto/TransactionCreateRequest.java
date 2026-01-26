@@ -18,7 +18,6 @@ public record TransactionCreateRequest(
         Long bommelId,
         Long categoryId,
         String area,
-        @NotNull String documentType,
         boolean privatelyPaid,
         String senderName,
         String senderStreet,

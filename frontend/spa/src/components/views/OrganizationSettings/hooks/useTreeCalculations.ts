@@ -5,11 +5,9 @@ import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTre
 export function useTreeCalculations(tree: OrganizationTreeNodeModel[]) {
     const countTotalBommels = useMemo(() => tree.length, [tree]);
 
-    const calculateTotalIncome = useMemo(() => tree.reduce((sum, node) => sum + (node.data?.income || 0), 0), [tree]);
+    const calculateTotal = useMemo(() => tree.reduce((sum, node) => sum + (node.data?.total || 0), 0), [tree]);
 
-    const calculateTotalExpenses = useMemo(() => tree.reduce((sum, node) => sum + Math.abs(node.data?.expenses || 0), 0), [tree]);
-
-    const calculateTotalReceipts = useMemo(() => tree.reduce((sum, node) => sum + (node.data?.receiptsCount || 0), 0), [tree]);
+    const calculateTotalTransactions = useMemo(() => tree.reduce((sum, node) => sum + (node.data?.transactionsCount || 0), 0), [tree]);
 
     const countSubBommels = useCallback(
         (node: OrganizationTreeNodeModel): number => {
@@ -43,9 +41,8 @@ export function useTreeCalculations(tree: OrganizationTreeNodeModel[]) {
 
     return {
         countTotalBommels,
-        calculateTotalIncome,
-        calculateTotalExpenses,
-        calculateTotalReceipts,
+        calculateTotal,
+        calculateTotalTransactions,
         countSubBommels,
         getNodeDepth,
     };

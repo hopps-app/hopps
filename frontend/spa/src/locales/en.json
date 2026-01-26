@@ -100,9 +100,10 @@
         },
         "stats": {
             "totalBommels": "Total Bommels",
-            "totalIncome": "Total Income",
-            "totalExpenses": "Total Expenses",
-            "totalReceipts": "Total Receipts"
+            "total": "Total",
+            "income": "Income",
+            "expenses": "Expenses",
+            "totalTransactions": "Total Transactions"
         },
         "structure": {
             "quickSearch": "Quick Search",
@@ -112,8 +113,7 @@
             "tableView": "Table View",
             "noData": "No data available",
             "addItems": "Please add items to your organization structure",
-            "receiptsLabel": "Receipts",
-            "openLabel": "open",
+            "transactionsLabel": "Transactions",
             "subBommelsLabel": "Sub-Bommels",
             "editName": "Edit name",
             "deleteBommel": "Delete Bommel",
@@ -121,15 +121,15 @@
             "saveName": "Save",
             "cancelEdit": "Cancel",
             "editModeHint": "To move bommels, switch to the Table view",
+            "includeDrafts": "Include drafts",
+            "aggregate": "Aggregate",
             "details": {
                 "title": "Details",
                 "selectBommel": "Select a Bommel to view details",
+                "total": "Total",
                 "income": "Income",
                 "expenses": "Expenses",
-                "revenue": "Result",
-                "receipts": "Receipts",
-                "openInvoices": "Open Invoices",
-                "drafts": "Drafts",
+                "transactions": "Transactions",
                 "subBommels": "Sub-Bommels",
                 "toReceipts": "To Receipts"
             },

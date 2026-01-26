@@ -2,7 +2,6 @@ package app.hopps.document.api.dto;
 
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.ExtractionSource;
 
 import java.math.BigDecimal;
@@ -20,7 +19,6 @@ public record DocumentResponse(
         String fileContentType,
         Long fileSize,
         Long bommelId,
-        DocumentType documentType,
         boolean privatelyPaid,
         AnalysisStatus analysisStatus,
         String analysisError,
@@ -59,7 +57,6 @@ public record DocumentResponse(
                 doc.getFileContentType(),
                 doc.getFileSize(),
                 doc.getBommel() != null ? doc.getBommel().id : null,
-                doc.getDocumentType(),
                 doc.isPrivatelyPaid(),
                 doc.getAnalysisStatus(),
                 doc.getAnalysisError(),

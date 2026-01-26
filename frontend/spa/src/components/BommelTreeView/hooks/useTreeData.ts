@@ -16,6 +16,9 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
             return null;
         }
 
+        // Find root node to get its statistics
+        const rootNode = tree.find((node) => node.data?.isRoot);
+
         // Filter out the root bommel from tree nodes to avoid duplicate display
         const treeWithoutRoot = tree.filter((node) => !node.data?.isRoot);
 
@@ -30,11 +33,10 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
                         id: node.id as number,
                         emoji: node.data?.emoji || '',
                         nodeId: node.id as number,
+                        total: node.data?.total || 0,
                         income: node.data?.income || 0,
                         expenses: node.data?.expenses || 0,
-                        revenue: node.data?.revenue || 0,
-                        receiptsCount: node.data?.receiptsCount || 0,
-                        receiptsOpen: node.data?.receiptsOpen || 0,
+                        transactionsCount: node.data?.transactionsCount || 0,
                     },
                     children: children.length > 0 ? children : undefined,
                 };
@@ -49,13 +51,12 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
                 name: rootBommel.name || 'Organization',
                 attributes: {
                     id: rootBommel.id || 0,
-                    emoji: 'building',
+                    emoji: rootNode?.data?.emoji || 'building',
                     nodeId: rootBommel.id || 0,
-                    income: 0,
-                    expenses: 0,
-                    revenue: 0,
-                    receiptsCount: 0,
-                    receiptsOpen: 0,
+                    total: rootNode?.data?.total || 0,
+                    income: rootNode?.data?.income || 0,
+                    expenses: rootNode?.data?.expenses || 0,
+                    transactionsCount: rootNode?.data?.transactionsCount || 0,
                 },
             };
         }
@@ -66,13 +67,12 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
                 name: rootBommel?.name || 'Organization',
                 attributes: {
                     id: rootBommel?.id || 0,
-                    emoji: 'building',
+                    emoji: rootNode?.data?.emoji || 'building',
                     nodeId: rootBommel?.id || 0,
-                    income: 0,
-                    expenses: 0,
-                    revenue: 0,
-                    receiptsCount: 0,
-                    receiptsOpen: 0,
+                    total: rootNode?.data?.total || 0,
+                    income: rootNode?.data?.income || 0,
+                    expenses: rootNode?.data?.expenses || 0,
+                    transactionsCount: rootNode?.data?.transactionsCount || 0,
                 },
                 children: topLevelNodes,
             };

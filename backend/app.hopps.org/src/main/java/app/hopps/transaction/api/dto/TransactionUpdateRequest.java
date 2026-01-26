@@ -16,7 +16,6 @@ public record TransactionUpdateRequest(
         Long bommelId,
         Long categoryId,
         String area,
-        String documentType,
         boolean privatelyPaid,
         String senderName,
         String senderStreet,

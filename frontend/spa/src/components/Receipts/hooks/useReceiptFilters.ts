@@ -9,21 +9,11 @@ const getInitialFilters = (searchParams: URLSearchParams): ReceiptFiltersState =
         search: '',
         startDate: null,
         endDate: null,
-        project: '',
-        category: '',
-        type: { income: false, expense: false },
+        project: searchParams.get('bommelId') || null,
+        category: null,
         status: { unpaid: false, draft: false },
         displayAll: false,
     };
-
-    const typeParam = searchParams.get('type');
-
-    // Check if the query parameter contains type=expense or type=income
-    if (typeParam === 'expense') {
-        return { ...baseFilters, type: { income: false, expense: true } };
-    } else if (typeParam === 'income') {
-        return { ...baseFilters, type: { income: true, expense: false } };
-    }
 
     return baseFilters;
 };

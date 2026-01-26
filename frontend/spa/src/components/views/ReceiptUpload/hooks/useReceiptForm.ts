@@ -187,60 +187,57 @@ export function useReceiptForm() {
 
     // Apply analysis results only to fields that are currently empty
     // Used when opening a draft that has a completed analysis
-    const applyAnalysisResultToEmptyFields = useCallback(
-        (response: DocumentResponse, currentValues: Partial<ReceiptFormState>) => {
-            let hasAppliedValues = false;
+    const applyAnalysisResultToEmptyFields = useCallback((response: DocumentResponse, currentValues: Partial<ReceiptFormState>) => {
+        let hasAppliedValues = false;
 
-            // Track extraction source
-            if (response.extractionSource) {
-                setExtractionSource(response.extractionSource);
-            }
+        // Track extraction source
+        if (response.extractionSource) {
+            setExtractionSource(response.extractionSource);
+        }
 
-            // Apply extracted data only to empty form fields
-            if (response.name && !currentValues.receiptNumber) {
-                setReceiptNumber(response.name);
+        // Apply extracted data only to empty form fields
+        if (response.name && !currentValues.receiptNumber) {
+            setReceiptNumber(response.name);
+            hasAppliedValues = true;
+        }
+
+        if (response.transactionTime) {
+            const date = new Date(response.transactionTime);
+            if (!currentValues.receiptDate) {
+                setReceiptDate(date);
                 hasAppliedValues = true;
             }
-
-            if (response.transactionTime) {
-                const date = new Date(response.transactionTime);
-                if (!currentValues.receiptDate) {
-                    setReceiptDate(date);
-                    hasAppliedValues = true;
-                }
-                if (!currentValues.dueDate) {
-                    setDueDate(date);
-                    hasAppliedValues = true;
-                }
-            }
-
-            if (response.senderName && !currentValues.contractPartner) {
-                setContractPartner(response.senderName);
+            if (!currentValues.dueDate) {
+                setDueDate(date);
                 hasAppliedValues = true;
             }
+        }
 
-            if (response.tags && response.tags.length > 0 && (!currentValues.tags || currentValues.tags.length === 0)) {
-                setTags(response.tags);
-                hasAppliedValues = true;
-            }
+        if (response.senderName && !currentValues.contractPartner) {
+            setContractPartner(response.senderName);
+            hasAppliedValues = true;
+        }
 
-            // Calculate net amount from total and tax
-            if (response.total !== undefined && response.total !== null && !currentValues.netAmount) {
-                const tax = response.totalTax ?? 0;
-                const net = response.total - tax;
-                setNetAmount(net.toFixed(2));
-                hasAppliedValues = true;
-            }
+        if (response.tags && response.tags.length > 0 && (!currentValues.tags || currentValues.tags.length === 0)) {
+            setTags(response.tags);
+            hasAppliedValues = true;
+        }
 
-            if (response.totalTax !== undefined && response.totalTax !== null && !currentValues.taxAmount) {
-                setTaxAmount(response.totalTax.toFixed(2));
-                hasAppliedValues = true;
-            }
+        // Calculate net amount from total and tax
+        if (response.total !== undefined && response.total !== null && !currentValues.netAmount) {
+            const tax = response.totalTax ?? 0;
+            const net = response.total - tax;
+            setNetAmount(net.toFixed(2));
+            hasAppliedValues = true;
+        }
 
-            return hasAppliedValues;
-        },
-        []
-    );
+        if (response.totalTax !== undefined && response.totalTax !== null && !currentValues.taxAmount) {
+            setTaxAmount(response.totalTax.toFixed(2));
+            hasAppliedValues = true;
+        }
+
+        return hasAppliedValues;
+    }, []);
 
     // Load existing transaction data into the form
     // Returns the loaded values for comparison with analysis results
@@ -272,13 +269,12 @@ export function useReceiptForm() {
             loadedValues.dueDate = date;
         }
 
-        // Set transaction kind based on document type
-        if (transaction.documentType === 'INVOICE') {
-            setTransactionKind('expense');
-            loadedValues.transactionKind = 'expense';
-        } else if (transaction.documentType === 'RECEIPT') {
-            setTransactionKind('intake');
-            loadedValues.transactionKind = 'intake';
+        // Transaction kind is no longer derived from document type
+        // Set based on total amount sign (negative = expense, positive = income)
+        if (transaction.total !== undefined && transaction.total !== null) {
+            const kind = transaction.total < 0 ? 'expense' : 'intake';
+            setTransactionKind(kind);
+            loadedValues.transactionKind = kind;
         }
 
         // Set unpaid status

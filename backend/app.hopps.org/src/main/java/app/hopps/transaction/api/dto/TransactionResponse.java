@@ -1,7 +1,6 @@
 package app.hopps.transaction.api.dto;
 
 import app.hopps.document.domain.AnalysisStatus;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.document.domain.ExtractionSource;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionArea;
@@ -24,7 +23,6 @@ public record TransactionResponse(
         String categoryName,
         TransactionStatus status,
         TransactionArea area,
-        DocumentType documentType,
         String name,
         BigDecimal total,
         BigDecimal totalTax,
@@ -71,7 +69,6 @@ public record TransactionResponse(
                 tx.getCategory() != null ? tx.getCategory().getName() : null,
                 tx.getStatus(),
                 tx.getArea(),
-                tx.getDocumentType(),
                 tx.getName(),
                 tx.getTotal(),
                 tx.getTotalTax(),

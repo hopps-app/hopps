@@ -1,4 +1,4 @@
-import type { DocumentType, TransactionStatus } from '@hopps/api-client';
+import type { TransactionStatus } from '@hopps/api-client';
 import { TransactionResponse } from '@hopps/api-client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -10,7 +10,6 @@ export interface TransactionFilters {
     endDate?: string;
     bommelId?: number;
     categoryId?: number;
-    documentType?: DocumentType;
     status?: TransactionStatus;
     privatelyPaid?: boolean;
     detached?: boolean;
@@ -34,7 +33,6 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.bommelId,
                 filters.categoryId,
                 filters.detached,
-                filters.documentType,
                 filters.endDate,
                 filters.page ?? 0,
                 filters.privatelyPaid,
@@ -67,7 +65,6 @@ export function transactionToReceipt(tx: TransactionResponse): {
     dueDate: string;
     tags: string[];
     reference: string;
-    documentType: DocumentType | undefined;
 } {
     // Determine status based on transaction status and privatelyPaid
     let status: 'paid' | 'unpaid' | 'draft' | 'failed' = 'paid';
@@ -84,15 +81,13 @@ export function transactionToReceipt(tx: TransactionResponse): {
         return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
-    // Calculate sign based on document type (INVOICE = expense = negative, RECEIPT = income = positive)
     const amount = tx.total ? Number(tx.total) : 0;
-    const signedAmount = tx.documentType === 'INVOICE' ? -Math.abs(amount) : Math.abs(amount);
 
     return {
         id: String(tx.id),
         issuer: tx.senderName ?? tx.name ?? '',
         date: formatDate(tx.transactionTime),
-        amount: signedAmount,
+        amount,
         category: tx.categoryName ?? '',
         status,
         project: tx.bommelName ?? '',
@@ -100,6 +95,5 @@ export function transactionToReceipt(tx: TransactionResponse): {
         dueDate: formatDate(tx.dueDate),
         tags: tx.tags ?? [],
         reference: tx.name ?? '',
-        documentType: tx.documentType,
     };
 }

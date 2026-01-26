@@ -7,11 +7,10 @@ export interface TreeNodeData {
         id: number;
         emoji?: string;
         nodeId?: number;
+        total?: number;
         income?: number;
         expenses?: number;
-        revenue?: number;
-        receiptsCount?: number;
-        receiptsOpen?: number;
+        transactionsCount?: number;
     };
     children?: TreeNodeData[];
 }
@@ -39,11 +38,10 @@ export interface BommelCardProps {
 }
 
 export interface BommelCardStatsProps {
+    total: number;
     income: number;
     expenses: number;
-    revenue: number;
-    receiptsCount: number;
-    receiptsOpen: number;
+    transactionsCount: number;
 }
 
 export type ViewMode = 'list' | 'tree';

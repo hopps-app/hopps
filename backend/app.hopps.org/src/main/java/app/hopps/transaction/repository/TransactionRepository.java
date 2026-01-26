@@ -1,6 +1,5 @@
 package app.hopps.transaction.repository;
 
-import app.hopps.document.domain.DocumentType;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -102,7 +101,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Instant endDate,
             Long bommelId,
             Long categoryId,
-            DocumentType documentType,
             TransactionStatus status,
             Boolean privatelyPaid,
             Boolean detached,
@@ -145,12 +143,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             params.put("categoryId", categoryId);
         }
 
-        // Document type filter
-        if (documentType != null) {
-            query.append(" and documentType = :documentType");
-            params.put("documentType", documentType);
-        }
-
         // Status filter
         if (status != null) {
             query.append(" and status = :status");
@@ -177,7 +169,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Instant endDate,
             Long bommelId,
             Long categoryId,
-            DocumentType documentType,
             TransactionStatus status,
             Boolean privatelyPaid,
             Boolean detached) {
@@ -213,11 +204,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         if (categoryId != null) {
             query.append(" and category.id = :categoryId");
             params.put("categoryId", categoryId);
-        }
-
-        if (documentType != null) {
-            query.append(" and documentType = :documentType");
-            params.put("documentType", documentType);
         }
 
         if (status != null) {

@@ -38,7 +38,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
         <li
             className={cn(
                 'rounded-[var(--radius-l)] p-2 space-y-2',
-                'bg-[var(--background-secondary)]',
+                'bg-white border border-gray-200',
                 isDraft && 'bg-grey-500',
                 isFailed && 'bg-[var(--error-100)]'
             )}
@@ -95,7 +95,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
 
                 {/* Amount + Checkbox */}
                 <div className="flex items-center justify-end gap-4">
-                    <span className={cn('text-base font-semibold tabular-nums text-right min-w-[80px]', amountColorClass(receipt.amount, receipt.documentType))}>
+                    <span className={cn('text-base font-semibold tabular-nums text-right min-w-[80px]', amountColorClass(receipt.amount))}>
                         {formatAmount(receipt.amount)}
                     </span>
 

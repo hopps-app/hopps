@@ -1,6 +1,5 @@
 'use client';
 
-import { Bommel } from '@hopps/api-client';
 import { CheckIcon, ChevronDownIcon, TrashIcon } from '@radix-ui/react-icons';
 import { FC, memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,22 +10,24 @@ import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 type InvoiceUploadFormBommelSelectorprops = {
+    value?: number | null;
     onChange: (id: number | null | undefined) => void;
 };
 
-const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> = ({ onChange }) => {
+const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> = ({ value, onChange }) => {
     const { allBommels } = useBommelsStore();
     const { t } = useTranslation();
 
     const [open, setOpen] = useState(false);
-    const [selectedBommel, setSelectedBommel] = useState<Bommel | null>(null);
+
+    // Find the selected bommel based on the value prop
+    const selectedBommel = value ? (allBommels.find((b) => b.id === value) ?? null) : null;
 
     const onBommelSelected = useCallback(
         (currentValue: string) => {
             const searchedBommel = allBommels.find((bomm) => bomm?.name?.toLowerCase() === currentValue.toLowerCase()) || null;
 
             if (searchedBommel) {
-                setSelectedBommel(searchedBommel);
                 onChange(searchedBommel.id);
             }
 
@@ -35,10 +36,9 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
         [allBommels, onChange]
     );
 
-    const onDeselectBommel = () => {
-        setSelectedBommel(null);
+    const onDeselectBommel = useCallback(() => {
         onChange(null);
-    };
+    }, [onChange]);
 
     return (
         <div className="w-full relative">

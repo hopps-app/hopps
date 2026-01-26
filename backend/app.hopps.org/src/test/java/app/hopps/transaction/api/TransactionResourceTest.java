@@ -2,7 +2,6 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
@@ -70,7 +69,6 @@ class TransactionResourceTest {
         withBommel.setOrganization(org);
         withBommel.setCreatedBy("alice@example.test");
         withBommel.setTotal(BigDecimal.valueOf(50));
-        withBommel.setDocumentType(DocumentType.INVOICE);
         withBommel.setBommel(bommelWithTransactions);
         withBommel.setName("Test Invoice with Bommel");
         transactionRepository.persist(withBommel);
@@ -80,7 +78,6 @@ class TransactionResourceTest {
         noBommel.setOrganization(org);
         noBommel.setCreatedBy("alice@example.test");
         noBommel.setTotal(BigDecimal.valueOf(20));
-        noBommel.setDocumentType(DocumentType.RECEIPT);
         noBommel.setName("Test Receipt without Bommel");
         transactionRepository.persist(noBommel);
     }
@@ -133,24 +130,11 @@ class TransactionResourceTest {
     }
 
     @Test
-    void shouldFilterByDocumentType() {
-        given()
-                .when()
-                .queryParam("documentType", "INVOICE")
-                .get()
-                .then()
-                .statusCode(200)
-                .body("size()", is(1))
-                .body("[0].documentType", is("INVOICE"));
-    }
-
-    @Test
     void shouldCreateTransaction() {
         String requestBody = """
                 {
                     "name": "New Manual Transaction",
                     "total": 100.50,
-                    "documentType": "INVOICE",
                     "privatelyPaid": false
                 }
                 """;
@@ -175,7 +159,6 @@ class TransactionResourceTest {
                 {
                     "name": "Transaction to Get",
                     "total": 75.00,
-                    "documentType": "RECEIPT",
                     "privatelyPaid": false
                 }
                 """;
@@ -216,7 +199,6 @@ class TransactionResourceTest {
                 {
                     "name": "Original Name",
                     "total": 50.00,
-                    "documentType": "INVOICE",
                     "privatelyPaid": false
                 }
                 """;
@@ -260,7 +242,6 @@ class TransactionResourceTest {
                 {
                     "name": "Draft Transaction",
                     "total": 30.00,
-                    "documentType": "INVOICE",
                     "privatelyPaid": false
                 }
                 """;
@@ -294,7 +275,6 @@ class TransactionResourceTest {
                 {
                     "name": "Transaction to Delete",
                     "total": 25.00,
-                    "documentType": "RECEIPT",
                     "privatelyPaid": false
                 }
                 """;
@@ -331,7 +311,6 @@ class TransactionResourceTest {
                 {
                     "name": "Confirmed Transaction",
                     "total": 40.00,
-                    "documentType": "INVOICE",
                     "privatelyPaid": false
                 }
                 """;

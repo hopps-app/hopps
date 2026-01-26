@@ -67,10 +67,6 @@ public class Document extends PanacheEntity {
     @Enumerated(EnumType.STRING)
     private DocumentStatus documentStatus;
 
-    // Type of document (INVOICE or RECEIPT)
-    @Enumerated(EnumType.STRING)
-    private DocumentType documentType;
-
     // User tracking for multi-user scenarios
     private String uploadedBy;
     private String analyzedBy;
@@ -423,14 +419,6 @@ public class Document extends PanacheEntity {
 
     public void setDocumentStatus(DocumentStatus documentStatus) {
         this.documentStatus = documentStatus;
-    }
-
-    public DocumentType getDocumentType() {
-        return documentType;
-    }
-
-    public void setDocumentType(DocumentType documentType) {
-        this.documentType = documentType;
     }
 
     public String getUploadedBy() {

@@ -69,8 +69,8 @@ function OrganizationTreeNode(props: Props) {
         e?.stopPropagation();
         if (isRoot) return;
 
-        // Check if bommel has receipts
-        if (receiptsCount && receiptsCount > 0) {
+        // Check if bommel has transactions
+        if (transactionsCount && transactionsCount > 0) {
             setIsDeleteDialogOpen(true);
         } else {
             handleConfirmDelete();
@@ -123,7 +123,7 @@ function OrganizationTreeNode(props: Props) {
 
     const dragOverProps = useDragOver(id, props.isOpen, props.onToggle);
 
-    const { receiptsCount, receiptsOpen, subBommelsCount, income, expenses, revenue } = props.node.data || {};
+    const { total, income, expenses, transactionsCount, subBommelsCount } = props.node.data || {};
 
     const formatCurrency = (value?: number) => {
         if (value === undefined || value === null) return '-';
@@ -137,7 +137,7 @@ function OrganizationTreeNode(props: Props) {
                 <DialogContent onClick={(e) => e.stopPropagation()}>
                     <DialogHeader>
                         <DialogTitle>{t('organization.structure.deleteDialog.title')}</DialogTitle>
-                        <DialogDescription>{t('organization.structure.deleteDialog.description', { count: receiptsCount })}</DialogDescription>
+                        <DialogDescription>{t('organization.structure.deleteDialog.description', { count: transactionsCount })}</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <Button variant="outline" onClick={handleCancelDelete}>
@@ -210,39 +210,46 @@ function OrganizationTreeNode(props: Props) {
                                         <h4 className="text-gray-900 font-semibold truncate">{props.node.text}</h4>
                                     </div>
                                     <div className="flex items-center gap-3 text-xs text-gray-600">
-                                        {!props.editable && receiptsCount !== undefined && <span>{receiptsCount} Belege</span>}
-                                        {!props.editable && receiptsOpen !== undefined && receiptsOpen > 0 && (
-                                            <span className="bg-orange-500 text-white px-2 py-0.5 rounded-full">{receiptsOpen} offen</span>
+                                        {!props.editable && transactionsCount !== undefined && (
+                                            <span>
+                                                {transactionsCount} {t('organization.structure.transactionsLabel')}
+                                            </span>
                                         )}
                                         {subBommelsCount !== undefined && subBommelsCount > 0 && (
-                                            <span className="text-gray-500">{subBommelsCount} Unterbommel</span>
+                                            <span className="text-gray-500">
+                                                {subBommelsCount} {t('organization.structure.subBommelsLabel')}
+                                            </span>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Right: Financial info or Edit/Delete buttons */}
                                 {!props.editable ? (
-                                    <div className="flex items-center gap-6 flex-shrink-0">
-                                        <div className="text-right">
-                                            <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.income')}</div>
-                                            <div className="text-sm font-medium text-green-600">{formatCurrency(income)}</div>
+                                    <div className="flex items-center gap-4 flex-shrink-0">
+                                        {/* Income and Expenses - smaller, side by side */}
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-gray-500">{t('organization.structure.details.income')}</div>
+                                                <div className="text-sm font-medium text-green-600">{formatCurrency(income)}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-gray-500">{t('organization.structure.details.expenses')}</div>
+                                                <div className="text-sm font-medium text-red-600">
+                                                    {expenses !== undefined ? `-${Math.abs(expenses).toLocaleString('de-DE')}€` : '-'}
+                                                </div>
+                                            </div>
                                         </div>
-
-                                        <div className="text-right">
-                                            <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.expenses')}</div>
-                                            <div className="text-sm font-medium text-red-600">{formatCurrency(expenses)}</div>
-                                        </div>
-
+                                        {/* Total - emphasized with border */}
                                         <div className="text-right bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
-                                            <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.revenue')}</div>
+                                            <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.total')}</div>
                                             <div
                                                 className={cn('text-base font-semibold', {
-                                                    'text-green-600': revenue !== undefined && revenue >= 0,
-                                                    'text-red-600': revenue !== undefined && revenue < 0,
-                                                    'text-gray-900': revenue === undefined,
+                                                    'text-green-600': total !== undefined && total >= 0,
+                                                    'text-red-600': total !== undefined && total < 0,
+                                                    'text-gray-900': total === undefined,
                                                 })}
                                             >
-                                                {formatCurrency(revenue)}
+                                                {formatCurrency(total)}
                                             </div>
                                         </div>
                                     </div>

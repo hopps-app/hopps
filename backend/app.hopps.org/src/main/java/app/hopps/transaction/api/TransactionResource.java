@@ -4,7 +4,6 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.category.domain.Category;
 import app.hopps.category.repository.CategoryRepository;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
@@ -75,7 +74,6 @@ public class TransactionResource {
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
             @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId,
             @QueryParam("categoryId") @Parameter(description = "Filter by category ID") Long categoryId,
-            @QueryParam("documentType") @Parameter(description = "Filter by document type (INVOICE or RECEIPT)") DocumentType documentType,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
@@ -101,7 +99,6 @@ public class TransactionResource {
                 endInstant,
                 bommelId,
                 categoryId,
-                documentType,
                 status,
                 privatelyPaid,
                 detached,
@@ -242,10 +239,6 @@ public class TransactionResource {
             transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
         }
 
-        if (request.documentType() != null && !request.documentType().isBlank()) {
-            transaction.setDocumentType(DocumentType.valueOf(request.documentType().toUpperCase()));
-        }
-
         if (request.senderName() != null && !request.senderName().isBlank()) {
             TradeParty sender = new TradeParty();
             sender.setName(request.senderName());
@@ -309,10 +302,6 @@ public class TransactionResource {
 
         if (request.area() != null && !request.area().isBlank()) {
             transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
-        }
-
-        if (request.documentType() != null && !request.documentType().isBlank()) {
-            transaction.setDocumentType(DocumentType.valueOf(request.documentType().toUpperCase()));
         }
 
         // Update sender

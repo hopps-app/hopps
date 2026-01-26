@@ -10,8 +10,8 @@ import { useReceiptForm } from './hooks';
 
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import Switch from '@/components/ui/Switch';
-import { useToast } from '@/hooks/use-toast';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
+import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -213,13 +213,15 @@ function ReceiptUploadView() {
         // Skip if already loaded for this ID
         if (transactionLoadedRef.current === id) return;
 
+        // Mark as loaded immediately to prevent infinite loop on error
+        transactionLoadedRef.current = id;
+
         const loadTransactionData = async () => {
             setIsLoadingTransaction(true);
             try {
                 const transactionIdNum = parseInt(id, 10);
                 const transaction = await apiService.orgService.transactionsGET(transactionIdNum);
                 const loadedValues = loadTransaction(transaction);
-                transactionLoadedRef.current = id;
 
                 // Load document preview and check for analysis results if document exists
                 if (transaction.documentId) {
@@ -337,7 +339,17 @@ function ReceiptUploadView() {
 
     // Build the update request payload for transaction
     const buildTransactionPayload = useCallback(() => {
-        const total = netAmount ? parseFloat(netAmount) + parseFloat(taxAmount || '0') : undefined;
+        // Calculate total with sign based on transaction kind
+        let total: number | undefined = undefined;
+        if (netAmount) {
+            const netValue = parseFloat(netAmount);
+            const taxValue = parseFloat(taxAmount || '0');
+            total = netValue + taxValue;
+            // Make total negative for expenses
+            if (transactionKind === 'expense' && total > 0) {
+                total = -total;
+            }
+        }
         return {
             name: receiptNumber || undefined,
             total: total,
@@ -346,7 +358,6 @@ function ReceiptUploadView() {
             dueDate: dueDate?.toISOString().split('T')[0],
             bommelId: bommelId ?? undefined,
             senderName: contractPartner || undefined,
-            documentType: transactionKind === 'expense' ? 'INVOICE' : transactionKind === 'intake' ? 'RECEIPT' : undefined,
             privatelyPaid: isUnpaid,
             area: area || undefined,
             categoryId: category ? parseInt(category, 10) : undefined,
@@ -400,11 +411,10 @@ function ReceiptUploadView() {
                 showSuccess(t('receipts.upload.draftSaved'));
             } else {
                 // Create new manual transaction (no document)
-                // For create, total and documentType are required
+                // For create, total is required
                 const createPayload = {
                     ...payload,
                     total: payload.total ?? 0,
-                    documentType: payload.documentType ?? 'INVOICE',
                 };
                 const response = await apiService.orgService.transactionsPOST(new TransactionCreateRequest(createPayload));
                 if (response.id) {

@@ -1,4 +1,4 @@
-import { Bommel } from '@hopps/api-client';
+import { Bommel, BommelStatisticsMap } from '@hopps/api-client';
 import { useCallback, useEffect, useState } from 'react';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
@@ -7,25 +7,17 @@ import apiService from '@/services/ApiService';
 import organizationTreeService from '@/services/OrganisationTreeService';
 import { useStore } from '@/store/store';
 
-export function useOrganizationTree() {
+interface UseOrganizationTreeOptions {
+    bommelStats?: BommelStatisticsMap | null;
+}
+
+export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
     const { showError } = useToast();
     const store = useStore();
     const [isOrganizationError, setIsOrganizationError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [rootBommel, setRootBommel] = useState<Bommel | null>(null);
     const [tree, setTree] = useState<OrganizationTreeNodeModel[]>([]);
-
-    const getNodeDepth = useCallback((node: OrganizationTreeNodeModel, allNodes: OrganizationTreeNodeModel[]): number => {
-        let depth = 0;
-        let currentNode = node;
-        while (currentNode.parent && currentNode.parent !== 0) {
-            depth++;
-            const parentNode = allNodes.find((n) => n.id === currentNode.parent);
-            if (!parentNode) break;
-            currentNode = parentNode;
-        }
-        return depth;
-    }, []);
 
     const loadTree = useCallback(async () => {
         const organizationId = store.organization?.id;
@@ -41,36 +33,28 @@ export function useOrganizationTree() {
 
         const nodes = organizationTreeService.bommelsToTreeNodes(bommels, loadedRootBommel?.id);
 
-        // Add mock data for demonstration
-        const nodesWithMockData = nodes
-            .map((node) => {
-                const depth = getNodeDepth(node, nodes);
-                const baseMultiplier = Math.max(1, 5 - depth);
+        // Add statistics data from API (or fallback to zero values)
+        // Note: JSON object keys are always strings, so we need to access by string key
+        const nodesWithStats = nodes.map((node) => {
+            const nodeId = node.id as number;
+            const stats = options?.bommelStats?.statistics?.[String(nodeId)];
 
-                return {
-                    ...node,
-                    data: {
-                        ...node.data,
-                        emoji: node.data?.emoji || '',
-                        receiptsCount: Math.floor(Math.random() * 50 + 10) * baseMultiplier,
-                        receiptsOpen: Math.floor(Math.random() * 10),
-                        subBommelsCount: nodes.filter((n) => n.parent === node.id).length,
-                        income: Math.floor(Math.random() * 3000 + 1000) * baseMultiplier,
-                        expenses: -Math.floor(Math.random() * 200 + 50) * baseMultiplier,
-                        revenue: 0,
-                    },
-                };
-            })
-            .map((node) => ({
+            return {
                 ...node,
                 data: {
-                    ...node.data!,
-                    revenue: (node.data!.income || 0) + (node.data!.expenses || 0),
+                    ...node.data,
+                    emoji: node.data?.emoji || '',
+                    total: stats?.total ?? 0,
+                    income: stats?.income ?? 0,
+                    expenses: stats?.expenses ?? 0,
+                    transactionsCount: stats?.transactionsCount ?? 0,
+                    subBommelsCount: nodes.filter((n) => n.parent === node.id).length,
                 },
-            }));
+            };
+        });
 
-        setTree(nodesWithMockData);
-    }, [store.organization?.id, rootBommel, getNodeDepth]);
+        setTree(nodesWithStats);
+    }, [store.organization?.id, rootBommel, options?.bommelStats]);
 
     const createTreeNode = useCallback(async () => {
         if (!rootBommel?.id) return;

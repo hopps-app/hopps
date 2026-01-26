@@ -6,7 +6,6 @@ import DisplayFilter from '@/components/Receipts/Filters/fields/DisplayFilter';
 import ProjectFilter from '@/components/Receipts/Filters/fields/ProjectFilter';
 import { SearchFilter } from '@/components/Receipts/Filters/fields/SearchFilter';
 import { StatusFilter } from '@/components/Receipts/Filters/fields/StatusFilter';
-import TypeFilter from '@/components/Receipts/Filters/fields/TypeFilter';
 import { ReceiptFiltersState, SetFilterFn } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 
@@ -32,13 +31,6 @@ export const ReceiptFilters = ({ filters, setFilter, resetFilters }: ReceiptFilt
                 <ProjectFilter filters={filters} onChange={setFilter} label={t('receipts.filters.bommel')} />
                 <DisplayFilter filters={filters} onChange={setFilter} label={t('receipts.filters.displayType')} />
                 <CategoryFilter filters={filters} onChange={setFilter} label={t('receipts.filters.category')} />
-                <TypeFilter
-                    filters={filters.type}
-                    onChange={(key, value) => {
-                        setFilter('type', { ...filters.type, [key]: value });
-                    }}
-                    label={t('receipts.filters.type')}
-                />
                 <StatusFilter filters={filters} onChange={setFilter} label={t('receipts.filters.status')} />
 
                 <div className="flex items-end justify-end w-full">

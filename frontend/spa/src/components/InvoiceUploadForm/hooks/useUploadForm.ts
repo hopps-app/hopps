@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { DocumentType, DocumentResponse } from '@hopps/api-client';
+import type { DocumentResponse } from '@hopps/api-client';
 import { isEqual } from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileWithPath } from 'react-dropzone';
@@ -30,9 +30,6 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         bommelId: z.number().refine((val) => val !== null, {
             message: 'Please select a Bommel',
         }),
-        documentType: z.string().refine((val) => ['INVOICE', 'RECEIPT'].includes(val), {
-            message: 'Please select a document type',
-        }),
         isPrivatelyPaid: z.boolean(),
     });
 
@@ -40,7 +37,6 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
 
     const defaultValues: InvoiceUploadFormFields = {
         bommelId: 0 as number,
-        documentType: '',
         isPrivatelyPaid: false,
     };
 
@@ -56,7 +52,6 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
 
     const selectedBommelId = watch('bommelId');
     const isPrivatelyPaid = watch('isPrivatelyPaid');
-    const documentType = watch('documentType');
 
     const isInvoiceSizeLimit = useMemo(() => selectedFiles.reduce((acc, current) => acc + current.size, 0) > 20000000, [selectedFiles]);
 
@@ -170,7 +165,6 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         const interval = setInterval(async () => {
             try {
                 // Fetch document status
-                // Note: Method name will be updated after API client regeneration
                 const doc = await apiService.orgService.documentsGET(docId);
 
                 // Update the document in our state
@@ -225,7 +219,6 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         try {
             if (selectedBommelId) {
                 // Upload all files
-                // TODO: API changed - bommelId, isPrivatelyPaid, documentType need to be passed differently
                 const uploadResults = await Promise.all(
                     selectedFiles.map((file) =>
                         apiService.orgService.documentsPOST({
@@ -247,7 +240,6 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
 
                 showSuccess('Files uploaded, analysis in progress...');
                 setSelectedFiles([]);
-                setValue('documentType', '');
                 setValue('bommelId', 0);
                 setValue('isPrivatelyPaid', false);
             }
@@ -274,14 +266,9 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         setValue('isPrivatelyPaid', !isPrivatelyPaid);
     };
 
-    const onDocumentTypeChange = (value: string) => {
-        console.log(value);
-        setValue('documentType', value as DocumentType);
-    };
-
     const isValidUpload = useMemo(
-        () => isUploading || isPolling || !selectedFiles.length || isInvoicesQuantityLimit || isInvoiceSizeLimit || !selectedBommelId || !documentType,
-        [isUploading, isPolling, selectedFiles, isInvoicesQuantityLimit, isInvoiceSizeLimit, selectedBommelId, documentType]
+        () => isUploading || isPolling || !selectedFiles.length || isInvoicesQuantityLimit || isInvoiceSizeLimit || !selectedBommelId,
+        [isUploading, isPolling, selectedFiles, isInvoicesQuantityLimit, isInvoiceSizeLimit, selectedBommelId]
     );
 
     return {
@@ -292,11 +279,9 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
         fileProgress,
         isInvoicesQuantityLimit,
         isPrivatelyPaid,
-        documentType,
         onFilesChanged,
         onBommelSelected,
         handleCheckboxChange,
-        onDocumentTypeChange,
         onClickRemoveSelected,
         isValidUpload,
         isInvoiceSizeLimit,

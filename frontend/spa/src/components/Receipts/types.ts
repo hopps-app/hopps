@@ -1,5 +1,3 @@
-export type ReceiptDocumentType = 'INVOICE' | 'RECEIPT' | undefined;
-
 export interface Receipt {
     id: string;
     issuer: string;
@@ -12,7 +10,6 @@ export interface Receipt {
     dueDate: string;
     tags: string[];
     reference: string;
-    documentType?: ReceiptDocumentType;
 }
 
 export type ReceiptStatusCheck = 'isDraft' | 'isFailed' | 'isPaid' | 'isUnpaid';
@@ -23,10 +20,6 @@ export interface ReceiptFiltersState {
     endDate: string | null;
     project: string | null;
     category: string | null;
-    type: {
-        income: boolean;
-        expense: boolean;
-    };
     status: {
         unpaid: boolean;
         draft: boolean;

@@ -8,7 +8,6 @@ import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUpl
 import { InvoiceUploadType } from '@/components/InvoiceUploadForm/types/index';
 import List from '@/components/ui/List/List';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay.tsx';
-import Select, { SelectItem } from '@/components/ui/Select';
 import { Checkbox } from '@/components/ui/shadecn/Checkbox';
 
 const InvoiceUploadForm: FC<InvoiceUploadType> = ({ onUploadInvoiceChange }) => {
@@ -19,28 +18,15 @@ const InvoiceUploadForm: FC<InvoiceUploadType> = ({ onUploadInvoiceChange }) => 
         fileProgress,
         isInvoicesQuantityLimit,
         isPrivatelyPaid,
-        documentType,
         onFilesChanged,
         onBommelSelected,
         handleCheckboxChange,
-        onDocumentTypeChange,
         onClickRemoveSelected,
         isValidUpload,
         isInvoiceSizeLimit,
         errors,
         handleSubmit,
     } = useUploadForm({ onUploadInvoiceChange });
-
-    const transactionTypes: SelectItem[] = [
-        {
-            value: 'INVOICE',
-            label: t('invoiceUpload.invoice'),
-        },
-        {
-            value: 'RECEIPT',
-            label: t('invoiceUpload.receipt'),
-        },
-    ];
 
     return (
         <form onSubmit={handleSubmit} className="invoice-upload-form">
@@ -75,12 +61,6 @@ const InvoiceUploadForm: FC<InvoiceUploadType> = ({ onUploadInvoiceChange }) => 
                         <div className="flex flex-col gap-8">
                             <InvoiceUploadFormBommelSelector onChange={(a) => a && onBommelSelected(a)} />
                             {errors.bommelId && <p className="text-red-500 text-xs font-medium">{errors.bommelId.message}</p>}
-
-                            <div className="flex flex-col gap-2">
-                                <h6 className="text-sm font-medium">{t('invoiceUpload.docType')}</h6>
-                                <Select className="h-16 rounded-2xl" value={documentType} onValueChanged={onDocumentTypeChange} items={transactionTypes} />
-                                {errors.documentType && <p className="text-red-500 text-xs font-medium">{errors.documentType.message}</p>}
-                            </div>
 
                             <div className="flex items-center space-x-2">
                                 <Checkbox checked={isPrivatelyPaid} onCheckedChange={handleCheckboxChange} id="privatelyPaid" />

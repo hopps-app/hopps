@@ -14,11 +14,10 @@ import Emoji from '@/components/ui/Emoji';
 export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelete, onAddChild, editable }: BommelCardProps) {
     const { t } = useTranslation();
     const nodeId = nodeDatum.attributes?.id as number;
+    const total = (nodeDatum.attributes?.total as number) || 0;
     const income = (nodeDatum.attributes?.income as number) || 0;
     const expenses = (nodeDatum.attributes?.expenses as number) || 0;
-    const revenue = (nodeDatum.attributes?.revenue as number) || 0;
-    const receiptsCount = (nodeDatum.attributes?.receiptsCount as number) || 0;
-    const receiptsOpen = (nodeDatum.attributes?.receiptsOpen as number) || 0;
+    const transactionsCount = (nodeDatum.attributes?.transactionsCount as number) || 0;
     const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
 
     const [isEditing, setIsEditing] = useState(false);
@@ -123,9 +122,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                 </div>
 
                 {/* Financial Stats - Only show in view mode */}
-                {!editable && (
-                    <BommelCardStats income={income} expenses={expenses} revenue={revenue} receiptsCount={receiptsCount} receiptsOpen={receiptsOpen} />
-                )}
+                {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} />}
 
                 {/* Edit mode info */}
                 {editable && (

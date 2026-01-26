@@ -122,6 +122,9 @@ public class DocumentResource {
         LOG.info("Transaction created for document: transactionId={}, documentId={}",
                 transaction.getId(), document.getId());
 
+        // Set bidirectional relationship so transactionId is available in response
+        document.setTransaction(transaction);
+
         // Fire event to trigger async analysis after transaction commits
         documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
 

@@ -99,9 +99,10 @@
         },
         "stats": {
             "totalBommels": "Gesamt Bommels",
-            "totalIncome": "Gesamt Einnahmen",
-            "totalExpenses": "Gesamt Ausgaben",
-            "totalReceipts": "Gesamt Belege"
+            "total": "Gesamt",
+            "income": "Einnahmen",
+            "expenses": "Ausgaben",
+            "totalTransactions": "Gesamt Transaktionen"
         },
         "structure": {
             "quickSearch": "Schnellsuche",
@@ -111,8 +112,7 @@
             "tableView": "Tabelle",
             "noData": "Keine Daten verfügbar",
             "addItems": "Bitte fügen Sie Elemente zu Ihrer Organisationsstruktur hinzu",
-            "receiptsLabel": "Belege",
-            "openLabel": "offen",
+            "transactionsLabel": "Transaktionen",
             "subBommelsLabel": "Unterbommel",
             "editName": "Name bearbeiten",
             "deleteBommel": "Bommel löschen",
@@ -120,15 +120,15 @@
             "saveName": "Speichern",
             "cancelEdit": "Abbrechen",
             "editModeHint": "Zum Verschieben von Bommeln wechseln Sie zur Tabellen-Ansicht",
+            "includeDrafts": "Entwürfe einbeziehen",
+            "aggregate": "Aggregieren",
             "details": {
                 "title": "Details",
                 "selectBommel": "Wählen Sie einen Bommel aus, um Details anzuzeigen",
+                "total": "Gesamt",
                 "income": "Einnahmen",
                 "expenses": "Ausgaben",
-                "revenue": "Ergebnis",
-                "receipts": "Belege",
-                "openInvoices": "Offene Rechnungen",
-                "drafts": "Entwürfe",
+                "transactions": "Transaktionen",
                 "subBommels": "Subbommel",
                 "toReceipts": "Zu Belege"
             },

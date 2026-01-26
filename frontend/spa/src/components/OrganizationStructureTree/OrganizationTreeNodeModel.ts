@@ -6,12 +6,11 @@ export type OrganizationTreeNodeData = {
     isNew?: boolean;
     isRoot?: boolean;
     // Financial and statistics data
-    receiptsCount?: number;
-    receiptsOpen?: number;
-    subBommelsCount?: number;
+    total?: number;
     income?: number;
     expenses?: number;
-    revenue?: number;
+    transactionsCount?: number;
+    subBommelsCount?: number;
 };
 
 export type OrganizationTreeNodeModel = NodeModel<OrganizationTreeNodeData>;

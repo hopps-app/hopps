@@ -1,4 +1,4 @@
-import type { DocumentType, TransactionStatus } from '@hopps/api-client';
+import type { TransactionStatus } from '@hopps/api-client';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -18,15 +18,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
 
     // Map UI filters to API filters
     const apiFilters = useMemo(() => {
-        // Determine document type filter based on income/expense checkboxes
-        let documentType: DocumentType | undefined;
-        if (filters.type.income && !filters.type.expense) {
-            documentType = 'RECEIPT'; // Income = RECEIPT
-        } else if (filters.type.expense && !filters.type.income) {
-            documentType = 'INVOICE'; // Expense = INVOICE
-        }
-        // If both or neither are checked, don't filter by document type
-
         // Determine status filter
         let status: TransactionStatus | undefined;
         if (filters.status.draft) {
@@ -42,7 +33,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             endDate: filters.endDate || undefined,
             bommelId: filters.project ? parseInt(filters.project, 10) : undefined,
             categoryId: filters.category ? parseInt(filters.category, 10) : undefined,
-            documentType,
             status,
             privatelyPaid,
         };

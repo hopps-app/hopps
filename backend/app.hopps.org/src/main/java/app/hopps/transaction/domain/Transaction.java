@@ -3,7 +3,6 @@ package app.hopps.transaction.domain;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.category.domain.Category;
 import app.hopps.document.domain.Document;
-import app.hopps.document.domain.DocumentType;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
@@ -31,7 +30,7 @@ public class Transaction extends PanacheEntity {
     @JoinColumn(name = "bommel_id")
     private Bommel bommel;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
     private Document document;
 
@@ -68,10 +67,6 @@ public class Transaction extends PanacheEntity {
     @Column(name = "privately_paid")
     @ColumnDefault("false")
     private boolean privatelyPaid;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "document")
-    private DocumentType documentType;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
@@ -231,14 +226,6 @@ public class Transaction extends PanacheEntity {
 
     public void setPrivatelyPaid(boolean privatelyPaid) {
         this.privatelyPaid = privatelyPaid;
-    }
-
-    public DocumentType getDocumentType() {
-        return documentType;
-    }
-
-    public void setDocumentType(DocumentType documentType) {
-        this.documentType = documentType;
     }
 
     public TradeParty getSender() {

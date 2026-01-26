@@ -71,10 +71,10 @@ export function ReceiptFormFields({
     const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
     const areaItems: SelectItem[] = [
-        { value: 'ideeller-bereich', label: t('receipts.areas.ideell') },
-        { value: 'zweckbetrieb', label: t('receipts.areas.zweckbetrieb') },
-        { value: 'vermoegensverwaltung', label: t('receipts.areas.vermoegensverwaltung') },
-        { value: 'wirtschaftlicher-gb', label: t('receipts.areas.wirtschaftlich') },
+        { value: 'IDEELL', label: t('receipts.areas.ideell') },
+        { value: 'ZWECKBETRIEB', label: t('receipts.areas.zweckbetrieb') },
+        { value: 'VERMOEGENSVERWALTUNG', label: t('receipts.areas.vermoegensverwaltung') },
+        { value: 'WIRTSCHAFTLICH', label: t('receipts.areas.wirtschaftlich') },
     ];
 
     const categoryItems: SelectItem[] = useMemo(
@@ -90,9 +90,6 @@ export function ReceiptFormFields({
         { value: 'intake', label: t('receipts.types.income') },
         { value: 'expense', label: t('receipts.types.expense') },
     ];
-
-    // Suppress unused variable warning - bommelId is used for controlled component pattern
-    void bommelId;
 
     return (
         <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
@@ -121,7 +118,7 @@ export function ReceiptFormFields({
             />
             <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">{t('receipts.upload.bommel')}</label>
-                <InvoiceUploadFormBommelSelector onChange={(id) => onBommelIdChange((id as number) ?? null)} />
+                <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} />
             </div>
 
             <DatePicker label={t('receipts.upload.dueDate')} date={dueDate} onSelect={onDueDateChange} className="w-full" loading={loadingStates.dueDate} />
