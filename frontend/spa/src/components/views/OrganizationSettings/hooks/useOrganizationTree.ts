@@ -28,10 +28,18 @@ export function useOrganizationTree() {
     }, []);
 
     const loadTree = useCallback(async () => {
-        if (!rootBommel?.id) return;
+        const organizationId = store.organization?.id;
+        if (!organizationId) return;
 
-        const bommels = await organizationTreeService.getOrganizationBommels(rootBommel.id);
-        const nodes = organizationTreeService.bommelsToTreeNodes(bommels, rootBommel.id);
+        const bommels = await organizationTreeService.getOrganizationBommels(organizationId);
+
+        // First bommel in the list is the root bommel
+        const loadedRootBommel = bommels.length > 0 ? bommels[0] : null;
+        if (loadedRootBommel && !rootBommel) {
+            setRootBommel(loadedRootBommel);
+        }
+
+        const nodes = organizationTreeService.bommelsToTreeNodes(bommels, loadedRootBommel?.id);
 
         // Add mock data for demonstration
         const nodesWithMockData = nodes
@@ -62,7 +70,7 @@ export function useOrganizationTree() {
             }));
 
         setTree(nodesWithMockData);
-    }, [rootBommel, getNodeDepth]);
+    }, [store.organization?.id, rootBommel, getNodeDepth]);
 
     const createTreeNode = useCallback(async () => {
         if (!rootBommel?.id) return;
@@ -176,35 +184,30 @@ export function useOrganizationTree() {
         [loadTree, showError]
     );
 
-    // Load tree when rootBommel changes
+    // Initialize and load tree when organization changes
     useEffect(() => {
-        if (!rootBommel) {
+        const organizationId = store.organization?.id;
+
+        if (!organizationId) {
+            setIsOrganizationError(true);
             setTree([]);
             return;
         }
 
-        loadTree().then(() => {
+        const initializeTree = async () => {
+            // Ensure root bommel exists (creates it if needed)
+            await organizationTreeService.ensureRootBommelCreated(organizationId);
+
+            // Load all bommels including root
+            await loadTree();
+            setIsLoading(false);
+        };
+
+        initializeTree().catch(() => {
+            setIsOrganizationError(true);
             setIsLoading(false);
         });
-    }, [rootBommel, loadTree]);
-
-    // Initialize root bommel
-    useEffect(() => {
-        const organization = store.organization;
-
-        if (!organization?.id) {
-            setIsOrganizationError(true);
-            return;
-        }
-
-        organizationTreeService.ensureRootBommelCreated(organization.id).then((bommel) => {
-            if (bommel) {
-                setRootBommel(bommel);
-            } else {
-                setIsOrganizationError(true);
-            }
-        });
-    }, [store.organization]);
+    }, [store.organization?.id, loadTree]);
 
     return {
         isOrganizationError,

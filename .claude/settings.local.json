@@ -15,7 +15,12 @@
       "Bash(git stash:*)",
       "Bash(./mvnw net.revelc.code.formatter:formatter-maven-plugin:2.29.0:format:*)",
       "Bash(pnpm run build)",
-      "Bash(pnpm install:*)"
+      "Bash(pnpm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(./mvnw compile:*)",
+      "Bash(pnpm run generate-local:*)",
+      "Bash(pnpm run typecheck:*)"
     ]
   }
 }

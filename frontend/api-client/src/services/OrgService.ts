@@ -202,11 +202,15 @@ export class Client {
     }
 
     /**
-     * Fetch all bommels for user's organization
+     * Fetch all bommels for an organization
+     * @param orgId The organization ID
      * @return All bommels for organization
      */
-    organizationAll(): Promise<TreeSearchBommel[]> {
-        let url_ = this.baseUrl + "/bommel/organization";
+    bommels(orgId: number): Promise<TreeSearchBommel[]> {
+        let url_ = this.baseUrl + "/organizations/{orgId}/bommels";
+        if (orgId === undefined || orgId === null)
+            throw new Error("The parameter 'orgId' must be defined.");
+        url_ = url_.replace("{orgId}", encodeURIComponent("" + orgId));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -217,11 +221,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processOrganizationAll(_response);
+            return this.processBommels(_response);
         });
     }
 
-    protected processOrganizationAll(response: Response): Promise<TreeSearchBommel[]> {
+    protected processBommels(response: Response): Promise<TreeSearchBommel[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

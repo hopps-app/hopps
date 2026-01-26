@@ -5,8 +5,8 @@ import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTre
 import apiService from '@/services/ApiService.ts';
 
 export class OrganisationTreeService {
-    async getOrganizationBommels(rootBommelId: number): Promise<Bommel[]> {
-        const items = await apiService.orgService.recursive(rootBommelId);
+    async getOrganizationBommels(organizationId: number): Promise<Bommel[]> {
+        const items = await apiService.orgService.bommels(organizationId);
         const bommelsWithDepth: (IBommel & { depth: number })[] = [];
 
         items.map((item) => {

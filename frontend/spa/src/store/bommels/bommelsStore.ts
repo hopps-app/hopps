@@ -7,20 +7,20 @@ import { BommelActions, BommelsState } from '@/store/bommels/types';
 export const useBommelsStore = create<BommelsState & BommelActions>()(
     devtools((set) => {
         return {
+            organizationId: null,
             rootBommel: null,
             allBommels: [],
             isLoading: false,
             isError: false,
 
             loadBommels: async (organizationId: number) => {
-                set({ isLoading: true, isError: false });
+                set({ isLoading: true, isError: false, organizationId });
 
                 try {
-                    const root = await organizationTreeService.ensureRootBommelCreated(organizationId);
-                    if (!root) throw new Error('Root bommel not found');
-                    if (!root.id) throw new Error('Root bommel id not found');
+                    const fetchedBommels = await organizationTreeService.getOrganizationBommels(organizationId);
 
-                    const fetchedBommels = await organizationTreeService.getOrganizationBommels(root.id);
+                    // First bommel in the list is the root bommel
+                    const root = fetchedBommels.length > 0 ? fetchedBommels[0] : null;
 
                     set({ rootBommel: root, allBommels: fetchedBommels });
                 } catch (error) {
@@ -36,9 +36,9 @@ export const useBommelsStore = create<BommelsState & BommelActions>()(
             },
 
             reload: async () => {
-                const { rootBommel } = useBommelsStore.getState();
-                if (rootBommel && rootBommel.id) {
-                    await useBommelsStore.getState().loadBommels(rootBommel.id);
+                const { organizationId } = useBommelsStore.getState();
+                if (organizationId) {
+                    await useBommelsStore.getState().loadBommels(organizationId);
                 }
             },
         };

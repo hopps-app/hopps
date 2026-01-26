@@ -24,24 +24,19 @@ export function useRootBommel(organizationId: number | undefined) {
     });
 }
 
-export function useBommels(rootBommelId: number | undefined) {
+export function useBommels(organizationId: number | undefined) {
     return useQuery({
-        queryKey: bommelKeys.listByRoot(rootBommelId ?? 0),
-        queryFn: () => organizationTreeService.getOrganizationBommels(rootBommelId!),
-        enabled: !!rootBommelId,
+        queryKey: bommelKeys.listByOrg(organizationId ?? 0),
+        queryFn: () => organizationTreeService.getOrganizationBommels(organizationId!),
+        enabled: !!organizationId,
     });
 }
 
 export function useBommelsByOrganization(organizationId: number | undefined) {
-    const rootQuery = useRootBommel(organizationId);
-
     return useQuery({
         queryKey: bommelKeys.listByOrg(organizationId ?? 0),
-        queryFn: async () => {
-            if (!rootQuery.data?.id) throw new Error('Root bommel not found');
-            return organizationTreeService.getOrganizationBommels(rootQuery.data.id);
-        },
-        enabled: !!organizationId && !!rootQuery.data?.id,
+        queryFn: () => organizationTreeService.getOrganizationBommels(organizationId!),
+        enabled: !!organizationId,
     });
 }
 

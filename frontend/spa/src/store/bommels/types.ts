@@ -1,6 +1,7 @@
 import { Bommel } from '@hopps/api-client';
 
 export type BommelsState = {
+    organizationId: number | null;
     rootBommel: Bommel | null;
     allBommels: Bommel[];
     isLoading: boolean;
