@@ -62,6 +62,7 @@ export function useReceiptForm() {
 
     // Document analysis tracking
     const [documentId, setDocumentId] = useState<number | null>(null);
+    const [transactionId, setTransactionId] = useState<number | null>(null);
     const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
     const [extractionSource, setExtractionSource] = useState<ExtractionSource | null>(null);
@@ -200,16 +201,35 @@ export function useReceiptForm() {
         setTaxAmount('');
         // Reset analysis state
         setDocumentId(null);
+        setTransactionId(null);
         setAnalysisStatus(null);
         setAnalysisError(null);
         setExtractionSource(null);
         setAllFieldsLoading(false);
     }, [setAllFieldsLoading]);
 
+    // Check if form has minimum required fields for saving as draft
+    const canSaveDraft = useMemo(() => {
+        if (isSubmitting) return false;
+        // Need either a document (from upload) or transactionId (already saved)
+        // OR need enough data to create a manual transaction
+        const hasDocument = documentId !== null || transactionId !== null;
+        const hasBasicData = Boolean(receiptDate || contractPartner || netAmount);
+        return hasDocument || hasBasicData;
+    }, [isSubmitting, documentId, transactionId, receiptDate, contractPartner, netAmount]);
+
+    // Full validation for final save (currently always false as save is disabled)
     const isValid = useMemo(() => {
         if (isSubmitting) return false;
-        return Boolean(file && receiptNumber && receiptDate && transactionKind && contractPartner && bommelId && netAmount && taxAmount);
-    }, [file, receiptNumber, receiptDate, transactionKind, contractPartner, bommelId, netAmount, taxAmount, isSubmitting]);
+        return Boolean(
+            receiptDate &&
+            transactionKind &&
+            contractPartner &&
+            bommelId &&
+            netAmount &&
+            taxAmount
+        );
+    }, [receiptDate, transactionKind, contractPartner, bommelId, netAmount, taxAmount, isSubmitting]);
 
     return {
         // File state
@@ -252,6 +272,8 @@ export function useReceiptForm() {
         // Document analysis state
         documentId,
         setDocumentId,
+        transactionId,
+        setTransactionId,
         analysisStatus,
         setAnalysisStatus,
         analysisError,
@@ -265,6 +287,7 @@ export function useReceiptForm() {
         applyAnalysisResult,
         resetForm,
         isValid,
+        canSaveDraft,
     };
 }
 

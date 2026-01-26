@@ -1,6 +1,6 @@
 package app.hopps.shared.infrastructure.storage;
 
-import app.hopps.transaction.domain.TransactionRecord;
+import app.hopps.transaction.domain.Transaction;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheName;
 import io.quarkus.cache.CacheResult;
@@ -41,8 +41,9 @@ public class S3Handler {
         this.documentCache = documentCache;
     }
 
-    public byte[] getFile(TransactionRecord transactionRecord) {
-        return getFile(transactionRecord.getDocumentKey());
+    @Deprecated
+    public byte[] getFile(Transaction transaction) {
+        return getFile(transaction.getDocumentKey());
     }
 
     @CacheResult(cacheName = "document-cache")

@@ -62,8 +62,8 @@ public class TagRepository implements PanacheRepository<Tag> {
     }
 
     /**
-     * Finds existing tags or creates new ones for the given tag names within the specified organization.
-     * Use this method when running outside of a request context (e.g., in background threads).
+     * Finds existing tags or creates new ones for the given tag names within the specified organization. Use this
+     * method when running outside of a request context (e.g., in background threads).
      *
      * @param tagNames
      *            Set of tag names
@@ -100,8 +100,8 @@ public class TagRepository implements PanacheRepository<Tag> {
     }
 
     /**
-     * Finds an existing tag by name within the specified organization or creates a new one.
-     * Use this method when running outside of a request context (e.g., in background threads).
+     * Finds an existing tag by name within the specified organization or creates a new one. Use this method when
+     * running outside of a request context (e.g., in background threads).
      *
      * @param name
      *            The tag name

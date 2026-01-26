@@ -238,6 +238,10 @@
             "saveAsDraft": "Als Entwurf speichern",
             "uploadSuccess": "Beleg erfolgreich hochgeladen",
             "uploadFailed": "Upload fehlgeschlagen",
+            "saveSuccess": "Beleg erfolgreich gespeichert",
+            "saveFailed": "Fehler beim Speichern des Belegs",
+            "draftSaved": "Entwurf gespeichert",
+            "noDocumentOrFile": "Bitte laden Sie zuerst eine Datei hoch oder füllen Sie die Formulardaten aus",
             "analysis": {
                 "pending": "Dokument wird vorbereitet...",
                 "analyzing": "Dokument wird analysiert...",

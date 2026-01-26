@@ -2,6 +2,7 @@ package app.hopps.document.domain;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.organization.domain.Organization;
+import app.hopps.transaction.domain.Transaction;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 
@@ -81,6 +82,10 @@ public class Document extends PanacheEntity {
     // Transient field for transaction count (populated by controller)
     @Transient
     private Long transactionCount;
+
+    // Relationship to Transaction (inverse side)
+    @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
+    private Transaction transaction;
 
     public Document() {
         this.createdAt = Instant.now();
@@ -547,5 +552,20 @@ public class Document extends PanacheEntity {
         } else {
             return transactionCount + " Transaktionen";
         }
+    }
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction transaction) {
+        this.transaction = transaction;
+    }
+
+    /**
+     * Returns the ID of the linked transaction, or null if none exists.
+     */
+    public Long getTransactionId() {
+        return transaction != null ? transaction.getId() : null;
     }
 }

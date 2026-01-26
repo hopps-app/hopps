@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
  */
 public record DocumentResponse(
         Long id,
+        Long transactionId,
         String fileName,
         String fileContentType,
         Long fileSize,
@@ -53,6 +54,7 @@ public record DocumentResponse(
 
         return new DocumentResponse(
                 doc.getId(),
+                doc.getTransactionId(),
                 doc.getFileName(),
                 doc.getFileContentType(),
                 doc.getFileSize(),

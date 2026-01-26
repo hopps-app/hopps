@@ -7,9 +7,12 @@ import app.hopps.document.api.dto.DocumentUpdateRequest;
 import app.hopps.document.domain.*;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentFileService;
-import jakarta.enterprise.event.Event;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.transaction.domain.Transaction;
+import app.hopps.transaction.domain.TransactionStatus;
+import app.hopps.transaction.repository.TransactionRepository;
+import jakarta.enterprise.event.Event;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -52,6 +55,9 @@ public class DocumentResource {
     DocumentFileService fileService;
 
     @Inject
+    TransactionRepository transactionRepository;
+
+    @Inject
     Event<DocumentCreatedEvent> documentCreatedEvent;
 
     @Inject
@@ -91,11 +97,13 @@ public class DocumentResource {
             throw new BadRequestException("User is not part of an organization");
         }
 
+        String principal = securityIdentity.getPrincipal().getName();
+
         // Create document entity
         Document document = new Document();
         document.setOrganization(organization);
         document.setAnalysisStatus(AnalysisStatus.PENDING);
-        document.setUploadedBy(securityIdentity.getPrincipal().getName());
+        document.setUploadedBy(principal);
 
         // Upload file to S3 and set file metadata
         fileService.handleFileUpload(document, file);
@@ -103,6 +111,16 @@ public class DocumentResource {
         // Persist document
         documentRepository.persist(document);
         LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
+
+        // Create linked transaction
+        Transaction transaction = new Transaction();
+        transaction.setOrganization(organization);
+        transaction.setDocument(document);
+        transaction.setCreatedBy(principal);
+        transaction.setStatus(TransactionStatus.DRAFT);
+        transactionRepository.persist(transaction);
+        LOG.info("Transaction created for document: transactionId={}, documentId={}",
+                transaction.getId(), document.getId());
 
         // Fire event to trigger async analysis after transaction commits
         documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));

@@ -19,79 +19,6 @@ export class Client {
     }
 
     /**
-     * Get all transaction records
-     * @param bommelId (optional) Fetch all transaction records which are connected to the bommel
-     * @param detached (optional) Fetch all transaction records which are not connected to any bommel
-     * @param page (optional) Current page you want to display, starts with 0
-     * @param size (optional) 
-     * @return List of transaction records, empty list if none are available
-     */
-    all(bommelId: number | undefined, detached: boolean | undefined, page: number | undefined, size: number | undefined): Promise<TransactionRecord[]> {
-        let url_ = this.baseUrl + "/all?";
-        if (bommelId === null)
-            throw new Error("The parameter 'bommelId' cannot be null.");
-        else if (bommelId !== undefined)
-            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
-        if (detached === null)
-            throw new Error("The parameter 'detached' cannot be null.");
-        else if (detached !== undefined)
-            url_ += "detached=" + encodeURIComponent("" + detached) + "&";
-        if (page === null)
-            throw new Error("The parameter 'page' cannot be null.");
-        else if (page !== undefined)
-            url_ += "page=" + encodeURIComponent("" + page) + "&";
-        if (size === null)
-            throw new Error("The parameter 'size' cannot be null.");
-        else if (size !== undefined)
-            url_ += "size=" + encodeURIComponent("" + size) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAll(_response);
-        });
-    }
-
-    protected processAll(response: Response): Promise<TransactionRecord[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(TransactionRecord.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status === 401) {
-            return response.text().then((_responseText) => {
-            return throwException("Not Authorized", status, _responseText, _headers);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TransactionRecord[]>(null as any);
-    }
-
-    /**
      * Create bommel
      * @return Bommel successfully created
      */
@@ -199,67 +126,6 @@ export class Client {
             });
         }
         return Promise.resolve<Bommel>(null as any);
-    }
-
-    /**
-     * Fetch all bommels for an organization
-     * @param orgId The organization ID
-     * @return All bommels for organization
-     */
-    bommels(orgId: number): Promise<TreeSearchBommel[]> {
-        let url_ = this.baseUrl + "/organizations/{orgId}/bommels";
-        if (orgId === undefined || orgId === null)
-            throw new Error("The parameter 'orgId' must be defined.");
-        url_ = url_.replace("{orgId}", encodeURIComponent("" + orgId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processBommels(_response);
-        });
-    }
-
-    protected processBommels(response: Response): Promise<TreeSearchBommel[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(TreeSearchBommel.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status === 401) {
-            return response.text().then((_responseText) => {
-            return throwException("User not logged in", status, _responseText, _headers);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            return throwException("User not authorized", status, _responseText, _headers);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("Organization or root bommel not found", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TreeSearchBommel[]>(null as any);
     }
 
     /**
@@ -921,7 +787,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Invalid input (missing file, invalid bommel, or unsupported file type)", status, _responseText, _headers);
+            return throwException("Invalid input", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -1598,51 +1464,127 @@ export class Client {
     }
 
     /**
-     * Add a transaction record to a bommel
-     * @param bommelId (optional) 
-     * @return Specified transaction record was attached to bommel
+     * Fetch all bommels for an organization
+     * @param orgId The organization ID
+     * @return All bommels for organization
      */
-    bommelPATCH(id: number, bommelId: number | undefined): Promise<any> {
-        let url_ = this.baseUrl + "/{id}/bommel?";
-        if (id === undefined || id === null)
-            throw new Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        if (bommelId === null)
-            throw new Error("The parameter 'bommelId' cannot be null.");
-        else if (bommelId !== undefined)
-            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+    bommels(orgId: number): Promise<TreeSearchBommel[]> {
+        let url_ = this.baseUrl + "/organizations/{orgId}/bommels";
+        if (orgId === undefined || orgId === null)
+            throw new Error("The parameter 'orgId' must be defined.");
+        url_ = url_.replace("{orgId}", encodeURIComponent("" + orgId));
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
-            method: "PATCH",
+            method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processBommelPATCH(_response);
+            return this.processBommels(_response);
         });
     }
 
-    protected processBommelPATCH(response: Response): Promise<any> {
+    protected processBommels(response: Response): Promise<TreeSearchBommel[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TreeSearchBommel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
             return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User not authorized", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
-            return throwException("Specified transaction record id was not found", status, _responseText, _headers);
+            return throwException("Organization or root bommel not found", status, _responseText, _headers);
             });
-        } else if (status === 400) {
+        } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
-            return throwException("Bommel was not found", status, _responseText, _headers);
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TreeSearchBommel[]>(null as any);
+    }
+
+    /**
+     * List all transactions
+     * @param bommelId (optional) Filter by bommel ID
+     * @param detached (optional) Filter unassigned transactions
+     * @param page (optional) 
+     * @param size (optional) 
+     * @param status (optional) Filter by status
+     * @return List of transactions
+     */
+    transactionsAll(bommelId: number | undefined, detached: boolean | undefined, page: number | undefined, size: number | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
+        let url_ = this.baseUrl + "/transactions?";
+        if (bommelId === null)
+            throw new Error("The parameter 'bommelId' cannot be null.");
+        else if (bommelId !== undefined)
+            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+        if (detached === null)
+            throw new Error("The parameter 'detached' cannot be null.");
+        else if (detached !== undefined)
+            url_ += "detached=" + encodeURIComponent("" + detached) + "&";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (size === null)
+            throw new Error("The parameter 'size' cannot be null.");
+        else if (size !== undefined)
+            url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (status === null)
+            throw new Error("The parameter 'status' cannot be null.");
+        else if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTransactionsAll(_response);
+        });
+    }
+
+    protected processTransactionsAll(response: Response): Promise<TransactionResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TransactionResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -1657,7 +1599,277 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<any>(null as any);
+        return Promise.resolve<TransactionResponse[]>(null as any);
+    }
+
+    /**
+     * Create a manual transaction
+     * @return Transaction created
+     */
+    transactionsPOST(body: TransactionCreateRequest): Promise<TransactionResponse> {
+        let url_ = this.baseUrl + "/transactions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTransactionsPOST(_response);
+        });
+    }
+
+    protected processTransactionsPOST(response: Response): Promise<TransactionResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = TransactionResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TransactionResponse>(null as any);
+    }
+
+    /**
+     * Update a transaction
+     * @param id Transaction ID
+     * @return Transaction updated
+     */
+    transactionsPATCH(id: number, body: TransactionUpdateRequest): Promise<TransactionResponse> {
+        let url_ = this.baseUrl + "/transactions/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTransactionsPATCH(_response);
+        });
+    }
+
+    protected processTransactionsPATCH(response: Response): Promise<TransactionResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TransactionResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TransactionResponse>(null as any);
+    }
+
+    /**
+     * Get a transaction
+     * @param id Transaction ID
+     * @return Transaction found
+     */
+    transactionsGET(id: number): Promise<TransactionResponse> {
+        let url_ = this.baseUrl + "/transactions/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTransactionsGET(_response);
+        });
+    }
+
+    protected processTransactionsGET(response: Response): Promise<TransactionResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TransactionResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TransactionResponse>(null as any);
+    }
+
+    /**
+     * Delete a transaction
+     * @param id Transaction ID
+     * @return Transaction deleted
+     */
+    transactionsDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/transactions/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTransactionsDELETE(_response);
+        });
+    }
+
+    protected processTransactionsDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Confirm a transaction
+     * @param id Transaction ID
+     * @return Transaction confirmed
+     */
+    confirm(id: number): Promise<TransactionResponse> {
+        let url_ = this.baseUrl + "/transactions/{id}/confirm";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConfirm(_response);
+        });
+    }
+
+    protected processConfirm(response: Response): Promise<TransactionResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TransactionResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TransactionResponse>(null as any);
     }
 }
 
@@ -1964,6 +2176,7 @@ export interface ICategoryInput {
 
 export class DocumentResponse implements IDocumentResponse {
     id?: number;
+    transactionId?: number;
     fileName?: string;
     fileContentType?: string;
     fileSize?: number;
@@ -2004,6 +2217,7 @@ export class DocumentResponse implements IDocumentResponse {
                     this[property] = _data[property];
             }
             this.id = _data["id"];
+            this.transactionId = _data["transactionId"];
             this.fileName = _data["fileName"];
             this.fileContentType = _data["fileContentType"];
             this.fileSize = _data["fileSize"];
@@ -2046,6 +2260,7 @@ export class DocumentResponse implements IDocumentResponse {
                 data[property] = this[property];
         }
         data["id"] = this.id;
+        data["transactionId"] = this.transactionId;
         data["fileName"] = this.fileName;
         data["fileContentType"] = this.fileContentType;
         data["fileSize"] = this.fileSize;
@@ -2084,6 +2299,7 @@ export class DocumentResponse implements IDocumentResponse {
 
 export interface IDocumentResponse {
     id?: number;
+    transactionId?: number;
     fileName?: string;
     fileContentType?: string;
     fileSize?: number;
@@ -2609,123 +2825,29 @@ export interface IOwnerInput {
 
 export type TYPE = "EINGETRAGENER_VEREIN";
 
-export class TradeParty implements ITradeParty {
-    id?: number;
+export type TransactionArea = "IDEELL" | "ZWECKBETRIEB" | "VERMOEGENSVERWALTUNG" | "WIRTSCHAFTLICH";
+
+export class TransactionCreateRequest implements ITransactionCreateRequest {
     name?: string;
-    country?: string;
-    state?: string;
-    city?: string;
-    zipCode?: string;
-    street?: string;
-    additionalAddress?: string;
-    taxID?: string;
-    vatID?: string;
-    description?: string;
-
-    [key: string]: any;
-
-    constructor(data?: ITradeParty) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.id = _data["id"];
-            this.name = _data["name"];
-            this.country = _data["country"];
-            this.state = _data["state"];
-            this.city = _data["city"];
-            this.zipCode = _data["zipCode"];
-            this.street = _data["street"];
-            this.additionalAddress = _data["additionalAddress"];
-            this.taxID = _data["taxID"];
-            this.vatID = _data["vatID"];
-            this.description = _data["description"];
-        }
-    }
-
-    static fromJS(data: any): TradeParty {
-        data = typeof data === 'object' ? data : {};
-        let result = new TradeParty();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["id"] = this.id;
-        data["name"] = this.name;
-        data["country"] = this.country;
-        data["state"] = this.state;
-        data["city"] = this.city;
-        data["zipCode"] = this.zipCode;
-        data["street"] = this.street;
-        data["additionalAddress"] = this.additionalAddress;
-        data["taxID"] = this.taxID;
-        data["vatID"] = this.vatID;
-        data["description"] = this.description;
-        return data;
-    }
-
-    clone(): TradeParty {
-        const json = this.toJSON();
-        let result = new TradeParty();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ITradeParty {
-    id?: number;
-    name?: string;
-    country?: string;
-    state?: string;
-    city?: string;
-    zipCode?: string;
-    street?: string;
-    additionalAddress?: string;
-    taxID?: string;
-    vatID?: string;
-    description?: string;
-
-    [key: string]: any;
-}
-
-export class TransactionRecord implements ITransactionRecord {
-    id?: number;
-    bommelId?: number;
-    documentKey?: string;
-    uploader?: string;
-    total?: number;
-    privatelyPaid?: boolean;
-    document?: DocumentType;
-    transactionTime?: Date;
-    sender?: TradeParty;
-    recipient?: TradeParty;
-    tags?: string[];
-    name?: string;
-    orderNumber?: string;
-    invoiceId?: string;
-    dueDate?: Date;
-    amountDue?: number;
+    total!: number;
+    totalTax?: number;
     currencyCode?: string;
+    transactionDate?: string;
+    dueDate?: string;
+    bommelId?: number;
+    categoryId?: number;
+    area?: string;
+    documentType!: string;
+    privatelyPaid?: boolean;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
 
     [key: string]: any;
 
-    constructor(data?: ITransactionRecord) {
+    constructor(data?: ITransactionCreateRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -2740,33 +2862,173 @@ export class TransactionRecord implements ITransactionRecord {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.id = _data["id"];
-            this.bommelId = _data["bommelId"];
-            this.documentKey = _data["documentKey"];
-            this.uploader = _data["uploader"];
+            this.name = _data["name"];
             this.total = _data["total"];
+            this.totalTax = _data["totalTax"];
+            this.currencyCode = _data["currencyCode"];
+            this.transactionDate = _data["transactionDate"];
+            this.dueDate = _data["dueDate"];
+            this.bommelId = _data["bommelId"];
+            this.categoryId = _data["categoryId"];
+            this.area = _data["area"];
+            this.documentType = _data["documentType"];
             this.privatelyPaid = _data["privatelyPaid"];
-            this.document = _data["document"];
-            this.transactionTime = _data["transactionTime"] ? new Date(_data["transactionTime"].toString()) : <any>undefined;
-            this.sender = _data["sender"] ? TradeParty.fromJS(_data["sender"]) : <any>undefined;
-            this.recipient = _data["recipient"] ? TradeParty.fromJS(_data["recipient"]) : <any>undefined;
+            this.senderName = _data["senderName"];
+            this.senderStreet = _data["senderStreet"];
+            this.senderZipCode = _data["senderZipCode"];
+            this.senderCity = _data["senderCity"];
             if (Array.isArray(_data["tags"])) {
                 this.tags = [] as any;
                 for (let item of _data["tags"])
                     this.tags!.push(item);
             }
-            this.name = _data["name"];
-            this.orderNumber = _data["orderNumber"];
-            this.invoiceId = _data["invoiceId"];
-            this.dueDate = _data["dueDate"] ? new Date(_data["dueDate"].toString()) : <any>undefined;
-            this.amountDue = _data["amountDue"];
-            this.currencyCode = _data["currencyCode"];
         }
     }
 
-    static fromJS(data: any): TransactionRecord {
+    static fromJS(data: any): TransactionCreateRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new TransactionRecord();
+        let result = new TransactionCreateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["total"] = this.total;
+        data["totalTax"] = this.totalTax;
+        data["currencyCode"] = this.currencyCode;
+        data["transactionDate"] = this.transactionDate;
+        data["dueDate"] = this.dueDate;
+        data["bommelId"] = this.bommelId;
+        data["categoryId"] = this.categoryId;
+        data["area"] = this.area;
+        data["documentType"] = this.documentType;
+        data["privatelyPaid"] = this.privatelyPaid;
+        data["senderName"] = this.senderName;
+        data["senderStreet"] = this.senderStreet;
+        data["senderZipCode"] = this.senderZipCode;
+        data["senderCity"] = this.senderCity;
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item);
+        }
+        return data;
+    }
+
+    clone(): TransactionCreateRequest {
+        const json = this.toJSON();
+        let result = new TransactionCreateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITransactionCreateRequest {
+    name?: string;
+    total: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionDate?: string;
+    dueDate?: string;
+    bommelId?: number;
+    categoryId?: number;
+    area?: string;
+    documentType: string;
+    privatelyPaid?: boolean;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
+
+    [key: string]: any;
+}
+
+export class TransactionResponse implements ITransactionResponse {
+    id?: number;
+    documentId?: number;
+    bommelId?: number;
+    categoryId?: number;
+    categoryName?: string;
+    status?: TransactionStatus;
+    area?: TransactionArea;
+    documentType?: DocumentType;
+    name?: string;
+    total?: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionTime?: Date;
+    dueDate?: Date;
+    privatelyPaid?: boolean;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
+    analysisStatus?: AnalysisStatus;
+    extractionSource?: ExtractionSource;
+    analysisError?: string;
+    createdAt?: Date;
+    createdBy?: string;
+
+    [key: string]: any;
+
+    constructor(data?: ITransactionResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.documentId = _data["documentId"];
+            this.bommelId = _data["bommelId"];
+            this.categoryId = _data["categoryId"];
+            this.categoryName = _data["categoryName"];
+            this.status = _data["status"];
+            this.area = _data["area"];
+            this.documentType = _data["documentType"];
+            this.name = _data["name"];
+            this.total = _data["total"];
+            this.totalTax = _data["totalTax"];
+            this.currencyCode = _data["currencyCode"];
+            this.transactionTime = _data["transactionTime"] ? new Date(_data["transactionTime"].toString()) : <any>undefined;
+            this.dueDate = _data["dueDate"] ? new Date(_data["dueDate"].toString()) : <any>undefined;
+            this.privatelyPaid = _data["privatelyPaid"];
+            this.senderName = _data["senderName"];
+            this.senderStreet = _data["senderStreet"];
+            this.senderZipCode = _data["senderZipCode"];
+            this.senderCity = _data["senderCity"];
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(item);
+            }
+            this.analysisStatus = _data["analysisStatus"];
+            this.extractionSource = _data["extractionSource"];
+            this.analysisError = _data["analysisError"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.createdBy = _data["createdBy"];
+        }
+    }
+
+    static fromJS(data: any): TransactionResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionResponse();
         result.init(data);
         return result;
     }
@@ -2778,55 +3040,196 @@ export class TransactionRecord implements ITransactionRecord {
                 data[property] = this[property];
         }
         data["id"] = this.id;
+        data["documentId"] = this.documentId;
         data["bommelId"] = this.bommelId;
-        data["documentKey"] = this.documentKey;
-        data["uploader"] = this.uploader;
+        data["categoryId"] = this.categoryId;
+        data["categoryName"] = this.categoryName;
+        data["status"] = this.status;
+        data["area"] = this.area;
+        data["documentType"] = this.documentType;
+        data["name"] = this.name;
         data["total"] = this.total;
-        data["privatelyPaid"] = this.privatelyPaid;
-        data["document"] = this.document;
+        data["totalTax"] = this.totalTax;
+        data["currencyCode"] = this.currencyCode;
         data["transactionTime"] = this.transactionTime ? this.transactionTime.toISOString() : <any>undefined;
-        data["sender"] = this.sender ? this.sender.toJSON() : <any>undefined;
-        data["recipient"] = this.recipient ? this.recipient.toJSON() : <any>undefined;
+        data["dueDate"] = this.dueDate ? this.dueDate.toISOString() : <any>undefined;
+        data["privatelyPaid"] = this.privatelyPaid;
+        data["senderName"] = this.senderName;
+        data["senderStreet"] = this.senderStreet;
+        data["senderZipCode"] = this.senderZipCode;
+        data["senderCity"] = this.senderCity;
         if (Array.isArray(this.tags)) {
             data["tags"] = [];
             for (let item of this.tags)
                 data["tags"].push(item);
         }
-        data["name"] = this.name;
-        data["orderNumber"] = this.orderNumber;
-        data["invoiceId"] = this.invoiceId;
-        data["dueDate"] = this.dueDate ? this.dueDate.toISOString() : <any>undefined;
-        data["amountDue"] = this.amountDue;
-        data["currencyCode"] = this.currencyCode;
+        data["analysisStatus"] = this.analysisStatus;
+        data["extractionSource"] = this.extractionSource;
+        data["analysisError"] = this.analysisError;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["createdBy"] = this.createdBy;
         return data;
     }
 
-    clone(): TransactionRecord {
+    clone(): TransactionResponse {
         const json = this.toJSON();
-        let result = new TransactionRecord();
+        let result = new TransactionResponse();
         result.init(json);
         return result;
     }
 }
 
-export interface ITransactionRecord {
+export interface ITransactionResponse {
     id?: number;
+    documentId?: number;
     bommelId?: number;
-    documentKey?: string;
-    uploader?: string;
-    total?: number;
-    privatelyPaid?: boolean;
-    document?: DocumentType;
-    transactionTime?: Date;
-    sender?: TradeParty;
-    recipient?: TradeParty;
-    tags?: string[];
+    categoryId?: number;
+    categoryName?: string;
+    status?: TransactionStatus;
+    area?: TransactionArea;
+    documentType?: DocumentType;
     name?: string;
-    orderNumber?: string;
-    invoiceId?: string;
-    dueDate?: Date;
-    amountDue?: number;
+    total?: number;
+    totalTax?: number;
     currencyCode?: string;
+    transactionTime?: Date;
+    dueDate?: Date;
+    privatelyPaid?: boolean;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
+    analysisStatus?: AnalysisStatus;
+    extractionSource?: ExtractionSource;
+    analysisError?: string;
+    createdAt?: Date;
+    createdBy?: string;
+
+    [key: string]: any;
+}
+
+export type TransactionStatus = "DRAFT" | "CONFIRMED";
+
+export class TransactionUpdateRequest implements ITransactionUpdateRequest {
+    name?: string;
+    total?: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionDate?: string;
+    dueDate?: string;
+    bommelId?: number;
+    categoryId?: number;
+    area?: string;
+    documentType?: string;
+    privatelyPaid?: boolean;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
+
+    [key: string]: any;
+
+    constructor(data?: ITransactionUpdateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.total = _data["total"];
+            this.totalTax = _data["totalTax"];
+            this.currencyCode = _data["currencyCode"];
+            this.transactionDate = _data["transactionDate"];
+            this.dueDate = _data["dueDate"];
+            this.bommelId = _data["bommelId"];
+            this.categoryId = _data["categoryId"];
+            this.area = _data["area"];
+            this.documentType = _data["documentType"];
+            this.privatelyPaid = _data["privatelyPaid"];
+            this.senderName = _data["senderName"];
+            this.senderStreet = _data["senderStreet"];
+            this.senderZipCode = _data["senderZipCode"];
+            this.senderCity = _data["senderCity"];
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): TransactionUpdateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionUpdateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["total"] = this.total;
+        data["totalTax"] = this.totalTax;
+        data["currencyCode"] = this.currencyCode;
+        data["transactionDate"] = this.transactionDate;
+        data["dueDate"] = this.dueDate;
+        data["bommelId"] = this.bommelId;
+        data["categoryId"] = this.categoryId;
+        data["area"] = this.area;
+        data["documentType"] = this.documentType;
+        data["privatelyPaid"] = this.privatelyPaid;
+        data["senderName"] = this.senderName;
+        data["senderStreet"] = this.senderStreet;
+        data["senderZipCode"] = this.senderZipCode;
+        data["senderCity"] = this.senderCity;
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item);
+        }
+        return data;
+    }
+
+    clone(): TransactionUpdateRequest {
+        const json = this.toJSON();
+        let result = new TransactionUpdateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITransactionUpdateRequest {
+    name?: string;
+    total?: number;
+    totalTax?: number;
+    currencyCode?: string;
+    transactionDate?: string;
+    dueDate?: string;
+    bommelId?: number;
+    categoryId?: number;
+    area?: string;
+    documentType?: string;
+    privatelyPaid?: boolean;
+    senderName?: string;
+    senderStreet?: string;
+    senderZipCode?: string;
+    senderCity?: string;
+    tags?: string[];
 
     [key: string]: any;
 }

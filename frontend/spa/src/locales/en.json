@@ -296,7 +296,11 @@
                 "error": "Analysis error: {{error}}",
                 "serviceUnavailable": "Analysis service is temporarily unavailable. Please try again later.",
                 "pollingTimeout": "Analysis is taking longer than expected. Please try again later."
-            }
+            },
+            "saveSuccess": "Receipt saved successfully",
+            "saveFailed": "Failed to save receipt",
+            "draftSaved": "Draft saved",
+            "noDocumentOrFile": "Please upload a file first or fill in the form data"
         },
         "areas": {
             "ideell": "Non-profit area",

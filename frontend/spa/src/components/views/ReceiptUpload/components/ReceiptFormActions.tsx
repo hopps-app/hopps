@@ -4,12 +4,21 @@ import Button from '@/components/ui/Button';
 
 interface ReceiptFormActionsProps {
     isValid: boolean;
+    canSaveDraft: boolean;
     onSubmit: () => void;
     onSaveDraft: () => void;
     onCancel: () => void;
+    saveDisabled?: boolean;
 }
 
-export function ReceiptFormActions({ isValid, onSubmit, onSaveDraft, onCancel }: ReceiptFormActionsProps) {
+export function ReceiptFormActions({
+    isValid,
+    canSaveDraft,
+    onSubmit,
+    onSaveDraft,
+    onCancel,
+    saveDisabled = false,
+}: ReceiptFormActionsProps) {
     const { t } = useTranslation();
 
     return (
@@ -17,10 +26,10 @@ export function ReceiptFormActions({ isValid, onSubmit, onSaveDraft, onCancel }:
             <Button variant="outline" onClick={onCancel} type="button">
                 {t('common.cancel')}
             </Button>
-            <Button variant="secondary" onClick={onSaveDraft} type="button">
+            <Button variant="secondary" onClick={onSaveDraft} disabled={!canSaveDraft} type="button">
                 {t('receipts.upload.saveAsDraft')}
             </Button>
-            <Button onClick={onSubmit} disabled={!isValid} type="button">
+            <Button onClick={onSubmit} disabled={saveDisabled || !isValid} type="button">
                 {t('common.save')}
             </Button>
         </div>

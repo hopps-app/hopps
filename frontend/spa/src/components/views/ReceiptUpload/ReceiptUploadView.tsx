@@ -67,8 +67,11 @@ function ReceiptUploadView() {
         setAllFieldsLoading,
         resetForm,
         isValid,
+        canSaveDraft,
         documentId,
         setDocumentId,
+        transactionId,
+        setTransactionId,
         analysisStatus,
         setAnalysisStatus,
         analysisError,
@@ -199,13 +202,20 @@ function ReceiptUploadView() {
                 });
                 showSuccess(t('receipts.upload.uploadSuccess'));
 
-                // If auto-read is enabled, track the document for polling
-                if (isAutoRead && response.id) {
+                // Track document and transaction IDs
+                if (response.id) {
                     setDocumentId(response.id);
-                    setAnalysisStatus(response.analysisStatus ?? 'PENDING');
-                    setAnalysisError(null);
-                } else {
-                    setFile(null);
+                    // Set transactionId from response (created by backend on upload)
+                    if (response.transactionId) {
+                        setTransactionId(response.transactionId);
+                    }
+
+                    if (isAutoRead) {
+                        setAnalysisStatus(response.analysisStatus ?? 'PENDING');
+                        setAnalysisError(null);
+                    } else {
+                        setFile(null);
+                    }
                 }
             } catch (e) {
                 console.error(e);
@@ -215,36 +225,85 @@ function ReceiptUploadView() {
                 setIsSubmitting(false);
             }
         },
-        [isSubmitting, showError, showSuccess, isAutoRead, setFile, setIsSubmitting, setAllFieldsLoading, setDocumentId, setAnalysisStatus, setAnalysisError, t]
+        [isSubmitting, showError, showSuccess, isAutoRead, setFile, setIsSubmitting, setAllFieldsLoading, setDocumentId, setTransactionId, setAnalysisStatus, setAnalysisError, t]
     );
 
+    // Build the update request payload for transaction
+    const buildTransactionPayload = useCallback(() => {
+        const total = netAmount ? parseFloat(netAmount) + parseFloat(taxAmount || '0') : undefined;
+        return {
+            name: receiptNumber || undefined,
+            total: total,
+            totalTax: taxAmount ? parseFloat(taxAmount) : undefined,
+            transactionDate: receiptDate?.toISOString().split('T')[0],
+            dueDate: dueDate?.toISOString().split('T')[0],
+            bommelId: bommelId ?? undefined,
+            senderName: contractPartner || undefined,
+            documentType: transactionKind === 'expense' ? 'INVOICE' : transactionKind === 'intake' ? 'RECEIPT' : undefined,
+            privatelyPaid: isUnpaid,
+            area: area || undefined,
+            categoryId: category ? parseInt(category, 10) : undefined,
+            tags: tags.length > 0 ? tags : undefined,
+        };
+    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, category, area, tags, netAmount, taxAmount]);
+
+    // Submit handler - currently disabled, will be enabled when full validation passes
     const handleSubmit = useCallback(async () => {
-        if (!isValid) {
+        // Save button is disabled for now
+        if (!isValid || !transactionId) {
             showError(t('common.validationError'));
             return;
         }
-        if (!file || !bommelId) return;
 
         try {
             setIsSubmitting(true);
-            await apiService.orgService.documentsPOST({
-                data: file,
-                fileName: file.name,
-            });
+            const payload = buildTransactionPayload();
 
-            showSuccess(t('receipts.upload.uploadSuccess'));
+            // Update transaction and confirm it
+            await apiService.orgService.transactionsPATCH(transactionId, payload);
+            await apiService.orgService.transactionsConfirmPOST(transactionId);
+
+            showSuccess(t('receipts.upload.saveSuccess'));
             resetForm();
+            window.history.back();
         } catch (e) {
             console.error(e);
-            showError(t('receipts.upload.uploadFailed'));
+            showError(t('receipts.upload.saveFailed'));
         } finally {
             setIsSubmitting(false);
         }
-    }, [isValid, file, bommelId, showError, showSuccess, resetForm, setIsSubmitting, t]);
+    }, [isValid, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload]);
 
-    const handleSaveDraft = useCallback(() => {
-        // TODO: Implement draft saving
-    }, []);
+    // Save as draft - saves current form data to transaction without confirming
+    const handleSaveDraft = useCallback(async () => {
+        if (!canSaveDraft) {
+            showError(t('receipts.upload.noDocumentOrFile'));
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            const payload = buildTransactionPayload();
+
+            if (transactionId) {
+                // Update existing transaction
+                await apiService.orgService.transactionsPATCH(transactionId, payload);
+                showSuccess(t('receipts.upload.draftSaved'));
+            } else {
+                // Create new manual transaction (no document)
+                const response = await apiService.orgService.transactionsPOST(payload);
+                if (response.id) {
+                    setTransactionId(response.id);
+                }
+                showSuccess(t('receipts.upload.draftSaved'));
+            }
+        } catch (e) {
+            console.error(e);
+            showError(t('receipts.upload.saveFailed'));
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [canSaveDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload]);
 
     const handleCancel = useCallback(() => {
         window.history.back();
@@ -339,7 +398,14 @@ function ReceiptUploadView() {
                         <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
                     </div>
 
-                    <ReceiptFormActions isValid={isValid} onSubmit={handleSubmit} onSaveDraft={handleSaveDraft} onCancel={handleCancel} />
+                    <ReceiptFormActions
+                        isValid={isValid}
+                        canSaveDraft={canSaveDraft}
+                        onSubmit={handleSubmit}
+                        onSaveDraft={handleSaveDraft}
+                        onCancel={handleCancel}
+                        saveDisabled={true} // Save button disabled for now
+                    />
                 </div>
             </div>
         </div>
