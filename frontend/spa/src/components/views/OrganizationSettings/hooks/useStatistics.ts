@@ -26,8 +26,8 @@ export function useStatistics() {
         setIsLoading(true);
         try {
             const [orgStats, allBommelStats] = await Promise.all([
-                apiService.statisticsService.getOrganizationStatistics(organizationId, options.includeDrafts),
-                apiService.statisticsService.getAllBommelStatistics(organizationId, options.includeDrafts, options.aggregate),
+                apiService.orgService.organizations(organizationId, options.includeDrafts),
+                apiService.orgService.bommels2(organizationId, options.aggregate, options.includeDrafts),
             ]);
 
             setOrganizationStats(orgStats);

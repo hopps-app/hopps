@@ -1468,7 +1468,7 @@ export class Client {
      * @param orgId The organization ID
      * @return All bommels for organization
      */
-    bommels(orgId: number): Promise<TreeSearchBommel[]> {
+    bommelsAll(orgId: number): Promise<TreeSearchBommel[]> {
         let url_ = this.baseUrl + "/organizations/{orgId}/bommels";
         if (orgId === undefined || orgId === null)
             throw new Error("The parameter 'orgId' must be defined.");
@@ -1483,11 +1483,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processBommels(_response);
+            return this.processBommelsAll(_response);
         });
     }
 
-    protected processBommels(response: Response): Promise<TreeSearchBommel[]> {
+    protected processBommelsAll(response: Response): Promise<TreeSearchBommel[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1522,6 +1522,185 @@ export class Client {
             });
         }
         return Promise.resolve<TreeSearchBommel[]>(null as any);
+    }
+
+    /**
+     * Get bommel statistics
+     * @param bommelId The bommel ID
+     * @param aggregate (optional) Whether to aggregate statistics from all child bommels
+     * @param includeDrafts (optional) Whether to include draft transactions in the statistics
+     * @return Bommel statistics
+     */
+    bommels(bommelId: number, aggregate: boolean | undefined, includeDrafts: boolean | undefined): Promise<BommelStatistics> {
+        let url_ = this.baseUrl + "/statistics/bommels/{bommelId}?";
+        if (bommelId === undefined || bommelId === null)
+            throw new Error("The parameter 'bommelId' must be defined.");
+        url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
+        if (aggregate === null)
+            throw new Error("The parameter 'aggregate' cannot be null.");
+        else if (aggregate !== undefined)
+            url_ += "aggregate=" + encodeURIComponent("" + aggregate) + "&";
+        if (includeDrafts === null)
+            throw new Error("The parameter 'includeDrafts' cannot be null.");
+        else if (includeDrafts !== undefined)
+            url_ += "includeDrafts=" + encodeURIComponent("" + includeDrafts) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBommels(_response);
+        });
+    }
+
+    protected processBommels(response: Response): Promise<BommelStatistics> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BommelStatistics.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User not authorized", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bommel not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BommelStatistics>(null as any);
+    }
+
+    /**
+     * Get organization statistics
+     * @param orgId The organization ID
+     * @param includeDrafts (optional) Whether to include draft transactions in the statistics
+     * @return Organization statistics
+     */
+    organizations(orgId: number, includeDrafts: boolean | undefined): Promise<OrganizationStatistics> {
+        let url_ = this.baseUrl + "/statistics/organizations/{orgId}?";
+        if (orgId === undefined || orgId === null)
+            throw new Error("The parameter 'orgId' must be defined.");
+        url_ = url_.replace("{orgId}", encodeURIComponent("" + orgId));
+        if (includeDrafts === null)
+            throw new Error("The parameter 'includeDrafts' cannot be null.");
+        else if (includeDrafts !== undefined)
+            url_ += "includeDrafts=" + encodeURIComponent("" + includeDrafts) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizations(_response);
+        });
+    }
+
+    protected processOrganizations(response: Response): Promise<OrganizationStatistics> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrganizationStatistics.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User not authorized", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OrganizationStatistics>(null as any);
+    }
+
+    /**
+     * Get statistics for all bommels in an organization
+     * @param orgId The organization ID
+     * @param aggregate (optional) Whether to aggregate statistics from all child bommels
+     * @param includeDrafts (optional) Whether to include draft transactions in the statistics
+     * @return Map of bommel statistics
+     */
+    bommels2(orgId: number, aggregate: boolean | undefined, includeDrafts: boolean | undefined): Promise<BommelStatisticsMap> {
+        let url_ = this.baseUrl + "/statistics/organizations/{orgId}/bommels?";
+        if (orgId === undefined || orgId === null)
+            throw new Error("The parameter 'orgId' must be defined.");
+        url_ = url_.replace("{orgId}", encodeURIComponent("" + orgId));
+        if (aggregate === null)
+            throw new Error("The parameter 'aggregate' cannot be null.");
+        else if (aggregate !== undefined)
+            url_ += "aggregate=" + encodeURIComponent("" + aggregate) + "&";
+        if (includeDrafts === null)
+            throw new Error("The parameter 'includeDrafts' cannot be null.");
+        else if (includeDrafts !== undefined)
+            url_ += "includeDrafts=" + encodeURIComponent("" + includeDrafts) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBommels2(_response);
+        });
+    }
+
+    protected processBommels2(response: Response): Promise<BommelStatisticsMap> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BommelStatisticsMap.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User not authorized", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BommelStatisticsMap>(null as any);
     }
 
     /**
@@ -2060,6 +2239,160 @@ export interface IBommel {
     [key: string]: any;
 }
 
+export class BommelStatistics implements IBommelStatistics {
+    bommelId?: number;
+    bommelName?: string;
+    total?: number;
+    income?: number;
+    expenses?: number;
+    transactionsCount?: number;
+    aggregated?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IBommelStatistics) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.bommelId = _data["bommelId"];
+            this.bommelName = _data["bommelName"];
+            this.total = _data["total"];
+            this.income = _data["income"];
+            this.expenses = _data["expenses"];
+            this.transactionsCount = _data["transactionsCount"];
+            this.aggregated = _data["aggregated"];
+        }
+    }
+
+    static fromJS(data: any): BommelStatistics {
+        data = typeof data === 'object' ? data : {};
+        let result = new BommelStatistics();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["bommelId"] = this.bommelId;
+        data["bommelName"] = this.bommelName;
+        data["total"] = this.total;
+        data["income"] = this.income;
+        data["expenses"] = this.expenses;
+        data["transactionsCount"] = this.transactionsCount;
+        data["aggregated"] = this.aggregated;
+        return data;
+    }
+
+    clone(): BommelStatistics {
+        const json = this.toJSON();
+        let result = new BommelStatistics();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBommelStatistics {
+    bommelId?: number;
+    bommelName?: string;
+    total?: number;
+    income?: number;
+    expenses?: number;
+    transactionsCount?: number;
+    aggregated?: boolean;
+
+    [key: string]: any;
+}
+
+export class BommelStatisticsMap implements IBommelStatisticsMap {
+    statistics?: { [key: string]: BommelStatistics; };
+    includeDrafts?: boolean;
+    aggregated?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IBommelStatisticsMap) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (_data["statistics"]) {
+                this.statistics = {} as any;
+                for (let key in _data["statistics"]) {
+                    if (_data["statistics"].hasOwnProperty(key))
+                        (<any>this.statistics)![key] = _data["statistics"][key] ? BommelStatistics.fromJS(_data["statistics"][key]) : new BommelStatistics();
+                }
+            }
+            this.includeDrafts = _data["includeDrafts"];
+            this.aggregated = _data["aggregated"];
+        }
+    }
+
+    static fromJS(data: any): BommelStatisticsMap {
+        data = typeof data === 'object' ? data : {};
+        let result = new BommelStatisticsMap();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (this.statistics) {
+            data["statistics"] = {};
+            for (let key in this.statistics) {
+                if (this.statistics.hasOwnProperty(key))
+                    (<any>data["statistics"])[key] = this.statistics[key] ? this.statistics[key].toJSON() : <any>undefined;
+            }
+        }
+        data["includeDrafts"] = this.includeDrafts;
+        data["aggregated"] = this.aggregated;
+        return data;
+    }
+
+    clone(): BommelStatisticsMap {
+        const json = this.toJSON();
+        let result = new BommelStatisticsMap();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBommelStatisticsMap {
+    statistics?: { [key: string]: BommelStatistics; };
+    includeDrafts?: boolean;
+    aggregated?: boolean;
+
+    [key: string]: any;
+}
+
 /** A category for organizing content or entities */
 export class Category implements ICategory {
     id?: number;
@@ -2345,8 +2678,6 @@ export interface IDocumentResponse {
 
     [key: string]: any;
 }
-
-export type DocumentType = "RECEIPT" | "INVOICE";
 
 export class DocumentUpdateRequest implements IDocumentUpdateRequest {
     name?: string;
@@ -2781,6 +3112,77 @@ export interface IOrganizationInput {
     [key: string]: any;
 }
 
+export class OrganizationStatistics implements IOrganizationStatistics {
+    totalBommels?: number;
+    transactionsCount?: number;
+    total?: number;
+    income?: number;
+    expenses?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IOrganizationStatistics) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.totalBommels = _data["totalBommels"];
+            this.transactionsCount = _data["transactionsCount"];
+            this.total = _data["total"];
+            this.income = _data["income"];
+            this.expenses = _data["expenses"];
+        }
+    }
+
+    static fromJS(data: any): OrganizationStatistics {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrganizationStatistics();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["totalBommels"] = this.totalBommels;
+        data["transactionsCount"] = this.transactionsCount;
+        data["total"] = this.total;
+        data["income"] = this.income;
+        data["expenses"] = this.expenses;
+        return data;
+    }
+
+    clone(): OrganizationStatistics {
+        const json = this.toJSON();
+        let result = new OrganizationStatistics();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IOrganizationStatistics {
+    totalBommels?: number;
+    transactionsCount?: number;
+    total?: number;
+    income?: number;
+    expenses?: number;
+
+    [key: string]: any;
+}
+
 export class OwnerInput implements IOwnerInput {
     email?: string;
     firstName?: string;
@@ -3206,7 +3608,6 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
         data["bommelId"] = this.bommelId;
         data["categoryId"] = this.categoryId;
         data["area"] = this.area;
-        data["documentType"] = this.documentType;
         data["privatelyPaid"] = this.privatelyPaid;
         data["senderName"] = this.senderName;
         data["senderStreet"] = this.senderStreet;
@@ -3238,7 +3639,6 @@ export interface ITransactionUpdateRequest {
     bommelId?: number;
     categoryId?: number;
     area?: string;
-    documentType?: string;
     privatelyPaid?: boolean;
     senderName?: string;
     senderStreet?: string;

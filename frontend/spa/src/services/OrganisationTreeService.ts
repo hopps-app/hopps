@@ -1,4 +1,4 @@
-import { Bommel, IBommel } from '@hopps/api-client';
+import { Bommel, IBommel, TreeSearchBommel } from '@hopps/api-client';
 import * as _ from 'lodash';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
@@ -6,10 +6,10 @@ import apiService from '@/services/ApiService.ts';
 
 export class OrganisationTreeService {
     async getOrganizationBommels(organizationId: number): Promise<Bommel[]> {
-        const items = await apiService.orgService.bommels(organizationId);
+        const items = await apiService.orgService.bommelsAll(organizationId);
         const bommelsWithDepth: (IBommel & { depth: number })[] = [];
 
-        items.map((item) => {
+        items.map((item: TreeSearchBommel) => {
             bommelsWithDepth.push({ ...item.bommel, depth: 0 });
         });
 
