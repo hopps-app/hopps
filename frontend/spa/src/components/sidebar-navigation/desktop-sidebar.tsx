@@ -113,7 +113,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
                     <img src="/logo.svg" alt="hopps logo" className="w-11 h-11 mb-2" />
                     <span className="text-primary font-bold text-2xl mb-2">hopps</span>
                 </div>
-                <nav className="flex-1 flex flex-col gap-2 ">
+                <nav className="flex-1 flex flex-col gap-2 px-2">
                     {menuConfig
                         .filter((item) => item.id !== 'admin')
                         .map((item) => (
@@ -122,7 +122,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
                             </div>
                         ))}
                 </nav>
-                <div className="mt-auto mb-4">
+                <div className="mt-auto mb-4 px-2">
                     <ul>{renderMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
                 </div>
             </aside>
