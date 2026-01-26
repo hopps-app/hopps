@@ -49,7 +49,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
     });
 
     // Track previous acceptedFiles to detect actual changes
-    const prevAcceptedFilesRef = useRef<FileWithPath[]>([]);
+    const prevAcceptedFilesRef = useRef<readonly FileWithPath[]>([]);
 
     useEffect(() => {
         // Only call onFilesChanged when acceptedFiles actually changes (new file selection)

@@ -1,5 +1,6 @@
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
+import { X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -28,7 +29,7 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
         (type: 'startDate' | 'endDate', date: Date | undefined) => {
             if (!date) return;
 
-            onChange(type, date.toISOString());
+            onChange(type, format(date, 'yyyy-MM-dd'));
             if (type === 'startDate') {
                 setOpenStart(false);
             } else {
@@ -44,21 +45,23 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
     return (
         <ReceiptFilterField label={label}>
             <div className="flex w-full items-center gap-1 2xl:min-w-[350px]">
-                <Popover open={openStart} onOpenChange={setOpenStart}>
-                    <PopoverTrigger asChild>
-                        <BaseButton
-                            variant="outline"
-                            className={cn(
-                                'w-[170px] justify-between text-sm font-normal', // fixed width for both
-                                'rounded-[var(--radius-l)] border border-[var(--grey-600)] bg-[var(--grey-white)] px-4 py-2',
-                                'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
-                                !filters.startDate && 'text-[var(--grey-800)]'
-                            )}
-                        >
-                            <span className="truncate">{formattedStart}</span>
-                            <CalendarIcon className="ml-2 h-4 w-4 text-[var(--grey-700)]" />
-                        </BaseButton>
-                    </PopoverTrigger>
+                <div className="flex items-center">
+                    <Popover open={openStart} onOpenChange={setOpenStart}>
+                        <PopoverTrigger asChild>
+                            <BaseButton
+                                variant="outline"
+                                className={cn(
+                                    'w-[140px] h-10 justify-between text-sm font-normal',
+                                    'rounded-[var(--radius-l)] border border-[var(--grey-600)] bg-[var(--grey-white)] px-4',
+                                    'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+                                    !filters.startDate && 'text-[var(--grey-800)]',
+                                    filters.startDate && 'rounded-r-none border-r-0'
+                                )}
+                            >
+                                <span className="truncate">{formattedStart}</span>
+                                <CalendarIcon className="ml-2 h-4 w-4 text-[var(--grey-700)]" />
+                            </BaseButton>
+                        </PopoverTrigger>
                     <PopoverContent
                         align="start"
                         side="bottom"
@@ -74,23 +77,35 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                             onSelect={(date) => handleSelect('startDate', date)}
                         />
                     </PopoverContent>
-                </Popover>
-
-                <Popover open={openEnd} onOpenChange={setOpenEnd}>
-                    <PopoverTrigger asChild>
-                        <BaseButton
-                            variant="outline"
-                            className={cn(
-                                'w-[170px] justify-between text-sm font-normal', // same width
-                                'rounded-[var(--radius-l)] border border-[var(--grey-600)] bg-[var(--grey-white)] px-4 py-2',
-                                'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
-                                !filters.endDate && 'text-[var(--grey-800)]'
-                            )}
+                    </Popover>
+                    {filters.startDate && (
+                        <button
+                            type="button"
+                            onClick={() => onChange('startDate', null)}
+                            className="flex items-center h-10 px-2 border border-l-0 border-[var(--grey-600)] bg-[var(--grey-white)] rounded-r-[var(--radius-l)] hover:bg-[var(--grey-100)]"
                         >
-                            <span className="truncate">{formattedEnd}</span>
-                            <CalendarIcon className="ml-2 h-4 w-4 text-[var(--grey-700)]" />
-                        </BaseButton>
-                    </PopoverTrigger>
+                            <X className="h-4 w-4 text-[var(--grey-700)] hover:text-[var(--grey-900)]" />
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex items-center">
+                    <Popover open={openEnd} onOpenChange={setOpenEnd}>
+                        <PopoverTrigger asChild>
+                            <BaseButton
+                                variant="outline"
+                                className={cn(
+                                    'w-[140px] h-10 justify-between text-sm font-normal',
+                                    'rounded-[var(--radius-l)] border border-[var(--grey-600)] bg-[var(--grey-white)] px-4',
+                                    'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none',
+                                    !filters.endDate && 'text-[var(--grey-800)]',
+                                    filters.endDate && 'rounded-r-none border-r-0'
+                                )}
+                            >
+                                <span className="truncate">{formattedEnd}</span>
+                                <CalendarIcon className="ml-2 h-4 w-4 text-[var(--grey-700)]" />
+                            </BaseButton>
+                        </PopoverTrigger>
                     <PopoverContent
                         align="start"
                         side="bottom"
@@ -106,7 +121,17 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                             onSelect={(date) => handleSelect('endDate', date)}
                         />
                     </PopoverContent>
-                </Popover>
+                    </Popover>
+                    {filters.endDate && (
+                        <button
+                            type="button"
+                            onClick={() => onChange('endDate', null)}
+                            className="flex items-center h-10 px-2 border border-l-0 border-[var(--grey-600)] bg-[var(--grey-white)] rounded-r-[var(--radius-l)] hover:bg-[var(--grey-100)]"
+                        >
+                            <X className="h-4 w-4 text-[var(--grey-700)] hover:text-[var(--grey-900)]" />
+                        </button>
+                    )}
+                </div>
             </div>
         </ReceiptFilterField>
     );

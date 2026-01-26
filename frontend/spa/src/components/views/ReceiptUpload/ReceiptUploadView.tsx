@@ -1,6 +1,8 @@
 import type { AnalysisStatus } from '@hopps/api-client';
+import { TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
@@ -28,6 +30,7 @@ function isAllowedFileType(file: File): boolean {
 
 function ReceiptUploadView() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { showError, showSuccess } = useToast();
     const { loadBommels } = useBommelsStore();
     const store = useStore();
@@ -170,7 +173,19 @@ function ReceiptUploadView() {
                 pollingRef.current = null;
             }
         };
-    }, [documentId, isAutoRead, isAnalyzing, setAnalysisStatus, setAnalysisError, applyAnalysisResult, setAllFieldsLoading, showSuccess, showError, t, getNextPollingInterval]);
+    }, [
+        documentId,
+        isAutoRead,
+        isAnalyzing,
+        setAnalysisStatus,
+        setAnalysisError,
+        applyAnalysisResult,
+        setAllFieldsLoading,
+        showSuccess,
+        showError,
+        t,
+        getNextPollingInterval,
+    ]);
 
     useEffect(() => {
         if (!store.organization?.id) return;
@@ -225,7 +240,20 @@ function ReceiptUploadView() {
                 setIsSubmitting(false);
             }
         },
-        [isSubmitting, showError, showSuccess, isAutoRead, setFile, setIsSubmitting, setAllFieldsLoading, setDocumentId, setTransactionId, setAnalysisStatus, setAnalysisError, t]
+        [
+            isSubmitting,
+            showError,
+            showSuccess,
+            isAutoRead,
+            setFile,
+            setIsSubmitting,
+            setAllFieldsLoading,
+            setDocumentId,
+            setTransactionId,
+            setAnalysisStatus,
+            setAnalysisError,
+            t,
+        ]
     );
 
     // Build the update request payload for transaction
@@ -260,19 +288,19 @@ function ReceiptUploadView() {
             const payload = buildTransactionPayload();
 
             // Update transaction and confirm it
-            await apiService.orgService.transactionsPATCH(transactionId, payload);
-            await apiService.orgService.transactionsConfirmPOST(transactionId);
+            await apiService.orgService.transactionsPATCH(transactionId, new TransactionUpdateRequest(payload));
+            await apiService.orgService.confirm(transactionId);
 
             showSuccess(t('receipts.upload.saveSuccess'));
             resetForm();
-            window.history.back();
+            navigate('/receipts');
         } catch (e) {
             console.error(e);
             showError(t('receipts.upload.saveFailed'));
         } finally {
             setIsSubmitting(false);
         }
-    }, [isValid, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload]);
+    }, [isValid, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate]);
 
     // Save as draft - saves current form data to transaction without confirming
     const handleSaveDraft = useCallback(async () => {
@@ -287,27 +315,37 @@ function ReceiptUploadView() {
 
             if (transactionId) {
                 // Update existing transaction
-                await apiService.orgService.transactionsPATCH(transactionId, payload);
+                await apiService.orgService.transactionsPATCH(transactionId, new TransactionUpdateRequest(payload));
                 showSuccess(t('receipts.upload.draftSaved'));
             } else {
                 // Create new manual transaction (no document)
-                const response = await apiService.orgService.transactionsPOST(payload);
+                // For create, total and documentType are required
+                const createPayload = {
+                    ...payload,
+                    total: payload.total ?? 0,
+                    documentType: payload.documentType ?? 'INVOICE',
+                };
+                const response = await apiService.orgService.transactionsPOST(new TransactionCreateRequest(createPayload));
                 if (response.id) {
                     setTransactionId(response.id);
                 }
                 showSuccess(t('receipts.upload.draftSaved'));
             }
+
+            // Navigate to receipts list after saving
+            resetForm();
+            navigate('/receipts');
         } catch (e) {
             console.error(e);
             showError(t('receipts.upload.saveFailed'));
         } finally {
             setIsSubmitting(false);
         }
-    }, [canSaveDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload]);
+    }, [canSaveDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload, resetForm, navigate]);
 
     const handleCancel = useCallback(() => {
-        window.history.back();
-    }, []);
+        navigate('/receipts');
+    }, [navigate]);
 
     return (
         <div className="flex flex-col gap-4">

@@ -1,5 +1,6 @@
 package app.hopps.transaction.repository;
 
+import app.hopps.document.domain.DocumentType;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -9,7 +10,11 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class TransactionRepository implements PanacheRepository<Transaction> {
@@ -85,5 +90,146 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
     public Transaction findByDocumentId(Long documentId) {
         Long orgId = organizationContext.getCurrentOrganizationId();
         return find("document.id = ?1 and organization.id = ?2", documentId, orgId).firstResult();
+    }
+
+    /**
+     * Find transactions with dynamic filtering. Supports search, date range, bommel, category, document type, status,
+     * and privatelyPaid filters.
+     */
+    public List<Transaction> findFiltered(
+            String search,
+            Instant startDate,
+            Instant endDate,
+            Long bommelId,
+            Long categoryId,
+            DocumentType documentType,
+            TransactionStatus status,
+            Boolean privatelyPaid,
+            Boolean detached,
+            Page page) {
+
+        Long orgId = organizationContext.getCurrentOrganizationId();
+
+        // Build dynamic query
+        StringBuilder query = new StringBuilder("organization.id = :orgId");
+        Map<String, Object> params = new HashMap<>();
+        params.put("orgId", orgId);
+
+        // Search filter (name or senderName)
+        if (search != null && !search.isBlank()) {
+            query.append(" and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search)");
+            params.put("search", "%" + search.toLowerCase() + "%");
+        }
+
+        // Date range filter
+        if (startDate != null) {
+            query.append(" and transactionTime >= :startDate");
+            params.put("startDate", startDate);
+        }
+        if (endDate != null) {
+            query.append(" and transactionTime <= :endDate");
+            params.put("endDate", endDate);
+        }
+
+        // Bommel filter
+        if (detached != null && detached) {
+            query.append(" and bommel is null");
+        } else if (bommelId != null) {
+            query.append(" and bommel.id = :bommelId");
+            params.put("bommelId", bommelId);
+        }
+
+        // Category filter
+        if (categoryId != null) {
+            query.append(" and category.id = :categoryId");
+            params.put("categoryId", categoryId);
+        }
+
+        // Document type filter
+        if (documentType != null) {
+            query.append(" and documentType = :documentType");
+            params.put("documentType", documentType);
+        }
+
+        // Status filter
+        if (status != null) {
+            query.append(" and status = :status");
+            params.put("status", status);
+        }
+
+        // Privately paid filter
+        if (privatelyPaid != null) {
+            query.append(" and privatelyPaid = :privatelyPaid");
+            params.put("privatelyPaid", privatelyPaid);
+        }
+
+        return find(query.toString(), Sort.descending("createdAt"), params)
+                .page(page)
+                .list();
+    }
+
+    /**
+     * Count transactions with dynamic filtering.
+     */
+    public long countFiltered(
+            String search,
+            Instant startDate,
+            Instant endDate,
+            Long bommelId,
+            Long categoryId,
+            DocumentType documentType,
+            TransactionStatus status,
+            Boolean privatelyPaid,
+            Boolean detached) {
+
+        Long orgId = organizationContext.getCurrentOrganizationId();
+
+        // Build dynamic query (same as findFiltered)
+        StringBuilder query = new StringBuilder("organization.id = :orgId");
+        Map<String, Object> params = new HashMap<>();
+        params.put("orgId", orgId);
+
+        if (search != null && !search.isBlank()) {
+            query.append(" and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search)");
+            params.put("search", "%" + search.toLowerCase() + "%");
+        }
+
+        if (startDate != null) {
+            query.append(" and transactionTime >= :startDate");
+            params.put("startDate", startDate);
+        }
+        if (endDate != null) {
+            query.append(" and transactionTime <= :endDate");
+            params.put("endDate", endDate);
+        }
+
+        if (detached != null && detached) {
+            query.append(" and bommel is null");
+        } else if (bommelId != null) {
+            query.append(" and bommel.id = :bommelId");
+            params.put("bommelId", bommelId);
+        }
+
+        if (categoryId != null) {
+            query.append(" and category.id = :categoryId");
+            params.put("categoryId", categoryId);
+        }
+
+        if (documentType != null) {
+            query.append(" and documentType = :documentType");
+            params.put("documentType", documentType);
+        }
+
+        if (status != null) {
+            query.append(" and status = :status");
+            params.put("status", status);
+        }
+
+        if (privatelyPaid != null) {
+            query.append(" and privatelyPaid = :privatelyPaid");
+            params.put("privatelyPaid", privatelyPaid);
+        }
+
+        return count(query.toString(), params);
     }
 }

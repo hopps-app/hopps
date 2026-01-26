@@ -240,6 +240,11 @@
         "draft": "Draft",
         "dueDate": "Due on",
         "empty": "No receipts found",
+        "emptyState": {
+            "title": "No receipts uploaded yet",
+            "description": "Here you can filter and manage receipts",
+            "action": "Upload first receipt"
+        },
         "status": {
             "paid": "Status: Paid",
             "unpaid": "Status: Unpaid",

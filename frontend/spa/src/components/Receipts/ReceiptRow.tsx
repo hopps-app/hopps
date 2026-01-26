@@ -49,30 +49,35 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, 
                 }}
                 aria-expanded={isExpanded}
                 className={cn(
-                    'grid w-full grid-cols-6 items-center cursor-pointer',
+                    'grid w-full items-center cursor-pointer',
+                    'grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]',
                     'rounded-[var(--radius)] py-1 pr-4 transition',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                 )}
             >
-                <div className="flex items-center min-w-0 pr-2">
-                    {isDraft && (
-                        <div className="flex items-center gap-1 mr-2 text-xs text-muted-foreground shrink-0">
-                            <InfoCircledIcon className="w-4 h-4" />
-                            <span>{t('receipts.draft')}</span>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-2 min-w-0">
-                        {isExpanded ? <ChevronDownIcon className="w-5 h-5 shrink-0" /> : <ChevronRightIcon className="w-5 h-5 shrink-0" />}
-                        <span className="font-medium truncate">{receipt.issuer}</span>
-                    </div>
+                {/* Issuer */}
+                <div className="flex items-center gap-2 min-w-0 pr-2">
+                    {isExpanded ? <ChevronDownIcon className="w-5 h-5 shrink-0" /> : <ChevronRightIcon className="w-5 h-5 shrink-0" />}
+                    <span className="font-medium truncate">{receipt.issuer}</span>
                 </div>
 
+                {/* Date */}
                 <span className="font-medium text-start">{receipt.date}</span>
+
+                {/* Project */}
                 <span className="font-medium text-start">{receipt.project}</span>
+
+                {/* Category */}
                 <span className="font-medium text-start">{receipt.category}</span>
 
-                <span className="font-light text-sm text-right flex items-center justify-end gap-1">
+                {/* Status (Draft/Failed) */}
+                <span className="font-light text-sm flex items-center gap-1">
+                    {isDraft && (
+                        <>
+                            <InfoCircledIcon className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            <span className="text-muted-foreground">{t('receipts.draft')}</span>
+                        </>
+                    )}
                     {isFailed && (
                         <>
                             <ExclamationTriangleIcon className="w-4 h-4 shrink-0 text-red-700" />
@@ -81,13 +86,14 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, 
                     )}
                 </span>
 
-                <div className="flex items-center justify-end gap-8">
-                    <span className={cn('text-base font-semibold tabular-nums text-right', amountColorClass(receipt.amount))}>
+                {/* Amount + Checkbox */}
+                <div className="flex items-center justify-end gap-4">
+                    <span className={cn('text-base font-semibold tabular-nums text-right min-w-[80px]', amountColorClass(receipt.amount))}>
                         {formatAmount(receipt.amount)}
                     </span>
 
                     <div className="shrink-0" {...stopEventPropagationHandlers<HTMLDivElement>()}>
-                        <Checkbox checked={isChecked} onCheckedChange={(v) => onCheckChange(receipt.id, Boolean(v))} />
+                        <Checkbox checked={!isDraft} disabled className="cursor-default" />
                     </div>
                 </div>
             </div>

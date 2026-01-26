@@ -1,3 +1,5 @@
+export type ReceiptDocumentType = 'INVOICE' | 'RECEIPT' | undefined;
+
 export interface Receipt {
     id: string;
     issuer: string;
@@ -10,6 +12,7 @@ export interface Receipt {
     dueDate: string;
     tags: string[];
     reference: string;
+    documentType?: ReceiptDocumentType;
 }
 
 export type ReceiptStatusCheck = 'isDraft' | 'isFailed' | 'isPaid' | 'isUnpaid';

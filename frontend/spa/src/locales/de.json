@@ -193,6 +193,11 @@
         "draft": "Entwurf",
         "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
+        "emptyState": {
+            "title": "Noch keine Belege hochgeladen",
+            "description": "Hier können Belege gefiltert und verwaltet werden",
+            "action": "Ersten Beleg hochladen"
+        },
         "status": {
             "paid": "Status: Bezahlt",
             "unpaid": "Status: Offen",

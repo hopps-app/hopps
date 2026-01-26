@@ -1527,30 +1527,60 @@ export class Client {
     /**
      * List all transactions
      * @param bommelId (optional) Filter by bommel ID
-     * @param detached (optional) Filter unassigned transactions
-     * @param page (optional) 
-     * @param size (optional) 
-     * @param status (optional) Filter by status
+     * @param categoryId (optional) Filter by category ID
+     * @param detached (optional) Filter unassigned transactions (no bommel)
+     * @param documentType (optional) Filter by document type (INVOICE or RECEIPT)
+     * @param endDate (optional) Filter transactions until this date (ISO format: YYYY-MM-DD)
+     * @param page (optional) Page index (0-based)
+     * @param privatelyPaid (optional) Filter by privately paid flag
+     * @param search (optional) Search in name and sender name
+     * @param size (optional) Page size
+     * @param startDate (optional) Filter transactions from this date (ISO format: YYYY-MM-DD)
+     * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return List of transactions
      */
-    transactionsAll(bommelId: number | undefined, detached: boolean | undefined, page: number | undefined, size: number | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
+    transactionsAll(bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, documentType: DocumentType | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
         let url_ = this.baseUrl + "/transactions?";
         if (bommelId === null)
             throw new Error("The parameter 'bommelId' cannot be null.");
         else if (bommelId !== undefined)
             url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+        if (categoryId === null)
+            throw new Error("The parameter 'categoryId' cannot be null.");
+        else if (categoryId !== undefined)
+            url_ += "categoryId=" + encodeURIComponent("" + categoryId) + "&";
         if (detached === null)
             throw new Error("The parameter 'detached' cannot be null.");
         else if (detached !== undefined)
             url_ += "detached=" + encodeURIComponent("" + detached) + "&";
+        if (documentType === null)
+            throw new Error("The parameter 'documentType' cannot be null.");
+        else if (documentType !== undefined)
+            url_ += "documentType=" + encodeURIComponent("" + documentType) + "&";
+        if (endDate === null)
+            throw new Error("The parameter 'endDate' cannot be null.");
+        else if (endDate !== undefined)
+            url_ += "endDate=" + encodeURIComponent("" + endDate) + "&";
         if (page === null)
             throw new Error("The parameter 'page' cannot be null.");
         else if (page !== undefined)
             url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (privatelyPaid === null)
+            throw new Error("The parameter 'privatelyPaid' cannot be null.");
+        else if (privatelyPaid !== undefined)
+            url_ += "privatelyPaid=" + encodeURIComponent("" + privatelyPaid) + "&";
+        if (search === null)
+            throw new Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
         if (size === null)
             throw new Error("The parameter 'size' cannot be null.");
         else if (size !== undefined)
             url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (startDate === null)
+            throw new Error("The parameter 'startDate' cannot be null.");
+        else if (startDate !== undefined)
+            url_ += "startDate=" + encodeURIComponent("" + startDate) + "&";
         if (status === null)
             throw new Error("The parameter 'status' cannot be null.");
         else if (status !== undefined)
@@ -2954,6 +2984,7 @@ export class TransactionResponse implements ITransactionResponse {
     id?: number;
     documentId?: number;
     bommelId?: number;
+    bommelName?: string;
     categoryId?: number;
     categoryName?: string;
     status?: TransactionStatus;
@@ -2997,6 +3028,7 @@ export class TransactionResponse implements ITransactionResponse {
             this.id = _data["id"];
             this.documentId = _data["documentId"];
             this.bommelId = _data["bommelId"];
+            this.bommelName = _data["bommelName"];
             this.categoryId = _data["categoryId"];
             this.categoryName = _data["categoryName"];
             this.status = _data["status"];
@@ -3042,6 +3074,7 @@ export class TransactionResponse implements ITransactionResponse {
         data["id"] = this.id;
         data["documentId"] = this.documentId;
         data["bommelId"] = this.bommelId;
+        data["bommelName"] = this.bommelName;
         data["categoryId"] = this.categoryId;
         data["categoryName"] = this.categoryName;
         data["status"] = this.status;
@@ -3083,6 +3116,7 @@ export interface ITransactionResponse {
     id?: number;
     documentId?: number;
     bommelId?: number;
+    bommelName?: string;
     categoryId?: number;
     categoryName?: string;
     status?: TransactionStatus;

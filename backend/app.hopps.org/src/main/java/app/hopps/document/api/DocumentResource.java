@@ -266,6 +266,14 @@ public class DocumentResource {
             throw new NotFoundException("Document not found");
         }
 
+        // Delete associated transaction first (due to foreign key constraint)
+        Transaction transaction = transactionRepository.findByDocumentId(id);
+        if (transaction != null) {
+            transactionRepository.delete(transaction);
+            LOG.info("Transaction deleted for document: transactionId={}, documentId={}",
+                    transaction.getId(), id);
+        }
+
         // Delete file from storage
         if (document.hasFile()) {
             fileService.deleteFile(document.getFileKey());

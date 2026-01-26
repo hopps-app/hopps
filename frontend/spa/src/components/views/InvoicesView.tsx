@@ -1,4 +1,4 @@
-import { TransactionRecord } from '@hopps/api-client';
+import { TransactionResponse } from '@hopps/api-client';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,13 +13,25 @@ import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store.ts';
 
 async function getInvoices(): Promise<InvoicesTableData[]> {
-    const transactions: TransactionRecord[] = [];
+    const transactions: TransactionResponse[] = [];
     const pageSize = 100;
 
     let page = 0;
 
     while (true) {
-        const data = await apiService.orgService.all(undefined, false, page, pageSize);
+        const data = await apiService.orgService.transactionsAll(
+            undefined, // bommelId
+            undefined, // categoryId
+            undefined, // detached
+            undefined, // documentType
+            undefined, // endDate
+            page, // page
+            undefined, // privatelyPaid
+            undefined, // search
+            pageSize, // size
+            undefined, // startDate
+            undefined // status
+        );
 
         if (Array.isArray(data)) {
             transactions.push(...data);

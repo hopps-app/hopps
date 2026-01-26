@@ -11,14 +11,7 @@ interface ReceiptFormActionsProps {
     saveDisabled?: boolean;
 }
 
-export function ReceiptFormActions({
-    isValid,
-    canSaveDraft,
-    onSubmit,
-    onSaveDraft,
-    onCancel,
-    saveDisabled = false,
-}: ReceiptFormActionsProps) {
+export function ReceiptFormActions({ isValid, canSaveDraft, onSubmit, onSaveDraft, onCancel, saveDisabled = false }: ReceiptFormActionsProps) {
     const { t } = useTranslation();
 
     return (

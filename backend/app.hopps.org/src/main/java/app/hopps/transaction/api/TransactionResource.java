@@ -33,8 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 
@@ -68,26 +70,42 @@ public class TransactionResource {
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
     @APIResponse(responseCode = "200", description = "List of transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse[].class)))
     public List<TransactionResponse> listTransactions(
+            @QueryParam("search") @Parameter(description = "Search in name and sender name") String search,
+            @QueryParam("startDate") @Parameter(description = "Filter transactions from this date (ISO format: YYYY-MM-DD)") String startDate,
+            @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
             @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId,
-            @QueryParam("status") @Parameter(description = "Filter by status") TransactionStatus status,
-            @QueryParam("detached") @Parameter(description = "Filter unassigned transactions") Boolean detached,
-            @QueryParam("page") @DefaultValue("0") int pageIndex,
-            @QueryParam("size") @DefaultValue("25") int pageSize) {
+            @QueryParam("categoryId") @Parameter(description = "Filter by category ID") Long categoryId,
+            @QueryParam("documentType") @Parameter(description = "Filter by document type (INVOICE or RECEIPT)") DocumentType documentType,
+            @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
+            @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
+            @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
+            @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
+            @QueryParam("size") @DefaultValue("25") @Parameter(description = "Page size") int pageSize) {
 
         Page page = new Page(pageIndex, pageSize);
-        List<Transaction> transactions;
 
-        if (detached != null && detached) {
-            transactions = transactionRepository.findWithoutBommel(page);
-        } else if (bommelId != null && status != null) {
-            transactions = transactionRepository.findByBommelIdAndStatus(bommelId, status, page);
-        } else if (bommelId != null) {
-            transactions = transactionRepository.findByBommelId(bommelId, page);
-        } else if (status != null) {
-            transactions = transactionRepository.findByStatus(status, page);
-        } else {
-            transactions = transactionRepository.findAllForCurrentOrganization(page);
+        // Parse dates
+        Instant startInstant = null;
+        Instant endInstant = null;
+        if (startDate != null && !startDate.isBlank()) {
+            startInstant = LocalDate.parse(startDate).atStartOfDay(ZoneOffset.UTC).toInstant();
         }
+        if (endDate != null && !endDate.isBlank()) {
+            // End of day for inclusive range
+            endInstant = LocalDate.parse(endDate).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+
+        List<Transaction> transactions = transactionRepository.findFiltered(
+                search,
+                startInstant,
+                endInstant,
+                bommelId,
+                categoryId,
+                documentType,
+                status,
+                privatelyPaid,
+                detached,
+                page);
 
         return transactions.stream()
                 .map(TransactionResponse::from)
@@ -221,11 +239,11 @@ public class TransactionResource {
         }
 
         if (request.area() != null && !request.area().isBlank()) {
-            transaction.setArea(TransactionArea.valueOf(request.area()));
+            transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
         }
 
         if (request.documentType() != null && !request.documentType().isBlank()) {
-            transaction.setDocumentType(DocumentType.valueOf(request.documentType()));
+            transaction.setDocumentType(DocumentType.valueOf(request.documentType().toUpperCase()));
         }
 
         if (request.senderName() != null && !request.senderName().isBlank()) {
@@ -290,11 +308,11 @@ public class TransactionResource {
         }
 
         if (request.area() != null && !request.area().isBlank()) {
-            transaction.setArea(TransactionArea.valueOf(request.area()));
+            transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
         }
 
         if (request.documentType() != null && !request.documentType().isBlank()) {
-            transaction.setDocumentType(DocumentType.valueOf(request.documentType()));
+            transaction.setDocumentType(DocumentType.valueOf(request.documentType().toUpperCase()));
         }
 
         // Update sender

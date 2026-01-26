@@ -221,14 +221,7 @@ export function useReceiptForm() {
     // Full validation for final save (currently always false as save is disabled)
     const isValid = useMemo(() => {
         if (isSubmitting) return false;
-        return Boolean(
-            receiptDate &&
-            transactionKind &&
-            contractPartner &&
-            bommelId &&
-            netAmount &&
-            taxAmount
-        );
+        return Boolean(receiptDate && transactionKind && contractPartner && bommelId && netAmount && taxAmount);
     }, [receiptDate, transactionKind, contractPartner, bommelId, netAmount, taxAmount, isSubmitting]);
 
     return {

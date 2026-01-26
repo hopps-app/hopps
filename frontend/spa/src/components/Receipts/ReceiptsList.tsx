@@ -1,16 +1,54 @@
-import { FC, useMemo, useState } from 'react';
+import type { DocumentType, TransactionStatus } from '@hopps/api-client';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import mockReceipts from '@/components/Receipts/mockReceipts';
 import ReceiptRow from '@/components/Receipts/ReceiptRow';
-import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
+import ReceiptsEmptyState from '@/components/Receipts/ReceiptsEmptyState';
+import { ReceiptFiltersState } from '@/components/Receipts/types';
+import { transactionToReceipt, useTransactions } from '@/hooks/queries/useTransactions';
 
 type ReceiptsListProps = {
     filters: ReceiptFiltersState;
 };
 
 const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
+    const { t } = useTranslation();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [checked, setChecked] = useState<Record<string, boolean>>({});
+
+    // Map UI filters to API filters
+    const apiFilters = useMemo(() => {
+        // Determine document type filter based on income/expense checkboxes
+        let documentType: DocumentType | undefined;
+        if (filters.type.income && !filters.type.expense) {
+            documentType = 'RECEIPT'; // Income = RECEIPT
+        } else if (filters.type.expense && !filters.type.income) {
+            documentType = 'INVOICE'; // Expense = INVOICE
+        }
+        // If both or neither are checked, don't filter by document type
+
+        // Determine status filter
+        let status: TransactionStatus | undefined;
+        if (filters.status.draft) {
+            status = 'DRAFT';
+        }
+
+        // Determine privatelyPaid filter (unpaid)
+        const privatelyPaid = filters.status.unpaid ? true : undefined;
+
+        return {
+            search: filters.search || undefined,
+            startDate: filters.startDate || undefined,
+            endDate: filters.endDate || undefined,
+            bommelId: filters.project ? parseInt(filters.project, 10) : undefined,
+            categoryId: filters.category ? parseInt(filters.category, 10) : undefined,
+            documentType,
+            status,
+            privatelyPaid,
+        };
+    }, [filters]);
+
+    const { data: transactions, isLoading, isError } = useTransactions(apiFilters);
 
     const toggleRow = (id: string) => {
         setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -20,39 +58,64 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         setChecked((prev) => ({ ...prev, [id]: value }));
     };
 
-    const filteredReceipts = useMemo(() => {
-        const search = filters.search.trim().toLowerCase();
-        const category = filters.category?.toLowerCase();
+    // Convert transactions to receipts format
+    const receipts = useMemo(() => {
+        if (!transactions) return [];
+        return transactions.map(transactionToReceipt);
+    }, [transactions]);
 
-        return mockReceipts.filter((receipt: Receipt) => {
-            const matchesSearch =
-                !search ||
-                [receipt.issuer, receipt.category, receipt.project, receipt.purpose, receipt.reference]
-                    .filter(Boolean)
-                    .some((field) => field.toLowerCase().includes(search));
+    // Track previous displayAll value to detect changes
+    const prevDisplayAllRef = useRef(filters.displayAll);
 
-            const matchesCategory = !category || receipt.tags.some((tag) => tag.toLowerCase() === category);
+    // Expand/collapse all when displayAll filter changes
+    useEffect(() => {
+        const prevDisplayAll = prevDisplayAllRef.current;
+        prevDisplayAllRef.current = filters.displayAll;
 
-            return matchesSearch && matchesCategory;
-        });
-    }, [filters.search, filters.category]);
+        // Only react to actual changes in displayAll
+        if (prevDisplayAll === filters.displayAll) return;
+        if (!receipts.length) return;
+
+        if (filters.displayAll) {
+            // Expand all receipts
+            const allExpanded = receipts.reduce(
+                (acc, receipt) => {
+                    acc[receipt.id] = true;
+                    return acc;
+                },
+                {} as Record<string, boolean>
+            );
+            setExpanded(allExpanded);
+        } else {
+            // Collapse all receipts
+            setExpanded({});
+        }
+    }, [filters.displayAll, receipts]);
+
+    if (isLoading) {
+        return <div className="text-center text-[var(--grey-700)] py-6">{t('common.loading')}</div>;
+    }
+
+    if (isError) {
+        return <div className="text-center text-red-500 py-6">{t('invoices.loadFailed')}</div>;
+    }
+
+    if (receipts.length === 0) {
+        return <ReceiptsEmptyState />;
+    }
 
     return (
         <ul className="space-y-2">
-            {filteredReceipts.length > 0 ? (
-                filteredReceipts.map((receipt: Receipt) => (
-                    <ReceiptRow
-                        key={receipt.id}
-                        receipt={receipt}
-                        isExpanded={Boolean(expanded[receipt.id])}
-                        isChecked={Boolean(checked[receipt.id])}
-                        onToggle={toggleRow}
-                        onCheckChange={handleCheckChange}
-                    />
-                ))
-            ) : (
-                <li className="text-center text-[var(--grey-700)] py-6">No receipts found</li>
-            )}
+            {receipts.map((receipt) => (
+                <ReceiptRow
+                    key={receipt.id}
+                    receipt={receipt}
+                    isExpanded={Boolean(expanded[receipt.id])}
+                    isChecked={Boolean(checked[receipt.id])}
+                    onToggle={toggleRow}
+                    onCheckChange={handleCheckChange}
+                />
+            ))}
         </ul>
     );
 };

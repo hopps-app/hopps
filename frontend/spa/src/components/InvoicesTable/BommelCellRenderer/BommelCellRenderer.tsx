@@ -10,6 +10,7 @@ import SearchField from '@/components/ui/SearchField/SearchField';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
+import { TransactionUpdateRequest } from '@hopps/api-client';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
@@ -39,7 +40,8 @@ const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {
 
         setLoading(true);
         try {
-            await apiService.orgService.bommelPATCH(bommelId, data.id);
+            // Update the transaction with the new bommelId
+            await apiService.orgService.transactionsPATCH(data.id, new TransactionUpdateRequest({ bommelId }));
             showSuccess(`${t('invoices.assignPopover.successAssign')}`);
             await api.applyTransaction({
                 update: [{ ...data, bommel: bommelId }],
