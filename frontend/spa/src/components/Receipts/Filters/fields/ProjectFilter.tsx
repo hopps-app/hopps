@@ -78,29 +78,34 @@ const ProjectFilter = ({ filters, onChange, label }: ProjectFilterProps) => {
                         </div>
                     </PopoverTrigger>
 
-                <PopoverContent
-                    align="start"
-                    side="bottom"
-                    sideOffset={4}
-                    className={cn(
-                        'w-[var(--radix-popover-trigger-width)] p-0 border border-[var(--grey-600)] bg-[var(--grey-white)] rounded-[var(--radius-l)] shadow-sm'
-                    )}
-                >
-                    <Command shouldFilter={false}>
-                        <CommandInput placeholder={t('receipts.filters.searchPlaceholder')} value={search} onValueChange={setSearch} className="h-9 text-sm" />
-                        <CommandList>
-                            <CommandEmpty>{t('receipts.filters.noResults')}</CommandEmpty>
-                            <CommandGroup>
-                                {filteredProjects.map((p) => (
-                                    <CommandItem key={p.id} onSelect={() => handleSelect(p.id)} className="text-sm">
-                                        {p.name}
-                                        {filters.project === p.id && <CheckIcon className="ml-auto h-4 w-4 text-[var(--purple-500)]" />}
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        </CommandList>
-                    </Command>
-                </PopoverContent>
+                    <PopoverContent
+                        align="start"
+                        side="bottom"
+                        sideOffset={4}
+                        className={cn(
+                            'w-[var(--radix-popover-trigger-width)] p-0 border border-[var(--grey-600)] bg-[var(--grey-white)] rounded-[var(--radius-l)] shadow-sm'
+                        )}
+                    >
+                        <Command shouldFilter={false}>
+                            <CommandInput
+                                placeholder={t('receipts.filters.searchPlaceholder')}
+                                value={search}
+                                onValueChange={setSearch}
+                                className="h-9 text-sm"
+                            />
+                            <CommandList>
+                                <CommandEmpty>{t('receipts.filters.noResults')}</CommandEmpty>
+                                <CommandGroup>
+                                    {filteredProjects.map((p) => (
+                                        <CommandItem key={p.id} onSelect={() => handleSelect(p.id)} className="text-sm">
+                                            {p.name}
+                                            {filters.project === p.id && <CheckIcon className="ml-auto h-4 w-4 text-[var(--purple-500)]" />}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
                 </Popover>
                 {selectedProject && (
                     <button

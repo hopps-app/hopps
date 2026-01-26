@@ -22,7 +22,11 @@ export function formatAmount(amount: number): string {
     return `${sign}${amount.toFixed(2)} €`;
 }
 
-export function amountColorClass(amount: number): string {
+export function amountColorClass(amount: number, documentType?: 'INVOICE' | 'RECEIPT'): string {
+    // If document type is not declared, show in neutral color (black)
+    if (!documentType) {
+        return 'text-foreground';
+    }
     return amount < 0 ? 'text-red-600' : 'text-green-600';
 }
 

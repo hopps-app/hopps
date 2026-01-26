@@ -1,8 +1,9 @@
 import type { AnalysisStatus } from '@hopps/api-client';
 import { TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
-import { useCallback, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
@@ -10,6 +11,7 @@ import { useReceiptForm } from './hooks';
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import Switch from '@/components/ui/Switch';
 import { useToast } from '@/hooks/use-toast';
+import { transactionKeys } from '@/hooks/queries/useTransactions';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -31,9 +33,17 @@ function isAllowedFileType(file: File): boolean {
 function ReceiptUploadView() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
     const { showError, showSuccess } = useToast();
     const { loadBommels } = useBommelsStore();
     const store = useStore();
+    const queryClient = useQueryClient();
+
+    // Edit mode state
+    const isEditMode = Boolean(id);
+    const [isLoadingTransaction, setIsLoadingTransaction] = useState(false);
+    const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+    const [documentContentType, setDocumentContentType] = useState<string>('application/pdf');
 
     const {
         file,
@@ -81,6 +91,8 @@ function ReceiptUploadView() {
         setAnalysisError,
         extractionSource,
         applyAnalysisResult,
+        applyAnalysisResultToEmptyFields,
+        loadTransaction,
     } = useReceiptForm();
 
     const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -192,6 +204,73 @@ function ReceiptUploadView() {
         loadBommels(store.organization.id).catch(() => {});
     }, [store.organization, loadBommels]);
 
+    // Track if transaction has been loaded to prevent re-loading
+    const transactionLoadedRef = useRef<string | null>(null);
+
+    // Load transaction data in edit mode
+    useEffect(() => {
+        if (!id || !isEditMode) return;
+        // Skip if already loaded for this ID
+        if (transactionLoadedRef.current === id) return;
+
+        const loadTransactionData = async () => {
+            setIsLoadingTransaction(true);
+            try {
+                const transactionIdNum = parseInt(id, 10);
+                const transaction = await apiService.orgService.transactionsGET(transactionIdNum);
+                const loadedValues = loadTransaction(transaction);
+                transactionLoadedRef.current = id;
+
+                // Load document preview and check for analysis results if document exists
+                if (transaction.documentId) {
+                    // Fetch document to check analysis status
+                    try {
+                        const documentResponse = await apiService.orgService.documentsGET(transaction.documentId);
+
+                        // If analysis is completed, apply results to empty fields only
+                        if (documentResponse.analysisStatus === 'COMPLETED') {
+                            const hasAppliedValues = applyAnalysisResultToEmptyFields(documentResponse, loadedValues);
+
+                            // Show the AI banner if we applied any values
+                            if (hasAppliedValues) {
+                                setAnalysisStatus('COMPLETED');
+                            }
+                        }
+                    } catch (docAnalysisError) {
+                        console.warn('Could not fetch document analysis status:', docAnalysisError);
+                    }
+
+                    // Load document preview
+                    try {
+                        const orgBaseUrl = import.meta.env.VITE_API_ORG_URL;
+                        const token = await import('@/services/auth/auth.service').then((m) => m.default.getAuthToken());
+                        const response = await fetch(`${orgBaseUrl}/documents/${transaction.documentId}/file`, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        });
+                        if (response.ok) {
+                            const contentType = response.headers.get('Content-Type') || 'application/pdf';
+                            setDocumentContentType(contentType);
+                            const blob = await response.blob();
+                            const url = URL.createObjectURL(blob);
+                            setDocumentUrl(url);
+                        }
+                    } catch (docError) {
+                        console.warn('Could not load document preview:', docError);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load transaction:', error);
+                showError(t('receipts.upload.loadFailed'));
+            } finally {
+                setIsLoadingTransaction(false);
+            }
+        };
+
+        loadTransactionData();
+    }, [id, isEditMode, loadTransaction, applyAnalysisResultToEmptyFields, setAnalysisStatus, showError, t]);
+
     const onFilesChanged = useCallback(
         async (files: File[]) => {
             const selected = files[0] ?? null;
@@ -293,6 +372,8 @@ function ReceiptUploadView() {
 
             showSuccess(t('receipts.upload.saveSuccess'));
             resetForm();
+            // Invalidate transactions query to refresh receipts list
+            await queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             navigate('/receipts');
         } catch (e) {
             console.error(e);
@@ -300,7 +381,7 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [isValid, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate]);
+    }, [isValid, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate, queryClient]);
 
     // Save as draft - saves current form data to transaction without confirming
     const handleSaveDraft = useCallback(async () => {
@@ -332,6 +413,8 @@ function ReceiptUploadView() {
                 showSuccess(t('receipts.upload.draftSaved'));
             }
 
+            // Invalidate transactions query to refresh receipts list
+            await queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             // Navigate to receipts list after saving
             resetForm();
             navigate('/receipts');
@@ -341,19 +424,44 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [canSaveDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload, resetForm, navigate]);
+    }, [canSaveDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload, resetForm, navigate, queryClient]);
 
     const handleCancel = useCallback(() => {
         navigate('/receipts');
     }, [navigate]);
 
+    // Cleanup document URL on unmount
+    useEffect(() => {
+        return () => {
+            if (documentUrl) {
+                URL.revokeObjectURL(documentUrl);
+            }
+        };
+    }, [documentUrl]);
+
+    if (isLoadingTransaction) {
+        return (
+            <div className="flex flex-col gap-4">
+                <h2 className="text-2xl font-semibold shrink-0">{t('receipts.upload.editTitle')}</h2>
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-4">
-            <h2 className="text-2xl font-semibold shrink-0">{t('receipts.upload.title')}</h2>
+            <h2 className="text-2xl font-semibold shrink-0">{isEditMode ? t('receipts.upload.editTitle') : t('receipts.upload.title')}</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
                 <div className="min-h-[300px] sm:min-h-[350px] md:self-stretch">
-                    <InvoiceUploadFormDropzone onFilesChanged={onFilesChanged} previewFile={file} />
+                    <InvoiceUploadFormDropzone
+                        onFilesChanged={onFilesChanged}
+                        previewFile={file}
+                        previewUrl={documentUrl}
+                        previewContentType={documentContentType}
+                    />
                 </div>
 
                 <div className="flex flex-col gap-4">

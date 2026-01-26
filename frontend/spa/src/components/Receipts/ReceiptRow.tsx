@@ -1,6 +1,7 @@
 import { ChevronDownIcon, ChevronRightIcon, InfoCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { FC, memo } from 'react';
+import { FC, memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { getStatusTranslationKey, formatAmount, amountColorClass } from '@/components/Receipts/helpers/receiptHelpers';
 import { Receipt } from '@/components/Receipts/types';
@@ -22,11 +23,16 @@ type ReceiptRowProps = {
     onCheckChange: (id: string, value: boolean) => void;
 };
 
-const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, onToggle, onCheckChange }) => {
+const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: _isChecked, onToggle: _onToggle, onCheckChange: _onCheckChange }) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     const isDraft = receipt.status === 'draft';
     const isFailed = receipt.status === 'failed';
+
+    const handleRowClick = useCallback(() => {
+        navigate(`/receipts/${receipt.id}`);
+    }, [navigate, receipt.id]);
 
     return (
         <li
@@ -40,11 +46,11 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, 
             <div
                 role="button"
                 tabIndex={0}
-                onClick={() => onToggle(receipt.id)}
+                onClick={handleRowClick}
                 onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        onToggle(receipt.id);
+                        handleRowClick();
                     }
                 }}
                 aria-expanded={isExpanded}
@@ -52,6 +58,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, 
                     'grid w-full items-center cursor-pointer',
                     'grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]',
                     'rounded-[var(--radius)] py-1 pr-4 transition',
+                    'hover:bg-[var(--background-tertiary)]',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                 )}
             >
@@ -88,7 +95,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked, 
 
                 {/* Amount + Checkbox */}
                 <div className="flex items-center justify-end gap-4">
-                    <span className={cn('text-base font-semibold tabular-nums text-right min-w-[80px]', amountColorClass(receipt.amount))}>
+                    <span className={cn('text-base font-semibold tabular-nums text-right min-w-[80px]', amountColorClass(receipt.amount, receipt.documentType))}>
                         {formatAmount(receipt.amount)}
                     </span>
 

@@ -1,4 +1,4 @@
-import type { AnalysisStatus, DocumentResponse, ExtractionSource } from '@hopps/api-client';
+import type { AnalysisStatus, DocumentResponse, ExtractionSource, TransactionResponse } from '@hopps/api-client';
 import { useCallback, useMemo, useState } from 'react';
 
 type Tag = string;
@@ -185,6 +185,160 @@ export function useReceiptForm() {
         [setFieldLoading]
     );
 
+    // Apply analysis results only to fields that are currently empty
+    // Used when opening a draft that has a completed analysis
+    const applyAnalysisResultToEmptyFields = useCallback(
+        (response: DocumentResponse, currentValues: Partial<ReceiptFormState>) => {
+            let hasAppliedValues = false;
+
+            // Track extraction source
+            if (response.extractionSource) {
+                setExtractionSource(response.extractionSource);
+            }
+
+            // Apply extracted data only to empty form fields
+            if (response.name && !currentValues.receiptNumber) {
+                setReceiptNumber(response.name);
+                hasAppliedValues = true;
+            }
+
+            if (response.transactionTime) {
+                const date = new Date(response.transactionTime);
+                if (!currentValues.receiptDate) {
+                    setReceiptDate(date);
+                    hasAppliedValues = true;
+                }
+                if (!currentValues.dueDate) {
+                    setDueDate(date);
+                    hasAppliedValues = true;
+                }
+            }
+
+            if (response.senderName && !currentValues.contractPartner) {
+                setContractPartner(response.senderName);
+                hasAppliedValues = true;
+            }
+
+            if (response.tags && response.tags.length > 0 && (!currentValues.tags || currentValues.tags.length === 0)) {
+                setTags(response.tags);
+                hasAppliedValues = true;
+            }
+
+            // Calculate net amount from total and tax
+            if (response.total !== undefined && response.total !== null && !currentValues.netAmount) {
+                const tax = response.totalTax ?? 0;
+                const net = response.total - tax;
+                setNetAmount(net.toFixed(2));
+                hasAppliedValues = true;
+            }
+
+            if (response.totalTax !== undefined && response.totalTax !== null && !currentValues.taxAmount) {
+                setTaxAmount(response.totalTax.toFixed(2));
+                hasAppliedValues = true;
+            }
+
+            return hasAppliedValues;
+        },
+        []
+    );
+
+    // Load existing transaction data into the form
+    // Returns the loaded values for comparison with analysis results
+    const loadTransaction = useCallback((transaction: TransactionResponse): Partial<ReceiptFormState> => {
+        const loadedValues: Partial<ReceiptFormState> = {};
+
+        // Set transaction ID
+        if (transaction.id) {
+            setTransactionId(transaction.id);
+        }
+
+        // Set receipt number / name
+        if (transaction.name) {
+            setReceiptNumber(transaction.name);
+            loadedValues.receiptNumber = transaction.name;
+        }
+
+        // Set transaction date
+        if (transaction.transactionTime) {
+            const date = new Date(transaction.transactionTime);
+            setReceiptDate(date);
+            loadedValues.receiptDate = date;
+        }
+
+        // Set due date
+        if (transaction.dueDate) {
+            const date = new Date(transaction.dueDate);
+            setDueDate(date);
+            loadedValues.dueDate = date;
+        }
+
+        // Set transaction kind based on document type
+        if (transaction.documentType === 'INVOICE') {
+            setTransactionKind('expense');
+            loadedValues.transactionKind = 'expense';
+        } else if (transaction.documentType === 'RECEIPT') {
+            setTransactionKind('intake');
+            loadedValues.transactionKind = 'intake';
+        }
+
+        // Set unpaid status
+        setIsUnpaid(transaction.privatelyPaid ?? false);
+        loadedValues.isUnpaid = transaction.privatelyPaid ?? false;
+
+        // Set contract partner
+        if (transaction.senderName) {
+            setContractPartner(transaction.senderName);
+            loadedValues.contractPartner = transaction.senderName;
+        }
+
+        // Set bommel ID
+        if (transaction.bommelId) {
+            setBommelId(transaction.bommelId);
+            loadedValues.bommelId = transaction.bommelId;
+        }
+
+        // Set category
+        if (transaction.categoryId) {
+            setCategory(String(transaction.categoryId));
+            loadedValues.category = String(transaction.categoryId);
+        }
+
+        // Set area
+        if (transaction.area) {
+            setArea(transaction.area);
+            loadedValues.area = transaction.area;
+        }
+
+        // Set tags
+        if (transaction.tags && transaction.tags.length > 0) {
+            setTags(transaction.tags);
+            loadedValues.tags = transaction.tags;
+        }
+
+        // Calculate net amount from total and tax
+        if (transaction.total !== undefined && transaction.total !== null) {
+            const tax = transaction.totalTax ?? 0;
+            const net = transaction.total - tax;
+            const netStr = net.toFixed(2);
+            setNetAmount(netStr);
+            loadedValues.netAmount = netStr;
+        }
+
+        // Set tax amount
+        if (transaction.totalTax !== undefined && transaction.totalTax !== null) {
+            const taxStr = transaction.totalTax.toFixed(2);
+            setTaxAmount(taxStr);
+            loadedValues.taxAmount = taxStr;
+        }
+
+        // Set document ID if available
+        if (transaction.documentId) {
+            setDocumentId(transaction.documentId);
+        }
+
+        return loadedValues;
+    }, []);
+
     const resetForm = useCallback(() => {
         setFile(null);
         setReceiptNumber('');
@@ -278,6 +432,8 @@ export function useReceiptForm() {
         setAllFieldsLoading,
         handleFieldUpdate,
         applyAnalysisResult,
+        applyAnalysisResultToEmptyFields,
+        loadTransaction,
         resetForm,
         isValid,
         canSaveDraft,

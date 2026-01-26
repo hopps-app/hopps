@@ -14,9 +14,11 @@ import { cn } from '@/lib/utils.ts';
 type InvoiceUploadFormDropzoneProps = {
     onFilesChanged: (file: FileWithPath[]) => void;
     previewFile?: File | null;
+    previewUrl?: string | null;
+    previewContentType?: string;
 };
 
-const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFilesChanged, previewFile }) => {
+const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFilesChanged, previewFile, previewUrl: externalPreviewUrl, previewContentType }) => {
     const { t } = useTranslation();
     const { showError } = useToast();
 
@@ -86,35 +88,59 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
 
     useEffect(() => {
         const renderPdf = async () => {
-            if (!previewFile) return;
-            const isPdf = previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.pdf');
-            if (!isPdf) return;
-            try {
-                GlobalWorkerOptions.workerSrc = pdfjsWorker as string;
-                const arrayBuffer = await previewFile.arrayBuffer();
-                const pdf: PDFDocumentProxy = await getDocument({ data: arrayBuffer }).promise;
-                const page = await pdf.getPage(1);
-                const viewport = page.getViewport({ scale: 1.5 });
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const context = canvas.getContext('2d');
-                if (!context) return;
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                await page.render({ canvasContext: context, viewport }).promise;
-            } catch (e) {
-                console.error(e);
-                // ignore rendering errors
+            // Render PDF from previewFile
+            if (previewFile) {
+                const isPdf = previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.pdf');
+                if (!isPdf) return;
+                try {
+                    GlobalWorkerOptions.workerSrc = pdfjsWorker as string;
+                    const arrayBuffer = await previewFile.arrayBuffer();
+                    const pdf: PDFDocumentProxy = await getDocument({ data: arrayBuffer }).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const canvas = canvasRef.current;
+                    if (!canvas) return;
+                    const context = canvas.getContext('2d');
+                    if (!context) return;
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    await page.render({ canvasContext: context, viewport }).promise;
+                } catch (e) {
+                    console.error(e);
+                }
+                return;
+            }
+
+            // Render PDF from external URL
+            if (externalPreviewUrl && previewContentType === 'application/pdf') {
+                try {
+                    GlobalWorkerOptions.workerSrc = pdfjsWorker as string;
+                    const response = await fetch(externalPreviewUrl);
+                    const arrayBuffer = await response.arrayBuffer();
+                    const pdf: PDFDocumentProxy = await getDocument({ data: arrayBuffer }).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const canvas = canvasRef.current;
+                    if (!canvas) return;
+                    const context = canvas.getContext('2d');
+                    if (!context) return;
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    await page.render({ canvasContext: context, viewport }).promise;
+                } catch (e) {
+                    console.error(e);
+                }
             }
         };
         renderPdf();
-    }, [previewFile]);
+    }, [previewFile, externalPreviewUrl, previewContentType]);
 
     function getDropzoneText() {
         if (isDragActive) {
             return <p>{t('invoiceUpload.dragFile')}</p>;
         }
 
+        // Handle previewFile (newly uploaded file)
         if (previewFile && previewUrl) {
             const isPdf = previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.pdf');
             if (isPdf) {
@@ -125,6 +151,19 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
                 );
             }
             return <img src={previewUrl} alt={previewFile.name} className="max-w-full max-h-full object-contain rounded-2xl bg-white" />;
+        }
+
+        // Handle externalPreviewUrl (loaded from existing document)
+        if (externalPreviewUrl) {
+            const isPdf = previewContentType === 'application/pdf';
+            if (isPdf) {
+                return (
+                    <div className="w-full h-full flex items-center justify-center bg-white rounded-2xl overflow-hidden">
+                        <canvas ref={canvasRef} className="max-h-full w-auto h-auto object-contain" />
+                    </div>
+                );
+            }
+            return <img src={externalPreviewUrl} alt="document" className="max-w-full max-h-full object-contain rounded-2xl bg-white" />;
         }
 
         return (

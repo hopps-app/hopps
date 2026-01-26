@@ -1,4 +1,5 @@
 import './styles/BommelCellRenderer.scss';
+import { TransactionUpdateRequest } from '@hopps/api-client';
 import { ICellRendererParams } from 'ag-grid-community';
 import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +11,6 @@ import SearchField from '@/components/ui/SearchField/SearchField';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover.tsx';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
-import { TransactionUpdateRequest } from '@hopps/api-client';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 const BommelCellRenderer = ({ data, api, node }: ICellRendererParams) => {

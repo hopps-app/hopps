@@ -94,6 +94,14 @@ export default function AppRoutes() {
                     }
                 />
                 <Route
+                    path="/receipts/:id"
+                    element={
+                        <LazyRoute>
+                            <ReceiptUploadView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
                     path="/receipts"
                     element={
                         <LazyRoute>

@@ -225,10 +225,13 @@
         },
         "upload": {
             "title": "Hochladen",
+            "editTitle": "Beleg bearbeiten",
+            "loadFailed": "Fehler beim Laden des Belegs",
             "receiptNumber": "Belegnummer",
             "receiptDate": "Belegdatum",
             "transactionType": "Belegart",
             "unpaid": "Unbezahlt",
+            "paid": "Bezahlt",
             "contractPartner": "Vertragspartner",
             "bommel": "Bommel",
             "dueDate": "Fälligkeitsdatum",

@@ -272,10 +272,13 @@
         },
         "upload": {
             "title": "Upload",
+            "editTitle": "Edit Receipt",
+            "loadFailed": "Failed to load receipt",
             "receiptNumber": "Receipt number",
             "receiptDate": "Receipt date",
             "transactionType": "Transaction type",
             "unpaid": "Unpaid",
+            "paid": "Paid",
             "contractPartner": "Contract partner",
             "bommel": "Bommel",
             "dueDate": "Due date",

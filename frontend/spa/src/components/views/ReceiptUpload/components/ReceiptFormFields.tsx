@@ -111,7 +111,7 @@ export function ReceiptFormFields({
             />
 
             <Radio items={radioItems} value={transactionKind} onValueChange={(v) => onTransactionKindChange(v as 'intake' | 'expense')} layout="horizontal" />
-            <Switch checked={isUnpaid} onCheckedChange={onIsUnpaidChange} label={t('receipts.upload.unpaid')} />
+            <Switch checked={isUnpaid} onCheckedChange={onIsUnpaidChange} label={isUnpaid ? t('receipts.upload.paid') : t('receipts.upload.unpaid')} />
 
             <TextField
                 label={t('receipts.upload.contractPartner')}

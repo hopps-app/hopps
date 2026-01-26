@@ -62,21 +62,21 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 <CalendarIcon className="ml-2 h-4 w-4 text-[var(--grey-700)]" />
                             </BaseButton>
                         </PopoverTrigger>
-                    <PopoverContent
-                        align="start"
-                        side="bottom"
-                        sideOffset={4}
-                        className="p-0 bg-[var(--grey-white)] rounded-[var(--radius-l)] border border-[var(--grey-600)] shadow-sm w-auto"
-                    >
-                        <Calendar
-                            mode="single"
-                            captionLayout="dropdown"
-                            startMonth={new Date(1975, 0)}
-                            endMonth={new Date(2030, 11)}
-                            selected={filters.startDate ? new Date(filters.startDate) : undefined}
-                            onSelect={(date) => handleSelect('startDate', date)}
-                        />
-                    </PopoverContent>
+                        <PopoverContent
+                            align="start"
+                            side="bottom"
+                            sideOffset={4}
+                            className="p-0 bg-[var(--grey-white)] rounded-[var(--radius-l)] border border-[var(--grey-600)] shadow-sm w-auto"
+                        >
+                            <Calendar
+                                mode="single"
+                                captionLayout="dropdown"
+                                startMonth={new Date(1975, 0)}
+                                endMonth={new Date(2030, 11)}
+                                selected={filters.startDate ? new Date(filters.startDate) : undefined}
+                                onSelect={(date) => handleSelect('startDate', date)}
+                            />
+                        </PopoverContent>
                     </Popover>
                     {filters.startDate && (
                         <button
@@ -106,21 +106,21 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 <CalendarIcon className="ml-2 h-4 w-4 text-[var(--grey-700)]" />
                             </BaseButton>
                         </PopoverTrigger>
-                    <PopoverContent
-                        align="start"
-                        side="bottom"
-                        sideOffset={4}
-                        className="p-0 bg-[var(--grey-white)] rounded-[var(--radius-l)] border border-[var(--grey-600)] shadow-sm w-auto"
-                    >
-                        <Calendar
-                            mode="single"
-                            captionLayout="dropdown"
-                            startMonth={new Date(1975, 0)}
-                            endMonth={new Date(2030, 11)}
-                            selected={filters.endDate ? new Date(filters.endDate) : undefined}
-                            onSelect={(date) => handleSelect('endDate', date)}
-                        />
-                    </PopoverContent>
+                        <PopoverContent
+                            align="start"
+                            side="bottom"
+                            sideOffset={4}
+                            className="p-0 bg-[var(--grey-white)] rounded-[var(--radius-l)] border border-[var(--grey-600)] shadow-sm w-auto"
+                        >
+                            <Calendar
+                                mode="single"
+                                captionLayout="dropdown"
+                                startMonth={new Date(1975, 0)}
+                                endMonth={new Date(2030, 11)}
+                                selected={filters.endDate ? new Date(filters.endDate) : undefined}
+                                onSelect={(date) => handleSelect('endDate', date)}
+                            />
+                        </PopoverContent>
                     </Popover>
                     {filters.endDate && (
                         <button
