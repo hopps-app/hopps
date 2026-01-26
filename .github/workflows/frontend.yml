@@ -48,6 +48,15 @@ jobs:
       - name: Build project
         run: pnpm run build
         working-directory: frontend/spa
+        env:
+          VITE_TITLE: "VITE_TITLE_VALUE"
+          VITE_GENERAL_DATE_FORMAT: "VITE_GENERAL_DATE_FORMAT_VALUE"
+          VITE_GENERAL_CURRENCY_SYMBOL_AFTER: "VITE_GENERAL_CURRENCY_SYMBOL_AFTER_VALUE"
+          VITE_KEYCLOAK_URL: "VITE_KEYCLOAK_URL_VALUE"
+          VITE_KEYCLOAK_REALM: "VITE_KEYCLOAK_REALM_VALUE"
+          VITE_KEYCLOAK_CLIENT_ID: "VITE_KEYCLOAK_CLIENT_ID_VALUE"
+          VITE_API_ORG_URL: "VITE_API_ORG_URL_VALUE"
+          VITE_API_FIN_URL: "VITE_API_FIN_URL_VALUE"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
