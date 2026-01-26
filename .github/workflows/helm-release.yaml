@@ -28,13 +28,8 @@ jobs:
           git config user.name ${{ github.actor }}
           git config user.email ${{ github.actor }}@users.noreply.github.com
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: 3.x
-
-      - name: Install Python dependencies
-        run: pip install pyyaml yq
+      - name: Install yq
+        uses: mikefarah/yq@v4
 
       - name: Get latest release version
         id: get_latest_release
