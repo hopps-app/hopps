@@ -2,7 +2,7 @@ import './styles/InvoiceuploadFormDropzone.scss';
 
 import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?worker&url';
-import { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileWithPath, useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
@@ -52,6 +52,8 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
 
     // Track previous acceptedFiles to detect actual changes
     const prevAcceptedFilesRef = useRef<readonly FileWithPath[]>([]);
+    // Track previous fileRejections to prevent infinite re-render loop
+    const prevFileRejectionsRef = useRef<typeof fileRejections>([]);
 
     useEffect(() => {
         // Only call onFilesChanged when acceptedFiles actually changes (new file selection)
@@ -64,12 +66,23 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
     }, [acceptedFiles]);
 
     useEffect(() => {
-        if (fileRejections.length > 0) {
+        // Only process new file rejections (compare by reference to avoid infinite loop)
+        if (fileRejections !== prevFileRejectionsRef.current && fileRejections.length > 0) {
+            prevFileRejectionsRef.current = fileRejections;
             fileRejections.forEach(({ errors }) => {
-                errors.forEach(() => showError(t('invoiceUpload.fileTooLarge')));
+                errors.forEach((error) => {
+                    if (error.code === 'file-too-large') {
+                        showError(t('invoiceUpload.fileTooLarge'));
+                    } else if (error.code === 'file-invalid-type') {
+                        showError(t('invoiceUpload.invalidFileType', 'Unsupported file type. Please upload PDF, JPEG, or PNG files.'));
+                    } else {
+                        showError(error.message);
+                    }
+                });
             });
         }
-    }, [fileRejections, showError, t]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- using ref comparison to prevent infinite loop
+    }, [fileRejections]);
 
     const previewUrl = useMemo(() => {
         if (!previewFile) return '';

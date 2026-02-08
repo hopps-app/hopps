@@ -48,6 +48,7 @@
         "dragDrop": "Ziehen & Ablegen von Dateien hier",
         "dragFile": "Dateien hier ablegen...",
         "fileTooLarge": "Datei ist zu groß, maximale Größe 5MB",
+        "invalidFileType": "Nicht unterstützter Dateityp. Bitte laden Sie PDF-, JPEG- oder PNG-Dateien hoch.",
         "totalTooLarge": "Die gesamte Dateigröße überschreitet das Limit von 20MB.",
         "maxFilesExceeded": "Es sind maximal 10 Dateien erlaubt.",
         "selectBommel": "Bommel wählen",

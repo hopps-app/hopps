@@ -49,6 +49,7 @@
         "fileType": "PDF or JPG file",
         "dragFile": "Drop the files here...",
         "fileTooLarge": "File is too large, maximum size 5MB",
+        "invalidFileType": "Unsupported file type. Please upload PDF, JPEG, or PNG files.",
         "totalTooLarge": "Total file size exceeds the 20MB limit.",
         "maxFilesExceeded": "Maximum of 10 files allowed.",
         "selectBommel": "Select bommel",
