@@ -1,0 +1,28 @@
+## Session Progress Notes
+
+### Session 1 - Feature #81: AutoForge Branch & PR Workflow
+**Date:** 2026-02-08
+**Status:** COMPLETED - Feature marked as passing
+
+**What was accomplished:**
+- Modified `.autoforge/prompts/coding_prompt.md` to implement branch-based PR workflow
+- Added "Create a Feature Branch (MANDATORY)" section after Step 3 (get feature)
+  - Instructs agent to run `git checkout -b autoforge/feature-{id}-{short-name}`
+  - Emphasizes all commits must go to feature branch, never directly to main
+- Updated Step 7 from "COMMIT YOUR PROGRESS" to "COMMIT, PUSH BRANCH & CREATE PULL REQUEST"
+  - Added branch push instructions with `git push -u origin`
+  - Added PR creation template using `gh pr create` with structured body
+  - Added PR rules (title must reference feature ID, body must include summary, base=main)
+- Added `gh` CLI to `.autoforge/allowed_commands.yaml` for PR creation
+
+**Verification:**
+- Confirmed all 6 feature steps are satisfied
+- Verified CI/CD workflows (backend.yml, frontend.yml, claude-code-review.yml) all support branch-based workflow
+- Confirmed no heredocs used in PR creation command (compatible with sandbox mode)
+- Reviewed complete diff to ensure clean changes
+
+**Current completion:** 2/81 features passing (2.5%)
+
+**Next steps:**
+- Other features in the backlog need implementation
+- The branch & PR workflow will be used by future coding agent sessions
