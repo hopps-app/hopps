@@ -61,6 +61,17 @@ If you get "already in-progress" error, that's OK - continue with implementation
 
 Focus on completing one feature perfectly in this session. It's ok if you only complete one feature, as more sessions will follow.
 
+#### Create a Feature Branch (MANDATORY)
+
+Before starting any implementation work, create a dedicated feature branch:
+
+```bash
+# Create and switch to a new feature branch
+git checkout -b autoforge/feature-{id}-{short-name}
+```
+
+Replace `{id}` with the feature ID and `{short-name}` with a short kebab-case description of the feature (e.g., `autoforge/feature-42-user-auth`). **All commits MUST go to this branch, never directly to main.**
+
 #### When to Skip a Feature (EXTREMELY RARE)
 
 Only skip for truly external blockers: missing third-party credentials (Stripe keys, OAuth secrets), unavailable external services, or unfulfillable environment requirements. **NEVER** skip because a page, endpoint, component, or data doesn't exist yet -- build it. If a feature requires other functionality first, build that functionality as part of this feature.
@@ -147,9 +158,9 @@ Use the feature_mark_passing tool with feature_id=42
 
 **ONLY MARK A FEATURE AS PASSING AFTER VERIFICATION WITH SCREENSHOTS.**
 
-### STEP 7: COMMIT YOUR PROGRESS
+### STEP 7: COMMIT, PUSH BRANCH & CREATE PULL REQUEST
 
-Make a descriptive git commit.
+Commit your changes to the feature branch, push it, and open a Pull Request.
 
 **Git Commit Rules:**
 - ALWAYS use simple `-m` flag for commit messages
@@ -167,6 +178,42 @@ Or use a single descriptive message:
 git add .
 git commit -m "feat: implement [feature name] with browser verification"
 ```
+
+**Push the Feature Branch:**
+
+After committing, push your feature branch to origin:
+
+```bash
+git push -u origin autoforge/feature-{id}-{short-name}
+```
+
+**Create a Pull Request (MANDATORY):**
+
+After pushing the branch, create a Pull Request targeting `main` using the GitHub CLI:
+
+```bash
+gh pr create --title "feat: [Feature #ID] [Feature Name]" --body "## Summary
+- Implemented [feature name] (Feature #ID)
+- [Brief description of changes made]
+
+## Changes
+- [List specific files/components changed]
+
+## Verification
+- Tested with browser automation
+- Screenshots verified
+- Feature marked as passing
+
+---
+*Automated PR by AutoForge coding agent*" --base main
+```
+
+**PR Rules:**
+- The PR title MUST reference the feature ID and name
+- The PR body MUST include a summary of changes made
+- The PR MUST target `main` as the base branch
+- **NEVER push directly to main** — all changes go through Pull Requests
+- The existing CI/CD workflows and Claude Code Review will automatically run on the PR
 
 ### STEP 8: UPDATE PROGRESS NOTES
 
