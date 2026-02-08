@@ -46,3 +46,25 @@
 
 **Next steps:**
 - Continue with remaining Navigation Integrity and other features
+
+### Session - Feature #10: Route guards block unauthenticated access
+**Date:** 2026-02-08
+**Status:** COMPLETED - Feature marked as passing
+
+**What was accomplished:**
+- Verified that all 5 protected routes redirect unauthenticated users to Keycloak login
+- Tested each route by clearing all auth tokens/sessions and navigating directly:
+  1. `/dashboard` -> Redirected to Keycloak login (redirect_uri=.../dashboard)
+  2. `/structure` -> Redirected to Keycloak login (redirect_uri=.../structure)
+  3. `/receipts/new` -> Redirected to Keycloak login (redirect_uri=.../receipts/new)
+  4. `/admin/categories` -> Redirected to Keycloak login (redirect_uri=.../admin/categories)
+  5. `/profile` -> Redirected to Keycloak login (redirect_uri=.../profile)
+- Verified no protected content is briefly visible before redirect:
+  - AuthGuard returns `null` while app initializing (no render)
+  - AuthGuard returns `null` when unauthenticated (no render) then triggers Keycloak login
+  - App.tsx returns `null` until `isInitialized` is true
+  - Three-layer protection: App.tsx -> AuthGuard -> AuthLayout ensures zero content flash
+  - Screenshots taken immediately after navigation show only blank page or Keycloak login
+- No code changes required - existing AuthGuard and routing implementation is correct
+
+**Current completion:** 13/81 features passing (16.0%)
