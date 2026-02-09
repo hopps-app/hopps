@@ -135,7 +135,14 @@
             },
             "deleteDialog": {
                 "title": "Bommel löschen",
-                "description": "Dieser Bommel hat {{count}} Belege. Sind Sie sicher, dass Sie diesen Bommel löschen möchten?",
+                "description": "Sind Sie sicher, dass Sie '{{name}}' löschen möchten?",
+                "hasTransactionsWarning": "Dieser Bommel hat verknüpfte Transaktionen. Sie müssen wählen, wie damit umgegangen werden soll.",
+                "transactionHandlingLabel": "Wie sollen verknüpfte Transaktionen behandelt werden?",
+                "unlinkOption": "Transaktionen entkoppeln",
+                "unlinkDescription": "Transaktionen bleiben erhalten, werden aber keinem Bommel zugeordnet",
+                "reassignOption": "Einem anderen Bommel zuweisen",
+                "reassignDescription": "Wählen Sie einen anderen Bommel, dem diese Transaktionen zugewiesen werden sollen",
+                "comingSoon": "(Demnächst verfügbar)",
                 "confirm": "Ja, löschen",
                 "cancel": "Abbrechen"
             },

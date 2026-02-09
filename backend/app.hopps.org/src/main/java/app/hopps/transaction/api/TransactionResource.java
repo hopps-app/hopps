@@ -9,7 +9,7 @@ import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
-import app.hopps.transaction.domain.TradeParty;
+import app.hopps.document.domain.TradeParty;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionStatus;

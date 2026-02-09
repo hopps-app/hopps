@@ -136,7 +136,14 @@
             },
             "deleteDialog": {
                 "title": "Delete Bommel",
-                "description": "This Bommel has {{count}} receipts. Are you sure you want to delete this Bommel?",
+                "description": "Are you sure you want to delete '{{name}}'?",
+                "hasTransactionsWarning": "This Bommel has linked transactions. You must choose how to handle them.",
+                "transactionHandlingLabel": "How should linked transactions be handled?",
+                "unlinkOption": "Unlink transactions",
+                "unlinkDescription": "Transactions will remain but will not be linked to any Bommel",
+                "reassignOption": "Reassign to another Bommel",
+                "reassignDescription": "Choose another Bommel to assign these transactions to",
+                "comingSoon": "(Coming soon)",
                 "confirm": "Yes, delete",
                 "cancel": "Cancel"
             },

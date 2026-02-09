@@ -8,6 +8,7 @@ import { BommelCardProps, TreeNodeData } from '../types';
 import { BommelCardActions } from './BommelCardActions';
 import { BommelCardEditForm } from './BommelCardEditForm';
 import { BommelCardStats } from './BommelCardStats';
+import { DeleteBommelDialog, DeleteTransactionHandling } from './DeleteBommelDialog';
 
 import Emoji from '@/components/ui/Emoji';
 
@@ -23,6 +24,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(nodeDatum.name);
     const [editedEmoji, setEditedEmoji] = useState((nodeDatum.attributes?.emoji as string) || '');
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const isCollapsed = (nodeDatum as RawNodeDatum & { __rd3t?: { collapsed?: boolean } }).__rd3t?.collapsed;
 
@@ -60,10 +62,21 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
     };
 
-    const handleDelete = async () => {
-        if (onDelete && window.confirm(t('organization.structure.deleteDialog.title'))) {
+    const handleDeleteClick = () => {
+        setShowDeleteDialog(true);
+    };
+
+    const handleDeleteConfirm = async (transactionHandling?: DeleteTransactionHandling) => {
+        if (onDelete) {
+            // For now, we ignore transactionHandling since the backend API doesn't support it yet
+            // In the future, this would be passed to the API
             await onDelete(nodeId);
+            setShowDeleteDialog(false);
         }
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteDialog(false);
     };
 
     const handleAddChild = async () => {
