@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import apiService from '@/services/ApiService';
-import { useOrganizationStore } from '@/store/organizationStore';
+import { useStore } from '@/store/store';
 
 function DashboardView() {
     const { t } = useTranslation();
-    const { organization } = useOrganizationStore();
+    const { organization } = useStore();
 
     // Get current year date range
     const currentYear = new Date().getFullYear();
@@ -17,10 +17,8 @@ function DashboardView() {
     // Fetch all transactions for the current year
     const { data: transactions, isLoading, error } = useQuery({
         queryKey: ['transactions', organization?.id, startDate, endDate],
-        queryFn: async () => {
-            if (!organization?.id) return [];
-            const client = await apiService.getClient();
-            return client.transactionsAll(
+        queryFn: () =>
+            apiService.orgService.transactionsAll(
                 undefined, // bommelId - undefined to get all
                 undefined, // categoryId
                 undefined, // detached
@@ -31,8 +29,7 @@ function DashboardView() {
                 10000,     // size - large enough to get all transactions
                 startDate, // startDate
                 undefined  // status
-            );
-        },
+            ),
         enabled: !!organization?.id,
     });
 
