@@ -1,5 +1,0 @@
-[    3258ms] AbortError: The operation was aborted. 
-
-[   44345ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organization/my. (Reason: CORS request did not succeed). Status code: (null)."] @ :0
-[   44345ms] [ERROR] Failed to load organization: Error @ http://localhost:5173/src/App.tsx?t=1770634606624:43
-[   44355ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organization/my. (Reason: CORS request did not succeed). Status code: (null)."] @ :0

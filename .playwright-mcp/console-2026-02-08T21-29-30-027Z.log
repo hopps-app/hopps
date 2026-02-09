@@ -1,2 +1,0 @@
-[    1146ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:8101/q/dev-ui/json-rpc-ws." {file: "http://localhost:8101/q/dev-ui/controller/jsonrpc.js" line: 242}] @ http://localhost:8101/q/dev-ui/controller/jsonrpc.js:242
-[   16466ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:8101/q/dev-ui/json-rpc-ws." {file: "http://localhost:8101/q/dev-ui/controller/jsonrpc.js" line: 242}] @ http://localhost:8101/q/dev-ui/controller/jsonrpc.js:242

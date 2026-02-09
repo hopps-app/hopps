@@ -1,2 +1,0 @@
-[    2856ms] ReferenceError: can't access lexical declaration 'React' before initialization
-    at  (http://localhost:5173/src/providers/QueryProvider.tsx?t=1770585301689:26:1)

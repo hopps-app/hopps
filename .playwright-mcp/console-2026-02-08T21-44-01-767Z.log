@@ -1,8 +1,0 @@
-[  121407ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
-[  124666ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
-[  126375ms] [ERROR] Error @ http://localhost:5173/src/store/bommels/bommelsStore.ts:18
-[  134104ms] [ERROR] Failed to load organization: Error @ http://localhost:5173/src/App.tsx?t=1770587172855:43
-[  139233ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
-[  142557ms] [ERROR] Error @ http://localhost:5173/src/store/bommels/bommelsStore.ts:18
-[  142591ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organizations/4/bommels. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 500."] @ :0
-[  142592ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organizations/4/bommels. (Reason: CORS request did not succeed). Status code: (null)."] @ :0

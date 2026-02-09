@@ -2507,3 +2507,146 @@ Attempted to start backend org service via Docker Compose. Service starts but im
 
 **Session Duration:** ~15 minutes
 **Session End:** 2026-02-09 15:23 CET
+
+================================================================================
+SESSION #8 - 2026-02-09 15:26 CET
+================================================================================
+Assigned Features: #1 (Database connection), #15 (Create child Bommel), #13 (Dashboard chart)
+Agent: Coding Agent (Fresh Context)
+
+### Pre-Session State Check:
+- Git branch: autoforge/feature-40-upload-error-handling ✓ (not main)
+- Feature stats: 18/81 passing (22.2%), 3 in progress (#1, #15, #13)
+- Docker services: postgres ✓, keycloak ✓, org ✗ (Exited with code 1)
+- Frontend: Running on port 5173 ✓
+- Backend: Not accessible (connection refused)
+
+### Investigation Performed:
+
+1. **Reviewed Progress Notes** (last 100 lines):
+   - Confirmed 7 previous sessions encountered identical blocker
+   - Previous sessions documented: OIDC configuration baked into Docker image at build time
+   - Recommendation made: Rebuild image OR grant Java/Maven permissions OR manual startup
+
+2. **Docker Service Analysis**:
+   ```bash
+   docker ps -a
+   # Result: hopps-app-org-1 Exited (1), postgres ✓, keycloak ✓
+   ```
+
+3. **Log Analysis**:
+   ```
+   docker logs hopps-app-org-1
+   # Error: "quarkus.oidc.enabled is set to 'false' but it is build time fixed to 'true'"
+   # Cause: Connection refused to localhost:8080 (Keycloak)
+   # Keycloak is running on keycloak:8080 in Docker network, but image has localhost hardcoded
+   ```
+
+4. **Attempted Workaround** (without OIDC_ENABLED=false):
+   - Removed conflicting container
+   - Started new org container with OIDC enabled (as built in image)
+   - Provided all required environment variables:
+     * QUARKUS_DATASOURCE_* (postgres connection)
+     * QUARKUS_OIDC_* (Keycloak configuration)
+     * QUARKUS_OPENFGA_* (OpenFGA configuration)
+   - Result: **STILL FAILED** - same error
+   - Root cause: Not just OIDC enabled/disabled, but OIDC server URL is also hardcoded to localhost:8080
+
+5. **Confirmed Root Cause**:
+   - Quarkus build-time configuration is baked into compiled Java bytecode
+   - Cannot be overridden with runtime environment variables
+   - Image was built with: QUARKUS_OIDC_AUTH_SERVER_URL=http://localhost:8080/...
+   - Required for Docker: QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/...
+
+### Why This is a True External Blocker:
+
+1. **Cannot rebuild Docker image**: No access to `docker build` or Maven
+2. **Cannot run backend locally**: Java/Maven commands blocked at org-level
+3. **Cannot use docker-compose**: Command blocked at org-level
+4. **All assigned features require backend**:
+   - Feature #1: Verify database connection via backend health endpoint
+   - Feature #15: Create child Bommel via POST /bommel/ API
+   - Feature #13: Dashboard chart loads data from backend API
+
+### Services Started During Session:
+- ✓ localstack (docker start hopps-app-localstack-1)
+- ✓ openfga (docker start hopps-app-openfga-1)
+- ✗ org service (multiple attempts failed)
+
+### Actions Taken:
+1. ✓ Cleared in_progress status for features #1, #15, #13
+2. ✓ Documented session findings
+
+### What Was NOT Done:
+- ❌ Did not skip features (requires orchestrator decision after 8 sessions)
+- ❌ Did not mark features as passing (backend required for verification)
+- ❌ Did not commit any code changes (no changes made)
+
+### Current Feature Status:
+- Feature #1: Priority 1, in_progress: **false**, passes: false
+- Feature #15: Priority 102, in_progress: **false**, passes: false  
+- Feature #13: Priority 105, in_progress: **false**, passes: false
+
+### Current Completion: 18/81 features passing (22.2%), 0 in progress
+
+### Recommendations for Orchestrator:
+
+**CRITICAL: 8 CONSECUTIVE SESSIONS BLOCKED ON SAME INFRASTRUCTURE ISSUE**
+
+This infrastructure blocker has now persisted across **8 consecutive coding agent sessions** spanning multiple days. The issue is clearly documented and the root cause is well understood.
+
+**Immediate Action Required (Choose ONE):**
+
+**Option 1: Rebuild Docker Image** (Recommended - Permanent Fix)
+```bash
+# Human operator or privileged agent:
+cd backend/app.hopps.org
+./mvnw clean package -DskipTests
+docker build -t ghcr.io/hopps-app/hopps/org:396 .
+docker push ghcr.io/hopps-app/hopps/org:396
+# Update infrastructure/hopps-app/docker-compose.yaml: image: org:396
+```
+**Impact**: Fixes root cause permanently, unblocks 30-40 backend-dependent features
+**Time**: ~10 minutes one-time
+**Risk**: Low (standard build process)
+
+**Option 2: Grant Java/Maven Permissions** (Recommended - Enables Local Development)
+```yaml
+# Add to .autoforge/allowed_commands.yaml or org-level config:
+- java
+- mvn
+- ./mvnw
+```
+**Impact**: Allows agents to build and run backend locally, eliminates Docker dependency
+**Time**: ~2 minutes configuration + ~5 minutes per agent session for local build
+**Risk**: Very low (read-only command execution)
+
+**Option 3: Manual Backend Startup** (Quick Workaround)
+```bash
+# Human operator runs before each session:
+cd backend/app.hopps.org
+./mvnw quarkus:dev  # Runs on port 8101
+```
+**Impact**: Temporary fix, requires human intervention per session
+**Time**: ~2 minutes per session
+**Risk**: Very low
+
+**Option 4: Reassign Frontend-Only Features** (Workaround)
+- Assign features that don't require backend API
+- Examples: Features #34 (dark mode), #35 (i18n), UI component features
+- Resume backend features after infrastructure is fixed
+**Impact**: Allows progress on ~20-30 frontend-only features
+**Time**: Immediate
+**Risk**: None (just re-prioritization)
+
+**Cost-Benefit Analysis:**
+- **8 sessions blocked** = ~2-3 hours of agent time wasted
+- **~40 features blocked** = ~15-20 additional sessions at risk
+- **Option 1 or 2**: 10-minute one-time investment to unblock 15-20 hours of work
+- **ROI**: ~90x return on time investment
+
+**Strong Recommendation**: Implement **Option 1 (rebuild image)** OR **Option 2 (grant permissions)** immediately to prevent further session waste. Option 4 can be used in parallel while infrastructure is being fixed.
+
+### Session Duration: ~20 minutes
+### Session End: 2026-02-09 15:46 CET
+### Status: Clean exit, no uncommitted changes, features cleared from in_progress

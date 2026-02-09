@@ -1,6 +1,0 @@
-[     122ms] [WARNING] [JavaScript Warning: "asm.js type error: Asm.js optimizer disabled because no suitable wasm compiler is available" {file: "http://localhost:8101/q/_static/es-module-shims/2.0.10/dist/es-module-shims.js" line: 0}] @ http://localhost:8101/q/_static/es-module-shims/2.0.10/dist/es-module-shims.js:0
-[     140ms] [WARNING] [JavaScript Warning: "Multiple import maps are not allowed." {file: "about:srcdoc" line: 1}] @ about:srcdoc:1
-[    2465ms] TypeError: can't access property "onNext", this.jsonRpc[this.jsonRPCMethodName]() is undefined
-    at _toggleOnOff (http://localhost:8101/q/dev-ui/qwc/qwc-footer-log.js:140:66)
-    at connectedCallback (http://localhost:8101/q/dev-ui/qwc/qwc-footer-log.js:67:14)
-    at  (http://localhost:8101/q/dev-ui/qwc/qwc-footer-log.js:193:16)
