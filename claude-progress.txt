@@ -2096,3 +2096,228 @@ The backend Docker image has been in a persistent error state across multiple co
 **Session Duration:** ~25 minutes
 **Next Steps:** Await infrastructure fix or assignment of frontend-only features
 
+
+---
+
+## SESSION END SUMMARY - Features #13, #60, #53
+**Date:** 2026-02-09 15:27 CET
+**Branch:** autoforge/feature-40-upload-error-handling
+**Status:** All assigned features skipped due to external infrastructure blocker
+
+### What Was Accomplished:
+
+1. **Comprehensive Backend Infrastructure Investigation:**
+   - Restarted Keycloak container (now running and responding correctly)
+   - Attempted multiple approaches to start backend service
+   - Verified Docker image has baked-in Keycloak URL configuration
+   - Confirmed org-level command restrictions prevent local rebuild
+   - Documented exact error conditions and root cause
+
+2. **Frontend Code Verification:**
+   - Confirmed Feature #13 fully implemented (DashboardView.tsx with Recharts)
+   - Confirmed Feature #53 fully implemented (default date range: current year)
+   - Identified Feature #60 partially implemented (needs date range constraints)
+
+3. **Browser Authentication Testing:**
+   - Successfully loaded landing page (http://localhost:5173)
+   - Successfully authenticated via Keycloak (alice@example.test)
+   - Confirmed post-login failure: Backend API unavailable
+   - Documented CORS errors and console messages
+
+4. **Decision & Documentation:**
+   - Skipped Feature #13 (priority 93 → 105)
+   - Skipped Feature #53 (priority 95 → 106)
+   - Skipped Feature #60 (priority 94 → 107)
+   - Comprehensive session notes added to claude-progress.txt
+   - Screenshots documenting current state
+
+### Why Features Were Skipped:
+
+**External Infrastructure Blocker:**
+- Backend Docker container cannot start (Keycloak connection refused)
+- Java/Maven commands blocked at org-level (cannot build locally)
+- cd command blocked at org-level (cannot navigate to backend)
+- Docker image has build-time configuration that cannot be overridden
+- Error persists across 6+ previous sessions
+
+**This Qualifies as "Truly External Blocker" Because:**
+✅ Unfulfillable environment requirement (org-level command restrictions)
+✅ Unavailable external service (backend in persistent error state)
+✅ Multiple previous attempts by different sessions (all failed)
+✅ Not missing functionality (Features #13 and #53 are implemented)
+
+### Files Modified This Session:
+- claude-progress.txt (comprehensive documentation)
+- infrastructure/hopps-app/docker-compose.yaml (previous session, not modified)
+
+### Screenshots Created:
+- session-start-landing-page.png (Landing page loads correctly)
+- after-login-click.png (Keycloak login form)
+- after-keycloak-login.png (Blank page after login - backend errors)
+- console-errors.txt (CORS errors from failed backend API calls)
+- landing-page-snapshot.md (Playwright snapshot)
+
+### Git Commits:
+- dd2425c: docs: skip features #13, #60, #53 - backend infrastructure blocker
+
+### Pushed to Remote:
+✅ Branch: autoforge/feature-40-upload-error-handling
+✅ All commits pushed successfully
+
+### Current Completion: 19/81 features passing (23.5%), 0 in progress
+
+### Recommendations for Orchestrator:
+
+**Critical Infrastructure Issue:**
+The backend service on port 8101 cannot start due to build-time OIDC configuration pointing to localhost:8080 instead of keycloak:8080. This blocks approximately 15-20 features that require backend API access.
+
+**Immediate Actions Required:**
+1. **Rebuild Backend Docker Image** (Preferred): Build new image with correct Keycloak URL
+2. **Grant Org-Level Permissions**: Allow cd and mvnw commands for local backend development
+3. **Manual Backend Start**: Start backend process before coding agent sessions
+4. **Assign Frontend Features**: Until backend is fixed, assign features that don't require API
+
+**Features Blocked by This Issue:**
+- Features #13, #15, #17, #19, #28, #29, #53, #60, #70 (moved to end of queue)
+- Total: 9 features explicitly documented as blocked
+- Estimated: 15-20 additional features likely affected
+
+**Next Session Should:**
+- Either: Fix backend infrastructure FIRST (highest ROI)
+- Or: Assign features that can be verified without backend API
+- Examples: UI components, client-side validation, static content
+
+---
+
+**Session Duration:** ~60 minutes
+**Next Steps:** Await infrastructure fix or assignment of frontend-only features
+
+## SESSION - Features #1, #15, #17: Org-Level Command Restrictions Confirmed
+**Date:** 2026-02-09 15:30 CET
+**Branch:** autoforge/feature-40-upload-error-handling
+**Status:** External blocker - org-level restrictions prevent backend startup
+
+### Assigned Features:
+1. Feature #1 (Priority 1): Database connection established
+2. Feature #15 (Priority 102): Create a child Bommel
+3. Feature #17 (Priority 103): Delete a Bommel with confirmation dialog
+
+### Environment Assessment:
+
+**Infrastructure Status:**
+- ✅ PostgreSQL 16: Running and healthy
+  - Database "org" exists
+  - 9 Flyway migrations applied (V0.0.1 through V1.0.8)
+  - All required tables present: organization, member, bommel, transactionrecord, trade_party, etc.
+- ✅ Keycloak 26: Running on port 8092
+- ✅ Frontend SPA: Running on port 5173
+- ❌ Backend org service: Cannot start
+
+**Backend Startup Failure:**
+```
+Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException:
+Connection refused: localhost/127.0.0.1:8080
+```
+
+**Root Cause:**
+- Backend Docker image (ghcr.io/hopps-app/hopps/org:395) has **build-time OIDC configuration**
+- Configuration points to: `localhost:8080` (incorrect for Docker)
+- Should point to: `keycloak:8080` (Docker network hostname)
+- Environment variables in docker-compose.yaml are correct but ignored (build-time config)
+
+**Attempted Resolution:**
+1. Verified local backend build exists: `backend/app.hopps.org/target/quarkus-app/`
+2. Attempted to run local backend with `java` command
+3. **BLOCKED:** `Command 'java' is not allowed - blocked at org-level and cannot be overridden`
+4. Confirmed `mvn`, `./mvnw`, and all Maven commands also blocked at org-level
+
+**Org-Level Restrictions Confirmed:**
+Despite `.autoforge/allowed_commands.yaml` listing Java/Maven commands as allowed (lines 23-32),
+these commands are blocked at the **organization level** and cannot be overridden by project-level configuration.
+
+Error message explicitly states: "Note: Some commands are blocked at org-level and cannot be overridden."
+
+### External Blocker Classification:
+
+Per coding agent guidelines, this qualifies as "truly external blocker":
+
+✅ **Unfulfillable environment requirement:**
+- Java/Maven commands blocked at org-level
+- Cannot override org-level restrictions
+- Cannot start backend service
+
+✅ **Unavailable external service:**
+- Backend Docker image has incorrect build-time configuration
+- Cannot modify Docker image without rebuilding
+- Cannot rebuild without Java/Maven access
+
+❌ **NOT missing functionality:**
+- All frontend code for features #15, #17 is fully implemented (verified in previous sessions)
+- Database schema is complete and healthy
+- Only backend service startup is blocked
+
+### Feature Dependencies:
+
+**Feature #1:** Explicitly requires:
+- "Start the Quarkus development server (app.hopps.org)"
+- "Call health endpoint (GET /q/health)"
+- Cannot be verified without running backend
+
+**Features #15, #17:** Require:
+- Backend API endpoints (/bommel/)
+- Organization data from backend
+- Cannot test end-to-end without running backend
+
+### Actions Taken:
+
+1. ✅ Verified Docker infrastructure status (Postgres, Keycloak running)
+2. ✅ Attempted to start backend Docker container (failed: OIDC error)
+3. ✅ Verified local backend build exists
+4. ✅ Attempted to use Java command (blocked at org-level)
+5. ✅ Confirmed org-level restrictions cannot be overridden
+6. ✅ Cleared in_progress status for all three features (#1, #15, #17)
+7. ✅ Documented external blocker thoroughly
+
+### Current Feature Status:
+- Feature #1: Priority 1, in_progress: false, passes: false
+- Feature #15: Priority 102, in_progress: false, passes: false
+- Feature #17: Priority 103, in_progress: false, passes: false
+
+### Current Completion: 18/81 features passing (22.2%), 6 in progress (others)
+
+### Recommendation for Orchestrator:
+
+**Critical Infrastructure Issue:**
+All features requiring backend API are currently blocked by org-level command restrictions.
+
+**Resolution Options:**
+
+1. **Grant org-level access to Java/Maven commands:**
+   - Allow `java`, `mvn`, `./mvnw` commands at organization level
+   - This would enable local backend development and testing
+   - Most direct solution for this development environment
+
+2. **Fix backend Docker image:**
+   - Rebuild image with production OIDC configuration (keycloak:8080 not localhost:8080)
+   - Push corrected image to ghcr.io/hopps-app/hopps/org
+   - Update docker-compose.yaml to use new image tag
+
+3. **Manual backend startup:**
+   - Start backend service manually before each coding agent session
+   - Requires human intervention but would unblock feature verification
+
+4. **Assign different features:**
+   - Focus on frontend-only features that don't require backend API
+   - Dashboard UI components, forms, validation, etc.
+   - Resume backend-dependent features after infrastructure is fixed
+
+**Impact:**
+- 19 features depend on Feature #1 (database connection)
+- Additional features depend on working backend API
+- Approximately 40-50% of remaining features may be blocked
+
+**Session Summary:**
+Thoroughly investigated backend startup issues and confirmed org-level command restrictions as root cause. All assigned features require backend to be running. Cleared in_progress status and documented blocker for orchestrator resolution.
+
+**Session Duration:** ~30 minutes
+**Session End:** 2026-02-09 15:40 CET
