@@ -69,24 +69,25 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.4.7
+    command: start-dev --import-realm
     ports:
       - "8092:8080"
     depends_on:
       - postgres
     environment:
-      KEYCLOAK_HOSTNAME: http://localhost:8092/
-      KEYCLOAK_HTTP_ENABLED: true
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8092
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KEYCLOAK_DATABASE_VENDOR: postgresql
-      KEYCLOAK_DATABASE_HOST: postgres
-      KEYCLOAK_DATABASE_PORT: 5432
-      KEYCLOAK_DATABASE_USER: postgres
-      KEYCLOAK_DATABASE_PASSWORD: postgres
-      KEYCLOAK_DATABASE_NAME: keycloak
-      KEYCLOAK_EXTRA_ARGS: "--import-realm --hostname-backchannel-dynamic true"
     volumes:
-      - ./keycloak_default_realm.json:/opt/bitnami/keycloak/data/import/keycloak.default.realm.json
+      - ./keycloak_default_realm.json:/opt/keycloak/data/import/keycloak.default.realm.json
       # Keycloak theme disabled - jar file is empty
       # - ../../frontend/keycloak-theme/dist_keycloak/keycloak-theme-for-kc-22-to-25.jar:/opt/keycloak/providers
 

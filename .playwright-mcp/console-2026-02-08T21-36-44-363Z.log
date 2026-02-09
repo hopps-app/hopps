@@ -1,0 +1,41 @@
+[    1248ms] AbortError: The operation was aborted. 
+
+[   39159ms] [ERROR] [JavaScript Error: "The connection to ws://localhost:5173/?token=s4em18x_o3Bo was interrupted while the page was loading." {file: "http://localhost:5173/@vite/client" line: 802}] @ http://localhost:5173/@vite/client:802
+[   41781ms] [ERROR] [vite] Error @ http://localhost:5173/@vite/client:881
+[   41782ms] [ERROR] [vite] Failed to reload /src/styles/index.scss. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:881
+[   41783ms] [WARNING] [JavaScript Warning: "Loading failed for the module with source “http://localhost:5173/src/styles/index.scss?t=1770586642538”." {file: "http://localhost:5173/@vite/client" line: 0}] @ http://localhost:5173/@vite/client:0
+[   46779ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   51558ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   56470ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   61460ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   66333ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   71236ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   77223ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   84572ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[   94438ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[  108336ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[  128270ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[  158728ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[  199740ms] [ERROR] [JavaScript Error: "Firefox can’t establish a connection to the server at ws://localhost:5173/." {file: "http://localhost:5173/@vite/client" line: 1035}] @ http://localhost:5173/@vite/client:1035
+[  558664ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[  558751ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[  561985ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[  576539ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[  693345ms] [ERROR] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem. @ http://localhost:5173/node_modules/.vite/deps/chunk-BASSJ7HY.js?v=77320122:372
+[  693385ms] [ERROR] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem. @ http://localhost:5173/node_modules/.vite/deps/chunk-BASSJ7HY.js?v=77320122:372
+[  693385ms] [ERROR] Error 
+
+The above error occurred in the <ToastProvider> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+ @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=9f997862:6263
+[  693385ms] [ERROR] ErrorBoundary caught an error: Error JSHandle@object @ http://localhost:5173/src/components/common/ErrorBoundary/ErrorBoundary.tsx:30
+[  693414ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43

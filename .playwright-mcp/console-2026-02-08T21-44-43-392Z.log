@@ -1,0 +1,32 @@
+[   79563ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[   79592ms] [ERROR] [vite] Error @ http://localhost:5173/@vite/client:881
+[   79592ms] [ERROR] [vite] Failed to reload /src/App.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:881
+[   79592ms] [ERROR] [vite] Error @ http://localhost:5173/@vite/client:881
+[   79593ms] [ERROR] [vite] Failed to reload /src/styles/index.scss. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:5173/@vite/client:881
+[   79597ms] [WARNING] [JavaScript Warning: "Loading failed for the module with source “http://localhost:5173/src/App.tsx?t=1770587162636”." {file: "http://localhost:5173/@vite/client" line: 0}] @ http://localhost:5173/@vite/client:0
+[   79598ms] [WARNING] [JavaScript Warning: "Loading failed for the module with source “http://localhost:5173/src/styles/index.scss?t=1770587162636”." {file: "http://localhost:5173/@vite/client" line: 0}] @ http://localhost:5173/@vite/client:0
+[   82988ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[   89795ms] [ERROR] Failed to load organization: Error @ http://localhost:5173/src/App.tsx?t=1770587166127:43
+[   97516ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[   97534ms] [ERROR] Failed to load organization: Error @ http://localhost:5173/src/App.tsx?t=1770587172855:43
+[   98905ms] [ERROR] Failed to load organization: Error @ http://localhost:5173/src/App.tsx?t=1770587180559:43
+[  214269ms] [ERROR] Failed to initialize adapter: Error @ http://localhost:5173/src/services/auth/auth.service.ts:43
+[  214341ms] [ERROR] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem. @ http://localhost:5173/node_modules/.vite/deps/chunk-BASSJ7HY.js?v=77320122:372
+[  214358ms] [ERROR] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem. @ http://localhost:5173/node_modules/.vite/deps/chunk-BASSJ7HY.js?v=77320122:372
+[  214358ms] [ERROR] Error 
+
+The above error occurred in the <ToastProvider> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+ @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=9f997862:6263
+[  214358ms] [ERROR] ErrorBoundary caught an error: Error JSHandle@object @ http://localhost:5173/src/components/common/ErrorBoundary/ErrorBoundary.tsx:30
+[  217740ms] AbortError: The operation was aborted. 
+

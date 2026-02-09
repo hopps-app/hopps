@@ -15,6 +15,8 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const { t } = useTranslation();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [checked, setChecked] = useState<Record<string, boolean>>({});
+    const [page, setPage] = useState(0);
+    const pageSize = 10;
 
     // Map UI filters to API filters
     const apiFilters = useMemo(() => {
@@ -35,8 +37,10 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             categoryId: filters.category ? parseInt(filters.category, 10) : undefined,
             status,
             privatelyPaid,
+            page,
+            size: pageSize,
         };
-    }, [filters]);
+    }, [filters, page]);
 
     const { data: transactions, isLoading, isError } = useTransactions(apiFilters);
 
@@ -82,6 +86,11 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         }
     }, [filters.displayAll, receipts]);
 
+    // Reset page when filters change
+    useEffect(() => {
+        setPage(0);
+    }, [filters.search, filters.startDate, filters.endDate, filters.project, filters.category, filters.status]);
+
     if (isLoading) {
         return <div className="text-center text-[var(--grey-700)] py-6">{t('common.loading')}</div>;
     }
@@ -94,19 +103,59 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         return <ReceiptsEmptyState />;
     }
 
+    const hasNextPage = receipts.length === pageSize;
+    const hasPrevPage = page > 0;
+
+    const handleNextPage = () => {
+        if (hasNextPage) {
+            setPage((prev) => prev + 1);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (hasPrevPage) {
+            setPage((prev) => prev - 1);
+        }
+    };
+
     return (
-        <ul className="space-y-2">
-            {receipts.map((receipt) => (
-                <ReceiptRow
-                    key={receipt.id}
-                    receipt={receipt}
-                    isExpanded={Boolean(expanded[receipt.id])}
-                    isChecked={Boolean(checked[receipt.id])}
-                    onToggle={toggleRow}
-                    onCheckChange={handleCheckChange}
-                />
-            ))}
-        </ul>
+        <div className="space-y-4">
+            <ul className="space-y-2">
+                {receipts.map((receipt) => (
+                    <ReceiptRow
+                        key={receipt.id}
+                        receipt={receipt}
+                        isExpanded={Boolean(expanded[receipt.id])}
+                        isChecked={Boolean(checked[receipt.id])}
+                        onToggle={toggleRow}
+                        onCheckChange={handleCheckChange}
+                    />
+                ))}
+            </ul>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between border-t pt-4">
+                <div className="text-sm text-[var(--grey-700)]">
+                    {t('receipts.pagination.page')} {page + 1}
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handlePrevPage}
+                        disabled={!hasPrevPage}
+                        className="px-4 py-2 bg-white border border-[var(--grey-300)] rounded-md text-sm font-medium text-[var(--grey-700)] hover:bg-[var(--grey-50)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {t('receipts.pagination.previous')}
+                    </button>
+                    <button
+                        onClick={handleNextPage}
+                        disabled={!hasNextPage}
+                        className="px-4 py-2 bg-white border border-[var(--grey-300)] rounded-md text-sm font-medium text-[var(--grey-700)] hover:bg-[var(--grey-50)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {t('receipts.pagination.next')}
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 };
 

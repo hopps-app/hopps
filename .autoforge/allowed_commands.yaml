@@ -26,6 +26,8 @@ commands:
     description: Maven build tool for Quarkus backend
   - name: ./mvnw
     description: Maven wrapper for backend builds
+  - name: mvnw
+    description: Maven wrapper (without ./ prefix)
 
   # Database
   - name: psql

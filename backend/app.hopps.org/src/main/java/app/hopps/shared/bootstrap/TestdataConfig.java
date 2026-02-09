@@ -11,6 +11,7 @@ public class TestdataConfig {
     private List<OrganizationData> organizations;
     private List<MemberData> members;
     private List<BommelData> bommels;
+    private List<TransactionData> transactions;
     private Map<String, Long> sequences;
 
     public List<OrganizationData> getOrganizations() {
@@ -35,6 +36,14 @@ public class TestdataConfig {
 
     public void setBommels(List<BommelData> bommels) {
         this.bommels = bommels;
+    }
+
+    public List<TransactionData> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(List<TransactionData> transactions) {
+        this.transactions = transactions;
     }
 
     public Map<String, Long> getSequences() {
@@ -252,6 +261,108 @@ public class TestdataConfig {
 
         public void setResponsibleMemberId(Long responsibleMemberId) {
             this.responsibleMemberId = responsibleMemberId;
+        }
+    }
+
+    public static class TransactionData {
+        private Long id;
+        private Long organizationId;
+        private Long bommelId;
+        private String name;
+        private String total;
+        private String currencyCode;
+        private String transactionTime;
+        private String status;
+        private Boolean privatelyPaid;
+        private String createdBy;
+        private String senderName;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Long getOrganizationId() {
+            return organizationId;
+        }
+
+        public void setOrganizationId(Long organizationId) {
+            this.organizationId = organizationId;
+        }
+
+        public Long getBommelId() {
+            return bommelId;
+        }
+
+        public void setBommelId(Long bommelId) {
+            this.bommelId = bommelId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getTotal() {
+            return total;
+        }
+
+        public void setTotal(String total) {
+            this.total = total;
+        }
+
+        public String getCurrencyCode() {
+            return currencyCode;
+        }
+
+        public void setCurrencyCode(String currencyCode) {
+            this.currencyCode = currencyCode;
+        }
+
+        public String getTransactionTime() {
+            return transactionTime;
+        }
+
+        public void setTransactionTime(String transactionTime) {
+            this.transactionTime = transactionTime;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public Boolean getPrivatelyPaid() {
+            return privatelyPaid;
+        }
+
+        public void setPrivatelyPaid(Boolean privatelyPaid) {
+            this.privatelyPaid = privatelyPaid;
+        }
+
+        public String getCreatedBy() {
+            return createdBy;
+        }
+
+        public void setCreatedBy(String createdBy) {
+            this.createdBy = createdBy;
+        }
+
+        public String getSenderName() {
+            return senderName;
+        }
+
+        public void setSenderName(String senderName) {
+            this.senderName = senderName;
         }
     }
 }

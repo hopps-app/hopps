@@ -17,6 +17,7 @@ interface TextFieldProps {
     prependIcon?: RadixIcons;
     className?: string;
     loading?: boolean;
+    maxLength?: number;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onValueChange?: (value: string) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -49,6 +50,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     type={props.type || 'text'}
                     placeholder={props.placeholder || ''}
                     value={props.value}
+                    maxLength={props.maxLength}
                     className={hasPrependContent ? `pl-10 ${props.className || ''}` : props.className}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                         props.onChange?.(event);

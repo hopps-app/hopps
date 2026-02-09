@@ -273,6 +273,11 @@
         "types": {
             "income": "Einnahme",
             "expense": "Ausgabe"
+        },
+        "pagination": {
+            "page": "Seite",
+            "previous": "Zurück",
+            "next": "Weiter"
         }
     },
     "bommel": {

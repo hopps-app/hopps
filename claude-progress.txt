@@ -114,3 +114,21 @@ These features require environment/infrastructure fixes that are outside the sco
 **Next steps:**
 - Skip these features as they are blocked by infrastructure, not missing implementation
 - Work on features that don't require backend authentication
+
+**Session Summary:**
+- Attempted to verify features #13, #60, #53 but encountered infrastructure blockers
+- Backend is running with Quarkus DevServices (different Keycloak config than expected)
+- Docker Compose backend fails due to missing OpenFGA URL
+- Maven/mvnw commands blocked at org-level - cannot reconfigure
+- Added OpenFGA URL to docker-compose.yaml for future use
+- Documented all issues in detail for next session
+- Features skipped (moved to end of queue) - implementation exists but verification blocked
+- Committed documentation to feature branch and pushed
+
+**Files modified:**
+- infrastructure/hopps-app/docker-compose.yaml (added QUARKUS_OPENFGA_URL)
+- claude-progress.txt (detailed documentation)
+
+**Git:**
+- Committed: "docs: document infrastructure blocker for features #13, #60, #53"
+- Pushed to: autoforge/feature-40-upload-error-handling

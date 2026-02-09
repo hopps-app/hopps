@@ -220,6 +220,8 @@
             "description": "Description",
             "error": {
                 "name": "This field cannot be empty.",
+                "nameMaxLength": "Name must not exceed 127 characters.",
+                "duplicate": "A category with this name already exists.",
                 "categoryCreated": "An error occurred."
             },
             "success": {
@@ -320,6 +322,11 @@
         "types": {
             "income": "Income",
             "expense": "Expense"
+        },
+        "pagination": {
+            "page": "Page",
+            "previous": "Previous",
+            "next": "Next"
         }
     },
     "bommel": {

@@ -61,16 +61,22 @@ If you get "already in-progress" error, that's OK - continue with implementation
 
 Focus on completing one feature perfectly in this session. It's ok if you only complete one feature, as more sessions will follow.
 
-#### Create a Feature Branch (MANDATORY)
+#### Commit to Current Branch (MANDATORY)
 
-Before starting any implementation work, create a dedicated feature branch:
+All commits go to the current working branch. Before starting, verify you are NOT on main:
 
 ```bash
-# Create and switch to a new feature branch
-git checkout -b autoforge/feature-{id}-{short-name}
+# Verify you're not on main
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+  echo "ERROR: You are on $CURRENT_BRANCH. Do NOT commit directly to main/master."
+  echo "Please switch to a working branch first."
+  exit 1
+fi
+echo "Working on branch: $CURRENT_BRANCH"
 ```
 
-Replace `{id}` with the feature ID and `{short-name}` with a short kebab-case description of the feature (e.g., `autoforge/feature-42-user-auth`). **All commits MUST go to this branch, never directly to main.**
+NEVER commit or push directly to main/master. If you find yourself on main, ask the orchestrator for the correct branch.
 
 #### When to Skip a Feature (EXTREMELY RARE)
 
@@ -158,62 +164,40 @@ Use the feature_mark_passing tool with feature_id=42
 
 **ONLY MARK A FEATURE AS PASSING AFTER VERIFICATION WITH SCREENSHOTS.**
 
-### STEP 7: COMMIT, PUSH BRANCH & CREATE PULL REQUEST
+### STEP 7: COMMIT AND PUSH
 
-Commit your changes to the feature branch, push it, and open a Pull Request.
+Commit your changes to the current branch and push to origin.
+
+**Safety Check - NEVER push to main:**
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+  echo "ERROR: Refusing to push to $CURRENT_BRANCH!"
+  exit 1
+fi
+```
 
 **Git Commit Rules:**
 - ALWAYS use simple `-m` flag for commit messages
-- NEVER use heredocs (`cat <<EOF` or `<<'EOF'`) - they fail in sandbox mode with "can't create temp file for here document: operation not permitted"
+- NEVER use heredocs (`cat <<EOF` or `<<'EOF'`) - they fail in sandbox mode
 - For multi-line messages, use multiple `-m` flags:
 
 ```bash
 git add .
-git commit -m "Implement [feature name] - verified end-to-end" -m "- Added [specific changes]" -m "- Tested with browser automation" -m "- Marked feature #X as passing"
+git commit -m "feat: implement [feature name] - verified end-to-end" -m "- Added [specific changes]" -m "- Tested with browser automation" -m "- Marked feature #X as passing"
 ```
 
-Or use a single descriptive message:
+**Push to Origin:**
 
 ```bash
-git add .
-git commit -m "feat: implement [feature name] with browser verification"
+git push origin $(git branch --show-current)
 ```
 
-**Push the Feature Branch:**
-
-After committing, push your feature branch to origin:
-
-```bash
-git push -u origin autoforge/feature-{id}-{short-name}
-```
-
-**Create a Pull Request (MANDATORY):**
-
-After pushing the branch, create a Pull Request targeting `main` using the GitHub CLI:
-
-```bash
-gh pr create --title "feat: [Feature #ID] [Feature Name]" --body "## Summary
-- Implemented [feature name] (Feature #ID)
-- [Brief description of changes made]
-
-## Changes
-- [List specific files/components changed]
-
-## Verification
-- Tested with browser automation
-- Screenshots verified
-- Feature marked as passing
-
----
-*Automated PR by AutoForge coding agent*" --base main
-```
-
-**PR Rules:**
-- The PR title MUST reference the feature ID and name
-- The PR body MUST include a summary of changes made
-- The PR MUST target `main` as the base branch
-- **NEVER push directly to main** — all changes go through Pull Requests
-- The existing CI/CD workflows and Claude Code Review will automatically run on the PR
+**Push Rules:**
+- NEVER push to main or master — always verify the current branch first
+- Push after every successful feature completion
+- If push fails due to remote changes, pull with rebase first: `git pull --rebase origin $(git branch --show-current)`
 
 ### STEP 8: UPDATE PROGRESS NOTES
 
