@@ -41,14 +41,13 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
             if (transaction.getSenderName() != null) {
                 senderId = senderIdCounter++;
                 String senderSql = """
-                        INSERT INTO tradeparty (id, name, organization_id)
-                        VALUES (:id, :name, :organizationId)
+                        INSERT INTO trade_party (id, name)
+                        VALUES (:id, :name)
                         """;
 
                 entityManager.createNativeQuery(senderSql)
                         .setParameter("id", senderId)
                         .setParameter("name", transaction.getSenderName())
-                        .setParameter("organizationId", transaction.getOrganizationId())
                         .executeUpdate();
             }
 
