@@ -140,7 +140,7 @@ public class TransactionResource {
         transaction.setStatus(TransactionStatus.DRAFT);
 
         // Apply request fields
-        applyRequestToTransaction(transaction, request);
+        applyRequestToTransaction(transaction, request, organization);
 
         transactionRepository.persist(transaction);
         LOG.info("Transaction created: id={}", transaction.getId());
@@ -208,7 +208,8 @@ public class TransactionResource {
 
     // Helper methods
 
-    private void applyRequestToTransaction(Transaction transaction, TransactionCreateRequest request) {
+    private void applyRequestToTransaction(Transaction transaction, TransactionCreateRequest request,
+            Organization organization) {
         transaction.setName(request.name());
         transaction.setTotal(request.total());
         transaction.setTotalTax(request.totalTax());
