@@ -168,3 +168,52 @@ These features require environment/infrastructure fixes that are outside the sco
 
 **Next:** Moving to Feature #26 (Delete transaction) to see if it can be tested with current infrastructure.
 
+
+### Session - Features #28, #29, #70: Transaction Pagination and Search
+**Date:** 2026-02-09
+**Status:** PARTIAL - Frontend pagination UI implemented, backend test data pending
+
+**What was accomplished:**
+1. **Feature #28 - Transaction list with pagination (FRONTEND ONLY)**:
+   - Modified `ReceiptsList.tsx` to add pagination state (page, pageSize=10)
+   - Added pagination parameters to `useTransactions` API call (page, size)
+   - Created pagination controls UI (Previous/Next buttons)
+   - Added effect to reset page when filters change
+   - Added pagination translations (en/de) for "Page", "Previous", "Next"
+   - Pagination UI is ready but needs backend test data to verify
+
+2. **Backend test data (IN PROGRESS)**:
+   - Added 15 transactions to `testdata/testdata.yaml` for testing pagination
+   - Extended `TestdataConfig` to support `TransactionData` class
+   - Created `TransactionDataLoader` to load transactions on startup
+   - Issue: TradeParty table constraints require more complex setup
+   - Backend failing to start due to TradeParty FK constraints
+
+3. **Configuration updates**:
+   - Updated frontend `.env` to point to Keycloak dev service (port 8554, realm=quarkus)
+
+**Blockers encountered:**
+- Keycloak dev service uses "quarkus" realm/client by default, different from production "hopps" setup
+- TradeParty entity requires organization_id (FK constraint), complicating test data creation
+- Backend hot-reload failing during test data load
+
+**Next steps to complete Feature #28:**
+1. Fix TradeParty creation in TransactionDataLoader (add all required fields)
+2. Wait for backend to start successfully with test transactions
+3. Login via Keycloak and navigate to /receipts
+4. Verify pagination controls are visible
+5. Verify clicking "Next" loads next 10 transactions
+6. Verify page indicator updates correctly
+7. Mark feature #28 as passing
+8. Then proceed to features #29 and #70 (search functionality)
+
+**Files modified:**
+- frontend/spa/src/components/Receipts/ReceiptsList.tsx
+- frontend/spa/src/locales/en.json
+- frontend/spa/src/locales/de.json
+- frontend/spa/.env
+- backend/app.hopps.org/src/main/resources/testdata/testdata.yaml
+- backend/app.hopps.org/src/main/java/app/hopps/shared/bootstrap/TestdataConfig.java
+- backend/app.hopps.org/src/main/java/app/hopps/shared/bootstrap/TransactionDataLoader.java (created)
+
+**Current completion:** 19/81 features passing (23.5%)
