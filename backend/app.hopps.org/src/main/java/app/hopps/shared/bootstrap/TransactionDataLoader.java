@@ -41,26 +41,30 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
             if (transaction.getSenderName() != null) {
                 senderId = senderIdCounter++;
                 String senderSql = """
-                        INSERT INTO trade_party (id, name)
-                        VALUES (:id, :name)
+                        INSERT INTO trade_party (id, name, organization_id)
+                        VALUES (:id, :name, :organizationId)
                         """;
 
                 entityManager.createNativeQuery(senderSql)
                         .setParameter("id", senderId)
                         .setParameter("name", transaction.getSenderName())
+                        .setParameter("organizationId", transaction.getOrganizationId())
                         .executeUpdate();
             }
 
             // Then insert the transaction
             String sql = """
-                    INSERT INTO transaction (id, bommel_id, name, total, currencyCode,
-                                            transaction_time, privately_paid, sender_id, document_key, document)
-                    VALUES (:id, :bommelId, :name, CAST(:total AS numeric), :currencyCode,
-                            CAST(:transactionTime AS timestamp), :privatelyPaid, :senderId, 'testdata', 0)
+                    INSERT INTO transaction (id, organization_id, bommel_id, name, total, currencyCode,
+                                            transaction_time, privately_paid, sender_id, status, created_by,
+                                            created_at)
+                    VALUES (:id, :organizationId, :bommelId, :name, CAST(:total AS numeric), :currencyCode,
+                            CAST(:transactionTime AS timestamp), :privatelyPaid, :senderId,
+                            :status, :createdBy, NOW())
                     """;
 
             entityManager.createNativeQuery(sql)
                     .setParameter("id", transaction.getId())
+                    .setParameter("organizationId", transaction.getOrganizationId())
                     .setParameter("bommelId", transaction.getBommelId())
                     .setParameter("name", transaction.getName())
                     .setParameter("total", transaction.getTotal())
@@ -68,6 +72,9 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
                     .setParameter("transactionTime", transaction.getTransactionTime())
                     .setParameter("privatelyPaid", transaction.getPrivatelyPaid())
                     .setParameter("senderId", senderId)
+                    .setParameter("status", transaction.getStatus() != null ? transaction.getStatus() : "DRAFT")
+                    .setParameter("createdBy",
+                            transaction.getCreatedBy() != null ? transaction.getCreatedBy() : "testdata@hopps.app")
                     .executeUpdate();
 
             Log.debugf("Loaded transaction: %s (id=%d)", transaction.getName(), transaction.getId());
