@@ -1,10 +1,11 @@
 services:
   org:
-    image: hopps-org-local:latest
+    image: ghcr.io/hopps-app/hopps/org:395
     ports:
       - "8101:8080"
     depends_on:
       - postgres
+      - keycloak
     environment:
       - QUARKUS_DATASOURCE_USERNAME=postgres
       - QUARKUS_DATASOURCE_PASSWORD=postgres
@@ -14,6 +15,7 @@ services:
       - QUARKUS_OIDC_CREDENTIALS_SECRET=mysecret
       - QUARKUS_OIDC_CLIENT_ID=hopps
       - QUARKUS_OIDC_TLS_VERIFICATION=none
+      - QUARKUS_OIDC_ENABLED=false
       - QUARKUS_OPENFGA_URL=http://openfga:8080
       - QUARKUS_OPENFGA_STORE_ID=01JM0XYZABCDEFGHIJKLMNOPQR
 

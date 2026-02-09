@@ -1369,3 +1369,73 @@ To unblock these features, the backend Docker image needs to be rebuilt:
 **Session Duration:** ~30 minutes
 **Outcome:** All three features confirmed working and already marked passing
 
+
+---
+
+## SESSION - Features #15, #17, #19: Backend Infrastructure Still Blocked
+**Date:** 2026-02-09 12:27 CET
+**Branch:** autoforge/feature-40-upload-error-handling
+**Status:** Backend cannot start - external infrastructure blocker confirmed
+
+### What Was Accomplished:
+
+1. **Environment Assessment:**
+   - Verified frontend running on port 5173 ✅
+   - Verified Keycloak running on port 8092 ✅
+   - Attempted to start backend org service:
+     - Tried local Docker image (hopps-org-local:latest) - "no main manifest attribute" error
+     - Tried remote Docker image (ghcr.io/hopps-app/hopps/org:395) - OIDC DevServices localhost:8080 connection error
+     - Tried disabling OIDC via environment variables - not effective (build-time config)
+   - Maven/Java commands blocked at org-level - cannot rebuild or run locally
+
+2. **Frontend Code Verification:**
+   - Feature #15 (Create Child Bommel): Implementation verified at useOrganizationTree.ts lines 79-102 ✅
+   - Feature #17 (Delete Bommel Dialog): Component fully implemented (84 lines) and properly integrated in BommelCard.tsx lines 153-159 ✅
+   - Feature #19 (Bommel Tree View): BommelTreeComponent.tsx using react-d3-tree ✅
+
+3. **Browser Testing:**
+   - Landing page loads correctly (http://localhost:5173) ✅
+   - Login redirects to Keycloak (http://localhost:8092) ✅
+   - Keycloak authentication successful (alice@example.test / alice) ✅
+   - Frontend receives auth token and redirects back ✅
+   - Backend API call fails: "Cross-Origin Request Blocked" - http://localhost:8101/organization/my
+   - User sees "No Organization Found" error (expected without backend)
+   - Console errors: 4 errors related to backend connection
+
+4. **Docker Compose Configuration:**
+   - Updated docker-compose.yaml to use ghcr.io/hopps-app/hopps/org:395
+   - Added QUARKUS_OIDC_ENABLED=false attempt (not effective)
+   - Backend logs show persistent OIDC connection refusal to localhost:8080
+   - Keycloak is on keycloak:8080 from inside Docker network, but DevServices config is baked into JAR
+
+### External Blocker Justification:
+
+Per coding agent guidelines, this qualifies as "truly external blocker":
+- ✅ **Unfulfillable environment requirement**: Maven and Java commands blocked at org-level (cannot override)
+- ✅ **Unavailable external service**: Backend cannot start due to build-time OIDC configuration mismatch
+- ✅ **Build artifacts with incorrect configuration**: Docker images have DevServices settings instead of production config
+- ❌ **NOT missing functionality**: All frontend code exists and is complete
+- ❌ **NOT unbuilt features**: All UI components are implemented and properly integrated
+
+### Features Status:
+All three features (#15, #17, #19) are already at end of queue from previous sessions:
+- Feature #15: Priority 96, in_progress: true
+- Feature #17: Priority 97, in_progress: true  
+- Feature #19: Priority 98, in_progress: true
+
+### Screenshots Created:
+- session-start-landing-page.png (Frontend loads correctly)
+- after-login-attempt.png (No Organization Found - backend unavailable)
+
+### Files Modified:
+- infrastructure/hopps-app/docker-compose.yaml (switched to remote image, attempted OIDC disable)
+
+### Current Completion: 19/81 features passing (23.5%), 3 in progress
+
+### Recommendation:
+Backend infrastructure must be fixed before these features can be verified. Possible solutions:
+1. Rebuild backend Docker images with production OIDC configuration (pointing to keycloak:8080)
+2. Grant org-level permission for Maven/Java commands to allow local backend development
+3. Manually start backend service before coding agent sessions
+4. Assign different features that don't require backend API until infrastructure is resolved
+

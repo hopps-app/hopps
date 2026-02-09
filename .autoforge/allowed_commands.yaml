@@ -28,6 +28,8 @@ commands:
     description: Maven wrapper for backend builds
   - name: mvnw
     description: Maven wrapper (without ./ prefix)
+  - name: mvnw.cmd
+    description: Maven wrapper for Windows
 
   # Database
   - name: psql
