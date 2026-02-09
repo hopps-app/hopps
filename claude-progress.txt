@@ -275,3 +275,80 @@ The features are IMPLEMENTED but cannot be verified due to infrastructure issues
 **Files Modified:** backend application.properties, TransactionDataLoader.java
 **Current Completion:** 19/81 features passing (23.5%)
 **Recommendation:** Features are code-complete but need manual backend startup with elevated permissions to verify end-to-end.
+
+### Session - Features #15, #17, #19: Bommel Management (BLOCKED - Cannot Complete)
+**Date:** 2026-02-09
+**Status:** BLOCKED - Skipping due to external infrastructure constraints
+
+**Situation:**
+Assigned to verify and complete three Bommel management features:
+- Feature #15: Create a child Bommel
+- Feature #17: Delete Bommel with confirmation dialog  
+- Feature #19: Bommel tree view renders correctly
+
+**Frontend Implementation Status - COMPLETE:**
+All three features are fully implemented in the frontend codebase:
+
+1. **Feature #15** - Create child Bommel functionality exists:
+   - File: `frontend/spa/src/components/views/OrganizationSettings/hooks/useOrganizationTree.ts`
+   - Function: `createChildBommel` (lines 79-102)
+   - Creates new Bommel with parent relationship via API call to `bommelPOST`
+
+2. **Feature #17** - Delete confirmation dialog implemented:
+   - Files created in previous session:
+     - `frontend/spa/src/components/BommelTreeView/components/DeleteBommelDialog.tsx`
+     - `frontend/spa/src/components/ui/RadioGroup.tsx`
+   - Integrated into `BommelCard.tsx`
+   - i18n translations added for English and German
+   - Dialog shows transaction handling options (unlink/reassign)
+
+3. **Feature #19** - Tree view component exists:
+   - File: `frontend/spa/src/components/BommelTreeView/BommelTreeComponent.tsx`
+   - Uses react-d3-tree for hierarchical visualization
+   - Fully functional tree rendering logic
+
+**External Blocker - Backend Cannot Start:**
+
+**Root Cause:**
+- Backend org service (app.hopps.org) is not running on port 8101
+- Docker image `ghcr.io/hopps-app/hopps/org:395` does not exist (404)
+- Local backend jars exist in `backend/app.hopps.org/target/` but cannot be executed
+- `java` and `mvn` commands are blocked at org-level (cannot be overridden)
+
+**Evidence:**
+1. Docker containers running: Only postgres, keycloak, localstack, openfga (no org service)
+2. Port 8101 not in use: `lsof -i :8101` returns nothing
+3. Frontend shows: "No Organization Found" error after successful Keycloak login
+4. Console errors: "Cross-Origin Request Blocked" + 500 error from `http://localhost:8101/organization/my`
+5. Command restriction: `java -version` → "Command 'java' is not allowed...blocked at org-level"
+
+**Verification Attempted:**
+- ✅ Keycloak authentication working (logged in as alice@example.test)
+- ✅ Frontend loads and renders authentication flow correctly
+- ✅ Route guards redirect to Keycloak as expected
+- ❌ Cannot load /structure page - requires backend API to fetch organization data
+- ❌ Cannot create test Bommels - requires backend POST /bommel endpoint
+- ❌ Cannot test delete dialog - requires backend DELETE /bommel/{id} endpoint
+- ❌ Cannot verify tree view - requires backend to return bommel hierarchy
+
+**Why This Qualifies as External Blocker:**
+Per coding agent guidelines, skip only for "truly external blockers" such as:
+- ✅ Unfulfillable environment requirements (java/mvn blocked at org-level)
+- ✅ Unavailable external services (backend cannot start due to command restrictions)
+
+This is NOT:
+- ❌ Missing functionality (frontend code exists and is complete)
+- ❌ Unbuilt features (all UI components implemented)
+- ❌ Lack of effort (attempted multiple approaches: docker, java jars, local build)
+
+**Decision:** Skipping features #15, #17, #19 to end of queue.
+
+**Recommendation for Future Sessions:**
+To unblock these features, one of the following must occur:
+1. Org-level command restrictions lifted to allow `java` command
+2. Backend Docker image published to ghcr.io registry
+3. Backend started by orchestrator/init script before coding agent session begins
+4. Alternative backend mock/stub implementation for frontend testing
+
+**Current Completion:** 19/81 features passing (23.5%)
+
