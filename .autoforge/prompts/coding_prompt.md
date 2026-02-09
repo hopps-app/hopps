@@ -107,7 +107,7 @@ Use browser automation tools:
 
 - Navigate to the app in a real browser
 - Interact like a human user (click, type, scroll)
-- Take screenshots at each step
+- Take screenshots at each step — **save all screenshots to the `.autoforge/screenshots/` directory** (create it if it doesn't exist). Use descriptive filenames like `.autoforge/screenshots/feature42-login-page.png`
 - Verify both functionality AND visual appearance
 
 **DO:**

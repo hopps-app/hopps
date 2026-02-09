@@ -213,3 +213,6 @@ playwright-report/
 blob-report/
 playwright/.cache/
 .playwright-mcp/
+
+# Autoforge screenshots
+.autoforge/screenshots/
