@@ -82,9 +82,9 @@ commands:
     description: Print sequence of numbers
   - name: timeout
     description: Run command with time limit
-  - name: true
+  - name: "true"
     description: Return true exit status
-  - name: false
+  - name: "false"
     description: Return false exit status
   - name: wait
     description: Wait for background processes

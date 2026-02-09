@@ -53,7 +53,7 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
 
             // Then insert the transaction
             String sql = """
-                    INSERT INTO TransactionRecord (id, bommel_id, name, total, currencyCode,
+                    INSERT INTO transaction (id, bommel_id, name, total, currencyCode,
                                             transaction_time, privately_paid, sender_id, document_key, document)
                     VALUES (:id, :bommelId, :name, CAST(:total AS numeric), :currencyCode,
                             CAST(:transactionTime AS timestamp), :privatelyPaid, :senderId, 'testdata', 0)
