@@ -294,6 +294,16 @@
     "datePicker": {
         "selectDate": "Datum auswählen"
     },
+    "dashboard": {
+        "title": "Dashboard",
+        "incomeExpenseChart": "Einnahmen & Ausgaben",
+        "loadError": "Diagrammdaten konnten nicht geladen werden",
+        "noData": "Keine Daten verfügbar",
+        "noDataHint": "Keine Transaktionen für {{year}} gefunden",
+        "timeRange": "Zeige Daten von {{startDate}} bis {{endDate}}",
+        "income": "Einnahmen",
+        "expenses": "Ausgaben"
+    },
     "categories": {
         "title": "Admin Einstellungen: Kategorien",
         "addButton": "Neue Kategorie erstellen",

@@ -201,6 +201,16 @@
     "datePicker": {
         "selectDate": "Select date"
     },
+    "dashboard": {
+        "title": "Dashboard",
+        "incomeExpenseChart": "Income & Expenses",
+        "loadError": "Failed to load chart data",
+        "noData": "No data available",
+        "noDataHint": "No transactions found for {{year}}",
+        "timeRange": "Showing data from {{startDate}} to {{endDate}}",
+        "income": "Income",
+        "expenses": "Expenses"
+    },
     "categories": {
         "title": "Admin Settings: Categories",
         "addButton": "Create New Category",

@@ -1,0 +1,5 @@
+[   19269ms] [ERROR] Error @ http://localhost:5173/src/components/Forms/OrganizationRegistrationForm/OrganizationRegistrationForm.tsx:73
+[  182475ms] [ERROR] [JavaScript Error: "Error: Error: Element is not an <input>, <textarea>, <select> or [contenteditable] and does not have a role allowing [aria-readonly]" {file: "debugger eval code" line: 7317}] @ debugger eval code:7317
+[  206895ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organization/my. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 500."] @ :0
+[  206895ms] [ERROR] Failed to load organization: Error @ http://localhost:5173/src/App.tsx?t=1770634606624:43
+[  206904ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organization/my. (Reason: CORS request did not succeed). Status code: (null)."] @ :0

@@ -82,23 +82,23 @@ function DashboardView() {
 
     return (
         <div className="px-7 py-[2.5rem]">
-            <h1 className="text-3xl font-bold mb-6">{t('dashboard.title', 'Dashboard')}</h1>
+            <h1 className="text-3xl font-bold mb-6">{t('dashboard.title')}</h1>
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-xl font-semibold mb-4">
-                    {t('dashboard.incomeExpenseChart', 'Income & Expenses')}
+                    {t('dashboard.incomeExpenseChart')}
                 </h2>
 
                 {isLoading && (
                     <div className="flex items-center justify-center h-96">
-                        <p className="text-gray-500">{t('common.loading', 'Loading...')}</p>
+                        <p className="text-gray-500">{t('common.loading')}</p>
                     </div>
                 )}
 
                 {error && (
                     <div className="flex items-center justify-center h-96">
                         <p className="text-red-500">
-                            {t('dashboard.loadError', 'Failed to load chart data')}
+                            {t('dashboard.loadError')}
                         </p>
                     </div>
                 )}
@@ -106,10 +106,10 @@ function DashboardView() {
                 {!isLoading && !error && !hasData && (
                     <div className="flex flex-col items-center justify-center h-96 text-gray-500">
                         <p className="text-lg font-medium mb-2">
-                            {t('dashboard.noData', 'No data available')}
+                            {t('dashboard.noData')}
                         </p>
                         <p className="text-sm">
-                            {t('dashboard.noDataHint', `No transactions found for ${currentYear}`)}
+                            {t('dashboard.noDataHint', { year: currentYear })}
                         </p>
                     </div>
                 )}
@@ -117,7 +117,7 @@ function DashboardView() {
                 {!isLoading && !error && hasData && (
                     <>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                            {t('dashboard.timeRange', `Showing data from ${startDate} to ${endDate}`)}
+                            {t('dashboard.timeRange', { startDate, endDate })}
                         </p>
                         <ResponsiveContainer width="100%" height={400}>
                             <LineChart
@@ -141,14 +141,14 @@ function DashboardView() {
                                     dataKey="income"
                                     stroke="#10b981"
                                     strokeWidth={2}
-                                    name={t('dashboard.income', 'Income')}
+                                    name={t('dashboard.income')}
                                 />
                                 <Line
                                     type="monotone"
                                     dataKey="expenses"
                                     stroke="#ef4444"
                                     strokeWidth={2}
-                                    name={t('dashboard.expenses', 'Expenses')}
+                                    name={t('dashboard.expenses')}
                                 />
                             </LineChart>
                         </ResponsiveContainer>

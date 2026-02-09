@@ -1,0 +1,3 @@
+[   22363ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organization. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 500."] @ :0
+[   22363ms] [ERROR] Error @ http://localhost:5173/src/components/Forms/OrganizationRegistrationForm/OrganizationRegistrationForm.tsx:73
+[   22363ms] [ERROR] [JavaScript Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at http://localhost:8101/organization. (Reason: CORS request did not succeed). Status code: (null)."] @ :0
