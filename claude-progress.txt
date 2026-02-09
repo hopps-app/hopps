@@ -1467,3 +1467,94 @@ To complete these features, one of the following must happen:
 **Session Duration:** ~25 minutes
 **Session End:** 2026-02-09 12:30 CET
 
+
+---
+
+## SESSION START - Features #13, #60, #53 (RETRY)
+**Date:** 2026-02-09 12:27 CET
+**Branch:** autoforge/feature-40-upload-error-handling
+**Assigned Features:** #13 (Dashboard income/expense chart), #60 (Date picker constraints), #53 (Dashboard default date range)
+
+### Initial Assessment:
+
+**Frontend Status:** ✅ Running on port 5173
+**Backend Status:** ❌ Docker container exited - Keycloak connection refused (localhost:8080)
+**Keycloak Status:** ❌ Stopped, restarting...
+
+**Infrastructure Issue:**
+- Backend Docker image (ghcr.io/hopps-app/hopps/org:395) has hardcoded Keycloak URL: localhost:8080
+- Should use: keycloak:8080 (Docker network)
+- Environment variables in docker-compose.yaml are correct but not being read by container
+- This is a build-time configuration issue (not runtime)
+
+**Previous Session Context:**
+These features were skipped in previous session due to backend unavailability. Attempting to resolve infrastructure issue this session.
+
+**Actions Taken:**
+1. Restarted Keycloak container (was stopped)
+2. Investigating local backend build option (Maven/Java blocked at org-level)
+
+
+---
+
+## SESSION START - Features #15, #17, #19 (New Attempt)
+**Date:** 2026-02-09 15:15 CET
+**Branch:** autoforge/feature-40-upload-error-handling
+**Assigned Features:** #15 (Create Child Bommel), #17 (Delete Bommel Dialog), #19 (Bommel Tree View)
+
+### Initial Assessment:
+
+**Environment Status:**
+- Frontend: Running on port 5173 ✅
+- Keycloak: Running on port 8092 ✅
+- PostgreSQL: Running on port 5432 ✅
+- Backend org service: Failed to start (OIDC connection error)
+
+**Backend Start Attempt:**
+Attempted to start backend container with `docker compose up -d org`
+Container started but immediately exited with error code 1:
+```
+Caused by: java.net.ConnectException: Connection refused: localhost/127.0.0.1:8080
+```
+Backend is trying to connect to Keycloak on localhost:8080 but should use keycloak:8080 (Docker network hostname). This is a build-time configuration baked into the JAR that cannot be changed via environment variables.
+
+**Frontend Code Verification:**
+All three features have complete frontend implementations:
+
+1. **Feature #15 - Create Child Bommel:**
+   - File: `frontend/spa/src/components/views/OrganizationSettings/hooks/useOrganizationTree.ts`
+   - Function: `createChildBommel` (lines 79-102)
+   - Implementation: ✅ Complete
+   - Calls: `apiService.orgService.bommelPOST` with parent relationship
+
+2. **Feature #17 - Delete Bommel Dialog:**
+   - File: `frontend/spa/src/components/BommelTreeView/components/DeleteBommelDialog.tsx`
+   - Component: Fully implemented (84 lines)
+   - Features: Confirmation dialog, transaction handling options (unlink/reassign)
+   - Implementation: ✅ Complete and properly integrated
+
+3. **Feature #19 - Bommel Tree View:**
+   - File: `frontend/spa/src/components/BommelTreeView/BommelTreeComponent.tsx`
+   - Component: Uses react-d3-tree for hierarchical visualization
+   - Implementation: ✅ Complete
+
+**Command Restrictions Confirmed:**
+- `java` command: Blocked at org-level ❌
+- `mvn` command: Blocked at org-level ❌
+- `docker-compose` command: Blocked at org-level ❌
+- Cannot rebuild backend with corrected OIDC configuration
+
+**External Blocker Classification:**
+Per coding agent guidelines, this qualifies as "unfulfillable environment requirement":
+- Java/Maven blocked at organization level (cannot be overridden)
+- Backend Docker image has build-time configuration issue
+- Cannot modify build-time configuration without rebuilding
+- Cannot rebuild without Java/Maven access
+
+**Decision:**
+Clearing in-progress status for all three features. They remain at priorities 102-104 (end of queue) as documented in previous sessions.
+
+These features are fully implemented in the frontend and require only backend infrastructure resolution for end-to-end verification.
+
+**Current Completion:** 19/81 features passing (23.5%), 0 in progress (cleared #15, #17, #19)
+
