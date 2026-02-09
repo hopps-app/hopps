@@ -72,4 +72,9 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
                     .setParameter("privatelyPaid", transaction.getPrivatelyPaid())
                     .setParameter("createdBy", transaction.getCreatedBy())
                     .setParameter("senderId", senderId)
-                    .executeUpdate()
+                    .executeUpdate();
+
+            Log.debugf("Loaded transaction: %s (id=%d)", transaction.getName(), transaction.getId());
+        }
+    }
+}

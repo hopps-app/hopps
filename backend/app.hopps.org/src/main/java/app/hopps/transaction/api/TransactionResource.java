@@ -241,6 +241,7 @@ public class TransactionResource {
 
         if (request.senderName() != null && !request.senderName().isBlank()) {
             TradeParty sender = new TradeParty();
+            sender.setOrganization(organization);
             sender.setName(request.senderName());
             sender.setStreet(request.senderStreet());
             sender.setZipCode(request.senderZipCode());
@@ -309,6 +310,7 @@ public class TransactionResource {
             TradeParty sender = transaction.getSender();
             if (sender == null) {
                 sender = new TradeParty();
+                sender.setOrganization(transaction.getOrganization());
                 transaction.setSender(sender);
             }
             sender.setName(request.senderName());
