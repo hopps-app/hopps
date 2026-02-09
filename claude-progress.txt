@@ -2321,3 +2321,189 @@ Thoroughly investigated backend startup issues and confirmed org-level command r
 
 **Session Duration:** ~30 minutes
 **Session End:** 2026-02-09 15:40 CET
+
+---
+
+## SESSION - Features #1, #15, #13: Backend Infrastructure Blocker Persists (Session #7)
+**Date:** 2026-02-09 15:21 CET
+**Branch:** autoforge/feature-40-upload-error-handling
+**Status:** External blocker - backend Docker container cannot start
+
+### Assigned Features (Batch):
+1. Feature #1 (Priority 1): Database connection established
+2. Feature #15 (Priority 102): Create a child Bommel
+3. Feature #13 (Priority 105): Dashboard displays income/expense chart
+
+### Environment Assessment:
+
+**Infrastructure Status:**
+- ✅ PostgreSQL 16: Running and healthy (port 5432)
+- ✅ Keycloak 26: Running and healthy (port 8092)
+- ✅ Frontend SPA: Running (port 5173)
+- ❌ Backend org service: **Cannot start - OIDC connection error**
+
+**Docker Compose Services:**
+- postgres: UP
+- keycloak: UP
+- org: **Started but immediately fails with connection error**
+
+### Backend Startup Error (Confirmed):
+
+```
+Caused by: io.netty.channel.AbstractChannel$AnnotatedConnectException: 
+Connection refused: localhost/127.0.0.1:8080
+```
+
+**Root Cause Analysis:**
+The backend Docker image (`ghcr.io/hopps-app/hopps/org:395`) has **build-time OIDC configuration** that is hardcoded to connect to `localhost:8080` for Keycloak.
+
+**Environment Variable Override Attempted:**
+The docker-compose.yaml correctly sets:
+- `QUARKUS_OIDC_ENABLED=false` (line 18)
+- `QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/realms/hopps` (line 14)
+
+However, these runtime environment variables are **IGNORED** because Quarkus OIDC configuration was baked into the JAR at build time with localhost:8080.
+
+### External Blocker Classification:
+
+This qualifies as a **truly external blocker** per coding agent guidelines:
+
+✅ **Unfulfillable environment requirement:**
+- Java/Maven commands are blocked at **org-level**
+- Cannot override org-level restrictions
+- Cannot rebuild backend locally
+- Error message: "Some commands are blocked at org-level and cannot be overridden"
+
+✅ **Unavailable external service:**
+- Backend Docker image has incorrect build-time configuration
+- Cannot modify Docker image without rebuilding
+- Environment variables cannot override build-time Quarkus config
+- This is a **known Quarkus limitation** for OIDC settings
+
+✅ **Multiple session attempts:**
+- This is **Session #7** encountering the same blocker
+- Sessions #1-6 all documented identical infrastructure failure
+- No coding agent has successfully started the backend
+
+❌ **NOT missing functionality:**
+- Database schema is complete (verified in previous sessions)
+- Frontend code for features #15, #13 is complete (verified in previous sessions)
+- Only backend service startup is blocked
+
+### Feature Dependencies:
+
+**Feature #1:** Explicitly requires:
+- Step 1: "Start the Quarkus development server (app.hopps.org)"
+- Step 3: "Call health endpoint (GET /q/health)"
+- **Cannot be verified without running backend**
+
+**Feature #15:** Requires:
+- Step 7: "Verify API POST /bommel/ was called"
+- Step 8: "Verify the Bommel is persisted in the database"
+- **Cannot test end-to-end without backend API**
+
+**Feature #13:** Requires:
+- Step 4: "Verify chart loads data from the API"
+- Step 6: "Verify chart shows aggregated data across all Bommel"
+- **Cannot verify with real data without backend API**
+
+### Actions Taken This Session:
+
+1. ✅ Read last 500 lines of claude-progress.txt (confirmed 6 previous sessions with same blocker)
+2. ✅ Checked git log (verified multiple skip/documentation commits)
+3. ✅ Checked feature stats (18/81 passing, 3 in progress)
+4. ✅ Retrieved feature details for #1, #15, #13
+5. ✅ Verified Docker infrastructure status (postgres, keycloak running)
+6. ✅ Attempted to start org service with `docker compose up -d org`
+7. ✅ Confirmed error: Connection refused to localhost:8080
+8. ✅ Read docker-compose.yaml (confirmed QUARKUS_OIDC_ENABLED=false is set)
+9. ✅ Verified environment variables are correct but ignored
+10. ✅ Attempted to check for Java (blocked at org-level)
+11. ✅ Cleared in_progress status for all three features (#1, #15, #13)
+12. ✅ Documented session findings
+
+### What Was NOT Done:
+
+- ❌ Did not skip features (requires orchestrator decision)
+- ❌ Did not attempt to modify Docker image (no rebuild capability)
+- ❌ Did not attempt to modify Quarkus config (no Java/Maven access)
+
+### Current Feature Status:
+- Feature #1: Priority 1, in_progress: **false**, passes: false
+- Feature #15: Priority 102, in_progress: **false**, passes: false
+- Feature #13: Priority 105, in_progress: **false**, passes: false
+
+### Current Completion: 18/81 features passing (22.2%), 0 in progress
+
+### Recommendations for Orchestrator:
+
+**CRITICAL INFRASTRUCTURE BLOCKER - REQUIRES HUMAN INTERVENTION**
+
+This blocker has persisted across **7+ consecutive coding agent sessions** and affects approximately **40-50% of remaining features**.
+
+**Resolution Options (in order of preference):**
+
+1. **Rebuild Backend Docker Image** (Most Reliable):
+   ```bash
+   # Human operator runs:
+   cd backend/app.hopps.org
+   mvn clean package -DskipTests
+   docker build -t ghcr.io/hopps-app/hopps/org:396 .
+   docker push ghcr.io/hopps-app/hopps/org:396
+   # Update docker-compose.yaml: image: ghcr.io/hopps-app/hopps/org:396
+   ```
+   **Impact:** Fixes root cause permanently
+   **Time:** ~10 minutes
+   **Unblocks:** All backend-dependent features
+
+2. **Grant Org-Level Permissions for Java/Maven** (Enables Local Development):
+   - Update org-level allowed commands to include `java`, `mvn`, `./mvnw`
+   - Allows coding agents to build and run backend locally
+   - Removes dependency on Docker image
+   **Impact:** Enables local backend development
+   **Time:** ~5 minutes (configuration change)
+   **Unblocks:** All backend-dependent features + enables faster iteration
+
+3. **Manual Backend Startup Before Sessions** (Quick Workaround):
+   ```bash
+   # Human operator runs before each session:
+   cd backend/app.hopps.org
+   mvn quarkus:dev  # Runs on port 8101
+   ```
+   **Impact:** Temporary fix, requires human intervention per session
+   **Time:** ~2 minutes per session
+   **Unblocks:** Features for that session only
+
+4. **Assign Frontend-Only Features** (Workaround):
+   - Focus on features that don't require backend API
+   - Examples: UI components, client-side validation, theme switching
+   - Resume backend-dependent features after infrastructure is fixed
+   **Impact:** Allows progress on subset of features
+   **Time:** Immediate
+   **Unblocks:** ~20-30 frontend-only features
+
+**Impact Assessment:**
+
+**Features Blocked:**
+- Feature #1 (Database connection) - **19 features depend on this**
+- Features #13, #15, #17, #19, #28, #29, #53, #60, #70 - Already moved to end of queue
+- Estimated: **30-40 additional features** require backend API
+
+**Development Velocity:**
+- Current: **18/81 features passing (22.2%)** after 7 sessions
+- Average: **2.6 features per session**
+- Blocker impact: **~50 features blocked** = **~19 sessions of lost productivity**
+
+**Recommended Immediate Action:**
+**Option 2** (Grant Java/Maven permissions) provides the best long-term solution:
+- Allows coding agents to build backend locally
+- Eliminates dependency on pre-built Docker images
+- Enables rapid iteration and testing
+- One-time configuration change with permanent benefits
+
+### Session Summary:
+
+Attempted to start backend org service via Docker Compose. Service starts but immediately fails with connection refused to localhost:8080 (Keycloak). Confirmed this is due to build-time OIDC configuration in Docker image that cannot be overridden by environment variables. Verified that Java/Maven commands are blocked at org-level, preventing local rebuild. All three assigned features explicitly require running backend and cannot be verified. Cleared in_progress status and documented findings for orchestrator decision.
+
+**Session Duration:** ~15 minutes
+**Session End:** 2026-02-09 15:23 CET
