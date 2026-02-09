@@ -131,7 +131,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                     )}
 
                     {/* Action buttons in edit mode */}
-                    {editable && !isEditing && <BommelCardActions onEdit={() => setIsEditing(true)} onDelete={handleDelete} onAddChild={handleAddChild} />}
+                    {editable && !isEditing && <BommelCardActions onEdit={() => setIsEditing(true)} onDelete={handleDeleteClick} onAddChild={handleAddChild} />}
                 </div>
 
                 {/* Financial Stats - Only show in view mode */}
@@ -148,6 +148,15 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                     </div>
                 )}
             </div>
+
+            {/* Delete confirmation dialog */}
+            <DeleteBommelDialog
+                open={showDeleteDialog}
+                bommelName={nodeDatum.name}
+                hasTransactions={transactionsCount > 0}
+                onConfirm={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
+            />
         </div>
     );
 }

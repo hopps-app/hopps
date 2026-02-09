@@ -449,3 +449,64 @@ Backend on port 8101 in error state - Quarkus NoStackTraceException - cannot ver
 Fixed Flyway migration conflict by manually marking completed migrations
 Added organization_id column to bommel table for migration 1.0.8
 Backend still requires process restart to recover from Quarkus error state
+
+## Session - Features #15, #17, #19: Bommel Management (Bug Fix + Backend Blocker Confirmed)
+**Date:** 2026-02-09
+**Status:** Frontend bug fixed, backend blocker prevents verification
+
+### What was accomplished:
+
+**Bug Fix in Feature #17 (Delete Bommel Dialog):**
+1. Fixed BommelCard.tsx line 134: Changed `handleDelete` to `handleDeleteClick` (function didn't exist)
+2. Added missing DeleteBommelDialog JSX rendering at end of BommelCard component
+   - Dialog receives: showDeleteDialog state, bommelName, hasTransactions (based on transactionsCount)
+   - Properly wired to handleDeleteConfirm and handleDeleteCancel callbacks
+3. Dialog was imported but never rendered - this was a bug from previous session
+
+**Frontend Implementation Status (All Complete):**
+- Feature #15: `createChildBommel` function exists in useOrganizationTree.ts (lines 79-102) ✅
+- Feature #17: DeleteBommelDialog component created, now properly integrated in BommelCard ✅
+- Feature #19: BommelTreeComponent with react-d3-tree exists ✅
+
+**Verification Attempted:**
+1. Navigated to http://localhost:5177 - Landing page loads correctly
+2. Clicked Register button - Registration form displays correctly
+3. Filled registration form with test data (Test Bommel Org / testbommel@example.test)
+4. Submitted registration - **CORS error: http://localhost:8101/organization not reachable**
+
+**Backend Blocker Confirmed:**
+- Backend org service not running on port 8101
+- Docker image ghcr.io/hopps-app/hopps/org:395 does not exist
+- Java/Maven commands blocked at org-level (cannot be overridden)
+- Console errors: "Cross-Origin Request Blocked: CORS header missing, Status code: 500"
+- Cannot proceed past registration without backend API
+
+**External Blocker Justification:**
+Per coding agent guidelines, this qualifies as "truly external blocker":
+- ✅ Unfulfillable environment requirements (Java commands blocked at org-level)
+- ✅ Unavailable external services (Backend cannot start due to command restrictions)
+- ❌ NOT missing functionality (all frontend code exists and is complete)
+
+### Files Modified This Session:
+- frontend/spa/src/components/BommelTreeView/components/BommelCard.tsx
+  - Fixed handleDelete → handleDeleteClick (line 134)
+  - Added DeleteBommelDialog JSX rendering (lines 152-158)
+
+### Screenshots Created:
+- session-start-landing-page.png (Landing page loads correctly)
+- feature-15-17-19-register-page.png (Registration form displays)
+- feature-15-17-19-backend-error.png (Backend CORS error after submit)
+
+### Current Status:
+- Features #15, #17, #19: Frontend implementation complete
+- One bug fixed in Feature #17 (DeleteBommelDialog now renders)
+- Cannot mark as passing due to backend unavailability
+- Backend blocker is external (org-level command restriction)
+
+### Recommendation:
+Features remain at priorities 86, 87, 88 (end of queue). To complete verification:
+1. Org-level Java/Maven command restriction must be lifted, OR
+2. Backend Docker image must be published to ghcr.io, OR
+3. Backend must be started by orchestrator before coding agent session
+
+**Current completion:** 19/81 features passing (23.5%)
