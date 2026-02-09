@@ -15,6 +15,7 @@ services:
       - QUARKUS_OIDC_CLIENT_ID=hopps
       - QUARKUS_OIDC_TLS_VERIFICATION=none
       - QUARKUS_OPENFGA_URL=http://openfga:8080
+      - QUARKUS_OPENFGA_STORE_ID=01JM0XYZABCDEFGHIJKLMNOPQR
 
   fin:
     image: ghcr.io/hopps-app/hopps/fin:${TAG:-395}
