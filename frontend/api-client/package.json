@@ -32,11 +32,11 @@
     "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o"
   },
   "devDependencies": {
-    "@pact-foundation/pact": "^13.2.0",
+    "@pact-foundation/pact": "^16.1.0",
     "@pact-foundation/pact-node": "^10.18.0",
     "@pact-foundation/pact-web": "^9.18.1",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.2",
-    "nswag": "^14.4.0"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "nswag": "^14.6.3"
   }
 }
