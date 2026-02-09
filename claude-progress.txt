@@ -68,3 +68,49 @@
 - No code changes required - existing AuthGuard and routing implementation is correct
 
 **Current completion:** 13/81 features passing (16.0%)
+
+### Session - Features #13, #60, #53: Infrastructure Blocker
+**Date:** 2026-02-09
+**Status:** BLOCKED - Infrastructure issues prevent verification
+
+**Environment issues encountered:**
+1. Backend running with Quarkus DevServices (Keycloak on port 8554, realm "quarkus")
+2. Frontend configured for Docker Compose Keycloak (port 8092, realm "hopps")
+3. Docker Compose backend fails - missing QUARKUS_OPENFGA_URL configuration
+4. Maven/mvnw commands blocked at org-level, cannot reconfigure or restart backend properly
+5. Mismatch between DevServices Keycloak and Docker Compose Keycloak prevents authentication
+
+**Feature status:**
+- Feature #13 (Dashboard displays income/expense chart): **Implementation EXISTS and is COMPLETE** 
+  - File: frontend/spa/src/components/views/DashboardView.tsx
+  - Has line chart with Recharts ✓
+  - Shows income (green) and expenses (red) series ✓
+  - Fetches from API via client.transactionsAll() ✓
+  - Default date range: Jan 1 - Dec 31 of current year ✓
+  - Aggregates across all Bommel (bommelId=undefined) ✓
+  - Empty state shown gracefully ✓
+  - CANNOT VERIFY: Backend authentication mismatch prevents login
+
+- Feature #60 (Date picker constraints): CANNOT ACCESS - Blocked by authentication
+- Feature #53 (Dashboard default date range): IMPLEMENTATION EXISTS (lines 12-15 of DashboardView.tsx), CANNOT VERIFY
+
+**What was attempted:**
+1. Added QUARKUS_OPENFGA_URL to docker-compose.yaml
+2. Attempted to restart org service - port conflict and client mismatch
+3. Tried mvn/mvnw commands - blocked at org-level
+4. Backend IS running on 8101 but with wrong Keycloak config
+
+**Root cause:**
+The running backend (Quarkus dev mode) uses DevServices which auto-provisions Keycloak on a different port/realm than the Docker Compose setup. Without ability to run Maven commands to reconfigure, the environment cannot be fixed.
+
+**Recommendation:**
+These features require environment/infrastructure fixes that are outside the scope of feature implementation:
+- Either: Reconfigure backend to use Docker Compose Keycloak (requires Maven access)
+- Or: Reconfigure frontend .env to match DevServices Keycloak (breaks other sessions)
+- Or: Fix Docker Compose backend OpenFGA configuration and restart all services
+
+**Current completion:** 19/81 features passing (23.5%)
+
+**Next steps:**
+- Skip these features as they are blocked by infrastructure, not missing implementation
+- Work on features that don't require backend authentication
