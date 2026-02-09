@@ -1,6 +1,6 @@
 services:
   org:
-    image: ghcr.io/hopps-app/hopps/org:${TAG:-395}
+    image: hopps-org-local:latest
     ports:
       - "8101:8080"
     depends_on:
