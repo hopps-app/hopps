@@ -53,23 +53,20 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
 
             // Then insert the transaction
             String sql = """
-                    INSERT INTO transaction (id, organization_id, bommel_id, name, total, currencycode,
-                                            transaction_time, status, privately_paid, created_by, sender_id, created_at)
-                    VALUES (:id, :organizationId, :bommelId, :name, :total, :currencyCode,
-                            CAST(:transactionTime AS timestamp), CAST(:status AS varchar), :privatelyPaid, :createdBy, :senderId, CURRENT_TIMESTAMP)
+                    INSERT INTO TransactionRecord (id, bommel_id, name, total, currencyCode,
+                                            transaction_time, privately_paid, sender_id, document_key, document)
+                    VALUES (:id, :bommelId, :name, CAST(:total AS numeric), :currencyCode,
+                            CAST(:transactionTime AS timestamp), :privatelyPaid, :senderId, 'testdata', 0)
                     """;
 
             entityManager.createNativeQuery(sql)
                     .setParameter("id", transaction.getId())
-                    .setParameter("organizationId", transaction.getOrganizationId())
                     .setParameter("bommelId", transaction.getBommelId())
                     .setParameter("name", transaction.getName())
                     .setParameter("total", transaction.getTotal())
                     .setParameter("currencyCode", transaction.getCurrencyCode())
                     .setParameter("transactionTime", transaction.getTransactionTime())
-                    .setParameter("status", transaction.getStatus())
                     .setParameter("privatelyPaid", transaction.getPrivatelyPaid())
-                    .setParameter("createdBy", transaction.getCreatedBy())
                     .setParameter("senderId", senderId)
                     .executeUpdate();
 
