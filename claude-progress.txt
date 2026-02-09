@@ -446,3 +446,6 @@ Features #15, #17, #19 skipped and moved to end of queue (priorities 86, 87, 88)
 
 **Infrastructure Blocker:**
 Backend on port 8101 in error state - Quarkus NoStackTraceException - cannot verify dashboard
+Fixed Flyway migration conflict by manually marking completed migrations
+Added organization_id column to bommel table for migration 1.0.8
+Backend still requires process restart to recover from Quarkus error state
