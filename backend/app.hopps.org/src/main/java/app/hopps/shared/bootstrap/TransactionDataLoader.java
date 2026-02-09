@@ -6,9 +6,9 @@ import jakarta.persistence.EntityManager;
 
 /**
  * Loads Transaction entities from testdata configuration. Transactions are loaded after bommels (order=40) as they
- * reference organizations and bommels. TEMPORARILY DISABLED - TradeParty FK constraints need to be fixed
+ * reference organizations and bommels.
  */
-// @ApplicationScoped
+@ApplicationScoped
 public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.TransactionData> {
 
     private static final int ORDER = 40;
