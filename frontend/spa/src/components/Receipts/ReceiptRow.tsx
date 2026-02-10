@@ -1,4 +1,5 @@
 import { ChevronDownIcon, ChevronRightIcon, InfoCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Trash2 } from 'lucide-react';
 import { FC, memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -21,9 +22,10 @@ type ReceiptRowProps = {
     isChecked: boolean;
     onToggle: (id: string) => void;
     onCheckChange: (id: string, value: boolean) => void;
+    onDelete?: (id: string) => void;
 };
 
-const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: _isChecked, onToggle: _onToggle, onCheckChange: _onCheckChange }) => {
+const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: _isChecked, onToggle: _onToggle, onCheckChange: _onCheckChange, onDelete }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
@@ -33,6 +35,16 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
     const handleRowClick = useCallback(() => {
         navigate(`/receipts/${receipt.id}`);
     }, [navigate, receipt.id]);
+
+    const handleDelete = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (onDelete) {
+                onDelete(receipt.id);
+            }
+        },
+        [onDelete, receipt.id]
+    );
 
     return (
         <li
@@ -93,7 +105,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
                     )}
                 </span>
 
-                {/* Amount + Checkbox */}
+                {/* Amount + Actions */}
                 <div className="flex items-center justify-end gap-4">
                     <span className={cn('text-base font-semibold tabular-nums text-right min-w-[80px]', amountColorClass(receipt.amount))}>
                         {formatAmount(receipt.amount)}
@@ -102,6 +114,18 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
                     <div className="shrink-0" {...stopEventPropagationHandlers<HTMLDivElement>()}>
                         <Checkbox checked={!isDraft} disabled className="cursor-default" />
                     </div>
+
+                    {onDelete && (
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            className="shrink-0 p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            aria-label={t('receipts.deleteDialog.title')}
+                            title={t('receipts.deleteDialog.title')}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
             </div>
 

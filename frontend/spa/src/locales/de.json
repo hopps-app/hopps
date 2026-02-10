@@ -286,6 +286,13 @@
             "page": "Seite",
             "previous": "Zurück",
             "next": "Weiter"
+        },
+        "deleteDialog": {
+            "title": "Beleg löschen",
+            "description": "Sind Sie sicher, dass Sie '{{name}}' ({{amount}}) löschen möchten?",
+            "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Der Beleg wird dauerhaft gelöscht.",
+            "confirm": "Ja, löschen",
+            "error": "Fehler beim Löschen des Belegs"
         }
     },
     "bommel": {

@@ -345,6 +345,13 @@
             "page": "Page",
             "previous": "Previous",
             "next": "Next"
+        },
+        "deleteDialog": {
+            "title": "Delete Receipt",
+            "description": "Are you sure you want to delete '{{name}}' ({{amount}})?",
+            "warning": "This action cannot be undone. The receipt will be permanently deleted.",
+            "confirm": "Yes, delete",
+            "error": "Failed to delete receipt"
         }
     },
     "bommel": {

@@ -1,11 +1,14 @@
 import type { TransactionStatus } from '@hopps/api-client';
-import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
+import { formatAmount } from '@/components/Receipts/helpers/receiptHelpers';
 import ReceiptRow from '@/components/Receipts/ReceiptRow';
 import ReceiptsEmptyState from '@/components/Receipts/ReceiptsEmptyState';
-import { ReceiptFiltersState } from '@/components/Receipts/types';
-import { transactionToReceipt, useTransactions } from '@/hooks/queries/useTransactions';
+import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
+import { useToast } from '@/hooks/use-toast';
+import { transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
 
 type ReceiptsListProps = {
     filters: ReceiptFiltersState;
@@ -13,10 +16,13 @@ type ReceiptsListProps = {
 
 const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const { t } = useTranslation();
+    const { showError } = useToast();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [checked, setChecked] = useState<Record<string, boolean>>({});
     const [page, setPage] = useState(0);
     const pageSize = 10;
+    const [deleteTarget, setDeleteTarget] = useState<Receipt | null>(null);
+    const deleteTransaction = useDeleteTransaction();
 
     // Map UI filters to API filters
     const apiFilters = useMemo(() => {
@@ -91,6 +97,31 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         setPage(0);
     }, [filters.search, filters.startDate, filters.endDate, filters.project, filters.category, filters.status]);
 
+    const handleDeleteRequest = useCallback(
+        (id: string) => {
+            const receipt = receipts.find((r) => r.id === id);
+            if (receipt) {
+                setDeleteTarget(receipt);
+            }
+        },
+        [receipts]
+    );
+
+    const handleDeleteConfirm = useCallback(async () => {
+        if (!deleteTarget) return;
+        try {
+            await deleteTransaction.mutateAsync(parseInt(deleteTarget.id, 10));
+            setDeleteTarget(null);
+        } catch (e) {
+            console.error(e);
+            showError(t('receipts.deleteDialog.error'));
+        }
+    }, [deleteTarget, deleteTransaction, showError, t]);
+
+    const handleDeleteCancel = useCallback(() => {
+        setDeleteTarget(null);
+    }, []);
+
     if (isLoading) {
         return <div className="text-center text-[var(--grey-700)] py-6">{t('common.loading')}</div>;
     }
@@ -129,6 +160,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
                         isChecked={Boolean(checked[receipt.id])}
                         onToggle={toggleRow}
                         onCheckChange={handleCheckChange}
+                        onDelete={handleDeleteRequest}
                     />
                 ))}
             </ul>
@@ -155,6 +187,15 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
                     </button>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <DeleteTransactionDialog
+                open={!!deleteTarget}
+                transactionName={deleteTarget?.issuer || ''}
+                transactionAmount={deleteTarget ? formatAmount(deleteTarget.amount) : ''}
+                onConfirm={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
+            />
         </div>
     );
 };

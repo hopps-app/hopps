@@ -1,6 +1,6 @@
 import type { TransactionStatus } from '@hopps/api-client';
 import { TransactionResponse } from '@hopps/api-client';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import apiService from '@/services/ApiService';
 
@@ -49,6 +49,17 @@ export function useTransaction(id: number) {
         queryKey: transactionKeys.detail(id),
         queryFn: () => apiService.orgService.transactionsGET(id),
         enabled: !!id,
+    });
+}
+
+export function useDeleteTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => apiService.orgService.transactionsDELETE(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+        },
     });
 }
 
