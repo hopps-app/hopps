@@ -307,10 +307,14 @@
         "incomeExpenseChart": "Einnahmen & Ausgaben",
         "loadError": "Diagrammdaten konnten nicht geladen werden",
         "noData": "Keine Daten verfügbar",
-        "noDataHint": "Keine Transaktionen für {{year}} gefunden",
+        "noDataHint": "Keine Transaktionen für den gewählten Zeitraum gefunden",
         "timeRange": "Zeige Daten von {{startDate}} bis {{endDate}}",
         "income": "Einnahmen",
-        "expenses": "Ausgaben"
+        "expenses": "Ausgaben",
+        "filterLabel": "Zeitraum",
+        "startDate": "Von",
+        "endDate": "Bis",
+        "resetFilter": "Zurücksetzen"
     },
     "categories": {
         "title": "Admin Einstellungen: Kategorien",

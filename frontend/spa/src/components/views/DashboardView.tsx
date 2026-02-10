@@ -1,20 +1,60 @@
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { X } from 'lucide-react';
+import { format } from 'date-fns';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
+import { Calendar } from '@/components/ui/shadecn/Calendar';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { cn } from '@/lib/utils';
+
+function getDefaultStartDate(): string {
+    return `${new Date().getFullYear()}-01-01`;
+}
+
+function getDefaultEndDate(): string {
+    return `${new Date().getFullYear()}-12-31`;
+}
 
 function DashboardView() {
     const { t } = useTranslation();
     const { organization } = useStore();
 
-    // Get current year date range
-    const currentYear = new Date().getFullYear();
-    const startDate = `${currentYear}-01-01`;
-    const endDate = `${currentYear}-12-31`;
+    // Date range state with current year as default
+    const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
+    const [endDate, setEndDate] = useState<string>(getDefaultEndDate());
 
-    // Fetch all transactions for the current year
+    // Popover state
+    const [openStart, setOpenStart] = useState(false);
+    const [openEnd, setOpenEnd] = useState(false);
+
+    const handleDateSelect = useCallback(
+        (type: 'startDate' | 'endDate', date: Date | undefined) => {
+            if (!date) return;
+            const formatted = format(date, 'yyyy-MM-dd');
+            if (type === 'startDate') {
+                setStartDate(formatted);
+                setOpenStart(false);
+            } else {
+                setEndDate(formatted);
+                setOpenEnd(false);
+            }
+        },
+        []
+    );
+
+    const handleReset = useCallback(() => {
+        setStartDate(getDefaultStartDate());
+        setEndDate(getDefaultEndDate());
+    }, []);
+
+    const isDefaultRange = startDate === getDefaultStartDate() && endDate === getDefaultEndDate();
+
+    // Fetch all transactions for the selected date range
     const { data: transactions, isLoading, error } = useQuery({
         queryKey: ['transactions', organization?.id, startDate, endDate],
         queryFn: () =>
@@ -77,14 +117,114 @@ function DashboardView() {
     // Check if there's any data to display
     const hasData = chartData.some(d => d.income > 0 || d.expenses > 0);
 
+    // Format dates for display
+    const formattedStart = format(new Date(startDate), 'dd.MM.yyyy');
+    const formattedEnd = format(new Date(endDate), 'dd.MM.yyyy');
+
     return (
         <div className="px-7 py-[2.5rem]">
             <h1 className="text-3xl font-bold mb-6">{t('dashboard.title')}</h1>
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">
-                    {t('dashboard.incomeExpenseChart')}
-                </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+                    <h2 className="text-xl font-semibold">
+                        {t('dashboard.incomeExpenseChart')}
+                    </h2>
+
+                    {/* Date Range Filter */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                            {t('dashboard.filterLabel')}
+                        </label>
+                        <div className="flex items-center gap-2">
+                            {/* Start Date Picker */}
+                            <div className="flex items-center">
+                                <Popover open={openStart} onOpenChange={setOpenStart}>
+                                    <PopoverTrigger asChild>
+                                        <BaseButton
+                                            variant="outline"
+                                            data-testid="dashboard-start-date"
+                                            className={cn(
+                                                'w-[140px] h-10 justify-between text-sm font-normal',
+                                                'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
+                                                'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
+                                            )}
+                                        >
+                                            <span className="truncate">{formattedStart}</span>
+                                            <CalendarIcon className="ml-2 h-4 w-4 text-gray-500" />
+                                        </BaseButton>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                        align="start"
+                                        side="bottom"
+                                        sideOffset={4}
+                                        className="p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm w-auto"
+                                    >
+                                        <Calendar
+                                            mode="single"
+                                            captionLayout="dropdown"
+                                            startMonth={new Date(2020, 0)}
+                                            endMonth={new Date(2030, 11)}
+                                            selected={new Date(startDate)}
+                                            onSelect={(date) => handleDateSelect('startDate', date)}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
+                            <span className="text-sm text-gray-500">–</span>
+
+                            {/* End Date Picker */}
+                            <div className="flex items-center">
+                                <Popover open={openEnd} onOpenChange={setOpenEnd}>
+                                    <PopoverTrigger asChild>
+                                        <BaseButton
+                                            variant="outline"
+                                            data-testid="dashboard-end-date"
+                                            className={cn(
+                                                'w-[140px] h-10 justify-between text-sm font-normal',
+                                                'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
+                                                'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
+                                            )}
+                                        >
+                                            <span className="truncate">{formattedEnd}</span>
+                                            <CalendarIcon className="ml-2 h-4 w-4 text-gray-500" />
+                                        </BaseButton>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                        align="start"
+                                        side="bottom"
+                                        sideOffset={4}
+                                        className="p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm w-auto"
+                                    >
+                                        <Calendar
+                                            mode="single"
+                                            captionLayout="dropdown"
+                                            startMonth={new Date(2020, 0)}
+                                            endMonth={new Date(2030, 11)}
+                                            selected={new Date(endDate)}
+                                            onSelect={(date) => handleDateSelect('endDate', date)}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
+                            {/* Reset Button */}
+                            {!isDefaultRange && (
+                                <BaseButton
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleReset}
+                                    data-testid="dashboard-reset-filter"
+                                    className="h-10 px-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                                >
+                                    <X className="h-4 w-4 mr-1" />
+                                    {t('dashboard.resetFilter')}
+                                </BaseButton>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 {isLoading && (
                     <div className="flex items-center justify-center h-96">
@@ -106,7 +246,7 @@ function DashboardView() {
                             {t('dashboard.noData')}
                         </p>
                         <p className="text-sm">
-                            {t('dashboard.noDataHint', { year: currentYear })}
+                            {t('dashboard.noDataHint')}
                         </p>
                     </div>
                 )}
@@ -114,7 +254,7 @@ function DashboardView() {
                 {!isLoading && !error && hasData && (
                     <>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                            {t('dashboard.timeRange', { startDate, endDate })}
+                            {t('dashboard.timeRange', { startDate: formattedStart, endDate: formattedEnd })}
                         </p>
                         <ResponsiveContainer width="100%" height={400}>
                             <LineChart

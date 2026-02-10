@@ -207,10 +207,14 @@
         "incomeExpenseChart": "Income & Expenses",
         "loadError": "Failed to load chart data",
         "noData": "No data available",
-        "noDataHint": "No transactions found for {{year}}",
+        "noDataHint": "No transactions found for the selected time range",
         "timeRange": "Showing data from {{startDate}} to {{endDate}}",
         "income": "Income",
-        "expenses": "Expenses"
+        "expenses": "Expenses",
+        "filterLabel": "Time Range",
+        "startDate": "From",
+        "endDate": "To",
+        "resetFilter": "Reset"
     },
     "categories": {
         "title": "Admin Settings: Categories",
