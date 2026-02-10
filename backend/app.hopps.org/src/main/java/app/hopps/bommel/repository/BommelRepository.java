@@ -142,6 +142,13 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                     Response.Status.BAD_REQUEST);
         }
 
+        // Unlink all transactions referencing this bommel before deletion
+        // This sets bommel_id = NULL so transactions are preserved but detached
+        getEntityManager()
+                .createQuery("UPDATE Transaction t SET t.bommel = NULL WHERE t.bommel.id = :bommelId")
+                .setParameter("bommelId", bommel.id)
+                .executeUpdate();
+
         delete(bommel);
     }
 
