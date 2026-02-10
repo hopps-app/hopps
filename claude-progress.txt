@@ -2904,3 +2904,70 @@ DEPENDENCIES UNBLOCKED: 19 features that depended on #1 are now ready
 
 Session Duration: 45 minutes
 Session End: 2026-02-09 16:25 CET
+
+================================================================================
+SESSION #12 - 2026-02-10 ~14:15 CET
+================================================================================
+Assigned Features: #11 (Logout functionality), #68 (Multi-tenant data isolation)
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 33/81 passing (40.7%), 2 in progress (#11, #68)
+- Backend: Running on ports 8080 and 8101
+- Frontend: Running on port 5173
+- Docker: postgres, keycloak, localstack, dev services all running
+
+### Feature #11: Logout functionality works correctly - PASSED
+
+All verification steps completed successfully:
+1. Logged in as Alice Mustermann via Keycloak
+2. Verified authenticated state (dashboard with sidebar, "Alice Mustermann" visible)
+3. Clicked Logout in UserMenu dropdown (Profile/Logout menu)
+4. Verified redirect to landing page (Login/Register buttons shown)
+5. Attempted to access /dashboard after logout - redirected to Keycloak login
+6. Verified Keycloak token cleared (no cookies, no session storage on app domain)
+
+NO CODE CHANGES NEEDED - logout functionality was already properly implemented.
+Screenshots saved to .autoforge/screenshots/feature11-*.png
+
+### Feature #68: Multi-tenant data isolation - PASSED
+
+Setup:
+- Created new Keycloak user "charlie" (charlie/charlie)
+- Added Charlie as member of "Grünes Herz e.V." (org ID 2) in both databases
+  (Docker Compose PostgreSQL and Dev Services PostgreSQL)
+- Alice is in "Bühnefrei e.V." (org ID 4)
+
+API-Level Isolation Tests:
+1. Created transaction "ISOLATION_TEST_67890" (ID 65) as Alice
+2. Charlie's GET /transactions returned empty array []
+3. Charlie's GET /transactions/65 returned HTTP 404 (cannot access Alice's data)
+4. Created transaction "CHARLIE_ORG_B_TEST" (ID 66) as Charlie
+5. Alice's GET /transactions/66 returned HTTP 404 (cannot access Charlie's data)
+6. Bidirectional isolation confirmed
+
+UI-Level Isolation Tests:
+1. Alice sees receipts from Bühnefrei e.V. (15+ transactions)
+2. Charlie sees "No receipts uploaded yet" (empty)
+3. Alice's dashboard shows Income & Expenses chart with data
+4. Charlie's dashboard shows "No data available"
+5. Alice's bommel tree shows "Bühnefrei e.V." hierarchy
+6. Charlie's bommel tree shows "Grünes Herz e.V." hierarchy
+7. Zero console errors for both users
+
+NO CODE CHANGES NEEDED - multi-tenant isolation was already implemented via:
+- OrganizationContext (request-scoped, resolves org from JWT email)
+- Repository-level query scoping (findByIdScoped, organization.id filters)
+- Database foreign keys (organization_id NOT NULL on transactions, documents, etc.)
+
+Test data cleaned up after verification.
+Screenshots saved to .autoforge/screenshots/feature68-*.png
+
+### Summary:
+- Features completed: 2 (#11, #68)
+- Both were verification features - no code changes required
+- Current completion: 35/81 features passing (43.2%)
+- Session Duration: ~30 minutes
+- Session End: 2026-02-10 ~14:45 CET
