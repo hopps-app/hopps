@@ -309,49 +309,49 @@ bommels:
   - id: 23
     name: "Bühnefrei e.V."
     parentId: null
-    emoji: null
+    emoji: "🎭"
     responsibleMemberId: null
 
   - id: 24
     name: "Kiosk"
     parentId: 23
-    emoji: null
+    emoji: "🍿"
     responsibleMemberId: null
 
   - id: 25
     name: "Räumlichkeiten"
     parentId: 23
-    emoji: null
+    emoji: "🏠"
     responsibleMemberId: null
 
   - id: 26
     name: "Workshops"
     parentId: 23
-    emoji: null
+    emoji: "📚"
     responsibleMemberId: null
 
   - id: 27
     name: "Projekte"
     parentId: 23
-    emoji: null
+    emoji: "🎬"
     responsibleMemberId: null
 
   - id: 28
     name: "Der kleine Lord"
     parentId: 27
-    emoji: null
+    emoji: "👑"
     responsibleMemberId: null
 
   - id: 29
     name: "Das Hässliche Entlein"
     parentId: 27
-    emoji: null
+    emoji: "🦆"
     responsibleMemberId: null
 
   - id: 30
     name: "König der Löwen"
     parentId: 27
-    emoji: null
+    emoji: "🦁"
     responsibleMemberId: null
 
 # Transactions for pagination testing
