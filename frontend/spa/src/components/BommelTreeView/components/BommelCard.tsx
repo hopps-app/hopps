@@ -12,7 +12,7 @@ import { DeleteBommelDialog, DeleteTransactionHandling } from './DeleteBommelDia
 
 import Emoji from '@/components/ui/Emoji';
 
-export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelete, onAddChild, editable }: BommelCardProps) {
+export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelete, onAddChild, onMove, editable }: BommelCardProps) {
     const { t } = useTranslation();
     const nodeId = nodeDatum.attributes?.id as number;
     const total = (nodeDatum.attributes?.total as number) || 0;
@@ -131,7 +131,14 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                     )}
 
                     {/* Action buttons in edit mode */}
-                    {editable && !isEditing && <BommelCardActions onEdit={() => setIsEditing(true)} onDelete={handleDeleteClick} onAddChild={handleAddChild} />}
+                    {editable && !isEditing && (
+                        <BommelCardActions
+                            onEdit={() => setIsEditing(true)}
+                            onDelete={handleDeleteClick}
+                            onAddChild={handleAddChild}
+                            onMove={onMove ? () => onMove(nodeId) : undefined}
+                        />
+                    )}
                 </div>
 
                 {/* Financial Stats - Only show in view mode */}

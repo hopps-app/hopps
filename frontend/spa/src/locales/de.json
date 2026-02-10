@@ -120,7 +120,8 @@
             "addChild": "Kind hinzufügen",
             "saveName": "Speichern",
             "cancelEdit": "Abbrechen",
-            "editModeHint": "Zum Verschieben von Bommeln wechseln Sie zur Tabellen-Ansicht",
+            "editModeHint": "Per Drag & Drop in der Tabelle oder mit dem Verschieben-Button in der Baumansicht",
+            "moveBommel": "Bommel verschieben",
             "includeDrafts": "Entwürfe einbeziehen",
             "aggregate": "Aggregieren",
             "details": {
@@ -146,6 +147,12 @@
                 "comingSoon": "(Demnächst verfügbar)",
                 "confirm": "Ja, löschen",
                 "cancel": "Abbrechen"
+            },
+            "moveDialog": {
+                "title": "Bommel verschieben",
+                "description": "Wählen Sie einen neuen Eltern-Bommel für '{{name}}':",
+                "noTargets": "Keine gültigen Ziel-Bommels verfügbar",
+                "confirm": "Verschieben"
             },
             "rootCannotEdit": "Der Wurzel-Bommel kann nicht bearbeitet werden",
             "rootCannotDelete": "Der Wurzel-Bommel kann nicht gelöscht werden"

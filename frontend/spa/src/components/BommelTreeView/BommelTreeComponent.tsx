@@ -3,6 +3,7 @@ import Tree, { CustomNodeElementProps } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
 import { BommelCard, TreeStyles } from './components';
+import { MoveBommelDialog } from './components/MoveBommelDialog';
 import { useTreeData } from './hooks/useTreeData';
 import { BommelTreeComponentProps } from './types';
 
@@ -16,15 +17,19 @@ function BommelTreeComponent({
     onEdit,
     onDelete,
     onAddChild,
+    onMove,
     width = 800,
     height = 600,
 }: BommelTreeComponentProps) {
     const { t } = useTranslation();
     const [, forceUpdate] = useState({});
     const treeContainerRef = useRef<HTMLDivElement>(null);
+    const [movingBommelId, setMovingBommelId] = useState<number | null>(null);
 
     // Convert OrganizationTreeNodeModel[] to react-d3-tree format
     const treeData = useTreeData({ tree, rootBommel });
+
+    const movingBommel = movingBommelId !== null ? tree.find((n) => n.id === movingBommelId) : null;
 
     const handleEdit = useCallback(
         async (nodeId: number, newName: string, newEmoji?: string) => {
@@ -68,6 +73,30 @@ function BommelTreeComponent({
         [onAddChild]
     );
 
+    const handleMoveClick = useCallback(
+        (nodeId: number) => {
+            setMovingBommelId(nodeId);
+        },
+        []
+    );
+
+    const handleMoveConfirm = useCallback(
+        async (newParentId: number) => {
+            if (onMove && movingBommelId !== null) {
+                const success = await onMove(movingBommelId, newParentId);
+                if (success) {
+                    forceUpdate({});
+                }
+            }
+            setMovingBommelId(null);
+        },
+        [onMove, movingBommelId]
+    );
+
+    const handleMoveCancel = useCallback(() => {
+        setMovingBommelId(null);
+    }, []);
+
     const renderCustomNodeElement = useCallback(
         ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
             return (
@@ -80,13 +109,14 @@ function BommelTreeComponent({
                             onEdit={handleEdit}
                             onDelete={handleDelete}
                             onAddChild={handleAddChild}
+                            onMove={onMove ? handleMoveClick : undefined}
                             editable={editable}
                         />
                     </foreignObject>
                 </g>
             );
         },
-        [editable, handleEdit, handleDelete, handleAddChild, onNodeClick]
+        [editable, handleEdit, handleDelete, handleAddChild, handleMoveClick, onNodeClick, onMove]
     );
 
     if (!treeData) {
@@ -114,6 +144,19 @@ function BommelTreeComponent({
                 />
             </div>
             <TreeStyles />
+
+            {/* Move Bommel Dialog */}
+            {movingBommel && (
+                <MoveBommelDialog
+                    open={movingBommelId !== null}
+                    bommelId={movingBommelId!}
+                    bommelName={movingBommel.text}
+                    currentParentId={movingBommel.parent}
+                    allBommels={tree}
+                    onConfirm={handleMoveConfirm}
+                    onCancel={handleMoveCancel}
+                />
+            )}
         </div>
     );
 }

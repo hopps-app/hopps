@@ -91,6 +91,21 @@ function OrganizationSettingsView() {
         [createChildBommel]
     );
 
+    const handleMove = useCallback(
+        async (nodeId: number, newParentId: number) => {
+            const node = tree.find((n) => n.id === nodeId);
+            if (node) {
+                const movedNode = {
+                    ...node,
+                    parent: newParentId,
+                };
+                return await moveTreeNode(movedNode);
+            }
+            return false;
+        },
+        [tree, moveTreeNode]
+    );
+
     if (isOrganizationError) {
         return <div className="p-6">{t('organization.settings.error')}</div>;
     }
@@ -164,6 +179,7 @@ function OrganizationSettingsView() {
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
                                     onAddChild={handleAddChild}
+                                    onMove={handleMove}
                                 />
                             </TabsContent>
 

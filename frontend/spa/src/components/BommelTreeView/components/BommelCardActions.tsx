@@ -1,13 +1,14 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowRight, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface BommelCardActionsProps {
     onEdit: () => void;
     onDelete: () => void;
     onAddChild: () => void;
+    onMove?: () => void;
 }
 
-export function BommelCardActions({ onEdit, onDelete, onAddChild }: BommelCardActionsProps) {
+export function BommelCardActions({ onEdit, onDelete, onAddChild, onMove }: BommelCardActionsProps) {
     const { t } = useTranslation();
 
     return (
@@ -24,6 +25,20 @@ export function BommelCardActions({ onEdit, onDelete, onAddChild }: BommelCardAc
             >
                 <Plus className="w-3 h-3" aria-hidden="true" />
             </button>
+            {onMove && (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onMove();
+                    }}
+                    className="bg-blue-500/80 text-white border-none rounded p-1 cursor-pointer flex items-center hover:bg-blue-600 transition-colors"
+                    title={t('organization.structure.moveBommel')}
+                    aria-label={t('organization.structure.moveBommel')}
+                >
+                    <ArrowRight className="w-3 h-3" aria-hidden="true" />
+                </button>
+            )}
             <button
                 type="button"
                 onClick={(e) => {

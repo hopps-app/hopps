@@ -99,9 +99,21 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
                             canDrag={(node) => isEditable && !node?.data?.isRoot}
                             canDrop={(_, { dragSource, dropTargetId }) => {
                                 if (!isEditable) return false;
-                                if (dragSource?.parent === dropTargetId) {
-                                    return true;
+                                // Cannot drop onto itself
+                                if (dragSource?.id === dropTargetId) return false;
+                                // Prevent dropping onto own descendant (cycle prevention)
+                                if (dragSource) {
+                                    const isDescendant = (parentId: number | string, childId: number | string): boolean => {
+                                        const children = treeData.filter((n) => n.parent === parentId);
+                                        for (const child of children) {
+                                            if (child.id === childId) return true;
+                                            if (isDescendant(child.id, childId)) return true;
+                                        }
+                                        return false;
+                                    };
+                                    if (isDescendant(dragSource.id, dropTargetId as number | string)) return false;
                                 }
+                                return true;
                             }}
                             render={(node, options) => (
                                 <OrganizationTreeNode

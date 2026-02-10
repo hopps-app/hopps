@@ -121,7 +121,8 @@
             "addChild": "Add Child",
             "saveName": "Save",
             "cancelEdit": "Cancel",
-            "editModeHint": "To move bommels, switch to the Table view",
+            "editModeHint": "Drag & drop bommels in Table view, or use the move button in Tree view",
+            "moveBommel": "Move Bommel",
             "includeDrafts": "Include drafts",
             "aggregate": "Aggregate",
             "details": {
@@ -147,6 +148,12 @@
                 "comingSoon": "(Coming soon)",
                 "confirm": "Yes, delete",
                 "cancel": "Cancel"
+            },
+            "moveDialog": {
+                "title": "Move Bommel",
+                "description": "Select a new parent for '{{name}}':",
+                "noTargets": "No valid target Bommels available",
+                "confirm": "Move"
             },
             "rootCannotEdit": "The root bommel cannot be edited",
             "rootCannotDelete": "The root bommel cannot be deleted"

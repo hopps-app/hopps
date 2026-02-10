@@ -23,6 +23,7 @@ export interface BommelTreeComponentProps {
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
     onAddChild?: (nodeId: number) => Promise<boolean>;
+    onMove?: (nodeId: number, newParentId: number) => Promise<boolean>;
     width?: number;
     height?: number;
 }
@@ -34,6 +35,7 @@ export interface BommelCardProps {
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
     onAddChild?: (nodeId: number) => Promise<boolean>;
+    onMove?: (nodeId: number) => void;
     editable: boolean;
 }
 
