@@ -137,6 +137,7 @@
                 "title": "Bommel löschen",
                 "description": "Sind Sie sicher, dass Sie '{{name}}' löschen möchten?",
                 "hasTransactionsWarning": "Dieser Bommel hat verknüpfte Transaktionen. Sie müssen wählen, wie damit umgegangen werden soll.",
+                "hasChildrenWarning": "Dieser Bommel hat {{count}} Unterbommel. Das Löschen wird auch alle Unterbommel und deren verknüpfte Transaktionen entfernen.",
                 "transactionHandlingLabel": "Wie sollen verknüpfte Transaktionen behandelt werden?",
                 "unlinkOption": "Transaktionen entkoppeln",
                 "unlinkDescription": "Transaktionen bleiben erhalten, werden aber keinem Bommel zugeordnet",

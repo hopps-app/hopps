@@ -154,6 +154,8 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                 open={showDeleteDialog}
                 bommelName={nodeDatum.name}
                 hasTransactions={transactionsCount > 0}
+                hasChildren={!!hasChildren}
+                childrenCount={nodeDatum.children?.length || 0}
                 onConfirm={handleDeleteConfirm}
                 onCancel={handleDeleteCancel}
             />

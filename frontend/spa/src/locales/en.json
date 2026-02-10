@@ -138,6 +138,7 @@
                 "title": "Delete Bommel",
                 "description": "Are you sure you want to delete '{{name}}'?",
                 "hasTransactionsWarning": "This Bommel has linked transactions. You must choose how to handle them.",
+                "hasChildrenWarning": "This Bommel has {{count}} child Bommel(s). Deleting it will also delete all children and their linked transactions.",
                 "transactionHandlingLabel": "How should linked transactions be handled?",
                 "unlinkOption": "Unlink transactions",
                 "unlinkDescription": "Transactions will remain but will not be linked to any Bommel",

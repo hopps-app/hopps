@@ -142,6 +142,17 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                     Response.Status.BAD_REQUEST);
         }
 
+        if (recursive && !bommel.getChildren().isEmpty()) {
+            // Unlink transactions for all descendant bommels before cascade delete
+            List<TreeSearchBommel> descendants = getChildrenRecursive(bommel);
+            for (TreeSearchBommel descendant : descendants) {
+                getEntityManager()
+                        .createQuery("UPDATE Transaction t SET t.bommel = NULL WHERE t.bommel.id = :bommelId")
+                        .setParameter("bommelId", descendant.bommel().id)
+                        .executeUpdate();
+            }
+        }
+
         // Unlink all transactions referencing this bommel before deletion
         // This sets bommel_id = NULL so transactions are preserved but detached
         getEntityManager()

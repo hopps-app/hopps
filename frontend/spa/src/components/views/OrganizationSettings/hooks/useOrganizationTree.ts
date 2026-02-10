@@ -154,7 +154,9 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
         async (id: string | number) => {
             setIsLoading(true);
             try {
-                await apiService.orgService.bommelDELETE(id as number, false);
+                // Check if the bommel has children in the current tree
+                const hasChildren = tree.some((node) => node.parent === id);
+                await apiService.orgService.bommelDELETE(id as number, hasChildren);
                 await loadTree();
                 return true;
             } catch (e) {
@@ -165,7 +167,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
             }
             return false;
         },
-        [loadTree, showError]
+        [loadTree, showError, tree]
     );
 
     // Initialize and load tree when organization changes
