@@ -25,7 +25,7 @@ function App() {
         }
 
         try {
-            const organisation = await apiService.orgService.my();
+            const organisation = await apiService.orgService.myGET();
             useStore.getState().setOrganization(organisation);
             useStore.getState().setOrganizationError(false);
         } catch (error: unknown) {

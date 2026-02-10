@@ -1252,10 +1252,71 @@ export class Client {
     }
 
     /**
+     * Update my organization
+     * @return Organization updated successfully
+     */
+    myPUT(body: OrganizationInput): Promise<Organization> {
+        let url_ = this.baseUrl + "/organization/my";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMyPUT(_response);
+        });
+    }
+
+    protected processMyPUT(response: Response): Promise<Organization> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Organization.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationResult.fromJS(resultData400);
+            return throwException("Validation of fields failed", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found for user", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Organization>(null as any);
+    }
+
+    /**
      * Get my organization
      * @return Own organization retrieved successfully
      */
-    my(): Promise<Organization> {
+    myGET(): Promise<Organization> {
         let url_ = this.baseUrl + "/organization/my";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1267,11 +1328,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processMy(_response);
+            return this.processMyGET(_response);
         });
     }
 
-    protected processMy(response: Response): Promise<Organization> {
+    protected processMyGET(response: Response): Promise<Organization> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

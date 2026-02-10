@@ -3,6 +3,7 @@ package app.hopps.organization.api;
 import app.hopps.member.domain.Member;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.model.NewOrganizationInput;
+import app.hopps.organization.model.OrganizationInput;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.shared.security.SecurityUtils;
@@ -11,12 +12,14 @@ import app.hopps.shared.validation.RestValidator;
 import app.hopps.shared.validation.RestValidator.ValidationResult;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -73,6 +76,46 @@ public class OrganizationResource {
     @APIResponse(responseCode = "404", description = "Organization not found for user")
     public Organization getMyOrganization(@Context SecurityContext securityContext) {
         return securityUtils.getUserOrganization(securityContext);
+    }
+
+    @PUT
+    @Path("/my")
+    @Authenticated
+    @Transactional
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Update my organization", description = "Updates the details of the current user's organization. Fields like name, address, website, and type can be changed.")
+    @APIResponse(responseCode = "200", description = "Organization updated successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Organization not found for user")
+    public Response updateMyOrganization(@Context SecurityContext securityContext, OrganizationInput input) {
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+
+        if (input.name() != null) {
+            organization.setName(input.name());
+        }
+        if (input.type() != null) {
+            organization.setType(input.type());
+        }
+        if (input.website() != null) {
+            organization.setWebsite(input.website());
+        }
+        if (input.profilePicture() != null) {
+            organization.setProfilePicture(input.profilePicture());
+        }
+        if (input.address() != null) {
+            organization.setAddress(input.address());
+        }
+
+        organizationRepository.persist(organization);
+        organizationRepository.flush();
+
+        // Initialize lazy collections before transaction ends to avoid LazyInitializationException during serialization
+        organization.getMembers().size();
+
+        LOG.info("Successfully updated organization: {}", organization.getSlug());
+        return Response.ok(organization).build();
     }
 
     @GET

@@ -158,6 +158,23 @@
             "rootCannotEdit": "The root bommel cannot be edited",
             "rootCannotDelete": "The root bommel cannot be deleted"
         },
+        "details": {
+            "title": "Organization Details",
+            "description": "Manage your organization's basic information",
+            "name": "Organization Name",
+            "slug": "Slug",
+            "type": "Organization Type",
+            "website": "Website",
+            "street": "Street",
+            "number": "Number",
+            "city": "City",
+            "plz": "Postal Code",
+            "additionalLine": "Additional Address Line",
+            "address": "Address",
+            "saveSuccess": "Organization details saved successfully",
+            "saveError": "Failed to save organization details",
+            "loadError": "Failed to load organization details"
+        },
         "noOrganization": {
             "title": "No Organization Found",
             "message": "You don't have access to any organization or the organization doesn't exist.",
@@ -188,6 +205,7 @@
             "account": "My Account",
             "invoices": "Invoices",
             "organization": "Organization",
+            "ngoDetails": "Organization Details",
             "profile": "Profile"
         }
     },

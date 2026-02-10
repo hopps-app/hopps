@@ -157,6 +157,23 @@
             "rootCannotEdit": "Der Wurzel-Bommel kann nicht bearbeitet werden",
             "rootCannotDelete": "Der Wurzel-Bommel kann nicht gelöscht werden"
         },
+        "details": {
+            "title": "Organisationsdetails",
+            "description": "Verwalten Sie die grundlegenden Informationen Ihrer Organisation",
+            "name": "Organisationsname",
+            "slug": "Slug",
+            "type": "Organisationstyp",
+            "website": "Webseite",
+            "street": "Straße",
+            "number": "Hausnummer",
+            "city": "Stadt",
+            "plz": "Postleitzahl",
+            "additionalLine": "Adresszusatz",
+            "address": "Adresse",
+            "saveSuccess": "Organisationsdetails erfolgreich gespeichert",
+            "saveError": "Fehler beim Speichern der Organisationsdetails",
+            "loadError": "Fehler beim Laden der Organisationsdetails"
+        },
         "noOrganization": {
             "title": "Keine Organisation gefunden",
             "message": "Sie haben keinen Zugang zu einer Organisation oder die Organisation existiert nicht.",
@@ -187,6 +204,7 @@
             "account": "Mein Konto",
             "invoices": "Rechnungen",
             "organization": "Organisation",
+            "ngoDetails": "Organisationsdetails",
             "profile": "Profil"
         }
     },
