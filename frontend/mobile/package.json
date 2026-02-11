@@ -23,7 +23,7 @@
     "@rn-primitives/portal": "^1.1.0",
     "@rn-primitives/slot": "^1.1.0",
     "@rn-primitives/types": "^1.1.0",
-    "axios": "^1.9.0",
+    "axios": "^1.13.5",
     "axios-auth-refresh": "^3.3.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
