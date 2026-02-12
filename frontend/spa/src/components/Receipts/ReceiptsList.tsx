@@ -111,8 +111,12 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         [receipts]
     );
 
+    const deletingRef = useRef(false);
+
     const handleDeleteConfirm = useCallback(async () => {
         if (!deleteTarget) return;
+        if (deletingRef.current) return;
+        deletingRef.current = true;
         try {
             await deleteTransaction.mutateAsync(parseInt(deleteTarget.id, 10));
             setDeleteTarget(null);
@@ -120,6 +124,8 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         } catch (e) {
             console.error(e);
             showError(t('receipts.deleteDialog.error'));
+        } finally {
+            deletingRef.current = false;
         }
     }, [deleteTarget, deleteTransaction, showError, showSuccess, t]);
 

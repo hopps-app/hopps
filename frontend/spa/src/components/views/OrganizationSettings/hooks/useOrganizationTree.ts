@@ -1,5 +1,5 @@
 import { Bommel, BommelStatisticsMap } from '@hopps/api-client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
@@ -58,8 +58,12 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
         setTree(nodesWithStats);
     }, [store.organization?.id, rootBommel, options?.bommelStats]);
 
+    const actionRef = useRef(false);
+
     const createTreeNode = useCallback(async () => {
         if (!rootBommel?.id) return;
+        if (actionRef.current) return;
+        actionRef.current = true;
 
         try {
             const node = await apiService.orgService.bommelPOST(
@@ -76,11 +80,15 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
         } catch (e) {
             console.error(e);
             showError(t('organization.structure.toast.createError'));
+        } finally {
+            actionRef.current = false;
         }
     }, [rootBommel, showError, showSuccess, t]);
 
     const createChildBommel = useCallback(
         async (parentId: number) => {
+            if (actionRef.current) return false;
+            actionRef.current = true;
             setIsLoading(true);
             try {
                 await apiService.orgService.bommelPOST(
@@ -99,6 +107,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 showError(t('organization.structure.toast.createChildError'));
             } finally {
                 setIsLoading(false);
+                actionRef.current = false;
             }
             return false;
         },
@@ -158,6 +167,8 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
 
     const deleteTreeNode = useCallback(
         async (id: string | number) => {
+            if (actionRef.current) return false;
+            actionRef.current = true;
             setIsLoading(true);
             try {
                 // Check if the bommel has children in the current tree
@@ -171,6 +182,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 showError(t('organization.structure.toast.deleteError'));
             } finally {
                 setIsLoading(false);
+                actionRef.current = false;
             }
             return false;
         },

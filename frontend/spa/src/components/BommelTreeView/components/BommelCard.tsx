@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { RawNodeDatum } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
@@ -70,12 +70,20 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         setShowDeleteDialog(true);
     };
 
+    const deletingRef = useRef(false);
+
     const handleDeleteConfirm = async (transactionHandling?: DeleteTransactionHandling) => {
         if (onDelete) {
-            // For now, we ignore transactionHandling since the backend API doesn't support it yet
-            // In the future, this would be passed to the API
-            await onDelete(nodeId);
-            setShowDeleteDialog(false);
+            if (deletingRef.current) return;
+            deletingRef.current = true;
+            try {
+                // For now, we ignore transactionHandling since the backend API doesn't support it yet
+                // In the future, this would be passed to the API
+                await onDelete(nodeId);
+                setShowDeleteDialog(false);
+            } finally {
+                deletingRef.current = false;
+            }
         }
     };
 
@@ -83,9 +91,17 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         setShowDeleteDialog(false);
     };
 
+    const addingChildRef = useRef(false);
+
     const handleAddChild = async () => {
         if (onAddChild) {
-            await onAddChild(nodeId);
+            if (addingChildRef.current) return;
+            addingChildRef.current = true;
+            try {
+                await onAddChild(nodeId);
+            } finally {
+                addingChildRef.current = false;
+            }
         }
     };
 

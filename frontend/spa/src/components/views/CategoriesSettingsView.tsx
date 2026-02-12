@@ -40,7 +40,7 @@ function CategoriesSettingsView() {
                         primaryLabel={t('dialogWrapper.save')}
                         secondaryLabel={t('dialogWrapper.cancel')}
                     >
-                        {({ onSuccess }) => <CategoryForm onSuccess={onSuccess} />}
+                        {({ onSuccess, setSubmitting }) => <CategoryForm onSuccess={onSuccess} onSubmittingChange={setSubmitting} />}
                     </DialogWrapper>
                 </div>
                 <div className="flex-1 min-h-0">
