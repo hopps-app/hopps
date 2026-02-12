@@ -3195,3 +3195,516 @@ Branch: autoforge/feature-40-upload-error-handling
 - Current completion: 55/81 features passing (67.9%)
 - Session Duration: ~25 minutes
 - Session End: 2026-02-12 ~16:40 CET
+
+================================================================================
+SESSION #16 - 2026-02-12 ~15:42 CET
+================================================================================
+Assigned Features: #47, #48
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 55/81 passing (67.9%), 2 in progress (#47, #48)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #47: Direct URL access to protected pages works after login - PASSED
+
+**No Code Changes Needed** - All functionality was already implemented:
+- Keycloak auth guard redirects unauthenticated users to login
+- After login, user is redirected back to originally requested page
+- All protected pages (/dashboard, /structure, /admin/categories, /profile) load correctly
+
+**Browser Verification (all 6 steps):**
+1. Login to the application ✓
+2. Navigate directly to /dashboard via URL bar → page loads with chart ✓
+3. Navigate directly to /structure via URL bar → page loads with Bommel tree ✓
+4. Navigate directly to /admin/categories via URL bar → categories page loads ✓
+5. Navigate directly to /profile via URL bar → profile settings load ✓
+6. Each page loads correct content without errors (0 console errors) ✓
+
+### Feature #48: Deep link to specific Bommel works - PASSED
+
+**Code Changes Required** - Implemented deep linking for Bommel URLs:
+
+**Files Modified:**
+- `frontend/spa/src/AppRoutes.tsx` - Added `/structure/:bommelId` route alongside `/structure`
+- `frontend/spa/src/components/views/OrganizationSettings/OrganizationSettingsView.tsx`:
+  - Added `useParams` to read bommelId from URL
+  - Added `useNavigate` to update URL when Bommel is selected by user click
+  - Added deep link effect: auto-selects Bommel when tree loads if URL has bommelId
+  - Added "Bommel not found" UI state for non-existent IDs (with AlertCircle icon, error message, and "Back to Structure" button)
+  - Imported Card, CardContent, AlertCircle components
+- `frontend/spa/src/locales/en.json` - Added bommelNotFound, bommelNotFoundDescription, backToStructure keys
+- `frontend/spa/src/locales/de.json` - Added German translations for same keys
+- `frontend/spa/src/locales/uk.json` - Added Ukrainian translations for same keys
+
+**Browser Verification (all 6 steps):**
+1. Clicked Kiosk Bommel → URL updated to /structure/24 ✓
+2. Navigate directly to /structure/24 → Kiosk auto-selected with details showing ✓
+3. Correct Bommel details displayed (🍿 Kiosk, Income: +900,75€, Transactions: 2) ✓
+4. Navigate to /structure/99999 → error state shown ✓
+5. "Bommel not found" message with description displayed ✓
+6. "Back to Structure" button navigates to /structure ✓
+- Zero console errors ✓
+
+### Commits:
+- c893106: feat: add deep link support for Bommel structure URLs (#47, #48)
+
+### Current Completion:
+- Before: 55/81 passing (67.9%)
+- After: 57/81 passing (70.4%)
+- Features completed this session: 2 (#47, #48)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-12 ~15:55 CET
+
+================================================================================
+SESSION #17 - 2026-02-12 ~16:00 CET
+================================================================================
+Assigned Features: #49, #50
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 57/81 passing (70.4%), 2 in progress (#49, #50)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #49: Double-click submit prevention on forms - PASSED
+
+**Code Changes Made:**
+1. `CategoryForm.tsx` - Added `submittingRef` guard + `isSubmitting` from react-hook-form formState
+   - `submittingRef.current` prevents async handler from running twice
+   - `fieldset disabled={isSubmitting}` disables form fields during submission
+   - Added `onSubmittingChange` callback prop to notify parent of submission state
+2. `OrganizationRegistrationForm.tsx` - Added `submittingRef` guard + disabled button during submission
+3. `DialogWrapper.tsx` - Enhanced with `isSubmitting` state management:
+   - Added `setSubmitting` callback in render props
+   - Disabled primary/secondary buttons during async operations
+   - Prevents dialog closing during submission
+   - Reset submitting state on dialog close
+4. `CategoriesSettingsView.tsx` - Wired `setSubmitting` from DialogWrapper to CategoryForm
+5. `CategoryTable.tsx` - Wired `setSubmitting` from DialogWrapper to CategoryForm (edit mode)
+
+**Browser Verification (all 7 steps):**
+1. Navigate to category creation form ✓
+2. Fill in valid data ("DOUBLE_CLICK_TEST_49") ✓
+3. Click submit → only ONE category created ✓
+4. Submit button disabled during API call (fieldset + DialogWrapper isSubmitting) ✓
+5. Created second test ("RAPID_SUBMIT_TEST") → only ONE created ✓
+6. Receipt upload form already has isSubmitting guard ✓
+7. Zero console errors throughout ✓
+
+### Feature #50: Rapid delete click prevention - PASSED
+
+**Code Changes Made:**
+1. `CategoryTable.tsx` - Added `deletingRef` guard to `deleteCategory` function
+2. `ReceiptsList.tsx` - Added `deletingRef` guard to `handleDeleteConfirm` function
+3. `BommelCard.tsx` - Added `deletingRef` guard to `handleDeleteConfirm` and `addingChildRef` to `handleAddChild`
+4. `useOrganizationTree.ts` - Added `actionRef` guard to `createTreeNode`, `createChildBommel`, and `deleteTreeNode`
+
+**Protection Mechanisms:**
+- Ref-based guards prevent concurrent API calls (synchronous check, no race condition)
+- Confirmation dialogs close immediately on action, removing button from DOM
+- DialogWrapper `isSubmitting` state disables buttons during operations
+- Multiple layers of protection: dialog closure + ref guard + button disabled
+
+**Browser Verification (all 5 steps):**
+1. Created test category ("DELETE_TEST_50") ✓
+2. Clicked delete → confirmation dialog appeared ✓
+3. Clicked "Yes" → single delete request sent, dialog closed ✓
+4. No error from deleted record (clean state transition) ✓
+5. UI updated cleanly: category removed, success toast shown ✓
+- Zero console errors ✓
+
+### Commits:
+- 8ba7393: feat: add double-click and rapid action prevention for forms and delete operations (#49, #50)
+
+### Current Completion:
+- Before: 57/81 passing (70.4%)
+- After: 59/81 passing (72.8%)
+- Features completed this session: 2 (#49, #50)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-12 ~16:10 CET
+
+================================================================================
+SESSION #18 - 2026-02-12 ~17:07 CET
+================================================================================
+Assigned Feature: #52 (Deleting a category removes it from transactions)
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 59/81 passing (72.8%), 1 in progress (#52)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173
+- Docker: postgres, keycloak, localstack running
+
+### Feature #52: Deleting a category removes it from transactions - PASSED
+
+**Problem Identified:**
+- FK constraint `FK_transaction_category` on `transaction.category_id` did NOT have `ON DELETE SET NULL`
+- Deleting a category with assigned transactions would fail with FK violation
+- Backend `deleteCategory()` method simply called `categoryRepository.delete()` without handling linked transactions
+
+**Code Changes Made:**
+
+1. `V1.0.12__category_delete_set_null.sql` (NEW):
+   - Drops existing FK constraint `fk_transaction_category`
+   - Recreates it with `ON DELETE SET NULL`
+   - Ensures database-level cascade behavior
+
+2. `CategoryResource.java` - deleteCategory() method:
+   - Added import for `Transaction` entity
+   - Before deleting category, queries all transactions with that category_id
+   - Sets category to null on all linked transactions (JPA-level cascade)
+   - Then deletes the category
+   - Belt-and-suspenders: both JPA code AND DB constraint handle the cascade
+
+**API Verification (all steps via curl script):**
+1. Created category "FEATURE52_TEST_CAT" (id=51) ✓
+2. Created transaction "FEATURE52_TEST_TXN" with categoryId=51 ✓
+3. Verified transaction has categoryId=51, categoryName="FEATURE52_TEST_CAT" ✓
+4. Deleted category → HTTP 204 ✓
+5. Verified transaction still exists with categoryId=null, categoryName=null ✓
+6. Verified category no longer in categories list ✓
+7. Cleaned up test data ✓
+
+**Browser UI Verification (all 6 test steps):**
+1. Created category "FEATURE52_BROWSER_TEST" via UI → success toast ✓
+2. Created transaction "FEATURE52_TXN_TEST" with FEATURE52_BROWSER_TEST category ✓
+3. Verified transaction shows category name in receipts list ✓
+4. Deleted category via UI with confirmation dialog ✓
+5. Verified transaction still exists in receipts list WITHOUT category name ✓
+6. Refreshed page → state persists ✓
+7. Category no longer appears in categories list ✓
+- Zero console errors ✓
+- Cleaned up test data ✓
+
+**Mock data check:** No mock patterns in frontend src/ ✓
+
+### Commits:
+- 47ea61c: feat: unlink transactions when deleting category (SET NULL cascade) (#52)
+
+### Current Completion:
+- Before: 59/81 passing (72.8%)
+- After: 60/81 passing (74.1%)
+- Features completed this session: 1 (#52)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-12 ~17:20 CET
+
+================================================================================
+SESSION #19 - 2026-02-12 ~17:23 CET
+================================================================================
+Assigned Features: #54, #53
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 60/81 passing (74.1%), 2 in progress (#54, #53)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #54: Empty states for new organization - PASSED
+
+**Code Changes Made:**
+
+1. `DashboardView.tsx`:
+   - Added BarChart3 icon from lucide-react for empty state
+   - Added Upload icon and useNavigate for CTA button
+   - Improved empty state with: icon in rounded circle, helpful message, "Upload receipt" button navigating to /receipts/new
+   - Changed noDataHint from generic "No transactions found..." to actionable "Upload your first receipt to see income and expense data here."
+
+2. `CategoriesSettingsView.tsx`:
+   - Added FolderOpen icon import and EmptyState component import
+   - Added empty state when categories.length === 0 (shows icon, title, description)
+   - Added search-specific empty state when query produces no results
+   - Categories page now properly handles three states: loading, empty, and populated
+
+3. `locales/en.json`:
+   - Added dashboard.uploadFirst, dashboard.noDataHint (improved)
+   - Added categories.emptyState.title, description, noSearchResults
+
+4. `locales/de.json`:
+   - Added German translations for dashboard.uploadFirst, improved dashboard.noDataHint
+   - Added categories.emptyState.title, description, noSearchResults
+
+5. `locales/uk.json`:
+   - Added complete dashboard section (title, chart, filters, empty state)
+   - Added complete categories section (CRUD, dialogs, forms, empty state)
+
+**Browser Verification (all 6 steps):**
+1. Login to the application ✓
+2. Dashboard with no data: shows BarChart3 icon, "No data available", helpful upload message, "Upload receipt" CTA button ✓
+3. Structure page: shows Bommel tree with root Bommel visible ✓
+4. Receipts page: shows empty state with bunny icon when no receipts ✓
+5. Categories page with no categories: shows FolderOpen icon, "No categories yet", helpful description ✓
+6. Zero console errors across all pages ✓
+- Upload receipt button navigates correctly to /receipts/new ✓
+
+### Feature #53: Dashboard default date range is current year - PASSED
+
+**No Code Changes Needed** - Already implemented in previous session:
+- `getDefaultStartDate()` returns `${new Date().getFullYear()}-01-01`
+- `getDefaultEndDate()` returns `${new Date().getFullYear()}-12-31`
+- State initialized with these defaults via useState
+
+**Browser Verification (all 6 steps):**
+1. Login and navigate to /dashboard ✓
+2. Start date defaults to 01.01.2026 (January 1, current year) ✓
+3. End date defaults to 31.12.2026 (December 31, current year) ✓
+4. Changed start date to 08.02.2026 → Reset button appeared ✓
+5. Navigated to Receipts and back to Dashboard ✓
+6. Date range reset to defaults: 01.01.2026 - 31.12.2026 (no Reset button) ✓
+- Zero console errors throughout ✓
+
+### Commits:
+- 8911630: feat: add empty states for dashboard, categories, and improved i18n (#54)
+
+### Current Completion:
+- Before: 60/81 passing (74.1%)
+- After: 62/81 passing (76.5%)
+- Features completed this session: 2 (#54, #53)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-12 ~17:35 CET
+
+================================================================================
+SESSION #20 - 2026-02-12 ~17:37 CET
+================================================================================
+Assigned Features: #55, #56
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 62/81 passing (76.5%), 2 in progress (#55, #56)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #55: Desktop layout renders correctly at 1920px - PASSED
+
+**No Code Changes Needed** - Layout verification only:
+
+**Browser Verification (all 7 steps at 1920x1080):**
+1. Browser window set to 1920x1080 ✓
+2. Sidebar displays fully (logo, Dashboard, Receipts, Bommel structure, Admin) ✓
+3. Main content area uses remaining width effectively ✓
+4. /structure - tree view has adequate space, full hierarchy visible ✓
+5. /receipts - transaction table columns readable (Name, Date, Bommel, Amount, Actions) ✓
+6. /dashboard - chart renders at full width ✓
+7. No horizontal scrollbar ✓
+
+### Feature #56: Layout at 1024px tablet-width - PASSED
+
+**Code Changes Required** - Fixed responsive layout issues at tablet width:
+
+**Files Modified:**
+1. `BommelTreeComponent.tsx`:
+   - Added ResizeObserver to measure container width dynamically
+   - Tree centering now uses actual container width instead of hardcoded prop
+   - Prevents tree from being off-center at narrow widths
+
+2. `OrganizationStats.tsx`:
+   - Added `min-w-0` to cards to prevent grid overflow
+   - Changed value text from `text-2xl` to `text-lg lg:text-2xl` (responsive sizing)
+   - Added `truncate` class to all value paragraphs to prevent overflow
+   - Added `title` attribute with full values for tooltip on hover
+
+3. `OrganizationSettingsView.tsx`:
+   - Changed grid breakpoint from `lg:grid-cols-4` to `xl:grid-cols-4`
+   - At 1024px, structure and details now stack vertically (full width)
+   - At 1280px+, structure and details show side-by-side
+
+4. `desktop-sidebar.tsx`:
+   - Fixed submenu state not clearing when navigating to non-submenu pages
+   - Added `else { setExpanded(null) }` in route-matching useEffect
+
+**Browser Verification (all 7 steps at 1024x768):**
+1. Browser window set to 1024x768 ✓
+2. Sidebar adapts - shows icons + text, submenu collapses when not hovered ✓
+3. Main content is usable - all pages functional ✓
+4. /structure - tree view functional, centered, scrollable ✓
+5. /receipts - transaction data readable with proper truncation ✓
+6. No overlapping elements ✓
+7. No horizontal scrollbar ✓
+
+**Regression check:** Verified 1920x1080 layout still works correctly after changes ✓
+**Console errors:** Zero errors, zero warnings ✓
+**Mock data check:** No mock patterns in frontend src/ ✓
+
+### Commits:
+- 5a724e2: feat: improve responsive layout for tablet width (1024px) (#55, #56)
+
+### Current Completion:
+- Before: 62/81 passing (76.5%)
+- After: 64/81 passing (79.0%)
+- Features completed this session: 2 (#55, #56)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-12 ~17:50 CET
+
+================================================================================
+SESSION #21 - 2026-02-12 ~22:17 CET
+================================================================================
+Assigned Features: #59, #60
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 66/81 passing (81.5%), 2 in progress (#59, #60)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #59: Transaction dates display correctly - PASSED
+
+**Code Changes Made:**
+
+1. `useTransactions.ts`:
+   - Added `import i18n from '@/i18n'`
+   - Changed `transactionToReceipt` date formatting from hardcoded `'de-DE'` locale to dynamic locale based on `i18n.language`
+   - Locale map: de → de-DE, en → en-US, uk → uk-UA
+
+2. `InvoicesTable.tsx`:
+   - Replaced `moment` import with `date-fns` (`format`, locale imports: `de`, `enUS`, `uk`)
+   - Added `getDateLocale()` function matching i18n language
+   - Changed date column `valueFormatter` from `moment(params.value).format(dateFormat)` to `format(new Date(params.value), 'P', { locale: getDateLocale() })`
+   - Removed dependency on undefined `VITE_GENERAL_DATE_FORMAT` env variable
+
+3. `DashboardView.tsx`:
+   - Added `de, enUS, uk` imports from date-fns/locale
+   - Added `getDateLocale()` callback
+   - Changed `formattedStart/End` from `format(date, 'dd.MM.yyyy')` to `format(date, 'P', { locale: getDateLocale() })`
+
+4. `DateRangeFilter.tsx`:
+   - Added `de, enUS, uk` imports from date-fns/locale
+   - Added `getDateLocale()` callback
+   - Changed `formattedStart/End` from hardcoded `'dd.MM.yyyy'` to locale-aware `'P'` format
+
+**Browser Verification (all 6 steps):**
+1. Created transaction with specific date → visible in receipts ✓
+2. In English: dates display as MM/dd/yyyy (e.g., 02/01/2026) ✓
+3. Switched to German: dates display as dd.MM.yyyy (e.g., 01.02.2026) ✓
+4. Switched back to English: format correctly reverts ✓
+5. Dashboard shows "Showing data from 01/01/2026 to 12/31/2026" in English ✓
+6. Receipts list dates sorted correctly (ascending by date) ✓
+- Zero console errors ✓
+- No mock data patterns ✓
+
+### Feature #60: Date picker constraints work correctly - PASSED
+
+**Code Changes Made:**
+
+1. `DashboardView.tsx`:
+   - Added `disabled={{ after: new Date(endDate) }}` to start date Calendar
+   - Added `disabled={{ before: new Date(startDate) }}` to end date Calendar
+   - Enhanced `handleDateSelect` to auto-adjust when start > end or end < start
+
+2. `DateRangeFilter.tsx`:
+   - Added `disabled={filters.endDate ? { after: new Date(filters.endDate) } : undefined}` to start date Calendar
+   - Added `disabled={filters.startDate ? { before: new Date(filters.startDate) } : undefined}` to end date Calendar
+
+**Browser Verification (all 6 steps):**
+1. Opened dashboard date range filter ✓
+2. Set start date to Feb 15 → end date picker disables Feb 1-14 ✓
+3. Set end date to Feb 15 → start date picker disables Feb 16-28 ✓
+4. Transaction form DatePicker component works (same shared component) ✓
+5. Due date picker accepts null/empty (prop is Date | undefined) ✓
+6. Date pickers display in correct locale (English: MM/dd/yyyy, German: dd.MM.yyyy) ✓
+- Zero JS console errors from our changes (CORS errors are pre-existing) ✓
+- No mock data patterns ✓
+
+### Commits:
+- 9206e88: feat: add locale-aware date formatting and date picker constraints (#59, #60)
+
+### Current Completion:
+- Before: 66/81 passing (81.5%)
+- After: 68/81 passing (84.0%)
+- Features completed this session: 2 (#59, #60)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-12 ~22:30 CET
+
+================================================================================
+SESSION #22 - 2026-02-12 ~23:27 CET
+================================================================================
+Assigned Features: #82, #64, #65
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 67/81 passing (82.7%), 3 in progress (#82, #64, #65)
+- Backend: Not running at session start (started during session via quarkus:dev)
+- Frontend: Running on port 5173 (Vite)
+- Docker: postgres, keycloak, localstack running via Docker Compose + Testcontainers
+
+### Feature #82: Quarkus Dev Services start PostgreSQL and S3 automatically - PASSED
+
+**No Code Changes Needed** - All functionality was already implemented:
+- application.properties already configured for Dev Services (previous session removed `%dev.quarkus.s3.devservices.enabled=false`)
+- PostgreSQL Dev Services auto-start via Testcontainers (postgres:17)
+- S3/LocalStack Dev Services auto-start via Testcontainers (localstack:4.8.1)
+
+**Verification (all 8 steps):**
+1. Backend started with `./mvnw quarkus:dev` ✓
+2. Logs show "Dev Services for PostgreSQL started" with Testcontainers ✓
+3. Docker ps confirms testcontainers localstack:4.8.1 running on random ports ✓
+4. Health endpoint: `{"status": "UP", "checks": [{"name": "Database connections health check", "status": "UP"}]}` ✓
+5. Flyway: 12 migrations validated, all applied from empty schema ✓
+6. GET /category → 200 (empty array), POST /category → 201 (created) ✓
+7. Backend restarted cleanly with fresh database (latest restart at 23:28) ✓
+8. No docker-compose.yml needed for PostgreSQL or S3 ✓
+
+### Feature #64: Category dropdown in transaction form - PASSED
+
+**No Code Changes Needed** - Category dropdown already fully implemented:
+- ReceiptFormFields.tsx renders a Select component for Category
+- useCategories() hook fetches categories via React Query
+- Form state stores category ID, converted to number for API
+- Backend TransactionCreateRequest includes optional categoryId field
+
+**Browser Verification (all 7 steps):**
+1. Created 3 categories (Office Supplies, Travel Expenses, FEATURE64_TEST_CAT) ✓
+2. Navigated to /receipts/new → form loads with all fields ✓
+3. Category dropdown present as combobox ✓
+4. Clicked dropdown → all 3 categories visible ✓
+5. Selected FEATURE64_TEST_CAT, filled amount, saved as draft ✓
+6. Transaction appears in receipts list showing "FEATURE64_TEST_CAT" ✓
+7. Created new category "NEWLY_ADDED_CAT" → appears in dropdown on next form ✓
+- Zero console errors ✓
+
+### Feature #65: Privately-paid flag works on transactions - PASSED
+
+**No Code Changes Needed** - Privately-paid flag already fully implemented:
+- Form has "Unpaid" switch toggle (when ON, shows "Paid" label)
+- Backend stores as `privatelyPaid: boolean`
+- Receipts list has "Only unpaid" filter switch
+- Edit form loads and persists flag correctly
+
+**Browser Verification (all 7 steps):**
+1. Created PRIVATE_PAID_TXN with Unpaid switch toggled ON (privatelyPaid: true) ✓
+2. Transaction visible in receipts list with Draft status ✓
+3. Created NOT_PRIVATE_TXN without toggling switch (privatelyPaid: false) ✓
+4. Applied "Only unpaid" filter → only PRIVATE_PAID_TXN shown ✓
+5. Only privately-paid transaction shown (verified) ✓
+6. Removed filter → both transactions visible ✓
+7. Edited PRIVATE_PAID_TXN → toggled flag OFF → saved → API confirms privatelyPaid:false ✓
+   - Re-applied "Only unpaid" filter → empty state (no unpaid transactions) ✓
+- Zero console errors ✓
+
+### Current Completion:
+- Before: 67/81 passing (82.7%)
+- After: 70/81 passing (86.4%)
+- Features completed this session: 3 (#82, #64, #65)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-12 ~23:42 CET
