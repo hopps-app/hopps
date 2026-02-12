@@ -1,5 +1,6 @@
 import { Bommel, BommelStatisticsMap } from '@hopps/api-client';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +13,8 @@ interface UseOrganizationTreeOptions {
 }
 
 export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
+    const { t } = useTranslation();
     const store = useStore();
     const [isOrganizationError, setIsOrganizationError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,12 +71,13 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 })
             );
 
+            showSuccess(t('organization.structure.toast.createSuccess'));
             return organizationTreeService.bommelsToTreeNodes([node], rootBommel.id)[0];
         } catch (e) {
             console.error(e);
-            showError('Failed to create.');
+            showError(t('organization.structure.toast.createError'));
         }
-    }, [rootBommel, showError]);
+    }, [rootBommel, showError, showSuccess, t]);
 
     const createChildBommel = useCallback(
         async (parentId: number) => {
@@ -89,16 +92,17 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                     })
                 );
                 await loadTree();
+                showSuccess(t('organization.structure.toast.createChildSuccess'));
                 return true;
             } catch (e) {
                 console.error(e);
-                showError('Failed to create child bommel.');
+                showError(t('organization.structure.toast.createChildError'));
             } finally {
                 setIsLoading(false);
             }
             return false;
         },
-        [loadTree, showError]
+        [loadTree, showError, showSuccess, t]
     );
 
     const updateTreeNode = useCallback(
@@ -117,16 +121,17 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 );
                 isSuccess = true;
                 await loadTree();
+                showSuccess(t('organization.structure.toast.updateSuccess'));
             } catch (e) {
                 console.error(e);
-                showError('Failed to update.');
+                showError(t('organization.structure.toast.updateError'));
             } finally {
                 setIsLoading(false);
             }
 
             return isSuccess;
         },
-        [loadTree, showError]
+        [loadTree, showError, showSuccess, t]
     );
 
     const moveTreeNode = useCallback(
@@ -138,16 +143,17 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 await apiService.orgService.to(node.id as number, parent as number);
                 await loadTree();
                 isSuccess = true;
+                showSuccess(t('organization.structure.toast.moveSuccess'));
             } catch (e) {
                 console.error(e);
-                showError('Failed to move bommel.');
+                showError(t('organization.structure.toast.moveError'));
             } finally {
                 setIsLoading(false);
             }
 
             return isSuccess;
         },
-        [loadTree, rootBommel, showError]
+        [loadTree, rootBommel, showError, showSuccess, t]
     );
 
     const deleteTreeNode = useCallback(
@@ -158,16 +164,17 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 const hasChildren = tree.some((node) => node.parent === id);
                 await apiService.orgService.bommelDELETE(id as number, hasChildren);
                 await loadTree();
+                showSuccess(t('organization.structure.toast.deleteSuccess'));
                 return true;
             } catch (e) {
                 console.error(e);
-                showError('Failed to delete.');
+                showError(t('organization.structure.toast.deleteError'));
             } finally {
                 setIsLoading(false);
             }
             return false;
         },
-        [loadTree, showError, tree]
+        [loadTree, showError, showSuccess, t, tree]
     );
 
     // Initialize and load tree when organization changes

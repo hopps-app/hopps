@@ -19,7 +19,7 @@ type ReceiptsListProps = {
 
 const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const { t } = useTranslation();
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [checked, setChecked] = useState<Record<string, boolean>>({});
     const [page, setPage] = useState(0);
@@ -115,11 +115,12 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         try {
             await deleteTransaction.mutateAsync(parseInt(deleteTarget.id, 10));
             setDeleteTarget(null);
+            showSuccess(t('receipts.deleteDialog.success'));
         } catch (e) {
             console.error(e);
             showError(t('receipts.deleteDialog.error'));
         }
-    }, [deleteTarget, deleteTransaction, showError, t]);
+    }, [deleteTarget, deleteTransaction, showError, showSuccess, t]);
 
     const handleDeleteCancel = useCallback(() => {
         setDeleteTarget(null);

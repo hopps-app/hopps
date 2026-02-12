@@ -44,7 +44,7 @@ export default function CategoryForm({ onSuccess, initialData, isEdit = false }:
             } else {
                 await apiService.orgService.categoryPOST(CategoryInput.fromJS(data));
             }
-            showSuccess(t('categories.form.success.categoryCreated'));
+            showSuccess(t(isEdit ? 'categories.form.success.categoryUpdated' : 'categories.form.success.categoryCreated'));
             onSuccess?.();
         } catch (error: unknown) {
             console.error('Error saving category:', error);

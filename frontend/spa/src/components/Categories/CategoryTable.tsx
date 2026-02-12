@@ -7,6 +7,7 @@ import Icon from '../ui/Icon';
 
 import CategoryForm from './CategoryForm';
 
+import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService.ts';
 
 type TableProps = {
@@ -16,6 +17,7 @@ type TableProps = {
 
 export default function CategoryTable({ items, onActionSuccess }: TableProps) {
     const { t } = useTranslation();
+    const { showSuccess, showError } = useToast();
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
 
     const sortedItems = [...items].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
@@ -28,9 +30,11 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
     const deleteCategory = async (id: number) => {
         try {
             await apiService.orgService.categoryDELETE(id);
+            showSuccess(t('categories.form.success.categoryDeleted'));
             handleActionSuccess();
         } catch (e) {
             console.error('Failed to delete category:', e);
+            showError(t('categories.form.error.categoryDeleted'));
         }
     };
 

@@ -181,7 +181,19 @@
                 "confirm": "Move"
             },
             "rootCannotEdit": "The root bommel cannot be edited",
-            "rootCannotDelete": "The root bommel cannot be deleted"
+            "rootCannotDelete": "The root bommel cannot be deleted",
+            "toast": {
+                "createSuccess": "Bommel successfully created",
+                "createError": "Failed to create Bommel",
+                "updateSuccess": "Bommel successfully updated",
+                "updateError": "Failed to update Bommel",
+                "deleteSuccess": "Bommel successfully deleted",
+                "deleteError": "Failed to delete Bommel",
+                "moveSuccess": "Bommel successfully moved",
+                "moveError": "Failed to move Bommel",
+                "createChildSuccess": "Child Bommel successfully created",
+                "createChildError": "Failed to create child Bommel"
+            }
         },
         "details": {
             "title": "Organization Details",
@@ -294,10 +306,13 @@
                 "name": "This field cannot be empty.",
                 "nameMaxLength": "Name must not exceed 127 characters.",
                 "duplicate": "A category with this name already exists.",
-                "categoryCreated": "An error occurred."
+                "categoryCreated": "An error occurred.",
+                "categoryDeleted": "Failed to delete category."
             },
             "success": {
                 "categoryCreated": "Category successfully created",
+                "categoryUpdated": "Category successfully updated",
+                "categoryDeleted": "Category successfully deleted",
                 "creationError": ""
             }
         },
@@ -415,7 +430,8 @@
             "description": "Are you sure you want to delete '{{name}}' ({{amount}})?",
             "warning": "This action cannot be undone. The receipt will be permanently deleted.",
             "confirm": "Yes, delete",
-            "error": "Failed to delete receipt"
+            "error": "Failed to delete receipt",
+            "success": "Receipt successfully deleted"
         }
     },
     "bommel": {

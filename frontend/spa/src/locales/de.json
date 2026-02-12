@@ -180,7 +180,19 @@
                 "confirm": "Verschieben"
             },
             "rootCannotEdit": "Der Wurzel-Bommel kann nicht bearbeitet werden",
-            "rootCannotDelete": "Der Wurzel-Bommel kann nicht gelöscht werden"
+            "rootCannotDelete": "Der Wurzel-Bommel kann nicht gelöscht werden",
+            "toast": {
+                "createSuccess": "Bommel erfolgreich erstellt",
+                "createError": "Fehler beim Erstellen des Bommels",
+                "updateSuccess": "Bommel erfolgreich aktualisiert",
+                "updateError": "Fehler beim Aktualisieren des Bommels",
+                "deleteSuccess": "Bommel erfolgreich gelöscht",
+                "deleteError": "Fehler beim Löschen des Bommels",
+                "moveSuccess": "Bommel erfolgreich verschoben",
+                "moveError": "Fehler beim Verschieben des Bommels",
+                "createChildSuccess": "Unterbommel erfolgreich erstellt",
+                "createChildError": "Fehler beim Erstellen des Unterbommels"
+            }
         },
         "details": {
             "title": "Organisationsdetails",
@@ -352,7 +364,8 @@
             "description": "Sind Sie sicher, dass Sie '{{name}}' ({{amount}}) löschen möchten?",
             "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Der Beleg wird dauerhaft gelöscht.",
             "confirm": "Ja, löschen",
-            "error": "Fehler beim Löschen des Belegs"
+            "error": "Fehler beim Löschen des Belegs",
+            "success": "Beleg erfolgreich gelöscht"
         }
     },
     "bommel": {
@@ -404,10 +417,13 @@
                 "name": "Dieses Feld darf nicht leer sein.",
                 "nameMaxLength": "Der Name darf maximal 127 Zeichen lang sein.",
                 "duplicate": "Eine Kategorie mit diesem Namen existiert bereits.",
-                "categoryCreated": "Ein Fehler ist aufgetreten"
+                "categoryCreated": "Ein Fehler ist aufgetreten",
+                "categoryDeleted": "Fehler beim Löschen der Kategorie."
             },
             "success": {
                 "categoryCreated": "Kategorie erfolgreich erstellt",
+                "categoryUpdated": "Kategorie erfolgreich aktualisiert",
+                "categoryDeleted": "Kategorie erfolgreich gelöscht",
                 "creationError": ""
             }
         },
