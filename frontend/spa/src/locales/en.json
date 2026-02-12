@@ -18,6 +18,11 @@
         "validationError": "Please fill in all required fields",
         "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave this page?"
     },
+    "notFound": {
+        "title": "404 - Page Not Found",
+        "description": "The page you are looking for does not exist.",
+        "goHome": "Go to Dashboard"
+    },
     "errors": {
         "boundary": {
             "title": "Something went wrong",
@@ -159,7 +164,10 @@
                 "expenses": "Expenses",
                 "transactions": "Transactions",
                 "subBommels": "Sub-Bommels",
-                "toReceipts": "To Receipts"
+                "toReceipts": "To Receipts",
+                "bommelNotFound": "Bommel not found",
+                "bommelNotFoundDescription": "The Bommel you are looking for does not exist or has been deleted.",
+                "backToStructure": "Back to Structure"
             },
             "deleteDialog": {
                 "title": "Delete Bommel",

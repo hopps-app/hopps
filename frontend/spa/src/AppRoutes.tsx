@@ -77,7 +77,15 @@ export default function AppRoutes() {
                     }
                 />
                 <Route
-                    path="/structure/*"
+                    path="/structure"
+                    element={
+                        <LazyRoute>
+                            <OrganizationSettingsView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
+                    path="/structure/:bommelId"
                     element={
                         <LazyRoute>
                             <OrganizationSettingsView />

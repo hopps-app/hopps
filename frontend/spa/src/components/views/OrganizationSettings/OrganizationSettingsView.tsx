@@ -1,6 +1,7 @@
-import { Network, Grid3x3, Edit, Check, RefreshCw } from 'lucide-react';
-import { useState, useCallback, useEffect } from 'react';
+import { Network, Grid3x3, Edit, Check, RefreshCw, AlertCircle } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import { BommelDetailsPanel, EditModeBanner, OrganizationStats } from './components';
 import { useOrganizationTree, useTreeCalculations, useStatistics } from './hooks';
@@ -9,14 +10,19 @@ import { BommelTreeComponent } from '@/components/BommelTreeView';
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
 import Button from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/Card';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Switch from '@/components/ui/Switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 
 function OrganizationSettingsView() {
     const { t } = useTranslation();
+    const { bommelId } = useParams<{ bommelId: string }>();
+    const navigate = useNavigate();
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
+    const [bommelNotFound, setBommelNotFound] = useState(false);
+    const initialSelectionDone = useRef(false);
 
     const { isLoading: isStatsLoading, organizationStats, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
 
@@ -24,6 +30,27 @@ function OrganizationSettingsView() {
         useOrganizationTree({ bommelStats });
 
     const { countSubBommels } = useTreeCalculations(tree);
+
+    // Deep link: select Bommel from URL parameter when tree is loaded
+    useEffect(() => {
+        if (!bommelId || tree.length === 0 || isLoading) return;
+
+        const targetId = parseInt(bommelId, 10);
+        if (isNaN(targetId)) {
+            setBommelNotFound(true);
+            return;
+        }
+
+        const node = tree.find((n) => n.id === targetId);
+        if (node) {
+            setSelectedBommel(node);
+            setBommelNotFound(false);
+            initialSelectionDone.current = true;
+        } else {
+            setBommelNotFound(true);
+            setSelectedBommel(null);
+        }
+    }, [bommelId, tree, isLoading]);
 
     // Update selectedBommel when tree changes (e.g., when statistics options change)
     // Using selectedBommel?.id instead of selectedBommel to avoid infinite loops
@@ -37,12 +64,26 @@ function OrganizationSettingsView() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tree, selectedBommel?.id]);
 
+    // Update URL when Bommel is selected (by user click, not initial URL load)
+    const selectBommelAndUpdateUrl = useCallback(
+        (node: OrganizationTreeNodeModel | null) => {
+            setSelectedBommel(node);
+            setBommelNotFound(false);
+            if (node) {
+                navigate(`/structure/${node.id}`, { replace: true });
+            } else {
+                navigate('/structure', { replace: true });
+            }
+        },
+        [navigate]
+    );
+
     const handleBommelSelect = useCallback(
         (nodeId: number) => {
             const node = tree.find((n) => n.id === nodeId);
-            setSelectedBommel(node || null);
+            selectBommelAndUpdateUrl(node || null);
         },
-        [tree]
+        [tree, selectBommelAndUpdateUrl]
     );
 
     const handleNavigateToReceipts = useCallback(() => {
@@ -53,9 +94,9 @@ function OrganizationSettingsView() {
     const handleTreeNodeClick = useCallback(
         (nodeData: { attributes?: { id?: number } }) => {
             const node = tree.find((n) => n.id === nodeData.attributes?.id);
-            setSelectedBommel(node || null);
+            selectBommelAndUpdateUrl(node || null);
         },
-        [tree]
+        [tree, selectBommelAndUpdateUrl]
     );
 
     const handleEdit = useCallback(
@@ -217,11 +258,28 @@ function OrganizationSettingsView() {
 
                     {/* Right Side - Selected Bommel Details */}
                     <div className="lg:col-span-1">
-                        <BommelDetailsPanel
-                            selectedBommel={selectedBommel}
-                            subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
-                            onNavigateToReceipts={handleNavigateToReceipts}
-                        />
+                        {bommelNotFound ? (
+                            <Card className="sticky top-6 bg-white">
+                                <CardContent className="py-8 text-center space-y-4">
+                                    <div className="rounded-full bg-destructive/10 p-3 mx-auto w-fit">
+                                        <AlertCircle className="h-6 w-6 text-destructive" />
+                                    </div>
+                                    <div>
+                                        <p className="text-destructive font-medium">{t('organization.structure.details.bommelNotFound')}</p>
+                                        <p className="text-sm text-gray-500 mt-1">{t('organization.structure.details.bommelNotFoundDescription')}</p>
+                                    </div>
+                                    <Button variant="outline" onClick={() => navigate('/structure', { replace: true })}>
+                                        {t('organization.structure.details.backToStructure')}
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <BommelDetailsPanel
+                                selectedBommel={selectedBommel}
+                                subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
+                                onNavigateToReceipts={handleNavigateToReceipts}
+                            />
+                        )}
                     </div>
                 </div>
             </div>

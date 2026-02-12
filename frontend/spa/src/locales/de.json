@@ -18,6 +18,11 @@
         "validationError": "Bitte füllen Sie alle Pflichtfelder aus",
         "unsavedChangesWarning": "Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?"
     },
+    "notFound": {
+        "title": "404 - Seite nicht gefunden",
+        "description": "Die gesuchte Seite existiert nicht.",
+        "goHome": "Zum Dashboard"
+    },
     "errors": {
         "boundary": {
             "title": "Ein Fehler ist aufgetreten",
@@ -158,7 +163,10 @@
                 "expenses": "Ausgaben",
                 "transactions": "Transaktionen",
                 "subBommels": "Subbommel",
-                "toReceipts": "Zu Belege"
+                "toReceipts": "Zu Belege",
+                "bommelNotFound": "Bommel nicht gefunden",
+                "bommelNotFoundDescription": "Der gesuchte Bommel existiert nicht oder wurde gelöscht.",
+                "backToStructure": "Zurück zur Struktur"
             },
             "deleteDialog": {
                 "title": "Bommel löschen",
