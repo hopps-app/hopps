@@ -2,6 +2,7 @@ import { NodeModel, useDragOver } from '@minoru/react-dnd-treeview';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { validateBommelName } from '@/components/BommelTreeView/components/BommelCardEditForm';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import Button from '@/components/ui/Button.tsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog.tsx';
@@ -38,6 +39,7 @@ function OrganizationTreeNode(props: Props) {
     const [editValue, setEditValue] = useState('');
     const [editEmoji, setEditEmoji] = useState('');
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
     const textFieldRef = useRef<HTMLInputElement>(null);
 
     const emoji = data?.emoji || '';
@@ -52,6 +54,13 @@ function OrganizationTreeNode(props: Props) {
 
     const onEditValueChange = (value: string) => {
         setEditValue(value);
+        // Clear validation error when user starts typing valid input
+        if (validationError) {
+            const error = validateBommelName(value);
+            if (!error) {
+                setValidationError(null);
+            }
+        }
     };
 
     const onEmojiChanged = (value: string) => {
@@ -87,7 +96,17 @@ function OrganizationTreeNode(props: Props) {
     };
 
     const onClickAcceptEdit = () => {
-        props.onEdit({ ...props.node, text: editValue, data: { ...props.node.data, emoji: editEmoji } });
+        const error = validateBommelName(editValue);
+        if (error === 'required') {
+            setValidationError(t('organization.structure.validation.nameRequired'));
+            return;
+        }
+        if (error === 'maxLength') {
+            setValidationError(t('organization.structure.validation.nameMaxLength'));
+            return;
+        }
+        setValidationError(null);
+        props.onEdit({ ...props.node, text: editValue.trim(), data: { ...props.node.data, emoji: editEmoji } });
         setIsEditing(false);
         props.onEditComplete?.();
     };
@@ -95,6 +114,7 @@ function OrganizationTreeNode(props: Props) {
     const onClickCancelEdit = () => {
         setIsEditing(false);
         setEditValue('');
+        setValidationError(null);
         props.onEditComplete?.();
     };
 
@@ -171,31 +191,40 @@ function OrganizationTreeNode(props: Props) {
                         })}
                     >
                         {isEditing ? (
-                            <div className="flex items-center justify-between gap-4">
-                                {/* Left: Edit fields */}
-                                <div className="flex flex-row items-center gap-2 flex-1">
-                                    <EmojiField value={editEmoji} className="py-0 px-1 h-8" onChange={onEmojiChanged} />
-                                    <TextField
-                                        ref={textFieldRef}
-                                        value={editValue}
-                                        className="py-1 px-1 h-8 flex-1"
-                                        onValueChange={onEditValueChange}
-                                        onKeyDown={onKeyDown}
-                                    />
-                                </div>
+                            <div>
+                                <div className="flex items-center justify-between gap-4">
+                                    {/* Left: Edit fields */}
+                                    <div className="flex flex-row items-center gap-2 flex-1">
+                                        <EmojiField value={editEmoji} className="py-0 px-1 h-8" onChange={onEmojiChanged} />
+                                        <TextField
+                                            ref={textFieldRef}
+                                            value={editValue}
+                                            className={cn('py-1 px-1 h-8 flex-1', {
+                                                'border-red-500 focus:border-red-500 focus:ring-red-500': validationError,
+                                            })}
+                                            onValueChange={onEditValueChange}
+                                            onKeyDown={onKeyDown}
+                                        />
+                                    </div>
 
-                                {/* Right: Action buttons (replacing financial info) */}
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                    <Button variant="default" className="px-3" icon="Check" onClick={onClickAcceptEdit}>
-                                        {t('common.save')}
-                                    </Button>
-                                    <Button variant="outline" className="px-3" icon="Cross1" onClick={onClickCancelEdit}>
-                                        {t('common.cancel')}
-                                    </Button>
-                                    <Button variant="destructive" className="px-3" icon="Trash" onClick={onClickDelete}>
-                                        {t('common.delete')}
-                                    </Button>
+                                    {/* Right: Action buttons (replacing financial info) */}
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <Button variant="default" className="px-3" icon="Check" onClick={onClickAcceptEdit}>
+                                            {t('common.save')}
+                                        </Button>
+                                        <Button variant="outline" className="px-3" icon="Cross1" onClick={onClickCancelEdit}>
+                                            {t('common.cancel')}
+                                        </Button>
+                                        <Button variant="destructive" className="px-3" icon="Trash" onClick={onClickDelete}>
+                                            {t('common.delete')}
+                                        </Button>
+                                    </div>
                                 </div>
+                                {validationError && (
+                                    <div className="text-red-500 text-xs font-medium mt-1 ml-10" role="alert">
+                                        {validationError}
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="flex items-center justify-between gap-4">

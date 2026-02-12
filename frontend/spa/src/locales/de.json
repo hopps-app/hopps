@@ -120,6 +120,10 @@
             "addChild": "Kind hinzufügen",
             "saveName": "Speichern",
             "cancelEdit": "Abbrechen",
+            "validation": {
+                "nameRequired": "Bommel-Name ist erforderlich",
+                "nameMaxLength": "Der Name darf maximal 255 Zeichen lang sein"
+            },
             "editModeHint": "Per Drag & Drop in der Tabelle oder mit dem Verschieben-Button in der Baumansicht",
             "moveBommel": "Bommel verschieben",
             "includeDrafts": "Entwürfe einbeziehen",

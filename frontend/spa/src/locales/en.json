@@ -121,6 +121,10 @@
             "addChild": "Add Child",
             "saveName": "Save",
             "cancelEdit": "Cancel",
+            "validation": {
+                "nameRequired": "Bommel name is required",
+                "nameMaxLength": "Name must not exceed 255 characters"
+            },
             "editModeHint": "Drag & drop bommels in Table view, or use the move button in Tree view",
             "moveBommel": "Move Bommel",
             "includeDrafts": "Include drafts",

@@ -39,7 +39,11 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
     };
 
     const handleSaveName = async () => {
-        if (onEdit && editedName.trim()) {
+        // Validation is handled in BommelCardEditForm, but also guard here
+        if (!editedName.trim() || editedName.trim().length > 255) {
+            return;
+        }
+        if (onEdit) {
             const hasChanged = editedName !== nodeDatum.name || editedEmoji !== ((nodeDatum.attributes?.emoji as string) || '');
             if (hasChanged) {
                 const success = await onEdit(nodeId, editedName.trim(), editedEmoji);
