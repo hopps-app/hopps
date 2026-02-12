@@ -2971,3 +2971,157 @@ Screenshots saved to .autoforge/screenshots/feature68-*.png
 - Current completion: 35/81 features passing (43.2%)
 - Session Duration: ~30 minutes
 - Session End: 2026-02-10 ~14:45 CET
+
+================================================================================
+SESSION #13 - 2026-02-12 ~11:00 CET
+================================================================================
+Assigned Feature: #38 (Category form validation)
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 41/81 passing (50.6%), 1 in progress (#38)
+- Backend: Running on ports 8080 and 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173
+- Docker: postgres, keycloak, localstack running
+
+### Feature #38: Category form validation - PASSED
+
+**What existed already:**
+- Frontend: Zod schema with name min(1)/max(127) validation
+- Frontend: Error messages in EN/DE for empty, max length, duplicate
+- Frontend: TextField with maxLength={127} HTML attribute
+- Frontend: Error handler catching HTTP 409 for duplicate detection
+- Backend: CategoryInput DTO with @NotBlank @Length(min=1, max=127)
+- Backend: CategoryRepository.findByNameAndOrganizationIgnoreCase() method
+
+**What was missing (and implemented):**
+- Backend: No duplicate name checking in createCategory or updateCategory endpoints
+- Backend: Categories with same name could be created without any error
+
+**Code Changes Made:**
+1. `CategoryResource.java` - createCategory() method:
+   - Added case-insensitive duplicate name check before creating
+   - Returns HTTP 409 CONFLICT with descriptive message
+   - Added @APIResponse(responseCode="409") annotation
+
+2. `CategoryResource.java` - updateCategory() method:
+   - Changed return type from Category to Response
+   - Added case-insensitive duplicate name check (excluding current category)
+   - Returns HTTP 409 CONFLICT for name collision on different category
+   - Returns Response.ok(category) for success
+   - Added @APIResponse(responseCode="409") annotation
+
+**Backend API Verification (port 8101):**
+- POST with valid name → 201 CREATED ✓
+- POST with empty name → 400 BAD REQUEST (constraint violation) ✓
+- POST with 128-char name → 400 BAD REQUEST (length violation) ✓
+- POST with 127-char name → 201 CREATED ✓
+- POST with duplicate name → 409 CONFLICT ✓
+- POST with case-insensitive duplicate → 409 CONFLICT ✓
+
+**Browser UI Verification (all 5 test steps):**
+1. Empty name submission → "This field cannot be empty." error ✓
+2. Name exceeding 127 chars → HTML maxLength truncates to 127, Zod validates ✓
+3. Valid name submission → Category created successfully, appears in list ✓
+4. Duplicate name submission → "A category with this name already exists." error ✓
+5. Dialog stays open on error, allowing user to correct input ✓
+
+**Mock data check:** No mock patterns in frontend src/ ✓
+**Console errors:** Only expected 409 response + catch block console.error ✓
+
+### Commit: 893e25d
+### Pushed: origin/autoforge/feature-40-upload-error-handling
+
+### Current Completion:
+- Before: 41/81 passing (50.6%)
+- After: 42/81 passing (51.9%)
+- Features completed this session: 1 (#38)
+
+### Session Duration: ~20 minutes
+### Session End: 2026-02-12 ~11:15 CET
+
+================================================================================
+SESSION #14 - 2026-02-12 ~11:40 CET
+================================================================================
+Assigned Features: #41, #42, #75
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 45/81 passing (55.6%), 3 in progress (#41, #42, #75)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173
+
+### Feature #41: Success feedback on CRUD operations - PASSED
+
+**Changes Made:**
+1. `use-toast.ts` - Fixed TOAST_REMOVE_DELAY from 1000000ms to 5000ms for auto-dismiss
+2. `useOrganizationTree.ts` - Added success toasts + replaced hard-coded English error strings with i18n keys for all 5 Bommel operations (create, createChild, update, move, delete)
+3. `CategoryTable.tsx` - Added success/error toasts for category deletion
+4. `CategoryForm.tsx` - Differentiated success message for edit vs create
+5. `ReceiptsList.tsx` - Added success toast for transaction deletion
+6. `en.json`, `de.json`, `uk.json` - Added all missing toast translation keys
+
+**Browser Verification:**
+- Create category → "Category successfully created" toast ✓
+- Edit category → "Category successfully updated" toast ✓
+- Delete category → "Category successfully deleted" toast ✓
+- Create Bommel → "Child Bommel successfully created" toast ✓
+- Delete Bommel → "Bommel successfully deleted" toast ✓
+- Toast auto-dismisses after ~5 seconds ✓
+- All messages translatable via i18n ✓
+- Zero console errors ✓
+
+### Feature #42: Loading states shown during data fetching - PASSED
+
+**Changes Made:**
+1. `DashboardView.tsx` - Replaced plain text "Loading..." with LoadingState spinner component
+2. `ReceiptsList.tsx` - Replaced plain text "Loading..." with LoadingState spinner component
+3. `CategoriesSettingsView.tsx` - Added missing loading state (was completely absent)
+
+**Existing Loading States (already implemented):**
+- Organization Settings: LoadingOverlay during tree/stats loading
+- InvoicesView: LoadingOverlay during invoice fetch
+- Receipt Upload: LoadingOverlay + Progress bar during file upload
+
+**Browser Verification:**
+- Dashboard: Loading spinner while chart loads, disappears when data loaded ✓
+- Structure: LoadingOverlay while tree loads ✓
+- Receipts list: LoadingState spinner while data loads ✓
+- Categories: LoadingState spinner while data loads (newly added) ✓
+- Upload: LoadingOverlay + progress bar during upload ✓
+- Loading states disappear when data loaded ✓
+- No stuck loading states ✓
+- Zero console errors ✓
+
+### Feature #75: Confirmation dialogs before destructive actions - PASSED
+
+**No Code Changes Needed** - All confirmation dialogs were already implemented:
+- Bommel delete: "Delete Bommel" dialog with "Are you sure you want to delete '[name]'?"
+- Transaction delete: "Delete Receipt" dialog with name, amount, and permanent deletion warning
+- Category delete: "Delete This Category" dialog with reassignment warning
+
+**Browser Verification (all 7 steps):**
+1. Delete Bommel → confirmation dialog appears ✓
+2. Cancel → Bommel NOT deleted ✓
+3. Confirm → Bommel IS deleted ✓
+4. Delete transaction → confirmation dialog appears ✓
+5. Cancel → transaction remains ✓
+6. Delete category → confirmation dialog appears ✓
+7. Dialog text clearly states what will be deleted ✓
+- Zero console errors ✓
+
+### Commits:
+- c607e62: feat: add success toast notifications for all CRUD operations with i18n
+- 7f163ea: feat: add proper loading spinners for dashboard, receipts list, and categories
+
+### Current Completion:
+- Before: 45/81 passing (55.6%)
+- After: 48/81 passing (59.3%)
+- Features completed this session: 3 (#41, #42, #75)
+
+### Session Duration: ~25 minutes
+### Session End: 2026-02-12 ~12:00 CET
