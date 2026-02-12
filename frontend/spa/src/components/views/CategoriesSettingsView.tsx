@@ -8,13 +8,14 @@ import Button from '../ui/Button';
 import Header from '../ui/Header';
 import TextField from '../ui/TextField';
 
+import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import DialogWrapper from '@/components/ui/DialogWrapper';
 import { useCategories } from '@/hooks/queries';
 import { useSearch } from '@/hooks/use-search';
 
 function CategoriesSettingsView() {
     const { t } = useTranslation();
-    const { data: categories = [], refetch } = useCategories();
+    const { data: categories = [], isLoading, refetch } = useCategories();
     const [query, setQuery] = useState('');
     const results: Category[] = useSearch(categories, query, ['name']);
 
@@ -43,7 +44,13 @@ function CategoriesSettingsView() {
                     </DialogWrapper>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <CategoryTable items={results} onActionSuccess={refetch} />
+                    {isLoading ? (
+                        <div className="py-12">
+                            <LoadingState size="lg" />
+                        </div>
+                    ) : (
+                        <CategoryTable items={results} onActionSuccess={refetch} />
+                    )}
                 </div>
             </div>
         </div>

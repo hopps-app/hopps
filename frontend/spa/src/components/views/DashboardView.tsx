@@ -10,6 +10,7 @@ import { useStore } from '@/store/store';
 import { Calendar } from '@/components/ui/shadecn/Calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { cn } from '@/lib/utils';
 import { getUserFriendlyErrorMessage, isNetworkError } from '@/utils/errorUtils';
 
@@ -231,7 +232,7 @@ function DashboardView() {
 
                 {isLoading && (
                     <div className="flex items-center justify-center h-96">
-                        <p className="text-gray-500">{t('common.loading')}</p>
+                        <LoadingState size="lg" />
                     </div>
                 )}
 

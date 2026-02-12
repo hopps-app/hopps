@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react';
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { formatAmount } from '@/components/Receipts/helpers/receiptHelpers';
 import ReceiptRow from '@/components/Receipts/ReceiptRow';
@@ -127,7 +128,11 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     }, []);
 
     if (isLoading) {
-        return <div className="text-center text-[var(--grey-700)] py-6">{t('common.loading')}</div>;
+        return (
+            <div className="py-12">
+                <LoadingState size="lg" />
+            </div>
+        );
     }
 
     if (isError) {
