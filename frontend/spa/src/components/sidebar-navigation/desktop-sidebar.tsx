@@ -24,7 +24,11 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
 
     React.useEffect(() => {
         const match = menuConfig.find((item) => item.children?.some((child) => location.pathname.startsWith(child.path ?? '')));
-        if (match) setExpanded(match.id);
+        if (match) {
+            setExpanded(match.id);
+        } else {
+            setExpanded(null);
+        }
     }, [location.pathname]);
 
     const handleMenuClick = (item: MenuItem | SubMenuItem) => {

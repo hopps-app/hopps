@@ -173,9 +173,9 @@ function OrganizationSettingsView() {
             {(isLoading || isStatsLoading) && <LoadingOverlay />}
 
             <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                     {/* Left Side - Structure Views */}
-                    <div className="lg:col-span-3 space-y-6">
+                    <div className="xl:col-span-3 space-y-6">
                         <OrganizationStats
                             totalBommels={organizationStats?.totalBommels ?? 0}
                             total={organizationStats?.total ?? 0}
@@ -257,7 +257,7 @@ function OrganizationSettingsView() {
                     </div>
 
                     {/* Right Side - Selected Bommel Details */}
-                    <div className="lg:col-span-1">
+                    <div className="xl:col-span-1">
                         {bommelNotFound ? (
                             <Card className="sticky top-6 bg-white">
                                 <CardContent className="py-8 text-center space-y-4">

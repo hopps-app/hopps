@@ -15,51 +15,52 @@ export function OrganizationStats({ totalBommels, total, income, expenses, total
 
     return (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <Card className="bg-white">
+            <Card className="bg-white min-w-0">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-gray-600">{t('organization.stats.totalBommels')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl text-gray-900">{totalBommels}</p>
+                    <p className="text-lg lg:text-2xl text-gray-900 truncate">{totalBommels}</p>
                 </CardContent>
             </Card>
 
-            <Card className="bg-white">
+            <Card className="bg-white min-w-0">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-gray-600">{t('organization.stats.income')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl text-green-600">+{income.toLocaleString('de-DE')}€</p>
+                    <p className="text-lg lg:text-2xl text-green-600 truncate" title={`+${income.toLocaleString('de-DE')}€`}>+{income.toLocaleString('de-DE')}€</p>
                 </CardContent>
             </Card>
 
-            <Card className="bg-white">
+            <Card className="bg-white min-w-0">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-gray-600">{t('organization.stats.expenses')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl text-red-600">-{expenses.toLocaleString('de-DE')}€</p>
+                    <p className="text-lg lg:text-2xl text-red-600 truncate" title={`-${expenses.toLocaleString('de-DE')}€`}>-{expenses.toLocaleString('de-DE')}€</p>
                 </CardContent>
             </Card>
 
-            <Card className="bg-white">
+            <Card className="bg-white min-w-0">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-gray-600">{t('organization.stats.total')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className={`text-2xl ${total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-lg lg:text-2xl truncate ${total >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                       title={`${total >= 0 ? '+' : ''}${total.toLocaleString('de-DE')}€`}>
                         {total >= 0 ? '+' : ''}
                         {total.toLocaleString('de-DE')}€
                     </p>
                 </CardContent>
             </Card>
 
-            <Card className="bg-white">
+            <Card className="bg-white min-w-0">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-gray-600">{t('organization.stats.totalTransactions')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-2xl text-gray-900">{totalTransactions}</p>
+                    <p className="text-lg lg:text-2xl text-gray-900 truncate">{totalTransactions}</p>
                 </CardContent>
             </Card>
         </div>

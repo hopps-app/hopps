@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Tree, { CustomNodeElementProps } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
@@ -24,7 +24,24 @@ function BommelTreeComponent({
     const { t } = useTranslation();
     const [, forceUpdate] = useState({});
     const treeContainerRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState(width);
     const [movingBommelId, setMovingBommelId] = useState<number | null>(null);
+
+    // Measure container width for responsive centering
+    useEffect(() => {
+        const container = treeContainerRef.current;
+        if (!container) return;
+
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setContainerWidth(entry.contentRect.width);
+            }
+        });
+        observer.observe(container);
+        setContainerWidth(container.clientWidth);
+
+        return () => observer.disconnect();
+    }, []);
 
     // Convert OrganizationTreeNodeModel[] to react-d3-tree format
     const treeData = useTreeData({ tree, rootBommel });
@@ -129,7 +146,7 @@ function BommelTreeComponent({
                 <Tree
                     data={treeData}
                     orientation="vertical"
-                    translate={{ x: width / 2, y: 80 }}
+                    translate={{ x: containerWidth / 2, y: 80 }}
                     pathFunc="step"
                     nodeSize={{ x: 240, y: editable ? 120 : 160 }}
                     renderCustomNodeElement={renderCustomNodeElement}
