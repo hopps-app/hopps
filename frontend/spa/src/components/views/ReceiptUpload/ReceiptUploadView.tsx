@@ -90,6 +90,10 @@ function ReceiptUploadView() {
         analysisError,
         setAnalysisError,
         extractionSource,
+        formErrors,
+        validate,
+        validateDraft,
+        clearFieldError,
         applyAnalysisResult,
         applyAnalysisResultToEmptyFields,
         loadTransaction,
@@ -365,10 +369,62 @@ function ReceiptUploadView() {
         };
     }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, category, area, tags, netAmount, taxAmount]);
 
+    // Field change handlers that clear validation errors
+    const handleReceiptDateChange = useCallback(
+        (date: Date | undefined) => {
+            setReceiptDate(date);
+            clearFieldError('receiptDate');
+        },
+        [setReceiptDate, clearFieldError]
+    );
+
+    const handleTransactionKindChange = useCallback(
+        (value: 'intake' | 'expense' | '') => {
+            setTransactionKind(value);
+            clearFieldError('transactionKind');
+        },
+        [setTransactionKind, clearFieldError]
+    );
+
+    const handleContractPartnerChange = useCallback(
+        (value: string) => {
+            setContractPartner(value);
+            clearFieldError('contractPartner');
+        },
+        [setContractPartner, clearFieldError]
+    );
+
+    const handleBommelIdChange = useCallback(
+        (id: number | null) => {
+            setBommelId(id);
+            clearFieldError('bommelId');
+        },
+        [setBommelId, clearFieldError]
+    );
+
+    const handleNetAmountChange = useCallback(
+        (value: string) => {
+            setNetAmount(value);
+            clearFieldError('netAmount');
+        },
+        [setNetAmount, clearFieldError]
+    );
+
+    const handleTaxAmountChange = useCallback(
+        (value: string) => {
+            setTaxAmount(value);
+            clearFieldError('taxAmount');
+        },
+        [setTaxAmount, clearFieldError]
+    );
+
     // Submit handler - currently disabled, will be enabled when full validation passes
     const handleSubmit = useCallback(async () => {
-        // Save button is disabled for now
-        if (!isValid || !transactionId) {
+        if (!validate()) {
+            showError(t('common.validationError'));
+            return;
+        }
+        if (!transactionId) {
             showError(t('common.validationError'));
             return;
         }
@@ -392,12 +448,17 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [isValid, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate, queryClient]);
+    }, [validate, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate, queryClient]);
 
     // Save as draft - saves current form data to transaction without confirming
     const handleSaveDraft = useCallback(async () => {
         if (!canSaveDraft) {
             showError(t('receipts.upload.noDocumentOrFile'));
+            return;
+        }
+
+        if (!validateDraft()) {
+            showError(t('common.validationError'));
             return;
         }
 
@@ -434,7 +495,7 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [canSaveDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload, resetForm, navigate, queryClient]);
+    }, [canSaveDraft, validateDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload, resetForm, navigate, queryClient]);
 
     const handleCancel = useCallback(() => {
         navigate('/receipts');
@@ -525,17 +586,17 @@ function ReceiptUploadView() {
                             receiptNumber={receiptNumber}
                             onReceiptNumberChange={setReceiptNumber}
                             receiptDate={receiptDate}
-                            onReceiptDateChange={setReceiptDate}
+                            onReceiptDateChange={handleReceiptDateChange}
                             dueDate={dueDate}
                             onDueDateChange={setDueDate}
                             transactionKind={transactionKind}
-                            onTransactionKindChange={setTransactionKind}
+                            onTransactionKindChange={handleTransactionKindChange}
                             isUnpaid={isUnpaid}
                             onIsUnpaidChange={setIsUnpaid}
                             contractPartner={contractPartner}
-                            onContractPartnerChange={setContractPartner}
+                            onContractPartnerChange={handleContractPartnerChange}
                             bommelId={bommelId}
-                            onBommelIdChange={setBommelId}
+                            onBommelIdChange={handleBommelIdChange}
                             category={category}
                             onCategoryChange={setCategory}
                             area={area}
@@ -543,10 +604,11 @@ function ReceiptUploadView() {
                             tags={tags}
                             onTagsChange={setTags}
                             netAmount={netAmount}
-                            onNetAmountChange={setNetAmount}
+                            onNetAmountChange={handleNetAmountChange}
                             taxAmount={taxAmount}
-                            onTaxAmountChange={setTaxAmount}
+                            onTaxAmountChange={handleTaxAmountChange}
                             loadingStates={loadingStates}
+                            errors={formErrors}
                         />
                     </div>
 

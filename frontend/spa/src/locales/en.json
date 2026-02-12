@@ -362,7 +362,17 @@
             "saveSuccess": "Receipt saved successfully",
             "saveFailed": "Failed to save receipt",
             "draftSaved": "Draft saved",
-            "noDocumentOrFile": "Please upload a file first or fill in the form data"
+            "noDocumentOrFile": "Please upload a file first or fill in the form data",
+            "validation": {
+                "receiptDateRequired": "Receipt date is required",
+                "transactionKindRequired": "Please select a transaction type",
+                "contractPartnerRequired": "Contract partner is required",
+                "bommelRequired": "Please select a Bommel",
+                "netAmountRequired": "Net amount is required",
+                "netAmountInvalid": "Please enter a valid amount",
+                "taxAmountRequired": "Tax amount is required",
+                "taxAmountInvalid": "Please enter a valid amount"
+            }
         },
         "areas": {
             "ideell": "Non-profit area",

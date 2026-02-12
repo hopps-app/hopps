@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { LoadingStates } from '../hooks/useReceiptForm';
+import { FormErrors, LoadingStates } from '../hooks/useReceiptForm';
 
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import Radio from '@/components/ui/Radio';
@@ -38,6 +38,7 @@ interface ReceiptFormFieldsProps {
     taxAmount: string;
     onTaxAmountChange: (value: string) => void;
     loadingStates: LoadingStates;
+    errors?: FormErrors;
 }
 
 export function ReceiptFormFields({
@@ -66,6 +67,7 @@ export function ReceiptFormFields({
     taxAmount,
     onTaxAmountChange,
     loadingStates,
+    errors = {},
 }: ReceiptFormFieldsProps) {
     const { t } = useTranslation();
     const { data: categories = [], isLoading: categoriesLoading } = useCategories();
@@ -105,9 +107,17 @@ export function ReceiptFormFields({
                 onSelect={onReceiptDateChange}
                 className="w-full"
                 loading={loadingStates.receiptDate}
+                error={errors.receiptDate}
             />
 
-            <Radio items={radioItems} value={transactionKind} onValueChange={(v) => onTransactionKindChange(v as 'intake' | 'expense')} layout="horizontal" />
+            <div className="relative">
+                <Radio items={radioItems} value={transactionKind} onValueChange={(v) => onTransactionKindChange(v as 'intake' | 'expense')} layout="horizontal" />
+                {errors.transactionKind && (
+                    <div className="text-destructive text-xs mt-1" role="alert">
+                        {errors.transactionKind}
+                    </div>
+                )}
+            </div>
             <Switch checked={isUnpaid} onCheckedChange={onIsUnpaidChange} label={isUnpaid ? t('receipts.upload.paid') : t('receipts.upload.unpaid')} />
 
             <TextField
@@ -115,10 +125,16 @@ export function ReceiptFormFields({
                 value={contractPartner}
                 onValueChange={onContractPartnerChange}
                 loading={loadingStates.contractPartner}
+                error={errors.contractPartner}
             />
             <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">{t('receipts.upload.bommel')}</label>
                 <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} />
+                {errors.bommelId && (
+                    <div className="text-destructive text-xs" role="alert">
+                        {errors.bommelId}
+                    </div>
+                )}
             </div>
 
             <DatePicker label={t('receipts.upload.dueDate')} date={dueDate} onSelect={onDueDateChange} className="w-full" loading={loadingStates.dueDate} />
@@ -141,8 +157,8 @@ export function ReceiptFormFields({
                 />
             </div>
 
-            <TextField label={t('receipts.upload.taxAmount')} value={taxAmount} onValueChange={onTaxAmountChange} loading={loadingStates.taxAmount} />
-            <TextField label={t('receipts.upload.netAmount')} value={netAmount} onValueChange={onNetAmountChange} loading={loadingStates.netAmount} />
+            <TextField label={t('receipts.upload.taxAmount')} value={taxAmount} onValueChange={onTaxAmountChange} loading={loadingStates.taxAmount} error={errors.taxAmount} />
+            <TextField label={t('receipts.upload.netAmount')} value={netAmount} onValueChange={onNetAmountChange} loading={loadingStates.netAmount} error={errors.netAmount} />
         </div>
     );
 }

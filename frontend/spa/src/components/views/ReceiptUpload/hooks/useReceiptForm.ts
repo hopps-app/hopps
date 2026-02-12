@@ -1,5 +1,6 @@
 import type { AnalysisStatus, DocumentResponse, ExtractionSource, TransactionResponse } from '@hopps/api-client';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Tag = string;
 
@@ -42,7 +43,17 @@ const initialLoadingStates: LoadingStates = {
     taxAmount: false,
 };
 
+export interface FormErrors {
+    receiptDate?: string;
+    transactionKind?: string;
+    contractPartner?: string;
+    bommelId?: string;
+    netAmount?: string;
+    taxAmount?: string;
+}
+
 export function useReceiptForm() {
+    const { t } = useTranslation();
     const [file, setFile] = useState<File | null>(null);
     const [receiptNumber, setReceiptNumber] = useState('');
     const [receiptDate, setReceiptDate] = useState<Date | undefined>(undefined);
@@ -66,6 +77,22 @@ export function useReceiptForm() {
     const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
     const [extractionSource, setExtractionSource] = useState<ExtractionSource | null>(null);
+
+    // Form validation errors
+    const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+    const clearFieldError = useCallback((field: keyof FormErrors) => {
+        setFormErrors((prev) => {
+            if (!prev[field]) return prev;
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
+    }, []);
+
+    const clearAllErrors = useCallback(() => {
+        setFormErrors({});
+    }, []);
 
     const setFieldLoading = useCallback((field: keyof LoadingStates, loading: boolean) => {
         setLoadingStates((prev) => ({ ...prev, [field]: loading }));
@@ -335,6 +362,53 @@ export function useReceiptForm() {
         return loadedValues;
     }, []);
 
+    // Validate all required fields for final save
+    const validate = useCallback((): boolean => {
+        const errors: FormErrors = {};
+
+        if (!receiptDate) {
+            errors.receiptDate = t('receipts.upload.validation.receiptDateRequired');
+        }
+        if (!transactionKind) {
+            errors.transactionKind = t('receipts.upload.validation.transactionKindRequired');
+        }
+        if (!contractPartner.trim()) {
+            errors.contractPartner = t('receipts.upload.validation.contractPartnerRequired');
+        }
+        if (!bommelId) {
+            errors.bommelId = t('receipts.upload.validation.bommelRequired');
+        }
+        if (!netAmount.trim()) {
+            errors.netAmount = t('receipts.upload.validation.netAmountRequired');
+        } else if (isNaN(parseFloat(netAmount))) {
+            errors.netAmount = t('receipts.upload.validation.netAmountInvalid');
+        }
+        if (!taxAmount.trim()) {
+            errors.taxAmount = t('receipts.upload.validation.taxAmountRequired');
+        } else if (isNaN(parseFloat(taxAmount))) {
+            errors.taxAmount = t('receipts.upload.validation.taxAmountInvalid');
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    }, [receiptDate, transactionKind, contractPartner, bommelId, netAmount, taxAmount, t]);
+
+    // Validate minimum fields for saving as draft (less strict)
+    const validateDraft = useCallback((): boolean => {
+        const errors: FormErrors = {};
+
+        // For drafts, only validate amounts if they're provided but invalid
+        if (netAmount.trim() && isNaN(parseFloat(netAmount))) {
+            errors.netAmount = t('receipts.upload.validation.netAmountInvalid');
+        }
+        if (taxAmount.trim() && isNaN(parseFloat(taxAmount))) {
+            errors.taxAmount = t('receipts.upload.validation.taxAmountInvalid');
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    }, [netAmount, taxAmount, t]);
+
     const resetForm = useCallback(() => {
         setFile(null);
         setReceiptNumber('');
@@ -356,7 +430,8 @@ export function useReceiptForm() {
         setAnalysisError(null);
         setExtractionSource(null);
         setAllFieldsLoading(false);
-    }, [setAllFieldsLoading]);
+        clearAllErrors();
+    }, [setAllFieldsLoading, clearAllErrors]);
 
     // Check if form has minimum required fields for saving as draft
     const canSaveDraft = useMemo(() => {
@@ -422,6 +497,13 @@ export function useReceiptForm() {
         analysisError,
         setAnalysisError,
         extractionSource,
+
+        // Validation
+        formErrors,
+        validate,
+        validateDraft,
+        clearFieldError,
+        clearAllErrors,
 
         // Actions
         setFieldLoading,

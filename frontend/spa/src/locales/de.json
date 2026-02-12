@@ -288,6 +288,16 @@
             "saveFailed": "Fehler beim Speichern des Belegs",
             "draftSaved": "Entwurf gespeichert",
             "noDocumentOrFile": "Bitte laden Sie zuerst eine Datei hoch oder füllen Sie die Formulardaten aus",
+            "validation": {
+                "receiptDateRequired": "Belegdatum ist erforderlich",
+                "transactionKindRequired": "Bitte wählen Sie eine Belegart",
+                "contractPartnerRequired": "Vertragspartner ist erforderlich",
+                "bommelRequired": "Bitte wählen Sie einen Bommel",
+                "netAmountRequired": "Nettobetrag ist erforderlich",
+                "netAmountInvalid": "Bitte geben Sie einen gültigen Betrag ein",
+                "taxAmountRequired": "Steuerbetrag ist erforderlich",
+                "taxAmountInvalid": "Bitte geben Sie einen gültigen Betrag ein"
+            },
             "analysis": {
                 "pending": "Dokument wird vorbereitet...",
                 "analyzing": "Dokument wird analysiert...",
