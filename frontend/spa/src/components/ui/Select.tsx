@@ -17,18 +17,27 @@ interface SelectProps {
     label?: string;
     placeholder?: string;
     className?: string;
+    error?: string;
+    required?: boolean;
 }
 
 function Select(props: SelectProps) {
-    const { value, items, onValueChanged, label, placeholder, className, ...otherProps } = props;
+    const { value, items, onValueChanged, label, placeholder, className, error, required, ...otherProps } = props;
     const [id] = useState(_.uniqueId('select-'));
+    const errorId = `${id}-error`;
     const [isOpened, setIsOpened] = useState(false);
 
     return (
         <div className={`grid w-full items-center gap-1.5 ${className}`}>
             {label && <Label htmlFor={id}>{label}</Label>}
             <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} onOpenChange={setIsOpened} {...otherProps}>
-                <SelectTrigger className={isOpened ? ' rounded ring-2 ring-primary' : ''}>
+                <SelectTrigger
+                    id={id}
+                    className={isOpened ? ' rounded ring-2 ring-primary' : ''}
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? errorId : undefined}
+                    aria-required={required || undefined}
+                >
                     <SelectValue placeholder={placeholder || 'Select'} className="placeholder:text-muted" />
                 </SelectTrigger>
                 <SelectContent>
@@ -41,6 +50,11 @@ function Select(props: SelectProps) {
                     </SelectGroup>
                 </SelectContent>
             </BaseSelect>
+            {error && (
+                <div id={errorId} role="alert" className="text-destructive text-xs select-none">
+                    {error}
+                </div>
+            )}
         </div>
     );
 }

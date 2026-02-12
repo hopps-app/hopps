@@ -22,7 +22,7 @@ const Radio: React.FC<RadioProps> = ({ items, value, label, onValueChange, class
     return (
         <>
             {label && <Label> {label} </Label>}
-            <RadioGroup value={value} onValueChange={onValueChange} className={className} {...props}>
+            <RadioGroup value={value} onValueChange={onValueChange} className={className} aria-label={label} {...props}>
                 <div className={layout === 'horizontal' ? 'flex flex-row gap-2' : ''}>
                     {items.map((item) => (
                         <label key={item.value} className="flex items-center gap-2">

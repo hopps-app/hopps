@@ -83,6 +83,7 @@ export default function CategoryForm({ onSuccess, initialData, isEdit = false, o
                             {...register('name')}
                             error={errors.name?.message}
                             maxLength={127}
+                            required
                         />
                         <TextArea label={t('categories.form.description')} {...register('description')} error={errors.description?.message} />
                     </div>

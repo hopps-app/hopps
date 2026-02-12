@@ -87,6 +87,7 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                     aria-label={t('organization.structure.editName')}
                     aria-invalid={!!validationError}
                     aria-describedby={validationError ? 'bommel-name-error' : undefined}
+                    aria-required="true"
                 />
                 <button
                     type="button"
