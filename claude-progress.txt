@@ -3125,3 +3125,73 @@ Branch: autoforge/feature-40-upload-error-handling
 
 ### Session Duration: ~25 minutes
 ### Session End: 2026-02-12 ~12:00 CET
+
+================================================================================
+SESSION #15 - 2026-02-12 ~16:17 CET
+================================================================================
+Assigned Features: #46, #67, #77
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 52/81 passing (64.2%), 3 in progress (#46, #67, #77)
+- Backend: Started in Quarkus dev mode on port 8101
+- Frontend: Running on port 5173
+- Docker: postgres, keycloak, localstack running
+
+### Feature #46: 404 page for non-existent routes - PASSED
+
+**No Code Changes Needed** - All functionality was already implemented:
+- NotFoundView component shows "404", "Page Not Found" title and description
+- "Go to Dashboard" button navigates back to /dashboard
+- Catch-all routes in AppRoutes.tsx for both authenticated and unauthenticated contexts
+- i18n translations in EN/DE for all 404 page text
+
+**Browser Verification (all 5 steps):**
+1. Navigate to /nonexistent-page while authenticated -> 404 page displayed
+2. "404 - Page Not Found" message shown with description
+3. "Go to Dashboard" button present and functional
+4. Zero JavaScript console errors
+5. Sidebar/navigation still accessible (Dashboard, Receipts, Bommel structure, Admin)
+
+### Feature #67: Toggle between tree view and table view - PASSED
+
+**No Code Changes Needed** - Dual-view system was already fully implemented:
+- Tree View: BommelTreeComponent using react-d3-tree
+- Table View: OrganizationTree using @minoru/react-dnd-treeview
+- Radix UI Tabs component for toggling between views
+- Both views share same data source and selection state
+
+**Browser Verification (all 7 steps):**
+1. Navigate to /structure -> page loads correctly
+2. Default Tree View displayed with Bommel hierarchy
+3. Toggle to Table View -> data shown in list format
+4. Data consistent between views (Kiosk: +900,75 in both)
+5. Selected Bommel state transfers (Kiosk detail panel persists)
+6. Toggle back to Tree View -> renders correctly
+7. Zero data loss, zero console errors
+
+### Feature #77: Post-login redirect to originally requested page - PASSED
+
+**No Code Changes Needed** - Keycloak-js automatically preserves the redirect:
+- When keycloak.login() is called without explicit redirectUri parameter
+- Keycloak-js uses window.location.href as the redirect_uri
+- After login, Keycloak redirects back to the original URL
+
+**Browser Verification (all 7 steps):**
+1. Fresh browser (no session) -> clear auth session
+2. Navigate to /structure -> redirected to Keycloak login
+3. Keycloak URL contains redirect_uri=.../structure
+4. Complete login as alice
+5. Redirected back to /structure (not /dashboard) -> tree view loads
+6. Repeat with /admin/categories -> Keycloak redirect_uri=.../admin/categories
+7. After login, redirected to /admin/categories -> categories page loads
+- Zero console errors in both tests
+
+### Summary:
+- Features completed: 3 (#46, #67, #77)
+- All were verification features - no code changes required
+- Current completion: 55/81 features passing (67.9%)
+- Session Duration: ~25 minutes
+- Session End: 2026-02-12 ~16:40 CET
