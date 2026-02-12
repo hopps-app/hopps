@@ -345,6 +345,8 @@
         "draft": "Draft",
         "unassigned": "Unassigned",
         "documentLinked": "Document attached",
+        "downloadDocument": "Download document",
+        "downloadFailed": "Failed to download document",
         "noDocument": "No document",
         "dueDate": "Due on",
         "empty": "No receipts found",

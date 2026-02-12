@@ -1,6 +1,7 @@
 import type { AnalysisStatus } from '@hopps/api-client';
 import { TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useQueryClient } from '@tanstack/react-query';
+import { Download } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,6 +10,7 @@ import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
 
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
+import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
@@ -506,6 +508,45 @@ function ReceiptUploadView() {
         navigate('/receipts');
     }, [navigate]);
 
+    // Download document file from S3/MinIO
+    const handleDownloadDocument = useCallback(async () => {
+        if (!documentId) return;
+        try {
+            const orgBaseUrl = import.meta.env.VITE_API_ORG_URL;
+            const token = await import('@/services/auth/auth.service').then((m) => m.default.getAuthToken());
+            const response = await fetch(`${orgBaseUrl}/documents/${documentId}/file`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Download failed: ${response.status}`);
+            }
+            const blob = await response.blob();
+            // Extract filename from Content-Disposition header or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let fileName = 'document';
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename="?([^";\n]+)"?/);
+                if (match?.[1]) {
+                    fileName = match[1];
+                }
+            }
+            // Create a temporary link and trigger download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('Document download failed:', e);
+            showError(t('receipts.downloadFailed'));
+        }
+    }, [documentId, showError, t]);
+
     // Cleanup document URL on unmount
     useEffect(() => {
         return () => {
@@ -531,13 +572,26 @@ function ReceiptUploadView() {
             <h2 className="text-2xl font-semibold shrink-0">{isEditMode ? t('receipts.upload.editTitle') : t('receipts.upload.title')}</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
-                <div className="min-h-[300px] sm:min-h-[350px] md:self-stretch">
-                    <InvoiceUploadFormDropzone
-                        onFilesChanged={onFilesChanged}
-                        previewFile={file}
-                        previewUrl={documentUrl}
-                        previewContentType={documentContentType}
-                    />
+                <div className="flex flex-col gap-2">
+                    <div className="min-h-[300px] sm:min-h-[350px] md:self-stretch">
+                        <InvoiceUploadFormDropzone
+                            onFilesChanged={onFilesChanged}
+                            previewFile={file}
+                            previewUrl={documentUrl}
+                            previewContentType={documentContentType}
+                        />
+                    </div>
+                    {documentId && (
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={handleDownloadDocument}
+                            className="flex items-center justify-center gap-2 w-full"
+                        >
+                            <Download className="w-4 h-4" />
+                            {t('receipts.downloadDocument')}
+                        </Button>
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-4">

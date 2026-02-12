@@ -273,6 +273,8 @@
         "draft": "Entwurf",
         "unassigned": "Nicht zugewiesen",
         "documentLinked": "Dokument angehängt",
+        "downloadDocument": "Dokument herunterladen",
+        "downloadFailed": "Dokument konnte nicht heruntergeladen werden",
         "noDocument": "Kein Dokument",
         "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
