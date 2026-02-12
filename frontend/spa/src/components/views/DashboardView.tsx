@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { BarChart3, RefreshCw, X, Upload } from 'lucide-react';
 import { format } from 'date-fns';
+import { de, enUS, uk } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
@@ -24,9 +25,21 @@ function getDefaultEndDate(): string {
 }
 
 function DashboardView() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { organization } = useStore();
     const navigate = useNavigate();
+
+    // Get the appropriate date-fns locale based on the current language
+    const getDateLocale = useCallback(() => {
+        switch (i18n.language) {
+            case 'de':
+                return de;
+            case 'uk':
+                return uk;
+            default:
+                return enUS;
+        }
+    }, [i18n.language]);
 
     // Date range state with current year as default
     const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
@@ -42,13 +55,21 @@ function DashboardView() {
             const formatted = format(date, 'yyyy-MM-dd');
             if (type === 'startDate') {
                 setStartDate(formatted);
+                // If start date is after end date, adjust end date
+                if (formatted > endDate) {
+                    setEndDate(formatted);
+                }
                 setOpenStart(false);
             } else {
                 setEndDate(formatted);
+                // If end date is before start date, adjust start date
+                if (formatted < startDate) {
+                    setStartDate(formatted);
+                }
                 setOpenEnd(false);
             }
         },
-        []
+        [startDate, endDate]
     );
 
     const handleReset = useCallback(() => {
@@ -123,9 +144,9 @@ function DashboardView() {
     // Check if there's any data to display
     const hasData = chartData.some(d => d.income > 0 || d.expenses > 0);
 
-    // Format dates for display
-    const formattedStart = format(new Date(startDate), 'dd.MM.yyyy');
-    const formattedEnd = format(new Date(endDate), 'dd.MM.yyyy');
+    // Format dates for display using current locale
+    const formattedStart = format(new Date(startDate), 'P', { locale: getDateLocale() });
+    const formattedEnd = format(new Date(endDate), 'P', { locale: getDateLocale() });
 
     return (
         <div className="px-7 py-[2.5rem]">
@@ -173,6 +194,7 @@ function DashboardView() {
                                             endMonth={new Date(2030, 11)}
                                             selected={new Date(startDate)}
                                             onSelect={(date) => handleDateSelect('startDate', date)}
+                                            disabled={{ after: new Date(endDate) }}
                                         />
                                     </PopoverContent>
                                 </Popover>
@@ -210,6 +232,7 @@ function DashboardView() {
                                             endMonth={new Date(2030, 11)}
                                             selected={new Date(endDate)}
                                             onSelect={(date) => handleDateSelect('endDate', date)}
+                                            disabled={{ before: new Date(startDate) }}
                                         />
                                     </PopoverContent>
                                 </Popover>

@@ -1,5 +1,6 @@
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
+import { de, enUS, uk } from 'date-fns/locale';
 import { X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,10 +21,22 @@ type DateRangeFilterProps = {
 };
 
 export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const [openStart, setOpenStart] = useState(false);
     const [openEnd, setOpenEnd] = useState(false);
+
+    // Get the appropriate date-fns locale based on the current language
+    const getDateLocale = useCallback(() => {
+        switch (i18n.language) {
+            case 'de':
+                return de;
+            case 'uk':
+                return uk;
+            default:
+                return enUS;
+        }
+    }, [i18n.language]);
 
     const handleSelect = useCallback(
         (type: 'startDate' | 'endDate', date: Date | undefined) => {
@@ -39,8 +52,8 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
         [onChange]
     );
 
-    const formattedStart = filters.startDate ? format(new Date(filters.startDate), 'dd.MM.yyyy') : t('receipts.filters.startDate');
-    const formattedEnd = filters.endDate ? format(new Date(filters.endDate), 'dd.MM.yyyy') : t('receipts.filters.endDate');
+    const formattedStart = filters.startDate ? format(new Date(filters.startDate), 'P', { locale: getDateLocale() }) : t('receipts.filters.startDate');
+    const formattedEnd = filters.endDate ? format(new Date(filters.endDate), 'P', { locale: getDateLocale() }) : t('receipts.filters.endDate');
 
     return (
         <ReceiptFilterField label={label}>
@@ -75,6 +88,7 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 endMonth={new Date(2030, 11)}
                                 selected={filters.startDate ? new Date(filters.startDate) : undefined}
                                 onSelect={(date) => handleSelect('startDate', date)}
+                                disabled={filters.endDate ? { after: new Date(filters.endDate) } : undefined}
                             />
                         </PopoverContent>
                     </Popover>
@@ -119,6 +133,7 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 endMonth={new Date(2030, 11)}
                                 selected={filters.endDate ? new Date(filters.endDate) : undefined}
                                 onSelect={(date) => handleSelect('endDate', date)}
+                                disabled={filters.startDate ? { before: new Date(filters.startDate) } : undefined}
                             />
                         </PopoverContent>
                     </Popover>

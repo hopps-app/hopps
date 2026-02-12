@@ -3,6 +3,7 @@ import { TransactionResponse } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import apiService from '@/services/ApiService';
+import i18n from '@/i18n';
 
 export interface TransactionFilters {
     search?: string;
@@ -85,11 +86,13 @@ export function transactionToReceipt(tx: TransactionResponse): {
         status = 'unpaid';
     }
 
-    // Format date
+    // Format date using current i18n locale
     const formatDate = (instant: Date | undefined | null): string => {
         if (!instant) return '';
         const date = new Date(instant);
-        return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const localeMap: Record<string, string> = { de: 'de-DE', en: 'en-US', uk: 'uk-UA' };
+        const locale = localeMap[i18n.language] || 'en-US';
+        return date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
     const amount = tx.total ? Number(tx.total) : 0;
