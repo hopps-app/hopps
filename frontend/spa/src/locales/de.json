@@ -15,7 +15,8 @@
         "save": "Speichern",
         "delete": "Löschen",
         "loading": "Wird geladen...",
-        "validationError": "Bitte füllen Sie alle Pflichtfelder aus"
+        "validationError": "Bitte füllen Sie alle Pflichtfelder aus",
+        "unsavedChangesWarning": "Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?"
     },
     "errors": {
         "boundary": {

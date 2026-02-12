@@ -15,7 +15,8 @@
         "save": "Save",
         "delete": "Delete",
         "loading": "Loading...",
-        "validationError": "Please fill in all required fields"
+        "validationError": "Please fill in all required fields",
+        "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave this page?"
     },
     "errors": {
         "boundary": {

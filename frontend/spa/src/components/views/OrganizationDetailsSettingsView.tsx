@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Address, Organization, OrganizationInput } from '@hopps/api-client';
@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import TextField from '@/components/ui/TextField';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import { useToast } from '@/hooks/use-toast';
+import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
 
@@ -29,18 +30,56 @@ function OrganizationDetailsSettingsView() {
     const [plz, setPlz] = useState('');
     const [additionalLine, setAdditionalLine] = useState('');
 
+    // Track initial values to detect changes
+    const initialValuesRef = useRef({
+        name: '',
+        website: '',
+        street: '',
+        number: '',
+        city: '',
+        plz: '',
+        additionalLine: '',
+    });
+
     // Load organization data from store
     useEffect(() => {
         if (organization) {
-            setName(organization.name || '');
-            setWebsite(organization.website || '');
-            setStreet(organization.address?.street || '');
-            setNumber(organization.address?.number || '');
-            setCity(organization.address?.city || '');
-            setPlz(organization.address?.plz || '');
-            setAdditionalLine(organization.address?.additionalLine || '');
+            const initial = {
+                name: organization.name || '',
+                website: organization.website || '',
+                street: organization.address?.street || '',
+                number: organization.address?.number || '',
+                city: organization.address?.city || '',
+                plz: organization.address?.plz || '',
+                additionalLine: organization.address?.additionalLine || '',
+            };
+            initialValuesRef.current = initial;
+            setName(initial.name);
+            setWebsite(initial.website);
+            setStreet(initial.street);
+            setNumber(initial.number);
+            setCity(initial.city);
+            setPlz(initial.plz);
+            setAdditionalLine(initial.additionalLine);
         }
     }, [organization]);
+
+    // Track whether the form has unsaved changes
+    const isDirty = useMemo(() => {
+        const initial = initialValuesRef.current;
+        return (
+            name !== initial.name ||
+            website !== initial.website ||
+            street !== initial.street ||
+            number !== initial.number ||
+            city !== initial.city ||
+            plz !== initial.plz ||
+            additionalLine !== initial.additionalLine
+        );
+    }, [name, website, street, number, city, plz, additionalLine]);
+
+    // Warn user when navigating away with unsaved changes
+    useUnsavedChangesWarning(isDirty);
 
     // Reload from API if no org data in store
     useEffect(() => {
@@ -81,6 +120,17 @@ function OrganizationDetailsSettingsView() {
 
             const updatedOrg = await apiService.orgService.myPUT(input);
             setOrganization(updatedOrg);
+
+            // Update initial values to reflect saved state (clears dirty flag)
+            initialValuesRef.current = {
+                name,
+                website,
+                street,
+                number,
+                city,
+                plz,
+                additionalLine,
+            };
 
             toast({
                 title: t('organization.details.saveSuccess'),

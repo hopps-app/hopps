@@ -433,6 +433,24 @@ export function useReceiptForm() {
         clearAllErrors();
     }, [setAllFieldsLoading, clearAllErrors]);
 
+    // Track whether the form has unsaved changes
+    const isDirty = useMemo(() => {
+        return Boolean(
+            receiptNumber ||
+                receiptDate ||
+                dueDate ||
+                transactionKind ||
+                contractPartner ||
+                bommelId ||
+                category ||
+                area ||
+                tags.length > 0 ||
+                netAmount ||
+                taxAmount ||
+                file
+        );
+    }, [receiptNumber, receiptDate, dueDate, transactionKind, contractPartner, bommelId, category, area, tags, netAmount, taxAmount, file]);
+
     // Check if form has minimum required fields for saving as draft
     const canSaveDraft = useMemo(() => {
         if (isSubmitting) return false;
@@ -515,6 +533,7 @@ export function useReceiptForm() {
         resetForm,
         isValid,
         canSaveDraft,
+        isDirty,
     };
 }
 

@@ -12,6 +12,7 @@ import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUpl
 import Switch from '@/components/ui/Switch';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
+import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -97,7 +98,11 @@ function ReceiptUploadView() {
         applyAnalysisResult,
         applyAnalysisResultToEmptyFields,
         loadTransaction,
+        isDirty,
     } = useReceiptForm();
+
+    // Warn user when navigating away with unsaved changes
+    useUnsavedChangesWarning(isDirty);
 
     const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const consecutiveErrorsRef = useRef(0);
