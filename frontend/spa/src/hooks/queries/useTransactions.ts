@@ -1,4 +1,4 @@
-import type { TransactionStatus } from '@hopps/api-client';
+import type { TransactionArea, TransactionStatus } from '@hopps/api-client';
 import { TransactionResponse } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -14,6 +14,7 @@ export interface TransactionFilters {
     status?: TransactionStatus;
     privatelyPaid?: boolean;
     detached?: boolean;
+    area?: TransactionArea;
     page?: number;
     size?: number;
 }
@@ -40,7 +41,8 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.search,
                 filters.size ?? 50,
                 filters.startDate,
-                filters.status
+                filters.status,
+                filters.area
             ),
     });
 }
@@ -73,6 +75,7 @@ export function transactionToReceipt(tx: TransactionResponse): {
     category: string;
     status: 'paid' | 'unpaid' | 'draft' | 'failed';
     project: string;
+    area: string;
     purpose: string;
     dueDate: string;
     tags: string[];
@@ -105,6 +108,7 @@ export function transactionToReceipt(tx: TransactionResponse): {
         category: tx.categoryName ?? '',
         status,
         project: tx.bommelName ?? '',
+        area: tx.area ?? '',
         purpose: tx.name ?? '',
         dueDate: formatDate(tx.dueDate),
         tags: tx.tags ?? [],

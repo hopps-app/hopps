@@ -301,7 +301,9 @@
             "displayType": "Anzeigeart",
             "displayAll": "Alles ausklappen",
             "reset": "Zurücksetzen",
-            "noResults": "Keine Ergebnisse"
+            "noResults": "Keine Ergebnisse",
+            "area": "Bereich",
+            "allAreas": "Alle Bereiche"
         },
         "upload": {
             "title": "Hochladen",

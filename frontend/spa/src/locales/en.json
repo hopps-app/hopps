@@ -373,7 +373,9 @@
             "displayType": "Display type",
             "displayAll": "Expand all",
             "reset": "Reset",
-            "noResults": "No results"
+            "noResults": "No results",
+            "area": "Area",
+            "allAreas": "All areas"
         },
         "upload": {
             "title": "Upload",

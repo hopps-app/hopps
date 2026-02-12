@@ -11,7 +11,7 @@ import ReceiptsEmptyState from '@/components/Receipts/ReceiptsEmptyState';
 import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { useToast } from '@/hooks/use-toast';
-import { transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
+import { TransactionFilters, transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
 import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
 type ReceiptsListProps = {
@@ -45,6 +45,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             endDate: filters.endDate || undefined,
             bommelId: filters.project ? parseInt(filters.project, 10) : undefined,
             categoryId: filters.category ? parseInt(filters.category, 10) : undefined,
+            area: (filters.area as TransactionFilters['area']) || undefined,
             status,
             privatelyPaid,
             page,
@@ -99,7 +100,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     // Reset page when filters change
     useEffect(() => {
         setPage(0);
-    }, [filters.search, filters.startDate, filters.endDate, filters.project, filters.category, filters.status]);
+    }, [filters.search, filters.startDate, filters.endDate, filters.project, filters.category, filters.area, filters.status]);
 
     const handleDeleteRequest = useCallback(
         (id: string) => {

@@ -11,6 +11,7 @@ const getInitialFilters = (searchParams: URLSearchParams): ReceiptFiltersState =
         endDate: null,
         project: searchParams.get('bommelId') || null,
         category: null,
+        area: null,
         status: { unpaid: false, draft: false },
         displayAll: false,
     };

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import AreaFilter from '@/components/Receipts/Filters/fields/AreaFilter';
 import CategoryFilter from '@/components/Receipts/Filters/fields/CategoryFilter';
 import { DateRangeFilter } from '@/components/Receipts/Filters/fields/DateRangeFilter';
 import DisplayFilter from '@/components/Receipts/Filters/fields/DisplayFilter';
@@ -31,6 +32,7 @@ export const ReceiptFilters = ({ filters, setFilter, resetFilters }: ReceiptFilt
                 <ProjectFilter filters={filters} onChange={setFilter} label={t('receipts.filters.bommel')} />
                 <DisplayFilter filters={filters} onChange={setFilter} label={t('receipts.filters.displayType')} />
                 <CategoryFilter filters={filters} onChange={setFilter} label={t('receipts.filters.category')} />
+                <AreaFilter filters={filters} onChange={setFilter} label={t('receipts.filters.area')} />
                 <StatusFilter filters={filters} onChange={setFilter} label={t('receipts.filters.status')} />
 
                 <div className="flex items-end justify-end w-full">

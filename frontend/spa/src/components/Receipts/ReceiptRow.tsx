@@ -140,6 +140,15 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
                         <span className="text-[--grey-900] text-sm font-medium text-right">{t(getStatusTranslationKey(receipt.status))}</span>
                     </div>
 
+                    {receipt.area && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-[--grey-700] text-xs font-medium">{t('receipts.upload.area')}:</span>
+                            <span className="bg-[var(--blue-100,#dbeafe)] text-[var(--blue-900,#1e3a5f)] text-xs font-medium px-3 py-1 rounded-[var(--radius-l)]">
+                                {t(`receipts.areas.${receipt.area.toLowerCase()}`)}
+                            </span>
+                        </div>
+                    )}
+
                     <div className="flex flex-wrap gap-2">
                         {receipt.tags.map((tag) => (
                             <span key={tag} className="bg-[var(--purple-100)] text-[var(--purple-900)] text-xs font-medium px-3 py-1 rounded-[var(--radius-l)]">

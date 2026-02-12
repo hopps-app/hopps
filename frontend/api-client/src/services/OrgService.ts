@@ -1778,8 +1778,12 @@ export class Client {
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return List of transactions
      */
-    transactionsAll(bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
+    transactionsAll(bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, startDate: string | undefined, status: TransactionStatus | undefined, area: TransactionArea | undefined = undefined): Promise<TransactionResponse[]> {
         let url_ = this.baseUrl + "/transactions?";
+        if (area === null)
+            throw new Error("The parameter 'area' cannot be null.");
+        else if (area !== undefined)
+            url_ += "area=" + encodeURIComponent("" + area) + "&";
         if (bommelId === null)
             throw new Error("The parameter 'bommelId' cannot be null.");
         else if (bommelId !== undefined)

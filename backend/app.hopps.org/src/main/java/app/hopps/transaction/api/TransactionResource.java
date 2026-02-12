@@ -77,6 +77,7 @@ public class TransactionResource {
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
+            @QueryParam("area") @Parameter(description = "Filter by transaction area (IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)") TransactionArea area,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
             @QueryParam("size") @DefaultValue("25") @Parameter(description = "Page size") int pageSize) {
 
@@ -102,6 +103,7 @@ public class TransactionResource {
                 status,
                 privatelyPaid,
                 detached,
+                area,
                 page);
 
         return transactions.stream()

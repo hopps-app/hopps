@@ -2,6 +2,7 @@ package app.hopps.transaction.repository;
 
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
+import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
@@ -104,6 +105,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             TransactionStatus status,
             Boolean privatelyPaid,
             Boolean detached,
+            TransactionArea area,
             Page page) {
 
         Long orgId = organizationContext.getCurrentOrganizationId();
@@ -153,6 +155,12 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         if (privatelyPaid != null) {
             query.append(" and privatelyPaid = :privatelyPaid");
             params.put("privatelyPaid", privatelyPaid);
+        }
+
+        // Area filter
+        if (area != null) {
+            query.append(" and area = :area");
+            params.put("area", area);
         }
 
         return find(query.toString(), Sort.descending("createdAt"), params)
