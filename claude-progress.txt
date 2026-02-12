@@ -3761,3 +3761,46 @@ Branch: autoforge/feature-40-upload-error-handling
 
 ### Session Duration: ~10 minutes
 ### Session End: 2026-02-12 ~23:56 CET
+
+================================================================================
+SESSION #24 - 2026-02-13 ~00:31 CET
+================================================================================
+Assigned Feature: #63 - Bommel selection dropdown for transactions
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 75/81 passing (92.6%), 1 in progress (#63)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #63: Bommel selection dropdown for transactions - PASSED
+
+**No Code Changes Needed** - Complete Bommel dropdown integration already exists across the full stack:
+- InvoiceUploadFormBommelSelector component with searchable dropdown
+- ReceiptFormFields includes Bommel field with label and error handling
+- ReceiptUploadView manages bommelId state and passes to API payload
+- Backend TransactionResource handles bommelId in create/update/filter
+- API client includes bommelId in TransactionCreateRequest/UpdateRequest/Response
+- Receipts list displays bommelName as project column
+
+**Browser Verification (all 8 steps):**
+1. Verified 8 Bommels exist in tree (Bühnefrei e.V., Kiosk, Räumlichkeiten, Workshops, Projekte, Der kleine Lord, Das Hässliche Entlein, König der Löwen) ✓
+2. Navigated to /receipts/new → form loads with all fields ✓
+3. Bommel dropdown/selector present as "Select Bommel" button ✓
+4. Clicked dropdown → all 8 Bommels visible in searchable listbox ✓
+5. Selected "Workshops", filled form (receipt#: BOMMEL_TEST_63, partner: Test Vendor Feature63, amount: 250) → saved as draft ✓
+6. Receipts list shows "Test Vendor Feature63 Workshops Draft +250.00 €" → correct Bommel link ✓
+7. Opened transaction detail → clicked Delete on Bommel → field reverted to "Select bommel" (unassigned) ✓
+8. Reopened dropdown → selected "Kiosk" → saved → receipts list shows "Test Vendor Feature63 Kiosk Draft +250.00 €" ✓
+- Zero console errors (0 errors, 0 warnings) ✓
+- No mock data patterns in src/ ✓
+
+### Current Completion:
+- Before: 75/81 passing (92.6%)
+- After: 76/81 passing (93.8%)
+- Features completed this session: 1 (#63)
+
+### Session Duration: ~5 minutes
+### Session End: 2026-02-13 ~00:35 CET
