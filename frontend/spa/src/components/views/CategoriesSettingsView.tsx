@@ -1,4 +1,5 @@
 import { Category } from '@hopps/api-client';
+import { FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +9,7 @@ import Button from '../ui/Button';
 import Header from '../ui/Header';
 import TextField from '../ui/TextField';
 
+import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import DialogWrapper from '@/components/ui/DialogWrapper';
 import { useCategories } from '@/hooks/queries';
@@ -48,6 +50,17 @@ function CategoriesSettingsView() {
                         <div className="py-12">
                             <LoadingState size="lg" />
                         </div>
+                    ) : categories.length === 0 ? (
+                        <EmptyState
+                            icon={FolderOpen}
+                            title={t('categories.emptyState.title')}
+                            description={t('categories.emptyState.description')}
+                        />
+                    ) : results.length === 0 && query ? (
+                        <EmptyState
+                            title={t('receipts.filters.noResults')}
+                            description={t('categories.emptyState.noSearchResults')}
+                        />
                     ) : (
                         <CategoryTable items={results} onActionSuccess={refetch} />
                     )}

@@ -278,7 +278,8 @@
         "incomeExpenseChart": "Income & Expenses",
         "loadError": "Failed to load chart data",
         "noData": "No data available",
-        "noDataHint": "No transactions found for the selected time range",
+        "noDataHint": "Upload your first receipt to see income and expense data here.",
+        "uploadFirst": "Upload receipt",
         "timeRange": "Showing data from {{startDate}} to {{endDate}}",
         "income": "Income",
         "expenses": "Expenses",
@@ -327,6 +328,11 @@
         },
         "table": {
             "noDescription": "No description"
+        },
+        "emptyState": {
+            "title": "No categories yet",
+            "description": "Create your first category to organize your receipts and transactions.",
+            "noSearchResults": "No categories match your search query."
         }
     },
     "dialogWrapper": {

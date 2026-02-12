@@ -389,7 +389,8 @@
         "incomeExpenseChart": "Einnahmen & Ausgaben",
         "loadError": "Diagrammdaten konnten nicht geladen werden",
         "noData": "Keine Daten verfügbar",
-        "noDataHint": "Keine Transaktionen für den gewählten Zeitraum gefunden",
+        "noDataHint": "Laden Sie Ihren ersten Beleg hoch, um Einnahmen- und Ausgabendaten hier zu sehen.",
+        "uploadFirst": "Beleg hochladen",
         "timeRange": "Zeige Daten von {{startDate}} bis {{endDate}}",
         "income": "Einnahmen",
         "expenses": "Ausgaben",
@@ -438,6 +439,11 @@
         },
         "table": {
             "noDescription": "Keine Beschreibung"
+        },
+        "emptyState": {
+            "title": "Noch keine Kategorien",
+            "description": "Erstellen Sie Ihre erste Kategorie, um Belege und Transaktionen zu organisieren.",
+            "noSearchResults": "Keine Kategorien entsprechen Ihrer Suchanfrage."
         }
     },
     "dialogWrapper": {

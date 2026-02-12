@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { RefreshCw, X } from 'lucide-react';
+import { BarChart3, RefreshCw, X, Upload } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
 import { Calendar } from '@/components/ui/shadecn/Calendar';
@@ -25,6 +26,7 @@ function getDefaultEndDate(): string {
 function DashboardView() {
     const { t } = useTranslation();
     const { organization } = useStore();
+    const navigate = useNavigate();
 
     // Date range state with current year as default
     const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
@@ -267,12 +269,24 @@ function DashboardView() {
 
                 {!isLoading && !error && !hasData && (
                     <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+                        <div className="rounded-full bg-muted p-4 mb-4">
+                            <BarChart3 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+                        </div>
                         <p className="text-lg font-medium mb-2">
                             {t('dashboard.noData')}
                         </p>
-                        <p className="text-sm">
+                        <p className="text-sm text-center max-w-sm mb-4">
                             {t('dashboard.noDataHint')}
                         </p>
+                        <BaseButton
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate('/receipts/new')}
+                            className="gap-2"
+                        >
+                            <Upload className="h-4 w-4" />
+                            {t('dashboard.uploadFirst')}
+                        </BaseButton>
                     </div>
                 )}
 
