@@ -80,6 +80,7 @@ export function transactionToReceipt(tx: TransactionResponse): {
     dueDate: string;
     tags: string[];
     reference: string;
+    documentId: number | null;
 } {
     // Determine status based on transaction status and privatelyPaid
     let status: 'paid' | 'unpaid' | 'draft' | 'failed' = 'paid';
@@ -113,5 +114,6 @@ export function transactionToReceipt(tx: TransactionResponse): {
         dueDate: formatDate(tx.dueDate),
         tags: tx.tags ?? [],
         reference: tx.name ?? '',
+        documentId: tx.documentId ?? null,
     };
 }

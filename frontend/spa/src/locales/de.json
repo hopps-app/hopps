@@ -272,6 +272,8 @@
     "receipts": {
         "draft": "Entwurf",
         "unassigned": "Nicht zugewiesen",
+        "documentLinked": "Dokument angehängt",
+        "noDocument": "Kein Dokument",
         "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
         "emptyState": {

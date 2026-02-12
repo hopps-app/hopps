@@ -344,6 +344,8 @@
     "receipts": {
         "draft": "Draft",
         "unassigned": "Unassigned",
+        "documentLinked": "Document attached",
+        "noDocument": "No document",
         "dueDate": "Due on",
         "empty": "No receipts found",
         "emptyState": {

@@ -1,5 +1,5 @@
 import { ChevronDownIcon, ChevronRightIcon, InfoCircledIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { Trash2 } from 'lucide-react';
+import { FileText, Trash2 } from 'lucide-react';
 import { FC, memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -80,6 +80,13 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
                 <div className="flex items-center gap-2 min-w-0 pr-2">
                     {isExpanded ? <ChevronDownIcon className="w-5 h-5 shrink-0" /> : <ChevronRightIcon className="w-5 h-5 shrink-0" />}
                     <span className="font-medium truncate">{receipt.issuer}</span>
+                    {receipt.documentId && (
+                        <FileText
+                            className="w-4 h-4 shrink-0 text-[var(--purple-500)]"
+                            aria-label={t('receipts.documentLinked')}
+                            title={t('receipts.documentLinked')}
+                        />
+                    )}
                 </div>
 
                 {/* Date */}

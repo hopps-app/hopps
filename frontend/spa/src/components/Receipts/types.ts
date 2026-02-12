@@ -11,6 +11,7 @@ export interface Receipt {
     dueDate: string;
     tags: string[];
     reference: string;
+    documentId: number | null;
 }
 
 export type ReceiptStatusCheck = 'isDraft' | 'isFailed' | 'isPaid' | 'isUnpaid';
