@@ -1,9 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import SidebarNavigation from '@/components/sidebar-navigation';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
 
 export default function AuthLayout() {
+    const location = useLocation();
+
     return (
         <div className="flex h-screen bg-background">
             <SidebarNavigation />
@@ -14,7 +17,9 @@ export default function AuthLayout() {
                     </div>
 
                     <main className="p-4 sm:p-6">
-                        <Outlet />
+                        <ErrorBoundary key={location.pathname}>
+                            <Outlet />
+                        </ErrorBoundary>
                     </main>
                 </div>
             </div>

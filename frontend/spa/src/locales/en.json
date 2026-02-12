@@ -20,7 +20,28 @@
     "errors": {
         "boundary": {
             "title": "Something went wrong",
-            "description": "An unexpected error occurred. Please try again or contact support."
+            "description": "An unexpected error occurred. Please try again or contact support.",
+            "tryAgain": "Try again",
+            "goHome": "Go to Dashboard"
+        },
+        "api": {
+            "networkError": "Unable to connect to the server. Please check your connection.",
+            "serverError": "The server encountered an error. Please try again later.",
+            "notFound": "The requested resource was not found.",
+            "unauthorized": "Your session has expired. Please log in again.",
+            "forbidden": "You do not have permission to perform this action.",
+            "conflict": "A conflict occurred. The resource may have been modified.",
+            "badRequest": "The request was invalid. Please check your input.",
+            "unknown": "An unexpected error occurred. Please try again.",
+            "timeout": "The request timed out. Please try again.",
+            "retry": "Retry",
+            "retryDescription": "Click to retry the failed operation."
+        },
+        "network": {
+            "title": "Connection Lost",
+            "description": "Unable to reach the server. Please check your internet connection.",
+            "retry": "Retry",
+            "retrying": "Retrying..."
         }
     },
     "validation": {

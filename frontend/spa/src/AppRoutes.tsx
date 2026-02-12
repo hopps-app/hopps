@@ -22,6 +22,7 @@ const ReceiptUploadView = lazy(() => import('./components/views/ReceiptUpload').
 const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
 const CategoriesSettingsView = lazy(() => import('./components/views/CategoriesSettingsView'));
 const ReceiptView = lazy(() => import('@/components/views/ReceiptView'));
+const DebugErrorView = lazy(() => import('@/components/views/DebugErrorView'));
 
 function LazyRoute({ children }: { children: React.ReactNode }) {
     return <Suspense fallback={<LoadingState className="py-12" />}>{children}</Suspense>;
@@ -128,6 +129,18 @@ export default function AppRoutes() {
                         </LazyRoute>
                     }
                 />
+
+                {/* Debug route for testing error boundary (dev only) */}
+                {import.meta.env.DEV && (
+                    <Route
+                        path="/debug/error"
+                        element={
+                            <LazyRoute>
+                                <DebugErrorView />
+                            </LazyRoute>
+                        }
+                    />
+                )}
 
                 <Route path="*" element={<NotFoundView />} />
             </Route>

@@ -20,7 +20,28 @@
     "errors": {
         "boundary": {
             "title": "Ein Fehler ist aufgetreten",
-            "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support."
+            "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+            "tryAgain": "Erneut versuchen",
+            "goHome": "Zum Dashboard"
+        },
+        "api": {
+            "networkError": "Verbindung zum Server nicht möglich. Bitte prüfen Sie Ihre Internetverbindung.",
+            "serverError": "Der Server hat einen Fehler festgestellt. Bitte versuchen Sie es später erneut.",
+            "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
+            "unauthorized": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+            "forbidden": "Sie haben keine Berechtigung für diese Aktion.",
+            "conflict": "Ein Konflikt ist aufgetreten. Die Ressource wurde möglicherweise geändert.",
+            "badRequest": "Die Anfrage war ungültig. Bitte überprüfen Sie Ihre Eingabe.",
+            "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+            "timeout": "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.",
+            "retry": "Erneut versuchen",
+            "retryDescription": "Klicken Sie, um den fehlgeschlagenen Vorgang zu wiederholen."
+        },
+        "network": {
+            "title": "Verbindung verloren",
+            "description": "Der Server ist nicht erreichbar. Bitte prüfen Sie Ihre Internetverbindung.",
+            "retry": "Erneut versuchen",
+            "retrying": "Wird erneut versucht..."
         }
     },
     "validation": {
@@ -381,7 +402,9 @@
             "description": "Beschreibung",
             "error": {
                 "name": "Dieses Feld darf nicht leer sein.",
-                "categoryCreated": "Ein Fehler is aufgetreten"
+                "nameMaxLength": "Der Name darf maximal 127 Zeichen lang sein.",
+                "duplicate": "Eine Kategorie mit diesem Namen existiert bereits.",
+                "categoryCreated": "Ein Fehler ist aufgetreten"
             },
             "success": {
                 "categoryCreated": "Kategorie erfolgreich erstellt",

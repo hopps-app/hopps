@@ -36,7 +36,8 @@ describe('ErrorBoundary', () => {
         );
 
         expect(screen.getByRole('alert')).toBeInTheDocument();
-        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+        // Uses i18n key errors.boundary.title
+        expect(screen.getByTestId('error-boundary-title')).toBeInTheDocument();
     });
 
     it('renders custom fallback when provided', () => {
@@ -61,5 +62,16 @@ describe('ErrorBoundary', () => {
         );
 
         expect(consoleSpy).toHaveBeenCalled();
+    });
+
+    it('renders try again and go home buttons', () => {
+        renderWithProviders(
+            <ErrorBoundary>
+                <ThrowError shouldThrow={true} />
+            </ErrorBoundary>
+        );
+
+        expect(screen.getByTestId('error-boundary-try-again')).toBeInTheDocument();
+        expect(screen.getByTestId('error-boundary-go-home')).toBeInTheDocument();
     });
 });

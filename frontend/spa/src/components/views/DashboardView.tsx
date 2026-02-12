@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { X } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { format } from 'date-fns';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
@@ -11,6 +11,7 @@ import { Calendar } from '@/components/ui/shadecn/Calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { cn } from '@/lib/utils';
+import { getUserFriendlyErrorMessage, isNetworkError } from '@/utils/errorUtils';
 
 function getDefaultStartDate(): string {
     return `${new Date().getFullYear()}-01-01`;
@@ -54,8 +55,10 @@ function DashboardView() {
 
     const isDefaultRange = startDate === getDefaultStartDate() && endDate === getDefaultEndDate();
 
+    const queryClient = useQueryClient();
+
     // Fetch all transactions for the selected date range
-    const { data: transactions, isLoading, error } = useQuery({
+    const { data: transactions, isLoading, error, isFetching } = useQuery({
         queryKey: ['transactions', organization?.id, startDate, endDate],
         queryFn: () =>
             apiService.orgService.transactionsAll(
@@ -233,10 +236,31 @@ function DashboardView() {
                 )}
 
                 {error && (
-                    <div className="flex items-center justify-center h-96">
-                        <p className="text-red-500">
-                            {t('dashboard.loadError')}
+                    <div className="flex flex-col items-center justify-center h-96 gap-4">
+                        <div className="rounded-full bg-destructive/10 p-3">
+                            <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <p className="text-destructive font-medium" data-testid="dashboard-error-message">
+                            {getUserFriendlyErrorMessage(error)}
                         </p>
+                        {isNetworkError(error) && (
+                            <p className="text-sm text-muted-foreground">
+                                {t('errors.network.description')}
+                            </p>
+                        )}
+                        <BaseButton
+                            variant="outline"
+                            size="sm"
+                            data-testid="dashboard-retry-button"
+                            disabled={isFetching}
+                            onClick={() => queryClient.invalidateQueries({ queryKey: ['transactions', organization?.id, startDate, endDate] })}
+                            className="gap-2"
+                        >
+                            <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
+                            {isFetching ? t('errors.network.retrying') : t('errors.api.retry')}
+                        </BaseButton>
                     </div>
                 )}
 
