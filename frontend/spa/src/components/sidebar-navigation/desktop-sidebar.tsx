@@ -82,30 +82,48 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) 
     const renderMenuItem = (item: MenuItem) => {
         const isActive = location.pathname.indexOf(item.path) > -1;
         return (
-            <li
-                key={item.id}
-                onClick={() => handleMenuClick(item)}
-                onMouseEnter={() => handleMenuHover(item)}
-                className={`
-              flex flex-col items-center justify-center text-center gap-1 p-4 h-24 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
+            <li key={item.id}>
+                <button
+                    type="button"
+                    onClick={() => handleMenuClick(item)}
+                    onMouseEnter={() => handleMenuHover(item)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleMenuClick(item);
+                        }
+                    }}
+                    className={`
+              w-full flex flex-col items-center justify-center text-center gap-1 p-4 h-24 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
           ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-600 dark:text-gray-200'}
         `}
-            >
-                <Icon icon={item.icon} size={22} />
-                <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
+                >
+                    <Icon icon={item.icon} size={22} />
+                    <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
+                </button>
             </li>
         );
     };
 
     const renderSubMenuItem = (item: SubMenuItem) => {
         return (
-            <li
-                key={item.id}
-                onClick={() => handleMenuClick(item)}
-                className={`
-              flex flex-col items-start justify-center gap-1 text-nowrap ml-5 px-6 py-3 cursor-pointer select-none rounded-[10px] hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl transition-all duration-200 text-gray-600 dark:text-gray-200`}
-            >
-                <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
+            <li key={item.id}>
+                <button
+                    type="button"
+                    onClick={() => handleMenuClick(item)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleMenuClick(item);
+                        }
+                    }}
+                    className={`
+              w-full flex flex-col items-start justify-center gap-1 text-nowrap ml-5 px-6 py-3 cursor-pointer select-none rounded-[10px] hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl transition-all duration-200 text-gray-600 dark:text-gray-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+                >
+                    <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
+                </button>
             </li>
         );
     };

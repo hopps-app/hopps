@@ -58,19 +58,22 @@ const MobileSidebar: React.FC = () => {
     const renderMobileMenuItem = (item: MenuItem) => {
         const isActive = location.pathname.indexOf(item.path) > -1;
         return (
-            <li
-                key={item.id}
-                onClick={() => handleMobileMenuClick(item)}
-                className={`
-              flex items-center justify-between gap-3 p-4 h-16 cursor-pointer select-none ${ROUNDED} font-semibold text-lg transition-all duration-200
+            <li key={item.id}>
+                <button
+                    type="button"
+                    onClick={() => handleMobileMenuClick(item)}
+                    className={`
+              w-full flex items-center justify-between gap-3 p-4 h-16 cursor-pointer select-none ${ROUNDED} font-semibold text-lg transition-all duration-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
           ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
         `}
-            >
-                <div className="flex items-center gap-3">
-                    <Icon icon={item.icon} size={20} />
-                    <span>{t(item.label)}</span>
-                </div>
-                {item.children && <Icon icon="ArrowRight" size={16} className="text-gray-400" />}
+                >
+                    <div className="flex items-center gap-3">
+                        <Icon icon={item.icon} size={20} />
+                        <span>{t(item.label)}</span>
+                    </div>
+                    {item.children && <Icon icon="ArrowRight" size={16} className="text-gray-400" />}
+                </button>
             </li>
         );
     };
@@ -78,15 +81,18 @@ const MobileSidebar: React.FC = () => {
     const renderMobileSubMenuItem = (item: SubMenuItem) => {
         const isActive = location.pathname.indexOf(item.path) > -1;
         return (
-            <li
-                key={item.id}
-                onClick={() => handleMobileMenuClick(item)}
-                className={`
-              flex items-center gap-3 p-4 cursor-pointer select-none ${ROUNDED} font-medium text-base transition-all duration-200
+            <li key={item.id}>
+                <button
+                    type="button"
+                    onClick={() => handleMobileMenuClick(item)}
+                    className={`
+              w-full flex items-center gap-3 p-4 cursor-pointer select-none ${ROUNDED} font-medium text-base transition-all duration-200
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2
           ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
         `}
-            >
-                <span>{t(item.label)}</span>
+                >
+                    <span>{t(item.label)}</span>
+                </button>
             </li>
         );
     };
@@ -95,7 +101,7 @@ const MobileSidebar: React.FC = () => {
         <Dialog open={isMobileOpen} onOpenChange={setIsMobileOpen}>
             <DialogTitle className="sr-only">Menu</DialogTitle>
             <DialogTrigger asChild>
-                <button className="fixed top-4 left-4 z-50 bg-white rounded-full shadow p-2 border border-violet-200">
+                <button className="fixed top-4 left-4 z-50 bg-white rounded-full shadow p-2 border border-violet-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
                     <Icon icon={isMobileOpen ? 'Cross1' : 'HamburgerMenu'} size={24} />
                 </button>
             </DialogTrigger>
@@ -126,14 +132,17 @@ const MobileSidebar: React.FC = () => {
                         ) : (
                             <>
                                 <ul>
-                                    <li
-                                        onClick={handleMobileSubmenuBack}
-                                        className="flex items-center justify-between gap-3 p-4 cursor-pointer select-none rounded-[20px] font-semibold text-lg transition-all duration-200 hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Icon icon="ArrowLeft" size={20} />
-                                            <span>{t('Main Menu')}</span>
-                                        </div>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={handleMobileSubmenuBack}
+                                            className="w-full flex items-center justify-between gap-3 p-4 cursor-pointer select-none rounded-[20px] font-semibold text-lg transition-all duration-200 hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Icon icon="ArrowLeft" size={20} />
+                                                <span>{t('Main Menu')}</span>
+                                            </div>
+                                        </button>
                                     </li>
                                 </ul>
 
