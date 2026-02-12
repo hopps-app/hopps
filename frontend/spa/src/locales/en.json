@@ -343,6 +343,7 @@
     },
     "receipts": {
         "draft": "Draft",
+        "unassigned": "Unassigned",
         "dueDate": "Due on",
         "empty": "No receipts found",
         "emptyState": {
@@ -370,6 +371,7 @@
             "status": "Status",
             "onlyUnpaid": "Only unpaid",
             "drafts": "Drafts",
+            "unassigned": "Unassigned",
             "displayType": "Display type",
             "displayAll": "Expand all",
             "reset": "Reset",

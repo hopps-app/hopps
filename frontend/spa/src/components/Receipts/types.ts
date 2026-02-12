@@ -25,6 +25,7 @@ export interface ReceiptFiltersState {
     status: {
         unpaid: boolean;
         draft: boolean;
+        unassigned: boolean;
     };
     displayAll: boolean;
 }

@@ -271,6 +271,7 @@
     },
     "receipts": {
         "draft": "Entwurf",
+        "unassigned": "Nicht zugewiesen",
         "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
         "emptyState": {
@@ -298,6 +299,7 @@
             "status": "Status",
             "onlyUnpaid": "Nur unbezahlt",
             "drafts": "Entwürfe",
+            "unassigned": "Nicht zugewiesen",
             "displayType": "Anzeigeart",
             "displayAll": "Alles ausklappen",
             "reset": "Zurücksetzen",

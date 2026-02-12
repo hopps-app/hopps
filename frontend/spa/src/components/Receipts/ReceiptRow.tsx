@@ -31,6 +31,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
 
     const isDraft = receipt.status === 'draft';
     const isFailed = receipt.status === 'failed';
+    const isUnassigned = !receipt.project;
 
     const handleRowClick = useCallback(() => {
         navigate(`/receipts/${receipt.id}`);
@@ -52,7 +53,8 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
                 'rounded-[var(--radius-l)] p-2 space-y-2',
                 'bg-white border border-gray-200',
                 isDraft && 'bg-grey-500',
-                isFailed && 'bg-[var(--error-100)]'
+                isFailed && 'bg-[var(--error-100)]',
+                isUnassigned && !isFailed && 'border-l-4 border-l-amber-400'
             )}
         >
             <div
@@ -84,7 +86,9 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, isChecked: 
                 <span className="font-medium text-start">{receipt.date}</span>
 
                 {/* Project */}
-                <span className="font-medium text-start">{receipt.project}</span>
+                <span className={cn('font-medium text-start', isUnassigned && 'text-amber-600 italic')}>
+                    {receipt.project || t('receipts.unassigned')}
+                </span>
 
                 {/* Category */}
                 <span className="font-medium text-start">{receipt.category}</span>

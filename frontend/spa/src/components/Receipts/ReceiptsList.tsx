@@ -39,6 +39,9 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         // Determine privatelyPaid filter (unpaid)
         const privatelyPaid = filters.status.unpaid ? true : undefined;
 
+        // Determine detached filter (unassigned = no bommel)
+        const detached = filters.status.unassigned ? true : undefined;
+
         return {
             search: filters.search || undefined,
             startDate: filters.startDate || undefined,
@@ -48,6 +51,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             area: (filters.area as TransactionFilters['area']) || undefined,
             status,
             privatelyPaid,
+            detached,
             page,
             size: pageSize,
         };

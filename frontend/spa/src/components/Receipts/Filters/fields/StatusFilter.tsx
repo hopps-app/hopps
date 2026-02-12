@@ -15,7 +15,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
     const { t } = useTranslation();
 
     const handleToggle = useCallback(
-        (key: 'unpaid' | 'draft', checked: boolean) => {
+        (key: 'unpaid' | 'draft' | 'unassigned', checked: boolean) => {
             onChange('status', { ...filters.status, [key]: checked });
         },
         [filters.status, onChange]
@@ -23,7 +23,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
 
     return (
         <ReceiptFilterField label={label}>
-            <div className="flex items-center gap-6 h-10 xl:min-w-[350px]">
+            <div className="flex items-center gap-6 h-10 xl:min-w-[350px] flex-wrap">
                 <div className="flex items-center gap-2 flex-1">
                     <Switch
                         id="status-unpaid"
@@ -45,6 +45,18 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                     />
                     <label htmlFor="status-draft" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
                         {t('receipts.filters.drafts')}
+                    </label>
+                </div>
+
+                <div className="flex items-center gap-2 flex-1">
+                    <Switch
+                        id="status-unassigned"
+                        checked={filters.status.unassigned}
+                        onCheckedChange={(checked: boolean) => handleToggle('unassigned', checked)}
+                        className="data-[state=checked]:bg-[var(--purple-500)]"
+                    />
+                    <label htmlFor="status-unassigned" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
+                        {t('receipts.filters.unassigned')}
                     </label>
                 </div>
             </div>
