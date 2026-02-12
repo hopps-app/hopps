@@ -6,6 +6,7 @@ import app.hopps.category.repository.CategoryRepository;
 import app.hopps.org.service.UserOrganizationService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.SecurityUtils;
+import app.hopps.transaction.domain.Transaction;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -127,7 +128,7 @@ public class CategoryResource {
     @Path("/{id}")
     @Authenticated
     @Transactional
-    @Operation(summary = "Delete a category", description = "Deletes a category by its ID within the user's organization")
+    @Operation(summary = "Delete a category", description = "Deletes a category by its ID within the user's organization. Associated transactions will have their category set to null.")
     @APIResponse(responseCode = "204", description = "Category deleted successfully")
     @APIResponse(responseCode = "404", description = "Category not found or not accessible")
     public Response deleteCategory(@PathParam("id") Long id, @Context SecurityContext securityContext) {
@@ -136,6 +137,13 @@ public class CategoryResource {
 
         if (category == null || !category.getOrganization().getId().equals(userOrganization.getId())) {
             throw new NotFoundException("Category with id " + id + " not found in your organization");
+        }
+
+        // Unlink transactions from this category before deleting
+        // This sets category_id = NULL on all transactions that reference this category
+        List<Transaction> linkedTransactions = Transaction.find("category.id", id).list();
+        for (Transaction tx : linkedTransactions) {
+            tx.setCategory(null);
         }
 
         categoryRepository.delete(category);
