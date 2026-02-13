@@ -121,7 +121,9 @@ export function OrganizationRegistrationForm(props: Props) {
 
             <hr />
             <div className="mt-2 text-center">
-                <Button type="submit" disabled={formState.isSubmitting}>{t('header.register')}</Button>
+                <Button type="submit" disabled={formState.isSubmitting}>
+                    {t('header.register')}
+                </Button>
             </div>
         </form>
     );

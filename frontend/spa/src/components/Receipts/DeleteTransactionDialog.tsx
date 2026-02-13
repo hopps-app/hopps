@@ -23,16 +23,12 @@ export function DeleteTransactionDialog({ open, transactionName, transactionAmou
                         <AlertTriangle className="w-5 h-5 text-orange-500" />
                         {t('receipts.deleteDialog.title')}
                     </DialogTitle>
-                    <DialogDescription>
-                        {t('receipts.deleteDialog.description', { name: transactionName, amount: transactionAmount })}
-                    </DialogDescription>
+                    <DialogDescription>{t('receipts.deleteDialog.description', { name: transactionName, amount: transactionAmount })}</DialogDescription>
                 </DialogHeader>
 
                 <div className="py-4">
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                        <p className="text-sm text-orange-800 font-medium">
-                            {t('receipts.deleteDialog.warning')}
-                        </p>
+                        <p className="text-sm text-orange-800 font-medium">{t('receipts.deleteDialog.warning')}</p>
                     </div>
                 </div>
 

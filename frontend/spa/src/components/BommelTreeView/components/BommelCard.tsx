@@ -73,7 +73,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
 
     const deletingRef = useRef(false);
 
-    const handleDeleteConfirm = async (transactionHandling?: DeleteTransactionHandling) => {
+    const handleDeleteConfirm = async (_transactionHandling?: DeleteTransactionHandling) => {
         if (onDelete) {
             if (deletingRef.current) return;
             deletingRef.current = true;
@@ -108,7 +108,9 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
 
     return (
         <div onClick={handleClick} className="w-full h-full cursor-pointer font-sans relative">
-            <div className={`rounded-xl p-3 shadow-md h-full flex flex-col gap-2 transition-all bommel-card ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}>
+            <div
+                className={`rounded-xl p-3 shadow-md h-full flex flex-col gap-2 transition-all bommel-card ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}
+            >
                 {/* Collapse toggle button */}
                 {hasChildren && (
                     <button
@@ -147,7 +149,11 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                                     <Emoji emoji={nodeDatum.attributes.emoji as string} />
                                 </div>
                             )}
-                            <div className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 ${isRoot ? 'text-white' : 'text-gray-800'}`}>{nodeDatum.name}</div>
+                            <div
+                                className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 ${isRoot ? 'text-white' : 'text-gray-800'}`}
+                            >
+                                {nodeDatum.name}
+                            </div>
                         </>
                     )}
                 </div>

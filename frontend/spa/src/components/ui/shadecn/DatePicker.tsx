@@ -80,7 +80,13 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                 </Popover>
             </div>
             {error && (
-                <div id={errorId} role="alert" className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none">{error}</div>
+                <div
+                    id={errorId}
+                    role="alert"
+                    className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none"
+                >
+                    {error}
+                </div>
             )}
         </div>
     );

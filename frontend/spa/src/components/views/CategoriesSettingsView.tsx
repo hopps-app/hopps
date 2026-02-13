@@ -9,8 +9,8 @@ import Header from '../ui/Header';
 import TextField from '../ui/TextField';
 
 import { EmptyState } from '@/components/common/EmptyState';
-import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
+import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import DialogWrapper from '@/components/ui/DialogWrapper';
 import { useCategories } from '@/hooks/queries';
 import { useSearch } from '@/hooks/use-search';
@@ -57,10 +57,7 @@ function CategoriesSettingsView() {
                             <p className="text-muted-foreground mt-1 max-w-sm">{t('categories.emptyState.description')}</p>
                         </div>
                     ) : results.length === 0 && query ? (
-                        <EmptyState
-                            title={t('receipts.filters.noResults')}
-                            description={t('categories.emptyState.noSearchResults')}
-                        />
+                        <EmptyState title={t('receipts.filters.noResults')} description={t('categories.emptyState.noSearchResults')} />
                     ) : (
                         <CategoryTable items={results} onActionSuccess={refetch} />
                     )}

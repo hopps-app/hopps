@@ -72,7 +72,12 @@ const CategoryFilter = ({ filters, onChange, label }: CategoryFilterProps) => {
                         className="w-[var(--radix-popover-trigger-width)] p-0 border border-[var(--grey-200)] bg-white rounded-xl shadow-lg"
                     >
                         <Command shouldFilter={false}>
-                            <CommandInput placeholder={t('receipts.filters.searchPlaceholder')} value={search} onValueChange={setSearch} className="h-9 text-sm" />
+                            <CommandInput
+                                placeholder={t('receipts.filters.searchPlaceholder')}
+                                value={search}
+                                onValueChange={setSearch}
+                                className="h-9 text-sm"
+                            />
                             <CommandList>
                                 <CommandEmpty>{t('receipts.filters.noResults')}</CommandEmpty>
                                 <CommandGroup>

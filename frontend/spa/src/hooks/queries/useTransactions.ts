@@ -2,8 +2,8 @@ import type { TransactionArea, TransactionStatus } from '@hopps/api-client';
 import { TransactionResponse } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import apiService from '@/services/ApiService';
 import i18n from '@/i18n';
+import apiService from '@/services/ApiService';
 
 export interface TransactionFilters {
     search?: string;
@@ -67,7 +67,10 @@ export function useDeleteTransaction() {
 }
 
 // Helper to convert TransactionResponse to the Receipt format used by the UI
-export function transactionToReceipt(tx: TransactionResponse, bommelEmojiMap?: Record<number, string>): {
+export function transactionToReceipt(
+    tx: TransactionResponse,
+    bommelEmojiMap?: Record<number, string>
+): {
     id: string;
     issuer: string;
     date: string;

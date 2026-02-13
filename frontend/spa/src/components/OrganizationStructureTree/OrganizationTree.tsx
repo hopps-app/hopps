@@ -103,12 +103,7 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
             <div className="rounded-lg border border-gray-200 overflow-hidden">
                 {/* Root Bommel - always pinned at the top */}
                 {rootNode && (
-                    <RootBommelHeader
-                        node={rootNode}
-                        isSelected={rootNode.id === selectedNode?.id}
-                        isEditable={isEditable}
-                        onClick={handleRootClick}
-                    />
+                    <RootBommelHeader node={rootNode} isSelected={rootNode.id === selectedNode?.id} isEditable={isEditable} onClick={handleRootClick} />
                 )}
 
                 {/* Children - scrollable */}

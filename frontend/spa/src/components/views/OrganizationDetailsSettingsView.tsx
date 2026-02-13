@@ -1,12 +1,11 @@
+import { Address, OrganizationInput } from '@hopps/api-client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Address, Organization, OrganizationInput } from '@hopps/api-client';
-
-import Header from '@/components/ui/Header';
 import Button from '@/components/ui/Button';
-import TextField from '@/components/ui/TextField';
+import Header from '@/components/ui/Header';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import TextField from '@/components/ui/TextField';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
@@ -186,12 +185,7 @@ function OrganizationDetailsSettingsView() {
                     {/* Website */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
                         <div className="sm:col-span-2">
-                            <TextField
-                                label={t('organization.details.website')}
-                                value={website}
-                                onValueChange={setWebsite}
-                                placeholder="https://example.com"
-                            />
+                            <TextField label={t('organization.details.website')} value={website} onValueChange={setWebsite} placeholder="https://example.com" />
                         </div>
                     </div>
 

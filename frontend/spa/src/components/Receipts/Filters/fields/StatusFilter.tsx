@@ -31,9 +31,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         onCheckedChange={(checked: boolean) => handleToggle('unpaid', checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <span className="text-sm text-[var(--grey-900)]">
-                        {t('receipts.filters.onlyUnpaid')}
-                    </span>
+                    <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.onlyUnpaid')}</span>
                 </label>
 
                 <label htmlFor="status-draft" className="flex items-center gap-2 cursor-pointer select-none">
@@ -43,9 +41,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         onCheckedChange={(checked: boolean) => handleToggle('draft', checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <span className="text-sm text-[var(--grey-900)]">
-                        {t('receipts.filters.drafts')}
-                    </span>
+                    <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.drafts')}</span>
                 </label>
 
                 <label htmlFor="status-unassigned" className="flex items-center gap-2 cursor-pointer select-none">
@@ -55,9 +51,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         onCheckedChange={(checked: boolean) => handleToggle('unassigned', checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <span className="text-sm text-[var(--grey-900)]">
-                        {t('receipts.filters.unassigned')}
-                    </span>
+                    <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.unassigned')}</span>
                 </label>
             </div>
         </ReceiptFilterField>

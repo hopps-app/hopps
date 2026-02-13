@@ -68,7 +68,11 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                 />
             </div>
             {props.error && (
-                <div id={errorId} role="alert" className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none">
+                <div
+                    id={errorId}
+                    role="alert"
+                    className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none"
+                >
                     {props.error}
                 </div>
             )}

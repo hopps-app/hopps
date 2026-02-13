@@ -133,9 +133,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                     <div className="border-t border-separator mb-2" />
                     {!collapsed && (
                         <div className="px-3 pb-1">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-grey-700 dark:text-grey-600">
-                                {t('menu.admin')}
-                            </span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-grey-700 dark:text-grey-600">{t('menu.admin')}</span>
                         </div>
                     )}
                     {adminItems.map(renderNavItem)}

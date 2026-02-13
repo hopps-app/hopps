@@ -31,9 +31,7 @@ const DisplayFilter = ({ filters, onChange, label }: DisplayFilterProps) => {
                     onCheckedChange={(checked) => handleToggle(!!checked)}
                     className="data-[state=checked]:bg-[var(--purple-500)]"
                 />
-                <span className="text-sm text-[var(--grey-900)]">
-                    {t('receipts.filters.displayAll')}
-                </span>
+                <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.displayAll')}</span>
             </label>
         </ReceiptFilterField>
     );

@@ -78,12 +78,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onDelete })
                 {/* Issuer */}
                 <div className="flex items-center gap-2 min-w-0">
                     <span className="font-medium text-sm truncate">{receipt.issuer}</span>
-                    {receipt.documentId && (
-                        <FileText
-                            className="w-4 h-4 shrink-0 text-[var(--purple-500)]"
-                            aria-label={t('receipts.documentLinked')}
-                        />
-                    )}
+                    {receipt.documentId && <FileText className="w-4 h-4 shrink-0 text-[var(--purple-500)]" aria-label={t('receipts.documentLinked')} />}
                 </div>
 
                 {/* Date */}
@@ -91,9 +86,14 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onDelete })
 
                 {/* Bommel */}
                 <span className={cn('text-sm truncate', isUnassigned ? 'text-amber-600 italic' : 'text-[var(--grey-700)]')}>
-                    {receipt.project
-                        ? <>{receipt.bommelEmoji && <span className="mr-1">{receipt.bommelEmoji}</span>}{receipt.project}</>
-                        : t('receipts.unassigned')}
+                    {receipt.project ? (
+                        <>
+                            {receipt.bommelEmoji && <span className="mr-1">{receipt.bommelEmoji}</span>}
+                            {receipt.project}
+                        </>
+                    ) : (
+                        t('receipts.unassigned')
+                    )}
                 </span>
 
                 {/* Category */}
@@ -114,9 +114,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onDelete })
                 </div>
 
                 {/* Amount */}
-                <span className={cn('text-sm font-semibold tabular-nums text-right', amountColorClass(receipt.amount))}>
-                    {formatAmount(receipt.amount)}
-                </span>
+                <span className={cn('text-sm font-semibold tabular-nums text-right', amountColorClass(receipt.amount))}>{formatAmount(receipt.amount)}</span>
 
                 {/* Actions */}
                 <div className="flex justify-center" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
@@ -145,27 +143,26 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onDelete })
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                             <span className="font-medium text-sm truncate">{receipt.issuer}</span>
-                            {receipt.documentId && (
-                                <FileText className="w-4 h-4 shrink-0 text-[var(--purple-500)]" />
-                            )}
+                            {receipt.documentId && <FileText className="w-4 h-4 shrink-0 text-[var(--purple-500)]" />}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-[var(--grey-700)]">{receipt.date}</span>
                             <span className="text-xs text-[var(--grey-400)]">&middot;</span>
                             <span className={cn('text-xs truncate', isUnassigned ? 'text-amber-600 italic' : 'text-[var(--grey-700)]')}>
-                                {receipt.project
-                                    ? <>{receipt.bommelEmoji && <span className="mr-0.5">{receipt.bommelEmoji}</span>}{receipt.project}</>
-                                    : t('receipts.unassigned')}
+                                {receipt.project ? (
+                                    <>
+                                        {receipt.bommelEmoji && <span className="mr-0.5">{receipt.bommelEmoji}</span>}
+                                        {receipt.project}
+                                    </>
+                                ) : (
+                                    t('receipts.unassigned')
+                                )}
                             </span>
                         </div>
-                        {receipt.category && (
-                            <span className="text-xs text-[var(--grey-700)] mt-0.5 block">{receipt.category}</span>
-                        )}
+                        {receipt.category && <span className="text-xs text-[var(--grey-700)] mt-0.5 block">{receipt.category}</span>}
                     </div>
                     <div className="text-right shrink-0">
-                        <span className={cn('text-sm font-semibold tabular-nums', amountColorClass(receipt.amount))}>
-                            {formatAmount(receipt.amount)}
-                        </span>
+                        <span className={cn('text-sm font-semibold tabular-nums', amountColorClass(receipt.amount))}>{formatAmount(receipt.amount)}</span>
                         <div className="mt-1">
                             <span
                                 className={cn(
@@ -199,25 +196,19 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onDelete })
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                             {receipt.reference && (
                                 <div>
-                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">
-                                        {t('receipts.table.reference')}
-                                    </span>
+                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.reference')}</span>
                                     <p className="mt-0.5 text-sm">{receipt.reference}</p>
                                 </div>
                             )}
                             {receipt.purpose && (
                                 <div>
-                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">
-                                        {t('receipts.table.purpose')}
-                                    </span>
+                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.purpose')}</span>
                                     <p className="mt-0.5 text-sm">{receipt.purpose}</p>
                                 </div>
                             )}
                             {receipt.dueDate && (
                                 <div>
-                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">
-                                        {t('receipts.dueDate')}
-                                    </span>
+                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.dueDate')}</span>
                                     <p className="mt-0.5 text-sm">{receipt.dueDate}</p>
                                 </div>
                             )}

@@ -10,8 +10,8 @@ import ReceiptRow from '@/components/Receipts/ReceiptRow';
 import ReceiptsEmptyState from '@/components/Receipts/ReceiptsEmptyState';
 import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
-import { useToast } from '@/hooks/use-toast';
 import { TransactionFilters, transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
+import { useToast } from '@/hooks/use-toast';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
@@ -148,19 +148,18 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <div className="rounded-full bg-destructive/10 p-3">
                     <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
                     </svg>
                 </div>
                 <p className="text-destructive font-medium" data-testid="receipts-error-message">
                     {getUserFriendlyErrorMessage(error)}
                 </p>
-                <BaseButton
-                    variant="outline"
-                    data-testid="receipts-retry-button"
-                    disabled={isFetching}
-                    onClick={() => refetch()}
-                    className="gap-2"
-                >
+                <BaseButton variant="outline" data-testid="receipts-retry-button" disabled={isFetching} onClick={() => refetch()} className="gap-2">
                     <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
                     {isFetching ? t('errors.network.retrying') : t('errors.api.retry')}
                 </BaseButton>
@@ -193,12 +192,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
                 {/* Rows */}
                 <div className="divide-y divide-[var(--grey-100)]">
                     {receipts.map((receipt) => (
-                        <ReceiptRow
-                            key={receipt.id}
-                            receipt={receipt}
-                            isExpanded={Boolean(expanded[receipt.id])}
-                            onDelete={handleDeleteRequest}
-                        />
+                        <ReceiptRow key={receipt.id} receipt={receipt} isExpanded={Boolean(expanded[receipt.id])} onDelete={handleDeleteRequest} />
                     ))}
                 </div>
             </div>

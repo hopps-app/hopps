@@ -43,14 +43,7 @@ class ErrorBoundaryInner extends Component<Props, State> {
                 return this.props.fallback;
             }
 
-            return (
-                <ErrorFallback
-                    error={this.state.error}
-                    onReset={this.handleReset}
-                    onGoHome={this.handleGoHome}
-                    t={this.props.t}
-                />
-            );
+            return <ErrorFallback error={this.state.error} onReset={this.handleReset} onGoHome={this.handleGoHome} t={this.props.t} />;
         }
 
         return this.props.children;

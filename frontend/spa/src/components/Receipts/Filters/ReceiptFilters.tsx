@@ -5,8 +5,8 @@ import AreaFilter from '@/components/Receipts/Filters/fields/AreaFilter';
 import CategoryFilter from '@/components/Receipts/Filters/fields/CategoryFilter';
 import { DateRangeFilter } from '@/components/Receipts/Filters/fields/DateRangeFilter';
 import DisplayFilter from '@/components/Receipts/Filters/fields/DisplayFilter';
-import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
 import { StatusFilter } from '@/components/Receipts/Filters/fields/StatusFilter';
+import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
 import { ReceiptFiltersState, SetFilterFn } from '@/components/Receipts/types';
 
 type ReceiptFiltersProps = {

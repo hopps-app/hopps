@@ -55,11 +55,7 @@ export default function CategoryForm({ onSuccess, initialData, isEdit = false, o
         } catch (error: unknown) {
             console.error('Error saving category:', error);
             const httpError = error as { status?: number; response?: string };
-            if (
-                httpError.status === 409 ||
-                httpError.response?.includes('duplicate') ||
-                httpError.response?.includes('already exists')
-            ) {
+            if (httpError.status === 409 || httpError.response?.includes('duplicate') || httpError.response?.includes('already exists')) {
                 setError('name', {
                     type: 'manual',
                     message: t('categories.form.error.duplicate'),
@@ -78,13 +74,7 @@ export default function CategoryForm({ onSuccess, initialData, isEdit = false, o
             <form onSubmit={handleSubmit(onSubmit)} id="category-form" className="mt-4 flex flex-col gap-4">
                 <fieldset disabled={isSubmitting}>
                     <div className="flex flex-col gap-4">
-                        <TextField
-                            label={t('categories.form.name')}
-                            {...register('name')}
-                            error={errors.name?.message}
-                            maxLength={127}
-                            required
-                        />
+                        <TextField label={t('categories.form.name')} {...register('name')} error={errors.name?.message} maxLength={127} required />
                         <TextArea label={t('categories.form.description')} {...register('description')} error={errors.description?.message} />
                     </div>
                 </fieldset>

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { renderWithProviders, screen } from '@/test/test-utils';
-
 import NotFoundView from '../NotFoundView';
+
+import { renderWithProviders, screen } from '@/test/test-utils';
 
 describe('NotFoundView', () => {
     it('renders 404 page with translated content', () => {

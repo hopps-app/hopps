@@ -86,9 +86,7 @@ const Receipts = () => {
                         onClick={() => setFiltersOpen(!filtersOpen)}
                         className={cn(
                             'gap-2 h-10 rounded-xl transition-colors',
-                            filtersOpen
-                                ? 'bg-[var(--purple-100)] border-[var(--purple-300)] text-[var(--purple-900)]'
-                                : 'border-[var(--grey-300)]'
+                            filtersOpen ? 'bg-[var(--purple-100)] border-[var(--purple-300)] text-[var(--purple-900)]' : 'border-[var(--grey-300)]'
                         )}
                     >
                         <Filter className="h-4 w-4" />
@@ -100,11 +98,7 @@ const Receipts = () => {
                         )}
                     </BaseButton>
                     {activeFilterCount > 0 && (
-                        <BaseButton
-                            variant="ghost"
-                            onClick={resetFilters}
-                            className="h-10 px-4 text-sm text-[var(--grey-700)] hover:text-[var(--grey-900)]"
-                        >
+                        <BaseButton variant="ghost" onClick={resetFilters} className="h-10 px-4 text-sm text-[var(--grey-700)] hover:text-[var(--grey-900)]">
                             {t('receipts.filters.reset')}
                         </BaseButton>
                     )}

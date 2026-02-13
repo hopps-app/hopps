@@ -90,12 +90,9 @@ function BommelTreeComponent({
         [onAddChild]
     );
 
-    const handleMoveClick = useCallback(
-        (nodeId: number) => {
-            setMovingBommelId(nodeId);
-        },
-        []
-    );
+    const handleMoveClick = useCallback((nodeId: number) => {
+        setMovingBommelId(nodeId);
+    }, []);
 
     const handleMoveConfirm = useCallback(
         async (newParentId: number) => {
