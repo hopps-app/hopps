@@ -10,13 +10,13 @@
     <description>Microservice which uses ZugFerD with Mustang to extract data from E-Invoices in PDF form</description>
 
     <properties>
-        <compiler-plugin.version>3.14.1</compiler-plugin.version>
+        <compiler-plugin.version>3.15.0</compiler-plugin.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.30.8</quarkus.platform.version>
+        <quarkus.platform.version>3.31.3</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <sonar.coverage.jacoco.xmlReportPaths>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>org.mustangproject</groupId>
             <artifactId>validator</artifactId>
-            <version>2.21.0</version>
+            <version>2.22.0</version>
             <classifier>shaded</classifier>
         </dependency>
         <!-- test -->
