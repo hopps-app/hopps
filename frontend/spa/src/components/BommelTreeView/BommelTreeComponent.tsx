@@ -118,7 +118,7 @@ function BommelTreeComponent({
         ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
             return (
                 <g>
-                    <foreignObject x={-100} y={-60} width={200} height={editable ? 80 : 120} style={{ overflow: 'visible' }}>
+                    <foreignObject x={-100} y={editable ? -40 : -45} width={200} height={editable ? 80 : 90} style={{ overflow: 'visible' }}>
                         <BommelCard
                             nodeDatum={nodeDatum}
                             toggleNode={toggleNode}
@@ -148,7 +148,7 @@ function BommelTreeComponent({
                     orientation="vertical"
                     translate={{ x: containerWidth / 2, y: 80 }}
                     pathFunc="step"
-                    nodeSize={{ x: 240, y: editable ? 120 : 160 }}
+                    nodeSize={{ x: 240, y: editable ? 130 : 140 }}
                     renderCustomNodeElement={renderCustomNodeElement}
                     separation={{ siblings: 1, nonSiblings: 1.2 }}
                     zoom={0.9}
@@ -156,7 +156,7 @@ function BommelTreeComponent({
                     enableLegacyTransitions={true}
                     collapsible={true}
                     initialDepth={3}
-                    depthFactor={editable ? 120 : 160}
+                    depthFactor={editable ? 130 : 140}
                     pathClassFunc={() => 'tree-link'}
                 />
             </div>
