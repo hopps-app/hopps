@@ -133,7 +133,7 @@ public class DocumentAnalysisService {
         } catch (Exception e) {
             LOG.error("Document analysis failed: id={}", documentId, e);
             document.setAnalysisStatus(AnalysisStatus.FAILED);
-            document.setAnalysisError(e.getMessage());
+            document.setAnalysisError(extractUserFriendlyError(e));
         }
     }
 
@@ -149,5 +149,62 @@ public class DocumentAnalysisService {
         document.setAnalysisStatus(AnalysisStatus.FAILED);
         document.setAnalysisError(errorMessage);
         LOG.warn("Document analysis marked as failed: documentId={}, error={}", document.getId(), errorMessage);
+    }
+
+    /**
+     * Extracts a user-friendly error message from an exception chain. Detects known error patterns (quota exceeded,
+     * service unavailable, etc.) and returns a clean message instead of raw stack traces or JSON blobs.
+     */
+    private String extractUserFriendlyError(Throwable e) {
+        // Walk the exception chain to find known error patterns in messages
+        Throwable current = e;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null) {
+                if (message.contains("insufficient_quota") || message.contains("exceeded your current quota")) {
+                    return "AI service quota exceeded. Please check your OpenAI plan and billing details.";
+                }
+                if (message.contains("rate_limit_exceeded")) {
+                    return "AI service rate limit reached. Please try again later.";
+                }
+            }
+            current = current.getCause();
+        }
+
+        // Walk the exception chain to find WebApplicationException with response body
+        current = e;
+        while (current != null) {
+            if (current instanceof jakarta.ws.rs.WebApplicationException wae) {
+                String body = extractResponseBody(wae);
+                if (body != null && !body.isBlank()) {
+                    return body;
+                }
+            }
+            current = current.getCause();
+        }
+
+        // Fallback: use the top-level exception message, but truncate if it looks like raw JSON
+        String message = e.getMessage();
+        if (message == null || message.isBlank()) {
+            return "Document analysis failed due to an unknown error.";
+        }
+        if (message.trim().startsWith("{") || message.length() > 200) {
+            return "Document analysis failed: " + e.getClass().getSimpleName();
+        }
+        return message;
+    }
+
+    private String extractResponseBody(jakarta.ws.rs.WebApplicationException wae) {
+        try {
+            var response = wae.getResponse();
+            if (response != null && response.hasEntity()) {
+                // Buffer the entity so it can be read
+                response.bufferEntity();
+                return response.readEntity(String.class);
+            }
+        } catch (Exception ex) {
+            LOG.debug("Could not read response body from WebApplicationException", ex);
+        }
+        return null;
     }
 }

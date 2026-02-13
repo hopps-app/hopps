@@ -415,8 +415,11 @@
                 "extractedViaZugferd": "Extracted via ZUGFeRD",
                 "failed": "Analysis failed",
                 "error": "Analysis error: {{error}}",
+                "errorDetail": "Details: {{error}}",
                 "serviceUnavailable": "Analysis service is temporarily unavailable. Please try again later.",
-                "pollingTimeout": "Analysis is taking longer than expected. Please try again later."
+                "pollingTimeout": "Analysis is taking longer than expected. Please try again later.",
+                "retry": "Retry analysis",
+                "retryFailed": "Failed to retry analysis. Please try again later."
             },
             "saveSuccess": "Receipt saved successfully",
             "saveFailed": "Failed to save receipt",

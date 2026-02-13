@@ -44,8 +44,19 @@ public class ScanDocumentResource {
         try {
             return aiService.scanDocument(document.uploadedFile(), String.valueOf(transactionRecordId));
         } catch (OcrException e) {
-            LOG.error("Could not extract document", e);
-            throw new WebApplicationException("Could not extract document", Response.Status.BAD_REQUEST);
+            LOG.error("Could not extract document: {}", e.getMessage());
+            throw new WebApplicationException(
+                    Response.status(Response.Status.BAD_REQUEST)
+                            .entity(e.getMessage())
+                            .type(MediaType.TEXT_PLAIN)
+                            .build());
+        } catch (Exception e) {
+            LOG.error("Unexpected error during document scan", e);
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity("Document analysis failed: " + e.getMessage())
+                            .type(MediaType.TEXT_PLAIN)
+                            .build());
         }
     }
 }

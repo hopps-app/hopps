@@ -357,8 +357,11 @@
                 "extractedViaZugferd": "Extrahiert via ZUGFeRD",
                 "failed": "Analyse fehlgeschlagen",
                 "error": "Fehler bei der Analyse: {{error}}",
+                "errorDetail": "Details: {{error}}",
                 "serviceUnavailable": "Der Analyse-Service ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
-                "pollingTimeout": "Die Analyse dauert länger als erwartet. Bitte versuchen Sie es später erneut."
+                "pollingTimeout": "Die Analyse dauert länger als erwartet. Bitte versuchen Sie es später erneut.",
+                "retry": "Analyse erneut starten",
+                "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuchen Sie es später erneut."
             }
         },
         "areas": {

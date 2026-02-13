@@ -22,7 +22,7 @@ import { useStore } from '@/store/store';
 const POLLING_INTERVAL_BASE = 2000; // 2 seconds base interval
 const POLLING_MAX_INTERVAL = 30000; // 30 seconds max interval
 const POLLING_MAX_ERRORS = 5; // Stop polling after 5 consecutive errors
-const POLLING_MAX_DURATION = 5 * 60 * 1000; // 5 minutes max polling duration
+const POLLING_MAX_DURATION = 2 * 60 * 1000; // 2 minutes max polling duration
 
 const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
@@ -248,6 +248,13 @@ function ReceiptUploadView() {
                             if (hasAppliedValues) {
                                 setAnalysisStatus('COMPLETED');
                             }
+                        } else if (documentResponse.analysisStatus === 'FAILED') {
+                            // Restore failed analysis state so the error banner is shown
+                            setAnalysisStatus('FAILED');
+                            setAnalysisError(documentResponse.analysisError ?? null);
+                        } else if (documentResponse.analysisStatus === 'PENDING' || documentResponse.analysisStatus === 'ANALYZING') {
+                            // Analysis still in progress - resume polling
+                            setAnalysisStatus(documentResponse.analysisStatus as AnalysisStatus);
                         }
                     } catch (docAnalysisError) {
                         console.warn('Could not fetch document analysis status:', docAnalysisError);
@@ -282,7 +289,7 @@ function ReceiptUploadView() {
         };
 
         loadTransactionData();
-    }, [id, isEditMode, loadTransaction, applyAnalysisResultToEmptyFields, setAnalysisStatus, showError, t]);
+    }, [id, isEditMode, loadTransaction, applyAnalysisResultToEmptyFields, setAnalysisStatus, setAnalysisError, showError, t]);
 
     const onFilesChanged = useCallback(
         async (files: File[]) => {
@@ -547,6 +554,25 @@ function ReceiptUploadView() {
         }
     }, [documentId, showError, t]);
 
+    // Retry analysis for a failed document
+    const handleRetryAnalysis = useCallback(async () => {
+        if (!documentId) return;
+        try {
+            setAnalysisStatus('PENDING');
+            setAnalysisError(null);
+            setAllFieldsLoading(true);
+
+            const response = await apiService.orgService.reanalyze(documentId);
+            setAnalysisStatus(response.analysisStatus as AnalysisStatus ?? 'PENDING');
+        } catch (e) {
+            console.error('Failed to retry analysis:', e);
+            setAnalysisStatus('FAILED');
+            setAnalysisError(t('receipts.upload.analysis.serviceUnavailable'));
+            setAllFieldsLoading(false);
+            showError(t('receipts.upload.analysis.retryFailed'));
+        }
+    }, [documentId, setAnalysisStatus, setAnalysisError, setAllFieldsLoading, showError, t]);
+
     // Cleanup document URL on unmount
     useEffect(() => {
         return () => {
@@ -597,7 +623,7 @@ function ReceiptUploadView() {
                 <div className="flex flex-col gap-4">
                     <div className="min-w-0 border border-grey-700 p-3 sm:p-4 rounded-[20px] sm:rounded-[30px]">
                         {/* Analysis Status Banner */}
-                        {analysisStatus && isAutoRead && (
+                        {analysisStatus && (isAutoRead || analysisStatus === 'FAILED') && (
                             <div
                                 className={`mb-3 p-3 sm:p-4 rounded-lg text-sm ${
                                     analysisStatus === 'COMPLETED'
@@ -622,10 +648,7 @@ function ReceiptUploadView() {
                                         {analysisStatus === 'PENDING' && t('receipts.upload.analysis.pending')}
                                         {analysisStatus === 'ANALYZING' && t('receipts.upload.analysis.analyzing')}
                                         {analysisStatus === 'COMPLETED' && t('receipts.upload.analysis.completed')}
-                                        {analysisStatus === 'FAILED' &&
-                                            (analysisError
-                                                ? t('receipts.upload.analysis.error', { error: analysisError })
-                                                : t('receipts.upload.analysis.failed'))}
+                                        {analysisStatus === 'FAILED' && t('receipts.upload.analysis.failed')}
                                     </span>
                                 </div>
                                 {analysisStatus === 'COMPLETED' && (
@@ -636,6 +659,24 @@ function ReceiptUploadView() {
                                                 ? t('receipts.upload.analysis.extractedViaZugferd')
                                                 : t('receipts.upload.analysis.extractedViaDocumentAI')}
                                         </p>
+                                    </div>
+                                )}
+                                {analysisStatus === 'FAILED' && (
+                                    <div className="mt-2 space-y-2">
+                                        {analysisError && (
+                                            <p className="text-xs opacity-90">
+                                                {t('receipts.upload.analysis.errorDetail', { error: analysisError })}
+                                            </p>
+                                        )}
+                                        {documentId && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRetryAnalysis}
+                                                className="text-xs font-medium underline hover:no-underline"
+                                            >
+                                                {t('receipts.upload.analysis.retry')}
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </div>
