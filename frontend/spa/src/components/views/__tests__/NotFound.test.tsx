@@ -1,12 +1,19 @@
-import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+
+import { renderWithProviders, screen } from '@/test/test-utils';
 
 import NotFoundView from '../NotFoundView';
 
-describe('NotFound', () => {
-    it('renders NotFound component', () => {
-        render(<NotFoundView />);
-        expect(screen.getByText('404 - Page Not Found')).toBeInTheDocument();
+describe('NotFoundView', () => {
+    it('renders 404 page with translated content', () => {
+        renderWithProviders(<NotFoundView />);
+        expect(screen.getByRole('heading')).toBeInTheDocument();
         expect(screen.getByText('The page you are looking for does not exist.')).toBeInTheDocument();
+    });
+
+    it('renders a button to navigate back to dashboard', () => {
+        renderWithProviders(<NotFoundView />);
+        const button = screen.getByRole('button', { name: 'Go to Dashboard' });
+        expect(button).toBeInTheDocument();
     });
 });
