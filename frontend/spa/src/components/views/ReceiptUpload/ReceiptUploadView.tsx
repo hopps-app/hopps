@@ -509,7 +509,20 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [canSaveDraft, validateDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload, resetForm, navigate, queryClient]);
+    }, [
+        canSaveDraft,
+        validateDraft,
+        transactionId,
+        showError,
+        showSuccess,
+        setIsSubmitting,
+        setTransactionId,
+        t,
+        buildTransactionPayload,
+        resetForm,
+        navigate,
+        queryClient,
+    ]);
 
     const handleCancel = useCallback(() => {
         navigate('/receipts');
@@ -563,7 +576,7 @@ function ReceiptUploadView() {
             setAllFieldsLoading(true);
 
             const response = await apiService.orgService.reanalyze(documentId);
-            setAnalysisStatus(response.analysisStatus as AnalysisStatus ?? 'PENDING');
+            setAnalysisStatus((response.analysisStatus as AnalysisStatus) ?? 'PENDING');
         } catch (e) {
             console.error('Failed to retry analysis:', e);
             setAnalysisStatus('FAILED');
@@ -584,22 +597,28 @@ function ReceiptUploadView() {
 
     if (isLoadingTransaction) {
         return (
-            <div className="flex flex-col gap-4">
-                <h2 className="text-2xl font-semibold shrink-0">{t('receipts.upload.editTitle')}</h2>
-                <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="flex flex-col gap-6">
+                <h2 className="text-2xl font-semibold tracking-tight">{t('receipts.upload.editTitle')}</h2>
+                <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted-foreground/20 border-t-primary"></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <h2 className="text-2xl font-semibold shrink-0">{isEditMode ? t('receipts.upload.editTitle') : t('receipts.upload.title')}</h2>
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold tracking-tight">{isEditMode ? t('receipts.upload.editTitle') : t('receipts.upload.title')}</h2>
+                <div className="flex items-center gap-2">
+                    <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
+                </div>
+            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
-                <div className="flex flex-col gap-2">
-                    <div className="min-h-[300px] sm:min-h-[350px] md:self-stretch">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-stretch">
+                {/* Left column: Dropzone + Download */}
+                <div className="flex flex-col gap-3 min-h-[400px]">
+                    <div className="flex-1 min-h-0">
                         <InvoiceUploadFormDropzone
                             onFilesChanged={onFilesChanged}
                             previewFile={file}
@@ -608,52 +627,77 @@ function ReceiptUploadView() {
                         />
                     </div>
                     {documentId && (
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={handleDownloadDocument}
-                            className="flex items-center justify-center gap-2 w-full"
-                        >
+                        <Button type="button" variant="outline" onClick={handleDownloadDocument} className="flex items-center justify-center gap-2 w-full">
                             <Download className="w-4 h-4" />
                             {t('receipts.downloadDocument')}
                         </Button>
                     )}
                 </div>
 
+                {/* Right column: Form */}
                 <div className="flex flex-col gap-4">
-                    <div className="min-w-0 border border-grey-700 p-3 sm:p-4 rounded-[20px] sm:rounded-[30px]">
-                        {/* Analysis Status Banner */}
-                        {analysisStatus && (isAutoRead || analysisStatus === 'FAILED') && (
-                            <div
-                                className={`mb-3 p-3 sm:p-4 rounded-lg text-sm ${
-                                    analysisStatus === 'COMPLETED'
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                        : analysisStatus === 'FAILED'
-                                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                }`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    {isAnalyzing && (
-                                        <svg className="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            ></path>
-                                        </svg>
-                                    )}
-                                    <span className="font-medium">
-                                        {analysisStatus === 'PENDING' && t('receipts.upload.analysis.pending')}
-                                        {analysisStatus === 'ANALYZING' && t('receipts.upload.analysis.analyzing')}
-                                        {analysisStatus === 'COMPLETED' && t('receipts.upload.analysis.completed')}
-                                        {analysisStatus === 'FAILED' && t('receipts.upload.analysis.failed')}
-                                    </span>
-                                </div>
+                    {/* Analysis Status Banner */}
+                    {analysisStatus && (isAutoRead || analysisStatus === 'FAILED') && (
+                        <div
+                            className={`flex items-start gap-3 p-4 rounded-xl border text-sm ${
+                                analysisStatus === 'COMPLETED'
+                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-200'
+                                    : analysisStatus === 'FAILED'
+                                      ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200'
+                                      : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200'
+                            }`}
+                        >
+                            <div className="shrink-0 mt-0.5">
+                                {isAnalyzing ? (
+                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                ) : analysisStatus === 'COMPLETED' ? (
+                                    <svg
+                                        className="h-4 w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                    </svg>
+                                ) : (
+                                    <svg
+                                        className="h-4 w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="15" y1="9" x2="9" y2="15" />
+                                        <line x1="9" y1="9" x2="15" y2="15" />
+                                    </svg>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium leading-tight">
+                                    {analysisStatus === 'PENDING' && t('receipts.upload.analysis.pending')}
+                                    {analysisStatus === 'ANALYZING' && t('receipts.upload.analysis.analyzing')}
+                                    {analysisStatus === 'COMPLETED' && t('receipts.upload.analysis.completed')}
+                                    {analysisStatus === 'FAILED' && t('receipts.upload.analysis.failed')}
+                                </p>
                                 {analysisStatus === 'COMPLETED' && (
-                                    <div className="mt-2 space-y-1">
-                                        <p className="text-xs opacity-90">{t('receipts.upload.analysis.completedDescription')}</p>
+                                    <div className="mt-1.5 space-y-0.5">
+                                        <p className="text-xs opacity-80">{t('receipts.upload.analysis.completedDescription')}</p>
                                         <p className="text-xs font-medium">
                                             {extractionSource === 'ZUGFERD'
                                                 ? t('receipts.upload.analysis.extractedViaZugferd')
@@ -662,26 +706,22 @@ function ReceiptUploadView() {
                                     </div>
                                 )}
                                 {analysisStatus === 'FAILED' && (
-                                    <div className="mt-2 space-y-2">
+                                    <div className="mt-1.5 space-y-1.5">
                                         {analysisError && (
-                                            <p className="text-xs opacity-90">
-                                                {t('receipts.upload.analysis.errorDetail', { error: analysisError })}
-                                            </p>
+                                            <p className="text-xs opacity-80">{t('receipts.upload.analysis.errorDetail', { error: analysisError })}</p>
                                         )}
                                         {documentId && (
-                                            <button
-                                                type="button"
-                                                onClick={handleRetryAnalysis}
-                                                className="text-xs font-medium underline hover:no-underline"
-                                            >
+                                            <button type="button" onClick={handleRetryAnalysis} className="text-xs font-medium underline hover:no-underline">
                                                 {t('receipts.upload.analysis.retry')}
                                             </button>
                                         )}
                                     </div>
                                 )}
                             </div>
-                        )}
+                        </div>
+                    )}
 
+                    <div className="min-w-0 border border-border bg-card rounded-xl p-5">
                         <ReceiptFormFields
                             receiptNumber={receiptNumber}
                             onReceiptNumberChange={setReceiptNumber}
@@ -712,17 +752,13 @@ function ReceiptUploadView() {
                         />
                     </div>
 
-                    <div className="flex items-center">
-                        <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
-                    </div>
-
                     <ReceiptFormActions
                         isValid={isValid}
                         canSaveDraft={canSaveDraft}
                         onSubmit={handleSubmit}
                         onSaveDraft={handleSaveDraft}
                         onCancel={handleCancel}
-                        saveDisabled={true} // Save button disabled for now
+                        saveDisabled={true}
                     />
                 </div>
             </div>

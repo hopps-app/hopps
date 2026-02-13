@@ -15,7 +15,7 @@ export function ReceiptFormActions({ isValid, canSaveDraft, onSubmit, onSaveDraf
     const { t } = useTranslation();
 
     return (
-        <div className="flex justify-end gap-3 mt-6 grid-cols-2">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onCancel} type="button">
                 {t('common.cancel')}
             </Button>
