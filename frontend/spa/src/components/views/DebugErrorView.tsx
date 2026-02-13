@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 /**
  * Debug component for testing Error Boundary behavior.
  * Only used in development mode to verify error handling.
  */
-function BrokenComponent() {
+function BrokenComponent(): React.ReactNode {
     // This will throw a render error
     throw new Error('Intentional test error: Component crash simulation');
 }
