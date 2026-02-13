@@ -5,10 +5,12 @@ import app.hopps.document.client.TradePartyData;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.domain.TradeParty;
+import app.hopps.document.repository.TradePartyRepository;
 import app.hopps.shared.domain.Tag;
 import app.hopps.shared.repository.TagRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,12 @@ public class DocumentDataApplier {
 
     @Inject
     TagRepository tagRepository;
+
+    @Inject
+    TradePartyRepository tradePartyRepository;
+
+    @Inject
+    EntityManager entityManager;
 
     /**
      * Apply extracted document data to a document entity. Only fills fields that are currently null or zero.
@@ -111,16 +119,19 @@ public class DocumentDataApplier {
             if (data.merchantName() != null) {
                 sender.setName(data.merchantName());
             }
+            // Persist TradeParty separately and flush before setting on document,
+            // to ensure the FK reference is valid when Hibernate auto-flushes.
+            entityManager.persist(sender);
+            entityManager.flush();
             document.setSender(sender);
-            LOG.debug("Autofilled sender: {}", sender.getName());
+            LOG.debug("Autofilled sender: {} (id={})", sender.getName(), sender.id);
             return 1;
         } else if (data.merchantName() != null) {
-            TradeParty sender = new TradeParty();
-            sender.setName(data.merchantName());
-            sender.setOrganization(document.getOrganization());
-            document.setSender(sender);
-            LOG.debug("Autofilled sender name: {}", data.merchantName());
-            return 1;
+            // When only a merchant name is provided (no address), don't create a TradeParty
+            // entity. The name will be applied via applyDocumentName instead.
+            // This avoids FK ordering issues during async analysis.
+            LOG.debug("Skipping TradeParty creation for name-only merchant: {}", data.merchantName());
+            return 0;
         }
 
         return 0;
