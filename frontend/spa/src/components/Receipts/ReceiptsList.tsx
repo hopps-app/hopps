@@ -1,5 +1,5 @@
 import type { TransactionStatus } from '@hopps/api-client';
-import { RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,6 +12,7 @@ import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { useToast } from '@/hooks/use-toast';
 import { TransactionFilters, transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
 type ReceiptsListProps = {
@@ -22,7 +23,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-    const [checked, setChecked] = useState<Record<string, boolean>>({});
     const [page, setPage] = useState(0);
     const pageSize = 10;
     const [deleteTarget, setDeleteTarget] = useState<Receipt | null>(null);
@@ -30,16 +30,12 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
 
     // Map UI filters to API filters
     const apiFilters = useMemo(() => {
-        // Determine status filter
         let status: TransactionStatus | undefined;
         if (filters.status.draft) {
             status = 'DRAFT';
         }
 
-        // Determine privatelyPaid filter (unpaid)
         const privatelyPaid = filters.status.unpaid ? true : undefined;
-
-        // Determine detached filter (unassigned = no bommel)
         const detached = filters.status.unassigned ? true : undefined;
 
         return {
@@ -58,20 +54,24 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     }, [filters, page]);
 
     const { data: transactions, isLoading, isError, error, refetch, isFetching } = useTransactions(apiFilters);
+    const allBommels = useBommelsStore((state) => state.allBommels);
 
-    const toggleRow = (id: string) => {
-        setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-    };
-
-    const handleCheckChange = (id: string, value: boolean) => {
-        setChecked((prev) => ({ ...prev, [id]: value }));
-    };
+    // Build a bommel ID -> emoji lookup map
+    const bommelEmojiMap = useMemo(() => {
+        const map: Record<number, string> = {};
+        for (const bommel of allBommels) {
+            if (bommel.id != null && bommel.emoji) {
+                map[bommel.id] = bommel.emoji;
+            }
+        }
+        return map;
+    }, [allBommels]);
 
     // Convert transactions to receipts format
     const receipts = useMemo(() => {
         if (!transactions) return [];
-        return transactions.map(transactionToReceipt);
-    }, [transactions]);
+        return transactions.map((tx) => transactionToReceipt(tx, bommelEmojiMap));
+    }, [transactions, bommelEmojiMap]);
 
     // Track previous displayAll value to detect changes
     const prevDisplayAllRef = useRef(filters.displayAll);
@@ -81,12 +81,10 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         const prevDisplayAll = prevDisplayAllRef.current;
         prevDisplayAllRef.current = filters.displayAll;
 
-        // Only react to actual changes in displayAll
         if (prevDisplayAll === filters.displayAll) return;
         if (!receipts.length) return;
 
         if (filters.displayAll) {
-            // Expand all receipts
             const allExpanded = receipts.reduce(
                 (acc, receipt) => {
                     acc[receipt.id] = true;
@@ -96,7 +94,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             );
             setExpanded(allExpanded);
         } else {
-            // Collapse all receipts
             setExpanded({});
         }
     }, [filters.displayAll, receipts]);
@@ -159,7 +156,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
                 </p>
                 <BaseButton
                     variant="outline"
-                    size="sm"
                     data-testid="receipts-retry-button"
                     disabled={isFetching}
                     onClick={() => refetch()}
@@ -179,54 +175,61 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const hasNextPage = receipts.length === pageSize;
     const hasPrevPage = page > 0;
 
-    const handleNextPage = () => {
-        if (hasNextPage) {
-            setPage((prev) => prev + 1);
-        }
-    };
-
-    const handlePrevPage = () => {
-        if (hasPrevPage) {
-            setPage((prev) => prev - 1);
-        }
-    };
-
     return (
         <div className="space-y-4">
-            <ul className="space-y-2">
-                {receipts.map((receipt) => (
-                    <ReceiptRow
-                        key={receipt.id}
-                        receipt={receipt}
-                        isExpanded={Boolean(expanded[receipt.id])}
-                        isChecked={Boolean(checked[receipt.id])}
-                        onToggle={toggleRow}
-                        onCheckChange={handleCheckChange}
-                        onDelete={handleDeleteRequest}
-                    />
-                ))}
-            </ul>
-
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-between border-t pt-4">
-                <div className="text-sm text-[var(--grey-700)]">
-                    {t('receipts.pagination.page')} {page + 1}
+            {/* Table */}
+            <div className="rounded-2xl border border-[var(--grey-200)] bg-white overflow-hidden">
+                {/* Table Header - Desktop only */}
+                <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_100px_100px_48px] gap-4 px-5 py-3 bg-[var(--grey-50)] border-b border-[var(--grey-200)]">
+                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.issuer')}</span>
+                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.date')}</span>
+                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.project')}</span>
+                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.category')}</span>
+                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.status')}</span>
+                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider text-right">{t('receipts.table.amount')}</span>
+                    <span></span>
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={handlePrevPage}
+
+                {/* Rows */}
+                <div className="divide-y divide-[var(--grey-100)]">
+                    {receipts.map((receipt) => (
+                        <ReceiptRow
+                            key={receipt.id}
+                            receipt={receipt}
+                            isExpanded={Boolean(expanded[receipt.id])}
+                            onDelete={handleDeleteRequest}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-[var(--grey-700)]">
+                    {t('receipts.pagination.page')} {page + 1}
+                </p>
+                <div className="flex items-center gap-1">
+                    <BaseButton
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage((prev) => prev - 1)}
                         disabled={!hasPrevPage}
-                        className="px-4 py-2 bg-white border border-[var(--grey-300)] rounded-md text-sm font-medium text-[var(--grey-700)] hover:bg-[var(--grey-50)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="h-9 w-9 p-0 rounded-xl border-[var(--grey-300)]"
                     >
-                        {t('receipts.pagination.previous')}
-                    </button>
-                    <button
-                        onClick={handleNextPage}
+                        <ChevronLeft className="h-4 w-4" />
+                    </BaseButton>
+                    <div className="flex h-9 min-w-[36px] items-center justify-center rounded-xl bg-[var(--purple-100)] px-3 text-sm font-medium text-[var(--purple-900)]">
+                        {page + 1}
+                    </div>
+                    <BaseButton
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setPage((prev) => prev + 1)}
                         disabled={!hasNextPage}
-                        className="px-4 py-2 bg-white border border-[var(--grey-300)] rounded-md text-sm font-medium text-[var(--grey-700)] hover:bg-[var(--grey-50)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="h-9 w-9 p-0 rounded-xl border-[var(--grey-300)]"
                     >
-                        {t('receipts.pagination.next')}
-                    </button>
+                        <ChevronRight className="h-4 w-4" />
+                    </BaseButton>
                 </div>
             </div>
 

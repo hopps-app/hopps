@@ -67,7 +67,7 @@ export function useDeleteTransaction() {
 }
 
 // Helper to convert TransactionResponse to the Receipt format used by the UI
-export function transactionToReceipt(tx: TransactionResponse): {
+export function transactionToReceipt(tx: TransactionResponse, bommelEmojiMap?: Record<number, string>): {
     id: string;
     issuer: string;
     date: string;
@@ -75,6 +75,7 @@ export function transactionToReceipt(tx: TransactionResponse): {
     category: string;
     status: 'paid' | 'unpaid' | 'draft' | 'failed';
     project: string;
+    bommelEmoji: string;
     area: string;
     purpose: string;
     dueDate: string;
@@ -101,6 +102,8 @@ export function transactionToReceipt(tx: TransactionResponse): {
 
     const amount = tx.total ? Number(tx.total) : 0;
 
+    const bommelEmoji = (bommelEmojiMap && tx.bommelId ? bommelEmojiMap[tx.bommelId] : '') ?? '';
+
     return {
         id: String(tx.id),
         issuer: tx.senderName ?? tx.name ?? '',
@@ -109,6 +112,7 @@ export function transactionToReceipt(tx: TransactionResponse): {
         category: tx.categoryName ?? '',
         status,
         project: tx.bommelName ?? '',
+        bommelEmoji,
         area: tx.area ?? '',
         purpose: tx.name ?? '',
         dueDate: formatDate(tx.dueDate),

@@ -275,6 +275,23 @@
         "noDocument": "Kein Dokument",
         "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
+        "newReceipt": "Neuer Beleg",
+        "statusBadge": {
+            "paid": "Bezahlt",
+            "unpaid": "Offen",
+            "draft": "Entwurf",
+            "failed": "Fehlgeschlagen"
+        },
+        "table": {
+            "issuer": "Vertragspartner",
+            "date": "Datum",
+            "project": "Bommel",
+            "category": "Kategorie",
+            "status": "Status",
+            "amount": "Betrag",
+            "purpose": "Verwendungszweck",
+            "reference": "Referenz"
+        },
         "emptyState": {
             "title": "Noch keine Belege hochgeladen",
             "description": "Hier können Belege gefiltert und verwaltet werden",
@@ -306,7 +323,9 @@
             "reset": "Zurücksetzen",
             "noResults": "Keine Ergebnisse",
             "area": "Bereich",
-            "allAreas": "Alle Bereiche"
+            "allAreas": "Alle Bereiche",
+            "allCategories": "Alle Kategorien",
+            "showFilters": "Filter"
         },
         "upload": {
             "title": "Hochladen",

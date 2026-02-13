@@ -45,34 +45,32 @@ const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
 
     return (
         <ReceiptFilterField label={label}>
-            <div className="flex items-center w-full max-w-[280px]">
+            <div className="flex items-center w-full">
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
-                        <div className={cn('relative flex-1', selectedArea && 'rounded-r-none')}>
-                            <BaseButton
-                                variant="outline"
-                                aria-haspopup="listbox"
-                                aria-expanded={open}
-                                className={cn(
-                                    'w-full h-10 justify-between text-sm font-normal rounded-[var(--radius-l)] border border-[var(--grey-600)] bg-[var(--grey-white)]',
-                                    'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none px-3 text-left',
-                                    !selectedArea && 'text-[var(--grey-800)]',
-                                    selectedArea && 'rounded-r-none border-r-0'
-                                )}
-                            >
-                                {selectedArea ? selectedArea.label : t('receipts.filters.allAreas')}
-                                <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </BaseButton>
-                        </div>
+                        <BaseButton
+                            variant="outline"
+                            aria-haspopup="listbox"
+                            aria-expanded={open}
+                            className={cn(
+                                'w-full h-10 justify-between text-sm font-normal',
+                                'rounded-xl border border-[var(--grey-300)] bg-white px-3 text-left',
+                                'hover:bg-[var(--grey-50)] transition-colors',
+                                'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none focus-visible:border-[var(--purple-500)]',
+                                !selectedArea && 'text-[var(--grey-500)]',
+                                selectedArea && 'rounded-r-none border-r-0'
+                            )}
+                        >
+                            <span className="truncate">{selectedArea ? selectedArea.label : t('receipts.filters.allAreas')}</span>
+                            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[var(--grey-500)]" />
+                        </BaseButton>
                     </PopoverTrigger>
 
                     <PopoverContent
                         align="start"
                         side="bottom"
                         sideOffset={4}
-                        className={cn(
-                            'w-[var(--radix-popover-trigger-width)] p-0 border border-[var(--grey-600)] bg-[var(--grey-white)] rounded-[var(--radius-l)] shadow-sm'
-                        )}
+                        className="w-[var(--radix-popover-trigger-width)] p-0 border border-[var(--grey-200)] bg-white rounded-xl shadow-lg"
                     >
                         <Command shouldFilter={false}>
                             <CommandList>
@@ -92,9 +90,9 @@ const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
                     <button
                         type="button"
                         onClick={() => onChange('area', null)}
-                        className="flex items-center h-10 px-2 border border-l-0 border-[var(--grey-600)] bg-[var(--grey-white)] rounded-r-[var(--radius-l)] hover:bg-[var(--grey-100)]"
+                        className="flex items-center h-10 px-2 border border-l-0 border-[var(--grey-300)] bg-white rounded-r-xl hover:bg-[var(--grey-50)] transition-colors"
                     >
-                        <X className="h-4 w-4 text-[var(--grey-700)] hover:text-[var(--grey-900)]" />
+                        <X className="h-3.5 w-3.5 text-[var(--grey-500)] hover:text-[var(--grey-900)]" />
                     </button>
                 )}
             </div>

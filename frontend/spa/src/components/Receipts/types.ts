@@ -6,6 +6,7 @@ export interface Receipt {
     category: string;
     status: 'paid' | 'unpaid' | 'draft' | 'failed';
     project: string;
+    bommelEmoji: string;
     area: string;
     purpose: string;
     dueDate: string;

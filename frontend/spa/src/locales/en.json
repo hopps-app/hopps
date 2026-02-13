@@ -349,6 +349,23 @@
         "noDocument": "No document",
         "dueDate": "Due on",
         "empty": "No receipts found",
+        "newReceipt": "New receipt",
+        "statusBadge": {
+            "paid": "Paid",
+            "unpaid": "Unpaid",
+            "draft": "Draft",
+            "failed": "Failed"
+        },
+        "table": {
+            "issuer": "Issuer",
+            "date": "Date",
+            "project": "Bommel",
+            "category": "Category",
+            "status": "Status",
+            "amount": "Amount",
+            "purpose": "Purpose",
+            "reference": "Reference"
+        },
         "emptyState": {
             "title": "No receipts uploaded yet",
             "description": "Here you can filter and manage receipts",
@@ -380,7 +397,9 @@
             "reset": "Reset",
             "noResults": "No results",
             "area": "Area",
-            "allAreas": "All areas"
+            "allAreas": "All areas",
+            "allCategories": "All categories",
+            "showFilters": "Filters"
         },
         "upload": {
             "title": "Upload",

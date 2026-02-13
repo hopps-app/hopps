@@ -5,7 +5,5 @@ export type MenuItem = {
     label: string;
     icon: RadixIcons;
     path: string;
-    children?: Omit<MenuItem, 'icon'>[];
+    isAdmin?: boolean;
 };
-
-export type SubMenuItem = Omit<MenuItem, 'icon'>;

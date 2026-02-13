@@ -20,13 +20,17 @@ export const menuConfig: MenuItem[] = [
         path: '/structure',
     },
     {
-        id: 'admin',
-        label: 'menu.admin',
+        id: 'ngo-details',
+        label: 'menu.ngo-details',
         icon: 'Person',
-        path: '/admin',
-        children: [
-            { id: 'ngo-details', label: 'menu.ngo-details', path: '/admin/ngo-details' },
-            { id: 'categories', label: 'menu.categories', path: '/admin/categories' },
-        ],
+        path: '/admin/ngo-details',
+        isAdmin: true,
+    },
+    {
+        id: 'categories',
+        label: 'menu.categories',
+        icon: 'MixerHorizontal',
+        path: '/admin/categories',
+        isAdmin: true,
     },
 ];

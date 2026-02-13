@@ -22,12 +22,12 @@ function UserMenu() {
         isAuthenticated && (
             <div>
                 <DropdownMenu items={menuItems} className="w-56">
-                    <div className="flex flex-row items-center gap-1 p-1 rounded dark:hover:bg-primary hover:bg-white hover:cursor-pointer">
+                    <div className="flex flex-row items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-muted dark:hover:bg-primary">
                         <div className="flex-shrink-0">
-                            <PersonIcon className="w-4 h-4" />
+                            <PersonIcon className="w-5 h-5" />
                         </div>
 
-                        <div> {user ? user.name : 'USER'}</div>
+                        <span className="text-sm font-medium">{user ? user.name : 'USER'}</span>
                     </div>
                 </DropdownMenu>
             </div>

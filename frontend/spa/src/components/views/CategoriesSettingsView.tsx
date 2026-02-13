@@ -1,5 +1,4 @@
 import { Category } from '@hopps/api-client';
-import { FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +9,7 @@ import Header from '../ui/Header';
 import TextField from '../ui/TextField';
 
 import { EmptyState } from '@/components/common/EmptyState';
+import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import DialogWrapper from '@/components/ui/DialogWrapper';
 import { useCategories } from '@/hooks/queries';
@@ -51,11 +51,11 @@ function CategoriesSettingsView() {
                             <LoadingState size="lg" />
                         </div>
                     ) : categories.length === 0 ? (
-                        <EmptyState
-                            icon={FolderOpen}
-                            title={t('categories.emptyState.title')}
-                            description={t('categories.emptyState.description')}
-                        />
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <BunnyIcon className="mb-4" />
+                            <h3 className="text-lg font-medium text-foreground">{t('categories.emptyState.title')}</h3>
+                            <p className="text-muted-foreground mt-1 max-w-sm">{t('categories.emptyState.description')}</p>
+                        </div>
                     ) : results.length === 0 && query ? (
                         <EmptyState
                             title={t('receipts.filters.noResults')}
