@@ -216,3 +216,6 @@ playwright/.cache/
 
 # Autoforge screenshots
 .autoforge/screenshots/
+
+.playwright-cli/
+.playwright/
