@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
+import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import AreaFilter from '@/components/Receipts/Filters/fields/AreaFilter';
 import CategoryFilter from '@/components/Receipts/Filters/fields/CategoryFilter';
 import { DateRangeFilter } from '@/components/Receipts/Filters/fields/DateRangeFilter';
 import DisplayFilter from '@/components/Receipts/Filters/fields/DisplayFilter';
-import ProjectFilter from '@/components/Receipts/Filters/fields/ProjectFilter';
+import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
 import { SearchFilter } from '@/components/Receipts/Filters/fields/SearchFilter';
 import { StatusFilter } from '@/components/Receipts/Filters/fields/StatusFilter';
 import { ReceiptFiltersState, SetFilterFn } from '@/components/Receipts/types';
@@ -29,7 +30,12 @@ export const ReceiptFilters = ({ filters, setFilter, resetFilters }: ReceiptFilt
             >
                 <SearchFilter value={filters.search} onChange={(v) => setFilter('search', v)} label={t('receipts.filters.searchReceipt')} />
                 <DateRangeFilter filters={filters} onChange={setFilter} label={t('receipts.filters.receiptDate')} />
-                <ProjectFilter filters={filters} onChange={setFilter} label={t('receipts.filters.bommel')} />
+                <ReceiptFilterField label={t('receipts.filters.bommel')}>
+                    <InvoiceUploadFormBommelSelector
+                        value={filters.project ? Number(filters.project) : null}
+                        onChange={(id) => setFilter('project', id != null ? String(id) : null)}
+                    />
+                </ReceiptFilterField>
                 <DisplayFilter filters={filters} onChange={setFilter} label={t('receipts.filters.displayType')} />
                 <CategoryFilter filters={filters} onChange={setFilter} label={t('receipts.filters.category')} />
                 <AreaFilter filters={filters} onChange={setFilter} label={t('receipts.filters.area')} />

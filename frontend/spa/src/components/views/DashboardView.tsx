@@ -1,16 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { CalendarIcon } from '@radix-ui/react-icons';
+import { CalendarIcon, CheckIcon, ChevronDownIcon } from '@radix-ui/react-icons';
 import { BarChart3, RefreshCw, X, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { de, enUS, uk } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { Calendar } from '@/components/ui/shadecn/Calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { cn } from '@/lib/utils';
@@ -27,7 +29,28 @@ function getDefaultEndDate(): string {
 function DashboardView() {
     const { t, i18n } = useTranslation();
     const { organization } = useStore();
+    const { allBommels, rootBommel, loadBommels } = useBommelsStore();
     const navigate = useNavigate();
+
+    // Bommel filter state – defaults to root bommel (includes all sub-bommels)
+    const [selectedBommelId, setSelectedBommelId] = useState<number | undefined>(undefined);
+    const [openBommel, setOpenBommel] = useState(false);
+
+    const selectedBommel = selectedBommelId ? (allBommels.find((b) => b.id === selectedBommelId) ?? null) : null;
+
+    // Load bommels when organization is available
+    useEffect(() => {
+        if (organization?.id && allBommels.length === 0) {
+            loadBommels(organization.id);
+        }
+    }, [organization?.id, allBommels.length, loadBommels]);
+
+    // Select root bommel by default once bommels are loaded
+    useEffect(() => {
+        if (rootBommel?.id && !selectedBommelId) {
+            setSelectedBommelId(rootBommel.id);
+        }
+    }, [rootBommel?.id, selectedBommelId]);
 
     // Get the appropriate date-fns locale based on the current language
     const getDateLocale = useCallback(() => {
@@ -72,21 +95,33 @@ function DashboardView() {
         [startDate, endDate]
     );
 
+    const handleBommelSelect = useCallback(
+        (currentValue: string) => {
+            const bommel = allBommels.find((b) => b.name?.toLowerCase() === currentValue.toLowerCase());
+            if (bommel) {
+                setSelectedBommelId(bommel.id);
+            }
+            setOpenBommel(false);
+        },
+        [allBommels]
+    );
+
     const handleReset = useCallback(() => {
         setStartDate(getDefaultStartDate());
         setEndDate(getDefaultEndDate());
-    }, []);
+        setSelectedBommelId(rootBommel?.id);
+    }, [rootBommel?.id]);
 
-    const isDefaultRange = startDate === getDefaultStartDate() && endDate === getDefaultEndDate();
+    const isDefaultRange = startDate === getDefaultStartDate() && endDate === getDefaultEndDate() && selectedBommelId === rootBommel?.id;
 
     const queryClient = useQueryClient();
 
     // Fetch all transactions for the selected date range
     const { data: transactions, isLoading, error, isFetching } = useQuery({
-        queryKey: ['transactions', organization?.id, startDate, endDate],
+        queryKey: ['transactions', organization?.id, selectedBommelId, startDate, endDate],
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                undefined, // bommelId - undefined to get all
+                selectedBommelId, // bommelId
                 undefined, // categoryId
                 undefined, // detached
                 endDate,   // endDate
@@ -157,6 +192,66 @@ function DashboardView() {
                     <h2 className="text-xl font-semibold">
                         {t('dashboard.incomeExpenseChart')}
                     </h2>
+
+                    <div className="flex flex-wrap items-end gap-4">
+                    {/* Bommel Filter */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                            {t('dashboard.bommelFilter')}
+                        </label>
+                        <Popover open={openBommel} onOpenChange={setOpenBommel}>
+                            <PopoverTrigger asChild>
+                                <BaseButton
+                                    variant="outline"
+                                    data-testid="dashboard-bommel-filter"
+                                    className={cn(
+                                        'w-[180px] h-10 justify-between text-sm font-normal',
+                                        'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
+                                        'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
+                                    )}
+                                >
+                                    <span className="truncate">
+                                        {selectedBommel
+                                            ? `${selectedBommel.emoji || ''} ${selectedBommel.name}`.trim()
+                                            : t('common.loading')}
+                                    </span>
+                                    <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </BaseButton>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="start"
+                                side="bottom"
+                                sideOffset={4}
+                                className="p-0 w-[220px]"
+                            >
+                                <Command>
+                                    <CommandInput placeholder={t('common.search')} className="h-9" />
+                                    <CommandList>
+                                        <CommandEmpty>{t('bommel.empty')}</CommandEmpty>
+                                        <CommandGroup>
+                                            {allBommels.map((bommel) => (
+                                                <CommandItem
+                                                    key={bommel.id}
+                                                    value={bommel.name}
+                                                    onSelect={handleBommelSelect}
+                                                >
+                                                    <span className="truncate">
+                                                        {bommel.emoji || ''} {bommel.name}
+                                                    </span>
+                                                    <CheckIcon
+                                                        className={cn(
+                                                            'ml-auto h-4 w-4',
+                                                            selectedBommelId === bommel.id ? 'opacity-100' : 'opacity-0'
+                                                        )}
+                                                    />
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
 
                     {/* Date Range Filter */}
                     <div className="flex flex-col gap-1">
@@ -253,6 +348,7 @@ function DashboardView() {
                             )}
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 {isLoading && (
@@ -281,7 +377,7 @@ function DashboardView() {
                             size="sm"
                             data-testid="dashboard-retry-button"
                             disabled={isFetching}
-                            onClick={() => queryClient.invalidateQueries({ queryKey: ['transactions', organization?.id, startDate, endDate] })}
+                            onClick={() => queryClient.invalidateQueries({ queryKey: ['transactions', organization?.id, selectedBommelId, startDate, endDate] })}
                             className="gap-2"
                         >
                             <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
