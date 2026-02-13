@@ -3851,3 +3851,110 @@ Branch: autoforge/feature-40-upload-error-handling
 
 ### Session Duration: ~5 minutes
 ### Session End: 2026-02-13 ~00:43 CET
+
+================================================================================
+SESSION #26 - 2026-02-13 ~00:47 CET
+================================================================================
+Assigned Feature: #73 - Document download works correctly
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 77/81 passing (95.1%), 1 in progress (#73)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #73: Document download works correctly - PASSED
+
+**Changes Made:**
+1. Added `handleDownloadDocument` callback to ReceiptUploadView.tsx
+   - Fetches file from `/documents/{documentId}/file` with auth token
+   - Extracts filename from Content-Disposition header
+   - Creates temporary `<a>` element to trigger browser download
+   - Shows error toast on failure
+2. Added "Download document" button below the document preview dropzone
+   - Only visible when `documentId` is set (document exists)
+   - Uses secondary variant Button with Download icon from lucide-react
+   - Full-width button below the dropzone area
+3. Added i18n translations for both DE and EN:
+   - `receipts.downloadDocument` - button label
+   - `receipts.downloadFailed` - error message
+
+**Backend Verification:**
+- GET /documents/{id}/file returns HTTP 200 ✓
+- Content-Disposition: attachment; filename="test-receipt.pdf" ✓
+- Content-Type: application/pdf ✓
+- Downloaded file size: 587 bytes, matches original exactly ✓
+- `diff` confirms files are byte-for-byte identical ✓
+
+**Browser Verification (all 7 steps):**
+1. Uploaded test-receipt.pdf via browser → "Receipt uploaded successfully" toast ✓
+2. Navigate to receipt edit view → document preview loads in dropzone ✓
+3. Download button "Download document" visible below dropzone ✓
+4. Clicked download button → API call returns 200 with correct headers ✓
+5. File downloads with preserved filename "test-receipt.pdf" ✓
+6. File content matches uploaded original (587 bytes, identical) ✓
+7. Content-Type header is application/pdf ✓
+- Zero console errors (0 errors, 0 warnings) ✓
+- No mock data patterns in src/ (grep confirmed) ✓
+
+### Current Completion:
+- Before: 77/81 passing (95.1%)
+- After: 78/81 passing (96.3%)
+- Features completed this session: 1 (#73)
+
+### Session Duration: ~15 minutes
+### Session End: 2026-02-13 ~01:00 CET
+
+================================================================================
+SESSION #27 - 2026-02-13 ~04:04 CET
+================================================================================
+Assigned Feature: #70 - Search with special characters and edge cases
+Agent: Coding Agent (Fresh Context)
+Branch: autoforge/feature-40-upload-error-handling
+
+### Pre-Session State:
+- Git branch: autoforge/feature-40-upload-error-handling (not main)
+- Feature stats: 79/81 passing (97.5%), 1 in progress (#70)
+- Backend: Running on port 8101 (Quarkus dev mode)
+- Frontend: Running on port 5173 (Vite)
+
+### Feature #70: Search with special characters and edge cases - PASSED
+
+**No Code Changes Needed** - Existing search implementation handles all edge cases correctly.
+
+**Architecture Analysis:**
+- Backend uses Hibernate parameterized queries (LIKE with :search parameter) → SQL injection safe
+- `search.isBlank()` check on backend handles whitespace-only input (returns all results)
+- PostgreSQL LIKE + LOWER() handles special chars and umlauts natively
+- Frontend maps empty/falsy search to undefined (no filter applied)
+
+**Test Data Created:**
+- "Büromöbel Übernahme" / "Müller und Söhne GmbH" (ä, ö, ü umlauts)
+- "Straßenreinigung März" / "Städtische Wäscherei" (ä, ß umlauts)
+- "Special Chars Test" / "Edge & Case Corp #42" (& and # special chars)
+
+**Browser Verification (all 6 steps):**
+1. Navigated to /receipts → transaction list with search filter visible ✓
+2. Searched "!@#$%^&*" → HTTP 200, empty results, no errors ✓
+3. Searched "   " (whitespace only) → HTTP 200, all transactions returned (isBlank=true, no filter) ✓
+4. Searched 500+ character string → HTTP 200, empty results, no errors or crashes ✓
+5. German umlauts:
+   - "Müller" → found "Müller und Söhne GmbH" (1 result) ✓
+   - "Städtische" → found "Städtische Wäscherei" (1 result) ✓
+   - "Übernahme" → found "Büromöbel Übernahme" (1 result) ✓
+6. Cleared search → all transactions returned, pagination restored ✓
+
+**Additional Verification:**
+- Zero console errors (0 errors, 0 warnings) throughout entire test ✓
+- No mock data patterns in src/ (grep confirmed) ✓
+- API-level tests also confirmed HTTP 200 for all edge cases ✓
+
+### Current Completion:
+- Before: 79/81 passing (97.5%)
+- After: 80/81 passing (98.8%)
+- Features completed this session: 1 (#70)
+
+### Session Duration: ~10 minutes
+### Session End: 2026-02-13 ~04:10 CET

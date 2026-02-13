@@ -40,8 +40,8 @@
 
         --grey-black: #000000;
         --grey-900: #4E4E4E;
-        --grey-800: #797979;
-        --grey-700: #A7A7A7;
+        --grey-800: #5c5c5c;
+        --grey-700: #6b6b6b;
         --grey-600: #D5D5D5;
         --grey-500: #E5E5E5;
         --grey-400: #F5F5F5;
@@ -49,7 +49,7 @@
         --error-100: #FDD3D0;
 
         --primary: var(--purple-500);
-        --primary-active: #b54ffb;
+        --primary-active: #9333ea;
         --primary-foreground: var(--grey-white);
         --hover-active: var(--purple-200);
         --secondary: var(--grey-black);
@@ -59,7 +59,8 @@
         --font-family: "Reddit Sans", reddit;
         --body-background: var(--purple-50);
         --background-secondary: var(--grey-white);
-        --muted: #888888;
+        --muted: #636363;
+        --muted-foreground: #636363;
         --border: var(--grey-800);
         --popover: var(--grey-white);
         --popover-foreground: var(--grey-black);
@@ -90,7 +91,7 @@
 
         --grey-black: #000000;
         --grey-900: #4E4E4E;
-        --grey-800: #797979;
+        --grey-800: #a0a0a0;
         --grey-700: #A7A7A7;
         --grey-600: #D5D5D5;
         --grey-500: #E5E5E5;
@@ -98,7 +99,7 @@
         --grey-white: #FFFFFF;
 
         --primary: var(--purple-500);
-        --primary-active: #b54ffb;
+        --primary-active: #9333ea;
         --primary-foreground: var(--grey-white);
         --hover-active: var(--purple-950);
         --secondary: var(--grey-black);
@@ -108,14 +109,15 @@
         --font-family: "Reddit Sans", reddit;
         --body-background: var(--purple-50);
         --background-secondary: var(--purple-100);
-        --muted: #888888;
+        --muted: #a3a3a3;
+        --muted-foreground: #a3a3a3;
         --border: var(--grey-800);
         --popover: var(--grey-white);
         --popover-foreground: var(--grey-black);
         --accent: var(--purple-900);
-        --accent-foreground: var(--grey-white);
-        --destructive: #aa0000;
-        --destructive-foreground: var(--grey-white);
+        --accent-foreground: var(--purple-50);
+        --destructive: #f87171;
+        --destructive-foreground: var(--grey-black);
         --hover-effect: #1a1a1a;
         --border-line: var(--grey-800);
         --radius: 8px;
