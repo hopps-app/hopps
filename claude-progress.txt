@@ -3354,7 +3354,7 @@ Branch: autoforge/feature-40-upload-error-handling
 
 **Code Changes Made:**
 
-1. `V1.0.12__category_delete_set_null.sql` (NEW):
+1. `V1.0.11__category_delete_set_null.sql` (NEW):
    - Drops existing FK constraint `fk_transaction_category`
    - Recreates it with `ON DELETE SET NULL`
    - Ensures database-level cascade behavior
