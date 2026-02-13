@@ -11,6 +11,7 @@ export interface TreeNodeData {
         income?: number;
         expenses?: number;
         transactionsCount?: number;
+        isRoot?: boolean;
     };
     children?: TreeNodeData[];
 }
@@ -44,6 +45,7 @@ export interface BommelCardStatsProps {
     income: number;
     expenses: number;
     transactionsCount: number;
+    isRoot?: boolean;
 }
 
 export type ViewMode = 'list' | 'tree';

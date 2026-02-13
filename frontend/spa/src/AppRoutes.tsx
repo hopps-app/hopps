@@ -84,14 +84,6 @@ export default function AppRoutes() {
                         </LazyRoute>
                     }
                 />
-                <Route
-                    path="/structure/:bommelId"
-                    element={
-                        <LazyRoute>
-                            <OrganizationSettingsView />
-                        </LazyRoute>
-                    }
-                />
 
                 {/* receipts/invoices */}
                 <Route

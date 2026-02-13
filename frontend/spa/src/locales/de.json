@@ -125,13 +125,6 @@
             "saved": "Einstellungen erfolgreich gespeichert",
             "structure": "Struktur"
         },
-        "stats": {
-            "totalBommels": "Gesamt Bommels",
-            "total": "Gesamt",
-            "income": "Einnahmen",
-            "expenses": "Ausgaben",
-            "totalTransactions": "Gesamt Transaktionen"
-        },
         "structure": {
             "quickSearch": "Schnellsuche",
             "edit": "Bearbeiten",
@@ -154,7 +147,7 @@
             "editModeHint": "Per Drag & Drop in der Tabelle oder mit dem Verschieben-Button in der Baumansicht",
             "moveBommel": "Bommel verschieben",
             "includeDrafts": "Entwürfe einbeziehen",
-            "aggregate": "Aggregieren",
+            "aggregate": "Inkl. Unterbommel",
             "details": {
                 "title": "Details",
                 "selectBommel": "Wählen Sie einen Bommel aus, um Details anzuzeigen",
@@ -406,6 +399,8 @@
         "income": "Einnahmen",
         "expenses": "Ausgaben",
         "filterLabel": "Zeitraum",
+        "bommelFilter": "Bommel",
+        "allBommels": "Alle Bommels",
         "startDate": "Von",
         "endDate": "Bis",
         "resetFilter": "Zurücksetzen"

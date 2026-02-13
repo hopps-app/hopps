@@ -1,4 +1,4 @@
-import { OrganizationStatistics, BommelStatisticsMap } from '@hopps/api-client';
+import { BommelStatisticsMap } from '@hopps/api-client';
 import { useCallback, useEffect, useState } from 'react';
 
 import apiService from '@/services/ApiService';
@@ -12,7 +12,6 @@ export interface StatisticsOptions {
 export function useStatistics() {
     const store = useStore();
     const [isLoading, setIsLoading] = useState(false);
-    const [organizationStats, setOrganizationStats] = useState<OrganizationStatistics | null>(null);
     const [bommelStats, setBommelStats] = useState<BommelStatisticsMap | null>(null);
     const [options, setOptions] = useState<StatisticsOptions>({
         includeDrafts: false,
@@ -25,12 +24,7 @@ export function useStatistics() {
 
         setIsLoading(true);
         try {
-            const [orgStats, allBommelStats] = await Promise.all([
-                apiService.orgService.organizations(organizationId, options.includeDrafts),
-                apiService.orgService.bommels2(organizationId, options.aggregate, options.includeDrafts),
-            ]);
-
-            setOrganizationStats(orgStats);
+            const allBommelStats = await apiService.orgService.bommels2(organizationId, options.aggregate, options.includeDrafts);
             setBommelStats(allBommelStats);
         } catch (error) {
             console.error('Failed to load statistics:', error);
@@ -53,7 +47,6 @@ export function useStatistics() {
 
     return {
         isLoading,
-        organizationStats,
         bommelStats,
         options,
         setIncludeDrafts,

@@ -20,6 +20,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
     const expenses = (nodeDatum.attributes?.expenses as number) || 0;
     const transactionsCount = (nodeDatum.attributes?.transactionsCount as number) || 0;
     const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
+    const isRoot = !!nodeDatum.attributes?.isRoot;
 
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(nodeDatum.name);
@@ -107,7 +108,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
 
     return (
         <div onClick={handleClick} className="w-full h-full cursor-pointer font-sans relative">
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-3 shadow-md h-full flex flex-col gap-2 transition-all bommel-card">
+            <div className={`rounded-xl p-3 shadow-md h-full flex flex-col gap-2 transition-all bommel-card ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}>
                 {/* Collapse toggle button */}
                 {hasChildren && (
                     <button
@@ -146,34 +147,24 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                                     <Emoji emoji={nodeDatum.attributes.emoji as string} />
                                 </div>
                             )}
-                            <div className="text-white text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1">{nodeDatum.name}</div>
+                            <div className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 ${isRoot ? 'text-white' : 'text-gray-800'}`}>{nodeDatum.name}</div>
                         </>
-                    )}
-
-                    {/* Action buttons in edit mode */}
-                    {editable && !isEditing && (
-                        <BommelCardActions
-                            onEdit={() => setIsEditing(true)}
-                            onDelete={handleDeleteClick}
-                            onAddChild={handleAddChild}
-                            onMove={onMove ? () => onMove(nodeId) : undefined}
-                        />
                     )}
                 </div>
 
-                {/* Financial Stats - Only show in view mode */}
-                {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} />}
-
-                {/* Edit mode info */}
-                {editable && (
-                    <div className="text-center text-[10px] text-white/70">
-                        {hasChildren && (
-                            <span>
-                                {nodeDatum.children?.length || 0} {t('organization.structure.subBommelsLabel')}
-                            </span>
-                        )}
-                    </div>
+                {/* Action buttons in second row in edit mode */}
+                {editable && !isEditing && (
+                    <BommelCardActions
+                        onEdit={() => setIsEditing(true)}
+                        onDelete={handleDeleteClick}
+                        onAddChild={handleAddChild}
+                        onMove={onMove ? () => onMove(nodeId) : undefined}
+                        isRoot={isRoot}
+                    />
                 )}
+
+                {/* Financial Stats - Only show in view mode */}
+                {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} isRoot={isRoot} />}
             </div>
 
             {/* Delete confirmation dialog */}

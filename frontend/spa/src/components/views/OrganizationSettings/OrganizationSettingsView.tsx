@@ -1,9 +1,11 @@
 import { Network, Grid3x3, Edit, Check, RefreshCw, AlertCircle } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
-import { BommelDetailsPanel, EditModeBanner, OrganizationStats } from './components';
+import { useMediaQuery } from '@/hooks/use-media-query';
+
+import { BommelDetailsPanel, EditModeBanner } from './components';
 import { useOrganizationTree, useTreeCalculations, useStatistics } from './hooks';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
@@ -17,14 +19,17 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 
 function OrganizationSettingsView() {
     const { t } = useTranslation();
-    const { bommelId } = useParams<{ bommelId: string }>();
-    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const bommelId = searchParams.get('bommelId');
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
     const initialSelectionDone = useRef(false);
 
-    const { isLoading: isStatsLoading, organizationStats, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
+    const isLargeScreen = useMediaQuery('(min-width: 1024px)');
+    const [activeTab, setActiveTab] = useState('tree');
+
+    const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
 
     const { isOrganizationError, isLoading, rootBommel, tree, createTreeNode, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } =
         useOrganizationTree({ bommelStats });
@@ -70,12 +75,12 @@ function OrganizationSettingsView() {
             setSelectedBommel(node);
             setBommelNotFound(false);
             if (node) {
-                navigate(`/structure/${node.id}`, { replace: true });
+                setSearchParams({ bommelId: String(node.id) }, { replace: true });
             } else {
-                navigate('/structure', { replace: true });
+                setSearchParams({}, { replace: true });
             }
         },
-        [navigate]
+        [setSearchParams]
     );
 
     const handleBommelSelect = useCallback(
@@ -176,26 +181,20 @@ function OrganizationSettingsView() {
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                     {/* Left Side - Structure Views */}
                     <div className="xl:col-span-3 space-y-6">
-                        <OrganizationStats
-                            totalBommels={organizationStats?.totalBommels ?? 0}
-                            total={organizationStats?.total ?? 0}
-                            income={organizationStats?.income ?? 0}
-                            expenses={organizationStats?.expenses ?? 0}
-                            totalTransactions={organizationStats?.transactionsCount ?? 0}
-                        />
-
-                        <Tabs defaultValue="tree" className="w-full">
+                        <Tabs value={isLargeScreen ? activeTab : 'table'} onValueChange={setActiveTab} className="w-full">
                             <div className="flex items-center justify-between mb-4">
-                                <TabsList className="grid grid-cols-2 w-auto">
-                                    <TabsTrigger value="tree" className="flex items-center gap-2">
-                                        <Network className="w-4 h-4" />
-                                        {t('organization.structure.treeView')}
-                                    </TabsTrigger>
-                                    <TabsTrigger value="table" className="flex items-center gap-2">
-                                        <Grid3x3 className="w-4 h-4" />
-                                        {t('organization.structure.tableView')}
-                                    </TabsTrigger>
-                                </TabsList>
+                                {isLargeScreen && (
+                                    <TabsList className="grid grid-cols-2 w-auto">
+                                        <TabsTrigger value="tree" className="flex items-center gap-2">
+                                            <Network className="w-4 h-4" />
+                                            {t('organization.structure.treeView')}
+                                        </TabsTrigger>
+                                        <TabsTrigger value="table" className="flex items-center gap-2">
+                                            <Grid3x3 className="w-4 h-4" />
+                                            {t('organization.structure.tableView')}
+                                        </TabsTrigger>
+                                    </TabsList>
+                                )}
 
                                 <div className="flex items-center gap-4">
                                     <Switch
@@ -224,22 +223,24 @@ function OrganizationSettingsView() {
                                 </div>
                             </div>
 
-                            <TabsContent value="tree" className="mt-0">
-                                {isEditMode && <EditModeBanner />}
-                                <BommelTreeComponent
-                                    key={`tree-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
-                                    tree={tree}
-                                    rootBommel={rootBommel}
-                                    editable={isEditMode}
-                                    width={1200}
-                                    height={600}
-                                    onNodeClick={handleTreeNodeClick}
-                                    onEdit={handleEdit}
-                                    onDelete={handleDelete}
-                                    onAddChild={handleAddChild}
-                                    onMove={handleMove}
-                                />
-                            </TabsContent>
+                            {isLargeScreen && (
+                                <TabsContent value="tree" className="mt-0">
+                                    {isEditMode && <EditModeBanner />}
+                                    <BommelTreeComponent
+                                        key={`tree-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
+                                        tree={tree}
+                                        rootBommel={rootBommel}
+                                        editable={isEditMode}
+                                        width={1200}
+                                        height={600}
+                                        onNodeClick={handleTreeNodeClick}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDelete}
+                                        onAddChild={handleAddChild}
+                                        onMove={handleMove}
+                                    />
+                                </TabsContent>
+                            )}
 
                             <TabsContent value="table" className="mt-0">
                                 <OrganizationTree
@@ -268,7 +269,7 @@ function OrganizationSettingsView() {
                                         <p className="text-destructive font-medium">{t('organization.structure.details.bommelNotFound')}</p>
                                         <p className="text-sm text-gray-500 mt-1">{t('organization.structure.details.bommelNotFoundDescription')}</p>
                                     </div>
-                                    <Button variant="outline" onClick={() => navigate('/structure', { replace: true })}>
+                                    <Button variant="outline" onClick={() => setSearchParams({}, { replace: true })}>
                                         {t('organization.structure.details.backToStructure')}
                                     </Button>
                                 </CardContent>

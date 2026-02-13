@@ -126,13 +126,6 @@
             "saved": "Settings successfully saved",
             "structure": "Structure"
         },
-        "stats": {
-            "totalBommels": "Total Bommels",
-            "total": "Total",
-            "income": "Income",
-            "expenses": "Expenses",
-            "totalTransactions": "Total Transactions"
-        },
         "structure": {
             "quickSearch": "Quick Search",
             "edit": "Edit",
@@ -155,7 +148,7 @@
             "editModeHint": "Drag & drop bommels in Table view, or use the move button in Tree view",
             "moveBommel": "Move Bommel",
             "includeDrafts": "Include drafts",
-            "aggregate": "Aggregate",
+            "aggregate": "Incl. sub-bommels",
             "details": {
                 "title": "Details",
                 "selectBommel": "Select a Bommel to view details",
@@ -284,6 +277,8 @@
         "income": "Income",
         "expenses": "Expenses",
         "filterLabel": "Time Range",
+        "bommelFilter": "Bommel",
+        "allBommels": "All Bommels",
         "startDate": "From",
         "endDate": "To",
         "resetFilter": "Reset"
