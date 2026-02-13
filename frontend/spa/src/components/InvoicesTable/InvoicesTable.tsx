@@ -4,7 +4,8 @@ import './styles/InvoicesTable.scss';
 
 import { CellMouseOverEvent, ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import moment from 'moment';
+import { format } from 'date-fns';
+import { de, enUS, uk } from 'date-fns/locale';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -23,8 +24,19 @@ interface Props {
 const InvoicesTable = ({ invoices, reload }: Props) => {
     const { t, i18n } = useTranslation();
 
-    const dateFormat = import.meta.env.VITE_GENERAL_DATE_FORMAT;
     const currencySymbolAfter = import.meta.env.VITE_GENERAL_CURRENCY_SYMBOL_AFTER;
+
+    // Get the appropriate date-fns locale based on the current language
+    const getDateLocale = useCallback(() => {
+        switch (i18n.language) {
+            case 'de':
+                return de;
+            case 'uk':
+                return uk;
+            default:
+                return enUS;
+        }
+    }, [i18n.language]);
 
     const [api, setApi] = useState<GridApi | null>(null);
     const [rowData, setRowData] = useState<InvoicesTableData[]>([]);
@@ -110,7 +122,14 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
                 filter: 'agDateColumnFilter',
                 width: 150,
                 flex: 1,
-                valueFormatter: (params) => moment(params.value).format(dateFormat),
+                valueFormatter: (params) => {
+                    if (!params.value) return '';
+                    try {
+                        return format(new Date(params.value), 'P', { locale: getDateLocale() });
+                    } catch {
+                        return String(params.value);
+                    }
+                },
             },
             {
                 headerName: '',
@@ -122,7 +141,7 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
                 cellRenderer: BommelCellRenderer,
             },
         ];
-    }, [t, getBommelFilterItems, formatNumber, currencySymbolAfter, dateFormat]);
+    }, [t, getBommelFilterItems, formatNumber, currencySymbolAfter, getDateLocale]);
 
     useEffect(() => {
         setRowData(invoices);

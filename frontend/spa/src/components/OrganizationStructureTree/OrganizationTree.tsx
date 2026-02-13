@@ -7,6 +7,7 @@ import OrganizationTreeDropPreview from '@/components/OrganizationStructureTree/
 import OrganizationTreeNode from '@/components/OrganizationStructureTree/OrganizationTreeNode.tsx';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import OrganizationTreePlaceholder from '@/components/OrganizationStructureTree/OrganizationTreePlaceholder.tsx';
+import RootBommelHeader from '@/components/OrganizationStructureTree/RootBommelHeader.tsx';
 import Button from '@/components/ui/Button.tsx';
 
 interface OrganizationStructureTreeProps {
@@ -29,6 +30,10 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
     const isEditable = editable ?? false;
     const isSelectable = selectable ?? false;
 
+    // Separate root bommel from children for distinct rendering
+    const rootNode = treeData.find((n) => n.data?.isRoot);
+    const childNodes = treeData.filter((n) => !n.data?.isRoot);
+
     const handleDrop = async (newTree: OrganizationTreeNodeModel[]) => {
         let movedNode: OrganizationTreeNodeModel | null = null;
 
@@ -43,7 +48,9 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
         if (movedNode) {
             const result = await moveNode?.(movedNode);
             if (!result) return;
-            setTreeData(newTree);
+            // Preserve root node since it's rendered separately from the Tree component
+            const root = treeData.find((n) => n.data?.isRoot);
+            setTreeData(root ? [root, ...newTree] : newTree);
         }
     };
     const onClickCreate = async () => {
@@ -84,62 +91,86 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
         setTreeData(tree);
     }, [tree]);
 
+    const handleRootClick = () => {
+        if (isSelectable && rootNode) {
+            setSelectedNode(rootNode);
+            onSelect?.(rootNode.id as number);
+        }
+    };
+
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-6">
-                {/* Tree content */}
-                <div className="space-y-3">
-                    {treeData.length ? (
-                        <Tree
-                            tree={treeData}
-                            rootId={0}
-                            sort={false}
-                            dropTargetOffset={10}
-                            initialOpen={true}
-                            canDrag={(node) => isEditable && !node?.data?.isRoot}
-                            canDrop={(_, { dragSource, dropTargetId }) => {
-                                if (!isEditable) return false;
-                                if (dragSource?.parent === dropTargetId) {
-                                    return true;
-                                }
-                            }}
-                            render={(node, options) => (
-                                <OrganizationTreeNode
-                                    node={node}
-                                    editable={isEditable}
-                                    selectable={isSelectable}
-                                    isSelected={node.id === selectedNode?.id}
-                                    autoEdit={node.id === newlyCreatedNodeId}
-                                    onEdit={onEditNode}
-                                    onDelete={onDeleteNode}
-                                    onSelect={onSelectNode}
-                                    onEditComplete={() => setNewlyCreatedNodeId(null)}
-                                    disableHover={isDragging}
-                                    {...options}
-                                />
-                            )}
-                            dragPreviewRender={(monitorProps) => <OrganizationTreeDropPreview monitorProps={monitorProps} />}
-                            placeholderRender={(node, { depth }) => <OrganizationTreePlaceholder node={node} depth={depth} />}
-                            onDrop={handleDrop}
-                            onDragStart={onDragStart}
-                            onDragEnd={onDragEnd}
-                            classes={{
-                                draggingSource: 'opacity-30',
-                                placeholder: 'relative',
-                                dropTarget: 'bg-accent',
-                            }}
-                        />
-                    ) : null}
-                </div>
-
-                {/* Add new node button */}
-                {isEditable && (
-                    <div className="text-center pt-6">
-                        <Button variant="link" icon="Plus" onClick={onClickCreate}>
-                            {t('organizationTree.createNode')}
-                        </Button>
-                    </div>
+            <div className="rounded-lg border border-gray-200 overflow-hidden">
+                {/* Root Bommel - always pinned at the top */}
+                {rootNode && (
+                    <RootBommelHeader node={rootNode} isSelected={rootNode.id === selectedNode?.id} isEditable={isEditable} onClick={handleRootClick} />
                 )}
+
+                {/* Children - scrollable */}
+                <div className="bg-gray-50 p-6 max-h-[600px] overflow-y-auto">
+                    <div className="space-y-3">
+                        {childNodes.length ? (
+                            <Tree
+                                tree={childNodes}
+                                rootId={0}
+                                sort={false}
+                                dropTargetOffset={10}
+                                initialOpen={true}
+                                canDrag={() => isEditable}
+                                canDrop={(_, { dragSource, dropTargetId }) => {
+                                    if (!isEditable) return false;
+                                    if (dragSource?.id === dropTargetId) return false;
+                                    if (dragSource) {
+                                        const isDescendant = (parentId: number | string, childId: number | string): boolean => {
+                                            const children = childNodes.filter((n) => n.parent === parentId);
+                                            for (const child of children) {
+                                                if (child.id === childId) return true;
+                                                if (isDescendant(child.id, childId)) return true;
+                                            }
+                                            return false;
+                                        };
+                                        if (isDescendant(dragSource.id, dropTargetId as number | string)) return false;
+                                    }
+                                    return true;
+                                }}
+                                render={(node, options) => (
+                                    <OrganizationTreeNode
+                                        node={node}
+                                        editable={isEditable}
+                                        selectable={isSelectable}
+                                        isSelected={node.id === selectedNode?.id}
+                                        autoEdit={node.id === newlyCreatedNodeId}
+                                        onEdit={onEditNode}
+                                        onDelete={onDeleteNode}
+                                        onSelect={onSelectNode}
+                                        onEditComplete={() => setNewlyCreatedNodeId(null)}
+                                        disableHover={isDragging}
+                                        {...options}
+                                    />
+                                )}
+                                dragPreviewRender={(monitorProps) => <OrganizationTreeDropPreview monitorProps={monitorProps} />}
+                                placeholderRender={(node, { depth }) => <OrganizationTreePlaceholder node={node} depth={depth} />}
+                                onDrop={handleDrop}
+                                onDragStart={onDragStart}
+                                onDragEnd={onDragEnd}
+                                classes={{
+                                    draggingSource: 'opacity-30',
+                                    placeholder: 'relative',
+                                    dropTarget: 'bg-accent',
+                                }}
+                            />
+                        ) : null}
+                    </div>
+
+                    {/* Add new node button */}
+                    {isEditable && (
+                        <div className="text-center pt-6">
+                            <Button variant="link" icon="Plus" onClick={onClickCreate}>
+                                {t('organizationTree.createNode')}
+                            </Button>
+                        </div>
+                    )}
+                </div>
             </div>
         </DndProvider>
     );

@@ -1,0 +1,452 @@
+<project_specification>
+  <project_name>Hopps</project_name>
+
+  <overview>
+    Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI-Unterstützung, speziell entwickelt für gemeinnützige Organisationen (Vereine). Das Projekt wird von der Deutschen Stiftung für Engagement und Ehrenamt gefördert und vom Open Project e.V. Pfaffenhofen an der Ilm entwickelt. Die Software soll Vereinen jeder Größe helfen, ihre Buchhaltung möglichst einfach und effizient zu erledigen. Hopps wird sowohl als Self-Hosted-Lösung (Docker Compose) als auch als SaaS-Variante (GitOps/Kubernetes) angeboten.
+  </overview>
+
+  <technology_stack>
+    <frontend>
+      <framework>React 18.3.1 mit TypeScript 5.5.3</framework>
+      <build_tool>Vite 6.0.6</build_tool>
+      <styling>TailwindCSS 3.4.14 + Radix UI (shadcn/ui-inspiriert)</styling>
+      <state_management>Zustand 5.0.0</state_management>
+      <api_client>@tanstack/react-query 5.80.6 + auto-generierter NSwag API Client (@hopps/api-client)</api_client>
+      <routing>React Router v7.5.2</routing>
+      <forms>React Hook Form 7.66.0 + Zod Validation</forms>
+      <i18n>i18next 23.16.0 (Deutsch + Englisch)</i18n>
+      <data_grid>AG Grid 32.3.3</data_grid>
+      <auth>Keycloak-js 24.0.5</auth>
+      <additional>
+        - react-dropzone (Drag-and-drop File Upload)
+        - pdfjs-dist (PDF Viewing)
+        - react-d3-tree, @minoru/react-dnd-treeview (Baumvisualisierung)
+        - emoji-mart (Emoji Support für Bommel)
+      </additional>
+    </frontend>
+    <backend>
+      <runtime>Java 21</runtime>
+      <framework>Quarkus 3.19.2</framework>
+      <build_tool>Maven</build_tool>
+      <database>PostgreSQL 16 mit Flyway Migrations</database>
+      <orm>Hibernate mit Panache</orm>
+      <auth>Keycloak (OAuth2/OIDC)</auth>
+      <storage>AWS S3 (MinIO lokal)</storage>
+      <ai_ml>LangChain4j mit OpenAI GPT-4o-mini, Azure Document Intelligence</ai_ml>
+      <microservices>
+        - app.hopps.org (Port 8101) - Haupt-Service für Organisation, Bommel, Transaktionen, Dokumente, Kategorien
+        - app.hopps.az-document-ai (Port 8100) - Dokumentenanalyse mit Azure Document Intelligence
+        - app.hopps.zugferd (Port 8103) - ZUGFeRD-Rechnungsverarbeitung
+      </microservices>
+    </backend>
+    <communication>
+      <api>REST API mit OpenAPI/Swagger Dokumentation</api>
+      <api_client_generation>NSwag (auto-generiert aus OpenAPI Specs)</api_client_generation>
+    </communication>
+    <testing>
+      <api_tests>Pact Contract Testing (Consumer: SPA, Provider: Backend)</api_tests>
+      <unit_tests>Vitest 2.1.3 + React Testing Library (Frontend), JUnit 5 + REST Assured + Mockito (Backend)</unit_tests>
+      <e2e_tests>Playwright</e2e_tests>
+      <backend_additional>WireMock, Instancio 5.4.0, Jacoco → SonarCloud</backend_additional>
+    </testing>
+    <infrastructure>
+      <self_hosted>Docker Compose (PostgreSQL, Keycloak, MinIO/LocalStack)</self_hosted>
+      <saas>Kubernetes/Helm Charts (GitOps)</saas>
+      <ci_cd>GitHub Actions</ci_cd>
+      <container_registry>ghcr.io/hopps-app/hopps</container_registry>
+    </infrastructure>
+  </technology_stack>
+
+  <prerequisites>
+    <environment_setup>
+      - Java 21 (JDK)
+      - Maven
+      - Node.js + pnpm
+      - Docker + Docker Compose
+      - PostgreSQL 16
+      - Keycloak 26
+      - MinIO / LocalStack (S3-kompatibel)
+      - Umgebungsvariablen: HOPPS_AZURE_DOCUMENT_AI_ENDPOINT, HOPPS_AZURE_DOCUMENT_AI_KEY, QUARKUS_LANGCHAIN4J_OPENAI_API_KEY
+    </environment_setup>
+  </prerequisites>
+
+  <feature_count>80</feature_count>
+
+  <security_and_access_control>
+    <user_roles>
+      <role name="finanzverwalter">
+        <description>Der Ersteller und Finanzverwalter des Vereins. Einzige Rolle im MVP.</description>
+        <permissions>
+          - Kann Organisation erstellen und verwalten
+          - Kann Bommel-Struktur erstellen, bearbeiten, verschieben und löschen
+          - Kann Belege hochladen und KI-Analyse starten
+          - Kann Transaktionen erstellen, bearbeiten, bestätigen und löschen
+          - Kann Kategorien verwalten
+          - Kann Vereinsdaten bearbeiten
+          - Kann alle Finanzdaten einsehen (Dashboard, Übersichten)
+          - Kann Einstellungen ändern (Dark/Light Mode, Sprache)
+        </permissions>
+        <protected_routes>
+          - /dashboard/* (authentifiziert)
+          - /structure/* (authentifiziert)
+          - /receipts/* (authentifiziert)
+          - /admin/* (authentifiziert)
+          - /profile (authentifiziert)
+        </protected_routes>
+      </role>
+    </user_roles>
+    <authentication>
+      <method>Keycloak OAuth2/OIDC (email/password)</method>
+      <session_timeout>Keycloak-Standard</session_timeout>
+      <password_requirements>Keycloak-Standard</password_requirements>
+    </authentication>
+    <sensitive_operations>
+      - Löschen eines Bommels erfordert Bestätigung (Dialog mit Auswahl: Transaktionen lösen oder umhängen)
+      - Löschen von Transaktionen erfordert Bestätigung
+    </sensitive_operations>
+  </security_and_access_control>
+
+  <core_features>
+    <infrastructure>
+      - Datenbankverbindung zu PostgreSQL hergestellt
+      - Datenbankschema korrekt angewendet (Flyway Migrations)
+      - Daten persistieren über Server-Neustart
+      - Keine Mock-Daten-Patterns in der Codebasis
+      - Backend-API führt echte Datenbankabfragen durch
+    </infrastructure>
+
+    <registrierung_und_auth>
+      - Keycloak-Login (OAuth2/OIDC)
+      - Vereinsregistrierung mit Organisationserstellung
+      - Session-Handling via Keycloak
+      - Route Guards für geschützte Routen
+      - Logout-Funktionalität
+    </registrierung_und_auth>
+
+    <dashboard>
+      - Einnahmen/Ausgaben-Liniendiagramm für alle Bommel
+      - Zeitraumfilter mit Start- und Enddatum
+      - Standardzeitraum: 01.01. bis 31.12. des aktuellen Jahres
+      - Aggregation über alle Bommel der Organisation
+      - Daten laden mit Fehlerbehandlung
+      - Leerer Zustand bei fehlenden Daten
+    </dashboard>
+
+    <bommel_system>
+      - Bommel erstellen (als Kind eines bestehenden Bommels)
+      - Bommel bearbeiten (Name, Emoji, verantwortliches Mitglied)
+      - Bommel löschen mit Bestätigungsdialog (Transaktionen lösen oder anderem Bommel zuordnen)
+      - Bommel verschieben (neues Eltern-Element)
+      - Visuelle Baumansicht (react-d3-tree)
+      - Tree-Tabellen-Ansicht (@minoru/react-dnd-treeview)
+      - Aggregierte Übersicht: Einnahmen/Ausgaben für Bommel + Unterbommel
+      - Detailansicht für ausgewählten Bommel
+      - Root-Bommel entspricht der Organisation
+      - Unbegrenzte Baumtiefe
+      - Rekursive Abfragen für Kinder und Eltern
+      - Navigation zwischen Baumansicht und Tabellenansicht
+      - Bommel-Auswahl für Transaktionszuordnung
+      - Leerer Zustand bei neuem Verein (nur Root-Bommel)
+    </bommel_system>
+
+    <beleg_upload_und_dokumentenanalyse>
+      - Datei-Upload per Drag-and-drop (PNG, JPEG, PDF)
+      - ZUGFeRD-Extraktion für strukturierte Rechnungen
+      - Azure Document Intelligence für allgemeine Belege/Rechnungen
+      - KI-basierte Tag-Generierung (GPT-4o-mini)
+      - Analyseergebnis am Dokument gespeichert (ExtractionSource: ZUGFERD, AI, MANUAL)
+      - Automatische Transaktionserstellung bei Upload (mit Transaction-ID im Frontend)
+      - Analyse-Status-Workflow (UPLOADED → ANALYZING → ANALYZED → CONFIRMED → FAILED)
+      - Nutzer hat volle Kontrolle über Transaktionsdaten (Datenwahrheit)
+      - Ursprüngliche Analyseergebnisse bleiben am Dokument erhalten
+      - Fehlerbehandlung bei fehlgeschlagener Analyse
+      - Unterstützte Dateitypen: image/png, image/jpeg, application/pdf
+      - Dokumenten-Speicherung in S3/MinIO
+    </beleg_upload_und_dokumentenanalyse>
+
+    <transaktionen>
+      - Transaktion erstellen (manuell oder via Beleg-Upload)
+      - Transaktion anzeigen (Detailansicht)
+      - Transaktion bearbeiten (alle Felder editierbar)
+      - Transaktion löschen mit Bestätigung
+      - Bommel-Zuordnung (optional, nachträglich änderbar)
+      - Kategorie-Zuordnung
+      - TransactionArea (4 Sphären: IDEELL, ZWECKBETRIEB, VERMÖGENSVERWALTUNG, WIRTSCHAFTLICH)
+      - Status-Workflow (DRAFT → CONFIRMED)
+      - Nicht zugeordnete Transaktionen (ohne Bommel) werden markiert
+      - Organisationszugehörigkeit (Multi-Tenant)
+      - Privat-bezahlt-Flag
+      - Suche nach Name und Absendername
+      - Filter: Zeitraum, Bommel, Kategorie, Status, privat bezahlt, nicht zugeordnet
+      - Paginierung der Transaktionsliste
+      - Verknüpfung mit Dokument (1:1, optional)
+    </transaktionen>
+
+    <kategorien>
+      - Kategorie erstellen
+      - Kategorie anzeigen (Liste)
+      - Kategorie bearbeiten
+      - Kategorie löschen
+      - Vordefinierte Beispielkategorien (z.B. Mitgliedsbeiträge, Miete, Büromaterial, Veranstaltungen, Spenden, Versicherungen, Bankgebühren)
+    </kategorien>
+
+    <einstellungen>
+      - Vereinsdaten bearbeiten (Name, Adresse, Website, Typ)
+      - Dark/Light Mode Umschaltung
+      - Sprachwahl (Deutsch/Englisch)
+      - Profil-Einstellungen
+      - Einstellungen werden persistent gespeichert
+    </einstellungen>
+
+    <refactoring_und_qualitaetssicherung>
+      - Einheitliche Komponentenstruktur im SPA (shadcn/ui Pattern)
+      - Globales Error Handling (Error Boundaries, Toast-Notifications)
+      - Komponentenspezifisches Error Handling
+      - Code-Duplikation eliminieren
+      - Pact Contract Tests für API-Endpoints (Consumer/Provider)
+      - Unit Tests für React-Komponenten (Vitest + React Testing Library)
+      - Playwright E2E Tests für Kern-Flows
+      - Vertical Slice Architecture für neue Backend-Features
+      - i18n vollständig (alle User-facing Strings über i18next, DE + EN)
+      - Konsistente API-Client-Nutzung (keine direkten fetch/axios Calls)
+      - Konsistente Zustand Store Patterns
+      - Konsistente React Query Patterns
+      - Bestehende Features stabilisieren und mit Tests absichern
+    </refactoring_und_qualitaetssicherung>
+  </core_features>
+
+  <database_schema>
+    <tables>
+      <organization>
+        - id (Long, PK), name, slug, type, address, website
+        - Verknüpfung zu root Bommel
+      </organization>
+      <member>
+        - id (Long, PK), keycloak_user_id
+        - Verknüpfung zu mehreren Organisationen
+      </member>
+      <bommel>
+        - id (Long, PK), name, emoji, parent_id (FK zu bommel, nullable)
+        - responsible_member_id (FK zu member), organization_id (FK zu organization)
+        - Index auf parent_id
+        - Rekursive CTEs für Eltern/Kind-Abfragen mit Zykluserkennung
+      </bommel>
+      <transaction>
+        - id (Long, PK), organization_id (FK), bommel_id (FK, nullable), document_id (FK, nullable), category_id (FK, nullable)
+        - name, total (BigDecimal), total_tax (BigDecimal), currency_code
+        - area (ENUM: IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)
+        - status (ENUM: DRAFT, CONFIRMED)
+        - transaction_time (Instant), due_date (Instant, nullable)
+        - privately_paid (boolean), created_by, order_number, invoice_id, amount_due
+        - sender_id (FK zu trade_party), recipient_id (FK zu trade_party)
+        - created_at, updated_at
+      </transaction>
+      <transaction_tags>
+        - Element Collection: transaction_id, tag (String)
+      </transaction_tags>
+      <document>
+        - id (Long, PK), organization_id (FK), bommel_id (FK, nullable), transaction_id (FK, nullable)
+        - name, total, total_tax, currency_code, transaction_time, privately_paid
+        - sender_id (FK zu trade_party), recipient_id (FK zu trade_party)
+        - file_key, file_name, file_content_type, file_size
+        - analysis_status (ENUM: PENDING, ANALYZING, COMPLETED, FAILED, SKIPPED)
+        - analysis_error (TEXT)
+        - extraction_source (ENUM: ZUGFERD, AI, MANUAL)
+        - document_status (ENUM: UPLOADED, ANALYZING, ANALYZED, CONFIRMED, FAILED)
+        - uploaded_by, analyzed_by, reviewed_by, created_at
+      </document>
+      <document_tag>
+        - id (Long, PK), document_id (FK), tag_id (FK)
+        - source (ENUM: AI, MANUAL)
+        - Unique Constraint: (document_id, tag_id)
+      </document_tag>
+      <tag>
+        - id (Long, PK), name, organization_id (FK)
+        - Unique Constraint: (organization_id, name)
+      </tag>
+      <trade_party>
+        - id (Long, PK), name, country, state, city, zip_code, street
+        - additional_address, tax_id, vat_id, description
+      </trade_party>
+      <category>
+        - id (Long, PK), name (max 127), description, organization_id (FK)
+      </category>
+    </tables>
+  </database_schema>
+
+  <api_endpoints_summary>
+    <organization>
+      - GET /organization - Organisation abrufen
+      - POST /organization - Organisation erstellen (Registrierungsworkflow)
+      - PUT /organization/{id} - Organisation aktualisieren
+    </organization>
+    <bommel>
+      - GET /bommel/{id} - Einzelnen Bommel abrufen
+      - GET /bommel/{id}/children - Direkte Kinder
+      - GET /bommel/{id}/children/recursive - Alle Nachkommen rekursiv
+      - GET /bommel/root/{orgId} - Root-Bommel der Organisation
+      - POST /bommel/ - Kind-Bommel erstellen
+      - PUT /bommel/{id} - Bommel aktualisieren
+      - PUT /bommel/move/{id}/to/{newParentId} - Bommel verschieben
+      - DELETE /bommel/{id} - Bommel löschen (mit optionalem recursive Flag)
+    </bommel>
+    <transactions>
+      - GET /transactions - Transaktionen auflisten (paginiert, mit Filtern)
+      - GET /transactions/{id} - Einzelne Transaktion
+      - POST /transactions - Transaktion erstellen
+      - PATCH /transactions/{id} - Transaktion aktualisieren
+      - POST /transactions/{id}/confirm - Transaktion bestätigen
+      - DELETE /transactions/{id} - Transaktion löschen
+    </transactions>
+    <documents>
+      - POST /documents - Dokument hochladen (multipart/form-data)
+      - GET /documents - Dokumente auflisten (paginiert, mit Filtern)
+      - GET /documents/{id} - Einzelnes Dokument
+      - PATCH /documents/{id} - Dokument aktualisieren
+      - DELETE /documents/{id} - Dokument löschen
+    </documents>
+    <categories>
+      - GET /category - Alle Kategorien der Organisation
+      - GET /category/{id} - Einzelne Kategorie
+      - POST /category - Kategorie erstellen
+      - PUT /category/{id} - Kategorie aktualisieren
+      - DELETE /category/{id} - Kategorie löschen
+    </categories>
+    <member>
+      - GET /member - Mitglieder der Organisation
+    </member>
+    <document_analysis>
+      - POST /api/az-document-ai/document/scan - Azure Document AI Analyse
+      - POST /api/zugferd/document/scan - ZUGFeRD Extraktion
+    </document_analysis>
+  </api_endpoints_summary>
+
+  <ui_layout>
+    <main_structure>
+      Die SPA nutzt eine Sidebar-Navigation mit Hauptinhaltbereich. Nach dem Login landet der Nutzer auf dem Dashboard. Die Navigation führt zu den verschiedenen Bereichen: Dashboard, Organisationsstruktur (Bommel), Beleg-Upload, Kategorien-Verwaltung und Profil/Einstellungen.
+    </main_structure>
+    <pages>
+      <landing_page route="/">Öffentliche Landing Page mit Informationen über Hopps</landing_page>
+      <demo route="/demo">Demo-Ansicht für Interessierte</demo>
+      <register route="/register">Organisationsregistrierung (Keycloak + Vereinserstellung)</register>
+      <dashboard route="/dashboard/*">
+        Einnahmen/Ausgaben-Liniendiagramm mit Zeitraumfilter.
+        Standardzeitraum: 01.01. bis 31.12. des aktuellen Jahres.
+      </dashboard>
+      <structure route="/structure/*">
+        Bommel-Baumstruktur mit zwei Ansichten:
+        1. Visueller Baum (react-d3-tree)
+        2. Tree-Tabelle (@minoru/react-dnd-treeview)
+        Aggregierte und Detail-Finanzübersicht pro Bommel.
+      </structure>
+      <receipts route="/receipts/new">
+        Beleg-Upload per Drag-and-drop.
+        KI-Analyse-Ergebnisse anzeigen.
+        Transaktionsdaten bearbeiten und bestätigen.
+      </receipts>
+      <categories route="/admin/categories">Kategorie-CRUD-Verwaltung</categories>
+      <profile route="/profile">Benutzereinstellungen, Sprachwahl, Dark/Light Mode</profile>
+    </pages>
+  </ui_layout>
+
+  <design_system>
+    <color_palette>
+      Basierend auf bestehendem TailwindCSS-Setup mit shadcn/ui-inspirierten Komponenten.
+      Dark Mode und Light Mode Unterstützung.
+    </color_palette>
+    <typography>
+      Standard TailwindCSS Typografie. Deutsche und englische Texte über i18next.
+    </typography>
+    <components>
+      shadcn/ui-inspirierte Komponenten in components/ui/.
+      Konsistentes Pattern für alle UI-Elemente.
+    </components>
+  </design_system>
+
+  <implementation_steps>
+    <step number="1">
+      <title>Analyse & Refactoring-Plan</title>
+      <tasks>
+        - Umfassende Analyse der bestehenden SPA-Struktur
+        - Identifikation von inkonsistenten Patterns, Code-Duplikation und fehlendem Error Handling
+        - Refactoring-Plan erstellen für einheitliche Komponentenstruktur
+        - Bestehende Vertical Slice Architecture im Backend verifizieren
+      </tasks>
+    </step>
+    <step number="2">
+      <title>Infrastruktur & Testing-Setup</title>
+      <tasks>
+        - Playwright E2E Test-Framework einrichten
+        - Pact Contract Testing Setup verifizieren
+        - Vitest Unit Test Coverage erweitern
+        - CI/CD Pipeline für Tests aktualisieren
+      </tasks>
+    </step>
+    <step number="3">
+      <title>SPA Refactoring</title>
+      <tasks>
+        - Einheitliche Komponentenstruktur durchsetzen (shadcn/ui Pattern)
+        - Globales Error Handling implementieren (Error Boundaries, Toast)
+        - Code-Duplikation eliminieren
+        - Konsistente Zustand Store und React Query Patterns
+        - i18n-Vollständigkeit sicherstellen (alle Strings DE + EN)
+      </tasks>
+    </step>
+    <step number="4">
+      <title>Kern-Features stabilisieren</title>
+      <tasks>
+        - Registrierung & Auth Flow testen und stabilisieren
+        - Dashboard mit Liniendiagramm und Zeitraumfilter
+        - Bommel-System (CRUD, Baumansicht, Tabellenansicht, Aggregation)
+        - Beleg-Upload mit KI-Analyse und Transaktionserstellung
+        - Transaktionen-Management (CRUD, Filter, Suche, Paginierung)
+        - Kategorien-Verwaltung mit Beispielkategorien
+        - Einstellungen (Vereinsdaten, Dark/Light Mode, Sprache)
+      </tasks>
+    </step>
+    <step number="5">
+      <title>Tests & Qualitätssicherung</title>
+      <tasks>
+        - Pact Tests für alle API-Endpoints
+        - Unit Tests für alle React-Komponenten
+        - Playwright E2E Tests für Kern-Flows
+        - Bommel-Löschung mit Transaktions-Handling testen
+        - Error Cases und Edge Cases abdecken
+        - Performance und Stabilität verifizieren
+      </tasks>
+    </step>
+  </implementation_steps>
+
+  <success_criteria>
+    <functionality>
+      - Der Kern-Flow funktioniert durchgängig: Registrierung → Bommel anlegen → Beleg hochladen → KI-Analyse → Transaktion bestätigen/bearbeiten → Dashboard-Übersicht
+      - Alle bestehenden Features funktionieren zuverlässig
+      - Transaktionssuche und Filter funktionieren korrekt
+      - Bommel-System mit beiden Ansichten (Baum + Tabelle) und Aggregation funktioniert
+      - Kategorien-Verwaltung mit vordefinierten Beispielkategorien
+    </functionality>
+    <user_experience>
+      - Konsistente, intuitive Benutzeroberfläche
+      - Vollständige Internationalisierung (Deutsch + Englisch)
+      - Dark Mode und Light Mode funktionieren korrekt
+      - Aussagekräftige Fehlermeldungen bei Problemen
+      - Leere Zustände sind sinnvoll dargestellt
+    </user_experience>
+    <technical_quality>
+      - Einheitliche Komponentenstruktur im SPA
+      - Keine Code-Duplikation
+      - Globales und komponentenspezifisches Error Handling
+      - Pact Contract Tests für API-Endpoints
+      - Unit Tests für React-Komponenten
+      - Playwright E2E Tests für Kern-Flows
+      - Vertical Slice Architecture im Backend für neue Features
+      - Konsistente API-Client-Nutzung (kein direktes fetch/axios)
+    </technical_quality>
+    <design_polish>
+      - shadcn/ui-inspirierte Komponenten konsistent verwendet
+      - Responsive Layout für Desktop (SPA-Fokus)
+      - Konsistentes Spacing, Typografie und Farbschema
+      - Dark/Light Mode ohne visuelle Glitches
+    </design_polish>
+  </success_criteria>
+</project_specification>

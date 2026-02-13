@@ -207,3 +207,15 @@ terraform.tfstate
 terraform.tfstate.backup
 node_modules
 
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright-mcp/
+
+# Autoforge screenshots
+.autoforge/screenshots/
+
+.playwright-cli/
+.playwright/

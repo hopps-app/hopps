@@ -6,8 +6,8 @@ interface ReceiptFilterFieldProps {
 }
 
 export const ReceiptFilterField: FC<ReceiptFilterFieldProps> = ({ label, children }) => (
-    <div className="flex flex-col gap-1 min-w-[200px]">
-        <label className="text-sm font-semibold">{label}</label>
+    <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{label}</label>
         {children}
     </div>
 );

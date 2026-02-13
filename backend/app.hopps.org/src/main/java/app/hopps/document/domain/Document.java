@@ -259,7 +259,11 @@ public class Document extends PanacheEntity {
     }
 
     public String getSenderName() {
-        return sender != null ? sender.getName() : "";
+        if (sender != null && sender.getName() != null && !sender.getName().isBlank()) {
+            return sender.getName();
+        }
+        // Fall back to document name (e.g., merchant name from AI extraction)
+        return name != null ? name : "";
     }
 
     public String getSenderStreet() {

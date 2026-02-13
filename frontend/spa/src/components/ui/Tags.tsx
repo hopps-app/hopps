@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { useCallback, useState } from 'react';
 
 import InputLoader from './InputLoader';
@@ -17,6 +18,7 @@ type TagsProps = {
 
 function Tags({ label, value, onChange, placeholder, className, loading }: TagsProps) {
     const [input, setInput] = useState('');
+    const [id] = useState(_.uniqueId('tags-'));
 
     const addTag = useCallback(() => {
         const v = input.trim();
@@ -40,7 +42,7 @@ function Tags({ label, value, onChange, placeholder, className, loading }: TagsP
 
     return (
         <div className={`w-full min-h-32 ${className || ''}`}>
-            {label && <Label>{label}</Label>}
+            {label && <Label htmlFor={id}>{label}</Label>}
             <div className="relative mt-1">
                 {loading && (
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
@@ -48,6 +50,7 @@ function Tags({ label, value, onChange, placeholder, className, loading }: TagsP
                     </div>
                 )}
                 <BaseInput
+                    id={id}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={placeholder || ''}

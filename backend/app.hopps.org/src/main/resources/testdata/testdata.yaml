@@ -309,53 +309,236 @@ bommels:
   - id: 23
     name: "Bühnefrei e.V."
     parentId: null
-    emoji: null
+    emoji: "🎭"
     responsibleMemberId: null
 
   - id: 24
     name: "Kiosk"
     parentId: 23
-    emoji: null
+    emoji: "🍿"
     responsibleMemberId: null
 
   - id: 25
     name: "Räumlichkeiten"
     parentId: 23
-    emoji: null
+    emoji: "🏠"
     responsibleMemberId: null
 
   - id: 26
     name: "Workshops"
     parentId: 23
-    emoji: null
+    emoji: "📚"
     responsibleMemberId: null
 
   - id: 27
     name: "Projekte"
     parentId: 23
-    emoji: null
+    emoji: "🎬"
     responsibleMemberId: null
 
   - id: 28
     name: "Der kleine Lord"
     parentId: 27
-    emoji: null
+    emoji: "👑"
     responsibleMemberId: null
 
   - id: 29
     name: "Das Hässliche Entlein"
     parentId: 27
-    emoji: null
+    emoji: "🦆"
     responsibleMemberId: null
 
   - id: 30
     name: "König der Löwen"
     parentId: 27
-    emoji: null
+    emoji: "🦁"
     responsibleMemberId: null
+
+# Transactions for pagination testing
+transactions:
+  - id: 1
+    organizationId: 4
+    bommelId: 23
+    name: "Transaction 001 - Office Supplies"
+    total: 125.50
+    currencyCode: "EUR"
+    transactionTime: "2026-02-01T10:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Office Depot GmbH"
+
+  - id: 2
+    organizationId: 4
+    bommelId: 24
+    name: "Transaction 002 - Coffee Machine"
+    total: 450.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-02T11:30:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Tech Store AG"
+
+  - id: 3
+    organizationId: 4
+    bommelId: 25
+    name: "Transaction 003 - Rent Payment"
+    total: 1500.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-03T09:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Property Management Ltd"
+
+  - id: 4
+    organizationId: 4
+    bommelId: 26
+    name: "Transaction 004 - Workshop Materials"
+    total: 275.30
+    currencyCode: "EUR"
+    transactionTime: "2026-02-04T14:15:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Craft Supplies Inc"
+
+  - id: 5
+    organizationId: 4
+    bommelId: 27
+    name: "Transaction 005 - Project Funding"
+    total: 5000.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-05T16:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "City Council"
+
+  - id: 6
+    organizationId: 4
+    bommelId: 28
+    name: "Transaction 006 - Costumes Purchase"
+    total: 890.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-06T10:30:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Theater Supplies GmbH"
+
+  - id: 7
+    organizationId: 4
+    bommelId: 29
+    name: "Transaction 007 - Stage Props"
+    total: 320.50
+    currencyCode: "EUR"
+    transactionTime: "2026-02-07T13:45:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Props Warehouse"
+
+  - id: 8
+    organizationId: 4
+    bommelId: 30
+    name: "Transaction 008 - Lighting Equipment"
+    total: 1200.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-08T15:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Stage Tech Solutions"
+
+  - id: 9
+    organizationId: 4
+    bommelId: 23
+    name: "Transaction 009 - Sound System"
+    total: 2500.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-09T09:30:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Audio Pro GmbH"
+
+  - id: 10
+    organizationId: 4
+    bommelId: 24
+    name: "Transaction 010 - Marketing Materials"
+    total: 450.75
+    currencyCode: "EUR"
+    transactionTime: "2026-02-10T11:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Print Shop Ltd"
+
+  - id: 11
+    organizationId: 4
+    bommelId: 25
+    name: "Transaction 011 - Utilities Bill"
+    total: 340.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-11T14:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "City Utilities"
+
+  - id: 12
+    organizationId: 4
+    bommelId: 26
+    name: "Transaction 012 - Training Session"
+    total: 600.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-12T10:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Professional Trainers AG"
+
+  - id: 13
+    organizationId: 4
+    bommelId: 27
+    name: "Transaction 013 - Insurance Premium"
+    total: 1800.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-13T12:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Insurance Company"
+
+  - id: 14
+    organizationId: 4
+    bommelId: 28
+    name: "Transaction 014 - Venue Booking"
+    total: 750.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-14T09:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Event Spaces GmbH"
+
+  - id: 15
+    organizationId: 4
+    bommelId: 29
+    name: "Transaction 015 - Catering Service"
+    total: 420.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-15T13:00:00Z"
+    status: "CONFIRMED"
+    privatelyPaid: false
+    createdBy: "alice@example.test"
+    senderName: "Catering Solutions Ltd"
 
 # Sequence configuration for ID generators
 sequences:
   Bommel_SEQ: 30
   Organization_SEQ: 4
   Member_SEQ: 23
+  Transaction_SEQ: 15

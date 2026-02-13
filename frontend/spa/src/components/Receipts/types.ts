@@ -6,10 +6,13 @@ export interface Receipt {
     category: string;
     status: 'paid' | 'unpaid' | 'draft' | 'failed';
     project: string;
+    bommelEmoji: string;
+    area: string;
     purpose: string;
     dueDate: string;
     tags: string[];
     reference: string;
+    documentId: number | null;
 }
 
 export type ReceiptStatusCheck = 'isDraft' | 'isFailed' | 'isPaid' | 'isUnpaid';
@@ -20,9 +23,11 @@ export interface ReceiptFiltersState {
     endDate: string | null;
     project: string | null;
     category: string | null;
+    area: string | null;
     status: {
         unpaid: boolean;
         draft: boolean;
+        unassigned: boolean;
     };
     displayAll: boolean;
 }

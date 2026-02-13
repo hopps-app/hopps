@@ -1,15 +1,10 @@
 package app.hopps.transaction.api;
 
-import app.hopps.bommel.domain.Bommel;
-import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.category.domain.Category;
-import app.hopps.category.repository.CategoryRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
-import app.hopps.transaction.domain.TradeParty;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -31,12 +26,9 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -54,16 +46,16 @@ public class TransactionResource {
     TransactionRepository transactionRepository;
 
     @Inject
-    BommelRepository bommelRepository;
-
-    @Inject
-    CategoryRepository categoryRepository;
-
-    @Inject
     OrganizationContext organizationContext;
 
     @Inject
     SecurityIdentity securityIdentity;
+
+    @Inject
+    TransactionCreateConverter createConverter;
+
+    @Inject
+    TransactionUpdateConverter updateConverter;
 
     @GET
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
@@ -77,6 +69,7 @@ public class TransactionResource {
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
+            @QueryParam("area") @Parameter(description = "Filter by transaction area (IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)") TransactionArea area,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
             @QueryParam("size") @DefaultValue("25") @Parameter(description = "Page size") int pageSize) {
 
@@ -102,6 +95,7 @@ public class TransactionResource {
                 status,
                 privatelyPaid,
                 detached,
+                area,
                 page);
 
         return transactions.stream()
@@ -140,7 +134,7 @@ public class TransactionResource {
         transaction.setStatus(TransactionStatus.DRAFT);
 
         // Apply request fields
-        applyRequestToTransaction(transaction, request);
+        createConverter.applyRequestToTransaction(transaction, request, organization);
 
         transactionRepository.persist(transaction);
         LOG.info("Transaction created: id={}", transaction.getId());
@@ -164,7 +158,7 @@ public class TransactionResource {
             throw new NotFoundException("Transaction not found");
         }
 
-        applyUpdateRequestToTransaction(transaction, request);
+        updateConverter.applyUpdateRequestToTransaction(transaction, request);
 
         LOG.info("Transaction updated: id={}", transaction.getId());
         return TransactionResponse.from(transaction);
@@ -206,119 +200,4 @@ public class TransactionResource {
         LOG.info("Transaction deleted: id={}", id);
     }
 
-    // Helper methods
-
-    private void applyRequestToTransaction(Transaction transaction, TransactionCreateRequest request) {
-        transaction.setName(request.name());
-        transaction.setTotal(request.total());
-        transaction.setTotalTax(request.totalTax());
-        transaction.setCurrencyCode(request.currencyCode());
-        transaction.setPrivatelyPaid(request.privatelyPaid());
-
-        if (request.transactionDate() != null && !request.transactionDate().isBlank()) {
-            LocalDate date = LocalDate.parse(request.transactionDate());
-            transaction.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        }
-
-        if (request.dueDate() != null && !request.dueDate().isBlank()) {
-            LocalDate date = LocalDate.parse(request.dueDate());
-            transaction.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        }
-
-        if (request.bommelId() != null) {
-            Bommel bommel = bommelRepository.findById(request.bommelId());
-            transaction.setBommel(bommel);
-        }
-
-        if (request.categoryId() != null) {
-            Category category = categoryRepository.findById(request.categoryId());
-            transaction.setCategory(category);
-        }
-
-        if (request.area() != null && !request.area().isBlank()) {
-            transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
-        }
-
-        if (request.senderName() != null && !request.senderName().isBlank()) {
-            TradeParty sender = new TradeParty();
-            sender.setName(request.senderName());
-            sender.setStreet(request.senderStreet());
-            sender.setZipCode(request.senderZipCode());
-            sender.setCity(request.senderCity());
-            transaction.setSender(sender);
-        }
-
-        if (request.tags() != null && !request.tags().isEmpty()) {
-            transaction.setTags(new HashSet<>(request.tags()));
-        }
-    }
-
-    private void applyUpdateRequestToTransaction(Transaction transaction, TransactionUpdateRequest request) {
-        if (request.name() != null) {
-            transaction.setName(request.name());
-        }
-
-        if (request.total() != null) {
-            transaction.setTotal(request.total());
-        }
-
-        if (request.totalTax() != null) {
-            transaction.setTotalTax(request.totalTax());
-        }
-
-        if (request.currencyCode() != null) {
-            transaction.setCurrencyCode(request.currencyCode());
-        }
-
-        transaction.setPrivatelyPaid(request.privatelyPaid());
-
-        if (request.transactionDate() != null && !request.transactionDate().isBlank()) {
-            LocalDate date = LocalDate.parse(request.transactionDate());
-            transaction.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        }
-
-        if (request.dueDate() != null && !request.dueDate().isBlank()) {
-            LocalDate date = LocalDate.parse(request.dueDate());
-            transaction.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        }
-
-        if (request.bommelId() != null) {
-            if (request.bommelId() > 0) {
-                Bommel bommel = bommelRepository.findById(request.bommelId());
-                transaction.setBommel(bommel);
-            } else {
-                transaction.setBommel(null);
-            }
-        }
-
-        if (request.categoryId() != null) {
-            if (request.categoryId() > 0) {
-                Category category = categoryRepository.findById(request.categoryId());
-                transaction.setCategory(category);
-            } else {
-                transaction.setCategory(null);
-            }
-        }
-
-        if (request.area() != null && !request.area().isBlank()) {
-            transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
-        }
-
-        // Update sender
-        if (request.senderName() != null && !request.senderName().isBlank()) {
-            TradeParty sender = transaction.getSender();
-            if (sender == null) {
-                sender = new TradeParty();
-                transaction.setSender(sender);
-            }
-            sender.setName(request.senderName());
-            sender.setStreet(request.senderStreet());
-            sender.setZipCode(request.senderZipCode());
-            sender.setCity(request.senderCity());
-        }
-
-        if (request.tags() != null) {
-            transaction.setTags(new HashSet<>(request.tags()));
-        }
-    }
 }

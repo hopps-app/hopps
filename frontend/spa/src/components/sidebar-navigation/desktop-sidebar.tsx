@@ -1,142 +1,167 @@
+import { DoubleArrowLeftIcon, DoubleArrowRightIcon, PlusIcon } from '@radix-ui/react-icons';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { menuConfig } from './shared/menu-config';
-import type { MenuItem, SubMenuItem } from './shared/types';
+import type { MenuItem } from './shared/types';
 
 import Icon from '@/components/ui/Icon';
 
-const ROUNDED_R = 'rounded-r-[20px]';
-const ROUNDED = 'rounded-[20px]';
-
 type DesktopSidebarProps = {
-    closeDelayMs?: number;
+    collapsed: boolean;
+    onToggle: () => void;
 };
 
-const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ closeDelayMs = 1000 }) => {
+const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [expanded, setExpanded] = React.useState<string | null>(null);
-    const [isClosing, setIsClosing] = React.useState(false);
-    const closeTimeoutId = React.useRef<number | null>(null);
 
-    React.useEffect(() => {
-        const match = menuConfig.find((item) => item.children?.some((child) => location.pathname.startsWith(child.path ?? '')));
-        if (match) setExpanded(match.id);
-    }, [location.pathname]);
-
-    const handleMenuClick = (item: MenuItem | SubMenuItem) => {
-        setIsClosing(true);
-        setTimeout(() => {
-            setExpanded(null);
-            setIsClosing(false);
-        }, 280);
-        navigate(item.path);
+    const isItemActive = (path: string) => {
+        const cleanPath = path.split('?')[0];
+        return location.pathname === cleanPath || location.pathname.startsWith(cleanPath + '/');
     };
 
-    const handleMenuHover = (item: MenuItem) => {
-        if (item.children) {
-            if (expanded !== item.id) {
-                setExpanded(item.id);
-            }
-        } else if (expanded) {
-            setIsClosing(true);
-            setTimeout(() => {
-                setExpanded(null);
-                setIsClosing(false);
-            }, 280);
-        }
-    };
+    const mainItems = menuConfig.filter((item) => !item.isAdmin);
+    const adminItems = menuConfig.filter((item) => item.isAdmin);
 
-    const cancelPendingClose = () => {
-        if (closeTimeoutId.current !== null) {
-            clearTimeout(closeTimeoutId.current);
-            closeTimeoutId.current = null;
-        }
-    };
+    const renderNavItem = (item: MenuItem) => {
+        const active = isItemActive(item.path);
 
-    const scheduleClose = () => {
-        if (!expanded) return;
-        cancelPendingClose();
-        closeTimeoutId.current = window.setTimeout(() => {
-            setIsClosing(true);
-            setTimeout(() => {
-                setExpanded(null);
-                setIsClosing(false);
-            }, 280);
-        }, closeDelayMs);
-    };
-
-    React.useEffect(() => {
-        return () => {
-            cancelPendingClose();
-        };
-    }, []);
-
-    const renderMenuItem = (item: MenuItem) => {
-        const isActive = location.pathname.indexOf(item.path) > -1;
-        return (
-            <li
-                key={item.id}
-                onClick={() => handleMenuClick(item)}
-                onMouseEnter={() => handleMenuHover(item)}
+        const button = (
+            <button
+                type="button"
+                onClick={() => navigate(item.path)}
                 className={`
-              flex flex-col items-center justify-center text-center gap-1 p-4 h-24 ${item.id !== 'admin' ? 'mb-12' : ''} cursor-pointer select-none ${ROUNDED} font-semibold text-xl transition-all duration-200'
-          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-purple-50 text-gray-600 dark:text-gray-200'}
-        `}
+                    w-full flex items-center gap-3 rounded-lg text-sm font-medium
+                    transition-colors duration-150
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1
+                    ${collapsed ? 'justify-center p-2.5' : 'px-3 py-2'}
+                    ${active ? 'bg-purple-100 dark:bg-purple-300 text-primary' : 'text-grey-900 dark:text-grey-800 hover:bg-hover-effect dark:hover:bg-purple-200'}
+                `}
             >
-                <Icon icon={item.icon} size={22} />
-                <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
-            </li>
+                <span className="flex-shrink-0">
+                    <Icon icon={item.icon} size={18} />
+                </span>
+                {!collapsed && <span className="flex-1 text-left truncate">{t(item.label)}</span>}
+            </button>
         );
-    };
 
-    const renderSubMenuItem = (item: SubMenuItem) => {
         return (
-            <li
-                key={item.id}
-                onClick={() => handleMenuClick(item)}
-                className={`
-              flex flex-col items-start justify-center gap-1 text-nowrap ml-5 px-6 py-3 cursor-pointer select-none rounded-[10px] hover:bg-violet-50 dark:hover:bg-purple-50 font-semibold text-xl transition-all duration-200 text-gray-600 dark:text-gray-200`}
-            >
-                <span className="text-xs leading-tight mt-1">{t(item.label)}</span>
-            </li>
+            <div key={item.id}>
+                {collapsed ? (
+                    <Tooltip.Root>
+                        <Tooltip.Trigger asChild>{button}</Tooltip.Trigger>
+                        <Tooltip.Portal>
+                            <Tooltip.Content
+                                side="right"
+                                sideOffset={8}
+                                className="z-50 rounded-md bg-grey-black px-2.5 py-1.5 text-xs font-medium text-white shadow-lg animate-in fade-in-0 zoom-in-95"
+                            >
+                                {t(item.label)}
+                                <Tooltip.Arrow className="fill-grey-black" />
+                            </Tooltip.Content>
+                        </Tooltip.Portal>
+                    </Tooltip.Root>
+                ) : (
+                    button
+                )}
+            </div>
         );
     };
 
     return (
-        <div className="flex fixed z-10 left-0 top-0 h-screen" onMouseLeave={scheduleClose} onMouseEnter={cancelPendingClose}>
-            <aside className={`flex flex-col h-full w-28 z-10 border-r border-violet-200 bg-background-secondary dark:border-separator ${ROUNDED_R}`}>
-                <div className="flex flex-col items-center py-6 h-40">
-                    <img src="/logo.svg" alt="hopps logo" className="w-11 h-11 mb-2" />
-                    <span className="text-primary font-bold text-2xl mb-2">hopps</span>
+        <Tooltip.Provider delayDuration={0}>
+            <aside
+                className={`
+                    fixed left-0 top-0 h-screen z-10 flex flex-col
+                    bg-background-secondary
+                    border-r border-separator
+                    transition-[width] duration-300 ease-in-out
+                    ${collapsed ? 'w-16' : 'w-60'}
+                `}
+            >
+                <div className={`flex items-center h-16 flex-shrink-0 overflow-hidden ${collapsed ? 'justify-center px-2' : 'px-4 gap-3'}`}>
+                    <img src="/logo.svg" alt="hopps logo" className="w-8 h-8 flex-shrink-0" />
+                    <span
+                        className={`text-primary font-bold text-xl tracking-tight whitespace-nowrap transition-all duration-300 ${collapsed ? 'w-0 opacity-0' : 'opacity-100'}`}
+                    >
+                        hopps
+                    </span>
                 </div>
-                <nav className="flex-1 flex flex-col gap-2 px-2">
-                    {menuConfig
-                        .filter((item) => item.id !== 'admin')
-                        .map((item) => (
-                            <div key={item.id}>
-                                <ul>{renderMenuItem(item)}</ul>
-                            </div>
-                        ))}
-                </nav>
-                <div className="mt-auto mb-4 px-2">
-                    <ul>{renderMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
+
+                <div className="px-2 mb-2">
+                    {collapsed ? (
+                        <Tooltip.Root>
+                            <Tooltip.Trigger asChild>
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/receipts/new')}
+                                    className="w-full flex items-center justify-center p-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary-active transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                                >
+                                    <PlusIcon className="w-5 h-5" />
+                                </button>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                                <Tooltip.Content
+                                    side="right"
+                                    sideOffset={8}
+                                    className="z-50 rounded-md bg-grey-black px-2.5 py-1.5 text-xs font-medium text-white shadow-lg animate-in fade-in-0 zoom-in-95"
+                                >
+                                    {t('menu.upload-receipt')}
+                                    <Tooltip.Arrow className="fill-grey-black" />
+                                </Tooltip.Content>
+                            </Tooltip.Portal>
+                        </Tooltip.Root>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => navigate('/receipts/new')}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-active transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                        >
+                            <PlusIcon className="w-5 h-5 flex-shrink-0" />
+                            <span>{t('menu.upload-receipt')}</span>
+                        </button>
+                    )}
+                </div>
+
+                <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">{mainItems.map(renderNavItem)}</nav>
+
+                <div className="flex-shrink-0 px-2 pb-3 space-y-1">
+                    <div className="border-t border-separator mb-2" />
+                    {!collapsed && (
+                        <div className="px-3 pb-1">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-grey-700 dark:text-grey-600">{t('menu.admin')}</span>
+                        </div>
+                    )}
+                    {adminItems.map(renderNavItem)}
+                    <button
+                        type="button"
+                        onClick={onToggle}
+                        aria-label={collapsed ? t('menu.expand') : t('menu.collapse')}
+                        className={`
+                            w-full flex items-center gap-3 rounded-lg text-sm
+                            text-grey-800 dark:text-grey-700
+                            hover:bg-hover-effect dark:hover:bg-purple-200
+                            transition-colors duration-150
+                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1
+                            ${collapsed ? 'justify-center p-2.5' : 'px-3 py-2'}
+                        `}
+                    >
+                        {collapsed ? (
+                            <DoubleArrowRightIcon className="w-4 h-4" />
+                        ) : (
+                            <>
+                                <DoubleArrowLeftIcon className="w-4 h-4" />
+                                <span>{t('menu.collapse')}</span>
+                            </>
+                        )}
+                    </button>
                 </div>
             </aside>
-
-            {expanded && (
-                <div
-                    className={`absolute ${ROUNDED_R} z-0 left-[calc(100%-20px)] top-0 h-full bg-purple-100 dark:bg-purple-200 border-r border-violet-200 shadow-lg animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
-                >
-                    <div className="pt-40">
-                        <ul className="space-y-1">{menuConfig.find((item) => item.id === expanded)?.children?.map((child) => renderSubMenuItem(child))}</ul>
-                    </div>
-                </div>
-            )}
-        </div>
+        </Tooltip.Provider>
     );
 };
 

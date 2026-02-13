@@ -1,5 +1,5 @@
 import { Category } from '@hopps/api-client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import DialogWrapper from '../ui/DialogWrapper';
@@ -7,6 +7,7 @@ import Icon from '../ui/Icon';
 
 import CategoryForm from './CategoryForm';
 
+import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService.ts';
 
 type TableProps = {
@@ -16,6 +17,7 @@ type TableProps = {
 
 export default function CategoryTable({ items, onActionSuccess }: TableProps) {
     const { t } = useTranslation();
+    const { showSuccess, showError } = useToast();
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
 
     const sortedItems = [...items].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
@@ -25,12 +27,20 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
         setEditingCategoryId(null); // Reset editing state on any success
     };
 
+    const deletingRef = useRef(false);
+
     const deleteCategory = async (id: number) => {
+        if (deletingRef.current) return;
+        deletingRef.current = true;
         try {
             await apiService.orgService.categoryDELETE(id);
+            showSuccess(t('categories.form.success.categoryDeleted'));
             handleActionSuccess();
         } catch (e) {
             console.error('Failed to delete category:', e);
+            showError(t('categories.form.error.categoryDeleted'));
+        } finally {
+            deletingRef.current = false;
         }
     };
 
@@ -84,11 +94,11 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                         primaryLabel={t('dialogWrapper.save')}
                         secondaryLabel={t('dialogWrapper.cancel')}
                     >
-                        {({ onSuccess, setOpen }) => {
+                        {({ onSuccess, setOpen, setSubmitting }) => {
                             if (editingCategoryId === category.id) {
                                 setTimeout(() => setOpen(true), 0);
                             }
-                            return <CategoryForm initialData={category} isEdit onSuccess={onSuccess} />;
+                            return <CategoryForm initialData={category} isEdit onSuccess={onSuccess} onSubmittingChange={setSubmitting} />;
                         }}
                     </DialogWrapper>
                 </div>

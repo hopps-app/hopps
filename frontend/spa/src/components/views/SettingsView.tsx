@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import InvoicesView from './InvoicesView';
+import OrganizationDetailsSettingsView from './OrganizationDetailsSettingsView';
 
 import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
 import SettingsPage from '@/components/SettingsPage/SettingsPage.tsx';
@@ -22,6 +23,7 @@ function SettingsView() {
     useEffect(() => {
         setMenuItems([
             { title: t('settings.menu.profile'), value: 'profile', icon: 'Avatar' },
+            { title: t('settings.menu.ngoDetails'), value: 'ngo-details', icon: 'IdCard' },
             { title: t('settings.menu.organization'), value: 'organization', icon: 'Backpack' },
             { title: t('settings.menu.invoices'), value: 'invoices', icon: 'Archive' },
         ]);
@@ -41,6 +43,7 @@ function SettingsView() {
     return (
         <SettingsPage menu={navigationItems} activeTab={activeTab} onActiveTabChanged={navigateTo}>
             {activeTab === 'profile' && <ProfileSettingsView />}
+            {activeTab === 'ngo-details' && <OrganizationDetailsSettingsView />}
             {activeTab === 'organization' && <OrganizationSettingsView />}
             {activeTab === 'invoices' && <InvoicesView />}
         </SettingsPage>

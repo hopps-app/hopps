@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { RawNodeDatum } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
@@ -8,10 +8,11 @@ import { BommelCardProps, TreeNodeData } from '../types';
 import { BommelCardActions } from './BommelCardActions';
 import { BommelCardEditForm } from './BommelCardEditForm';
 import { BommelCardStats } from './BommelCardStats';
+import { DeleteBommelDialog, DeleteTransactionHandling } from './DeleteBommelDialog';
 
 import Emoji from '@/components/ui/Emoji';
 
-export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelete, onAddChild, editable }: BommelCardProps) {
+export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelete, onAddChild, onMove, editable }: BommelCardProps) {
     const { t } = useTranslation();
     const nodeId = nodeDatum.attributes?.id as number;
     const total = (nodeDatum.attributes?.total as number) || 0;
@@ -19,10 +20,12 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
     const expenses = (nodeDatum.attributes?.expenses as number) || 0;
     const transactionsCount = (nodeDatum.attributes?.transactionsCount as number) || 0;
     const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
+    const isRoot = !!nodeDatum.attributes?.isRoot;
 
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(nodeDatum.name);
     const [editedEmoji, setEditedEmoji] = useState((nodeDatum.attributes?.emoji as string) || '');
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const isCollapsed = (nodeDatum as RawNodeDatum & { __rd3t?: { collapsed?: boolean } }).__rd3t?.collapsed;
 
@@ -37,7 +40,11 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
     };
 
     const handleSaveName = async () => {
-        if (onEdit && editedName.trim()) {
+        // Validation is handled in BommelCardEditForm, but also guard here
+        if (!editedName.trim() || editedName.trim().length > 255) {
+            return;
+        }
+        if (onEdit) {
             const hasChanged = editedName !== nodeDatum.name || editedEmoji !== ((nodeDatum.attributes?.emoji as string) || '');
             if (hasChanged) {
                 const success = await onEdit(nodeId, editedName.trim(), editedEmoji);
@@ -60,21 +67,50 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
     };
 
-    const handleDelete = async () => {
-        if (onDelete && window.confirm(t('organization.structure.deleteDialog.title'))) {
-            await onDelete(nodeId);
+    const handleDeleteClick = () => {
+        setShowDeleteDialog(true);
+    };
+
+    const deletingRef = useRef(false);
+
+    const handleDeleteConfirm = async (_transactionHandling?: DeleteTransactionHandling) => {
+        if (onDelete) {
+            if (deletingRef.current) return;
+            deletingRef.current = true;
+            try {
+                // For now, we ignore transactionHandling since the backend API doesn't support it yet
+                // In the future, this would be passed to the API
+                await onDelete(nodeId);
+                setShowDeleteDialog(false);
+            } finally {
+                deletingRef.current = false;
+            }
         }
     };
 
+    const handleDeleteCancel = () => {
+        setShowDeleteDialog(false);
+    };
+
+    const addingChildRef = useRef(false);
+
     const handleAddChild = async () => {
         if (onAddChild) {
-            await onAddChild(nodeId);
+            if (addingChildRef.current) return;
+            addingChildRef.current = true;
+            try {
+                await onAddChild(nodeId);
+            } finally {
+                addingChildRef.current = false;
+            }
         }
     };
 
     return (
         <div onClick={handleClick} className="w-full h-full cursor-pointer font-sans relative">
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-3 shadow-md h-full flex flex-col gap-2 transition-all bommel-card">
+            <div
+                className={`rounded-xl p-3 shadow-md h-full flex flex-col gap-2 transition-all bommel-card ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}
+            >
                 {/* Collapse toggle button */}
                 {hasChildren && (
                     <button
@@ -113,28 +149,40 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                                     <Emoji emoji={nodeDatum.attributes.emoji as string} />
                                 </div>
                             )}
-                            <div className="text-white text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1">{nodeDatum.name}</div>
+                            <div
+                                className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 ${isRoot ? 'text-white' : 'text-gray-800'}`}
+                            >
+                                {nodeDatum.name}
+                            </div>
                         </>
                     )}
-
-                    {/* Action buttons in edit mode */}
-                    {editable && !isEditing && <BommelCardActions onEdit={() => setIsEditing(true)} onDelete={handleDelete} onAddChild={handleAddChild} />}
                 </div>
 
-                {/* Financial Stats - Only show in view mode */}
-                {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} />}
-
-                {/* Edit mode info */}
-                {editable && (
-                    <div className="text-center text-[10px] text-white/70">
-                        {hasChildren && (
-                            <span>
-                                {nodeDatum.children?.length || 0} {t('organization.structure.subBommelsLabel')}
-                            </span>
-                        )}
-                    </div>
+                {/* Action buttons in second row in edit mode */}
+                {editable && !isEditing && (
+                    <BommelCardActions
+                        onEdit={() => setIsEditing(true)}
+                        onDelete={handleDeleteClick}
+                        onAddChild={handleAddChild}
+                        onMove={onMove ? () => onMove(nodeId) : undefined}
+                        isRoot={isRoot}
+                    />
                 )}
+
+                {/* Financial Stats - Only show in view mode */}
+                {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} isRoot={isRoot} />}
             </div>
+
+            {/* Delete confirmation dialog */}
+            <DeleteBommelDialog
+                open={showDeleteDialog}
+                bommelName={nodeDatum.name}
+                hasTransactions={transactionsCount > 0}
+                hasChildren={!!hasChildren}
+                childrenCount={nodeDatum.children?.length || 0}
+                onConfirm={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
+            />
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { NewOrganizationInput } from '@hopps/api-client';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -59,8 +59,11 @@ export function OrganizationRegistrationForm(props: Props) {
         resolver: zodResolver(schema),
     });
     const errors = formState.errors;
+    const submittingRef = useRef(false);
 
     async function onSubmit(data: FormFields) {
+        if (submittingRef.current) return;
+        submittingRef.current = true;
         try {
             await apiService.orgService.organizationPOST(
                 NewOrganizationInput.fromJS({
@@ -84,6 +87,8 @@ export function OrganizationRegistrationForm(props: Props) {
         } catch (e) {
             console.error(e);
             showError(t('organization.registration.failed'));
+        } finally {
+            submittingRef.current = false;
         }
     }
 
@@ -116,7 +121,9 @@ export function OrganizationRegistrationForm(props: Props) {
 
             <hr />
             <div className="mt-2 text-center">
-                <Button type="submit">{t('header.register')}</Button>
+                <Button type="submit" disabled={formState.isSubmitting}>
+                    {t('header.register')}
+                </Button>
             </div>
         </form>
     );

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
-import { Checkbox } from '@/components/ui/shadecn/Checkbox';
+import { Switch } from '@/components/ui/shadecn/Switch';
 
 type DisplayFilterProps = {
     filters: {
@@ -24,23 +24,15 @@ const DisplayFilter = ({ filters, onChange, label }: DisplayFilterProps) => {
 
     return (
         <ReceiptFilterField label={label}>
-            <div className="flex items-center gap-3 h-10">
-                <Checkbox
+            <label htmlFor="display-all" className="flex items-center gap-2 h-10 cursor-pointer select-none">
+                <Switch
                     id="display-all"
                     checked={!!filters.displayAll}
                     onCheckedChange={(checked) => handleToggle(!!checked)}
-                    className="size-5 rounded-md border border-[var(--grey-600)] 
-                               bg-[var(--grey-white)] 
-                               data-[state=checked]:bg-[var(--purple-500)] 
-                               data-[state=checked]:border-[var(--purple-500)]
-                               hover:bg-[var(--grey-400)] 
-                               hover:data-[state=checked]:bg-[var(--purple-400)]
-                               transition-colors focus-visible:ring-0 focus-visible:outline-none"
+                    className="data-[state=checked]:bg-[var(--purple-500)]"
                 />
-                <label htmlFor="display-all" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
-                    {t('receipts.filters.displayAll')}
-                </label>
-            </div>
+                <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.displayAll')}</span>
+            </label>
         </ReceiptFilterField>
     );
 };

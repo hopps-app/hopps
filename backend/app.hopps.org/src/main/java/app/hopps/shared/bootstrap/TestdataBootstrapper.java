@@ -70,6 +70,15 @@ public class TestdataBootstrapper {
     @Transactional
     public void loadTestdata() {
         try {
+            // Check if testdata already exists (idempotency check)
+            Long orgCount = (Long) entityManager
+                    .createQuery("SELECT COUNT(o) FROM Organization o")
+                    .getSingleResult();
+            if (orgCount > 0) {
+                Log.info("Testdata already loaded (organizations exist), skipping");
+                return;
+            }
+
             Optional<TestdataConfig> configOpt = loadConfiguration();
 
             if (configOpt.isEmpty()) {

@@ -1,0 +1,39 @@
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.7
+    command: start-dev --import-realm
+    ports:
+      - "8092:8080"
+    depends_on:
+      - postgres
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=postgres
+      - KC_HOSTNAME_URL=http://localhost:8092
+      - KC_HOSTNAME_ADMIN_URL=http://localhost:8092
+      - KC_HTTP_ENABLED=true
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    volumes:
+      - ./keycloak_default_realm.json:/opt/keycloak/data/import/keycloak.default.realm.json
+
+volumes:
+  postgres_data:

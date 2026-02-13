@@ -55,7 +55,7 @@ public class AzureAiService {
         return DocumentDataHelper.fromDocument(document, tags);
     }
 
-    private List<String> generateTags(AnalyzedDocument document, String documentName) {
+    private List<String> generateTags(AnalyzedDocument document, String documentName) throws OcrException {
         try {
             String documentJson = objectMapper.writeValueAsString(document);
             LOG.debug("Generating tags for document '{}', JSON length: {}", documentName, documentJson.length());
@@ -73,8 +73,28 @@ public class AzureAiService {
             LOG.warn("Failed to serialize document for tag generation: {}", e.getMessage());
             return Collections.emptyList();
         } catch (Exception e) {
+            if (isQuotaExceededError(e)) {
+                LOG.error("AI service quota exceeded during tag generation for document '{}': {}", documentName,
+                        e.getMessage());
+                throw new OcrException("AI service quota exceeded. Please check your OpenAI plan and billing details.");
+            }
             LOG.warn("Failed to generate tags for document '{}': {}", documentName, e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    private boolean isQuotaExceededError(Throwable e) {
+        // Check the full exception chain for quota-related error messages
+        Throwable current = e;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null
+                    && (message.contains("insufficient_quota") || message.contains("exceeded your current quota")
+                            || message.contains("rate_limit_exceeded"))) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

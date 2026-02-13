@@ -1,158 +1,108 @@
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@radix-ui/react-dialog';
+import { PlusIcon } from '@radix-ui/react-icons';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { menuConfig } from './shared/menu-config';
-import type { MenuItem, SubMenuItem } from './shared/types';
+import type { MenuItem } from './shared/types';
 
 import Icon from '@/components/ui/Icon';
-
-const ROUNDED = 'rounded-[20px]';
 
 const MobileSidebar: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [isMobileOpen, setIsMobileOpen] = React.useState(false);
-    const [mobileSubmenuStack, setMobileSubmenuStack] = React.useState<string[]>([]);
-    const [isMobileFading, setIsMobileFading] = React.useState(false);
-    const [isClosing, setIsClosing] = React.useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
 
-    const handleMobileMenuClose = () => {
-        setIsClosing(true);
-        setTimeout(() => {
-            setIsMobileOpen(false);
-            setIsClosing(false);
-            setMobileSubmenuStack([]);
-        }, 280);
+    const isItemActive = (path: string) => {
+        const cleanPath = path.split('?')[0];
+        return location.pathname === cleanPath || location.pathname.startsWith(cleanPath + '/');
     };
 
-    const handleMobileSubmenuEnter = (menuId: string) => {
-        setIsMobileFading(true);
-        setTimeout(() => {
-            setMobileSubmenuStack([...mobileSubmenuStack, menuId]);
-            setIsMobileFading(false);
-        }, 280);
+    const handleNavigation = (path: string) => {
+        navigate(path);
+        setIsOpen(false);
     };
 
-    const handleMobileSubmenuBack = () => {
-        setIsMobileFading(true);
-        setTimeout(() => {
-            const newStack = [...mobileSubmenuStack];
-            newStack.pop();
-            setMobileSubmenuStack(newStack);
-            setIsMobileFading(false);
-        }, 280);
-    };
+    const mainItems = menuConfig.filter((item) => !item.isAdmin);
+    const adminItems = menuConfig.filter((item) => item.isAdmin);
 
-    const handleMobileMenuClick = (item: MenuItem | SubMenuItem) => {
-        if (item.children && mobileSubmenuStack.length === 0) {
-            handleMobileSubmenuEnter(item.id);
-        } else if (item.path) {
-            navigate(item.path);
-            handleMobileMenuClose();
-        }
-    };
+    const renderNavItem = (item: MenuItem) => {
+        const active = isItemActive(item.path);
 
-    const renderMobileMenuItem = (item: MenuItem) => {
-        const isActive = location.pathname.indexOf(item.path) > -1;
         return (
-            <li
-                key={item.id}
-                onClick={() => handleMobileMenuClick(item)}
-                className={`
-              flex items-center justify-between gap-3 p-4 h-16 cursor-pointer select-none ${ROUNDED} font-semibold text-lg transition-all duration-200
-          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
-        `}
-            >
-                <div className="flex items-center gap-3">
-                    <Icon icon={item.icon} size={20} />
-                    <span>{t(item.label)}</span>
-                </div>
-                {item.children && <Icon icon="ArrowRight" size={16} className="text-gray-400" />}
-            </li>
-        );
-    };
-
-    const renderMobileSubMenuItem = (item: SubMenuItem) => {
-        const isActive = location.pathname.indexOf(item.path) > -1;
-        return (
-            <li
-                key={item.id}
-                onClick={() => handleMobileMenuClick(item)}
-                className={`
-              flex items-center gap-3 p-4 cursor-pointer select-none ${ROUNDED} font-medium text-base transition-all duration-200
-          ${isActive ? 'bg-purple-200 dark:bg-accent text-black' : 'hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200'}
-        `}
-            >
-                <span>{t(item.label)}</span>
-            </li>
+            <div key={item.id}>
+                <button
+                    type="button"
+                    onClick={() => handleNavigation(item.path)}
+                    className={`
+                        w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                        transition-colors duration-150
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1
+                        ${active ? 'bg-purple-100 dark:bg-purple-300 text-primary' : 'text-grey-900 dark:text-grey-800 hover:bg-hover-effect dark:hover:bg-purple-200'}
+                    `}
+                >
+                    <span className="flex-shrink-0">
+                        <Icon icon={item.icon} size={18} />
+                    </span>
+                    <span className="flex-1 text-left">{t(item.label)}</span>
+                </button>
+            </div>
         );
     };
 
     return (
-        <Dialog open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-            <DialogTitle className="sr-only">Menu</DialogTitle>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <button className="fixed top-4 left-4 z-50 bg-white rounded-full shadow p-2 border border-violet-200">
-                    <Icon icon={isMobileOpen ? 'Cross1' : 'HamburgerMenu'} size={24} />
+                <button
+                    className="fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 rounded-lg bg-background-secondary shadow-md border border-separator focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label={t('menu.openMenu')}
+                >
+                    <Icon icon="HamburgerMenu" size={20} />
                 </button>
             </DialogTrigger>
-            <DialogContent className="fixed inset-0 z-40 flex p-0 bg-transparent border-none" style={{ background: 'rgba(0,0,0,0.4)' }}>
-                <div
-                    className={`relative w-[90vw] max-w-xs h-full bg-background-secondary shadow-xl flex flex-col animate-in duration-300 slide-in-from-left ${isClosing ? 'animate-out slide-out-to-left' : ''}`}
-                >
-                    <button
-                        className="absolute top-4 left-4 z-50 bg-white rounded-full shadow p-2 border border-violet-200"
-                        onClick={handleMobileMenuClose}
-                        aria-label="Close menu"
-                    >
-                        <Icon icon="Cross1" size={24} />
-                    </button>
-                    <div className="flex flex-col items-center py-8">
-                        <img src="/logo.svg" alt="hopps logo" className="w-14 h-14 mb-2" />
-                        <span className="text-primary font-bold text-3xl mb-2">hopps</span>
-                    </div>
-                    <nav className={`flex-1 flex flex-col gap-3 mt-2 duration-300 ${isMobileFading ? 'opacity-0' : 'opacity-100'}`}>
-                        {mobileSubmenuStack.length === 0 ? (
-                            <>
-                                {menuConfig
-                                    .filter((item) => item.id !== 'admin')
-                                    .map((item) => (
-                                        <ul key={item.id}>{renderMobileMenuItem(item)}</ul>
-                                    ))}
-                            </>
-                        ) : (
-                            <>
-                                <ul>
-                                    <li
-                                        onClick={handleMobileSubmenuBack}
-                                        className="flex items-center justify-between gap-3 p-4 cursor-pointer select-none rounded-[20px] font-semibold text-lg transition-all duration-200 hover:bg-violet-50 dark:hover:bg-accent text-gray-500 dark:text-gray-200"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Icon icon="ArrowLeft" size={20} />
-                                            <span>{t('Main Menu')}</span>
-                                        </div>
-                                    </li>
-                                </ul>
+            <DialogContent className="fixed inset-0 z-40 flex p-0 bg-transparent border-none">
+                <DialogTitle className="sr-only">{t('menu.navigation')}</DialogTitle>
 
-                                {(() => {
-                                    const currentMenuId = mobileSubmenuStack[mobileSubmenuStack.length - 1];
-                                    const currentMenu = menuConfig.find((item) => item.id === currentMenuId);
-                                    return currentMenu?.children?.map((child) => <ul key={child.id}>{renderMobileSubMenuItem(child)}</ul>);
-                                })()}
-                            </>
-                        )}
-                    </nav>
-
-                    {mobileSubmenuStack.length === 0 && (
-                        <div className={`mt-auto mb-4 duration-300 ${isMobileFading ? 'opacity-0' : 'opacity-100'}`}>
-                            <ul>{renderMobileMenuItem(menuConfig.find((item) => item.id === 'admin')!)}</ul>
+                <div className="relative w-[85vw] max-w-[280px] h-full bg-background-secondary shadow-xl flex flex-col animate-in slide-in-from-left duration-300">
+                    <div className="flex items-center justify-between h-16 px-4 flex-shrink-0">
+                        <div className="flex items-center gap-3">
+                            <img src="/logo.svg" alt="hopps logo" className="w-8 h-8" />
+                            <span className="text-primary font-bold text-xl tracking-tight">hopps</span>
                         </div>
-                    )}
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-hover-effect dark:hover:bg-purple-200 transition-colors"
+                            aria-label={t('common.close')}
+                        >
+                            <Icon icon="Cross1" size={16} />
+                        </button>
+                    </div>
+
+                    <div className="px-2 mb-2">
+                        <button
+                            type="button"
+                            onClick={() => handleNavigation('/receipts/new')}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-active transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                        >
+                            <PlusIcon className="w-5 h-5 flex-shrink-0" />
+                            <span>{t('menu.upload-receipt')}</span>
+                        </button>
+                    </div>
+
+                    <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">{mainItems.map(renderNavItem)}</nav>
+
+                    <div className="flex-shrink-0 px-2 pb-4 space-y-1">
+                        <div className="border-t border-separator mb-2" />
+                        <div className="px-3 pb-1">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-grey-700 dark:text-grey-600">{t('menu.admin')}</span>
+                        </div>
+                        {adminItems.map(renderNavItem)}
+                    </div>
                 </div>
-                <div className="flex-1" onClick={handleMobileMenuClose} />
+
+                <div className="flex-1 bg-black/40 animate-in fade-in duration-300" onClick={() => setIsOpen(false)} />
             </DialogContent>
         </Dialog>
     );

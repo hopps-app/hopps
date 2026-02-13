@@ -57,6 +57,7 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
                     income: rootNode?.data?.income || 0,
                     expenses: rootNode?.data?.expenses || 0,
                     transactionsCount: rootNode?.data?.transactionsCount || 0,
+                    isRoot: true,
                 },
             };
         }
@@ -73,9 +74,15 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
                     income: rootNode?.data?.income || 0,
                     expenses: rootNode?.data?.expenses || 0,
                     transactionsCount: rootNode?.data?.transactionsCount || 0,
+                    isRoot: true,
                 },
                 children: topLevelNodes,
             };
+        }
+
+        // Single top-level node is the root
+        if (topLevelNodes[0]) {
+            topLevelNodes[0].attributes = { ...topLevelNodes[0].attributes!, isRoot: true };
         }
 
         return topLevelNodes[0] || null;

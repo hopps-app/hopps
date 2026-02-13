@@ -3,6 +3,7 @@ package app.hopps.transaction.domain;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.category.domain.Category;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;

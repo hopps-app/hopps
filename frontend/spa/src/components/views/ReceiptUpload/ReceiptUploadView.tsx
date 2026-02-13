@@ -1,6 +1,7 @@
 import type { AnalysisStatus } from '@hopps/api-client';
 import { TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useQueryClient } from '@tanstack/react-query';
+import { Download } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,9 +10,11 @@ import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
 
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
+import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
+import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -19,7 +22,7 @@ import { useStore } from '@/store/store';
 const POLLING_INTERVAL_BASE = 2000; // 2 seconds base interval
 const POLLING_MAX_INTERVAL = 30000; // 30 seconds max interval
 const POLLING_MAX_ERRORS = 5; // Stop polling after 5 consecutive errors
-const POLLING_MAX_DURATION = 5 * 60 * 1000; // 5 minutes max polling duration
+const POLLING_MAX_DURATION = 2 * 60 * 1000; // 2 minutes max polling duration
 
 const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
@@ -90,10 +93,18 @@ function ReceiptUploadView() {
         analysisError,
         setAnalysisError,
         extractionSource,
+        formErrors,
+        validate,
+        validateDraft,
+        clearFieldError,
         applyAnalysisResult,
         applyAnalysisResultToEmptyFields,
         loadTransaction,
+        isDirty,
     } = useReceiptForm();
+
+    // Warn user when navigating away with unsaved changes
+    useUnsavedChangesWarning(isDirty);
 
     const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const consecutiveErrorsRef = useRef(0);
@@ -237,6 +248,13 @@ function ReceiptUploadView() {
                             if (hasAppliedValues) {
                                 setAnalysisStatus('COMPLETED');
                             }
+                        } else if (documentResponse.analysisStatus === 'FAILED') {
+                            // Restore failed analysis state so the error banner is shown
+                            setAnalysisStatus('FAILED');
+                            setAnalysisError(documentResponse.analysisError ?? null);
+                        } else if (documentResponse.analysisStatus === 'PENDING' || documentResponse.analysisStatus === 'ANALYZING') {
+                            // Analysis still in progress - resume polling
+                            setAnalysisStatus(documentResponse.analysisStatus as AnalysisStatus);
                         }
                     } catch (docAnalysisError) {
                         console.warn('Could not fetch document analysis status:', docAnalysisError);
@@ -271,7 +289,7 @@ function ReceiptUploadView() {
         };
 
         loadTransactionData();
-    }, [id, isEditMode, loadTransaction, applyAnalysisResultToEmptyFields, setAnalysisStatus, showError, t]);
+    }, [id, isEditMode, loadTransaction, applyAnalysisResultToEmptyFields, setAnalysisStatus, setAnalysisError, showError, t]);
 
     const onFilesChanged = useCallback(
         async (files: File[]) => {
@@ -365,10 +383,62 @@ function ReceiptUploadView() {
         };
     }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, category, area, tags, netAmount, taxAmount]);
 
+    // Field change handlers that clear validation errors
+    const handleReceiptDateChange = useCallback(
+        (date: Date | undefined) => {
+            setReceiptDate(date);
+            clearFieldError('receiptDate');
+        },
+        [setReceiptDate, clearFieldError]
+    );
+
+    const handleTransactionKindChange = useCallback(
+        (value: 'intake' | 'expense' | '') => {
+            setTransactionKind(value);
+            clearFieldError('transactionKind');
+        },
+        [setTransactionKind, clearFieldError]
+    );
+
+    const handleContractPartnerChange = useCallback(
+        (value: string) => {
+            setContractPartner(value);
+            clearFieldError('contractPartner');
+        },
+        [setContractPartner, clearFieldError]
+    );
+
+    const handleBommelIdChange = useCallback(
+        (id: number | null) => {
+            setBommelId(id);
+            clearFieldError('bommelId');
+        },
+        [setBommelId, clearFieldError]
+    );
+
+    const handleNetAmountChange = useCallback(
+        (value: string) => {
+            setNetAmount(value);
+            clearFieldError('netAmount');
+        },
+        [setNetAmount, clearFieldError]
+    );
+
+    const handleTaxAmountChange = useCallback(
+        (value: string) => {
+            setTaxAmount(value);
+            clearFieldError('taxAmount');
+        },
+        [setTaxAmount, clearFieldError]
+    );
+
     // Submit handler - currently disabled, will be enabled when full validation passes
     const handleSubmit = useCallback(async () => {
-        // Save button is disabled for now
-        if (!isValid || !transactionId) {
+        if (!validate()) {
+            showError(t('common.validationError'));
+            return;
+        }
+        if (!transactionId) {
             showError(t('common.validationError'));
             return;
         }
@@ -392,12 +462,17 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [isValid, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate, queryClient]);
+    }, [validate, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate, queryClient]);
 
     // Save as draft - saves current form data to transaction without confirming
     const handleSaveDraft = useCallback(async () => {
         if (!canSaveDraft) {
             showError(t('receipts.upload.noDocumentOrFile'));
+            return;
+        }
+
+        if (!validateDraft()) {
+            showError(t('common.validationError'));
             return;
         }
 
@@ -434,11 +509,82 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [canSaveDraft, transactionId, showError, showSuccess, setIsSubmitting, setTransactionId, t, buildTransactionPayload, resetForm, navigate, queryClient]);
+    }, [
+        canSaveDraft,
+        validateDraft,
+        transactionId,
+        showError,
+        showSuccess,
+        setIsSubmitting,
+        setTransactionId,
+        t,
+        buildTransactionPayload,
+        resetForm,
+        navigate,
+        queryClient,
+    ]);
 
     const handleCancel = useCallback(() => {
         navigate('/receipts');
     }, [navigate]);
+
+    // Download document file from S3/MinIO
+    const handleDownloadDocument = useCallback(async () => {
+        if (!documentId) return;
+        try {
+            const orgBaseUrl = import.meta.env.VITE_API_ORG_URL;
+            const token = await import('@/services/auth/auth.service').then((m) => m.default.getAuthToken());
+            const response = await fetch(`${orgBaseUrl}/documents/${documentId}/file`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Download failed: ${response.status}`);
+            }
+            const blob = await response.blob();
+            // Extract filename from Content-Disposition header or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let fileName = 'document';
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename="?([^";\n]+)"?/);
+                if (match?.[1]) {
+                    fileName = match[1];
+                }
+            }
+            // Create a temporary link and trigger download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('Document download failed:', e);
+            showError(t('receipts.downloadFailed'));
+        }
+    }, [documentId, showError, t]);
+
+    // Retry analysis for a failed document
+    const handleRetryAnalysis = useCallback(async () => {
+        if (!documentId) return;
+        try {
+            setAnalysisStatus('PENDING');
+            setAnalysisError(null);
+            setAllFieldsLoading(true);
+
+            const response = await apiService.orgService.reanalyze(documentId);
+            setAnalysisStatus((response.analysisStatus as AnalysisStatus) ?? 'PENDING');
+        } catch (e) {
+            console.error('Failed to retry analysis:', e);
+            setAnalysisStatus('FAILED');
+            setAnalysisError(t('receipts.upload.analysis.serviceUnavailable'));
+            setAllFieldsLoading(false);
+            showError(t('receipts.upload.analysis.retryFailed'));
+        }
+    }, [documentId, setAnalysisStatus, setAnalysisError, setAllFieldsLoading, showError, t]);
 
     // Cleanup document URL on unmount
     useEffect(() => {
@@ -451,66 +597,107 @@ function ReceiptUploadView() {
 
     if (isLoadingTransaction) {
         return (
-            <div className="flex flex-col gap-4">
-                <h2 className="text-2xl font-semibold shrink-0">{t('receipts.upload.editTitle')}</h2>
-                <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="flex flex-col gap-6">
+                <h2 className="text-2xl font-semibold tracking-tight">{t('receipts.upload.editTitle')}</h2>
+                <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted-foreground/20 border-t-primary"></div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <h2 className="text-2xl font-semibold shrink-0">{isEditMode ? t('receipts.upload.editTitle') : t('receipts.upload.title')}</h2>
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold tracking-tight">{isEditMode ? t('receipts.upload.editTitle') : t('receipts.upload.title')}</h2>
+                <div className="flex items-center gap-2">
+                    <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
+                </div>
+            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:items-start">
-                <div className="min-h-[300px] sm:min-h-[350px] md:self-stretch">
-                    <InvoiceUploadFormDropzone
-                        onFilesChanged={onFilesChanged}
-                        previewFile={file}
-                        previewUrl={documentUrl}
-                        previewContentType={documentContentType}
-                    />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-stretch">
+                {/* Left column: Dropzone + Download */}
+                <div className="flex flex-col gap-3 min-h-[400px]">
+                    <div className="flex-1 min-h-0">
+                        <InvoiceUploadFormDropzone
+                            onFilesChanged={onFilesChanged}
+                            previewFile={file}
+                            previewUrl={documentUrl}
+                            previewContentType={documentContentType}
+                        />
+                    </div>
+                    {documentId && (
+                        <Button type="button" variant="outline" onClick={handleDownloadDocument} className="flex items-center justify-center gap-2 w-full">
+                            <Download className="w-4 h-4" />
+                            {t('receipts.downloadDocument')}
+                        </Button>
+                    )}
                 </div>
 
+                {/* Right column: Form */}
                 <div className="flex flex-col gap-4">
-                    <div className="min-w-0 border border-grey-700 p-3 sm:p-4 rounded-[20px] sm:rounded-[30px]">
-                        {/* Analysis Status Banner */}
-                        {analysisStatus && isAutoRead && (
-                            <div
-                                className={`mb-3 p-3 sm:p-4 rounded-lg text-sm ${
-                                    analysisStatus === 'COMPLETED'
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                        : analysisStatus === 'FAILED'
-                                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                }`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    {isAnalyzing && (
-                                        <svg className="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            ></path>
-                                        </svg>
-                                    )}
-                                    <span className="font-medium">
-                                        {analysisStatus === 'PENDING' && t('receipts.upload.analysis.pending')}
-                                        {analysisStatus === 'ANALYZING' && t('receipts.upload.analysis.analyzing')}
-                                        {analysisStatus === 'COMPLETED' && t('receipts.upload.analysis.completed')}
-                                        {analysisStatus === 'FAILED' &&
-                                            (analysisError
-                                                ? t('receipts.upload.analysis.error', { error: analysisError })
-                                                : t('receipts.upload.analysis.failed'))}
-                                    </span>
-                                </div>
+                    {/* Analysis Status Banner */}
+                    {analysisStatus && (isAutoRead || analysisStatus === 'FAILED') && (
+                        <div
+                            className={`flex items-start gap-3 p-4 rounded-xl border text-sm ${
+                                analysisStatus === 'COMPLETED'
+                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-200'
+                                    : analysisStatus === 'FAILED'
+                                      ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200'
+                                      : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200'
+                            }`}
+                        >
+                            <div className="shrink-0 mt-0.5">
+                                {isAnalyzing ? (
+                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                ) : analysisStatus === 'COMPLETED' ? (
+                                    <svg
+                                        className="h-4 w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                    </svg>
+                                ) : (
+                                    <svg
+                                        className="h-4 w-4"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="15" y1="9" x2="9" y2="15" />
+                                        <line x1="9" y1="9" x2="15" y2="15" />
+                                    </svg>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-medium leading-tight">
+                                    {analysisStatus === 'PENDING' && t('receipts.upload.analysis.pending')}
+                                    {analysisStatus === 'ANALYZING' && t('receipts.upload.analysis.analyzing')}
+                                    {analysisStatus === 'COMPLETED' && t('receipts.upload.analysis.completed')}
+                                    {analysisStatus === 'FAILED' && t('receipts.upload.analysis.failed')}
+                                </p>
                                 {analysisStatus === 'COMPLETED' && (
-                                    <div className="mt-2 space-y-1">
-                                        <p className="text-xs opacity-90">{t('receipts.upload.analysis.completedDescription')}</p>
+                                    <div className="mt-1.5 space-y-0.5">
+                                        <p className="text-xs opacity-80">{t('receipts.upload.analysis.completedDescription')}</p>
                                         <p className="text-xs font-medium">
                                             {extractionSource === 'ZUGFERD'
                                                 ? t('receipts.upload.analysis.extractedViaZugferd')
@@ -518,24 +705,38 @@ function ReceiptUploadView() {
                                         </p>
                                     </div>
                                 )}
+                                {analysisStatus === 'FAILED' && (
+                                    <div className="mt-1.5 space-y-1.5">
+                                        {analysisError && (
+                                            <p className="text-xs opacity-80">{t('receipts.upload.analysis.errorDetail', { error: analysisError })}</p>
+                                        )}
+                                        {documentId && (
+                                            <button type="button" onClick={handleRetryAnalysis} className="text-xs font-medium underline hover:no-underline">
+                                                {t('receipts.upload.analysis.retry')}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
+                    )}
 
+                    <div className="min-w-0 border border-border bg-card rounded-xl p-5">
                         <ReceiptFormFields
                             receiptNumber={receiptNumber}
                             onReceiptNumberChange={setReceiptNumber}
                             receiptDate={receiptDate}
-                            onReceiptDateChange={setReceiptDate}
+                            onReceiptDateChange={handleReceiptDateChange}
                             dueDate={dueDate}
                             onDueDateChange={setDueDate}
                             transactionKind={transactionKind}
-                            onTransactionKindChange={setTransactionKind}
+                            onTransactionKindChange={handleTransactionKindChange}
                             isUnpaid={isUnpaid}
                             onIsUnpaidChange={setIsUnpaid}
                             contractPartner={contractPartner}
-                            onContractPartnerChange={setContractPartner}
+                            onContractPartnerChange={handleContractPartnerChange}
                             bommelId={bommelId}
-                            onBommelIdChange={setBommelId}
+                            onBommelIdChange={handleBommelIdChange}
                             category={category}
                             onCategoryChange={setCategory}
                             area={area}
@@ -543,15 +744,12 @@ function ReceiptUploadView() {
                             tags={tags}
                             onTagsChange={setTags}
                             netAmount={netAmount}
-                            onNetAmountChange={setNetAmount}
+                            onNetAmountChange={handleNetAmountChange}
                             taxAmount={taxAmount}
-                            onTaxAmountChange={setTaxAmount}
+                            onTaxAmountChange={handleTaxAmountChange}
                             loadingStates={loadingStates}
+                            errors={formErrors}
                         />
-                    </div>
-
-                    <div className="flex items-center">
-                        <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
                     </div>
 
                     <ReceiptFormActions
@@ -560,7 +758,7 @@ function ReceiptUploadView() {
                         onSubmit={handleSubmit}
                         onSaveDraft={handleSaveDraft}
                         onCancel={handleCancel}
-                        saveDisabled={true} // Save button disabled for now
+                        saveDisabled={true}
                     />
                 </div>
             </div>

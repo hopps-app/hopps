@@ -17,6 +17,8 @@ interface TextFieldProps {
     prependIcon?: RadixIcons;
     className?: string;
     loading?: boolean;
+    maxLength?: number;
+    required?: boolean;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onValueChange?: (value: string) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -26,6 +28,7 @@ interface TextFieldProps {
 
 const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
     const [id] = useState(_.uniqueId('text-field-'));
+    const errorId = `${id}-error`;
 
     const hasPrependContent = props.loading || props.prependIcon;
 
@@ -49,6 +52,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     type={props.type || 'text'}
                     placeholder={props.placeholder || ''}
                     value={props.value}
+                    maxLength={props.maxLength}
                     className={hasPrependContent ? `pl-10 ${props.className || ''}` : props.className}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                         props.onChange?.(event);
@@ -58,10 +62,17 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     onBlur={props.onBlur}
                     onFocus={props.onFocus}
                     ref={ref}
+                    aria-invalid={props.error ? true : undefined}
+                    aria-describedby={props.error ? errorId : undefined}
+                    aria-required={props.required || undefined}
                 />
             </div>
             {props.error && (
-                <div className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none">
+                <div
+                    id={errorId}
+                    role="alert"
+                    className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none"
+                >
                     {props.error}
                 </div>
             )}

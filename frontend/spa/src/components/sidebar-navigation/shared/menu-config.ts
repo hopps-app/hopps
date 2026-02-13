@@ -12,11 +12,6 @@ export const menuConfig: MenuItem[] = [
         label: 'menu.receipts',
         icon: 'Archive',
         path: '/receipts',
-        children: [
-            { id: 'upload-receipt', label: 'menu.upload-receipt', path: '/receipts/new' },
-            { id: 'expense', label: 'menu.expense', path: '/receipts?type=expense' },
-            { id: 'intake', label: 'menu.intake', path: '/receipts?type=income' },
-        ],
     },
     {
         id: 'structure',
@@ -25,13 +20,17 @@ export const menuConfig: MenuItem[] = [
         path: '/structure',
     },
     {
-        id: 'admin',
-        label: 'menu.admin',
+        id: 'ngo-details',
+        label: 'menu.ngo-details',
         icon: 'Person',
-        path: '/admin',
-        children: [
-            { id: 'ngo-details', label: 'menu.ngo-details', path: '/admin/ngo-details' },
-            { id: 'categories', label: 'menu.categories', path: '/admin/categories' },
-        ],
+        path: '/admin/ngo-details',
+        isAdmin: true,
+    },
+    {
+        id: 'categories',
+        label: 'menu.categories',
+        icon: 'MixerHorizontal',
+        path: '/admin/categories',
+        isAdmin: true,
     },
 ];

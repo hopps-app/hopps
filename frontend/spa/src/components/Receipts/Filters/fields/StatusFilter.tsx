@@ -15,7 +15,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
     const { t } = useTranslation();
 
     const handleToggle = useCallback(
-        (key: 'unpaid' | 'draft', checked: boolean) => {
+        (key: 'unpaid' | 'draft' | 'unassigned', checked: boolean) => {
             onChange('status', { ...filters.status, [key]: checked });
         },
         [filters.status, onChange]
@@ -23,30 +23,36 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
 
     return (
         <ReceiptFilterField label={label}>
-            <div className="flex items-center gap-6 h-10 xl:min-w-[350px]">
-                <div className="flex items-center gap-2 flex-1">
+            <div className="flex items-center gap-4 h-10 flex-wrap">
+                <label htmlFor="status-unpaid" className="flex items-center gap-2 cursor-pointer select-none">
                     <Switch
                         id="status-unpaid"
                         checked={filters.status.unpaid}
                         onCheckedChange={(checked: boolean) => handleToggle('unpaid', checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <label htmlFor="status-unpaid" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
-                        {t('receipts.filters.onlyUnpaid')}
-                    </label>
-                </div>
+                    <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.onlyUnpaid')}</span>
+                </label>
 
-                <div className="flex items-center gap-2 flex-1">
+                <label htmlFor="status-draft" className="flex items-center gap-2 cursor-pointer select-none">
                     <Switch
                         id="status-draft"
                         checked={filters.status.draft}
                         onCheckedChange={(checked: boolean) => handleToggle('draft', checked)}
                         className="data-[state=checked]:bg-[var(--purple-500)]"
                     />
-                    <label htmlFor="status-draft" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
-                        {t('receipts.filters.drafts')}
-                    </label>
-                </div>
+                    <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.drafts')}</span>
+                </label>
+
+                <label htmlFor="status-unassigned" className="flex items-center gap-2 cursor-pointer select-none">
+                    <Switch
+                        id="status-unassigned"
+                        checked={filters.status.unassigned}
+                        onCheckedChange={(checked: boolean) => handleToggle('unassigned', checked)}
+                        className="data-[state=checked]:bg-[var(--purple-500)]"
+                    />
+                    <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.unassigned')}</span>
+                </label>
             </div>
         </ReceiptFilterField>
     );

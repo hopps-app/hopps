@@ -5,6 +5,7 @@ import { FC, memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
+import Emoji from '@/components/ui/Emoji';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -54,7 +55,10 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                         aria-expanded={open}
                         aria-label={selectedBommel ? `${t('bommel.select')}: ${selectedBommel.name}` : t('bommel.select')}
                     >
-                        <span>{selectedBommel ? selectedBommel?.name : t('invoiceUpload.selectBommel')}</span>
+                        <span className="flex items-center gap-2">
+                            {selectedBommel?.emoji && <Emoji emoji={selectedBommel.emoji} className="text-lg" />}
+                            {selectedBommel ? selectedBommel.name : t('invoiceUpload.selectBommel')}
+                        </span>
                         {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />}
                     </button>
                 </PopoverTrigger>
@@ -66,6 +70,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                             <CommandGroup>
                                 {allBommels.map((bommel) => (
                                     <CommandItem key={bommel.id} value={bommel.name} onSelect={(currentValue) => onBommelSelected(currentValue)}>
+                                        {bommel.emoji && <Emoji emoji={bommel.emoji} className="text-base" />}
                                         {bommel.name}
                                         <CheckIcon
                                             className={cn('ml-auto', selectedBommel?.name === bommel.name ? 'opacity-100' : 'opacity-0')}

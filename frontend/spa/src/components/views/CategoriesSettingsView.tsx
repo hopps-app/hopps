@@ -8,13 +8,16 @@ import Button from '../ui/Button';
 import Header from '../ui/Header';
 import TextField from '../ui/TextField';
 
+import { EmptyState } from '@/components/common/EmptyState';
+import { LoadingState } from '@/components/common/LoadingState/LoadingState';
+import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import DialogWrapper from '@/components/ui/DialogWrapper';
 import { useCategories } from '@/hooks/queries';
 import { useSearch } from '@/hooks/use-search';
 
 function CategoriesSettingsView() {
     const { t } = useTranslation();
-    const { data: categories = [], refetch } = useCategories();
+    const { data: categories = [], isLoading, refetch } = useCategories();
     const [query, setQuery] = useState('');
     const results: Category[] = useSearch(categories, query, ['name']);
 
@@ -39,11 +42,25 @@ function CategoriesSettingsView() {
                         primaryLabel={t('dialogWrapper.save')}
                         secondaryLabel={t('dialogWrapper.cancel')}
                     >
-                        {({ onSuccess }) => <CategoryForm onSuccess={onSuccess} />}
+                        {({ onSuccess, setSubmitting }) => <CategoryForm onSuccess={onSuccess} onSubmittingChange={setSubmitting} />}
                     </DialogWrapper>
                 </div>
                 <div className="flex-1 min-h-0">
-                    <CategoryTable items={results} onActionSuccess={refetch} />
+                    {isLoading ? (
+                        <div className="py-12">
+                            <LoadingState size="lg" />
+                        </div>
+                    ) : categories.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <BunnyIcon className="mb-4" />
+                            <h3 className="text-lg font-medium text-foreground">{t('categories.emptyState.title')}</h3>
+                            <p className="text-muted-foreground mt-1 max-w-sm">{t('categories.emptyState.description')}</p>
+                        </div>
+                    ) : results.length === 0 && query ? (
+                        <EmptyState title={t('receipts.filters.noResults')} description={t('categories.emptyState.noSearchResults')} />
+                    ) : (
+                        <CategoryTable items={results} onActionSuccess={refetch} />
+                    )}
                 </div>
             </div>
         </div>

@@ -15,12 +15,39 @@
         "save": "Save",
         "delete": "Delete",
         "loading": "Loading...",
-        "validationError": "Please fill in all required fields"
+        "validationError": "Please fill in all required fields",
+        "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave this page?"
+    },
+    "notFound": {
+        "title": "404 - Page Not Found",
+        "description": "The page you are looking for does not exist.",
+        "goHome": "Go to Dashboard"
     },
     "errors": {
         "boundary": {
             "title": "Something went wrong",
-            "description": "An unexpected error occurred. Please try again or contact support."
+            "description": "An unexpected error occurred. Please try again or contact support.",
+            "tryAgain": "Try again",
+            "goHome": "Go to Dashboard"
+        },
+        "api": {
+            "networkError": "Unable to connect to the server. Please check your connection.",
+            "serverError": "The server encountered an error. Please try again later.",
+            "notFound": "The requested resource was not found.",
+            "unauthorized": "Your session has expired. Please log in again.",
+            "forbidden": "You do not have permission to perform this action.",
+            "conflict": "A conflict occurred. The resource may have been modified.",
+            "badRequest": "The request was invalid. Please check your input.",
+            "unknown": "An unexpected error occurred. Please try again.",
+            "timeout": "The request timed out. Please try again.",
+            "retry": "Retry",
+            "retryDescription": "Click to retry the failed operation."
+        },
+        "network": {
+            "title": "Connection Lost",
+            "description": "Unable to reach the server. Please check your internet connection.",
+            "retry": "Retry",
+            "retrying": "Retrying..."
         }
     },
     "validation": {
@@ -49,6 +76,7 @@
         "fileType": "PDF or JPG file",
         "dragFile": "Drop the files here...",
         "fileTooLarge": "File is too large, maximum size 5MB",
+        "invalidFileType": "Unsupported file type. Please upload PDF, JPEG, or PNG files.",
         "totalTooLarge": "Total file size exceeds the 20MB limit.",
         "maxFilesExceeded": "Maximum of 10 files allowed.",
         "selectBommel": "Select bommel",
@@ -98,13 +126,6 @@
             "saved": "Settings successfully saved",
             "structure": "Structure"
         },
-        "stats": {
-            "totalBommels": "Total Bommels",
-            "total": "Total",
-            "income": "Income",
-            "expenses": "Expenses",
-            "totalTransactions": "Total Transactions"
-        },
         "structure": {
             "quickSearch": "Quick Search",
             "edit": "Edit",
@@ -120,9 +141,14 @@
             "addChild": "Add Child",
             "saveName": "Save",
             "cancelEdit": "Cancel",
-            "editModeHint": "To move bommels, switch to the Table view",
+            "validation": {
+                "nameRequired": "Bommel name is required",
+                "nameMaxLength": "Name must not exceed 255 characters"
+            },
+            "editModeHint": "Drag & drop bommels in Table view, or use the move button in Tree view",
+            "moveBommel": "Move Bommel",
             "includeDrafts": "Include drafts",
-            "aggregate": "Aggregate",
+            "aggregate": "Incl. sub-bommels",
             "details": {
                 "title": "Details",
                 "selectBommel": "Select a Bommel to view details",
@@ -131,16 +157,62 @@
                 "expenses": "Expenses",
                 "transactions": "Transactions",
                 "subBommels": "Sub-Bommels",
-                "toReceipts": "To Receipts"
+                "toReceipts": "To Receipts",
+                "bommelNotFound": "Bommel not found",
+                "bommelNotFoundDescription": "The Bommel you are looking for does not exist or has been deleted.",
+                "backToStructure": "Back to Structure"
             },
             "deleteDialog": {
                 "title": "Delete Bommel",
-                "description": "This Bommel has {{count}} receipts. Are you sure you want to delete this Bommel?",
+                "description": "Are you sure you want to delete '{{name}}'?",
+                "hasTransactionsWarning": "This Bommel has linked transactions. You must choose how to handle them.",
+                "hasChildrenWarning": "This Bommel has {{count}} child Bommel(s). Deleting it will also delete all children and their linked transactions.",
+                "transactionHandlingLabel": "How should linked transactions be handled?",
+                "unlinkOption": "Unlink transactions",
+                "unlinkDescription": "Transactions will remain but will not be linked to any Bommel",
+                "reassignOption": "Reassign to another Bommel",
+                "reassignDescription": "Choose another Bommel to assign these transactions to",
+                "comingSoon": "(Coming soon)",
                 "confirm": "Yes, delete",
                 "cancel": "Cancel"
             },
+            "moveDialog": {
+                "title": "Move Bommel",
+                "description": "Select a new parent for '{{name}}':",
+                "noTargets": "No valid target Bommels available",
+                "confirm": "Move"
+            },
             "rootCannotEdit": "The root bommel cannot be edited",
-            "rootCannotDelete": "The root bommel cannot be deleted"
+            "rootCannotDelete": "The root bommel cannot be deleted",
+            "toast": {
+                "createSuccess": "Bommel successfully created",
+                "createError": "Failed to create Bommel",
+                "updateSuccess": "Bommel successfully updated",
+                "updateError": "Failed to update Bommel",
+                "deleteSuccess": "Bommel successfully deleted",
+                "deleteError": "Failed to delete Bommel",
+                "moveSuccess": "Bommel successfully moved",
+                "moveError": "Failed to move Bommel",
+                "createChildSuccess": "Child Bommel successfully created",
+                "createChildError": "Failed to create child Bommel"
+            }
+        },
+        "details": {
+            "title": "Organization Details",
+            "description": "Manage your organization's basic information",
+            "name": "Organization Name",
+            "slug": "Slug",
+            "type": "Organization Type",
+            "website": "Website",
+            "street": "Street",
+            "number": "Number",
+            "city": "City",
+            "plz": "Postal Code",
+            "additionalLine": "Additional Address Line",
+            "address": "Address",
+            "saveSuccess": "Organization details saved successfully",
+            "saveError": "Failed to save organization details",
+            "loadError": "Failed to load organization details"
         },
         "noOrganization": {
             "title": "No Organization Found",
@@ -172,6 +244,7 @@
             "account": "My Account",
             "invoices": "Invoices",
             "organization": "Organization",
+            "ngoDetails": "Organization Details",
             "profile": "Profile"
         }
     },
@@ -188,10 +261,31 @@
         "structure": "Bommel structure",
         "admin": "Admin",
         "ngo-details": "Ngo Details",
-        "categories": "Categories"
+        "categories": "Categories",
+        "collapse": "Collapse",
+        "expand": "Expand",
+        "openMenu": "Open menu",
+        "navigation": "Navigation"
     },
     "datePicker": {
         "selectDate": "Select date"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "incomeExpenseChart": "Income & Expenses",
+        "loadError": "Failed to load chart data",
+        "noData": "No data available",
+        "noDataHint": "Upload your first receipt to see income and expense data here.",
+        "uploadFirst": "Upload receipt",
+        "timeRange": "Showing data from {{startDate}} to {{endDate}}",
+        "income": "Income",
+        "expenses": "Expenses",
+        "filterLabel": "Time Range",
+        "bommelFilter": "Bommel",
+        "allBommels": "All Bommels",
+        "startDate": "From",
+        "endDate": "To",
+        "resetFilter": "Reset"
     },
     "categories": {
         "title": "Admin Settings: Categories",
@@ -219,15 +313,25 @@
             "description": "Description",
             "error": {
                 "name": "This field cannot be empty.",
-                "categoryCreated": "An error occurred."
+                "nameMaxLength": "Name must not exceed 127 characters.",
+                "duplicate": "A category with this name already exists.",
+                "categoryCreated": "An error occurred.",
+                "categoryDeleted": "Failed to delete category."
             },
             "success": {
                 "categoryCreated": "Category successfully created",
+                "categoryUpdated": "Category successfully updated",
+                "categoryDeleted": "Category successfully deleted",
                 "creationError": ""
             }
         },
         "table": {
             "noDescription": "No description"
+        },
+        "emptyState": {
+            "title": "No categories yet",
+            "description": "Create your first category to organize your receipts and transactions.",
+            "noSearchResults": "No categories match your search query."
         }
     },
     "dialogWrapper": {
@@ -238,8 +342,30 @@
     },
     "receipts": {
         "draft": "Draft",
+        "unassigned": "Unassigned",
+        "documentLinked": "Document attached",
+        "downloadDocument": "Download document",
+        "downloadFailed": "Failed to download document",
+        "noDocument": "No document",
         "dueDate": "Due on",
         "empty": "No receipts found",
+        "newReceipt": "New receipt",
+        "statusBadge": {
+            "paid": "Paid",
+            "unpaid": "Unpaid",
+            "draft": "Draft",
+            "failed": "Failed"
+        },
+        "table": {
+            "issuer": "Issuer",
+            "date": "Date",
+            "project": "Bommel",
+            "category": "Category",
+            "status": "Status",
+            "amount": "Amount",
+            "purpose": "Purpose",
+            "reference": "Reference"
+        },
         "emptyState": {
             "title": "No receipts uploaded yet",
             "description": "Here you can filter and manage receipts",
@@ -265,10 +391,15 @@
             "status": "Status",
             "onlyUnpaid": "Only unpaid",
             "drafts": "Drafts",
+            "unassigned": "Unassigned",
             "displayType": "Display type",
             "displayAll": "Expand all",
             "reset": "Reset",
-            "noResults": "No results"
+            "noResults": "No results",
+            "area": "Area",
+            "allAreas": "All areas",
+            "allCategories": "All categories",
+            "showFilters": "Filters"
         },
         "upload": {
             "title": "Upload",
@@ -302,13 +433,26 @@
                 "extractedViaZugferd": "Extracted via ZUGFeRD",
                 "failed": "Analysis failed",
                 "error": "Analysis error: {{error}}",
+                "errorDetail": "Details: {{error}}",
                 "serviceUnavailable": "Analysis service is temporarily unavailable. Please try again later.",
-                "pollingTimeout": "Analysis is taking longer than expected. Please try again later."
+                "pollingTimeout": "Analysis is taking longer than expected. Please try again later.",
+                "retry": "Retry analysis",
+                "retryFailed": "Failed to retry analysis. Please try again later."
             },
             "saveSuccess": "Receipt saved successfully",
             "saveFailed": "Failed to save receipt",
             "draftSaved": "Draft saved",
-            "noDocumentOrFile": "Please upload a file first or fill in the form data"
+            "noDocumentOrFile": "Please upload a file first or fill in the form data",
+            "validation": {
+                "receiptDateRequired": "Receipt date is required",
+                "transactionKindRequired": "Please select a transaction type",
+                "contractPartnerRequired": "Contract partner is required",
+                "bommelRequired": "Please select a Bommel",
+                "netAmountRequired": "Net amount is required",
+                "netAmountInvalid": "Please enter a valid amount",
+                "taxAmountRequired": "Tax amount is required",
+                "taxAmountInvalid": "Please enter a valid amount"
+            }
         },
         "areas": {
             "ideell": "Non-profit area",
@@ -319,6 +463,19 @@
         "types": {
             "income": "Income",
             "expense": "Expense"
+        },
+        "pagination": {
+            "page": "Page",
+            "previous": "Previous",
+            "next": "Next"
+        },
+        "deleteDialog": {
+            "title": "Delete Receipt",
+            "description": "Are you sure you want to delete '{{name}}' ({{amount}})?",
+            "warning": "This action cannot be undone. The receipt will be permanently deleted.",
+            "confirm": "Yes, delete",
+            "error": "Failed to delete receipt",
+            "success": "Receipt successfully deleted"
         }
     },
     "bommel": {

@@ -29,6 +29,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
     const { t, i18n } = useTranslation();
     const defaultPlaceholder = placeholder || t('datePicker.selectDate');
     const [id] = useState(_.uniqueId('date-picker-'));
+    const errorId = `${id}-error`;
 
     // Get the appropriate date-fns locale based on the current language
     const getDateLocale = () => {
@@ -52,6 +53,8 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             id={id}
                             type="button"
                             disabled={disabled}
+                            aria-invalid={error ? true : undefined}
+                            aria-describedby={error ? errorId : undefined}
                             className={cn(
                                 'w-full text-gray-800 text-sm border border-gray-300 py-3 rounded-md outline-primary bg-primary-foreground',
                                 'placeholder:text-muted focus:border-primary transition-colors',
@@ -77,7 +80,13 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                 </Popover>
             </div>
             {error && (
-                <div className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none">{error}</div>
+                <div
+                    id={errorId}
+                    role="alert"
+                    className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none"
+                >
+                    {error}
+                </div>
             )}
         </div>
     );
