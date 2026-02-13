@@ -12,11 +12,6 @@ export const menuConfig: MenuItem[] = [
         label: 'menu.receipts',
         icon: 'Archive',
         path: '/receipts',
-        children: [
-            { id: 'upload-receipt', label: 'menu.upload-receipt', path: '/receipts/new' },
-            { id: 'expense', label: 'menu.expense', path: '/receipts?type=expense' },
-            { id: 'intake', label: 'menu.intake', path: '/receipts?type=income' },
-        ],
     },
     {
         id: 'structure',

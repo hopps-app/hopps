@@ -261,7 +261,11 @@
         "structure": "Bommel structure",
         "admin": "Admin",
         "ngo-details": "Ngo Details",
-        "categories": "Categories"
+        "categories": "Categories",
+        "collapse": "Collapse",
+        "expand": "Expand",
+        "openMenu": "Open menu",
+        "navigation": "Navigation"
     },
     "datePicker": {
         "selectDate": "Select date"

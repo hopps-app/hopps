@@ -157,6 +157,22 @@
       "profile": "Профіль"
     }
   },
+  "menu": {
+    "dashboard": "Панель керування",
+    "receipts": "Документи",
+    "upload-receipt": "Завантажити документ",
+    "all-receipt": "Всі документи",
+    "expense": "Витрата",
+    "intake": "Дохід",
+    "structure": "Структура боммелів",
+    "admin": "Адмін",
+    "ngo-details": "Організація",
+    "categories": "Категорії",
+    "collapse": "Згорнути",
+    "expand": "Розгорнути",
+    "openMenu": "Відкрити меню",
+    "navigation": "Навігація"
+  },
   "settingsPage": {
     "menu": "Меню"
   },

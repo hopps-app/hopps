@@ -3,11 +3,16 @@ import * as React from 'react';
 import DesktopSidebar from './desktop-sidebar';
 import MobileSidebar from './mobile-sidebar';
 
-const SidebarNavigation: React.FC = () => {
+type SidebarNavigationProps = {
+    collapsed: boolean;
+    onToggle: () => void;
+};
+
+const SidebarNavigation: React.FC<SidebarNavigationProps> = ({ collapsed, onToggle }) => {
     return (
         <>
             <div className="hidden sm:block">
-                <DesktopSidebar />
+                <DesktopSidebar collapsed={collapsed} onToggle={onToggle} />
             </div>
             <div className="sm:hidden">
                 <MobileSidebar />

@@ -260,7 +260,11 @@
         "structure": "Bommel Struktur",
         "admin": "Admin",
         "ngo-details": "Organisation",
-        "categories": "Kategorien"
+        "categories": "Kategorien",
+        "collapse": "Einklappen",
+        "expand": "Ausklappen",
+        "openMenu": "Menü öffnen",
+        "navigation": "Navigation"
     },
     "receipts": {
         "draft": "Entwurf",

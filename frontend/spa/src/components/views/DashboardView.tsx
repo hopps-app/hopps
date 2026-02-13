@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { de, enUS, uk } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import apiService from '@/services/ApiService';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { useStore } from '@/store/store';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { Calendar } from '@/components/ui/shadecn/Calendar';
@@ -28,6 +29,7 @@ function getDefaultEndDate(): string {
 
 function DashboardView() {
     const { t, i18n } = useTranslation();
+    const isSmallScreen = useMediaQuery('(max-width: 639px)');
     const { organization } = useStore();
     const { allBommels, rootBommel, loadBommels } = useBommelsStore();
     const navigate = useNavigate();
@@ -184,18 +186,18 @@ function DashboardView() {
     const formattedEnd = format(new Date(endDate), 'P', { locale: getDateLocale() });
 
     return (
-        <div className="px-7 py-[2.5rem]">
-            <h1 className="text-3xl font-bold mb-6">{t('dashboard.title')}</h1>
+        <div className="px-3 py-5 sm:px-7 sm:py-[2.5rem] max-w-screen-xl">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">{t('dashboard.title')}</h1>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-                    <h2 className="text-xl font-semibold">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-3 sm:gap-4">
+                    <h2 className="text-lg sm:text-xl font-semibold">
                         {t('dashboard.incomeExpenseChart')}
                     </h2>
 
-                    <div className="flex flex-wrap items-end gap-4">
+                    <div className="flex flex-wrap items-end gap-2 sm:gap-4">
                     {/* Bommel Filter */}
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 w-full sm:w-auto">
                         <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                             {t('dashboard.bommelFilter')}
                         </label>
@@ -205,7 +207,7 @@ function DashboardView() {
                                     variant="outline"
                                     data-testid="dashboard-bommel-filter"
                                     className={cn(
-                                        'w-[180px] h-10 justify-between text-sm font-normal',
+                                        'w-full sm:w-[180px] h-10 justify-between text-sm font-normal',
                                         'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
                                         'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                     )}
@@ -254,11 +256,11 @@ function DashboardView() {
                     </div>
 
                     {/* Date Range Filter */}
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 w-full sm:w-auto">
                         <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                             {t('dashboard.filterLabel')}
                         </label>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                             {/* Start Date Picker */}
                             <div className="flex items-center">
                                 <Popover open={openStart} onOpenChange={setOpenStart}>
@@ -267,7 +269,7 @@ function DashboardView() {
                                             variant="outline"
                                             data-testid="dashboard-start-date"
                                             className={cn(
-                                                'w-[140px] h-10 justify-between text-sm font-normal',
+                                                'w-[120px] sm:w-[140px] h-10 justify-between text-sm font-normal',
                                                 'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
                                                 'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                             )}
@@ -305,7 +307,7 @@ function DashboardView() {
                                             variant="outline"
                                             data-testid="dashboard-end-date"
                                             className={cn(
-                                                'w-[140px] h-10 justify-between text-sm font-normal',
+                                                'w-[120px] sm:w-[140px] h-10 justify-between text-sm font-normal',
                                                 'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
                                                 'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                             )}
@@ -352,13 +354,13 @@ function DashboardView() {
                 </div>
 
                 {isLoading && (
-                    <div className="flex items-center justify-center h-96">
+                    <div className="flex items-center justify-center h-52 sm:h-96">
                         <LoadingState size="lg" />
                     </div>
                 )}
 
                 {error && (
-                    <div className="flex flex-col items-center justify-center h-96 gap-4">
+                    <div className="flex flex-col items-center justify-center h-52 sm:h-96 gap-3 sm:gap-4">
                         <div className="rounded-full bg-destructive/10 p-3">
                             <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -387,7 +389,7 @@ function DashboardView() {
                 )}
 
                 {!isLoading && !error && !hasData && (
-                    <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+                    <div className="flex flex-col items-center justify-center h-52 sm:h-96 text-gray-500">
                         <div className="rounded-full bg-muted p-4 mb-4">
                             <BarChart3 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                         </div>
@@ -414,10 +416,10 @@ function DashboardView() {
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                             {t('dashboard.timeRange', { startDate: formattedStart, endDate: formattedEnd })}
                         </p>
-                        <ResponsiveContainer width="100%" height={400}>
+                        <ResponsiveContainer width="100%" height={isSmallScreen ? 250 : 400}>
                             <LineChart
                                 data={chartData}
-                                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                margin={{ top: 5, right: isSmallScreen ? 10 : 30, left: isSmallScreen ? 5 : 20, bottom: 5 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="month" />
