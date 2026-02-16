@@ -32,6 +32,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
         queryKey: transactionKeys.list(filters),
         queryFn: () =>
             apiService.orgService.transactionsAll(
+                filters.area,
                 filters.bommelId,
                 filters.categoryId,
                 filters.detached,
@@ -41,8 +42,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.search,
                 filters.size ?? 50,
                 filters.startDate,
-                filters.status,
-                filters.area
+                filters.status
             ),
     });
 }

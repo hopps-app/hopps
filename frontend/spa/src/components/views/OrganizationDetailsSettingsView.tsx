@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Address, OrganizationInput } from '@hopps/api-client';
+import { Address, OrganizationInput, TYPE } from '@hopps/api-client';
 import { useCallback, useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -157,7 +157,7 @@ function OrganizationDetailsSettingsView() {
 
                 const input = new OrganizationInput();
                 input.name = data.name;
-                input.type = data.type;
+                input.type = data.type as TYPE;
                 input.website = data.website || undefined;
                 input.address = address;
                 input.foundingDate = data.foundingDate ? new Date(germanToIso(data.foundingDate)) : undefined;

@@ -5,5 +5,11 @@
   "workspaces": [
     "spa",
     "api-client"
-  ]
+  ],
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.1.0",
+      "@types/react-dom": "^19.1.0"
+    }
+  }
 }

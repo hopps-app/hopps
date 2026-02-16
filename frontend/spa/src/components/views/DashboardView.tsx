@@ -129,6 +129,7 @@ function DashboardView() {
         queryKey: ['transactions', organization?.id, selectedBommelId, startDate, endDate],
         queryFn: () =>
             apiService.orgService.transactionsAll(
+                undefined, // area
                 selectedBommelId, // bommelId
                 undefined, // categoryId
                 undefined, // detached
