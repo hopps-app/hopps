@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Pattern;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,6 +51,27 @@ public class Organization extends PanacheEntity {
 
     @Schema(examples = "https://example.com/avatar.png")
     private URL profilePicture;
+
+    @Schema(examples = "2001-05-15")
+    private LocalDate foundingDate;
+
+    @Schema(examples = "Amtsgericht München")
+    private String registrationCourt;
+
+    @Schema(examples = "VR 12345")
+    private String registrationNumber;
+
+    @Schema(examples = "DE")
+    private String country;
+
+    @Schema(examples = "123/456/78901")
+    private String taxNumber;
+
+    @Schema(examples = "info@raketenfreunde.tld")
+    private String email;
+
+    @Schema(examples = "+49 123 4567890")
+    private String phoneNumber;
 
     public Organization() {
         // no args constructor
@@ -131,6 +153,62 @@ public class Organization extends PanacheEntity {
         this.rootBommel = rootBommel;
     }
 
+    public LocalDate getFoundingDate() {
+        return foundingDate;
+    }
+
+    public void setFoundingDate(LocalDate foundingDate) {
+        this.foundingDate = foundingDate;
+    }
+
+    public String getRegistrationCourt() {
+        return registrationCourt;
+    }
+
+    public void setRegistrationCourt(String registrationCourt) {
+        this.registrationCourt = registrationCourt;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getTaxNumber() {
+        return taxNumber;
+    }
+
+    public void setTaxNumber(String taxNumber) {
+        this.taxNumber = taxNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
     public enum TYPE {
 
         EINGETRAGENER_VEREIN {
@@ -138,9 +216,13 @@ public class Organization extends PanacheEntity {
             public String getDisplayString() {
                 return "e.V.";
             }
+        },
+        ANDERE {
+            @Override
+            public String getDisplayString() {
+                return "Andere";
+            }
         };
-
-        // for now, we will only support e.V.
 
         public abstract String getDisplayString();
     }

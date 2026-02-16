@@ -568,6 +568,10 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("User or organization not found", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A category with this name already exists", status, _responseText, _headers);
+            });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
             return throwException("Not Authorized", status, _responseText, _headers);
@@ -628,6 +632,10 @@ export class Client {
         } else if (status === 400) {
             return response.text().then((_responseText) => {
             return throwException("Invalid category data", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A category with this name already exists", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -1766,6 +1774,7 @@ export class Client {
 
     /**
      * List all transactions
+     * @param area (optional) Filter by transaction area (IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)
      * @param bommelId (optional) Filter by bommel ID
      * @param categoryId (optional) Filter by category ID
      * @param detached (optional) Filter unassigned transactions (no bommel)
@@ -1778,7 +1787,7 @@ export class Client {
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return List of transactions
      */
-    transactionsAll(bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, startDate: string | undefined, status: TransactionStatus | undefined, area: TransactionArea | undefined = undefined): Promise<TransactionResponse[]> {
+    transactionsAll(area: TransactionArea | undefined, bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
         let url_ = this.baseUrl + "/transactions?";
         if (area === null)
             throw new Error("The parameter 'area' cannot be null.");
@@ -3016,6 +3025,13 @@ export class Organization implements IOrganization {
     members?: Member[];
     website?: string;
     profilePicture?: string;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    country?: string;
+    taxNumber?: string;
+    email?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 
@@ -3047,6 +3063,13 @@ export class Organization implements IOrganization {
             }
             this.website = _data["website"];
             this.profilePicture = _data["profilePicture"];
+            this.foundingDate = _data["foundingDate"] ? new Date(_data["foundingDate"].toString()) : <any>undefined;
+            this.registrationCourt = _data["registrationCourt"];
+            this.registrationNumber = _data["registrationNumber"];
+            this.country = _data["country"];
+            this.taxNumber = _data["taxNumber"];
+            this.email = _data["email"];
+            this.phoneNumber = _data["phoneNumber"];
         }
     }
 
@@ -3076,6 +3099,13 @@ export class Organization implements IOrganization {
         }
         data["website"] = this.website;
         data["profilePicture"] = this.profilePicture;
+        data["foundingDate"] = this.foundingDate ? formatDate(this.foundingDate) : <any>undefined;
+        data["registrationCourt"] = this.registrationCourt;
+        data["registrationNumber"] = this.registrationNumber;
+        data["country"] = this.country;
+        data["taxNumber"] = this.taxNumber;
+        data["email"] = this.email;
+        data["phoneNumber"] = this.phoneNumber;
         return data;
     }
 
@@ -3098,6 +3128,13 @@ export interface IOrganization {
     members?: Member[];
     website?: string;
     profilePicture?: string;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    country?: string;
+    taxNumber?: string;
+    email?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 }
@@ -3109,6 +3146,13 @@ export class OrganizationInput implements IOrganizationInput {
     website?: string;
     profilePicture?: string;
     address?: Address;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    country?: string;
+    taxNumber?: string;
+    email?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 
@@ -3133,6 +3177,13 @@ export class OrganizationInput implements IOrganizationInput {
             this.website = _data["website"];
             this.profilePicture = _data["profilePicture"];
             this.address = _data["address"] ? Address.fromJS(_data["address"]) : <any>undefined;
+            this.foundingDate = _data["foundingDate"] ? new Date(_data["foundingDate"].toString()) : <any>undefined;
+            this.registrationCourt = _data["registrationCourt"];
+            this.registrationNumber = _data["registrationNumber"];
+            this.country = _data["country"];
+            this.taxNumber = _data["taxNumber"];
+            this.email = _data["email"];
+            this.phoneNumber = _data["phoneNumber"];
         }
     }
 
@@ -3155,6 +3206,13 @@ export class OrganizationInput implements IOrganizationInput {
         data["website"] = this.website;
         data["profilePicture"] = this.profilePicture;
         data["address"] = this.address ? this.address.toJSON() : <any>undefined;
+        data["foundingDate"] = this.foundingDate ? formatDate(this.foundingDate) : <any>undefined;
+        data["registrationCourt"] = this.registrationCourt;
+        data["registrationNumber"] = this.registrationNumber;
+        data["country"] = this.country;
+        data["taxNumber"] = this.taxNumber;
+        data["email"] = this.email;
+        data["phoneNumber"] = this.phoneNumber;
         return data;
     }
 
@@ -3173,6 +3231,13 @@ export interface IOrganizationInput {
     website?: string;
     profilePicture?: string;
     address?: Address;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    country?: string;
+    taxNumber?: string;
+    email?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 }
@@ -3311,7 +3376,7 @@ export interface IOwnerInput {
     [key: string]: any;
 }
 
-export type TYPE = "EINGETRAGENER_VEREIN";
+export type TYPE = "EINGETRAGENER_VEREIN" | "ANDERE";
 
 export type TransactionArea = "IDEELL" | "ZWECKBETRIEB" | "VERMOEGENSVERWALTUNG" | "WIRTSCHAFTLICH";
 
@@ -3901,6 +3966,12 @@ export interface IViolation {
     message?: string;
 
     [key: string]: any;
+}
+
+function formatDate(d: Date) {
+    return d.getFullYear() + '-' + 
+        (d.getMonth() < 9 ? ('0' + (d.getMonth()+1)) : (d.getMonth()+1)) + '-' +
+        (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
 }
 
 export interface FileParameter {

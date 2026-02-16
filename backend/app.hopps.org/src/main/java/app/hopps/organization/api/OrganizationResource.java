@@ -107,6 +107,27 @@ public class OrganizationResource {
         if (input.address() != null) {
             organization.setAddress(input.address());
         }
+        if (input.foundingDate() != null) {
+            organization.setFoundingDate(input.foundingDate());
+        }
+        if (input.registrationCourt() != null) {
+            organization.setRegistrationCourt(input.registrationCourt());
+        }
+        if (input.registrationNumber() != null) {
+            organization.setRegistrationNumber(input.registrationNumber());
+        }
+        if (input.country() != null) {
+            organization.setCountry(input.country());
+        }
+        if (input.taxNumber() != null) {
+            organization.setTaxNumber(input.taxNumber());
+        }
+        if (input.email() != null) {
+            organization.setEmail(input.email());
+        }
+        if (input.phoneNumber() != null) {
+            organization.setPhoneNumber(input.phoneNumber());
+        }
 
         organizationRepository.persist(organization);
         organizationRepository.flush();

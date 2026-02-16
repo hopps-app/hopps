@@ -21,6 +21,7 @@ const OrganizationSettingsView = lazy(() => import('./components/views/Organizat
 const ReceiptUploadView = lazy(() => import('./components/views/ReceiptUpload').then((module) => ({ default: module.ReceiptUploadView })));
 const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
 const CategoriesSettingsView = lazy(() => import('./components/views/CategoriesSettingsView'));
+const OrganizationDetailsSettingsView = lazy(() => import('./components/views/OrganizationDetailsSettingsView'));
 const ReceiptView = lazy(() => import('@/components/views/ReceiptView'));
 const DebugErrorView = lazy(() => import('@/components/views/DebugErrorView'));
 
@@ -112,6 +113,14 @@ export default function AppRoutes() {
                 />
 
                 {/* admin settings */}
+                <Route
+                    path="/admin/ngo-details"
+                    element={
+                        <LazyRoute>
+                            <OrganizationDetailsSettingsView />
+                        </LazyRoute>
+                    }
+                />
                 <Route
                     path="/admin/categories"
                     element={
