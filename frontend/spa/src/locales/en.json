@@ -61,9 +61,16 @@
         "invalidFileType": "Invalid file type"
     },
     "header": {
+        "home": "Home",
         "logout": "Logout",
         "login": "Login",
         "register": "Register"
+    },
+    "home": {
+        "title": "Accounting made simple",
+        "subtitle": "Hopps is a free, open-source accounting software built for associations. Manage finances, receipts, and expenses easily and efficiently.",
+        "register": "Register organization",
+        "login": "Login"
     },
     "invoiceUpload": {
         "title": "Upload new Invoice",

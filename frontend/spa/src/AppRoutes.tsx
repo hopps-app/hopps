@@ -11,7 +11,6 @@ import DefaultLayout from '@/layouts/default/DefaultLayout.tsx';
 // Eagerly loaded - these are needed immediately
 
 // Lazy loaded - these are loaded on demand
-const DemoView = lazy(() => import('@/components/views/DemoView'));
 const RegisterOrganizationView = lazy(() =>
     import('@/components/views/RegisterOrganizationView').then((module) => ({ default: module.RegisterOrganizationView }))
 );
@@ -32,16 +31,8 @@ function LazyRoute({ children }: { children: React.ReactNode }) {
 export default function AppRoutes() {
     return (
         <Routes>
+            <Route path="/" element={<HomeView />} />
             <Route element={<DefaultLayout />}>
-                <Route path="/" element={<HomeView />} />
-                <Route
-                    path="/demo"
-                    element={
-                        <LazyRoute>
-                            <DemoView />
-                        </LazyRoute>
-                    }
-                />
                 <Route
                     path="/register"
                     element={

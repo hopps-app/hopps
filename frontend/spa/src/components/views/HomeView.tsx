@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import Button from '@/components/ui/Button.tsx';
+import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
 
 function HomeView() {
+    const { t } = useTranslation();
     const { isAuthenticated, isInitialized } = useStore();
     const navigate = useNavigate();
 
@@ -14,23 +17,25 @@ function HomeView() {
         }
     }, [isAuthenticated, isInitialized, navigate]);
 
+    const onClickRegister = () => {
+        navigate('/register');
+    };
+
+    const onClickLogin = () => {
+        authService.login();
+    };
+
     return (
-        <div className="pt-16">
-            <div className="flex flex-row">
-                <div className="flex-shrink-0 w-1/2 pr-32 flex flex-col gap-6 justify-center">
-                    <h1 className="font-normal text-5xl">Finanzen, Belege und Ausgaben einfach verwalten</h1>
-                    <div className="text-base">
-                        “Hopps” ist eine kostenlose, Open-Source-Buchhaltungssoftware speziell für Vereine, entwickelt von Open Project e.V. mit Förderung der
-                        Deutschen Stiftung für Engagement und Ehrenamt. Die Software vereinfacht das Management von Finanzen und Ausgaben. Die Alpha-Version
-                        erscheint im Dezember 2024.
-                    </div>
-                    <div className="flex flex-row gap-4">
-                        <Button>Jetzt testen</Button>
-                        <Button variant="outline">Kontakt aufnehmen</Button>
-                    </div>
-                </div>
-                <div className="flex-shrink-0 w-1/2 relative overflow-hidden">
-                    <img src="/images/img1.png" alt="image" className="w-full" />
+        <div className="flex flex-row items-center justify-center gap-16 min-h-screen">
+            <img src="/logo2.svg" alt="Hopps" className="h-32 w-auto shrink-0" />
+            <div className="flex flex-col">
+                <h1 className="text-4xl font-semibold mb-4">{t('home.title')}</h1>
+                <p className="text-lg text-black/70 dark:text-white/70 max-w-xl mb-8">{t('home.subtitle')}</p>
+                <div className="flex flex-row gap-4">
+                    <Button onClick={onClickRegister}>{t('home.register')}</Button>
+                    <Button variant="outline" onClick={onClickLogin}>
+                        {t('home.login')}
+                    </Button>
                 </div>
             </div>
         </div>

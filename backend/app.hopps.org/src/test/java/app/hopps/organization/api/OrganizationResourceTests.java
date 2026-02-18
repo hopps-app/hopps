@@ -102,7 +102,7 @@ class OrganizationResourceTests {
 
         OrganizationInput organizationInput = new OrganizationInput("Schützenverein", "schuetzenverein",
                 Organization.TYPE.EINGETRAGENER_VEREIN, URI.create("https://hopps.cloud").toURL(),
-                URI.create("https://hopps.cloud").toURL(), null);
+                URI.create("https://hopps.cloud").toURL(), null, null, null, null, null, null, null, null);
         OwnerInput ownerInput = new OwnerInput("info@op-paf.de", "Test", "User");
         NewOrganizationInput newOrganizationInput = new NewOrganizationInput(ownerInput, "testPassword",
                 organizationInput);

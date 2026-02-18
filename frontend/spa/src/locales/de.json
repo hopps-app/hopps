@@ -61,9 +61,16 @@
         "invalidFileType": "Ungültiger Dateityp"
     },
     "header": {
+        "home": "Startseite",
         "logout": "Abmelden",
         "login": "Anmelden",
         "register": "Registrieren"
+    },
+    "home": {
+        "title": "Buchhaltung einfach gemacht",
+        "subtitle": "Hopps ist eine kostenlose, Open-Source-Buchhaltungssoftware speziell für Vereine. Verwalten Sie Finanzen, Belege und Ausgaben einfach und effizient.",
+        "register": "Organisation registrieren",
+        "login": "Anmelden"
     },
     "invoiceUpload": {
         "title": "Neue Rechnung hochladen",

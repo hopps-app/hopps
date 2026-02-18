@@ -12,11 +12,6 @@ function Header() {
     const navigate = useNavigate();
     const { isAuthenticated } = useStore();
 
-    const menuItems = [
-        { url: '/', label: 'Home' },
-        { url: '/demo', label: 'Demo' },
-    ];
-
     const onClickLogin = () => {
         authService.login();
     };
@@ -34,10 +29,6 @@ function Header() {
                     <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="Hopps">
                         <img src="/logo2.svg" alt="Hopps" />
                     </Link>
-
-                    <div className="sm:hidden">
-                        <Button>Call to action</Button>
-                    </div>
                 </div>
                 <div
                     id="hs-navbar-cover-page"
@@ -46,19 +37,6 @@ function Header() {
                 >
                     <div className="flex flex-row">
                         <div className="w-10 shrink"></div>
-                        <div className="flex gap-10 flex-row items-center ps-5">
-                            {menuItems.map(({ url, label }) => {
-                                return (
-                                    <Link
-                                        to={url}
-                                        key={url}
-                                        className="font-normal text-xl text-black/70 dark:text-white underline-offset-4 focus:outline-none focus:underline hover:underline"
-                                    >
-                                        {label}
-                                    </Link>
-                                );
-                            })}
-                        </div>
                     </div>
                     {isAuthenticated ? (
                         <UserMenu />
