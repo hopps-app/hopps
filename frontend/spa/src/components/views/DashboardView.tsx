@@ -10,6 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { Calendar } from '@/components/ui/shadecn/Calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
@@ -30,6 +31,7 @@ function getDefaultEndDate(): string {
 
 function DashboardView() {
     const { t, i18n } = useTranslation();
+    usePageTitle(t('dashboard.title'));
     const isSmallScreen = useMediaQuery('(max-width: 639px)');
     const { organization } = useStore();
     const { allBommels, rootBommel, loadBommels } = useBommelsStore();
@@ -190,10 +192,8 @@ function DashboardView() {
     const formattedEnd = format(new Date(endDate), 'P', { locale: getDateLocale() });
 
     return (
-        <div className="px-3 py-5 sm:px-7 sm:py-[2.5rem] max-w-screen-xl">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">{t('dashboard.title')}</h1>
-
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6">
+        <div className="max-w-screen-xl">
+            <div className="bg-white dark:bg-gray-800 rounded-[30px] shadow p-3 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-3 sm:gap-4">
                     <h2 className="text-lg sm:text-xl font-semibold">{t('dashboard.incomeExpenseChart')}</h2>
 

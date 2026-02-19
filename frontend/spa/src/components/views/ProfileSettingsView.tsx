@@ -1,14 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import Header from '@/components/ui/Header.tsx';
 import Radio from '@/components/ui/Radio.tsx';
 import Select from '@/components/ui/Select.tsx';
+import { usePageTitle } from '@/hooks/use-page-title';
 import languageService from '@/services/LanguageService.ts';
 import themeService, { Themes } from '@/services/ThemeService.ts';
 
 function ProfileSettingsView() {
     const { t } = useTranslation();
+    usePageTitle(t('settings.menu.profile'), 'Avatar');
     const themeOptions = useMemo(
         () => [
             { label: t('profile.themes.light'), value: 'light' },
@@ -45,7 +46,6 @@ function ProfileSettingsView() {
 
     return (
         <div className="px-7 py-[2.5rem]">
-            <Header title={t('settings.menu.profile')} icon="Avatar" />
             <form className="mt-4 max-w-[880px]">
                 <div className="space-y-8">
                     {/* Theme */}

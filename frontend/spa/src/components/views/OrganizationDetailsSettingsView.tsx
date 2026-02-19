@@ -6,10 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import Button from '@/components/ui/Button';
-import Header from '@/components/ui/Header';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
@@ -29,6 +29,7 @@ function germanToIso(german: string): string {
 
 function OrganizationDetailsSettingsView() {
     const { t } = useTranslation();
+    usePageTitle(t('organization.details.title'), 'Backpack');
     const { toast } = useToast();
     const organization = useStore((state) => state.organization);
     const setOrganization = useStore((state) => state.setOrganization);
@@ -192,8 +193,7 @@ function OrganizationDetailsSettingsView() {
     }
 
     return (
-        <div className="px-7 py-[2.5rem]">
-            <Header title={t('organization.details.title')} icon="Backpack" />
+        <div>
             <p className="text-sm text-muted-foreground mt-1 mb-6">{t('organization.details.description')}</p>
 
             <form className="mt-4 max-w-[880px]" onSubmit={handleSubmit(onSubmit)}>

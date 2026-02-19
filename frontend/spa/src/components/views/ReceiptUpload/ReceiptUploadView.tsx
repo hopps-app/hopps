@@ -13,6 +13,7 @@ import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUpl
 import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
@@ -37,6 +38,7 @@ function ReceiptUploadView() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
+    usePageTitle(id ? t('receipts.upload.editTitle') : t('receipts.upload.title'));
     const { showError, showSuccess } = useToast();
     const { loadBommels } = useBommelsStore();
     const store = useStore();
@@ -597,22 +599,16 @@ function ReceiptUploadView() {
 
     if (isLoadingTransaction) {
         return (
-            <div className="flex flex-col gap-6">
-                <h2 className="text-2xl font-semibold tracking-tight">{t('receipts.upload.editTitle')}</h2>
-                <div className="flex items-center justify-center py-16">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted-foreground/20 border-t-primary"></div>
-                </div>
+            <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted-foreground/20 border-t-primary"></div>
             </div>
         );
     }
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold tracking-tight">{isEditMode ? t('receipts.upload.editTitle') : t('receipts.upload.title')}</h2>
-                <div className="flex items-center gap-2">
-                    <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
-                </div>
+            <div className="flex justify-end">
+                <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-stretch">
@@ -721,7 +717,7 @@ function ReceiptUploadView() {
                         </div>
                     )}
 
-                    <div className="min-w-0 border border-border bg-card rounded-xl p-5">
+                    <div className="min-w-0 border border-border bg-card rounded-[30px] p-5">
                         <ReceiptFormFields
                             receiptNumber={receiptNumber}
                             onReceiptNumberChange={setReceiptNumber}

@@ -138,7 +138,7 @@ function BommelTreeComponent({
     }
 
     return (
-        <div ref={treeContainerRef} className="w-full border rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 relative" style={{ height }}>
+        <div ref={treeContainerRef} className="w-full border rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 relative" style={{ height }}>
             <div className="w-full h-full overflow-hidden">
                 <Tree
                     data={treeData}

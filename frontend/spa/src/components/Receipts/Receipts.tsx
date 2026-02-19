@@ -1,19 +1,19 @@
 import { MagnifyingGlassIcon, Cross2Icon } from '@radix-ui/react-icons';
-import { Filter, Plus } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
 import { ReceiptFilters } from '@/components/Receipts/Filters/ReceiptFilters';
 import { useReceiptFilters } from '@/components/Receipts/hooks/useReceiptFilters';
 import ReceiptsList from '@/components/Receipts/ReceiptsList';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
 
 const Receipts = () => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
+    usePageTitle(t('menu.receipts'));
     const { filters, setFilter, resetFilters } = useReceiptFilters();
     const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -43,18 +43,6 @@ const Receipts = () => {
 
     return (
         <div className="w-full space-y-5">
-            {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">{t('menu.receipts')}</h2>
-                <BaseButton
-                    onClick={() => navigate('/receipts/new')}
-                    className="gap-2 bg-[var(--purple-500)] hover:bg-[var(--purple-600)] text-white rounded-xl shrink-0"
-                >
-                    <Plus className="h-4 w-4" />
-                    {t('receipts.newReceipt')}
-                </BaseButton>
-            </div>
-
             {/* Search + Filter Controls */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative flex-1 max-w-md">

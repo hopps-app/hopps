@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import CategoryForm from '../Categories/CategoryForm';
 import CategoryTable from '../Categories/CategoryTable';
 import Button from '../ui/Button';
-import Header from '../ui/Header';
 import TextField from '../ui/TextField';
 
 import { EmptyState } from '@/components/common/EmptyState';
@@ -13,17 +12,18 @@ import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import DialogWrapper from '@/components/ui/DialogWrapper';
 import { useCategories } from '@/hooks/queries';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { useSearch } from '@/hooks/use-search';
 
 function CategoriesSettingsView() {
     const { t } = useTranslation();
+    usePageTitle(t('categories.title'));
     const { data: categories = [], isLoading, refetch } = useCategories();
     const [query, setQuery] = useState('');
     const results: Category[] = useSearch(categories, query, ['name']);
 
     return (
         <div className="flex flex-col gap-4 h-full">
-            <Header title={t('categories.title')} />
             <div className="flex-1 min-h-0 flex flex-col">
                 <div className="flex flex-col sm:flex-row sm:justify-end items-stretch sm:items-center gap-4 mb-8">
                     <div className="h-11 w-full sm:w-[312px] order-2 sm:order-1">

@@ -15,9 +15,11 @@ import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Switch from '@/components/ui/Switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 function OrganizationSettingsView() {
     const { t } = useTranslation();
+    usePageTitle(t('menu.structure'));
     const [searchParams, setSearchParams] = useSearchParams();
     const bommelId = searchParams.get('bommelId');
     const [isEditMode, setIsEditMode] = useState(false);

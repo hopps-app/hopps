@@ -14,10 +14,10 @@ export function OrganizationRegistrationSuccess() {
     return (
         <div>
             <div className="flex justify-center">
-                <CheckmarkIcon />
+                <CheckmarkIcon className="w-16 h-16" />
             </div>
 
-            <h1 className="mt-4 mb-6 text-center">Your organization has been successfully registered.</h1>
+            <h2 className="mt-3 mb-4 text-center">{t('organization.registration.successHeading')}</h2>
             <div className="text-center">
                 <Button onClick={onClickLogin}>{t('header.login')}</Button>
             </div>

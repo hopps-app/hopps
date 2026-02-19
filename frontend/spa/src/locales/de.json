@@ -122,6 +122,7 @@
             "emailAndOrganizationAlreadyExist": "Diese E-Mail-Adresse und dieser Organisationsname sind bereits vergeben",
             "header": "Organisation registrieren",
             "success": "Organisation erfolgreich erstellt",
+            "successHeading": "Ihre Organisation wurde erfolgreich registriert.",
             "organizationName": "Organisationsname",
             "firstName": "Vorname",
             "lastName": "Nachname",

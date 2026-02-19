@@ -16,7 +16,7 @@ function OrganizationErrorView() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
+            <div className="max-w-md w-full bg-white shadow-lg rounded-[30px] p-8 text-center">
                 <div className="mb-6">
                     <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                         <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

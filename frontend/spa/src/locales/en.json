@@ -123,6 +123,7 @@
             "emailAndOrganizationAlreadyExist": "This email address and organization name are already taken",
             "header": "Register Organization",
             "success": "Organisation successfully created",
+            "successHeading": "Your organization has been successfully registered.",
             "organizationName": "Organization name",
             "firstName": "First name",
             "lastName": "Last name",
