@@ -1,9 +1,9 @@
-import { Network, Grid3x3, Edit, Check, RefreshCw, AlertCircle } from 'lucide-react';
+import { Edit, Check, RefreshCw, AlertCircle } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
-import { BommelDetailsPanel, EditModeBanner } from './components';
+import { BommelDetailsPanel } from './components';
 import { useOrganizationTree, useTreeCalculations, useStatistics } from './hooks';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
@@ -13,7 +13,6 @@ import Button from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Switch from '@/components/ui/Switch';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 
@@ -28,7 +27,6 @@ function OrganizationSettingsView() {
     const initialSelectionDone = useRef(false);
 
     const isLargeScreen = useMediaQuery('(min-width: 1024px)');
-    const [activeTab, setActiveTab] = useState('tree');
 
     const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
 
@@ -187,80 +185,58 @@ function OrganizationSettingsView() {
                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                     {/* Left Side - Structure Views */}
                     <div className="xl:col-span-3 space-y-6">
-                        <Tabs value={isLargeScreen ? activeTab : 'table'} onValueChange={setActiveTab} className="w-full">
-                            <div className="flex items-center justify-between mb-4">
-                                {isLargeScreen && (
-                                    <TabsList className="grid grid-cols-2 w-auto">
-                                        <TabsTrigger value="tree" className="flex items-center gap-2">
-                                            <Network className="w-4 h-4" />
-                                            {t('organization.structure.treeView')}
-                                        </TabsTrigger>
-                                        <TabsTrigger value="table" className="flex items-center gap-2">
-                                            <Grid3x3 className="w-4 h-4" />
-                                            {t('organization.structure.tableView')}
-                                        </TabsTrigger>
-                                    </TabsList>
-                                )}
-
-                                <div className="flex items-center gap-4">
-                                    <Switch
-                                        label={t('organization.structure.includeDrafts')}
-                                        checked={statisticsOptions.includeDrafts}
-                                        onCheckedChange={setIncludeDrafts}
-                                    />
-                                    <Switch
-                                        label={t('organization.structure.aggregate')}
-                                        checked={statisticsOptions.aggregate}
-                                        onCheckedChange={setAggregate}
-                                    />
-                                    <Button variant={isEditMode ? 'default' : 'outline'} onClick={() => setIsEditMode(!isEditMode)}>
-                                        {isEditMode ? (
-                                            <>
-                                                <Check className="w-4 h-4 mr-2" />
-                                                {t('organization.structure.done')}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Edit className="w-4 h-4 mr-2" />
-                                                {t('organization.structure.edit')}
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {isLargeScreen && (
-                                <TabsContent value="tree" className="mt-0">
-                                    {isEditMode && <EditModeBanner />}
-                                    <BommelTreeComponent
-                                        key={`tree-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
-                                        tree={tree}
-                                        rootBommel={rootBommel}
-                                        editable={isEditMode}
-                                        width={1200}
-                                        height={600}
-                                        onNodeClick={handleTreeNodeClick}
-                                        onEdit={handleEdit}
-                                        onDelete={handleDelete}
-                                        onAddChild={handleAddChild}
-                                        onMove={handleMove}
-                                    />
-                                </TabsContent>
-                            )}
-
-                            <TabsContent value="table" className="mt-0">
-                                <OrganizationTree
-                                    tree={tree}
-                                    editable={isEditMode}
-                                    selectable={true}
-                                    createNode={createTreeNode}
-                                    updateNode={updateTreeNode}
-                                    deleteNode={deleteTreeNode}
-                                    moveNode={moveTreeNode}
-                                    onSelect={handleBommelSelect}
+                        <div className="flex items-center justify-end mb-4">
+                            <div className="flex items-center gap-4">
+                                <Switch
+                                    label={t('organization.structure.includeDrafts')}
+                                    checked={statisticsOptions.includeDrafts}
+                                    onCheckedChange={setIncludeDrafts}
                                 />
-                            </TabsContent>
-                        </Tabs>
+                                <Switch label={t('organization.structure.aggregate')} checked={statisticsOptions.aggregate} onCheckedChange={setAggregate} />
+                                <Button variant={isEditMode ? 'default' : 'outline'} onClick={() => setIsEditMode(!isEditMode)}>
+                                    {isEditMode ? (
+                                        <>
+                                            <Check className="w-4 h-4 mr-2" />
+                                            {t('organization.structure.done')}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Edit className="w-4 h-4 mr-2" />
+                                            {t('organization.structure.edit')}
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {isLargeScreen ? (
+                            <div>
+                                <BommelTreeComponent
+                                    key={`tree-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
+                                    tree={tree}
+                                    rootBommel={rootBommel}
+                                    editable={isEditMode}
+                                    width={1200}
+                                    height={600}
+                                    onNodeClick={handleTreeNodeClick}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    onAddChild={handleAddChild}
+                                    onMove={handleMove}
+                                />
+                            </div>
+                        ) : (
+                            <OrganizationTree
+                                tree={tree}
+                                editable={isEditMode}
+                                selectable={true}
+                                createNode={createTreeNode}
+                                updateNode={updateTreeNode}
+                                deleteNode={deleteTreeNode}
+                                moveNode={moveTreeNode}
+                                onSelect={handleBommelSelect}
+                            />
+                        )}
                     </div>
 
                     {/* Right Side - Selected Bommel Details */}

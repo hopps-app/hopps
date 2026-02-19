@@ -1,3 +1,4 @@
+import { Crosshair } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Tree, { CustomNodeElementProps } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +27,7 @@ function BommelTreeComponent({
     const treeContainerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(width);
     const [movingBommelId, setMovingBommelId] = useState<number | null>(null);
+    const [centerKey, setCenterKey] = useState(0);
 
     // Measure container width for responsive centering
     useEffect(() => {
@@ -47,6 +49,10 @@ function BommelTreeComponent({
     const treeData = useTreeData({ tree, rootBommel });
 
     const movingBommel = movingBommelId !== null ? tree.find((n) => n.id === movingBommelId) : null;
+
+    const handleCenterTree = useCallback(() => {
+        setCenterKey((prev) => prev + 1);
+    }, []);
 
     const handleEdit = useCallback(
         async (nodeId: number, newName: string, newEmoji?: string) => {
@@ -115,7 +121,7 @@ function BommelTreeComponent({
         ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
             return (
                 <g>
-                    <foreignObject x={-100} y={editable ? -40 : -45} width={200} height={editable ? 80 : 90} style={{ overflow: 'visible' }}>
+                    <foreignObject x={-100} y={editable ? -30 : -45} width={200} height={editable ? 60 : 90} style={{ overflow: 'visible' }}>
                         <BommelCard
                             nodeDatum={nodeDatum}
                             toggleNode={toggleNode}
@@ -139,21 +145,32 @@ function BommelTreeComponent({
 
     return (
         <div ref={treeContainerRef} className="w-full border rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 relative" style={{ height }}>
+            {/* Center tree button */}
+            <button
+                type="button"
+                onClick={handleCenterTree}
+                className="absolute top-3 right-3 z-10 bg-white border border-gray-300 rounded-lg p-2 shadow-sm hover:bg-gray-50 hover:shadow-md transition-all"
+                title={t('organization.structure.centerTree')}
+                aria-label={t('organization.structure.centerTree')}
+            >
+                <Crosshair className="w-4 h-4 text-gray-600" aria-hidden="true" />
+            </button>
+
             <div className="w-full h-full overflow-hidden">
                 <Tree
+                    key={centerKey}
                     data={treeData}
                     orientation="vertical"
                     translate={{ x: containerWidth / 2, y: 80 }}
                     pathFunc="step"
-                    nodeSize={{ x: 240, y: editable ? 130 : 140 }}
+                    nodeSize={{ x: 240, y: editable ? 100 : 140 }}
                     renderCustomNodeElement={renderCustomNodeElement}
                     separation={{ siblings: 1, nonSiblings: 1.2 }}
                     zoom={0.9}
                     scaleExtent={{ min: 0.3, max: 2 }}
                     enableLegacyTransitions={true}
                     collapsible={true}
-                    initialDepth={3}
-                    depthFactor={editable ? 130 : 140}
+                    depthFactor={editable ? 100 : 140}
                     pathClassFunc={() => 'tree-link'}
                 />
             </div>

@@ -193,6 +193,8 @@
                 "noTargets": "No valid target Bommels available",
                 "confirm": "Move"
             },
+            "centerTree": "Center",
+            "addSibling": "Add Bommel",
             "rootCannotEdit": "The root bommel cannot be edited",
             "rootCannotDelete": "The root bommel cannot be deleted",
             "toast": {

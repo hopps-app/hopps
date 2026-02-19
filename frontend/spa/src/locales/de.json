@@ -192,6 +192,8 @@
                 "noTargets": "Keine gültigen Ziel-Bommels verfügbar",
                 "confirm": "Verschieben"
             },
+            "centerTree": "Zentrieren",
+            "addSibling": "Bommel hinzufügen",
             "rootCannotEdit": "Der Wurzel-Bommel kann nicht bearbeitet werden",
             "rootCannotDelete": "Der Wurzel-Bommel kann nicht gelöscht werden",
             "toast": {

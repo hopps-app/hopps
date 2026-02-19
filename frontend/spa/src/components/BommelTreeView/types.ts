@@ -12,6 +12,8 @@ export interface TreeNodeData {
         expenses?: number;
         transactionsCount?: number;
         isRoot?: boolean;
+        isLastSibling?: boolean;
+        parentId?: number;
     };
     children?: TreeNodeData[];
 }

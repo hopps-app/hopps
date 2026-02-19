@@ -196,11 +196,11 @@ function OrganizationDetailsSettingsView() {
         <div>
             <p className="text-sm text-muted-foreground mt-1 mb-6">{t('organization.details.description')}</p>
 
-            <form className="mt-4 max-w-[880px]" onSubmit={handleSubmit(onSubmit)}>
-                <fieldset disabled={isSubmitting} className="space-y-8">
-                    {/* Organization Name */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                        <div className="sm:col-span-2">
+            <form className="mt-4" onSubmit={handleSubmit(onSubmit)}>
+                <fieldset disabled={isSubmitting}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                        {/* Column 1: Organization & Legal */}
+                        <div className="space-y-4">
                             <TextField
                                 label={t('organization.details.name')}
                                 placeholder={t('organization.details.name')}
@@ -208,12 +208,7 @@ function OrganizationDetailsSettingsView() {
                                 required
                                 {...register('name')}
                             />
-                        </div>
-                    </div>
 
-                    {/* Organization Type */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                        <div className="sm:col-span-2">
                             <Controller
                                 name="type"
                                 control={control}
@@ -228,137 +223,94 @@ function OrganizationDetailsSettingsView() {
                                     />
                                 )}
                             />
+
+                            <h3 className="text-lg font-semibold text-foreground pt-2">{t('organization.details.legalInfo')}</h3>
+
+                            <TextField
+                                label={t('organization.details.foundingDate')}
+                                type="text"
+                                placeholder="TT.MM.JJJJ"
+                                error={errors.foundingDate?.message}
+                                {...register('foundingDate')}
+                            />
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <TextField
+                                    label={t('organization.details.registrationCourt')}
+                                    placeholder={t('organization.details.registrationCourt')}
+                                    {...register('registrationCourt')}
+                                />
+                                <TextField
+                                    label={t('organization.details.registrationNumber')}
+                                    placeholder={t('organization.details.registrationNumber')}
+                                    {...register('registrationNumber')}
+                                />
+                            </div>
+
+                            <TextField
+                                label={t('organization.details.taxNumber')}
+                                placeholder={t('organization.details.taxNumber')}
+                                {...register('taxNumber')}
+                            />
+                        </div>
+
+                        {/* Column 2: Address */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">{t('organization.details.address')}</h3>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="col-span-2">
+                                    <TextField
+                                        label={t('organization.details.street')}
+                                        placeholder={t('organization.details.street')}
+                                        {...register('street')}
+                                    />
+                                </div>
+                                <div className="col-span-1">
+                                    <TextField
+                                        label={t('organization.details.number')}
+                                        placeholder={t('organization.details.number')}
+                                        {...register('number')}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="col-span-1">
+                                    <TextField label={t('organization.details.plz')} placeholder={t('organization.details.plz')} {...register('plz')} />
+                                </div>
+                                <div className="col-span-2">
+                                    <TextField label={t('organization.details.city')} placeholder={t('organization.details.city')} {...register('city')} />
+                                </div>
+                            </div>
+
+                            <TextField label={t('organization.details.country')} placeholder={t('organization.details.country')} {...register('country')} />
+
+                            <TextField
+                                label={t('organization.details.additionalLine')}
+                                placeholder={t('organization.details.additionalLine')}
+                                {...register('additionalLine')}
+                            />
+                        </div>
+
+                        {/* Column 3: Contact */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">{t('organization.details.contactInfo')}</h3>
+
+                            <TextField label={t('organization.details.website')} placeholder="https://example.com" {...register('website')} />
+
+                            <TextField label={t('organization.details.email')} placeholder={t('organization.details.email')} {...register('email')} />
+
+                            <TextField
+                                label={t('organization.details.phoneNumber')}
+                                placeholder={t('organization.details.phoneNumber')}
+                                {...register('phoneNumber')}
+                            />
                         </div>
                     </div>
 
-                    {/* Legal Information Section */}
-                    <fieldset className="space-y-4">
-                        <legend className="text-lg font-semibold text-foreground">{t('organization.details.legalInfo')}</legend>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <TextField
-                                    label={t('organization.details.foundingDate')}
-                                    type="text"
-                                    placeholder="TT.MM.JJJJ"
-                                    error={errors.foundingDate?.message}
-                                    {...register('foundingDate')}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <TextField
-                                        label={t('organization.details.registrationCourt')}
-                                        placeholder={t('organization.details.registrationCourt')}
-                                        {...register('registrationCourt')}
-                                    />
-                                    <TextField
-                                        label={t('organization.details.registrationNumber')}
-                                        placeholder={t('organization.details.registrationNumber')}
-                                        {...register('registrationNumber')}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <TextField
-                                    label={t('organization.details.taxNumber')}
-                                    placeholder={t('organization.details.taxNumber')}
-                                    {...register('taxNumber')}
-                                />
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    {/* Address Section */}
-                    <fieldset className="space-y-4">
-                        <legend className="text-lg font-semibold text-foreground">{t('organization.details.address')}</legend>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div className="col-span-2">
-                                        <TextField
-                                            label={t('organization.details.street')}
-                                            placeholder={t('organization.details.street')}
-                                            {...register('street')}
-                                        />
-                                    </div>
-                                    <div className="col-span-1">
-                                        <TextField
-                                            label={t('organization.details.number')}
-                                            placeholder={t('organization.details.number')}
-                                            {...register('number')}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div className="col-span-1">
-                                        <TextField label={t('organization.details.plz')} placeholder={t('organization.details.plz')} {...register('plz')} />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <TextField label={t('organization.details.city')} placeholder={t('organization.details.city')} {...register('city')} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <TextField label={t('organization.details.country')} placeholder={t('organization.details.country')} {...register('country')} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <TextField
-                                    label={t('organization.details.additionalLine')}
-                                    placeholder={t('organization.details.additionalLine')}
-                                    {...register('additionalLine')}
-                                />
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    {/* Contact Information Section */}
-                    <fieldset className="space-y-4">
-                        <legend className="text-lg font-semibold text-foreground">{t('organization.details.contactInfo')}</legend>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <TextField label={t('organization.details.website')} placeholder="https://example.com" {...register('website')} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <TextField label={t('organization.details.email')} placeholder={t('organization.details.email')} {...register('email')} />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
-                            <div className="sm:col-span-2">
-                                <TextField
-                                    label={t('organization.details.phoneNumber')}
-                                    placeholder={t('organization.details.phoneNumber')}
-                                    {...register('phoneNumber')}
-                                />
-                            </div>
-                        </div>
-                    </fieldset>
-
                     {/* Save Button */}
-                    <div className="flex justify-end">
+                    <div className="flex justify-end mt-8">
                         <Button type="submit" variant="default" disabled={isSubmitting}>
                             {isSubmitting ? t('common.loading') : t('common.save')}
                         </Button>

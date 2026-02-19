@@ -141,6 +141,19 @@ function OrganizationTreeNode(props: Props) {
         }
     }, [props.autoEdit, props.editable, isEditing, props.node.text, emoji]);
 
+    // Auto-save or cancel when leaving edit mode (clicking "Fertig")
+    useEffect(() => {
+        if (!props.editable && isEditing) {
+            const error = validateBommelName(editValue);
+            if (!error) {
+                onClickAcceptEdit();
+            } else {
+                onClickCancelEdit();
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.editable]);
+
     const dragOverProps = useDragOver(id, props.isOpen, props.onToggle);
 
     const { total, income, expenses, transactionsCount, subBommelsCount } = props.node.data || {};
@@ -228,8 +241,18 @@ function OrganizationTreeNode(props: Props) {
                             </div>
                         ) : (
                             <div className="flex items-center justify-between gap-4">
-                                {/* Left: Name and basic info */}
-                                <div className="flex-1 min-w-0">
+                                {/* Left: Name and basic info - clickable to edit in edit mode */}
+                                <div
+                                    className={cn('flex-1 min-w-0', {
+                                        'cursor-text hover:bg-gray-50 rounded-md px-1 -mx-1 transition-colors': props.editable && !isRoot,
+                                    })}
+                                    onClick={(e) => {
+                                        if (props.editable && !isRoot) {
+                                            e.stopPropagation();
+                                            onClickEdit();
+                                        }
+                                    }}
+                                >
                                     <div className="flex items-center gap-2 mb-1">
                                         {emoji && (
                                             <span className="flex-shrink-0">
@@ -252,7 +275,7 @@ function OrganizationTreeNode(props: Props) {
                                     </div>
                                 </div>
 
-                                {/* Right: Financial info or Edit/Delete buttons */}
+                                {/* Right: Financial info or Delete button */}
                                 {!props.editable ? (
                                     <div className="flex items-center gap-4 flex-shrink-0">
                                         {/* Income and Expenses - smaller, side by side */}
@@ -284,16 +307,6 @@ function OrganizationTreeNode(props: Props) {
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2 flex-shrink-0">
-                                        <Button
-                                            variant="outline"
-                                            className="px-3"
-                                            icon="Pencil1"
-                                            onClick={onClickEdit}
-                                            disabled={isRoot}
-                                            title={isRoot ? t('organization.structure.rootCannotEdit') : undefined}
-                                        >
-                                            {t('organization.structure.edit')}
-                                        </Button>
                                         <Button
                                             variant="outline"
                                             className={cn('px-3', {

@@ -69,10 +69,10 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
     };
 
     return (
-        <div className="flex flex-col gap-1 flex-1" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-1 flex-1">
-                <div className="w-10 flex-shrink-0">
-                    <EmojiField value={emoji} onChange={onEmojiChange} className="py-0 px-1 h-8 text-sm" />
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+                <div className="w-8 flex-shrink-0">
+                    <EmojiField value={emoji} onChange={onEmojiChange} className="py-0 px-0.5 h-6 text-xs" />
                 </div>
                 <input
                     type="text"
@@ -81,7 +81,7 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                     onKeyDown={handleKeyDown}
                     autoFocus
                     maxLength={BOMMEL_NAME_MAX_LENGTH + 1}
-                    className={`flex-1 bg-white text-gray-700 text-sm font-semibold px-2 py-1 rounded border-2 outline-none ${
+                    className={`flex-1 min-w-0 bg-white text-gray-700 text-xs font-semibold px-1.5 py-0.5 rounded border-2 outline-none ${
                         validationError ? 'border-red-500' : 'border-purple-500'
                     }`}
                     aria-label={t('organization.structure.editName')}
@@ -95,11 +95,11 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                         e.stopPropagation();
                         handleSave();
                     }}
-                    className="bg-emerald-500 text-white border-none rounded p-1 cursor-pointer flex items-center hover:bg-emerald-600 transition-colors"
+                    className="bg-emerald-500 text-white border-none rounded p-0.5 cursor-pointer flex items-center hover:bg-emerald-600 transition-colors flex-shrink-0"
                     title={t('organization.structure.saveName')}
                     aria-label={t('organization.structure.saveName')}
                 >
-                    <Check className="w-4 h-4" aria-hidden="true" />
+                    <Check className="w-3 h-3" aria-hidden="true" />
                 </button>
                 <button
                     type="button"
@@ -107,15 +107,15 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                         e.stopPropagation();
                         onCancel();
                     }}
-                    className="bg-red-500 text-white border-none rounded p-1 cursor-pointer flex items-center hover:bg-red-600 transition-colors"
+                    className="bg-red-500 text-white border-none rounded p-0.5 cursor-pointer flex items-center hover:bg-red-600 transition-colors flex-shrink-0"
                     title={t('organization.structure.cancelEdit')}
                     aria-label={t('organization.structure.cancelEdit')}
                 >
-                    <X className="w-4 h-4" aria-hidden="true" />
+                    <X className="w-3 h-3" aria-hidden="true" />
                 </button>
             </div>
             {validationError && (
-                <div id="bommel-name-error" className="text-red-300 text-xs font-medium pl-11" role="alert">
+                <div id="bommel-name-error" className="text-red-300 text-[10px] font-medium pl-9" role="alert">
                     {validationError}
                 </div>
             )}

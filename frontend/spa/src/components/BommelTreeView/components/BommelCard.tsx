@@ -1,11 +1,10 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { ArrowRight, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { RawNodeDatum } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
 import { BommelCardProps, TreeNodeData } from '../types';
 
-import { BommelCardActions } from './BommelCardActions';
 import { BommelCardEditForm } from './BommelCardEditForm';
 import { BommelCardStats } from './BommelCardStats';
 import { DeleteBommelDialog, DeleteTransactionHandling } from './DeleteBommelDialog';
@@ -21,6 +20,8 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
     const transactionsCount = (nodeDatum.attributes?.transactionsCount as number) || 0;
     const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
     const isRoot = !!nodeDatum.attributes?.isRoot;
+    const isLastSibling = !!nodeDatum.attributes?.isLastSibling;
+    const parentId = nodeDatum.attributes?.parentId as number;
 
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(nodeDatum.name);
@@ -39,8 +40,15 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         }
     };
 
+    const handleStartEdit = () => {
+        if (editable && !isRoot) {
+            setEditedName(nodeDatum.name);
+            setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
+            setIsEditing(true);
+        }
+    };
+
     const handleSaveName = async () => {
-        // Validation is handled in BommelCardEditForm, but also guard here
         if (!editedName.trim() || editedName.trim().length > 255) {
             return;
         }
@@ -67,6 +75,19 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
     };
 
+    // Auto-save or cancel when leaving edit mode (clicking "Fertig")
+    useEffect(() => {
+        if (!editable && isEditing) {
+            const trimmedName = editedName.trim();
+            if (trimmedName && trimmedName.length <= 255) {
+                handleSaveName();
+            } else {
+                handleCancelEdit();
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editable]);
+
     const handleDeleteClick = () => {
         setShowDeleteDialog(true);
     };
@@ -78,8 +99,6 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
             if (deletingRef.current) return;
             deletingRef.current = true;
             try {
-                // For now, we ignore transactionHandling since the backend API doesn't support it yet
-                // In the future, this would be passed to the API
                 await onDelete(nodeId);
                 setShowDeleteDialog(false);
             } finally {
@@ -106,10 +125,25 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         }
     };
 
+    const addingSiblingRef = useRef(false);
+
+    const handleAddSibling = async () => {
+        if (onAddChild && parentId !== undefined) {
+            if (addingSiblingRef.current) return;
+            addingSiblingRef.current = true;
+            try {
+                await onAddChild(parentId);
+            } finally {
+                addingSiblingRef.current = false;
+            }
+        }
+    };
+
     return (
-        <div onClick={handleClick} className="w-full h-full cursor-pointer font-sans relative">
+        <div onClick={handleClick} className="w-full font-sans cursor-pointer">
+            {/* Card */}
             <div
-                className={`rounded-xl p-3 shadow-md h-full flex flex-col gap-2 transition-all bommel-card ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}
+                className={`relative rounded-xl px-3 py-2 shadow-md transition-all bommel-card ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}
             >
                 {/* Collapse toggle button */}
                 {hasChildren && (
@@ -120,7 +154,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                             toggleNode();
                         }}
                         className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white border-2 border-purple-500 rounded-full w-6 h-6 flex items-center justify-center cursor-pointer z-10 transition-all collapse-button hover:bg-purple-50"
-                        aria-label={isCollapsed ? t('organization.structure.details.subBommels') : t('organization.structure.details.subBommels')}
+                        aria-label={t('organization.structure.details.subBommels')}
                         aria-expanded={!isCollapsed}
                     >
                         {isCollapsed ? (
@@ -131,8 +165,40 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                     </button>
                 )}
 
-                {/* Header with emoji and name */}
-                <div className="flex items-center gap-2">
+                {/* Delete button - top right corner */}
+                {editable && !isEditing && !isRoot && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick();
+                        }}
+                        className="absolute -top-1.5 -right-1.5 bg-red-500/80 text-white border-none rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors z-10"
+                        title={t('organization.structure.deleteBommel')}
+                        aria-label={t('organization.structure.deleteBommel')}
+                    >
+                        <Trash2 className="w-2.5 h-2.5" aria-hidden="true" />
+                    </button>
+                )}
+
+                {/* Move button - bottom right corner */}
+                {editable && !isEditing && !isRoot && onMove && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onMove(nodeId);
+                        }}
+                        className="absolute -bottom-1.5 -right-1.5 bg-blue-500/80 text-white border-none rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors z-10"
+                        title={t('organization.structure.moveBommel')}
+                        aria-label={t('organization.structure.moveBommel')}
+                    >
+                        <ArrowRight className="w-2.5 h-2.5" aria-hidden="true" />
+                    </button>
+                )}
+
+                {/* Content: emoji + name or edit form */}
+                <div className="flex items-center gap-2 min-w-0">
                     {isEditing ? (
                         <BommelCardEditForm
                             name={editedName}
@@ -143,34 +209,63 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                             onCancel={handleCancelEdit}
                         />
                     ) : (
-                        <>
+                        <div
+                            className={`flex items-center gap-2 min-w-0 flex-1 ${editable && !isRoot ? 'cursor-text hover:opacity-80' : ''}`}
+                            onClick={(e) => {
+                                if (editable && !isRoot) {
+                                    e.stopPropagation();
+                                    handleStartEdit();
+                                }
+                            }}
+                        >
                             {nodeDatum.attributes?.emoji && (
                                 <div className="text-xl flex-shrink-0">
                                     <Emoji emoji={nodeDatum.attributes.emoji as string} />
                                 </div>
                             )}
                             <div
-                                className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 ${isRoot ? 'text-white' : 'text-gray-800'}`}
+                                className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0 ${isRoot ? 'text-white' : 'text-gray-800'}`}
                             >
                                 {nodeDatum.name}
                             </div>
-                        </>
+                        </div>
                     )}
                 </div>
 
-                {/* Action buttons in second row in edit mode */}
-                {editable && !isEditing && (
-                    <BommelCardActions
-                        onEdit={() => setIsEditing(true)}
-                        onDelete={handleDeleteClick}
-                        onAddChild={handleAddChild}
-                        onMove={onMove ? () => onMove(nodeId) : undefined}
-                        isRoot={isRoot}
-                    />
-                )}
-
                 {/* Financial Stats - Only show in view mode */}
                 {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} isRoot={isRoot} />}
+
+                {/* Add child button - bottom center, only when no children */}
+                {editable && !hasChildren && !isEditing && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddChild();
+                        }}
+                        className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-600 shadow-md z-20 transition-colors"
+                        title={t('organization.structure.addChild')}
+                        aria-label={t('organization.structure.addChild')}
+                    >
+                        <Plus className="w-3 h-3" aria-hidden="true" />
+                    </button>
+                )}
+
+                {/* Sibling add button - right side, only on last child of each parent */}
+                {isLastSibling && editable && !isEditing && !isRoot && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddSibling();
+                        }}
+                        className="absolute -right-5 top-1/2 -translate-y-1/2 bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-600 shadow-md z-20 transition-colors"
+                        title={t('organization.structure.addSibling')}
+                        aria-label={t('organization.structure.addSibling')}
+                    >
+                        <Plus className="w-3 h-3" aria-hidden="true" />
+                    </button>
+                )}
             </div>
 
             {/* Delete confirmation dialog */}
