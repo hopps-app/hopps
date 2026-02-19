@@ -11,7 +11,7 @@ export function RegisterOrganizationView() {
 
     return (
         <div className="flex justify-center pt-20">
-            <div className="w-full sm:w-[600px] bg-background-secondary rounded shadow p-4">
+            <div className="w-full sm:w-[600px] bg-background-secondary rounded-lg shadow p-4">
                 {isShowSuccess ? <OrganizationRegistrationSuccess /> : <OrganizationRegistrationForm onSuccess={handleSuccess} />}
             </div>
         </div>

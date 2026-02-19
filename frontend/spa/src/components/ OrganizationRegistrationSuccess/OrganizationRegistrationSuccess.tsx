@@ -8,7 +8,7 @@ export function OrganizationRegistrationSuccess() {
     const { t } = useTranslation();
 
     const onClickLogin = () => {
-        authService.login();
+        authService.login(`${window.location.origin}/dashboard`);
     };
 
     return (

@@ -58,8 +58,8 @@ export class AuthService {
         return isSuccessInit;
     }
 
-    async login() {
-        return await this.keycloak.login();
+    async login(redirectUri?: string) {
+        return await this.keycloak.login(redirectUri ? { redirectUri } : undefined);
     }
 
     async logout() {
