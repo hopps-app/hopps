@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { NewOrganizationInput } from '@hopps/api-client';
+import { ApiException, NewOrganizationInput } from '@hopps/api-client';
 import { useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -86,7 +86,27 @@ export function OrganizationRegistrationForm(props: Props) {
             props.onSuccess();
         } catch (e) {
             console.error(e);
-            showError(t('organization.registration.failed'));
+            if (ApiException.isApiException(e) && e.status === 409) {
+                try {
+                    const body = JSON.parse(e.response);
+                    const fields: string[] = body.conflictingFields ?? [];
+                    const hasEmail = fields.includes('email');
+                    const hasSlug = fields.includes('slug');
+                    if (hasEmail && hasSlug) {
+                        showError(t('organization.registration.emailAndOrganizationAlreadyExist'));
+                    } else if (hasEmail) {
+                        showError(t('organization.registration.emailAlreadyRegistered'));
+                    } else if (hasSlug) {
+                        showError(t('organization.registration.organizationAlreadyExists'));
+                    } else {
+                        showError(t('organization.registration.failed'));
+                    }
+                } catch {
+                    showError(t('organization.registration.failed'));
+                }
+            } else {
+                showError(t('organization.registration.failed'));
+            }
         } finally {
             submittingRef.current = false;
         }

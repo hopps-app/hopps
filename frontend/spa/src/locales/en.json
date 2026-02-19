@@ -118,6 +118,9 @@
     "organization": {
         "registration": {
             "failed": "Failed to register organization",
+            "emailAlreadyRegistered": "This email address is already registered",
+            "organizationAlreadyExists": "An organization with this name already exists",
+            "emailAndOrganizationAlreadyExist": "This email address and organization name are already taken",
             "header": "Register Organization",
             "success": "Organisation successfully created",
             "organizationName": "Organization name",

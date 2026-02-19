@@ -117,6 +117,9 @@
     "organization": {
         "registration": {
             "failed": "Fehler bei der Registrierung der Organisation",
+            "emailAlreadyRegistered": "Diese E-Mail-Adresse ist bereits registriert",
+            "organizationAlreadyExists": "Eine Organisation mit diesem Namen existiert bereits",
+            "emailAndOrganizationAlreadyExist": "Diese E-Mail-Adresse und dieser Organisationsname sind bereits vergeben",
             "header": "Organisation registrieren",
             "success": "Organisation erfolgreich erstellt",
             "organizationName": "Organisationsname",

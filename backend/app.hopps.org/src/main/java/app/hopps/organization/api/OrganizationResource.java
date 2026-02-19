@@ -15,6 +15,9 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -160,7 +163,7 @@ public class OrganizationResource {
     @Operation(summary = "Create a new organization")
     @APIResponse(responseCode = "201", description = "Organization created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
-    @APIResponse(responseCode = "409", description = "Email or slug already exists")
+    @APIResponse(responseCode = "409", description = "Email or slug already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public Response create(NewOrganizationInput input) {
         Organization organization = input.toOrganization();
         Member owner = input.toOwner();
@@ -175,8 +178,11 @@ public class OrganizationResource {
                             .build());
         } catch (NonUniqueConstraintViolation.NonUniqueConstraintViolationException e) {
             LOG.warn("Uniqueness constraint violation: {}", e.getMessage());
+            Set<String> conflictingFields = e.getViolations().stream()
+                    .map(NonUniqueConstraintViolation::field)
+                    .collect(Collectors.toSet());
             return Response.status(Response.Status.CONFLICT)
-                    .entity(e.getMessage())
+                    .entity(Map.of("conflictingFields", conflictingFields))
                     .build();
         }
 
