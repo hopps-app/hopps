@@ -6,6 +6,7 @@ import AppRoutes from './AppRoutes';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { OrganizationErrorView } from '@/components/OrganizationErrorView';
 import authService from '@/services/auth/auth.service.ts';
+import connectivityService from '@/services/ConnectivityService.ts';
 import emojiService from '@/services/EmojiService';
 import languageService from '@/services/LanguageService.ts';
 import themeService from '@/services/ThemeService.ts';
@@ -60,13 +61,20 @@ function App() {
                 languageService.init();
                 await emojiService.init();
 
-                const success = await authService.init();
-                if (success && authService.isAuthenticated()) {
-                    await loadUserOrganisation();
+                await connectivityService.checkAll();
+
+                const { keycloakReachable, backendReachable } = useStore.getState();
+
+                if (keycloakReachable) {
+                    const success = await authService.init();
+                    if (success && authService.isAuthenticated() && backendReachable) {
+                        await loadUserOrganisation();
+                    }
                 }
-                setIsInitialized(true);
             } catch (e) {
                 console.error('App initialisation failed:', e);
+            } finally {
+                setIsInitialized(true);
             }
         };
         initApp();

@@ -501,5 +501,16 @@
     "bommel": {
         "empty": "No Bommel found",
         "select": "Select Bommel"
+    },
+    "connectivity": {
+        "keycloak": {
+            "title": "Authentication server unreachable",
+            "description": "The login server is currently unreachable. Login and registration are temporarily unavailable."
+        },
+        "backend": {
+            "title": "Backend server unreachable",
+            "description": "The backend server is currently unreachable. Some features are temporarily unavailable."
+        },
+        "buttonDisabledHint": "This action is unavailable because a required service is unreachable."
     }
 }
