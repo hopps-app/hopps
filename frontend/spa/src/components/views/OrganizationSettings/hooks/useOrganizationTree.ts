@@ -8,6 +8,77 @@ import apiService from '@/services/ApiService';
 import organizationTreeService from '@/services/OrganisationTreeService';
 import { useStore } from '@/store/store';
 
+const RANDOM_EMOJIS = [
+    'rabbit',
+    'rabbit2',
+    'carrot',
+    'four_leaf_clover',
+    'herb',
+    'seedling',
+    'mushroom',
+    'chestnut',
+    'fallen_leaf',
+    'sunflower',
+    'blossom',
+    'tulip',
+    'paw_prints',
+    'feet',
+    'hatching_chick',
+    'sparkling_heart',
+    'star2',
+    'sparkles',
+    'rainbow',
+    'sunny',
+];
+
+const RANDOM_ADJECTIVES = [
+    'Flauschiger',
+    'Flinker',
+    'Munterer',
+    'Lustiger',
+    'Tapferer',
+    'Frecher',
+    'Schlauer',
+    'Putziger',
+    'Wilder',
+    'Knuffiger',
+    'Wuscheliger',
+    'Hoppeliger',
+    'Kuscheliger',
+    'Flotter',
+    'Quirliger',
+];
+
+const RANDOM_NOUNS = [
+    'Hase',
+    'Hoppler',
+    'Mümmelmann',
+    'Klopfer',
+    'Langöhrchen',
+    'Puschel',
+    'Mümmler',
+    'Wackelnäschen',
+    'Fellknäuel',
+    'Löffelträger',
+    'Stoppelhase',
+    'Pfötchenträger',
+    'Karotten-König',
+    'Wiesenhüpfer',
+    'Grashüpfer',
+];
+
+function randomElement<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateRandomBommelName(): string {
+    return `${randomElement(RANDOM_ADJECTIVES)} ${randomElement(RANDOM_NOUNS)}`;
+}
+
+function generateRandomBommelEmoji(): string {
+    return randomElement(RANDOM_EMOJIS);
+}
+
 interface UseOrganizationTreeOptions {
     bommelStats?: BommelStatisticsMap | null;
 }
@@ -68,8 +139,8 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
         try {
             const node = await apiService.orgService.bommelPOST(
                 new Bommel({
-                    name: 'New item',
-                    emoji: 'grey_question',
+                    name: generateRandomBommelName(),
+                    emoji: generateRandomBommelEmoji(),
                     children: [],
                     parent: new Bommel({ id: rootBommel.id }),
                 })
@@ -93,8 +164,8 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
             try {
                 await apiService.orgService.bommelPOST(
                     new Bommel({
-                        name: 'New item',
-                        emoji: 'grey_question',
+                        name: generateRandomBommelName(),
+                        emoji: generateRandomBommelEmoji(),
                         children: [],
                         parent: new Bommel({ id: parentId }),
                     })

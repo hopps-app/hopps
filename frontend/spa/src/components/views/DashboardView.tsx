@@ -10,11 +10,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
-import { usePageTitle } from '@/hooks/use-page-title';
+import Emoji from '@/components/ui/Emoji';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { Calendar } from '@/components/ui/shadecn/Calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -212,8 +213,9 @@ function DashboardView() {
                                             'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                         )}
                                     >
-                                        <span className="truncate">
-                                            {selectedBommel ? `${selectedBommel.emoji || ''} ${selectedBommel.name}`.trim() : t('common.loading')}
+                                        <span className="flex items-center gap-2 truncate">
+                                            {selectedBommel?.emoji && <Emoji emoji={selectedBommel.emoji} className="text-lg" />}
+                                            {selectedBommel ? selectedBommel.name : t('common.loading')}
                                         </span>
                                         <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </BaseButton>
@@ -226,9 +228,8 @@ function DashboardView() {
                                             <CommandGroup>
                                                 {allBommels.map((bommel) => (
                                                     <CommandItem key={bommel.id} value={bommel.name} onSelect={handleBommelSelect}>
-                                                        <span className="truncate">
-                                                            {bommel.emoji || ''} {bommel.name}
-                                                        </span>
+                                                        {bommel.emoji && <Emoji emoji={bommel.emoji} className="text-base" />}
+                                                        {bommel.name}
                                                         <CheckIcon
                                                             className={cn('ml-auto h-4 w-4', selectedBommelId === bommel.id ? 'opacity-100' : 'opacity-0')}
                                                         />
