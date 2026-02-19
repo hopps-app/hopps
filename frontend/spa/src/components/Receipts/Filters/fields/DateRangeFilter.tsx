@@ -80,12 +80,7 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[var(--grey-500)]" />
                             </BaseButton>
                         </PopoverTrigger>
-                        <PopoverContent
-                            align="start"
-                            side="bottom"
-                            sideOffset={4}
-                            className="p-0 bg-white rounded-xl border border-[#A7A7A7] shadow-lg w-auto"
-                        >
+                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white rounded-xl border border-[#A7A7A7] shadow-lg w-auto">
                             <Calendar
                                 mode="single"
                                 captionLayout="dropdown"
@@ -126,12 +121,7 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[var(--grey-500)]" />
                             </BaseButton>
                         </PopoverTrigger>
-                        <PopoverContent
-                            align="start"
-                            side="bottom"
-                            sideOffset={4}
-                            className="p-0 bg-white rounded-xl border border-[#A7A7A7] shadow-lg w-auto"
-                        >
+                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white rounded-xl border border-[#A7A7A7] shadow-lg w-auto">
                             <Calendar
                                 mode="single"
                                 captionLayout="dropdown"
