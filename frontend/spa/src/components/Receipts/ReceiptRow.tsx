@@ -17,7 +17,7 @@ type ReceiptRowProps = {
 const statusStyles: Record<Receipt['status'], string> = {
     paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     unpaid: 'bg-amber-50 text-amber-700 border-amber-200',
-    draft: 'bg-gray-100 text-gray-600 border-gray-200',
+    draft: 'bg-gray-100 text-gray-600 border-[#A7A7A7]',
     failed: 'bg-red-50 text-red-700 border-red-200',
 };
 

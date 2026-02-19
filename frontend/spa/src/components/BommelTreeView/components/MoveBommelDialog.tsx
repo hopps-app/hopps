@@ -118,7 +118,7 @@ export function MoveBommelDialog({ open, bommelId, bommelName, currentParentId, 
                                     className={`w-full text-left px-3 py-2 rounded-lg border transition-colors flex items-center gap-2 ${
                                         selectedParentId === parent.id
                                             ? 'border-purple-500 bg-purple-50 text-purple-900'
-                                            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                                            : 'border-[#A7A7A7] hover:bg-gray-50 text-gray-700'
                                     }`}
                                     style={{ paddingLeft: `${12 + (parent.depth ?? 0) * 20}px` }}
                                 >

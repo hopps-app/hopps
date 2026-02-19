@@ -37,7 +37,7 @@ export const SearchFilter = ({ value, onChange, label }: SearchFilterProps) => {
                     placeholder={t('receipts.filters.searchPlaceholder')}
                     className={cn(
                         'w-full pl-10 pr-8 py-2 text-sm',
-                        'rounded-[var(--radius-l)] border border-[var(--grey-600)] bg-[var(--grey-white)]',
+                        'rounded-[var(--radius-l)] border border-[#A7A7A7] bg-[var(--grey-white)]',
                         'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
                         'focus:border-[var(--purple-500)] focus:ring-[var(--purple-500)] transition-all'
                     )}

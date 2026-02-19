@@ -53,7 +53,7 @@ const Receipts = () => {
                         placeholder={t('receipts.filters.searchPlaceholder')}
                         className={cn(
                             'w-full pl-9 pr-8 h-10 text-sm',
-                            'rounded-xl border border-[var(--grey-300)] bg-white',
+                            'rounded-xl border border-[#A7A7A7] bg-white',
                             'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
                             'focus:border-[var(--purple-500)] transition-colors'
                         )}
@@ -74,7 +74,7 @@ const Receipts = () => {
                         onClick={() => setFiltersOpen(!filtersOpen)}
                         className={cn(
                             'gap-2 h-10 rounded-xl transition-colors',
-                            filtersOpen ? 'bg-[var(--purple-100)] border-[var(--purple-300)] text-[var(--purple-900)]' : 'border-[var(--grey-300)]'
+                            filtersOpen ? 'bg-[var(--purple-100)] border-[var(--purple-300)] text-[var(--purple-900)]' : 'border-[#A7A7A7]'
                         )}
                     >
                         <Filter className="h-4 w-4" />

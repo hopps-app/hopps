@@ -53,7 +53,7 @@ const CategoryFilter = ({ filters, onChange, label }: CategoryFilterProps) => {
                             aria-expanded={open}
                             className={cn(
                                 'w-full h-10 justify-between text-sm font-normal',
-                                'rounded-xl border border-[var(--grey-300)] bg-white px-3 text-left',
+                                'rounded-xl border border-[#A7A7A7] bg-white px-3 text-left',
                                 'hover:bg-[var(--grey-50)] transition-colors',
                                 'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none focus-visible:border-[var(--purple-500)]',
                                 !selectedCategory && 'text-[var(--grey-500)]',
@@ -69,7 +69,7 @@ const CategoryFilter = ({ filters, onChange, label }: CategoryFilterProps) => {
                         align="start"
                         side="bottom"
                         sideOffset={4}
-                        className="w-[var(--radix-popover-trigger-width)] p-0 border border-[var(--grey-200)] bg-white rounded-xl shadow-lg"
+                        className="w-[var(--radix-popover-trigger-width)] p-0 border border-[#A7A7A7] bg-white rounded-xl shadow-lg"
                     >
                         <Command shouldFilter={false}>
                             <CommandInput
@@ -96,7 +96,7 @@ const CategoryFilter = ({ filters, onChange, label }: CategoryFilterProps) => {
                     <button
                         type="button"
                         onClick={() => onChange('category', null)}
-                        className="flex items-center h-10 px-2 border border-l-0 border-[var(--grey-300)] bg-white rounded-r-xl hover:bg-[var(--grey-50)] transition-colors"
+                        className="flex items-center h-10 px-2 border border-l-0 border-[#A7A7A7] bg-white rounded-r-xl hover:bg-[var(--grey-50)] transition-colors"
                     >
                         <X className="h-3.5 w-3.5 text-[var(--grey-500)] hover:text-[var(--grey-900)]" />
                     </button>

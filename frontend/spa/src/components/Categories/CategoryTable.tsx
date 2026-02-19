@@ -54,7 +54,7 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                                 onDoubleClick={() => setEditingCategoryId(category.id!)}
                                 className="
                                   flex items-start justify-between
-                                  rounded-2xl border border-gray-200 bg-white px-5 py-3 shadow-sm
+                                  rounded-2xl border border-[#A7A7A7] bg-white px-5 py-3 shadow-sm
                                   transition-all duration-200
                                   hover:border-primary hover:ring-1 hover:ring-primary
                                   cursor-pointer

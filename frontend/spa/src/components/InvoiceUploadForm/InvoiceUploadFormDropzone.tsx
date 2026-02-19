@@ -234,7 +234,7 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
             {...getRootProps()}
             className={cn(
                 'relative rounded-xl border-2 border-dashed flex flex-col justify-center items-center text-center w-full h-full overflow-hidden cursor-pointer transition-all duration-200',
-                hasPreview ? 'bg-white dark:bg-gray-950 border-border p-2' : 'bg-white dark:bg-gray-950 border-muted-foreground/25 hover:border-primary/50',
+                hasPreview ? 'bg-white dark:bg-gray-950 border-[#A7A7A7] p-2' : 'bg-white dark:bg-gray-950 border-[#A7A7A7] hover:border-primary/50',
                 isHighlightDrop && 'border-primary bg-primary/5 ring-2 ring-primary/20',
                 isDragActive && 'border-primary bg-primary/5 scale-[0.99]'
             )}

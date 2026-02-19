@@ -39,7 +39,7 @@ function EmojiField(props: EmojiFieldProps) {
                     <div
                         className={cn(
                             'flex w-full text-xl items-center justify-between whitespace-nowrap ' +
-                                'border border-gray-300 px-4 py-2 rounded-md outline-none bg-primary-foreground transition-colors' +
+                                'border border-[#A7A7A7] px-4 py-2 rounded-md outline-none bg-primary-foreground transition-colors' +
                                 'shadow-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
                             props.className
                         )}

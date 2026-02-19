@@ -19,14 +19,14 @@ export const ReceiptFilters = ({ filters, setFilter }: ReceiptFiltersProps) => {
     const { t } = useTranslation();
 
     return (
-        <div className="rounded-2xl border border-[var(--grey-200)] bg-white p-5">
+        <div className="rounded-2xl border border-[#A7A7A7] bg-white p-5">
             {/* Dropdown filters */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div className="sm:col-span-2">
                     <DateRangeFilter filters={filters} onChange={setFilter} label={t('receipts.filters.receiptDate')} />
                 </div>
                 <ReceiptFilterField label={t('receipts.filters.bommel')}>
-                    <div className="[&_button]:h-10 [&_button]:rounded-xl [&_button]:border-[var(--grey-300)] [&_button]:py-0 [&_button]:text-sm [&_button]:bg-white">
+                    <div className="[&_button]:h-10 [&_button]:rounded-xl [&_button]:border-[#A7A7A7] [&_button]:py-0 [&_button]:text-sm [&_button]:bg-white">
                         <InvoiceUploadFormBommelSelector
                             value={filters.project ? Number(filters.project) : null}
                             onChange={(id) => setFilter('project', id != null ? String(id) : null)}

@@ -208,7 +208,7 @@ function DashboardView() {
                                         data-testid="dashboard-bommel-filter"
                                         className={cn(
                                             'w-full sm:w-[180px] h-10 justify-between text-sm font-normal',
-                                            'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
+                                            'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 px-4',
                                             'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                         )}
                                     >
@@ -254,7 +254,7 @@ function DashboardView() {
                                                 data-testid="dashboard-start-date"
                                                 className={cn(
                                                     'w-[120px] sm:w-[140px] h-10 justify-between text-sm font-normal',
-                                                    'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
+                                                    'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 px-4',
                                                     'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                                 )}
                                             >
@@ -266,7 +266,7 @@ function DashboardView() {
                                             align="start"
                                             side="bottom"
                                             sideOffset={4}
-                                            className="p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm w-auto"
+                                            className="p-0 bg-white dark:bg-gray-800 rounded-lg border border-[#A7A7A7] shadow-sm w-auto"
                                         >
                                             <Calendar
                                                 mode="single"
@@ -292,7 +292,7 @@ function DashboardView() {
                                                 data-testid="dashboard-end-date"
                                                 className={cn(
                                                     'w-[120px] sm:w-[140px] h-10 justify-between text-sm font-normal',
-                                                    'rounded-[var(--radius-l,0.5rem)] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4',
+                                                    'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 px-4',
                                                     'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                                 )}
                                             >
@@ -304,7 +304,7 @@ function DashboardView() {
                                             align="start"
                                             side="bottom"
                                             sideOffset={4}
-                                            className="p-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm w-auto"
+                                            className="p-0 bg-white dark:bg-gray-800 rounded-lg border border-[#A7A7A7] shadow-sm w-auto"
                                         >
                                             <Calendar
                                                 mode="single"
@@ -403,7 +403,7 @@ function DashboardView() {
                                     formatter={(value: number) => `€${value.toFixed(2)}`}
                                     contentStyle={{
                                         backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                        border: '1px solid #ccc',
+                                        border: '1px solid #A7A7A7',
                                         borderRadius: '4px',
                                     }}
                                 />

@@ -66,7 +66,7 @@ const ProjectFilter = ({ filters, onChange, label }: ProjectFilterProps) => {
                                 aria-haspopup="listbox"
                                 aria-expanded={open}
                                 className={cn(
-                                    'w-full h-10 justify-between text-sm font-normal rounded-[var(--radius-l)] border border-[var(--grey-600)] bg-[var(--grey-white)]',
+                                    'w-full h-10 justify-between text-sm font-normal rounded-[var(--radius-l)] border border-[#A7A7A7] bg-[var(--grey-white)]',
                                     'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none pl-10 pr-3 text-left',
                                     !selectedProject && 'text-[var(--grey-800)]',
                                     selectedProject && 'rounded-r-none border-r-0'
@@ -83,7 +83,7 @@ const ProjectFilter = ({ filters, onChange, label }: ProjectFilterProps) => {
                         side="bottom"
                         sideOffset={4}
                         className={cn(
-                            'w-[var(--radix-popover-trigger-width)] p-0 border border-[var(--grey-600)] bg-[var(--grey-white)] rounded-[var(--radius-l)] shadow-sm'
+                            'w-[var(--radix-popover-trigger-width)] p-0 border border-[#A7A7A7] bg-[var(--grey-white)] rounded-[var(--radius-l)] shadow-sm'
                         )}
                     >
                         <Command shouldFilter={false}>
@@ -111,7 +111,7 @@ const ProjectFilter = ({ filters, onChange, label }: ProjectFilterProps) => {
                     <button
                         type="button"
                         onClick={() => onChange('project', null)}
-                        className="flex items-center h-10 px-2 border border-l-0 border-[var(--grey-600)] bg-[var(--grey-white)] rounded-r-[var(--radius-l)] hover:bg-[var(--grey-100)]"
+                        className="flex items-center h-10 px-2 border border-l-0 border-[#A7A7A7] bg-[var(--grey-white)] rounded-r-[var(--radius-l)] hover:bg-[var(--grey-100)]"
                     >
                         <X className="h-4 w-4 text-[var(--grey-700)] hover:text-[var(--grey-900)]" />
                     </button>

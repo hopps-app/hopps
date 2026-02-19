@@ -56,7 +56,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             aria-invalid={error ? true : undefined}
                             aria-describedby={error ? errorId : undefined}
                             className={cn(
-                                'w-full text-gray-800 text-sm border border-gray-300 py-3 rounded-md outline-primary bg-primary-foreground',
+                                'w-full text-gray-800 text-sm border border-[#A7A7A7] py-3 rounded-md outline-primary bg-primary-foreground',
                                 'placeholder:text-muted focus:border-primary transition-colors',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 'flex items-center justify-start text-left font-normal',

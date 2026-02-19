@@ -177,9 +177,9 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     return (
         <div className="space-y-4">
             {/* Table */}
-            <div className="rounded-2xl border border-[var(--grey-200)] bg-white overflow-hidden">
+            <div className="rounded-2xl border border-[#A7A7A7] bg-white overflow-hidden">
                 {/* Table Header - Desktop only */}
-                <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_100px_100px_48px] gap-4 px-5 py-3 bg-[var(--grey-50)] border-b border-[var(--grey-200)]">
+                <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_100px_100px_48px] gap-4 px-5 py-3 bg-[var(--grey-50)] border-b border-[#A7A7A7]">
                     <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.issuer')}</span>
                     <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.date')}</span>
                     <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.project')}</span>
@@ -208,7 +208,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
                         size="icon"
                         onClick={() => setPage((prev) => prev - 1)}
                         disabled={!hasPrevPage}
-                        className="h-9 w-9 p-0 rounded-xl border-[var(--grey-300)]"
+                        className="h-9 w-9 p-0 rounded-xl border-[#A7A7A7]"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </BaseButton>
@@ -220,7 +220,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
                         size="icon"
                         onClick={() => setPage((prev) => prev + 1)}
                         disabled={!hasNextPage}
-                        className="h-9 w-9 p-0 rounded-xl border-[var(--grey-300)]"
+                        className="h-9 w-9 p-0 rounded-xl border-[#A7A7A7]"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </BaseButton>

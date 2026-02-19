@@ -606,15 +606,11 @@ function ReceiptUploadView() {
     }
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex justify-end">
-                <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-stretch">
-                {/* Left column: Dropzone + Download */}
-                <div className="flex flex-col gap-3 min-h-[400px]">
-                    <div className="flex-1 min-h-0">
+        <div className="pb-4">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2 md:grid-rows-[1fr_auto]">
+                {/* Preview (row 1, col 1) */}
+                <div className="min-h-[400px] md:min-h-0 relative md:col-start-1 md:row-start-1">
+                    <div className="h-full md:absolute md:inset-0">
                         <InvoiceUploadFormDropzone
                             onFilesChanged={onFilesChanged}
                             previewFile={file}
@@ -622,16 +618,22 @@ function ReceiptUploadView() {
                             previewContentType={documentContentType}
                         />
                     </div>
+                </div>
+
+                {/* Left buttons (row 2, col 1) */}
+                <div className="flex items-center gap-3 md:col-start-1 md:row-start-2">
                     {documentId && (
-                        <Button type="button" variant="outline" onClick={handleDownloadDocument} className="flex items-center justify-center gap-2 w-full">
+                        <Button type="button" variant="outline" onClick={handleDownloadDocument} className="flex items-center justify-center gap-2">
                             <Download className="w-4 h-4" />
                             {t('receipts.downloadDocument')}
                         </Button>
                     )}
+                    <div className="flex-1" />
+                    <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
                 </div>
 
-                {/* Right column: Form */}
-                <div className="flex flex-col gap-4">
+                {/* Attributes (row 1, col 2) */}
+                <div className="flex flex-col gap-4 md:col-start-2 md:row-start-1">
                     {/* Analysis Status Banner */}
                     {analysisStatus && (isAutoRead || analysisStatus === 'FAILED') && (
                         <div
@@ -717,7 +719,7 @@ function ReceiptUploadView() {
                         </div>
                     )}
 
-                    <div className="min-w-0 border border-border bg-card rounded-[30px] p-5">
+                    <div className="min-w-0 flex-1 border border-[#A7A7A7] bg-card rounded-[30px] p-5">
                         <ReceiptFormFields
                             receiptNumber={receiptNumber}
                             onReceiptNumberChange={setReceiptNumber}
@@ -747,7 +749,10 @@ function ReceiptUploadView() {
                             errors={formErrors}
                         />
                     </div>
+                </div>
 
+                {/* Right buttons (row 2, col 2) */}
+                <div className="flex items-center justify-end md:col-start-2 md:row-start-2">
                     <ReceiptFormActions
                         isValid={isValid}
                         canSaveDraft={canSaveDraft}

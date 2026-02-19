@@ -31,7 +31,7 @@ const TypeFilter = ({ filters, onChange, label }: TypeFilterProps) => {
                         id="type-income"
                         checked={!!filters.income}
                         onCheckedChange={(checked) => handleToggle('income', !!checked)}
-                        className="size-5 rounded-md border border-[var(--grey-600)] 
+                        className="size-5 rounded-md border border-[#A7A7A7] 
                                    bg-[var(--grey-white)] 
                                    data-[state=checked]:bg-[var(--purple-500)] 
                                    data-[state=checked]:border-[var(--purple-500)]
@@ -49,7 +49,7 @@ const TypeFilter = ({ filters, onChange, label }: TypeFilterProps) => {
                         id="type-expense"
                         checked={!!filters.expense}
                         onCheckedChange={(checked) => handleToggle('expense', !!checked)}
-                        className="size-5 rounded-md border border-[var(--grey-600)] 
+                        className="size-5 rounded-md border border-[#A7A7A7] 
                                    bg-[var(--grey-white)] 
                                    data-[state=checked]:bg-[var(--purple-500)] 
                                    data-[state=checked]:border-[var(--purple-500)]
