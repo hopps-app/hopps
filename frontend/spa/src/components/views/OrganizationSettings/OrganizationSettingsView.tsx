@@ -1,4 +1,4 @@
-import { Edit, Check, RefreshCw, AlertCircle } from 'lucide-react';
+import { Edit, Check, RefreshCw, AlertCircle, Info } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -22,6 +22,7 @@ function OrganizationSettingsView() {
     const [searchParams, setSearchParams] = useSearchParams();
     const bommelId = searchParams.get('bommelId');
     const [isEditMode, setIsEditMode] = useState(false);
+    const [isDragDropMode, setIsDragDropMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
     const initialSelectionDone = useRef(false);
@@ -197,7 +198,21 @@ function OrganizationSettingsView() {
                                         <Switch label={t('organization.structure.aggregate')} checked={statisticsOptions.aggregate} onCheckedChange={setAggregate} />
                                     </>
                                 )}
-                                <Button variant={isEditMode ? 'default' : 'outline'} onClick={() => setIsEditMode(!isEditMode)}>
+                                {isEditMode && (
+                                    <Switch
+                                        label={t('organization.structure.dragDrop')}
+                                        checked={isDragDropMode}
+                                        onCheckedChange={setIsDragDropMode}
+                                    />
+                                )}
+                                <Button
+                                    variant={isEditMode ? 'default' : 'outline'}
+                                    onClick={() => {
+                                        const newEditMode = !isEditMode;
+                                        setIsEditMode(newEditMode);
+                                        if (!newEditMode) setIsDragDropMode(false);
+                                    }}
+                                >
                                     {isEditMode ? (
                                         <>
                                             <Check className="w-4 h-4 mr-2" />
@@ -213,6 +228,13 @@ function OrganizationSettingsView() {
                             </div>
                         </div>
 
+                        {isDragDropMode && (
+                            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                                <Info className="w-4 h-4 flex-shrink-0" />
+                                <span>{t('organization.structure.dragDropHint')}</span>
+                            </div>
+                        )}
+
                         {isLargeScreen ? (
                             <div className="flex-1 min-h-0">
                                 <BommelTreeComponent
@@ -220,6 +242,7 @@ function OrganizationSettingsView() {
                                     tree={tree}
                                     rootBommel={rootBommel}
                                     editable={isEditMode}
+                                    dragDropEnabled={isDragDropMode}
                                     onNodeClick={handleTreeNodeClick}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}

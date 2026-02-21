@@ -192,6 +192,8 @@
                 "noTargets": "Keine gültigen Ziel-Bommels verfügbar",
                 "confirm": "Verschieben"
             },
+            "dragDrop": "Verschiebbar",
+            "dragDropHint": "Bommels können jetzt per Drag & Drop verschoben werden",
             "centerTree": "Zentrieren",
             "addSibling": "Bommel hinzufügen",
             "rootCannotEdit": "Der Wurzel-Bommel kann nicht bearbeitet werden",

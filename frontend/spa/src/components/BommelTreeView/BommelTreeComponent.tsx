@@ -4,7 +4,9 @@ import Tree, { CustomNodeElementProps } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
 import { BommelCard, TreeStyles } from './components';
+import { DragGhostOverlay } from './components/DragGhostOverlay';
 import { MoveBommelDialog } from './components/MoveBommelDialog';
+import { useBommelDragDrop } from './hooks/useBommelDragDrop';
 import { useTreeData } from './hooks/useTreeData';
 import { BommelTreeComponentProps } from './types';
 
@@ -14,6 +16,7 @@ function BommelTreeComponent({
     tree,
     rootBommel,
     editable = false,
+    dragDropEnabled = false,
     onNodeClick,
     onEdit,
     onDelete,
@@ -28,6 +31,42 @@ function BommelTreeComponent({
     const [containerWidth, setContainerWidth] = useState(width);
     const [movingBommelId, setMovingBommelId] = useState<number | null>(null);
     const [centerKey, setCenterKey] = useState(0);
+
+    const { dragState, startDrag, updateDrag, setHoverTarget, clearHoverTarget, endDrag, cancelDrag, hasPendingDrag } =
+        useBommelDragDrop(tree);
+
+    // Global pointermove/pointerup listeners for drag-drop
+    useEffect(() => {
+        if (!dragDropEnabled) return;
+
+        const handlePointerMove = (e: PointerEvent) => {
+            updateDrag(e.clientX, e.clientY);
+        };
+
+        const handlePointerUp = () => {
+            if (!hasPendingDrag()) return;
+            const result = endDrag();
+            if (result && onMove) {
+                onMove(result.draggedNodeId, result.dropTargetId);
+            }
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                cancelDrag();
+            }
+        };
+
+        window.addEventListener('pointermove', handlePointerMove);
+        window.addEventListener('pointerup', handlePointerUp);
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('pointermove', handlePointerMove);
+            window.removeEventListener('pointerup', handlePointerUp);
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [dragDropEnabled, updateDrag, endDrag, cancelDrag, hasPendingDrag, onMove]);
 
     // Measure container width for responsive centering
     useEffect(() => {
@@ -119,6 +158,11 @@ function BommelTreeComponent({
 
     const renderCustomNodeElement = useCallback(
         ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
+            const nodeId = nodeDatum.attributes?.id as number;
+            const isBeingDragged = dragState.isDragging && dragState.draggedNodeId === nodeId;
+            const isDraggedOver = dragState.isDragging && dragState.hoverTargetId === nodeId;
+            const isValidDropTarget = dragState.isDragging && dragState.hoverTargetId === nodeId ? !dragState.invalidTargetIds.has(nodeId) : undefined;
+
             return (
                 <g>
                     <foreignObject x={-100} y={editable ? -30 : -45} width={200} height={editable ? 60 : 90} style={{ overflow: 'visible' }}>
@@ -131,12 +175,19 @@ function BommelTreeComponent({
                             onAddChild={handleAddChild}
                             onMove={onMove ? handleMoveClick : undefined}
                             editable={editable}
+                            dragDropEnabled={dragDropEnabled}
+                            isBeingDragged={isBeingDragged}
+                            isDraggedOver={isDraggedOver}
+                            isValidDropTarget={isValidDropTarget}
+                            onDragStart={dragDropEnabled ? startDrag : undefined}
+                            onDragEnter={dragState.isDragging ? setHoverTarget : undefined}
+                            onDragLeave={dragState.isDragging ? clearHoverTarget : undefined}
                         />
                     </foreignObject>
                 </g>
             );
         },
-        [editable, handleEdit, handleDelete, handleAddChild, handleMoveClick, onNodeClick, onMove]
+        [editable, dragDropEnabled, dragState, handleEdit, handleDelete, handleAddChild, handleMoveClick, onNodeClick, onMove, startDrag, setHoverTarget, clearHoverTarget]
     );
 
     if (!treeData) {
@@ -144,7 +195,11 @@ function BommelTreeComponent({
     }
 
     return (
-        <div ref={treeContainerRef} className="w-full h-full border rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 relative" style={height ? { height } : undefined}>
+        <div
+            ref={treeContainerRef}
+            className={`w-full h-full border rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 relative ${dragState.isDragging ? 'select-none' : ''}`}
+            style={height ? { height } : undefined}
+        >
             {/* Center tree button */}
             <button
                 type="button"
@@ -172,9 +227,22 @@ function BommelTreeComponent({
                     collapsible={true}
                     depthFactor={editable ? 100 : 140}
                     pathClassFunc={() => 'tree-link'}
+                    hasInteractiveNodes={dragDropEnabled}
+                    draggable={!dragState.isDragging}
                 />
             </div>
             <TreeStyles />
+
+            {/* Drag Ghost Overlay */}
+            {dragState.isDragging && (
+                <DragGhostOverlay
+                    name={dragState.draggedNodeName}
+                    emoji={dragState.draggedNodeEmoji}
+                    x={dragState.pointerX}
+                    y={dragState.pointerY}
+                    isValidTarget={dragState.hoverTargetId !== null ? !dragState.invalidTargetIds.has(dragState.hoverTargetId) : null}
+                />
+            )}
 
             {/* Move Bommel Dialog */}
             {movingBommel && (

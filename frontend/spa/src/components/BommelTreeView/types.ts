@@ -22,6 +22,7 @@ export interface BommelTreeComponentProps {
     tree: import('@/components/OrganizationStructureTree/OrganizationTreeNodeModel').OrganizationTreeNodeModel[];
     rootBommel?: Bommel | null;
     editable?: boolean;
+    dragDropEnabled?: boolean;
     onNodeClick?: (nodeData: TreeNodeData) => void;
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
@@ -40,6 +41,13 @@ export interface BommelCardProps {
     onAddChild?: (nodeId: number) => Promise<boolean>;
     onMove?: (nodeId: number) => void;
     editable: boolean;
+    dragDropEnabled?: boolean;
+    isBeingDragged?: boolean;
+    isDraggedOver?: boolean;
+    isValidDropTarget?: boolean;
+    onDragStart?: (nodeId: number, name: string, emoji: string, parentId: number, clientX: number, clientY: number) => void;
+    onDragEnter?: (nodeId: number) => void;
+    onDragLeave?: (nodeId: number) => void;
 }
 
 export interface BommelCardStatsProps {

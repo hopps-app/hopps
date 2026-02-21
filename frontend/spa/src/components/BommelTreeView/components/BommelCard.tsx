@@ -11,7 +11,23 @@ import { DeleteBommelDialog, DeleteTransactionHandling } from './DeleteBommelDia
 
 import Emoji from '@/components/ui/Emoji';
 
-export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelete, onAddChild, onMove, editable }: BommelCardProps) {
+export function BommelCard({
+    nodeDatum,
+    toggleNode,
+    onNodeClick,
+    onEdit,
+    onDelete,
+    onAddChild,
+    onMove,
+    editable,
+    dragDropEnabled,
+    isBeingDragged,
+    isDraggedOver,
+    isValidDropTarget,
+    onDragStart,
+    onDragEnter,
+    onDragLeave,
+}: BommelCardProps) {
     const { t } = useTranslation();
     const nodeId = nodeDatum.attributes?.id as number;
     const total = (nodeDatum.attributes?.total as number) || 0;
@@ -29,8 +45,13 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const isCollapsed = (nodeDatum as RawNodeDatum & { __rd3t?: { collapsed?: boolean } }).__rd3t?.collapsed;
+    const didDragRef = useRef(false);
 
     const handleClick = () => {
+        if (didDragRef.current) {
+            didDragRef.current = false;
+            return;
+        }
         if (!isEditing && onNodeClick && nodeDatum.attributes) {
             const nodeData: TreeNodeData = {
                 name: nodeDatum.name,
@@ -38,6 +59,21 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
             };
             onNodeClick(nodeData);
         }
+    };
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+        if (!dragDropEnabled || isRoot || isEditing || !onDragStart) return;
+        e.stopPropagation();
+        didDragRef.current = false;
+        onDragStart(nodeId, nodeDatum.name, (nodeDatum.attributes?.emoji as string) || '', parentId, e.clientX, e.clientY);
+    };
+
+    const handlePointerEnter = () => {
+        if (onDragEnter) onDragEnter(nodeId);
+    };
+
+    const handlePointerLeave = () => {
+        if (onDragLeave) onDragLeave(nodeId);
     };
 
     const handleStartEdit = () => {
@@ -139,11 +175,29 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
         }
     };
 
+    // Build card CSS classes for drag states
+    const dragClasses = [
+        isBeingDragged ? 'is-being-dragged' : '',
+        isDraggedOver && isValidDropTarget ? 'is-valid-drop-target' : '',
+        isDraggedOver && isValidDropTarget === false ? 'is-invalid-drop-target' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+
+    const cursorClass = dragDropEnabled && !isRoot ? 'cursor-grab' : 'cursor-pointer';
+
     return (
-        <div onClick={handleClick} className="w-full font-sans cursor-pointer">
+        <div
+            onClick={handleClick}
+            onPointerDown={handlePointerDown}
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
+            className={`w-full font-sans ${cursorClass}`}
+            style={dragDropEnabled ? { touchAction: 'none' } : undefined}
+        >
             {/* Card */}
             <div
-                className={`relative rounded-xl px-3 py-2 shadow-md transition-all bommel-card ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}
+                className={`relative rounded-xl px-3 py-2 shadow-md transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}
             >
                 {/* Collapse toggle button */}
                 {hasChildren && (
@@ -165,8 +219,8 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                     </button>
                 )}
 
-                {/* Delete button - top right corner */}
-                {editable && !isEditing && !isRoot && (
+                {/* Delete button - top right corner (hidden in drag-drop mode) */}
+                {editable && !dragDropEnabled && !isEditing && !isRoot && (
                     <button
                         type="button"
                         onClick={(e) => {
@@ -181,8 +235,8 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                     </button>
                 )}
 
-                {/* Move button - bottom right corner */}
-                {editable && !isEditing && !isRoot && onMove && (
+                {/* Move button - bottom right corner (hidden in drag-drop mode) */}
+                {editable && !dragDropEnabled && !isEditing && !isRoot && onMove && (
                     <button
                         type="button"
                         onClick={(e) => {
@@ -210,9 +264,9 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                         />
                     ) : (
                         <div
-                            className={`flex items-center gap-2 min-w-0 flex-1 ${editable && !isRoot ? 'cursor-text hover:opacity-80' : ''}`}
+                            className={`flex items-center gap-2 min-w-0 flex-1 ${editable && !dragDropEnabled && !isRoot ? 'cursor-text hover:opacity-80' : ''}`}
                             onClick={(e) => {
-                                if (editable && !isRoot) {
+                                if (editable && !dragDropEnabled && !isRoot) {
                                     e.stopPropagation();
                                     handleStartEdit();
                                 }
@@ -236,7 +290,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                 {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} isRoot={isRoot} />}
 
                 {/* Add child button - bottom center, only when no children */}
-                {editable && !hasChildren && !isEditing && (
+                {editable && !dragDropEnabled && !hasChildren && !isEditing && (
                     <button
                         type="button"
                         onClick={(e) => {
@@ -252,7 +306,7 @@ export function BommelCard({ nodeDatum, toggleNode, onNodeClick, onEdit, onDelet
                 )}
 
                 {/* Sibling add button - right side, only on last child of each parent */}
-                {isLastSibling && editable && !isEditing && !isRoot && (
+                {isLastSibling && editable && !dragDropEnabled && !isEditing && !isRoot && (
                     <button
                         type="button"
                         onClick={(e) => {
