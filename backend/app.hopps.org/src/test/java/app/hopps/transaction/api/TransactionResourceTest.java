@@ -53,7 +53,13 @@ class TransactionResourceTest {
         flyway.clean();
         flyway.migrate();
         testdataBootstrapper.loadTestdata();
+        clearPreExistingTransactions();
         setupTestData();
+    }
+
+    @Transactional
+    void clearPreExistingTransactions() {
+        transactionRepository.deleteAll();
     }
 
     @Transactional

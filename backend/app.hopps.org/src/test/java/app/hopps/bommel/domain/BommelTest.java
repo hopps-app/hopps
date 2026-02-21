@@ -44,10 +44,9 @@ class BommelTest {
     TestdataBootstrapper testdataBootstrapper;
 
     @BeforeEach
-    @Transactional
     public void cleanDatabase() {
-        orgRepo.deleteAll();
-        repo.deleteAll();
+        flyway.clean();
+        flyway.migrate();
     }
 
     @Test
