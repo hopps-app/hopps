@@ -169,6 +169,8 @@
                 "transactions": "Transactions",
                 "subBommels": "Sub-Bommels",
                 "toReceipts": "To Receipts",
+                "hideDetails": "Hide details",
+                "showDetails": "Show details",
                 "bommelNotFound": "Bommel not found",
                 "bommelNotFoundDescription": "The Bommel you are looking for does not exist or has been deleted.",
                 "backToStructure": "Back to Structure"

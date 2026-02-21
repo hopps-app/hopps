@@ -30,6 +30,7 @@ function BommelTreeComponent({
     const treeContainerRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(width);
     const [movingBommelId, setMovingBommelId] = useState<number | null>(null);
+    const [autoEditNodeId, setAutoEditNodeId] = useState<number | null>(null);
     const [centerKey, setCenterKey] = useState(0);
 
     const { dragState, startDrag, updateDrag, setHoverTarget, clearHoverTarget, endDrag, cancelDrag, hasPendingDrag } =
@@ -84,6 +85,14 @@ function BommelTreeComponent({
         return () => observer.disconnect();
     }, []);
 
+    // Clear autoEditNodeId after it has been consumed by the BommelCard
+    useEffect(() => {
+        if (autoEditNodeId !== null) {
+            const timer = setTimeout(() => setAutoEditNodeId(null), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [autoEditNodeId]);
+
     // Convert OrganizationTreeNodeModel[] to react-d3-tree format
     const treeData = useTreeData({ tree, rootBommel });
 
@@ -124,11 +133,14 @@ function BommelTreeComponent({
     const handleAddChild = useCallback(
         async (nodeId: number) => {
             if (onAddChild) {
-                const success = await onAddChild(nodeId);
-                if (success) {
+                const result = await onAddChild(nodeId);
+                if (result) {
                     forceUpdate({});
+                    if (typeof result === 'number') {
+                        setAutoEditNodeId(result);
+                    }
                 }
-                return success;
+                return result;
             }
             return false;
         },
@@ -162,6 +174,7 @@ function BommelTreeComponent({
             const isBeingDragged = dragState.isDragging && dragState.draggedNodeId === nodeId;
             const isDraggedOver = dragState.isDragging && dragState.hoverTargetId === nodeId;
             const isValidDropTarget = dragState.isDragging && dragState.hoverTargetId === nodeId ? !dragState.invalidTargetIds.has(nodeId) : undefined;
+            const shouldAutoEdit = autoEditNodeId === nodeId;
 
             return (
                 <g>
@@ -175,6 +188,7 @@ function BommelTreeComponent({
                             onAddChild={handleAddChild}
                             onMove={onMove ? handleMoveClick : undefined}
                             editable={editable}
+                            autoEdit={shouldAutoEdit}
                             dragDropEnabled={dragDropEnabled}
                             isBeingDragged={isBeingDragged}
                             isDraggedOver={isDraggedOver}
@@ -187,7 +201,7 @@ function BommelTreeComponent({
                 </g>
             );
         },
-        [editable, dragDropEnabled, dragState, handleEdit, handleDelete, handleAddChild, handleMoveClick, onNodeClick, onMove, startDrag, setHoverTarget, clearHoverTarget]
+        [editable, dragDropEnabled, dragState, autoEditNodeId, handleEdit, handleDelete, handleAddChild, handleMoveClick, onNodeClick, onMove, startDrag, setHoverTarget, clearHoverTarget]
     );
 
     if (!treeData) {

@@ -168,6 +168,8 @@
                 "transactions": "Transaktionen",
                 "subBommels": "Subbommel",
                 "toReceipts": "Zu Belege",
+                "hideDetails": "Details ausblenden",
+                "showDetails": "Details einblenden",
                 "bommelNotFound": "Bommel nicht gefunden",
                 "bommelNotFoundDescription": "Der gesuchte Bommel existiert nicht oder wurde gelöscht.",
                 "backToStructure": "Zurück zur Struktur"

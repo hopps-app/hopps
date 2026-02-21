@@ -1,4 +1,4 @@
-import { Edit, Check, RefreshCw, AlertCircle, Info } from 'lucide-react';
+import { Edit, Check, RefreshCw, AlertCircle, Info, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -25,6 +25,7 @@ function OrganizationSettingsView() {
     const [isDragDropMode, setIsDragDropMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const initialSelectionDone = useRef(false);
 
     const isLargeScreen = useMediaQuery('(min-width: 1024px)');
@@ -183,9 +184,9 @@ function OrganizationSettingsView() {
             {(isLoading || isStatsLoading) && <LoadingOverlay />}
 
             <div className="h-full flex flex-col">
-                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
+                <div className={`grid grid-cols-1 ${isSidebarOpen ? 'xl:grid-cols-4' : 'xl:grid-cols-1'} gap-6 flex-1 min-h-0`}>
                     {/* Left Side - Structure Views */}
-                    <div className="xl:col-span-3 flex flex-col min-h-0">
+                    <div className={`${isSidebarOpen ? 'xl:col-span-3' : 'xl:col-span-1'} flex flex-col min-h-0`}>
                         <div className="flex items-center justify-end mb-4 flex-shrink-0">
                             <div className="flex items-center gap-4">
                                 {!isEditMode && (
@@ -199,11 +200,19 @@ function OrganizationSettingsView() {
                                     </>
                                 )}
                                 {isEditMode && (
-                                    <Switch
-                                        label={t('organization.structure.dragDrop')}
-                                        checked={isDragDropMode}
-                                        onCheckedChange={setIsDragDropMode}
-                                    />
+                                    <>
+                                        {isDragDropMode && (
+                                            <span className="text-sm text-blue-600 flex items-center gap-1.5">
+                                                <Info className="w-3.5 h-3.5 flex-shrink-0" />
+                                                {t('organization.structure.dragDropHint')}
+                                            </span>
+                                        )}
+                                        <Switch
+                                            label={t('organization.structure.dragDrop')}
+                                            checked={isDragDropMode}
+                                            onCheckedChange={setIsDragDropMode}
+                                        />
+                                    </>
                                 )}
                                 <Button
                                     variant={isEditMode ? 'default' : 'outline'}
@@ -225,15 +234,21 @@ function OrganizationSettingsView() {
                                         </>
                                     )}
                                 </Button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                    className="hidden xl:flex items-center justify-center p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    title={isSidebarOpen ? t('organization.structure.details.hideDetails') : t('organization.structure.details.showDetails')}
+                                    aria-label={isSidebarOpen ? t('organization.structure.details.hideDetails') : t('organization.structure.details.showDetails')}
+                                >
+                                    {isSidebarOpen ? (
+                                        <PanelRightClose className="w-4 h-4 text-gray-600" />
+                                    ) : (
+                                        <PanelRightOpen className="w-4 h-4 text-gray-600" />
+                                    )}
+                                </button>
                             </div>
                         </div>
-
-                        {isDragDropMode && (
-                            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm">
-                                <Info className="w-4 h-4 flex-shrink-0" />
-                                <span>{t('organization.structure.dragDropHint')}</span>
-                            </div>
-                        )}
 
                         {isLargeScreen ? (
                             <div className="flex-1 min-h-0">
@@ -265,7 +280,7 @@ function OrganizationSettingsView() {
                     </div>
 
                     {/* Right Side - Selected Bommel Details */}
-                    <div className="xl:col-span-1">
+                    {isSidebarOpen && <div className="xl:col-span-1">
                         {bommelNotFound ? (
                             <Card className="sticky top-6 bg-white">
                                 <CardContent className="py-8 text-center space-y-4">
@@ -288,7 +303,7 @@ function OrganizationSettingsView() {
                                 onNavigateToReceipts={handleNavigateToReceipts}
                             />
                         )}
-                    </div>
+                    </div>}
                 </div>
             </div>
         </>

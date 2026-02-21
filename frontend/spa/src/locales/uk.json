@@ -114,6 +114,8 @@
         "drafts": "Чернетки",
         "subBommels": "Підбоммелі",
         "toReceipts": "До квитанцій",
+        "hideDetails": "Сховати деталі",
+        "showDetails": "Показати деталі",
         "bommelNotFound": "Боммель не знайдено",
         "bommelNotFoundDescription": "Боммель, який ви шукаєте, не існує або був видалений.",
         "backToStructure": "Повернутися до структури"

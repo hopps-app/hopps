@@ -1,5 +1,4 @@
-import { Check, X } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import EmojiField from '@/components/ui/EmojiField';
@@ -12,7 +11,6 @@ interface BommelCardEditFormProps {
     onNameChange: (name: string) => void;
     onEmojiChange: (emoji: string) => void;
     onSave: () => void;
-    onCancel: () => void;
 }
 
 export function validateBommelName(name: string): 'required' | 'maxLength' | null {
@@ -25,9 +23,10 @@ export function validateBommelName(name: string): 'required' | 'maxLength' | nul
     return null;
 }
 
-export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, onSave, onCancel }: BommelCardEditFormProps) {
+export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, onSave }: BommelCardEditFormProps) {
     const { t } = useTranslation();
     const [validationError, setValidationError] = useState<string | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const validate = (): boolean => {
         const error = validateBommelName(name);
@@ -51,7 +50,6 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
 
     const handleNameChange = (newName: string) => {
         onNameChange(newName);
-        // Clear validation error when user starts typing valid input
         if (validationError) {
             const error = validateBommelName(newName);
             if (!error) {
@@ -63,13 +61,32 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             handleSave();
-        } else if (e.key === 'Escape') {
-            onCancel();
         }
     };
 
+    const handleBlur = (e: React.FocusEvent) => {
+        const related = e.relatedTarget as Node | null;
+        // Stay in edit mode when focus moves within the form
+        if (containerRef.current && related && containerRef.current.contains(related)) {
+            return;
+        }
+        // Delay save to allow portal-based popovers (e.g. emoji picker) to open first.
+        // If focus moved into a popover/portal, the active element will be inside it after the timeout.
+        setTimeout(() => {
+            if (containerRef.current && containerRef.current.contains(document.activeElement)) {
+                return;
+            }
+            // Check if focus is now inside a Radix popover portal (rendered outside our container)
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.closest('[data-radix-popper-content-wrapper]')) {
+                return;
+            }
+            handleSave();
+        }, 0);
+    };
+
     return (
-        <div className="flex flex-col gap-0.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+        <div ref={containerRef} className="flex flex-col gap-0.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()} onBlur={handleBlur}>
             <div className="flex items-center gap-1 flex-1 min-w-0">
                 <div className="w-8 flex-shrink-0">
                     <EmojiField value={emoji} onChange={onEmojiChange} className="py-0 px-0.5 h-6 text-xs" />
@@ -89,30 +106,6 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                     aria-describedby={validationError ? 'bommel-name-error' : undefined}
                     aria-required="true"
                 />
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleSave();
-                    }}
-                    className="bg-emerald-500 text-white border-none rounded p-0.5 cursor-pointer flex items-center hover:bg-emerald-600 transition-colors flex-shrink-0"
-                    title={t('organization.structure.saveName')}
-                    aria-label={t('organization.structure.saveName')}
-                >
-                    <Check className="w-3 h-3" aria-hidden="true" />
-                </button>
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onCancel();
-                    }}
-                    className="bg-red-500 text-white border-none rounded p-0.5 cursor-pointer flex items-center hover:bg-red-600 transition-colors flex-shrink-0"
-                    title={t('organization.structure.cancelEdit')}
-                    aria-label={t('organization.structure.cancelEdit')}
-                >
-                    <X className="w-3 h-3" aria-hidden="true" />
-                </button>
             </div>
             {validationError && (
                 <div id="bommel-name-error" className="text-red-300 text-[10px] font-medium pl-9" role="alert">

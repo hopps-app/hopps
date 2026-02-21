@@ -26,7 +26,7 @@ export interface BommelTreeComponentProps {
     onNodeClick?: (nodeData: TreeNodeData) => void;
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
-    onAddChild?: (nodeId: number) => Promise<boolean>;
+    onAddChild?: (nodeId: number) => Promise<number | boolean>;
     onMove?: (nodeId: number, newParentId: number) => Promise<boolean>;
     width?: number;
     height?: number;
@@ -38,9 +38,10 @@ export interface BommelCardProps {
     onNodeClick?: (nodeData: TreeNodeData) => void;
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
-    onAddChild?: (nodeId: number) => Promise<boolean>;
+    onAddChild?: (nodeId: number) => Promise<number | boolean>;
     onMove?: (nodeId: number) => void;
     editable: boolean;
+    autoEdit?: boolean;
     dragDropEnabled?: boolean;
     isBeingDragged?: boolean;
     isDraggedOver?: boolean;

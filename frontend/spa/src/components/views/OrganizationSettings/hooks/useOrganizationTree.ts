@@ -162,7 +162,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
             actionRef.current = true;
             setIsLoading(true);
             try {
-                await apiService.orgService.bommelPOST(
+                const created = await apiService.orgService.bommelPOST(
                     new Bommel({
                         name: generateRandomBommelName(),
                         emoji: generateRandomBommelEmoji(),
@@ -172,7 +172,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 );
                 await loadTree();
                 showSuccess(t('organization.structure.toast.createChildSuccess'));
-                return true;
+                return created.id ?? true;
             } catch (e) {
                 console.error(e);
                 showError(t('organization.structure.toast.createChildError'));
@@ -200,7 +200,8 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                     })
                 );
                 isSuccess = true;
-                await loadTree();
+                // Update local tree state directly to preserve ordering
+                setTree((prev) => prev.map((n) => (n.id === node.id ? node : n)));
                 showSuccess(t('organization.structure.toast.updateSuccess'));
             } catch (e) {
                 console.error(e);
@@ -211,7 +212,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
 
             return isSuccess;
         },
-        [loadTree, showError, showSuccess, t]
+        [showError, showSuccess, t]
     );
 
     const moveTreeNode = useCallback(

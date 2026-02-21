@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { RawNodeDatum } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
@@ -18,8 +18,8 @@ export function BommelCard({
     onEdit,
     onDelete,
     onAddChild,
-    onMove,
     editable,
+    autoEdit,
     dragDropEnabled,
     isBeingDragged,
     isDraggedOver,
@@ -46,6 +46,15 @@ export function BommelCard({
 
     const isCollapsed = (nodeDatum as RawNodeDatum & { __rd3t?: { collapsed?: boolean } }).__rd3t?.collapsed;
     const didDragRef = useRef(false);
+
+    // Auto-enter edit mode for newly created bommels
+    useEffect(() => {
+        if (autoEdit && editable && !isRoot && !isEditing) {
+            setEditedName(nodeDatum.name);
+            setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
+            setIsEditing(true);
+        }
+    }, [autoEdit]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleClick = () => {
         if (didDragRef.current) {
@@ -227,27 +236,11 @@ export function BommelCard({
                             e.stopPropagation();
                             handleDeleteClick();
                         }}
-                        className="absolute -top-1.5 -right-1.5 bg-red-500/80 text-white border-none rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors z-10"
+                        className="absolute -top-1.5 -right-1.5 bg-red-50 border border-red-200 text-red-400 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-red-100 hover:border-red-400 hover:text-red-600 transition-colors z-10"
                         title={t('organization.structure.deleteBommel')}
                         aria-label={t('organization.structure.deleteBommel')}
                     >
                         <Trash2 className="w-2.5 h-2.5" aria-hidden="true" />
-                    </button>
-                )}
-
-                {/* Move button - bottom right corner (hidden in drag-drop mode) */}
-                {editable && !dragDropEnabled && !isEditing && !isRoot && onMove && (
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onMove(nodeId);
-                        }}
-                        className="absolute -bottom-1.5 -right-1.5 bg-blue-500/80 text-white border-none rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors z-10"
-                        title={t('organization.structure.moveBommel')}
-                        aria-label={t('organization.structure.moveBommel')}
-                    >
-                        <ArrowRight className="w-2.5 h-2.5" aria-hidden="true" />
                     </button>
                 )}
 
@@ -260,7 +253,6 @@ export function BommelCard({
                             onNameChange={setEditedName}
                             onEmojiChange={setEditedEmoji}
                             onSave={handleSaveName}
-                            onCancel={handleCancelEdit}
                         />
                     ) : (
                         <div
@@ -297,7 +289,7 @@ export function BommelCard({
                             e.stopPropagation();
                             handleAddChild();
                         }}
-                        className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-600 shadow-md z-20 transition-colors"
+                        className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-green-50 border border-green-200 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 hover:border-green-400 hover:text-green-700 z-20 transition-colors"
                         title={t('organization.structure.addChild')}
                         aria-label={t('organization.structure.addChild')}
                     >
@@ -313,7 +305,7 @@ export function BommelCard({
                             e.stopPropagation();
                             handleAddSibling();
                         }}
-                        className="absolute -right-5 top-1/2 -translate-y-1/2 bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-600 shadow-md z-20 transition-colors"
+                        className="absolute -right-5 top-1/2 -translate-y-1/2 bg-green-50 border border-green-200 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 hover:border-green-400 hover:text-green-700 z-20 transition-colors"
                         title={t('organization.structure.addSibling')}
                         aria-label={t('organization.structure.addSibling')}
                     >
