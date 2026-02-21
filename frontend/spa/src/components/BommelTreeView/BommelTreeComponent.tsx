@@ -168,7 +168,7 @@ function BommelTreeComponent({
                     separation={{ siblings: 1, nonSiblings: 1.2 }}
                     zoom={0.9}
                     scaleExtent={{ min: 0.3, max: 2 }}
-                    enableLegacyTransitions={true}
+                    enableLegacyTransitions={false}
                     collapsible={true}
                     depthFactor={editable ? 100 : 140}
                     pathClassFunc={() => 'tree-link'}

@@ -187,12 +187,16 @@ function OrganizationSettingsView() {
                     <div className="xl:col-span-3 flex flex-col min-h-0">
                         <div className="flex items-center justify-end mb-4 flex-shrink-0">
                             <div className="flex items-center gap-4">
-                                <Switch
-                                    label={t('organization.structure.includeDrafts')}
-                                    checked={statisticsOptions.includeDrafts}
-                                    onCheckedChange={setIncludeDrafts}
-                                />
-                                <Switch label={t('organization.structure.aggregate')} checked={statisticsOptions.aggregate} onCheckedChange={setAggregate} />
+                                {!isEditMode && (
+                                    <>
+                                        <Switch
+                                            label={t('organization.structure.includeDrafts')}
+                                            checked={statisticsOptions.includeDrafts}
+                                            onCheckedChange={setIncludeDrafts}
+                                        />
+                                        <Switch label={t('organization.structure.aggregate')} checked={statisticsOptions.aggregate} onCheckedChange={setAggregate} />
+                                    </>
+                                )}
                                 <Button variant={isEditMode ? 'default' : 'outline'} onClick={() => setIsEditMode(!isEditMode)}>
                                     {isEditMode ? (
                                         <>
