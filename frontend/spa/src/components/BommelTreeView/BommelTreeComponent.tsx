@@ -33,8 +33,7 @@ function BommelTreeComponent({
     const [autoEditNodeId, setAutoEditNodeId] = useState<number | null>(null);
     const [centerKey, setCenterKey] = useState(0);
 
-    const { dragState, startDrag, updateDrag, setHoverTarget, clearHoverTarget, endDrag, cancelDrag, hasPendingDrag } =
-        useBommelDragDrop(tree);
+    const { dragState, startDrag, updateDrag, setHoverTarget, clearHoverTarget, endDrag, cancelDrag, hasPendingDrag } = useBommelDragDrop(tree);
 
     // Global pointermove/pointerup listeners for drag-drop
     useEffect(() => {
@@ -201,7 +200,21 @@ function BommelTreeComponent({
                 </g>
             );
         },
-        [editable, dragDropEnabled, dragState, autoEditNodeId, handleEdit, handleDelete, handleAddChild, handleMoveClick, onNodeClick, onMove, startDrag, setHoverTarget, clearHoverTarget]
+        [
+            editable,
+            dragDropEnabled,
+            dragState,
+            autoEditNodeId,
+            handleEdit,
+            handleDelete,
+            handleAddChild,
+            handleMoveClick,
+            onNodeClick,
+            onMove,
+            startDrag,
+            setHoverTarget,
+            clearHoverTarget,
+        ]
     );
 
     if (!treeData) {

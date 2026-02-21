@@ -48,14 +48,11 @@ export function useBommelDragDrop(allBommels: OrganizationTreeNodeModel[]) {
     const pendingDragRef = useRef<{ nodeId: number; name: string; emoji: string; parentId: number } | null>(null);
     const thresholdMetRef = useRef(false);
 
-    const startDrag = useCallback(
-        (nodeId: number, name: string, emoji: string, parentId: number, clientX: number, clientY: number) => {
-            pointerStartRef.current = { x: clientX, y: clientY };
-            pendingDragRef.current = { nodeId, name, emoji, parentId };
-            thresholdMetRef.current = false;
-        },
-        []
-    );
+    const startDrag = useCallback((nodeId: number, name: string, emoji: string, parentId: number, clientX: number, clientY: number) => {
+        pointerStartRef.current = { x: clientX, y: clientY };
+        pendingDragRef.current = { nodeId, name, emoji, parentId };
+        thresholdMetRef.current = false;
+    }, []);
 
     const updateDrag = useCallback(
         (clientX: number, clientY: number) => {

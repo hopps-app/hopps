@@ -196,7 +196,11 @@ function OrganizationSettingsView() {
                                             checked={statisticsOptions.includeDrafts}
                                             onCheckedChange={setIncludeDrafts}
                                         />
-                                        <Switch label={t('organization.structure.aggregate')} checked={statisticsOptions.aggregate} onCheckedChange={setAggregate} />
+                                        <Switch
+                                            label={t('organization.structure.aggregate')}
+                                            checked={statisticsOptions.aggregate}
+                                            onCheckedChange={setAggregate}
+                                        />
                                     </>
                                 )}
                                 {isEditMode && (
@@ -207,11 +211,7 @@ function OrganizationSettingsView() {
                                                 {t('organization.structure.dragDropHint')}
                                             </span>
                                         )}
-                                        <Switch
-                                            label={t('organization.structure.dragDrop')}
-                                            checked={isDragDropMode}
-                                            onCheckedChange={setIsDragDropMode}
-                                        />
+                                        <Switch label={t('organization.structure.dragDrop')} checked={isDragDropMode} onCheckedChange={setIsDragDropMode} />
                                     </>
                                 )}
                                 <Button
@@ -239,7 +239,9 @@ function OrganizationSettingsView() {
                                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                                     className="hidden xl:flex items-center justify-center p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                     title={isSidebarOpen ? t('organization.structure.details.hideDetails') : t('organization.structure.details.showDetails')}
-                                    aria-label={isSidebarOpen ? t('organization.structure.details.hideDetails') : t('organization.structure.details.showDetails')}
+                                    aria-label={
+                                        isSidebarOpen ? t('organization.structure.details.hideDetails') : t('organization.structure.details.showDetails')
+                                    }
                                 >
                                     {isSidebarOpen ? (
                                         <PanelRightClose className="w-4 h-4 text-gray-600" />
@@ -280,30 +282,32 @@ function OrganizationSettingsView() {
                     </div>
 
                     {/* Right Side - Selected Bommel Details */}
-                    {isSidebarOpen && <div className="xl:col-span-1">
-                        {bommelNotFound ? (
-                            <Card className="sticky top-6 bg-white">
-                                <CardContent className="py-8 text-center space-y-4">
-                                    <div className="rounded-full bg-destructive/10 p-3 mx-auto w-fit">
-                                        <AlertCircle className="h-6 w-6 text-destructive" />
-                                    </div>
-                                    <div>
-                                        <p className="text-destructive font-medium">{t('organization.structure.details.bommelNotFound')}</p>
-                                        <p className="text-sm text-gray-500 mt-1">{t('organization.structure.details.bommelNotFoundDescription')}</p>
-                                    </div>
-                                    <Button variant="outline" onClick={() => setSearchParams({}, { replace: true })}>
-                                        {t('organization.structure.details.backToStructure')}
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <BommelDetailsPanel
-                                selectedBommel={selectedBommel}
-                                subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
-                                onNavigateToReceipts={handleNavigateToReceipts}
-                            />
-                        )}
-                    </div>}
+                    {isSidebarOpen && (
+                        <div className="xl:col-span-1">
+                            {bommelNotFound ? (
+                                <Card className="sticky top-6 bg-white">
+                                    <CardContent className="py-8 text-center space-y-4">
+                                        <div className="rounded-full bg-destructive/10 p-3 mx-auto w-fit">
+                                            <AlertCircle className="h-6 w-6 text-destructive" />
+                                        </div>
+                                        <div>
+                                            <p className="text-destructive font-medium">{t('organization.structure.details.bommelNotFound')}</p>
+                                            <p className="text-sm text-gray-500 mt-1">{t('organization.structure.details.bommelNotFoundDescription')}</p>
+                                        </div>
+                                        <Button variant="outline" onClick={() => setSearchParams({}, { replace: true })}>
+                                            {t('organization.structure.details.backToStructure')}
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <BommelDetailsPanel
+                                    selectedBommel={selectedBommel}
+                                    subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
+                                    onNavigateToReceipts={handleNavigateToReceipts}
+                                />
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </>

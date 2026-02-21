@@ -27,7 +27,8 @@
       "Bash(helm lint:*)",
       "Bash(gzip:*)",
       "Bash(kubectl describe:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }
