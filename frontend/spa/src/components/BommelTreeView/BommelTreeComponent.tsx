@@ -20,7 +20,7 @@ function BommelTreeComponent({
     onAddChild,
     onMove,
     width = 800,
-    height = 600,
+    height,
 }: BommelTreeComponentProps) {
     const { t } = useTranslation();
     const [, forceUpdate] = useState({});
@@ -144,7 +144,7 @@ function BommelTreeComponent({
     }
 
     return (
-        <div ref={treeContainerRef} className="w-full border rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 relative" style={{ height }}>
+        <div ref={treeContainerRef} className="w-full h-full border rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 relative" style={height ? { height } : undefined}>
             {/* Center tree button */}
             <button
                 type="button"

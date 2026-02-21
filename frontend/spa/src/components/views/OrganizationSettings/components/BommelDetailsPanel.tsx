@@ -16,7 +16,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
 
     if (!selectedBommel) {
         return (
-            <Card className="sticky top-6 bg-white">
+            <Card className="sticky top-6 h-full bg-white">
                 <CardContent className="py-12 text-center text-gray-500">{t('organization.structure.details.selectBommel')}</CardContent>
             </Card>
         );
@@ -28,7 +28,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
     const transactionsCount = selectedBommel.data?.transactionsCount || 0;
 
     return (
-        <Card className="sticky top-6 bg-white">
+        <Card className="sticky top-6 h-full bg-white">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     {selectedBommel.data?.emoji && <Emoji emoji={selectedBommel.data.emoji} className="text-2xl" />}

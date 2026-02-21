@@ -178,7 +178,8 @@ public class OrganizationResource {
                             .build());
         } catch (NonUniqueConstraintViolation.NonUniqueConstraintViolationException e) {
             LOG.warn("Uniqueness constraint violation: {}", e.getMessage());
-            Set<String> conflictingFields = e.getViolations().stream()
+            Set<String> conflictingFields = e.getViolations()
+                    .stream()
                     .map(NonUniqueConstraintViolation::field)
                     .collect(Collectors.toSet());
             return Response.status(Response.Status.CONFLICT)

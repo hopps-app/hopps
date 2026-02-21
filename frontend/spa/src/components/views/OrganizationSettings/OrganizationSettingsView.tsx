@@ -181,11 +181,11 @@ function OrganizationSettingsView() {
         <>
             {(isLoading || isStatsLoading) && <LoadingOverlay />}
 
-            <div className="space-y-6">
-                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <div className="h-full flex flex-col">
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
                     {/* Left Side - Structure Views */}
-                    <div className="xl:col-span-3 space-y-6">
-                        <div className="flex items-center justify-end mb-4">
+                    <div className="xl:col-span-3 flex flex-col min-h-0">
+                        <div className="flex items-center justify-end mb-4 flex-shrink-0">
                             <div className="flex items-center gap-4">
                                 <Switch
                                     label={t('organization.structure.includeDrafts')}
@@ -210,14 +210,12 @@ function OrganizationSettingsView() {
                         </div>
 
                         {isLargeScreen ? (
-                            <div>
+                            <div className="flex-1 min-h-0">
                                 <BommelTreeComponent
                                     key={`tree-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
                                     tree={tree}
                                     rootBommel={rootBommel}
                                     editable={isEditMode}
-                                    width={1200}
-                                    height={600}
                                     onNodeClick={handleTreeNodeClick}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}

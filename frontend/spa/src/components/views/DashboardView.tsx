@@ -193,8 +193,8 @@ function DashboardView() {
     const formattedEnd = format(new Date(endDate), 'P', { locale: getDateLocale() });
 
     return (
-        <div className="max-w-screen-xl">
-            <div className="bg-white dark:bg-gray-800 rounded-[30px] shadow p-3 sm:p-6">
+        <div className="h-full flex flex-col">
+            <div className="bg-white dark:bg-gray-800 rounded-[30px] shadow p-3 sm:p-6 flex-1 flex flex-col min-h-0">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-3 sm:gap-4">
                     <h2 className="text-lg sm:text-xl font-semibold">{t('dashboard.incomeExpenseChart')}</h2>
 
@@ -339,13 +339,13 @@ function DashboardView() {
                 </div>
 
                 {isLoading && (
-                    <div className="flex items-center justify-center h-52 sm:h-96">
+                    <div className="flex items-center justify-center flex-1 min-h-[208px]">
                         <LoadingState size="lg" />
                     </div>
                 )}
 
                 {error && (
-                    <div className="flex flex-col items-center justify-center h-52 sm:h-96 gap-3 sm:gap-4">
+                    <div className="flex flex-col items-center justify-center flex-1 min-h-[208px] gap-3 sm:gap-4">
                         <div className="rounded-full bg-destructive/10 p-3">
                             <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path
@@ -377,7 +377,7 @@ function DashboardView() {
                 )}
 
                 {!isLoading && !error && !hasData && (
-                    <div className="flex flex-col items-center justify-center h-52 sm:h-96 text-gray-500">
+                    <div className="flex flex-col items-center justify-center flex-1 min-h-[208px] text-gray-500">
                         <div className="rounded-full bg-muted p-4 mb-4">
                             <BarChart3 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                         </div>
@@ -391,29 +391,31 @@ function DashboardView() {
                 )}
 
                 {!isLoading && !error && hasData && (
-                    <>
+                    <div className="flex-1 flex flex-col min-h-[250px]">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                             {t('dashboard.timeRange', { startDate: formattedStart, endDate: formattedEnd })}
                         </p>
-                        <ResponsiveContainer width="100%" height={isSmallScreen ? 250 : 400}>
-                            <LineChart data={chartData} margin={{ top: 5, right: isSmallScreen ? 10 : 30, left: isSmallScreen ? 5 : 20, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="month" />
-                                <YAxis />
-                                <Tooltip
-                                    formatter={(value: number) => `€${value.toFixed(2)}`}
-                                    contentStyle={{
-                                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                        border: '1px solid #A7A7A7',
-                                        borderRadius: '4px',
-                                    }}
-                                />
-                                <Legend />
-                                <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name={t('dashboard.income')} />
-                                <Line type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} name={t('dashboard.expenses')} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </>
+                        <div className="flex-1 min-h-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData} margin={{ top: 5, right: isSmallScreen ? 10 : 30, left: isSmallScreen ? 5 : 20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="month" />
+                                    <YAxis />
+                                    <Tooltip
+                                        formatter={(value: number) => `€${value.toFixed(2)}`}
+                                        contentStyle={{
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            border: '1px solid #A7A7A7',
+                                            borderRadius: '4px',
+                                        }}
+                                    />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name={t('dashboard.income')} />
+                                    <Line type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} name={t('dashboard.expenses')} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

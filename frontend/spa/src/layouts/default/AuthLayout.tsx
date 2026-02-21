@@ -17,7 +17,7 @@ function PageHeader() {
     const navigate = useNavigate();
 
     return (
-        <div className="flex items-center justify-between py-2 sm:py-4">
+        <div className="flex items-center justify-between py-2 sm:py-4 flex-shrink-0">
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 truncate min-w-0">
                 {icon && <Icon icon={icon} size={20} />}
                 <span className="truncate">{title}</span>
@@ -53,11 +53,11 @@ export default function AuthLayout() {
         <PageTitleProvider>
             <div className="flex h-screen bg-background">
                 <SidebarNavigation collapsed={collapsed} onToggle={handleToggle} />
-                <div className={`flex-1 ml-0 transition-[margin] duration-300 ease-in-out ${collapsed ? 'sm:ml-16' : 'sm:ml-60'}`}>
-                    <div className="m-2 sm:m-6 flex-1">
+                <div className={`flex-1 flex flex-col min-h-0 ml-0 transition-[margin] duration-300 ease-in-out ${collapsed ? 'sm:ml-16' : 'sm:ml-60'}`}>
+                    <div className="m-2 sm:m-6 flex-1 flex flex-col min-h-0">
                         <PageHeader />
 
-                        <main>
+                        <main className="flex-1 min-h-0">
                             <ErrorBoundary key={location.pathname}>
                                 <Outlet />
                             </ErrorBoundary>
