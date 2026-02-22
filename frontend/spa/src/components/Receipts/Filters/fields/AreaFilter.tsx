@@ -16,7 +16,7 @@ type AreaFilterProps = {
         area?: string | null;
     };
     onChange: (key: 'area', value: string | null) => void;
-    label: string;
+    label?: string;
 };
 
 const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
@@ -54,15 +54,15 @@ const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
                             aria-expanded={open}
                             className={cn(
                                 'w-full h-10 justify-between text-sm font-normal',
-                                'rounded-xl border border-[#A7A7A7] bg-white px-3 text-left',
+                                'rounded-xl border border-[#d1d5db] bg-white px-3 text-left',
                                 'hover:bg-[var(--grey-50)] transition-colors',
-                                'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none focus-visible:border-[var(--purple-500)]',
-                                !selectedArea && 'text-[var(--grey-500)]',
+                                'focus-visible:outline-none focus-visible:border-[var(--purple-500)] focus-visible:ring-2 focus-visible:ring-[var(--purple-500)]/25',
+                                !selectedArea && 'text-[#666]',
                                 selectedArea && 'rounded-r-none border-r-0'
                             )}
                         >
                             <span className="truncate">{selectedArea ? selectedArea.label : t('receipts.filters.allAreas')}</span>
-                            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[var(--grey-500)]" />
+                            <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" />
                         </BaseButton>
                     </PopoverTrigger>
 
@@ -70,7 +70,7 @@ const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
                         align="start"
                         side="bottom"
                         sideOffset={4}
-                        className="w-[var(--radix-popover-trigger-width)] p-0 border border-[#A7A7A7] bg-white rounded-xl shadow-lg"
+                        className="w-[var(--radix-popover-trigger-width)] p-0 border border-[#d1d5db] bg-white rounded-xl shadow-lg"
                     >
                         <Command shouldFilter={false}>
                             <CommandList>
@@ -90,7 +90,7 @@ const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
                     <button
                         type="button"
                         onClick={() => onChange('area', null)}
-                        className="flex items-center h-10 px-2 border border-l-0 border-[#A7A7A7] bg-white rounded-r-xl hover:bg-[var(--grey-50)] transition-colors"
+                        className="flex items-center h-10 px-2 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl hover:bg-[var(--grey-50)] transition-colors"
                     >
                         <X className="h-3.5 w-3.5 text-[var(--grey-500)] hover:text-[var(--grey-900)]" />
                     </button>

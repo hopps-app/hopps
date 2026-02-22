@@ -42,7 +42,7 @@ const Receipts = () => {
     }, [setFilter]);
 
     return (
-        <div className="w-full space-y-5">
+        <div className="w-full space-y-3">
             {/* Search + Filter Controls */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative flex-1 max-w-md">
@@ -53,7 +53,7 @@ const Receipts = () => {
                         placeholder={t('receipts.filters.searchPlaceholder')}
                         className={cn(
                             'w-full pl-9 pr-8 h-10 text-sm',
-                            'rounded-xl border border-[#A7A7A7] bg-white',
+                            'rounded-xl border border-[#d1d5db] bg-white',
                             'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
                             'focus:border-[var(--purple-500)] transition-colors'
                         )}
