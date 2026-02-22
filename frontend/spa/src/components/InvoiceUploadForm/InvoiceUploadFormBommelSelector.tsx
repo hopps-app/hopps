@@ -48,8 +48,9 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                     <button
                         type="button"
                         className={cn(
-                            'flex items-center justify-between w-full text-sm border border-[#A7A7A7] rounded-xl px-4 py-3 text-left cursor-pointer bg-primary-foreground',
-                            'focus:ring-2 focus:ring-primary focus:outline-none'
+                            'flex items-center justify-between w-full text-sm border border-[#d1d5db] rounded-xl px-3 py-3 text-left cursor-pointer bg-primary-foreground',
+                            'focus:ring-2 focus:ring-primary focus:outline-none',
+                            !selectedBommel && 'text-[#666]'
                         )}
                         aria-haspopup="listbox"
                         aria-expanded={open}
@@ -59,7 +60,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                             {selectedBommel?.emoji && <Emoji emoji={selectedBommel.emoji} className="text-lg" />}
                             {selectedBommel ? selectedBommel.name : t('invoiceUpload.selectBommel')}
                         </span>
-                        {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />}
+                        {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" aria-hidden="true" />}
                     </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
