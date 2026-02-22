@@ -419,6 +419,7 @@
             "income": "Income",
             "expense": "Expense",
             "status": "Status",
+            "all": "All",
             "onlyUnpaid": "Only unpaid",
             "drafts": "Drafts",
             "unassigned": "Unassigned",

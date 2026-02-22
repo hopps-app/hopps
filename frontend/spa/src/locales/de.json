@@ -345,6 +345,7 @@
             "income": "Einnahme",
             "expense": "Ausgabe",
             "status": "Status",
+            "all": "Alle",
             "onlyUnpaid": "Nur unbezahlt",
             "drafts": "Entwürfe",
             "unassigned": "Nicht zugewiesen",
