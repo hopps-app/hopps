@@ -38,8 +38,9 @@ export const SearchFilter = ({ value, onChange, label }: SearchFilterProps) => {
                     className={cn(
                         'w-full pl-10 pr-8 py-2 text-sm',
                         'rounded-[var(--radius-l)] border border-[#d1d5db] bg-[var(--grey-white)]',
+                        'hover:border-[var(--purple-500)]',
                         'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
-                        'focus:border-[var(--purple-500)] focus:ring-[var(--purple-500)] transition-all'
+                        'focus:border-[var(--purple-500)] transition-all'
                     )}
                 />
 
@@ -47,7 +48,7 @@ export const SearchFilter = ({ value, onChange, label }: SearchFilterProps) => {
                     <button
                         type="button"
                         onClick={handleClear}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-4 text-[var(--purple-500)] hover:text-[var(--purple-700)] transition"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-4 text-[var(--purple-500)] transition"
                     >
                         <Cross2Icon className="w-4 h-4" />
                     </button>

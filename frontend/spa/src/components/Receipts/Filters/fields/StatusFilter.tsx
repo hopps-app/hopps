@@ -46,7 +46,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                 <PopoverTrigger asChild>
                     <button
                         type="button"
-                        className="flex items-center justify-between w-full h-10 px-3 rounded-xl border border-[#d1d5db] bg-white text-sm text-[var(--grey-900)] hover:bg-[var(--grey-50)] transition-colors focus-visible:outline-none focus-visible:border-[var(--purple-500)] focus-visible:ring-2 focus-visible:ring-[var(--purple-500)]/25"
+                        className="flex items-center justify-between w-full h-10 px-3 rounded-xl border border-[#d1d5db] bg-white text-sm text-[var(--grey-900)] outline-none hover:border-[var(--purple-500)] hover:text-[var(--purple-500)] transition-colors focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]"
                     >
                         <span className="flex items-center gap-2">
                             <span>{label || t('receipts.filters.selectStatus')}</span>
@@ -60,9 +60,9 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                     </button>
                 </PopoverTrigger>
 
-                <PopoverContent align="start" side="bottom" sideOffset={4} className="w-52 p-2 border border-[#d1d5db] bg-white rounded-xl shadow-lg">
+                <PopoverContent align="start" side="bottom" sideOffset={4} className="w-52 p-2 rounded-md shadow-lg">
                     <div className="flex flex-col gap-1">
-                        <label className="flex items-center gap-2.5 px-2 py-1.5 rounded-md cursor-pointer hover:bg-[var(--grey-50)] transition-colors">
+                        <label className="flex items-center gap-2.5 px-2 py-1.5 rounded-md cursor-pointer transition-colors">
                             <Checkbox
                                 checked={isAllSelected}
                                 onCheckedChange={handleAllToggle}
@@ -72,10 +72,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                         </label>
 
                         {STATUS_KEYS.map((key) => (
-                            <label
-                                key={key}
-                                className="flex items-center gap-2.5 px-2 py-1.5 rounded-md cursor-pointer hover:bg-[var(--grey-50)] transition-colors"
-                            >
+                            <label key={key} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md cursor-pointer transition-colors">
                                 <Checkbox
                                     checked={filters.status[key]}
                                     onCheckedChange={(checked: boolean) => {

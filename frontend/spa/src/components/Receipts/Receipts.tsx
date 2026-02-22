@@ -74,7 +74,9 @@ const Receipts = () => {
                         onClick={() => setFiltersOpen(!filtersOpen)}
                         className={cn(
                             'gap-2 h-10 rounded-xl transition-colors',
-                            filtersOpen ? 'bg-[var(--purple-100)] border-[var(--purple-300)] text-[var(--purple-900)]' : 'border-[#A7A7A7]'
+                            filtersOpen
+                                ? 'bg-[var(--purple-100)] border-[var(--purple-400)] text-[var(--purple-600)] hover:bg-[var(--purple-100)] hover:border-[var(--purple-500)] hover:text-[var(--purple-600)]'
+                                : 'bg-[var(--purple-50)] border-[var(--purple-300)] text-[var(--purple-400)] hover:bg-[var(--purple-100)] hover:border-[var(--purple-400)] hover:text-[var(--purple-500)]'
                         )}
                     >
                         <Filter className="h-4 w-4" />

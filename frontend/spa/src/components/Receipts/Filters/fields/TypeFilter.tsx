@@ -35,8 +35,6 @@ const TypeFilter = ({ filters, onChange, label }: TypeFilterProps) => {
                                    bg-[var(--grey-white)] 
                                    data-[state=checked]:bg-[var(--purple-500)] 
                                    data-[state=checked]:border-[var(--purple-500)]
-                                   hover:bg-[var(--grey-400)] 
-                                   hover:data-[state=checked]:bg-[var(--purple-400)]
                                    transition-colors focus-visible:ring-0 focus-visible:outline-none"
                     />
                     <label htmlFor="type-income" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">
@@ -53,8 +51,6 @@ const TypeFilter = ({ filters, onChange, label }: TypeFilterProps) => {
                                    bg-[var(--grey-white)] 
                                    data-[state=checked]:bg-[var(--purple-500)] 
                                    data-[state=checked]:border-[var(--purple-500)]
-                                   hover:bg-[var(--grey-400)] 
-                                   hover:data-[state=checked]:bg-[var(--purple-400)]
                                    transition-colors focus-visible:ring-0 focus-visible:outline-none"
                     />
                     <label htmlFor="type-expense" className="text-base font-medium text-[var(--grey-black)] leading-none cursor-pointer select-none">

@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/Command';
-import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
 import { cn } from '@/lib/utils';
 
@@ -48,30 +47,26 @@ const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
             <div className="flex items-center w-full">
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
-                        <BaseButton
-                            variant="outline"
+                        <button
+                            type="button"
                             aria-haspopup="listbox"
                             aria-expanded={open}
                             className={cn(
-                                'w-full h-10 justify-between text-sm font-normal',
+                                'flex items-center w-full h-10 justify-between text-sm font-normal',
                                 'rounded-xl border border-[#d1d5db] bg-white px-3 text-left',
-                                'hover:bg-[var(--grey-50)] transition-colors',
-                                'focus-visible:outline-none focus-visible:border-[var(--purple-500)] focus-visible:ring-2 focus-visible:ring-[var(--purple-500)]/25',
+                                'hover:border-[var(--purple-500)] hover:text-[var(--purple-500)] outline-none transition-colors',
+                                'focus-visible:border-[var(--purple-500)]',
+                                'data-[state=open]:border-[var(--purple-500)]',
                                 !selectedArea && 'text-[#666]',
                                 selectedArea && 'rounded-r-none border-r-0'
                             )}
                         >
                             <span className="truncate">{selectedArea ? selectedArea.label : t('receipts.filters.allAreas')}</span>
                             <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" />
-                        </BaseButton>
+                        </button>
                     </PopoverTrigger>
 
-                    <PopoverContent
-                        align="start"
-                        side="bottom"
-                        sideOffset={4}
-                        className="w-[var(--radix-popover-trigger-width)] p-0 border border-[#d1d5db] bg-white rounded-xl shadow-lg"
-                    >
+                    <PopoverContent align="start" side="bottom" sideOffset={4} className="w-full p-0">
                         <Command shouldFilter={false}>
                             <CommandList>
                                 <CommandGroup>
@@ -90,9 +85,9 @@ const AreaFilter = ({ filters, onChange, label }: AreaFilterProps) => {
                     <button
                         type="button"
                         onClick={() => onChange('area', null)}
-                        className="flex items-center h-10 px-2 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl hover:bg-[var(--grey-50)] transition-colors"
+                        className="flex items-center h-10 px-2 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors"
                     >
-                        <X className="h-3.5 w-3.5 text-[var(--grey-500)] hover:text-[var(--grey-900)]" />
+                        <X className="h-3.5 w-3.5 text-[var(--grey-500)]" />
                     </button>
                 )}
             </div>
