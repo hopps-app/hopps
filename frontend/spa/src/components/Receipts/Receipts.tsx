@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { Filter } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ReceiptFilters } from '@/components/Receipts/Filters/ReceiptFilters';
@@ -10,12 +10,23 @@ import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
 const Receipts = () => {
     const { t } = useTranslation();
     usePageTitle(t('menu.receipts'));
+    const { organization } = useStore();
+    const { allBommels, loadBommels } = useBommelsStore();
     const { filters, setFilter, resetFilters } = useReceiptFilters();
     const [filtersOpen, setFiltersOpen] = useState(false);
+
+    // Load bommels when organization is available
+    useEffect(() => {
+        if (organization?.id && allBommels.length === 0) {
+            loadBommels(organization.id);
+        }
+    }, [organization?.id, allBommels.length, loadBommels]);
 
     const activeFilterCount = useMemo(() => {
         let count = 0;
