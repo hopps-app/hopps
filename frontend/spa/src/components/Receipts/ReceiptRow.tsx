@@ -114,7 +114,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                     type="button"
                     onClick={handleToggle}
                     onKeyDown={handleToggleKeyDown}
-                    className="flex items-center justify-center w-6 h-6 rounded-md text-[var(--grey-700)] hover:text-[var(--purple-600)] hover:bg-[var(--purple-100)] transition-all"
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-md text-[var(--grey-700)] hover:text-[var(--purple-600)] hover:bg-[var(--purple-100)] transition-all"
                     aria-label={isExpanded ? t('common.collapse') : t('common.expand')}
                     aria-expanded={isExpanded}
                 >
@@ -190,7 +190,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         type="button"
                         onClick={handleToggle}
                         onKeyDown={handleToggleKeyDown}
-                        className="flex items-center justify-center w-6 h-6 mt-0.5 shrink-0 rounded-md text-[var(--grey-700)] hover:text-[var(--purple-600)] hover:bg-[var(--purple-100)] transition-all"
+                        className="inline-flex items-center justify-center w-5 h-5 mt-0.5 shrink-0 rounded-md text-[var(--grey-700)] hover:text-[var(--purple-600)] hover:bg-[var(--purple-100)] transition-all"
                         aria-label={isExpanded ? t('common.collapse') : t('common.expand')}
                         aria-expanded={isExpanded}
                     >
