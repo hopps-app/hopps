@@ -38,6 +38,7 @@ const Receipts = () => {
         if (filters.status.unpaid) count++;
         if (filters.status.draft) count++;
         if (filters.status.unassigned) count++;
+        if (filters.displayAll) count++;
         return count;
     }, [filters]);
 

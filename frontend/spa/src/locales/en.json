@@ -8,6 +8,8 @@
         "upload": "Upload",
         "addNew": "Add new",
         "close": "Close",
+        "expand": "Expand",
+        "collapse": "Collapse",
         "search": "Search",
         "noItems": "No items to show",
         "goBack": "Back",
