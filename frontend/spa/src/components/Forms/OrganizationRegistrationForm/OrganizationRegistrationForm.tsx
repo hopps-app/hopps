@@ -115,19 +115,19 @@ export function OrganizationRegistrationForm(props: Props) {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="">
             <h1 className="text-center">{t('organization.registration.header')}</h1>
-            <div className="my-4">
+            <div className="mt-4 mb-2">
                 <TextField label={t('organization.registration.organizationName')} {...register('organizationName')} error={errors.organizationName?.message} />
             </div>
-            <div className="my-4">
+            <div className="my-2">
                 <div className="flex flex-row gap-2">
                     <TextField label={t('organization.registration.firstName')} {...register('firstName')} error={errors.firstName?.message} />
                     <TextField label={t('organization.registration.lastName')} {...register('lastName')} error={errors.lastName?.message} />
                 </div>
             </div>
-            <div className="my-4">
+            <div className="my-2">
                 <TextField label={t('organization.registration.email')} {...register('email')} error={errors.email?.message} />
             </div>
-            <div className="my-4">
+            <div className="my-2">
                 <div className="flex flex-row gap-2">
                     <TextField label={t('organization.registration.password')} type="password" {...register('password')} error={errors.password?.message} />
                     <TextField
