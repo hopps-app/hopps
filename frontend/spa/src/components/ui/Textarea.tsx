@@ -18,27 +18,32 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ label, 
     const errorId = `${id}-error`;
 
     return (
-        <div className="relative grid w-full items-center gap-1.5">
-            {label && <Label htmlFor={id}>{label}</Label>}
+        <div className="grid w-full items-center gap-1.5">
+            {label && (
+                <Label htmlFor={id} className={error ? 'text-red-500' : ''}>
+                    {label}
+                </Label>
+            )}
 
             <TextareaBase
                 id={id}
                 ref={ref}
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? errorId : undefined}
-                className={cn(className)}
+                className={cn(
+                    error && 'border-red-500 focus:border-red-500 focus:ring-red-500 shadow-[0_0_0_2px_rgba(239,68,68,0.15)] text-red-500',
+                    className
+                )}
                 {...props}
             />
 
-            {error && (
-                <div
-                    id={errorId}
-                    role="alert"
-                    className="absolute bottom-0 right-0 translate-y-2.5 bg-destructive text-destructive-foreground text-xs px-4 select-none"
-                >
-                    {error}
-                </div>
-            )}
+            <div className="min-h-[10px]">
+                {error && (
+                    <p id={errorId} role="alert" className="text-xs text-red-500 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                        {error}
+                    </p>
+                )}
+            </div>
         </div>
     );
 });

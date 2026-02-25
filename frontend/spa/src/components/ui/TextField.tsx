@@ -85,7 +85,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     </button>
                 )}
             </div>
-            <div className="min-h-[20px]">
+            <div className="min-h-[10px]">
                 {props.error && (
                     <p id={errorId} role="alert" className="text-xs text-red-500 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                         {props.error}
