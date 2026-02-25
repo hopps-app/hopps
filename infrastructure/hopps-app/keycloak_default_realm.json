@@ -1,6 +1,9 @@
 {
   "realm": "hopps",
   "enabled": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["de", "en"],
+  "defaultLocale": "de",
   "clients": [
     {
       "clientId": "hopps",
