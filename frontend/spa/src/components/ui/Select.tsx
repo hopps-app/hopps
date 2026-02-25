@@ -54,13 +54,11 @@ function Select(props: SelectProps) {
                     </SelectGroup>
                 </SelectContent>
             </BaseSelect>
-            <div className="min-h-[10px]">
-                {error && (
-                    <p id={errorId} role="alert" className="text-xs text-red-500 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                        {error}
-                    </p>
-                )}
-            </div>
+            {error && (
+                <p id={errorId} role="alert" className="text-xs text-red-500 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {error}
+                </p>
+            )}
         </div>
     );
 }

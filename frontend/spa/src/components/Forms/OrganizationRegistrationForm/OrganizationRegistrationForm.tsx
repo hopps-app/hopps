@@ -116,25 +116,47 @@ export function OrganizationRegistrationForm(props: Props) {
         <form onSubmit={handleSubmit(onSubmit)} className="">
             <h1 className="text-center">{t('organization.registration.header')}</h1>
             <div className="mt-4 mb-2">
-                <TextField label={t('organization.registration.organizationName')} {...register('organizationName')} error={errors.organizationName?.message} />
+                <TextField
+                    label={t('organization.registration.organizationName')}
+                    {...register('organizationName')}
+                    error={errors.organizationName?.message}
+                    autoComplete="organization"
+                />
             </div>
-            <div className="my-2">
+            <div className="mt-4">
                 <div className="flex flex-row gap-2">
-                    <TextField label={t('organization.registration.firstName')} {...register('firstName')} error={errors.firstName?.message} />
-                    <TextField label={t('organization.registration.lastName')} {...register('lastName')} error={errors.lastName?.message} />
+                    <TextField
+                        label={t('organization.registration.firstName')}
+                        {...register('firstName')}
+                        error={errors.firstName?.message}
+                        autoComplete="given-name"
+                    />
+                    <TextField
+                        label={t('organization.registration.lastName')}
+                        {...register('lastName')}
+                        error={errors.lastName?.message}
+                        autoComplete="family-name"
+                    />
                 </div>
             </div>
-            <div className="my-2">
-                <TextField label={t('organization.registration.email')} {...register('email')} error={errors.email?.message} />
+            <div className="mt-4">
+                <TextField label={t('organization.registration.email')} {...register('email')} error={errors.email?.message} autoComplete="email" />
             </div>
-            <div className="my-2">
+            <div className="mt-4">
                 <div className="flex flex-row gap-2">
-                    <TextField label={t('organization.registration.password')} type="password" {...register('password')} error={errors.password?.message} />
+                    <TextField
+                        label={t('organization.registration.password')}
+                        type="password"
+                        {...register('password')}
+                        error={errors.password?.message}
+                        autoComplete="new-password"
+                    />
                     <TextField
                         label={t('organization.registration.confirmPassword')}
                         type="password"
                         {...register('passwordConfirm')}
                         error={errors.passwordConfirm?.message}
+                        autoComplete="new-password"
                     />
                 </div>
             </div>

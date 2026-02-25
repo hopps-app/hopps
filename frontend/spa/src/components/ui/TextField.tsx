@@ -19,6 +19,7 @@ interface TextFieldProps {
     loading?: boolean;
     maxLength?: number;
     required?: boolean;
+    autoComplete?: string;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onValueChange?: (value: string) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -72,6 +73,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     aria-invalid={props.error ? true : undefined}
                     aria-describedby={props.error ? errorId : undefined}
                     aria-required={props.required || undefined}
+                    autoComplete={props.autoComplete}
                 />
                 {isPassword && (
                     <button
@@ -85,9 +87,9 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     </button>
                 )}
             </div>
-            <div className="min-h-[10px]">
+            <div className="">
                 {props.error && (
-                    <p id={errorId} role="alert" className="text-xs text-red-500 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <p id={errorId} role="alert" className="text-xs text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
                         {props.error}
                     </p>
                 )}
