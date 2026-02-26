@@ -59,7 +59,7 @@ jobs:
           VITE_API_FIN_URL: "VITE_API_FIN_URL_VALUE"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build
           path: frontend/spa/dist/
