@@ -8,6 +8,7 @@ import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransaction
 import { formatAmount } from '@/components/Receipts/helpers/receiptHelpers';
 import ReceiptRow from '@/components/Receipts/ReceiptRow';
 import ReceiptsEmptyState from '@/components/Receipts/ReceiptsEmptyState';
+import ReceiptsTableHeader from '@/components/Receipts/ReceiptsTableHeader';
 import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { TransactionFilters, transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
@@ -103,6 +104,10 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
         setPage(0);
     }, [filters.search, filters.startDate, filters.endDate, filters.project, filters.category, filters.area, filters.status]);
 
+    const toggleExpand = useCallback((id: string) => {
+        setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+    }, []);
+
     const handleDeleteRequest = useCallback(
         (id: string) => {
             const receipt = receipts.find((r) => r.id === id);
@@ -175,26 +180,20 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const hasPrevPage = page > 0;
 
     return (
-        <div className="space-y-4">
-            {/* Table */}
-            <div className="rounded-2xl border border-[#A7A7A7] bg-white overflow-hidden">
-                {/* Table Header - Desktop only */}
-                <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_100px_100px_48px] gap-4 px-5 py-3 bg-[var(--grey-50)] border-b border-[#A7A7A7]">
-                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.issuer')}</span>
-                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.date')}</span>
-                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.project')}</span>
-                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.category')}</span>
-                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.status')}</span>
-                    <span className="text-xs font-semibold text-[var(--grey-700)] uppercase tracking-wider text-right">{t('receipts.table.amount')}</span>
-                    <span></span>
-                </div>
+        <div className="space-y-2">
+            <ReceiptsTableHeader />
 
-                {/* Rows */}
-                <div className="divide-y divide-[var(--grey-100)]">
-                    {receipts.map((receipt) => (
-                        <ReceiptRow key={receipt.id} receipt={receipt} isExpanded={Boolean(expanded[receipt.id])} onDelete={handleDeleteRequest} />
-                    ))}
-                </div>
+            {/* Rows */}
+            <div className="flex flex-col gap-2">
+                {receipts.map((receipt) => (
+                    <ReceiptRow
+                        key={receipt.id}
+                        receipt={receipt}
+                        isExpanded={Boolean(expanded[receipt.id])}
+                        onToggle={toggleExpand}
+                        onDelete={handleDeleteRequest}
+                    />
+                ))}
             </div>
 
             {/* Pagination */}

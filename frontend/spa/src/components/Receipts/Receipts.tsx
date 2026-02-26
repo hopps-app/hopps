@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { Filter } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ReceiptFilters } from '@/components/Receipts/Filters/ReceiptFilters';
@@ -10,12 +10,23 @@ import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
 const Receipts = () => {
     const { t } = useTranslation();
     usePageTitle(t('menu.receipts'));
+    const { organization } = useStore();
+    const { allBommels, loadBommels } = useBommelsStore();
     const { filters, setFilter, resetFilters } = useReceiptFilters();
     const [filtersOpen, setFiltersOpen] = useState(false);
+
+    // Load bommels when organization is available
+    useEffect(() => {
+        if (organization?.id && allBommels.length === 0) {
+            loadBommels(organization.id);
+        }
+    }, [organization?.id, allBommels.length, loadBommels]);
 
     const activeFilterCount = useMemo(() => {
         let count = 0;
@@ -27,6 +38,7 @@ const Receipts = () => {
         if (filters.status.unpaid) count++;
         if (filters.status.draft) count++;
         if (filters.status.unassigned) count++;
+        if (filters.displayAll) count++;
         return count;
     }, [filters]);
 
@@ -42,7 +54,7 @@ const Receipts = () => {
     }, [setFilter]);
 
     return (
-        <div className="w-full space-y-5">
+        <div className="w-full space-y-3 mt-6">
             {/* Search + Filter Controls */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative flex-1 max-w-md">
@@ -53,7 +65,7 @@ const Receipts = () => {
                         placeholder={t('receipts.filters.searchPlaceholder')}
                         className={cn(
                             'w-full pl-9 pr-8 h-10 text-sm',
-                            'rounded-xl border border-[#A7A7A7] bg-white',
+                            'rounded-xl border border-[#d1d5db] bg-white',
                             'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
                             'focus:border-[var(--purple-500)] transition-colors'
                         )}
@@ -74,7 +86,9 @@ const Receipts = () => {
                         onClick={() => setFiltersOpen(!filtersOpen)}
                         className={cn(
                             'gap-2 h-10 rounded-xl transition-colors',
-                            filtersOpen ? 'bg-[var(--purple-100)] border-[var(--purple-300)] text-[var(--purple-900)]' : 'border-[#A7A7A7]'
+                            filtersOpen
+                                ? 'bg-[var(--purple-100)] border-[var(--purple-400)] text-[var(--purple-600)] hover:bg-[var(--purple-100)] hover:border-[var(--purple-500)] hover:text-[var(--purple-600)]'
+                                : 'bg-[var(--purple-50)] border-[var(--purple-300)] text-[var(--purple-400)] hover:bg-[var(--purple-100)] hover:border-[var(--purple-400)] hover:text-[var(--purple-500)]'
                         )}
                     >
                         <Filter className="h-4 w-4" />

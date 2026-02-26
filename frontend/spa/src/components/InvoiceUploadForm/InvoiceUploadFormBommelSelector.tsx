@@ -1,6 +1,7 @@
 'use client';
 
-import { CheckIcon, ChevronDownIcon, TrashIcon } from '@radix-ui/react-icons';
+import { CheckIcon, ChevronDownIcon } from '@radix-ui/react-icons';
+import { X } from 'lucide-react';
 import { FC, memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -42,14 +43,17 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
     }, [onChange]);
 
     return (
-        <div className="w-full relative">
+        <div className="flex items-center w-full">
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <button
                         type="button"
                         className={cn(
-                            'flex items-center justify-between w-full text-sm border border-[#A7A7A7] rounded-xl px-4 py-3 text-left cursor-pointer bg-primary-foreground',
-                            'focus:ring-2 focus:ring-primary focus:outline-none'
+                            'flex items-center w-full h-10 justify-between text-sm border border-[#d1d5db] rounded-xl px-3 py-3 text-left cursor-pointer bg-primary-foreground',
+                            !selectedBommel && 'hover:border-[var(--purple-500)] hover:text-[var(--purple-500)]',
+                            'transition-colors focus:ring-primary focus:outline-none',
+                            !selectedBommel && 'text-[#666]',
+                            selectedBommel && 'rounded-r-none border-r-0'
                         )}
                         aria-haspopup="listbox"
                         aria-expanded={open}
@@ -59,7 +63,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                             {selectedBommel?.emoji && <Emoji emoji={selectedBommel.emoji} className="text-lg" />}
                             {selectedBommel ? selectedBommel.name : t('invoiceUpload.selectBommel')}
                         </span>
-                        {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />}
+                        {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" aria-hidden="true" />}
                     </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
@@ -86,11 +90,14 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
             {selectedBommel && (
                 <button
                     type="button"
-                    onClick={onDeselectBommel}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDeselectBommel();
+                    }}
+                    className="flex items-center h-10 py-3 px-3 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors"
                     aria-label={t('common.delete')}
                 >
-                    <TrashIcon className="w-4 h-4" aria-hidden="true" />
+                    <X className="w-4 h-4 text-[var(--purple-500)]" aria-hidden="true" />
                 </button>
             )}
         </div>

@@ -9,10 +9,10 @@ type DisplayFilterProps = {
         displayAll?: boolean;
     };
     onChange: (key: 'displayAll', value: boolean) => void;
-    label: string;
+    label?: string;
 };
 
-const DisplayFilter = ({ filters, onChange, label }: DisplayFilterProps) => {
+const DisplayFilter = ({ filters, onChange }: DisplayFilterProps) => {
     const { t } = useTranslation();
 
     const handleToggle = useCallback(
@@ -23,13 +23,13 @@ const DisplayFilter = ({ filters, onChange, label }: DisplayFilterProps) => {
     );
 
     return (
-        <ReceiptFilterField label={label}>
+        <ReceiptFilterField>
             <label htmlFor="display-all" className="flex items-center gap-2 h-10 cursor-pointer select-none">
                 <Switch
                     id="display-all"
                     checked={!!filters.displayAll}
                     onCheckedChange={(checked) => handleToggle(!!checked)}
-                    className="data-[state=checked]:bg-[var(--purple-500)]"
+                    className="data-[state=checked]:bg-[var(--purple-500)] data-[state=unchecked]:bg-[#E0E0E0]"
                 />
                 <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.displayAll')}</span>
             </label>
