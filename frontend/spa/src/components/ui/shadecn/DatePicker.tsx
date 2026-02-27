@@ -56,12 +56,12 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             aria-invalid={error ? true : undefined}
                             aria-describedby={error ? errorId : undefined}
                             className={cn(
-                                'w-full text-gray-800 text-sm border border-[#d1d5db] h-10 rounded-xl outline-none bg-primary-foreground',
+                                'w-full text-gray-800 text-sm border border-[#d1d5db] h-10 rounded-xl outline-none bg-white',
                                 'placeholder:text-muted focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)] transition-colors',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 'flex items-center justify-between text-left font-normal',
                                 !date && 'text-muted-foreground',
-                                loading ? 'pl-3 pr-4' : 'px-4',
+                                loading ? 'pl-3 pr-3' : 'px-3',
                                 className
                             )}
                         >

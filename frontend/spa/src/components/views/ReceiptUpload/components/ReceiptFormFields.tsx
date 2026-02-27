@@ -138,8 +138,8 @@ export function ReceiptFormFields({
                 loading={loadingStates.contractPartner}
                 error={errors.contractPartner}
             />
-            <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">{t('receipts.upload.bommel')}</label>
+            <div className="grid w-full items-center gap-1.5">
+                <label className="text-sm font-medium leading-none">{t('receipts.upload.bommel')}</label>
                 <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} />
                 {errors.bommelId && (
                     <div className="text-destructive text-xs" role="alert">

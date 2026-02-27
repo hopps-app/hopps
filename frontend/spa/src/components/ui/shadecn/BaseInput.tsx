@@ -7,7 +7,7 @@ const BaseInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<H
         <input
             type={type}
             className={cn(
-                'w-full text-gray-800 text-sm border border-[#d1d5db] px-4 h-10 rounded-xl bg-primary-foreground ' +
+                'w-full text-gray-800 text-sm border border-[#d1d5db] px-3 h-10 rounded-xl bg-white ' +
                     'placeholder:text-muted ' +
                     'focus:border-[var(--purple-500)] focus:outline-none focus:ring-0 ' +
                     'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground ' +
