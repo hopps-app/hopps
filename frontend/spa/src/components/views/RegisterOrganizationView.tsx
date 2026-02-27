@@ -10,8 +10,8 @@ export function RegisterOrganizationView() {
     };
 
     return (
-        <div className="flex justify-center pt-20">
-            <div className="w-full sm:w-[600px] bg-background-secondary rounded-[30px] shadow p-4">
+        <div className="flex justify-center pt-10">
+            <div className="w-full sm:w-[600px] bg-background-secondary rounded-[30px] shadow p-5">
                 {isShowSuccess ? <OrganizationRegistrationSuccess /> : <OrganizationRegistrationForm onSuccess={handleSuccess} />}
             </div>
         </div>

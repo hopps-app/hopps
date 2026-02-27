@@ -1,5 +1,3 @@
-import { useTranslation } from 'react-i18next';
-
 import AreaFilter from '@/components/Receipts/Filters/fields/AreaFilter';
 import CategoryFilter from '@/components/Receipts/Filters/fields/CategoryFilter';
 import { DateRangeFilter } from '@/components/Receipts/Filters/fields/DateRangeFilter';

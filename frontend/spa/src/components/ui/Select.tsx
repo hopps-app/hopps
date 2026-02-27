@@ -29,11 +29,15 @@ function Select(props: SelectProps) {
 
     return (
         <div className={`grid w-full items-center gap-1.5 ${className}`}>
-            {label && <Label htmlFor={id}>{label}</Label>}
+            {label && (
+                <Label htmlFor={id} className={error ? 'text-red-500' : ''}>
+                    {label}
+                </Label>
+            )}
             <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} onOpenChange={setIsOpened} {...otherProps}>
                 <SelectTrigger
                     id={id}
-                    className={isOpened ? ' rounded ring-2 ring-primary' : ''}
+                    className={`${isOpened ? ' rounded ring-2 ring-primary' : ''}${error ? ' border-red-500 focus:border-red-500 focus:ring-red-500 shadow-[0_0_0_2px_rgba(239,68,68,0.15)] text-red-500' : ''}`}
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
                     aria-required={required || undefined}
@@ -51,9 +55,9 @@ function Select(props: SelectProps) {
                 </SelectContent>
             </BaseSelect>
             {error && (
-                <div id={errorId} role="alert" className="text-destructive text-xs select-none">
+                <p id={errorId} role="alert" className="text-xs text-red-500 mt-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                     {error}
-                </div>
+                </p>
             )}
         </div>
     );

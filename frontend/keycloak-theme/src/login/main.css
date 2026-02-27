@@ -22,6 +22,17 @@
     width: 100%;
     max-width: 480px;
     margin: auto;
+    animation: cardFadeIn 300ms ease-out;
+}
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .login-pf-page {
@@ -39,10 +50,90 @@
 }
 /* Logo */
 
-#kc-header,
-.kcHeaderClass,
+/* Hide the header title but keep the locale selector visible */
 .kcFormHeaderClass {
+    position: relative;
+}
+
+#kc-page-title {
     display: none !important;
+}
+
+/* Keep header visible for locale selector but hide its text */
+#kc-header,
+.kcHeaderClass {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+
+/* Locale selector styling */
+#kc-locale {
+    font-size: 14px !important;
+    line-height: normal !important;
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    z-index: 10;
+}
+
+#kc-locale button {
+    color: #7a2cbf;
+    background: #f3e8ff;
+    border: 1px solid #e0cfef;
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    font-family: "Reddit Sans", sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#kc-locale button::after {
+    content: "";
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    margin-left: 0.5em;
+    vertical-align: 0.15em;
+}
+
+#kc-locale button:hover {
+    background: #e0cfef;
+}
+
+#kc-locale-dropdown {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#kc-locale ul {
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 0.25rem;
+    padding: 0.25rem 0;
+    min-width: 120px;
+}
+
+#kc-locale ul a {
+    color: #333;
+    text-decoration: none;
+    padding: 0.4rem 0.75rem;
+    display: block;
+    font-size: 14px;
+}
+
+#kc-locale ul a:hover {
+    background: #f3e8ff;
+    color: #7a2cbf;
 }
 
 #kc-header-wrapper {
@@ -98,12 +189,40 @@ input[type="password"] {
     outline: none;
     font-size: 14px;
 }
+/* Error state – matches SPA TextField error style */
 .pf-c-form-control[aria-invalid="true"] {
     background-image: none !important;
-    background-color: #ffe6e6;
-    border-color: #aa0000 !important; 
-    box-shadow: none !important;
-  }
+    background-color: #fff;
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15) !important;
+    color: #ef4444;
+}
+.pf-c-form-control[aria-invalid="true"]:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15) !important;
+}
+/* Red label on error */
+.pf-c-form__group.pf-m-error .kcLabelClass,
+.pf-c-form__label:has(~ .pf-c-form-control[aria-invalid="true"]) {
+    color: #ef4444;
+}
+/* Error message text */
+.kcInputErrorMessageClass {
+    font-size: 0.75rem;
+    color: #ef4444;
+    margin-top: 0.125rem;
+    animation: fadeSlideIn 200ms ease-out;
+}
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 .pf-c-input-group {
     position: relative;
 }

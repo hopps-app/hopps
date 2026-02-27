@@ -10,9 +10,10 @@ type SearchFieldPropsType = {
     onSearch: (query: string) => void;
     isClose?: boolean;
     onClose?: () => void;
+    error?: string;
 };
 
-const SearchField: FC<SearchFieldPropsType> = ({ onClose, onSearch, isClose }) => {
+const SearchField: FC<SearchFieldPropsType> = ({ onClose, onSearch, isClose, error }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleOnSearch = useMemo(
@@ -36,7 +37,13 @@ const SearchField: FC<SearchFieldPropsType> = ({ onClose, onSearch, isClose }) =
     return (
         <div className="flex justify-between items-center gap-8 p-2">
             <div className="relative w-full">
-                <TextField value={searchQuery} onChange={handleSearchChange} className="pl-4 pr-8 max-h-8 rounded-lg text-[var(--font)]" type="text" />
+                <TextField
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="pl-4 pr-8 max-h-8 rounded-lg text-[var(--font)]"
+                    type="text"
+                    error={error}
+                />
                 {searchQuery ? (
                     <button onClick={clearSearch} className="absolute top-2 right-2 w-4 h-4">
                         <img src={closeIcon} alt="clear" className="w-4 h-4" />

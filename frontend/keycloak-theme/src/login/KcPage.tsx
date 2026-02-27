@@ -32,28 +32,31 @@ export default function KcPage(props: { kcContext: KcContext }) {
                                 kcContext={kcContext}
                                 i18n={i18n}
                                 classes={classes}
-                                Template={({ kcContext, i18n, children, ...props }) => (
-                                    <DefaultTemplate
-                                        {...props}
-                                        kcContext={kcContext}
-                                        i18n={i18n}
-                                    >
-                                        <div
-                                            id="kc-header-wrapper"
-                                            className="custom-header"
+                                Template={({ kcContext, i18n, children, ...props }) => {
+                                    const { msg } = i18n;
+                                    return (
+                                        <DefaultTemplate
+                                            {...props}
+                                            kcContext={kcContext}
+                                            i18n={i18n}
                                         >
-                                            <img
-                                                src={hoppsLogo}
-                                                alt="Hopps Logo"
-                                                className="custom-logo"
-                                            />
-                                            <p className="custom-subtitle">
-                                                Welcome back! Please enter your valid data
-                                            </p>
-                                        </div>
-                                        {children}
-                                    </DefaultTemplate>
-                                )}
+                                            <div
+                                                id="kc-header-wrapper"
+                                                className="custom-header"
+                                            >
+                                                <img
+                                                    src={hoppsLogo}
+                                                    alt="Hopps Logo"
+                                                    className="custom-logo"
+                                                />
+                                                <p className="custom-subtitle">
+                                                    {msg("loginSubtitle")}
+                                                </p>
+                                            </div>
+                                            {children}
+                                        </DefaultTemplate>
+                                    );
+                                }}
                                 doUseDefaultCss={true}
                                 UserProfileFormFields={UserProfileFormFields}
                                 doMakeUserConfirmPassword={doMakeUserConfirmPassword}

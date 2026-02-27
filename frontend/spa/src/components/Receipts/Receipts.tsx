@@ -54,7 +54,7 @@ const Receipts = () => {
     }, [setFilter]);
 
     return (
-        <div className="w-full space-y-3">
+        <div className="w-full space-y-3 mt-6">
             {/* Search + Filter Controls */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="relative flex-1 max-w-md">
