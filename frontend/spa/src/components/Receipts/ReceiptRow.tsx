@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { formatAmount, amountColorClass } from '@/components/Receipts/helpers/receiptHelpers';
 import { Receipt } from '@/components/Receipts/types';
+import Emoji from '@/components/ui/Emoji';
 import { cn } from '@/lib/utils';
 
 type ReceiptRowProps = {
@@ -131,10 +132,10 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                 <span className="text-sm font-medium">{receipt.date}</span>
 
                 {/* Bommel */}
-                <span className={cn('text-sm font-medium truncate', isUnassigned ? 'text-amber-600 italic' : '')}>
+                <span className={cn('flex items-center gap-1 text-sm font-medium truncate', isUnassigned ? 'text-amber-600 italic' : '')}>
                     {receipt.project ? (
                         <>
-                            {receipt.bommelEmoji && <span className="mr-1">{receipt.bommelEmoji}</span>}
+                            {receipt.bommelEmoji && <Emoji emoji={receipt.bommelEmoji} className="text-base" />}
                             {receipt.project}
                         </>
                     ) : (
@@ -204,10 +205,10 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs font-medium">{receipt.date}</span>
                             <span className="text-xs text-[var(--grey-400)]">&middot;</span>
-                            <span className={cn('text-xs font-medium truncate', isUnassigned ? 'text-amber-600 italic' : '')}>
+                            <span className={cn('flex items-center gap-1 text-xs font-medium truncate', isUnassigned ? 'text-amber-600 italic' : '')}>
                                 {receipt.project ? (
                                     <>
-                                        {receipt.bommelEmoji && <span className="mr-0.5">{receipt.bommelEmoji}</span>}
+                                        {receipt.bommelEmoji && <Emoji emoji={receipt.bommelEmoji} className="text-base" />}
                                         {receipt.project}
                                     </>
                                 ) : (
