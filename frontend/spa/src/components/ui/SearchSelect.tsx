@@ -89,6 +89,7 @@ function SearchSelect({
                                 'flex items-center w-full h-10 justify-between text-sm font-normal',
                                 'rounded-xl border border-[#d1d5db] bg-white px-3 text-left',
                                 'outline-none transition-colors',
+                                'hover:border-[var(--purple-500)]',
                                 'focus-visible:border-[var(--purple-500)]',
                                 'data-[state=open]:border-[var(--purple-500)]',
                                 'disabled:cursor-not-allowed disabled:opacity-50',

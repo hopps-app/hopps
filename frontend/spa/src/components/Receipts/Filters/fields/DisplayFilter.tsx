@@ -24,7 +24,7 @@ const DisplayFilter = ({ filters, onChange }: DisplayFilterProps) => {
 
     return (
         <ReceiptFilterField>
-            <label htmlFor="display-all" className="flex items-center gap-2 h-10 cursor-pointer select-none">
+            <div className="flex items-center gap-2 h-10 select-none">
                 <Switch
                     id="display-all"
                     checked={!!filters.displayAll}
@@ -32,7 +32,7 @@ const DisplayFilter = ({ filters, onChange }: DisplayFilterProps) => {
                     className="data-[state=checked]:bg-[var(--purple-500)] data-[state=unchecked]:bg-[#E0E0E0]"
                 />
                 <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.displayAll')}</span>
-            </label>
+            </div>
         </ReceiptFilterField>
     );
 };
