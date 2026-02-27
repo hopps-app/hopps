@@ -463,10 +463,10 @@
         "resetFilter": "Zurücksetzen"
     },
     "categories": {
-        "title": "Admin Einstellungen: Kategorien",
-        "addButton": "Neue Kategorie erstellen",
+        "title": "Kategorien",
+        "addButton": "Kategorie hinzufügen",
         "searchInput": {
-            "placeholder": "Schnellsuche"
+            "placeholder": "Suche"
         },
         "dialog": {
             "creation": {
