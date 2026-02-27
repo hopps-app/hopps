@@ -56,10 +56,10 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             aria-invalid={error ? true : undefined}
                             aria-describedby={error ? errorId : undefined}
                             className={cn(
-                                'w-full text-gray-800 text-sm border border-[#A7A7A7] py-3 rounded-md outline-primary bg-primary-foreground',
-                                'placeholder:text-muted focus:border-primary transition-colors',
+                                'w-full text-gray-800 text-sm border border-[#d1d5db] h-10 rounded-xl outline-none bg-primary-foreground',
+                                'placeholder:text-muted focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)] transition-colors',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
-                                'flex items-center justify-start text-left font-normal',
+                                'flex items-center justify-between text-left font-normal',
                                 !date && 'text-muted-foreground',
                                 loading ? 'pl-3 pr-4' : 'px-4',
                                 className
@@ -70,12 +70,19 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                                     <InputLoader />
                                 </div>
                             )}
-                            <CalendarIcon className={loading ? 'ml-6 mr-2 h-4 w-4' : 'mr-2 h-4 w-4'} />
                             {date ? format(date, 'PPP', { locale: getDateLocale() }) : <span>{defaultPlaceholder}</span>}
+                            <CalendarIcon className="ml-auto h-4 w-4 shrink-0" />
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={date} onSelect={onSelect} />
+                        <Calendar
+                            mode="single"
+                            captionLayout="dropdown"
+                            startMonth={new Date(1975, 0)}
+                            endMonth={new Date(2030, 11)}
+                            selected={date}
+                            onSelect={onSelect}
+                        />
                     </PopoverContent>
                 </Popover>
             </div>

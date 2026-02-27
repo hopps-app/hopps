@@ -25,8 +25,6 @@ function Select(props: SelectProps) {
     const { value, items, onValueChanged, label, placeholder, className, error, required, ...otherProps } = props;
     const [id] = useState(_.uniqueId('select-'));
     const errorId = `${id}-error`;
-    const [isOpened, setIsOpened] = useState(false);
-
     return (
         <div className={`grid w-full items-center gap-1.5 ${className}`}>
             {label && (
@@ -34,10 +32,10 @@ function Select(props: SelectProps) {
                     {label}
                 </Label>
             )}
-            <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} onOpenChange={setIsOpened} {...otherProps}>
+            <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} {...otherProps}>
                 <SelectTrigger
                     id={id}
-                    className={`${isOpened ? ' rounded ring-2 ring-primary' : ''}${error ? ' border-red-500 focus:border-red-500 focus:ring-red-500 shadow-[0_0_0_2px_rgba(239,68,68,0.15)] text-red-500' : ''}`}
+                    className={error ? 'border-red-500 focus-visible:border-red-500' : ''}
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
                     aria-required={required || undefined}
