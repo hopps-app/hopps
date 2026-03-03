@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
+import { useCountries } from '@/hooks/use-countries';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
@@ -32,6 +33,7 @@ function OrganizationDetailsSettingsView() {
     usePageTitle(t('organization.details.title'), 'Backpack');
     const { toast } = useToast();
     const organization = useStore((state) => state.organization);
+    const countryOptions = useCountries();
     const setOrganization = useStore((state) => state.setOrganization);
 
     const typeOptions = useMemo(
@@ -91,7 +93,7 @@ function OrganizationDetailsSettingsView() {
             foundingDate: '',
             registrationCourt: '',
             registrationNumber: '',
-            country: '',
+            country: 'DE',
             taxNumber: '',
             email: '',
             phoneNumber: '',
@@ -103,12 +105,17 @@ function OrganizationDetailsSettingsView() {
     // Load organization data from store into form
     useEffect(() => {
         if (organization) {
-            const foundingDate = organization.foundingDate;
-            const dateStr = foundingDate
-                ? isoToGerman(
-                      `${foundingDate.getFullYear()}-${String(foundingDate.getMonth() + 1).padStart(2, '0')}-${String(foundingDate.getDate()).padStart(2, '0')}`
-                  )
-                : '';
+            const raw = organization.foundingDate;
+            let dateStr = '';
+            if (raw) {
+                const d = raw instanceof Date ? raw : new Date(String(raw));
+                if (!isNaN(d.getTime())) {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    dateStr = isoToGerman(`${year}-${month}-${day}`);
+                }
+            }
             reset({
                 name: organization.name || '',
                 type: organization.type || 'EINGETRAGENER_VEREIN',
@@ -121,7 +128,7 @@ function OrganizationDetailsSettingsView() {
                 foundingDate: dateStr,
                 registrationCourt: organization.registrationCourt || '',
                 registrationNumber: organization.registrationNumber || '',
-                country: organization.country || '',
+                country: organization.country || 'DE',
                 taxNumber: organization.taxNumber || '',
                 email: organization.email || '',
                 phoneNumber: organization.phoneNumber || '',
@@ -145,6 +152,8 @@ function OrganizationDetailsSettingsView() {
                 });
         }
     }, [organization, setOrganization, t, toast]);
+
+    console.log('OrganizationDetailsSettingsView render', { organization });
 
     const onSubmit = useCallback(
         async (data: FormValues) => {
@@ -262,7 +271,18 @@ function OrganizationDetailsSettingsView() {
 
                             <div className="grid grid-cols-4 gap-3">
                                 <div className="col-span-2">
-                                    <TextField label={t('organization.details.country')} {...register('country')} />
+                                    <Controller
+                                        name="country"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                label={t('organization.details.country')}
+                                                items={countryOptions}
+                                                value={field.value}
+                                                onValueChanged={field.onChange}
+                                            />
+                                        )}
+                                    />
                                 </div>
                                 <div className="col-span-2">
                                     <TextField label={t('organization.details.additionalLine')} {...register('additionalLine')} />
