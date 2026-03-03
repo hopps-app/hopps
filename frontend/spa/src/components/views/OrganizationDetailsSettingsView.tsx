@@ -153,8 +153,6 @@ function OrganizationDetailsSettingsView() {
         }
     }, [organization, setOrganization, t, toast]);
 
-    console.log('OrganizationDetailsSettingsView render', { organization });
-
     const onSubmit = useCallback(
         async (data: FormValues) => {
             try {
