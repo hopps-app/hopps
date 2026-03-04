@@ -59,7 +59,7 @@ jobs:
           VITE_API_FIN_URL: "VITE_API_FIN_URL_VALUE"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build
           path: frontend/spa/dist/
@@ -68,7 +68,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
