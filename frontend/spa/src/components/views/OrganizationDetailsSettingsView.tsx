@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
+import { useCountries } from '@/hooks/use-countries';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
@@ -32,6 +33,7 @@ function OrganizationDetailsSettingsView() {
     usePageTitle(t('organization.details.title'), 'Backpack');
     const { toast } = useToast();
     const organization = useStore((state) => state.organization);
+    const countryOptions = useCountries();
     const setOrganization = useStore((state) => state.setOrganization);
 
     const typeOptions = useMemo(
@@ -91,7 +93,7 @@ function OrganizationDetailsSettingsView() {
             foundingDate: '',
             registrationCourt: '',
             registrationNumber: '',
-            country: '',
+            country: 'DE',
             taxNumber: '',
             email: '',
             phoneNumber: '',
@@ -103,12 +105,17 @@ function OrganizationDetailsSettingsView() {
     // Load organization data from store into form
     useEffect(() => {
         if (organization) {
-            const foundingDate = organization.foundingDate;
-            const dateStr = foundingDate
-                ? isoToGerman(
-                      `${foundingDate.getFullYear()}-${String(foundingDate.getMonth() + 1).padStart(2, '0')}-${String(foundingDate.getDate()).padStart(2, '0')}`
-                  )
-                : '';
+            const raw = organization.foundingDate;
+            let dateStr = '';
+            if (raw) {
+                const d = raw instanceof Date ? raw : new Date(String(raw));
+                if (!isNaN(d.getTime())) {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    dateStr = isoToGerman(`${year}-${month}-${day}`);
+                }
+            }
             reset({
                 name: organization.name || '',
                 type: organization.type || 'EINGETRAGENER_VEREIN',
@@ -121,7 +128,7 @@ function OrganizationDetailsSettingsView() {
                 foundingDate: dateStr,
                 registrationCourt: organization.registrationCourt || '',
                 registrationNumber: organization.registrationNumber || '',
-                country: organization.country || '',
+                country: organization.country || 'DE',
                 taxNumber: organization.taxNumber || '',
                 email: organization.email || '',
                 phoneNumber: organization.phoneNumber || '',
@@ -193,17 +200,19 @@ function OrganizationDetailsSettingsView() {
     }
 
     return (
-        <div>
-            <p className="text-sm text-muted-foreground mt-1 mb-6">{t('organization.details.description')}</p>
+        <div className="w-full h-full flex flex-col">
+            <p className="text-sm text-muted-foreground mt-1">{t('organization.details.description')}</p>
 
-            <form className="mt-4" onSubmit={handleSubmit(onSubmit)}>
-                <fieldset disabled={isSubmitting}>
+            <form className="mt-4 flex-1 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
+                <fieldset disabled={isSubmitting} className="flex-1 flex flex-col">
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                        {/* Column 1: Organization & Legal */}
+                        {/* Allgemeine Informationen */}
                         <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">{t('organization.details.generalInfo')}</h3>
+
                             <TextField
                                 label={t('organization.details.name')}
-                                placeholder={t('organization.details.name')}
+                                placeholder={t('organization.details.placeholder.name')}
                                 error={errors.name?.message}
                                 required
                                 {...register('name')}
@@ -224,93 +233,118 @@ function OrganizationDetailsSettingsView() {
                                 )}
                             />
 
-                            <h3 className="text-lg font-semibold text-foreground pt-2">{t('organization.details.legalInfo')}</h3>
-
-                            <TextField
-                                label={t('organization.details.foundingDate')}
-                                type="text"
-                                placeholder="TT.MM.JJJJ"
-                                error={errors.foundingDate?.message}
-                                {...register('foundingDate')}
-                            />
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <TextField
-                                    label={t('organization.details.registrationCourt')}
-                                    placeholder={t('organization.details.registrationCourt')}
-                                    {...register('registrationCourt')}
-                                />
-                                <TextField
-                                    label={t('organization.details.registrationNumber')}
-                                    placeholder={t('organization.details.registrationNumber')}
-                                    {...register('registrationNumber')}
-                                />
-                            </div>
-
-                            <TextField
-                                label={t('organization.details.taxNumber')}
-                                placeholder={t('organization.details.taxNumber')}
-                                {...register('taxNumber')}
-                            />
-                        </div>
-
-                        {/* Column 2: Address */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-foreground">{t('organization.details.address')}</h3>
-
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="col-span-2">
+                            <div className="grid grid-cols-4 gap-3">
+                                <div className="col-span-3">
                                     <TextField
                                         label={t('organization.details.street')}
-                                        placeholder={t('organization.details.street')}
+                                        placeholder={t('organization.details.placeholder.street')}
                                         {...register('street')}
                                     />
                                 </div>
                                 <div className="col-span-1">
                                     <TextField
                                         label={t('organization.details.number')}
-                                        placeholder={t('organization.details.number')}
+                                        placeholder={t('organization.details.placeholder.number')}
                                         {...register('number')}
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-4 gap-3">
                                 <div className="col-span-1">
-                                    <TextField label={t('organization.details.plz')} placeholder={t('organization.details.plz')} {...register('plz')} />
+                                    <TextField
+                                        label={t('organization.details.plz')}
+                                        placeholder={t('organization.details.placeholder.plz')}
+                                        {...register('plz')}
+                                    />
                                 </div>
-                                <div className="col-span-2">
-                                    <TextField label={t('organization.details.city')} placeholder={t('organization.details.city')} {...register('city')} />
+                                <div className="col-span-3">
+                                    <TextField
+                                        label={t('organization.details.city')}
+                                        placeholder={t('organization.details.placeholder.city')}
+                                        {...register('city')}
+                                    />
                                 </div>
                             </div>
 
-                            <TextField label={t('organization.details.country')} placeholder={t('organization.details.country')} {...register('country')} />
+                            <div className="grid grid-cols-4 gap-3">
+                                <div className="col-span-2">
+                                    <Controller
+                                        name="country"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                label={t('organization.details.country')}
+                                                items={countryOptions}
+                                                value={field.value}
+                                                onValueChanged={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <TextField label={t('organization.details.additionalLine')} {...register('additionalLine')} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Rechtliche Informationen */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">{t('organization.details.legalInfo')}</h3>
 
                             <TextField
-                                label={t('organization.details.additionalLine')}
-                                placeholder={t('organization.details.additionalLine')}
-                                {...register('additionalLine')}
+                                label={t('organization.details.foundingDate')}
+                                type="text"
+                                placeholder={t('organization.details.placeholder.foundingDate')}
+                                error={errors.foundingDate?.message}
+                                {...register('foundingDate')}
+                            />
+
+                            <TextField
+                                label={t('organization.details.registrationCourt')}
+                                placeholder={t('organization.details.placeholder.registrationCourt')}
+                                {...register('registrationCourt')}
+                            />
+
+                            <TextField
+                                label={t('organization.details.registrationNumber')}
+                                placeholder={t('organization.details.placeholder.registrationNumber')}
+                                {...register('registrationNumber')}
+                            />
+
+                            <TextField
+                                label={t('organization.details.taxNumber')}
+                                placeholder={t('organization.details.placeholder.taxNumber')}
+                                {...register('taxNumber')}
                             />
                         </div>
 
-                        {/* Column 3: Contact */}
+                        {/* Kontakt Informationen */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-foreground">{t('organization.details.contactInfo')}</h3>
 
-                            <TextField label={t('organization.details.website')} placeholder="https://example.com" {...register('website')} />
+                            <TextField
+                                label={t('organization.details.website')}
+                                placeholder={t('organization.details.placeholder.website')}
+                                {...register('website')}
+                            />
 
-                            <TextField label={t('organization.details.email')} placeholder={t('organization.details.email')} {...register('email')} />
+                            <TextField
+                                label={t('organization.details.email')}
+                                placeholder={t('organization.details.placeholder.email')}
+                                {...register('email')}
+                            />
 
                             <TextField
                                 label={t('organization.details.phoneNumber')}
-                                placeholder={t('organization.details.phoneNumber')}
+                                placeholder={t('organization.details.placeholder.phoneNumber')}
                                 {...register('phoneNumber')}
                             />
                         </div>
                     </div>
 
                     {/* Save Button */}
-                    <div className="flex justify-end mt-8">
+                    <div className="flex justify-end mt-auto pt-8 mb-2">
                         <Button type="submit" variant="default" disabled={isSubmitting}>
                             {isSubmitting ? t('common.loading') : t('common.save')}
                         </Button>

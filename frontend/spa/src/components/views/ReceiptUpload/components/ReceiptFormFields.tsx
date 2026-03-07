@@ -5,6 +5,7 @@ import { FormErrors, LoadingStates } from '../hooks/useReceiptForm';
 
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import Radio from '@/components/ui/Radio';
+import SearchSelect, { SearchSelectItem } from '@/components/ui/SearchSelect';
 import Select, { SelectItem } from '@/components/ui/Select';
 import { DatePicker } from '@/components/ui/shadecn/DatePicker';
 import Switch from '@/components/ui/Switch';
@@ -79,7 +80,7 @@ export function ReceiptFormFields({
         { value: 'WIRTSCHAFTLICH', label: t('receipts.areas.wirtschaftlich') },
     ];
 
-    const categoryItems: SelectItem[] = useMemo(
+    const categoryItems: SearchSelectItem[] = useMemo(
         () =>
             categories.map((cat) => ({
                 value: String(cat.id),
@@ -137,8 +138,8 @@ export function ReceiptFormFields({
                 loading={loadingStates.contractPartner}
                 error={errors.contractPartner}
             />
-            <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">{t('receipts.upload.bommel')}</label>
+            <div className="grid w-full items-center gap-1.5">
+                <label className="text-sm font-medium leading-none">{t('receipts.upload.bommel')}</label>
                 <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} />
                 {errors.bommelId && (
                     <div className="text-destructive text-xs" role="alert">
@@ -149,10 +150,10 @@ export function ReceiptFormFields({
 
             {/* Row 4: Due date + Category */}
             <DatePicker label={t('receipts.upload.dueDate')} date={dueDate} onSelect={onDueDateChange} className="w-full" loading={loadingStates.dueDate} />
-            <Select
+            <SearchSelect
                 label={t('receipts.upload.category')}
                 value={category}
-                onValueChanged={onCategoryChange}
+                onValueChange={onCategoryChange}
                 items={categoryItems}
                 placeholder={categoriesLoading ? t('common.loading') : t('receipts.upload.selectCategory')}
             />

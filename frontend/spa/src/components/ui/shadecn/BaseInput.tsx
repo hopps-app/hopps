@@ -9,7 +9,7 @@ const BaseInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<H
             className={cn(
                 'w-full text-gray-800 text-sm border border-[#d1d5db] px-4 py-3 rounded-xl bg-primary-foreground ' +
                     'placeholder:text-muted ' +
-                    'focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ' +
+                    'focus:border-[var(--purple-500)] focus:outline-none focus:ring-0 ' +
                     'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground ' +
                     'disabled:cursor-not-allowed disabled:opacity-50',
                 className
