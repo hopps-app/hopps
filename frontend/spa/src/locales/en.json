@@ -243,9 +243,24 @@
             "foundingDateFormat": "Please enter the date in DD.MM.YYYY format",
             "contactInfo": "Contact Information",
             "legalInfo": "Legal Information",
+            "generalInfo": "General Information",
             "saveSuccess": "Organization details saved successfully",
             "saveError": "Failed to save organization details",
-            "loadError": "Failed to load organization details"
+            "loadError": "Failed to load organization details",
+            "placeholder": {
+                "name": "e.g. Example Association",
+                "street": "e.g. Main Street",
+                "number": "e.g. 12",
+                "plz": "e.g. 12345",
+                "city": "e.g. Berlin",
+                "foundingDate": "DD.MM.YYYY",
+                "registrationCourt": "e.g. District Court Berlin",
+                "registrationNumber": "e.g. VR 12345",
+                "taxNumber": "e.g. 12/345/67890",
+                "website": "https://example.com",
+                "email": "e.g. info@association.org",
+                "phoneNumber": "e.g. +49 123 4567890"
+            }
         },
         "noOrganization": {
             "title": "No Organization Found",

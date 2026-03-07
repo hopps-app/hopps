@@ -242,9 +242,24 @@
             "foundingDateFormat": "Bitte geben Sie das Datum im Format TT.MM.JJJJ ein",
             "contactInfo": "Kontaktdaten",
             "legalInfo": "Rechtliche Informationen",
+            "generalInfo": "Allgemeine Informationen",
             "saveSuccess": "Organisationsdetails erfolgreich gespeichert",
             "saveError": "Fehler beim Speichern der Organisationsdetails",
-            "loadError": "Fehler beim Laden der Organisationsdetails"
+            "loadError": "Fehler beim Laden der Organisationsdetails",
+            "placeholder": {
+                "name": "z.B. Musterverein e.V.",
+                "street": "z.B. Musterstraße",
+                "number": "z.B. 12",
+                "plz": "z.B. 12345",
+                "city": "z.B. Berlin",
+                "foundingDate": "TT.MM.JJJJ",
+                "registrationCourt": "z.B. Amtsgericht Berlin",
+                "registrationNumber": "z.B. VR 12345",
+                "taxNumber": "z.B. 12/345/67890",
+                "website": "https://example.com",
+                "email": "z.B. info@verein.de",
+                "phoneNumber": "z.B. +49 123 4567890"
+            }
         },
         "noOrganization": {
             "title": "Keine Organisation gefunden",
