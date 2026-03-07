@@ -320,10 +320,10 @@
         "resetFilter": "Reset"
     },
     "categories": {
-        "title": "Admin Settings: Categories",
-        "addButton": "Create New Category",
+        "title": "Categories",
+        "addButton": "Add Category",
         "searchInput": {
-            "placeholder": "Quick Search"
+            "placeholder": "Search"
         },
         "dialog": {
             "creation": {
