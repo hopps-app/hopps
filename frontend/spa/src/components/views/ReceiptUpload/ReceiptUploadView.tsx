@@ -83,6 +83,8 @@ function ReceiptUploadView() {
         setIsAutoRead,
         loadingStates,
         setAllFieldsLoading,
+        setEmptyFieldsLoading,
+        setFieldLoading,
         resetForm,
         isValid,
         canSaveDraft,
@@ -330,7 +332,7 @@ function ReceiptUploadView() {
                 setIsSubmitting(true);
 
                 if (isAutoRead) {
-                    setAllFieldsLoading(true);
+                    setEmptyFieldsLoading(true);
                 }
 
                 const response = await apiService.orgService.documentsPOST({
@@ -369,7 +371,7 @@ function ReceiptUploadView() {
             isAutoRead,
             setFile,
             setIsSubmitting,
-            setAllFieldsLoading,
+            setEmptyFieldsLoading,
             setDocumentId,
             setTransactionId,
             setAnalysisStatus,
@@ -408,9 +410,10 @@ function ReceiptUploadView() {
     const handleReceiptDateChange = useCallback(
         (date: Date | undefined) => {
             setReceiptDate(date);
+            setFieldLoading('receiptDate', !date && isAnalyzing);
             clearFieldError('receiptDate');
         },
-        [setReceiptDate, clearFieldError]
+        [setReceiptDate, setFieldLoading, isAnalyzing, clearFieldError]
     );
 
     const handleTransactionKindChange = useCallback(
@@ -424,9 +427,10 @@ function ReceiptUploadView() {
     const handleContractPartnerChange = useCallback(
         (value: string) => {
             setContractPartner(value);
+            setFieldLoading('contractPartner', !value && isAnalyzing);
             clearFieldError('contractPartner');
         },
-        [setContractPartner, clearFieldError]
+        [setContractPartner, setFieldLoading, isAnalyzing, clearFieldError]
     );
 
     const handleBommelIdChange = useCallback(
@@ -440,25 +444,28 @@ function ReceiptUploadView() {
     const handleGrossAmountChange = useCallback(
         (value: string) => {
             setGrossAmount(value);
+            setFieldLoading('grossAmount', !value && isAnalyzing);
             clearFieldError('grossAmount');
         },
-        [setGrossAmount, clearFieldError]
+        [setGrossAmount, setFieldLoading, isAnalyzing, clearFieldError]
     );
 
     const handleTaxAmountChange = useCallback(
         (value: string) => {
             setTaxAmount(value);
+            setFieldLoading('taxAmount', !value && isAnalyzing);
             clearFieldError('taxAmount');
         },
-        [setTaxAmount, clearFieldError]
+        [setTaxAmount, setFieldLoading, isAnalyzing, clearFieldError]
     );
 
     const handleReceiptNumberChange = useCallback(
         (value: string) => {
             setReceiptNumber(value);
+            setFieldLoading('receiptNumber', !value && isAnalyzing);
             clearFieldError('receiptNumber');
         },
-        [setReceiptNumber, clearFieldError]
+        [setReceiptNumber, setFieldLoading, isAnalyzing, clearFieldError]
     );
 
     const handleAreaChange = useCallback(
@@ -610,7 +617,7 @@ function ReceiptUploadView() {
         try {
             setAnalysisStatus('PENDING');
             setAnalysisError(null);
-            setAllFieldsLoading(true);
+            setEmptyFieldsLoading(true);
 
             const response = await apiService.orgService.reanalyze(documentId);
             setAnalysisStatus((response.analysisStatus as AnalysisStatus) ?? 'PENDING');
@@ -621,7 +628,7 @@ function ReceiptUploadView() {
             setAllFieldsLoading(false);
             showError(t('receipts.upload.analysis.retryFailed'));
         }
-    }, [documentId, setAnalysisStatus, setAnalysisError, setAllFieldsLoading, showError, t]);
+    }, [documentId, setAnalysisStatus, setAnalysisError, setEmptyFieldsLoading, setAllFieldsLoading, showError, t]);
 
     // Cleanup document URL on unmount
     useEffect(() => {

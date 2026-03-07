@@ -29,7 +29,8 @@
       "Bash(kubectl describe:*)",
       "Bash(gh run list:*)",
       "Bash(npx eslint:*)",
-      "Bash(xargs grep -l \"routes\\\\|<Route\")"
+      "Bash(xargs grep -l \"routes\\\\|<Route\")",
+      "Bash(xargs grep -l \"enum.*Area\\\\|enum.*Category\\\\|enum.*Status\\\\|enum.*Type\")"
     ]
   }
 }

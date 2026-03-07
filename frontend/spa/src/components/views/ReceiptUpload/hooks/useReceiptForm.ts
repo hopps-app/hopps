@@ -117,6 +117,20 @@ export function useReceiptForm() {
         });
     }, []);
 
+    const setEmptyFieldsLoading = useCallback((loading: boolean) => {
+        setLoadingStates((prev) => ({
+            receiptNumber: receiptNumber ? false : loading,
+            receiptDate: receiptDate ? false : loading,
+            dueDate: dueDate ? false : loading,
+            contractPartner: contractPartner ? false : loading,
+            category: prev.category, // not filled by analysis
+            area: prev.area, // not filled by analysis
+            tags: tags.length > 0 ? false : loading,
+            grossAmount: grossAmount ? false : loading,
+            taxAmount: taxAmount ? false : loading,
+        }));
+    }, [receiptNumber, receiptDate, dueDate, contractPartner, tags, grossAmount, taxAmount]);
+
     // Prepared for future SSE integration
     const handleFieldUpdate = useCallback(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -170,38 +184,38 @@ export function useReceiptForm() {
                 setExtractionSource(response.extractionSource);
             }
 
-            // Apply extracted data to form fields
+            // Apply extracted data only to empty form fields
             if (response.name) {
-                setReceiptNumber(response.name);
+                setReceiptNumber((prev) => prev || response.name!);
                 setFieldLoading('receiptNumber', false);
             }
 
             if (response.transactionTime) {
                 const date = new Date(response.transactionTime);
-                setReceiptDate(date);
+                setReceiptDate((prev) => prev ?? date);
                 setFieldLoading('receiptDate', false);
-                setDueDate(date);
+                setDueDate((prev) => prev ?? date);
                 setFieldLoading('dueDate', false);
             }
 
             if (response.senderName) {
-                setContractPartner(response.senderName);
+                setContractPartner((prev) => prev || response.senderName!);
                 setFieldLoading('contractPartner', false);
             }
 
             if (response.tags && response.tags.length > 0) {
-                setTags(response.tags);
+                setTags((prev) => (prev.length > 0 ? prev : response.tags!));
             }
             setFieldLoading('tags', false);
 
-            // Set gross amount (total including tax)
+            // Set gross amount (total including tax) only if empty
             if (response.total !== undefined && response.total !== null) {
-                setGrossAmount(response.total.toFixed(2));
+                setGrossAmount((prev) => prev || response.total!.toFixed(2));
                 setFieldLoading('grossAmount', false);
             }
 
             if (response.totalTax !== undefined && response.totalTax !== null) {
-                setTaxAmount(response.totalTax.toFixed(2));
+                setTaxAmount((prev) => prev || response.totalTax!.toFixed(2));
                 setFieldLoading('taxAmount', false);
             }
 
@@ -536,6 +550,7 @@ export function useReceiptForm() {
         // Actions
         setFieldLoading,
         setAllFieldsLoading,
+        setEmptyFieldsLoading,
         handleFieldUpdate,
         applyAnalysisResult,
         applyAnalysisResultToEmptyFields,

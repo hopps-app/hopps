@@ -24,7 +24,7 @@ function HomeView() {
     };
 
     const onClickLogin = () => {
-        authService.login();
+        authService.login(`${window.location.origin}/dashboard`);
     };
 
     const loginDisabled = keycloakReachable === false;

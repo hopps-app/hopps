@@ -13,7 +13,7 @@ function Header() {
     const { isAuthenticated } = useStore();
 
     const onClickLogin = () => {
-        authService.login();
+        authService.login(`${window.location.origin}/dashboard`);
     };
 
     const onClickRegister = () => {

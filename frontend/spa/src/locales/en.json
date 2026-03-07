@@ -513,7 +513,7 @@
             "zweckbetrieb": "Purpose operation",
             "vermoegensverwaltung": "Asset management",
             "wirtschaftlich": "Commercial operation",
-            "unknown": "No idea haaalp"
+            "unknown": "Unknown"
         },
         "types": {
             "income": "Income",

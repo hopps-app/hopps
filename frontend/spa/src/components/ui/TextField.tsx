@@ -21,6 +21,7 @@ interface TextFieldProps {
     required?: boolean;
     disabled?: boolean;
     autoComplete?: string;
+    suffix?: string;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onValueChange?: (value: string) => void;
     onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -77,6 +78,11 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     aria-required={props.required || undefined}
                     autoComplete={props.autoComplete}
                 />
+                {props.suffix && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none select-none">
+                        {props.suffix}
+                    </span>
+                )}
                 {isPassword && (
                     <button
                         type="button"

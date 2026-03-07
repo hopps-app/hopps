@@ -23,5 +23,10 @@ public enum TransactionArea {
     /**
      * Wirtschaftlicher Geschäftsbetrieb - Commercial business operations.
      */
-    WIRTSCHAFTLICH
+    WIRTSCHAFTLICH,
+
+    /**
+     * Unbekannt - Area not yet determined or unknown.
+     */
+    UNKNOWN
 }

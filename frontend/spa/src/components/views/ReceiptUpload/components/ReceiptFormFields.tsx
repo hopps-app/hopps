@@ -197,29 +197,36 @@ export function ReceiptFormFields({
                 />
             </div>
 
-            {/* Row 7: Gross amount (central) + Tax amount (smaller) */}
+            {/* Row 7: Tax amount + Gross amount */}
+            <TextField
+                label={t('receipts.upload.taxAmount')}
+                value={taxAmount}
+                onValueChange={(v) => {
+                    if (v === '' || /^-?[0-9]*[.,]?[0-9]*$/.test(v)) {
+                        onTaxAmountChange(v);
+                    }
+                }}
+                loading={loadingStates.taxAmount}
+                error={errors.taxAmount}
+                className="pr-8"
+                disabled={readOnly}
+                suffix="€"
+            />
             <TextField
                 label={t('receipts.upload.grossAmount')}
                 value={grossAmount}
-                onValueChange={onGrossAmountChange}
+                onValueChange={(v) => {
+                    if (v === '' || /^-?[0-9]*[.,]?[0-9]*$/.test(v)) {
+                        onGrossAmountChange(v);
+                    }
+                }}
                 loading={loadingStates.grossAmount}
                 error={errors.grossAmount}
                 required
                 disabled={readOnly}
+                className="pr-8"
+                suffix="€"
             />
-            <div className="flex items-end gap-2">
-                <div className="flex-1 opacity-70">
-                    <TextField
-                        label={t('receipts.upload.taxAmount')}
-                        value={taxAmount}
-                        onValueChange={onTaxAmountChange}
-                        loading={loadingStates.taxAmount}
-                        error={errors.taxAmount}
-                        className="text-sm"
-                        disabled={readOnly}
-                    />
-                </div>
-            </div>
         </div>
     );
 }
