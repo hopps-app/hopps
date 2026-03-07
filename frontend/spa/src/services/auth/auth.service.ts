@@ -78,11 +78,14 @@ export class AuthService {
         return this.keycloak.authenticated === true && !this.keycloak.isTokenExpired();
     }
 
-    async refreshToken() {
+    async refreshToken(): Promise<boolean> {
         try {
-            await this.keycloak.updateToken(5);
+            const refreshed = await this.keycloak.updateToken(5);
+            return refreshed;
         } catch (e) {
-            console.error('Failed to refresh token:', e);
+            console.error('Failed to refresh token, logging out:', e);
+            await this.logout();
+            return false;
         }
     }
 

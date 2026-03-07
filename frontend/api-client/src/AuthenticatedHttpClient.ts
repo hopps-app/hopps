@@ -4,7 +4,11 @@ export class IConfig {
    * Used to dynamically inject the current auth header.
    */
   getAccessToken?: () => string | undefined;
-  refreshToken?: () => Promise<void>;
+  /**
+   * Attempts to refresh the access token.
+   * Returns true if the token was successfully refreshed, false otherwise.
+   */
+  refreshToken?: () => Promise<boolean>;
 }
 
 
@@ -12,7 +16,7 @@ export class AuthenticatedHttpClient {
   private readonly config;
 
   constructor(config: IConfig) {
-    this.config= config
+    this.config = config;
   }
 
   async fetch(url: string, init: RequestInit): Promise<Response> {
@@ -24,13 +28,13 @@ export class AuthenticatedHttpClient {
 
     let response = await fetch(url, init);
 
-    if (response.status === 401) {
-      const refreshed = await this.config.refreshToken?.();
+    if (response.status === 401 && this.config.refreshToken) {
+      const refreshed = await this.config.refreshToken();
       if (refreshed) {
-        // Retry the request with a new token
+        // Retry the request with the new token
         init.headers = {
           ...init.headers,
-          ...(this.config.getAccessToken() && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
+          Authorization: `Bearer ${this.config.getAccessToken()}`,
         };
         response = await fetch(url, init);
       }
