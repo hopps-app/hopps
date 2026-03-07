@@ -51,7 +51,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ format('{0}/{1}', env.BASE_IMAGE_NAME, matrix.service.label) }}
           tags: |
@@ -63,17 +63,17 @@ jobs:
             type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: backend/${{ matrix.service.directory }}
           file: backend/${{ matrix.service.directory }}/src/main/docker/Dockerfile.jvm
