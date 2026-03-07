@@ -46,7 +46,11 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
 
     return (
         <div className="relative grid w-full items-center gap-1.5">
-            {label && <Label htmlFor={id} required={required}>{label}</Label>}
+            {label && (
+                <Label htmlFor={id} required={required}>
+                    {label}
+                </Label>
+            )}
             <div className="relative flex items-center">
                 <Popover>
                     <PopoverTrigger asChild>

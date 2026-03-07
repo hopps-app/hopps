@@ -117,19 +117,22 @@ export function useReceiptForm() {
         });
     }, []);
 
-    const setEmptyFieldsLoading = useCallback((loading: boolean) => {
-        setLoadingStates((prev) => ({
-            receiptNumber: receiptNumber ? false : loading,
-            receiptDate: receiptDate ? false : loading,
-            dueDate: dueDate ? false : loading,
-            contractPartner: contractPartner ? false : loading,
-            category: prev.category, // not filled by analysis
-            area: prev.area, // not filled by analysis
-            tags: tags.length > 0 ? false : loading,
-            grossAmount: grossAmount ? false : loading,
-            taxAmount: taxAmount ? false : loading,
-        }));
-    }, [receiptNumber, receiptDate, dueDate, contractPartner, tags, grossAmount, taxAmount]);
+    const setEmptyFieldsLoading = useCallback(
+        (loading: boolean) => {
+            setLoadingStates((prev) => ({
+                receiptNumber: receiptNumber ? false : loading,
+                receiptDate: receiptDate ? false : loading,
+                dueDate: dueDate ? false : loading,
+                contractPartner: contractPartner ? false : loading,
+                category: prev.category, // not filled by analysis
+                area: prev.area, // not filled by analysis
+                tags: tags.length > 0 ? false : loading,
+                grossAmount: grossAmount ? false : loading,
+                taxAmount: taxAmount ? false : loading,
+            }));
+        },
+        [receiptNumber, receiptDate, dueDate, contractPartner, tags, grossAmount, taxAmount]
+    );
 
     // Prepared for future SSE integration
     const handleFieldUpdate = useCallback(

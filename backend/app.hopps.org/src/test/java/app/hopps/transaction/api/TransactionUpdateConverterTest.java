@@ -58,7 +58,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateName() {
         var request = new TransactionUpdateRequest(
                 "Updated Name", null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -70,7 +70,7 @@ class TransactionUpdateConverterTest {
     void shouldKeepNameWhenNull() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -82,7 +82,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateTotal() {
         var request = new TransactionUpdateRequest(
                 null, BigDecimal.valueOf(200), null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -94,7 +94,7 @@ class TransactionUpdateConverterTest {
     void shouldKeepTotalWhenNull() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -106,7 +106,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateTotalTax() {
         var request = new TransactionUpdateRequest(
                 null, null, BigDecimal.valueOf(38), null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -118,7 +118,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateCurrencyCode() {
         var request = new TransactionUpdateRequest(
                 null, null, null, "USD", null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -130,7 +130,7 @@ class TransactionUpdateConverterTest {
     void shouldKeepCurrencyCodeWhenNull() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -142,7 +142,7 @@ class TransactionUpdateConverterTest {
     void shouldAlwaysUpdatePrivatelyPaid() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, true, null, null, null, null, null);
+                null, null, null, true, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -154,7 +154,7 @@ class TransactionUpdateConverterTest {
     void shouldParseTransactionDate() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, "2025-04-20", null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -168,7 +168,7 @@ class TransactionUpdateConverterTest {
     void shouldParseDueDate() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, "2025-12-31",
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -182,7 +182,7 @@ class TransactionUpdateConverterTest {
     void shouldSkipBlankDates() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, "  ", "  ",
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -199,7 +199,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                10L, null, null, false, null, null, null, null, null);
+                10L, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -215,7 +215,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                0L, null, null, false, null, null, null, null, null);
+                0L, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -231,7 +231,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -248,7 +248,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, 5L, null, false, null, null, null, null, null);
+                null, 5L, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -264,7 +264,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, 0L, null, false, null, null, null, null, null);
+                null, 0L, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -280,7 +280,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -293,7 +293,7 @@ class TransactionUpdateConverterTest {
     void shouldSetTransactionArea() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, "wirtschaftlich", false, null, null, null, null, null);
+                null, null, "wirtschaftlich", false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -307,7 +307,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null);
+                null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -321,7 +321,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, "  ", false, null, null, null, null, null);
+                null, null, "  ", false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -335,7 +335,7 @@ class TransactionUpdateConverterTest {
                 null, null, null, null, null, null,
                 null, null, null, false,
                 "New Sender", "Street 1", "54321", "Munich",
-                null);
+                null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -359,7 +359,7 @@ class TransactionUpdateConverterTest {
                 null, null, null, null, null, null,
                 null, null, null, false,
                 "Updated Sender", "New Street 5", "99999", "Hamburg",
-                null);
+                null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -377,7 +377,7 @@ class TransactionUpdateConverterTest {
                 null, null, null, null, null, null,
                 null, null, null, false,
                 null, "Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -391,7 +391,7 @@ class TransactionUpdateConverterTest {
                 null, null, null, null, null, null,
                 null, null, null, false,
                 "  ", "Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -405,7 +405,7 @@ class TransactionUpdateConverterTest {
                 null, null, null, null, null, null,
                 null, null, null, false,
                 null, null, null, null,
-                List.of("new-tag", "important"));
+                List.of("new-tag", "important"), null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -421,7 +421,7 @@ class TransactionUpdateConverterTest {
                 null, null, null, null, null, null,
                 null, null, null, false,
                 null, null, null, null,
-                List.of());
+                List.of(), null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -438,7 +438,7 @@ class TransactionUpdateConverterTest {
                 null, null, null, null, null, null,
                 null, null, null, false,
                 null, null, null, null,
-                null);
+                null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -458,7 +458,7 @@ class TransactionUpdateConverterTest {
                 "2025-01-01", "2025-02-01",
                 3L, 2L, "zweckbetrieb", true,
                 "Full Sender", "All Street", "11111", "Frankfurt",
-                List.of("tag1", "tag2"));
+                List.of("tag1", "tag2"), null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 

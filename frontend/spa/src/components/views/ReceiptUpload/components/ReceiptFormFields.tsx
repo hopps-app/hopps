@@ -137,7 +137,12 @@ export function ReceiptFormFields({
                 )}
             </div>
             <div className="flex items-center">
-                <Switch checked={isUnpaid} onCheckedChange={onIsUnpaidChange} label={isUnpaid ? t('receipts.upload.paid') : t('receipts.upload.unpaid')} disabled={readOnly} />
+                <Switch
+                    checked={isUnpaid}
+                    onCheckedChange={onIsUnpaidChange}
+                    label={isUnpaid ? t('receipts.upload.paid') : t('receipts.upload.unpaid')}
+                    disabled={readOnly}
+                />
             </div>
 
             {/* Row 3: Contract partner + Bommel */}
@@ -153,7 +158,9 @@ export function ReceiptFormFields({
             <div className="grid w-full items-center gap-1.5">
                 <label className="text-sm font-medium leading-none">
                     {t('receipts.upload.bommel')}
-                    <span className="text-destructive ml-0.5" aria-hidden="true">*</span>
+                    <span className="text-destructive ml-0.5" aria-hidden="true">
+                        *
+                    </span>
                 </label>
                 <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} disabled={readOnly} />
                 {errors.bommelId && (
@@ -183,7 +190,14 @@ export function ReceiptFormFields({
             />
 
             {/* Row 5: Due date (optional) */}
-            <DatePicker label={t('receipts.upload.dueDate')} date={dueDate} onSelect={onDueDateChange} className="w-full" loading={loadingStates.dueDate} disabled={readOnly} />
+            <DatePicker
+                label={t('receipts.upload.dueDate')}
+                date={dueDate}
+                onSelect={onDueDateChange}
+                className="w-full"
+                loading={loadingStates.dueDate}
+                disabled={readOnly}
+            />
 
             {/* Row 6: Tags (full width) */}
             <div className="sm:col-span-2">

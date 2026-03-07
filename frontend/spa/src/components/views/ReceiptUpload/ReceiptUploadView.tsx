@@ -671,9 +671,7 @@ function ReceiptUploadView() {
                         </Button>
                     )}
                     <div className="flex-1" />
-                    {!isReadOnly && (
-                        <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
-                    )}
+                    {!isReadOnly && <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />}
                 </div>
 
                 {/* Attributes (row 1, col 2) */}
