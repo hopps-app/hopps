@@ -28,7 +28,8 @@
       "Bash(gzip:*)",
       "Bash(kubectl describe:*)",
       "Bash(gh run list:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(xargs grep -l \"routes\\\\|<Route\")"
     ]
   }
 }

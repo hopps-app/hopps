@@ -14,9 +14,10 @@ type TagsProps = {
     placeholder?: string;
     className?: string;
     loading?: boolean;
+    disabled?: boolean;
 };
 
-function Tags({ label, value, onChange, placeholder, className, loading }: TagsProps) {
+function Tags({ label, value, onChange, placeholder, className, loading, disabled }: TagsProps) {
     const [input, setInput] = useState('');
     const [id] = useState(_.uniqueId('tags-'));
 
@@ -55,7 +56,7 @@ function Tags({ label, value, onChange, placeholder, className, loading }: TagsP
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={placeholder || ''}
                     maxLength={20}
-                    disabled={value.length >= 4}
+                    disabled={disabled || value.length >= 4}
                     className={loading ? 'pl-10' : ''}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -64,7 +65,7 @@ function Tags({ label, value, onChange, placeholder, className, loading }: TagsP
                         }
                     }}
                 />
-                {!loading && (
+                {!loading && !disabled && (
                     <button
                         type="button"
                         onClick={addTag}
@@ -82,14 +83,16 @@ function Tags({ label, value, onChange, placeholder, className, loading }: TagsP
                     {value.map((tag, idx) => (
                         <span key={`${tag}-${idx}`} className="px-4 py-2 rounded-[15px] bg-purple-100 text-xs flex align-baseline">
                             {tag}
-                            <button
-                                className="ml-2 inline-flex items-center justify-center hover:opacity-80"
-                                type="button"
-                                onClick={() => removeTag(idx)}
-                                aria-label="Remove tag"
-                            >
-                                <Icon icon="Cross2" size={16} />
-                            </button>
+                            {!disabled && (
+                                <button
+                                    className="ml-2 inline-flex items-center justify-center hover:opacity-80"
+                                    type="button"
+                                    onClick={() => removeTag(idx)}
+                                    aria-label="Remove tag"
+                                >
+                                    <Icon icon="Cross2" size={16} />
+                                </button>
+                            )}
                         </span>
                     ))}
                 </div>

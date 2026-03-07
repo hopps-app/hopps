@@ -69,7 +69,7 @@ function SearchSelect({
     return (
         <div className={cn('grid w-full items-center gap-1.5', className)}>
             {label && (
-                <Label htmlFor={id} className={error ? 'text-red-500' : ''}>
+                <Label htmlFor={id} className={error ? 'text-red-500' : ''} required={required}>
                     {label}
                 </Label>
             )}
@@ -94,7 +94,7 @@ function SearchSelect({
                                 'data-[state=open]:border-[var(--purple-500)]',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 !selectedItem && 'text-muted-foreground',
-                                selectedItem && 'rounded-r-none border-r-0',
+                                selectedItem && !disabled && 'rounded-r-none border-r-0',
                                 error && 'border-red-500 focus-visible:border-red-500',
                                 triggerClassName
                             )}
@@ -127,7 +127,7 @@ function SearchSelect({
                         </Command>
                     </PopoverContent>
                 </Popover>
-                {selectedItem && (
+                {selectedItem && !disabled && (
                     <button
                         type="button"
                         onClick={() => onValueChange?.('')}

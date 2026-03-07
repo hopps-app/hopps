@@ -16,6 +16,7 @@
         "goBack": "Zurück",
         "cancel": "Abbrechen",
         "save": "Speichern",
+        "edit": "Bearbeiten",
         "delete": "Löschen",
         "loading": "Wird geladen...",
         "validationError": "Bitte füllen Sie alle Pflichtfelder aus",
@@ -380,6 +381,8 @@
         "upload": {
             "title": "Hochladen",
             "editTitle": "Beleg bearbeiten",
+            "viewTitle": "Belegdetails",
+            "transactionKind": "Belegart",
             "loadFailed": "Fehler beim Laden des Belegs",
             "receiptNumber": "Belegnummer",
             "receiptDate": "Belegdatum",
@@ -394,8 +397,8 @@
             "area": "Bereich",
             "tags": "Tags",
             "addTag": "Tag hinzufügen",
+            "grossAmount": "Bruttobetrag",
             "taxAmount": "Steuerbetrag",
-            "netAmount": "Nettobetrag",
             "autoRead": "Automatisches Auslesen",
             "saveAsDraft": "Als Entwurf speichern",
             "uploadSuccess": "Beleg erfolgreich hochgeladen",
@@ -405,13 +408,14 @@
             "draftSaved": "Entwurf gespeichert",
             "noDocumentOrFile": "Bitte laden Sie zuerst eine Datei hoch oder füllen Sie die Formulardaten aus",
             "validation": {
+                "receiptNumberRequired": "Belegnummer ist erforderlich",
                 "receiptDateRequired": "Belegdatum ist erforderlich",
                 "transactionKindRequired": "Bitte wählen Sie eine Belegart",
                 "contractPartnerRequired": "Vertragspartner ist erforderlich",
                 "bommelRequired": "Bitte wählen Sie einen Bommel",
-                "netAmountRequired": "Nettobetrag ist erforderlich",
-                "netAmountInvalid": "Bitte geben Sie einen gültigen Betrag ein",
-                "taxAmountRequired": "Steuerbetrag ist erforderlich",
+                "areaRequired": "Bitte wählen Sie einen Bereich",
+                "grossAmountRequired": "Bruttobetrag ist erforderlich",
+                "grossAmountInvalid": "Bitte geben Sie einen gültigen Betrag ein",
                 "taxAmountInvalid": "Bitte geben Sie einen gültigen Betrag ein"
             },
             "analysis": {
@@ -434,7 +438,8 @@
             "ideell": "Ideeller Bereich",
             "zweckbetrieb": "Zweckbetrieb",
             "vermoegensverwaltung": "Vermögensverwaltung",
-            "wirtschaftlich": "Wirtschaftlicher Geschäftsbetrieb"
+            "wirtschaftlich": "Wirtschaftlicher Geschäftsbetrieb",
+            "unknown": "Keine Ahnung haaalp"
         },
         "types": {
             "income": "Einnahme",

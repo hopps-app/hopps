@@ -19,6 +19,7 @@ interface TextFieldProps {
     loading?: boolean;
     maxLength?: number;
     required?: boolean;
+    disabled?: boolean;
     autoComplete?: string;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onValueChange?: (value: string) => void;
@@ -39,7 +40,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
     return (
         <div className="grid w-full items-center gap-1.5">
             {props.label && (
-                <Label htmlFor={id} className={props.error ? 'text-red-500' : ''}>
+                <Label htmlFor={id} className={props.error ? 'text-red-500' : ''} required={props.required}>
                     {props.label}
                 </Label>
             )}
@@ -72,6 +73,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     ref={ref}
                     aria-invalid={props.error ? true : undefined}
                     aria-describedby={props.error ? errorId : undefined}
+                    disabled={props.disabled}
                     aria-required={props.required || undefined}
                     autoComplete={props.autoComplete}
                 />

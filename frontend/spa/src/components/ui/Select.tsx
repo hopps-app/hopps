@@ -19,20 +19,21 @@ interface SelectProps {
     className?: string;
     error?: string;
     required?: boolean;
+    disabled?: boolean;
 }
 
 function Select(props: SelectProps) {
-    const { value, items, onValueChanged, label, placeholder, className, error, required, ...otherProps } = props;
+    const { value, items, onValueChanged, label, placeholder, className, error, required, disabled, ...otherProps } = props;
     const [id] = useState(_.uniqueId('select-'));
     const errorId = `${id}-error`;
     return (
         <div className={`grid w-full items-center gap-1.5 ${className}`}>
             {label && (
-                <Label htmlFor={id} className={error ? 'text-red-500' : ''}>
+                <Label htmlFor={id} className={error ? 'text-red-500' : ''} required={required}>
                     {label}
                 </Label>
             )}
-            <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} {...otherProps}>
+            <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} disabled={disabled} {...otherProps}>
                 <SelectTrigger
                     id={id}
                     className={error ? 'border-red-500 focus-visible:border-red-500' : ''}

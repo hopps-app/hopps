@@ -16,6 +16,7 @@
         "goBack": "Back",
         "cancel": "Cancel",
         "save": "Save",
+        "edit": "Edit",
         "delete": "Delete",
         "loading": "Loading...",
         "validationError": "Please fill in all required fields",
@@ -454,6 +455,8 @@
         "upload": {
             "title": "Upload",
             "editTitle": "Edit Receipt",
+            "viewTitle": "Receipt Details",
+            "transactionKind": "Transaction type",
             "loadFailed": "Failed to load receipt",
             "receiptNumber": "Receipt number",
             "receiptDate": "Receipt date",
@@ -468,8 +471,8 @@
             "area": "Area",
             "tags": "Tags",
             "addTag": "Add tag",
+            "grossAmount": "Gross amount",
             "taxAmount": "Tax amount",
-            "netAmount": "Net amount",
             "autoRead": "Automatic reading",
             "saveAsDraft": "Save as draft",
             "uploadSuccess": "Receipt uploaded successfully",
@@ -494,13 +497,14 @@
             "draftSaved": "Draft saved",
             "noDocumentOrFile": "Please upload a file first or fill in the form data",
             "validation": {
+                "receiptNumberRequired": "Receipt number is required",
                 "receiptDateRequired": "Receipt date is required",
                 "transactionKindRequired": "Please select a transaction type",
                 "contractPartnerRequired": "Contract partner is required",
                 "bommelRequired": "Please select a Bommel",
-                "netAmountRequired": "Net amount is required",
-                "netAmountInvalid": "Please enter a valid amount",
-                "taxAmountRequired": "Tax amount is required",
+                "areaRequired": "Please select an area",
+                "grossAmountRequired": "Gross amount is required",
+                "grossAmountInvalid": "Please enter a valid amount",
                 "taxAmountInvalid": "Please enter a valid amount"
             }
         },
@@ -508,7 +512,8 @@
             "ideell": "Non-profit area",
             "zweckbetrieb": "Purpose operation",
             "vermoegensverwaltung": "Asset management",
-            "wirtschaftlich": "Commercial operation"
+            "wirtschaftlich": "Commercial operation",
+            "unknown": "No idea haaalp"
         },
         "types": {
             "income": "Income",

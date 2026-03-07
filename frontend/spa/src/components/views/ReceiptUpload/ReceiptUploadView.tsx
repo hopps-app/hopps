@@ -38,9 +38,9 @@ function ReceiptUploadView() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    usePageTitle(id ? t('receipts.upload.editTitle') : t('receipts.upload.title'));
+    // Page title set after isReadOnly state is defined below
     const { showError, showSuccess } = useToast();
-    const { loadBommels } = useBommelsStore();
+    const { loadBommels, rootBommel } = useBommelsStore();
     const store = useStore();
     const queryClient = useQueryClient();
 
@@ -73,8 +73,8 @@ function ReceiptUploadView() {
         setArea,
         tags,
         setTags,
-        netAmount,
-        setNetAmount,
+        grossAmount,
+        setGrossAmount,
         taxAmount,
         setTaxAmount,
         isSubmitting,
@@ -104,6 +104,15 @@ function ReceiptUploadView() {
         loadTransaction,
         isDirty,
     } = useReceiptForm();
+
+    // Read-only mode for confirmed receipts
+    const [isReadOnly, setIsReadOnly] = useState(false);
+
+    const handleEdit = useCallback(() => {
+        setIsReadOnly(false);
+    }, []);
+
+    usePageTitle(isReadOnly ? t('receipts.upload.viewTitle') : id ? t('receipts.upload.editTitle') : t('receipts.upload.title'));
 
     // Warn user when navigating away with unsaved changes
     useUnsavedChangesWarning(isDirty);
@@ -217,6 +226,13 @@ function ReceiptUploadView() {
         loadBommels(store.organization.id).catch(() => {});
     }, [store.organization, loadBommels]);
 
+    // Set root bommel as default for new receipts
+    useEffect(() => {
+        if (!isEditMode && rootBommel?.id && !bommelId) {
+            setBommelId(rootBommel.id);
+        }
+    }, [isEditMode, rootBommel, bommelId, setBommelId]);
+
     // Track if transaction has been loaded to prevent re-loading
     const transactionLoadedRef = useRef<string | null>(null);
 
@@ -235,6 +251,11 @@ function ReceiptUploadView() {
                 const transactionIdNum = parseInt(id, 10);
                 const transaction = await apiService.orgService.transactionsGET(transactionIdNum);
                 const loadedValues = loadTransaction(transaction);
+
+                // Set read-only for confirmed receipts
+                if (transaction.status === 'CONFIRMED') {
+                    setIsReadOnly(true);
+                }
 
                 // Load document preview and check for analysis results if document exists
                 if (transaction.documentId) {
@@ -359,12 +380,10 @@ function ReceiptUploadView() {
 
     // Build the update request payload for transaction
     const buildTransactionPayload = useCallback(() => {
-        // Calculate total with sign based on transaction kind
+        // Gross amount is the total (including tax)
         let total: number | undefined = undefined;
-        if (netAmount) {
-            const netValue = parseFloat(netAmount);
-            const taxValue = parseFloat(taxAmount || '0');
-            total = netValue + taxValue;
+        if (grossAmount) {
+            total = parseFloat(grossAmount);
             // Make total negative for expenses
             if (transactionKind === 'expense' && total > 0) {
                 total = -total;
@@ -383,7 +402,7 @@ function ReceiptUploadView() {
             categoryId: category ? parseInt(category, 10) : undefined,
             tags: tags.length > 0 ? tags : undefined,
         };
-    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, category, area, tags, netAmount, taxAmount]);
+    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, category, area, tags, grossAmount, taxAmount]);
 
     // Field change handlers that clear validation errors
     const handleReceiptDateChange = useCallback(
@@ -418,12 +437,12 @@ function ReceiptUploadView() {
         [setBommelId, clearFieldError]
     );
 
-    const handleNetAmountChange = useCallback(
+    const handleGrossAmountChange = useCallback(
         (value: string) => {
-            setNetAmount(value);
-            clearFieldError('netAmount');
+            setGrossAmount(value);
+            clearFieldError('grossAmount');
         },
-        [setNetAmount, clearFieldError]
+        [setGrossAmount, clearFieldError]
     );
 
     const handleTaxAmountChange = useCallback(
@@ -432,6 +451,22 @@ function ReceiptUploadView() {
             clearFieldError('taxAmount');
         },
         [setTaxAmount, clearFieldError]
+    );
+
+    const handleReceiptNumberChange = useCallback(
+        (value: string) => {
+            setReceiptNumber(value);
+            clearFieldError('receiptNumber');
+        },
+        [setReceiptNumber, clearFieldError]
+    );
+
+    const handleAreaChange = useCallback(
+        (value: string) => {
+            setArea(value);
+            clearFieldError('area');
+        },
+        [setArea, clearFieldError]
     );
 
     // Submit handler - currently disabled, will be enabled when full validation passes
@@ -483,8 +518,8 @@ function ReceiptUploadView() {
             const payload = buildTransactionPayload();
 
             if (transactionId) {
-                // Update existing transaction
-                await apiService.orgService.transactionsPATCH(transactionId, new TransactionUpdateRequest(payload));
+                // Update existing transaction and ensure status is DRAFT
+                await apiService.orgService.transactionsPATCH(transactionId, new TransactionUpdateRequest({ ...payload, status: 'DRAFT' }));
                 showSuccess(t('receipts.upload.draftSaved'));
             } else {
                 // Create new manual transaction (no document)
@@ -629,7 +664,9 @@ function ReceiptUploadView() {
                         </Button>
                     )}
                     <div className="flex-1" />
-                    <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
+                    {!isReadOnly && (
+                        <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />
+                    )}
                 </div>
 
                 {/* Attributes (row 1, col 2) */}
@@ -722,7 +759,7 @@ function ReceiptUploadView() {
                     <div className="min-w-0 flex-1 border border-[#A7A7A7] bg-card rounded-[30px] p-5">
                         <ReceiptFormFields
                             receiptNumber={receiptNumber}
-                            onReceiptNumberChange={setReceiptNumber}
+                            onReceiptNumberChange={handleReceiptNumberChange}
                             receiptDate={receiptDate}
                             onReceiptDateChange={handleReceiptDateChange}
                             dueDate={dueDate}
@@ -738,15 +775,16 @@ function ReceiptUploadView() {
                             category={category}
                             onCategoryChange={setCategory}
                             area={area}
-                            onAreaChange={setArea}
+                            onAreaChange={handleAreaChange}
                             tags={tags}
                             onTagsChange={setTags}
-                            netAmount={netAmount}
-                            onNetAmountChange={handleNetAmountChange}
+                            grossAmount={grossAmount}
+                            onGrossAmountChange={handleGrossAmountChange}
                             taxAmount={taxAmount}
                             onTaxAmountChange={handleTaxAmountChange}
                             loadingStates={loadingStates}
                             errors={formErrors}
+                            readOnly={isReadOnly}
                         />
                     </div>
                 </div>
@@ -759,7 +797,8 @@ function ReceiptUploadView() {
                         onSubmit={handleSubmit}
                         onSaveDraft={handleSaveDraft}
                         onCancel={handleCancel}
-                        saveDisabled={true}
+                        readOnly={isReadOnly}
+                        onEdit={handleEdit}
                     />
                 </div>
             </div>

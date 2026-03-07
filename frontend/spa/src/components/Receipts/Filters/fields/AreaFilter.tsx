@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ReceiptFilterField } from '@/components/Receipts/Filters/ReceiptFilterField';
 import SearchSelect, { SearchSelectItem } from '@/components/ui/SearchSelect';
 
-const AREA_VALUES = ['IDEELL', 'ZWECKBETRIEB', 'VERMOEGENSVERWALTUNG', 'WIRTSCHAFTLICH'] as const;
+const AREA_VALUES = ['IDEELL', 'ZWECKBETRIEB', 'VERMOEGENSVERWALTUNG', 'WIRTSCHAFTLICH', 'UNKNOWN'] as const;
 
 type AreaFilterProps = {
     filters: {

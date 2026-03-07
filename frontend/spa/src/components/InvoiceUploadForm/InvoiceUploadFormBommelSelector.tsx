@@ -14,9 +14,10 @@ import { useBommelsStore } from '@/store/bommels/bommelsStore';
 type InvoiceUploadFormBommelSelectorprops = {
     value?: number | null;
     onChange: (id: number | null | undefined) => void;
+    disabled?: boolean;
 };
 
-const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> = ({ value, onChange }) => {
+const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> = ({ value, onChange, disabled }) => {
     const { allBommels } = useBommelsStore();
     const { t } = useTranslation();
 
@@ -48,12 +49,14 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                 <PopoverTrigger asChild>
                     <button
                         type="button"
+                        disabled={disabled}
                         className={cn(
                             'flex items-center w-full h-10 justify-between text-sm border border-[#d1d5db] rounded-xl px-3 py-3 text-left cursor-pointer bg-primary-foreground',
-                            !selectedBommel && 'hover:border-[var(--purple-500)] hover:text-[var(--purple-500)]',
+                            !selectedBommel && !disabled && 'hover:border-[var(--purple-500)] hover:text-[var(--purple-500)]',
                             'transition-colors focus:ring-primary focus:outline-none',
+                            'disabled:cursor-not-allowed disabled:opacity-50',
                             !selectedBommel && 'text-[#666]',
-                            selectedBommel && 'rounded-r-none border-r-0'
+                            selectedBommel && !disabled && 'rounded-r-none border-r-0'
                         )}
                         aria-haspopup="listbox"
                         aria-expanded={open}
@@ -87,7 +90,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                     </Command>
                 </PopoverContent>
             </Popover>
-            {selectedBommel && (
+            {selectedBommel && !disabled && (
                 <button
                     type="button"
                     onClick={(e) => {

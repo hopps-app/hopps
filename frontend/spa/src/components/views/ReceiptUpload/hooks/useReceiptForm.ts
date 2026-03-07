@@ -1,4 +1,4 @@
-import type { AnalysisStatus, DocumentResponse, ExtractionSource, TransactionResponse } from '@hopps/api-client';
+import type { AnalysisStatus, DocumentResponse, ExtractionSource, TransactionResponse, TransactionStatus } from '@hopps/api-client';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +15,7 @@ export interface ReceiptFormState {
     category: string;
     area: string;
     tags: Tag[];
-    netAmount: string;
+    grossAmount: string;
     taxAmount: string;
 }
 
@@ -27,7 +27,7 @@ export interface LoadingStates {
     category: boolean;
     area: boolean;
     tags: boolean;
-    netAmount: boolean;
+    grossAmount: boolean;
     taxAmount: boolean;
 }
 
@@ -39,16 +39,18 @@ const initialLoadingStates: LoadingStates = {
     category: false,
     area: false,
     tags: false,
-    netAmount: false,
+    grossAmount: false,
     taxAmount: false,
 };
 
 export interface FormErrors {
+    receiptNumber?: string;
     receiptDate?: string;
     transactionKind?: string;
     contractPartner?: string;
     bommelId?: string;
-    netAmount?: string;
+    area?: string;
+    grossAmount?: string;
     taxAmount?: string;
 }
 
@@ -58,14 +60,14 @@ export function useReceiptForm() {
     const [receiptNumber, setReceiptNumber] = useState('');
     const [receiptDate, setReceiptDate] = useState<Date | undefined>(undefined);
     const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
-    const [transactionKind, setTransactionKind] = useState<'intake' | 'expense' | ''>('');
+    const [transactionKind, setTransactionKind] = useState<'intake' | 'expense' | ''>('expense');
     const [isUnpaid, setIsUnpaid] = useState(false);
     const [contractPartner, setContractPartner] = useState('');
     const [bommelId, setBommelId] = useState<number | null>(null);
     const [category, setCategory] = useState('');
     const [area, setArea] = useState('');
     const [tags, setTags] = useState<Tag[]>([]);
-    const [netAmount, setNetAmount] = useState('');
+    const [grossAmount, setGrossAmount] = useState('');
     const [taxAmount, setTaxAmount] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAutoRead, setIsAutoRead] = useState(true);
@@ -77,6 +79,9 @@ export function useReceiptForm() {
     const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus | null>(null);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
     const [extractionSource, setExtractionSource] = useState<ExtractionSource | null>(null);
+
+    // Transaction status tracking
+    const [transactionStatus, setTransactionStatus] = useState<TransactionStatus | null>(null);
 
     // Form validation errors
     const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -107,7 +112,7 @@ export function useReceiptForm() {
             category: loading,
             area: loading,
             tags: loading,
-            netAmount: loading,
+            grossAmount: loading,
             taxAmount: loading,
         });
     }, []);
@@ -145,9 +150,9 @@ export function useReceiptForm() {
                     setTags(value || []);
                     setFieldLoading('tags', false);
                     break;
-                case 'netAmount':
-                    setNetAmount(value);
-                    setFieldLoading('netAmount', false);
+                case 'grossAmount':
+                    setGrossAmount(value);
+                    setFieldLoading('grossAmount', false);
                     break;
                 case 'taxAmount':
                     setTaxAmount(value);
@@ -189,12 +194,10 @@ export function useReceiptForm() {
             }
             setFieldLoading('tags', false);
 
-            // Calculate net amount from total and tax
+            // Set gross amount (total including tax)
             if (response.total !== undefined && response.total !== null) {
-                const tax = response.totalTax ?? 0;
-                const net = response.total - tax;
-                setNetAmount(net.toFixed(2));
-                setFieldLoading('netAmount', false);
+                setGrossAmount(response.total.toFixed(2));
+                setFieldLoading('grossAmount', false);
             }
 
             if (response.totalTax !== undefined && response.totalTax !== null) {
@@ -250,11 +253,9 @@ export function useReceiptForm() {
             hasAppliedValues = true;
         }
 
-        // Calculate net amount from total and tax
-        if (response.total !== undefined && response.total !== null && !currentValues.netAmount) {
-            const tax = response.totalTax ?? 0;
-            const net = response.total - tax;
-            setNetAmount(net.toFixed(2));
+        // Set gross amount (total including tax)
+        if (response.total !== undefined && response.total !== null && !currentValues.grossAmount) {
+            setGrossAmount(response.total.toFixed(2));
             hasAppliedValues = true;
         }
 
@@ -271,9 +272,12 @@ export function useReceiptForm() {
     const loadTransaction = useCallback((transaction: TransactionResponse): Partial<ReceiptFormState> => {
         const loadedValues: Partial<ReceiptFormState> = {};
 
-        // Set transaction ID
+        // Set transaction ID and status
         if (transaction.id) {
             setTransactionId(transaction.id);
+        }
+        if (transaction.status) {
+            setTransactionStatus(transaction.status as TransactionStatus);
         }
 
         // Set receipt number / name
@@ -338,13 +342,11 @@ export function useReceiptForm() {
             loadedValues.tags = transaction.tags;
         }
 
-        // Calculate net amount from total and tax
+        // Set gross amount (total including tax)
         if (transaction.total !== undefined && transaction.total !== null) {
-            const tax = transaction.totalTax ?? 0;
-            const net = transaction.total - tax;
-            const netStr = net.toFixed(2);
-            setNetAmount(netStr);
-            loadedValues.netAmount = netStr;
+            const grossStr = Math.abs(transaction.total).toFixed(2);
+            setGrossAmount(grossStr);
+            loadedValues.grossAmount = grossStr;
         }
 
         // Set tax amount
@@ -366,6 +368,9 @@ export function useReceiptForm() {
     const validate = useCallback((): boolean => {
         const errors: FormErrors = {};
 
+        if (!receiptNumber.trim()) {
+            errors.receiptNumber = t('receipts.upload.validation.receiptNumberRequired');
+        }
         if (!receiptDate) {
             errors.receiptDate = t('receipts.upload.validation.receiptDateRequired');
         }
@@ -378,28 +383,13 @@ export function useReceiptForm() {
         if (!bommelId) {
             errors.bommelId = t('receipts.upload.validation.bommelRequired');
         }
-        if (!netAmount.trim()) {
-            errors.netAmount = t('receipts.upload.validation.netAmountRequired');
-        } else if (isNaN(parseFloat(netAmount))) {
-            errors.netAmount = t('receipts.upload.validation.netAmountInvalid');
+        if (!area) {
+            errors.area = t('receipts.upload.validation.areaRequired');
         }
-        if (!taxAmount.trim()) {
-            errors.taxAmount = t('receipts.upload.validation.taxAmountRequired');
-        } else if (isNaN(parseFloat(taxAmount))) {
-            errors.taxAmount = t('receipts.upload.validation.taxAmountInvalid');
-        }
-
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
-    }, [receiptDate, transactionKind, contractPartner, bommelId, netAmount, taxAmount, t]);
-
-    // Validate minimum fields for saving as draft (less strict)
-    const validateDraft = useCallback((): boolean => {
-        const errors: FormErrors = {};
-
-        // For drafts, only validate amounts if they're provided but invalid
-        if (netAmount.trim() && isNaN(parseFloat(netAmount))) {
-            errors.netAmount = t('receipts.upload.validation.netAmountInvalid');
+        if (!grossAmount.trim()) {
+            errors.grossAmount = t('receipts.upload.validation.grossAmountRequired');
+        } else if (isNaN(parseFloat(grossAmount))) {
+            errors.grossAmount = t('receipts.upload.validation.grossAmountInvalid');
         }
         if (taxAmount.trim() && isNaN(parseFloat(taxAmount))) {
             errors.taxAmount = t('receipts.upload.validation.taxAmountInvalid');
@@ -407,21 +397,37 @@ export function useReceiptForm() {
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
-    }, [netAmount, taxAmount, t]);
+    }, [receiptNumber, receiptDate, transactionKind, contractPartner, bommelId, area, grossAmount, taxAmount, t]);
+
+    // Validate minimum fields for saving as draft (less strict)
+    const validateDraft = useCallback((): boolean => {
+        const errors: FormErrors = {};
+
+        // For drafts, only validate amounts if they're provided but invalid
+        if (grossAmount.trim() && isNaN(parseFloat(grossAmount))) {
+            errors.grossAmount = t('receipts.upload.validation.grossAmountInvalid');
+        }
+        if (taxAmount.trim() && isNaN(parseFloat(taxAmount))) {
+            errors.taxAmount = t('receipts.upload.validation.taxAmountInvalid');
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    }, [grossAmount, taxAmount, t]);
 
     const resetForm = useCallback(() => {
         setFile(null);
         setReceiptNumber('');
         setReceiptDate(undefined);
         setDueDate(undefined);
-        setTransactionKind('');
+        setTransactionKind('expense');
         setIsUnpaid(false);
         setContractPartner('');
         setBommelId(null);
         setCategory('');
         setArea('');
         setTags([]);
-        setNetAmount('');
+        setGrossAmount('');
         setTaxAmount('');
         // Reset analysis state
         setDocumentId(null);
@@ -429,6 +435,7 @@ export function useReceiptForm() {
         setAnalysisStatus(null);
         setAnalysisError(null);
         setExtractionSource(null);
+        setTransactionStatus(null);
         setAllFieldsLoading(false);
         clearAllErrors();
     }, [setAllFieldsLoading, clearAllErrors]);
@@ -445,11 +452,11 @@ export function useReceiptForm() {
                 category ||
                 area ||
                 tags.length > 0 ||
-                netAmount ||
+                grossAmount ||
                 taxAmount ||
                 file
         );
-    }, [receiptNumber, receiptDate, dueDate, transactionKind, contractPartner, bommelId, category, area, tags, netAmount, taxAmount, file]);
+    }, [receiptNumber, receiptDate, dueDate, transactionKind, contractPartner, bommelId, category, area, tags, grossAmount, taxAmount, file]);
 
     // Check if form has minimum required fields for saving as draft
     const canSaveDraft = useMemo(() => {
@@ -457,15 +464,15 @@ export function useReceiptForm() {
         // Need either a document (from upload) or transactionId (already saved)
         // OR need enough data to create a manual transaction
         const hasDocument = documentId !== null || transactionId !== null;
-        const hasBasicData = Boolean(receiptDate || contractPartner || netAmount);
+        const hasBasicData = Boolean(receiptDate || contractPartner || grossAmount);
         return hasDocument || hasBasicData;
-    }, [isSubmitting, documentId, transactionId, receiptDate, contractPartner, netAmount]);
+    }, [isSubmitting, documentId, transactionId, receiptDate, contractPartner, grossAmount]);
 
-    // Full validation for final save (currently always false as save is disabled)
+    // Full validation for final save
     const isValid = useMemo(() => {
         if (isSubmitting) return false;
-        return Boolean(receiptDate && transactionKind && contractPartner && bommelId && netAmount && taxAmount);
-    }, [receiptDate, transactionKind, contractPartner, bommelId, netAmount, taxAmount, isSubmitting]);
+        return Boolean(receiptNumber && receiptDate && transactionKind && contractPartner && bommelId && area && grossAmount);
+    }, [receiptNumber, receiptDate, transactionKind, contractPartner, bommelId, area, grossAmount, isSubmitting]);
 
     return {
         // File state
@@ -493,8 +500,8 @@ export function useReceiptForm() {
         setArea,
         tags,
         setTags,
-        netAmount,
-        setNetAmount,
+        grossAmount,
+        setGrossAmount,
         taxAmount,
         setTaxAmount,
 
@@ -515,6 +522,9 @@ export function useReceiptForm() {
         analysisError,
         setAnalysisError,
         extractionSource,
+
+        // Transaction status
+        transactionStatus,
 
         // Validation
         formErrors,

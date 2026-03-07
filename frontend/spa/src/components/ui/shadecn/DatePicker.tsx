@@ -23,9 +23,10 @@ interface DatePickerProps {
     label?: string;
     error?: string;
     loading?: boolean;
+    required?: boolean;
 }
 
-export function DatePicker({ date, onSelect, placeholder, className, disabled, label, error, loading }: DatePickerProps) {
+export function DatePicker({ date, onSelect, placeholder, className, disabled, label, error, loading, required }: DatePickerProps) {
     const { t, i18n } = useTranslation();
     const defaultPlaceholder = placeholder || t('datePicker.selectDate');
     const [id] = useState(_.uniqueId('date-picker-'));
@@ -45,7 +46,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
 
     return (
         <div className="relative grid w-full items-center gap-1.5">
-            {label && <Label htmlFor={id}>{label}</Label>}
+            {label && <Label htmlFor={id} required={required}>{label}</Label>}
             <div className="relative flex items-center">
                 <Popover>
                     <PopoverTrigger asChild>

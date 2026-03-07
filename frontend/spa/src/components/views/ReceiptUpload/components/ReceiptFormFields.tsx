@@ -34,12 +34,13 @@ interface ReceiptFormFieldsProps {
     onAreaChange: (value: string) => void;
     tags: string[];
     onTagsChange: (tags: string[]) => void;
-    netAmount: string;
-    onNetAmountChange: (value: string) => void;
+    grossAmount: string;
+    onGrossAmountChange: (value: string) => void;
     taxAmount: string;
     onTaxAmountChange: (value: string) => void;
     loadingStates: LoadingStates;
     errors?: FormErrors;
+    readOnly?: boolean;
 }
 
 export function ReceiptFormFields({
@@ -63,12 +64,13 @@ export function ReceiptFormFields({
     onAreaChange,
     tags,
     onTagsChange,
-    netAmount,
-    onNetAmountChange,
+    grossAmount,
+    onGrossAmountChange,
     taxAmount,
     onTaxAmountChange,
     loadingStates,
     errors = {},
+    readOnly = false,
 }: ReceiptFormFieldsProps) {
     const { t } = useTranslation();
     const { data: categories = [], isLoading: categoriesLoading } = useCategories();
@@ -78,6 +80,7 @@ export function ReceiptFormFields({
         { value: 'ZWECKBETRIEB', label: t('receipts.areas.zweckbetrieb') },
         { value: 'VERMOEGENSVERWALTUNG', label: t('receipts.areas.vermoegensverwaltung') },
         { value: 'WIRTSCHAFTLICH', label: t('receipts.areas.wirtschaftlich') },
+        { value: 'UNKNOWN', label: t('receipts.areas.unknown') },
     ];
 
     const categoryItems: SearchSelectItem[] = useMemo(
@@ -102,6 +105,9 @@ export function ReceiptFormFields({
                 value={receiptNumber}
                 onValueChange={onReceiptNumberChange}
                 loading={loadingStates.receiptNumber}
+                error={errors.receiptNumber}
+                required
+                disabled={readOnly}
             />
             <DatePicker
                 label={t('receipts.upload.receiptDate')}
@@ -110,6 +116,8 @@ export function ReceiptFormFields({
                 className="w-full"
                 loading={loadingStates.receiptDate}
                 error={errors.receiptDate}
+                required
+                disabled={readOnly}
             />
 
             {/* Row 2: Transaction type + Unpaid toggle */}
@@ -119,6 +127,8 @@ export function ReceiptFormFields({
                     value={transactionKind}
                     onValueChange={(v) => onTransactionKindChange(v as 'intake' | 'expense')}
                     layout="horizontal"
+                    label={t('receipts.upload.transactionKind')}
+                    disabled={readOnly}
                 />
                 {errors.transactionKind && (
                     <div className="text-destructive text-xs mt-1" role="alert">
@@ -127,7 +137,7 @@ export function ReceiptFormFields({
                 )}
             </div>
             <div className="flex items-center">
-                <Switch checked={isUnpaid} onCheckedChange={onIsUnpaidChange} label={isUnpaid ? t('receipts.upload.paid') : t('receipts.upload.unpaid')} />
+                <Switch checked={isUnpaid} onCheckedChange={onIsUnpaidChange} label={isUnpaid ? t('receipts.upload.paid') : t('receipts.upload.unpaid')} disabled={readOnly} />
             </div>
 
             {/* Row 3: Contract partner + Bommel */}
@@ -137,10 +147,15 @@ export function ReceiptFormFields({
                 onValueChange={onContractPartnerChange}
                 loading={loadingStates.contractPartner}
                 error={errors.contractPartner}
+                required
+                disabled={readOnly}
             />
             <div className="grid w-full items-center gap-1.5">
-                <label className="text-sm font-medium leading-none">{t('receipts.upload.bommel')}</label>
-                <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} />
+                <label className="text-sm font-medium leading-none">
+                    {t('receipts.upload.bommel')}
+                    <span className="text-destructive ml-0.5" aria-hidden="true">*</span>
+                </label>
+                <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} disabled={readOnly} />
                 {errors.bommelId && (
                     <div className="text-destructive text-xs" role="alert">
                         {errors.bommelId}
@@ -148,18 +163,27 @@ export function ReceiptFormFields({
                 )}
             </div>
 
-            {/* Row 4: Due date + Category */}
-            <DatePicker label={t('receipts.upload.dueDate')} date={dueDate} onSelect={onDueDateChange} className="w-full" loading={loadingStates.dueDate} />
+            {/* Row 4: Area + Category */}
+            <Select
+                label={t('receipts.upload.area')}
+                value={area}
+                onValueChanged={onAreaChange}
+                items={areaItems}
+                error={errors.area}
+                required
+                disabled={readOnly}
+            />
             <SearchSelect
                 label={t('receipts.upload.category')}
                 value={category}
                 onValueChange={onCategoryChange}
                 items={categoryItems}
                 placeholder={categoriesLoading ? t('common.loading') : t('receipts.upload.selectCategory')}
+                disabled={readOnly}
             />
 
-            {/* Row 5: Area (full width) */}
-            <Select label={t('receipts.upload.area')} value={area} onValueChanged={onAreaChange} items={areaItems} className="sm:col-span-2" />
+            {/* Row 5: Due date (optional) */}
+            <DatePicker label={t('receipts.upload.dueDate')} date={dueDate} onSelect={onDueDateChange} className="w-full" loading={loadingStates.dueDate} disabled={readOnly} />
 
             {/* Row 6: Tags (full width) */}
             <div className="sm:col-span-2">
@@ -169,24 +193,33 @@ export function ReceiptFormFields({
                     onChange={onTagsChange}
                     placeholder={t('receipts.upload.addTag')}
                     loading={loadingStates.tags}
+                    disabled={readOnly}
                 />
             </div>
 
-            {/* Row 7: Amounts */}
+            {/* Row 7: Gross amount (central) + Tax amount (smaller) */}
             <TextField
-                label={t('receipts.upload.netAmount')}
-                value={netAmount}
-                onValueChange={onNetAmountChange}
-                loading={loadingStates.netAmount}
-                error={errors.netAmount}
+                label={t('receipts.upload.grossAmount')}
+                value={grossAmount}
+                onValueChange={onGrossAmountChange}
+                loading={loadingStates.grossAmount}
+                error={errors.grossAmount}
+                required
+                disabled={readOnly}
             />
-            <TextField
-                label={t('receipts.upload.taxAmount')}
-                value={taxAmount}
-                onValueChange={onTaxAmountChange}
-                loading={loadingStates.taxAmount}
-                error={errors.taxAmount}
-            />
+            <div className="flex items-end gap-2">
+                <div className="flex-1 opacity-70">
+                    <TextField
+                        label={t('receipts.upload.taxAmount')}
+                        value={taxAmount}
+                        onValueChange={onTaxAmountChange}
+                        loading={loadingStates.taxAmount}
+                        error={errors.taxAmount}
+                        className="text-sm"
+                        disabled={readOnly}
+                    />
+                </div>
+            </div>
         </div>
     );
 }

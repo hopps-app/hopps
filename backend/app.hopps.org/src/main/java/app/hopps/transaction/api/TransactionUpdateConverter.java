@@ -8,6 +8,7 @@ import app.hopps.document.domain.TradeParty;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionArea;
+import app.hopps.transaction.domain.TransactionStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -91,6 +92,10 @@ public class TransactionUpdateConverter {
 
         if (request.tags() != null) {
             transaction.setTags(new HashSet<>(request.tags()));
+        }
+
+        if (request.status() != null && !request.status().isBlank()) {
+            transaction.setStatus(TransactionStatus.valueOf(request.status().toUpperCase()));
         }
     }
 }

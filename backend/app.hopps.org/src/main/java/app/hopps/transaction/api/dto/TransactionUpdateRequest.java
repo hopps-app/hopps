@@ -21,5 +21,6 @@ public record TransactionUpdateRequest(
         String senderStreet,
         String senderZipCode,
         String senderCity,
-        List<String> tags) {
+        List<String> tags,
+        String status) {
 }

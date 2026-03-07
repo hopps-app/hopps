@@ -16,13 +16,14 @@ interface RadioProps {
     onValueChange?: (value: string) => void;
     className?: string;
     layout?: 'horizontal' | 'vertical';
+    disabled?: boolean;
 }
 
-const Radio: React.FC<RadioProps> = ({ items, value, label, onValueChange, className, layout, ...props }) => {
+const Radio: React.FC<RadioProps> = ({ items, value, label, onValueChange, className, layout, disabled, ...props }) => {
     return (
         <>
             {label && <Label> {label} </Label>}
-            <RadioGroup value={value} onValueChange={onValueChange} className={className} aria-label={label} {...props}>
+            <RadioGroup value={value} onValueChange={onValueChange} className={className} aria-label={label} disabled={disabled} {...props}>
                 <div className={layout === 'horizontal' ? 'flex flex-row gap-2' : ''}>
                     {items.map((item) => (
                         <label key={item.value} className="flex items-center gap-2">
