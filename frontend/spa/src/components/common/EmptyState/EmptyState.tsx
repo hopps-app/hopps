@@ -1,5 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 
+import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import Button from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
@@ -17,10 +18,12 @@ interface EmptyStateProps {
 export function EmptyState({ title, description, icon: Icon, action, className }: EmptyStateProps) {
     return (
         <div className={cn('flex flex-col items-center justify-center py-12 text-center', className)}>
-            {Icon && (
+            {Icon ? (
                 <div className="rounded-full bg-muted p-4 mb-4">
                     <Icon className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                 </div>
+            ) : (
+                <BunnyIcon className="mb-4" />
             )}
             <h3 className="text-lg font-medium text-foreground">{title}</h3>
             {description && <p className="text-muted-foreground mt-1 max-w-sm">{description}</p>}

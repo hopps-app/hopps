@@ -2,13 +2,14 @@ import { CalendarIcon, CheckIcon, ChevronDownIcon } from '@radix-ui/react-icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { de, enUS, uk } from 'date-fns/locale';
-import { BarChart3, RefreshCw, X, Upload } from 'lucide-react';
+import { RefreshCw, X, Upload } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
+import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import Emoji from '@/components/ui/Emoji';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
@@ -378,9 +379,7 @@ function DashboardView() {
 
                 {!isLoading && !error && !hasData && (
                     <div className="flex flex-col items-center justify-center flex-1 min-h-[208px] text-gray-500">
-                        <div className="rounded-full bg-muted p-4 mb-4">
-                            <BarChart3 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
-                        </div>
+                        <BunnyIcon className="mb-4" />
                         <p className="text-lg font-medium mb-2">{t('dashboard.noData')}</p>
                         <p className="text-sm text-center max-w-sm mb-4">{t('dashboard.noDataHint')}</p>
                         <BaseButton variant="outline" size="sm" onClick={() => navigate('/receipts/new')} className="gap-2">
