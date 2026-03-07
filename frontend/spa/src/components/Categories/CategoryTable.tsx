@@ -1,9 +1,9 @@
 import { Category } from '@hopps/api-client';
+import { Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import DialogWrapper from '../ui/DialogWrapper';
-import Icon from '../ui/Icon';
 
 import CategoryForm from './CategoryForm';
 
@@ -52,38 +52,66 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                         trigger={
                             <div
                                 onDoubleClick={() => setEditingCategoryId(category.id!)}
-                                className="
-                                  flex items-start justify-between
-                                  rounded-2xl border border-[#A7A7A7] bg-white px-5 py-3 shadow-sm
-                                  transition-all duration-200
-                                  hover:border-primary hover:ring-1 hover:ring-primary
-                                  cursor-pointer
-                                "
+                                className="group rounded-2xl border border-[#E0E0E0] bg-white shadow-sm transition-all duration-200 overflow-hidden hover:border-primary hover:ring-primary cursor-pointer"
                             >
-                                <div className="min-w-0 flex-1">
-                                    <div className="font-semibold text-gray-900">{category.name}</div>
-                                    {category.description ? (
-                                        <p className="text-sm text-gray-500 break-words">{category.description}</p>
-                                    ) : (
-                                        <p className="text-sm text-gray-400 italic">{t('categories.table.noDescription')}</p>
-                                    )}
+                                {/* Desktop Row */}
+                                <div className="hidden md:flex items-center justify-between px-5 py-2.5 hover:bg-[var(--background-tertiary)] transition-colors">
+                                    <div className="min-w-0 flex-1">
+                                        <span className="font-medium text-sm truncate block">{category.name}</span>
+                                        <span className="text-xs text-gray-500 truncate block">
+                                            {category.description || <span className="text-gray-400 italic">{t('categories.table.noDescription')}</span>}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-end shrink-0 ml-4" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                                        <DialogWrapper
+                                            trigger={
+                                                <button
+                                                    type="button"
+                                                    className="rounded-lg text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            }
+                                            title={t('categories.dialog.deletion.title')}
+                                            description={t('categories.dialog.deletion.description_1')}
+                                            onSuccess={() => deleteCategory(category.id!)}
+                                            primaryLabel={t('dialogWrapper.yes')}
+                                            secondaryLabel={t('dialogWrapper.no')}
+                                        >
+                                            <p className="text-sm text-gray-600">{t('categories.dialog.deletion.description_2')}</p>
+                                        </DialogWrapper>
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-                                    <DialogWrapper
-                                        trigger={
-                                            <button type="button" className="rounded-md p-1 text-gray-500 hover:text-destructive">
-                                                <Icon icon="Trash" size="md" />
-                                            </button>
-                                        }
-                                        title={t('categories.dialog.deletion.title')}
-                                        description={t('categories.dialog.deletion.description_1')}
-                                        onSuccess={() => deleteCategory(category.id!)}
-                                        primaryLabel={t('dialogWrapper.yes')}
-                                        secondaryLabel={t('dialogWrapper.no')}
-                                    >
-                                        <p className="text-sm text-gray-600">{t('categories.dialog.deletion.description_2')}</p>
-                                    </DialogWrapper>
+                                {/* Mobile Card */}
+                                <div className="md:hidden p-4 hover:bg-[var(--background-tertiary)] transition-colors">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <span className="font-medium text-sm truncate block">{category.name}</span>
+                                            <span className="text-xs text-gray-500 mt-0.5 block truncate">
+                                                {category.description || <span className="text-gray-400 italic">{t('categories.table.noDescription')}</span>}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end mt-2" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                                        <DialogWrapper
+                                            trigger={
+                                                <button
+                                                    type="button"
+                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            }
+                                            title={t('categories.dialog.deletion.title')}
+                                            description={t('categories.dialog.deletion.description_1')}
+                                            onSuccess={() => deleteCategory(category.id!)}
+                                            primaryLabel={t('dialogWrapper.yes')}
+                                            secondaryLabel={t('dialogWrapper.no')}
+                                        >
+                                            <p className="text-sm text-gray-600">{t('categories.dialog.deletion.description_2')}</p>
+                                        </DialogWrapper>
+                                    </div>
                                 </div>
                             </div>
                         }

@@ -4,7 +4,7 @@ import { AuthenticatedHttpClient } from './AuthenticatedHttpClient';
 export interface ApiServiceOptions {
     orgBaseUrl: string;
     getAccessToken?: () => string | undefined;
-    refreshToken?: () => Promise<void>;
+    refreshToken?: () => Promise<boolean>;
 }
 
 export class ApiService {
