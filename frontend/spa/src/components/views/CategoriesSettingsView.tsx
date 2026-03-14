@@ -85,10 +85,12 @@ function CategoriesSettingsView() {
                             <LoadingState size="lg" />
                         </div>
                     ) : categories.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <BunnyIcon className="mb-4" />
-                            <h3 className="text-lg font-medium text-foreground">{t('categories.emptyState.title')}</h3>
-                            <p className="text-muted-foreground mt-1 max-w-sm">{t('categories.emptyState.description')}</p>
+                        <div className="flex flex-col items-center justify-center py-16 px-4">
+                            <div className="bg-white rounded-[30px] p-8 max-w-2xl w-full flex flex-col items-center">
+                                <BunnyIcon className="mb-6" />
+                                <h3 className="text-lg font-semibold text-black mb-2">{t('categories.emptyState.title')}</h3>
+                                <p className="text-sm text-black text-center mb-6">{t('categories.emptyState.description')}</p>
+                            </div>
                         </div>
                     ) : results.length === 0 && query ? (
                         <EmptyState title={t('receipts.filters.noResults')} description={t('categories.emptyState.noSearchResults')} />

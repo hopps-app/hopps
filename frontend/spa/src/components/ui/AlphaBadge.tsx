@@ -26,7 +26,9 @@ export default function AlphaBadge({ collapsed = false }: AlphaBadgeProps) {
         <Tooltip.Provider delayDuration={300}>
             <Tooltip.Root>
                 <Tooltip.Trigger asChild>
-                    <button type="button" className="cursor-default">{badge}</button>
+                    <button type="button" className="cursor-default">
+                        {badge}
+                    </button>
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
                     <Tooltip.Content

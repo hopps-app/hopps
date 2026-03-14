@@ -371,6 +371,7 @@ function ReceiptUploadView() {
             isAutoRead,
             setFile,
             setIsSubmitting,
+            setAllFieldsLoading,
             setEmptyFieldsLoading,
             setDocumentId,
             setTransactionId,

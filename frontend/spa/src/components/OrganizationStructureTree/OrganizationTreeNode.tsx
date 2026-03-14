@@ -2,7 +2,7 @@ import { NodeModel, useDragOver } from '@minoru/react-dnd-treeview';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { validateBommelName } from '@/components/BommelTreeView/components/BommelCardEditForm';
+import { validateBommelName } from '@/components/BommelTreeView/components/validateBommelName';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import Button from '@/components/ui/Button.tsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog.tsx';

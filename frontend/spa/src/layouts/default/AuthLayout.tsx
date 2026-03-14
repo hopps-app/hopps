@@ -6,7 +6,8 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import SidebarNavigation from '@/components/sidebar-navigation';
 import Icon from '@/components/ui/Icon';
-import { PageTitleProvider, usePageTitleValue } from '@/hooks/use-page-title';
+import { PageTitleProvider } from '@/hooks/PageTitleProvider';
+import { usePageTitleValue } from '@/hooks/use-page-title';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
 
 const STORAGE_KEY = 'hopps-sidebar-collapsed';

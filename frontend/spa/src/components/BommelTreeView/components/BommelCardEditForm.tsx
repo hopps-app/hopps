@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import EmojiField from '@/components/ui/EmojiField';
+import { BOMMEL_NAME_MAX_LENGTH, validateBommelName } from './validateBommelName';
 
-const BOMMEL_NAME_MAX_LENGTH = 255;
+import EmojiField from '@/components/ui/EmojiField';
 
 interface BommelCardEditFormProps {
     name: string;
@@ -11,16 +11,6 @@ interface BommelCardEditFormProps {
     onNameChange: (name: string) => void;
     onEmojiChange: (emoji: string) => void;
     onSave: () => void;
-}
-
-export function validateBommelName(name: string): 'required' | 'maxLength' | null {
-    if (!name.trim()) {
-        return 'required';
-    }
-    if (name.trim().length > BOMMEL_NAME_MAX_LENGTH) {
-        return 'maxLength';
-    }
-    return null;
 }
 
 export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, onSave }: BommelCardEditFormProps) {

@@ -50,7 +50,7 @@ export function OrganizationRegistrationForm(props: Props) {
                     email: z.string().email(t('validation.email')),
                     password: z.string().min(8, t('validation.passwordMin')),
                     passwordConfirm: z.string().min(8, t('validation.passwordMin')),
-                    alphaConsent: alphaEnabled ? z.literal(true, { errorMap: () => ({ message: t('alpha.consentRequired') }) }) : z.boolean(),
+                    alphaConsent: alphaEnabled ? z.literal(true, { message: t('alpha.consentRequired') }) : z.boolean(),
                 })
                 .refine((data) => data.password === data.passwordConfirm, {
                     message: t('validation.passwordMatch'),

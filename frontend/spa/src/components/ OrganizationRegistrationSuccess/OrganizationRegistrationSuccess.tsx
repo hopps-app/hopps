@@ -12,15 +12,12 @@ export function OrganizationRegistrationSuccess() {
     };
 
     return (
-        <div>
-            <div className="flex justify-center">
-                <CheckmarkIcon className="w-16 h-16" />
-            </div>
-
-            <h2 className="mt-3 mb-4 text-center">{t('organization.registration.successHeading')}</h2>
-            <div className="text-center">
-                <Button onClick={onClickLogin}>{t('header.login')}</Button>
-            </div>
+        <div className="flex flex-col items-center justify-center py-12 px-4">
+            <CheckmarkIcon className="w-16 h-16 mb-6" />
+            <h2 className="text-lg font-semibold text-black mb-6 text-center">
+                {t('organization.registration.successHeading')}
+            </h2>
+            <Button onClick={onClickLogin}>{t('header.login')}</Button>
         </div>
     );
 }
