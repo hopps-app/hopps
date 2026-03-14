@@ -1,5 +1,5 @@
 import { PersonIcon } from '@radix-ui/react-icons';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,10 +13,10 @@ function UserMenu() {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const [menuItems] = useState<DropdownMenuItem[]>([
-        { title: `${t('settings.menu.profile')}`, onClick: () => navigate('/profile'), icon: <Icon icon="Avatar" /> },
-        { title: `${t('header.logout')}`, onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> },
-    ]);
+    const menuItems = useMemo<DropdownMenuItem[]>(() => [
+        { title: t('settings.menu.profile'), onClick: () => navigate('/profile'), icon: <Icon icon="Avatar" /> },
+        { title: t('header.logout'), onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> },
+    ], [t, navigate]);
 
     return (
         isAuthenticated && (
