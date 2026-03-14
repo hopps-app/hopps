@@ -97,6 +97,7 @@ public class OrganizationResource {
 
         if (input.name() != null) {
             organization.setName(input.name());
+            organization.getRootBommel().setName(input.name());
         }
         if (input.type() != null) {
             organization.setType(input.type());
