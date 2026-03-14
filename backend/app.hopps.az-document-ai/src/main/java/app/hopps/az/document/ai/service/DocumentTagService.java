@@ -28,7 +28,7 @@ public interface DocumentTagService {
             Do not output meta tags like "rechnung", "beleg", "bargeld",
             "dokument", "zahlung", "transaktion", "ausgabe".
 
-            Always generate tags in German. If needed, return an empty list.
+            Always generate maximum 4 tags in German. If needed, return an empty list.
             """)
     @UserMessage("Analyze the document and generate tags based on the content: {documentJson}")
     List<String> generateTags(@V("documentJson") String documentJson);
