@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 
+import AlphaBadge from '@/components/ui/AlphaBadge';
 import Button from '@/components/ui/Button.tsx';
 import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
@@ -29,6 +30,7 @@ function Header() {
                     <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="Hopps">
                         <img src="/logo2.svg" alt="Hopps" />
                     </Link>
+                    <AlphaBadge />
                 </div>
                 <div
                     id="hs-navbar-cover-page"

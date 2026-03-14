@@ -8,6 +8,9 @@ interface ImportMetaEnv {
     readonly VITE_KEYCLOAK_REALM: string;
     readonly VITE_KEYCLOAK_CLIENT_ID: string;
 
+    // Feature flags
+    readonly VITE_ALPHA_VERSION: string;
+
     // API URLs
     readonly VITE_API_ORG_URL: string;
 }

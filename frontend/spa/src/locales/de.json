@@ -1,4 +1,10 @@
 {
+    "alpha": {
+        "badge": "Alpha",
+        "consentText": "Sie nutzen eine Alpha-Testversion von Hopps. Die Software befindet sich noch in der Entwicklung. Vollständige Datenschutz- und Compliance-Anforderungen können in dieser Phase noch nicht garantiert werden. Wir arbeiten kontinuierlich an Verbesserungen.",
+        "consentLabel": "Ich habe verstanden, dass es sich um eine Alpha-Version handelt, und stimme der Nutzung zu.",
+        "consentRequired": "Bitte stimmen Sie der Nutzung der Alpha-Version zu"
+    },
     "banner": {
         "text1": "Teste Hopps 14 Tage kostenlos",
         "text2": "ohne Verpflichtung"

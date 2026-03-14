@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem } from './shared/types';
 
+import AlphaBadge from '@/components/ui/AlphaBadge';
 import Icon from '@/components/ui/Icon';
 
 type DesktopSidebarProps = {
@@ -85,11 +86,16 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
             >
                 <div className={`flex items-center h-16 flex-shrink-0 overflow-hidden ${collapsed ? 'justify-center px-2' : 'px-4 gap-3'}`}>
                     <img src="/logo.svg" alt="hopps logo" className="w-8 h-8 flex-shrink-0" />
-                    <span
-                        className={`text-primary font-bold text-xl tracking-tight whitespace-nowrap transition-all duration-300 ${collapsed ? 'w-0 opacity-0' : 'opacity-100'}`}
-                    >
-                        hopps
-                    </span>
+                    {collapsed ? (
+                        <AlphaBadge collapsed />
+                    ) : (
+                        <>
+                            <span className="text-primary font-bold text-xl tracking-tight whitespace-nowrap transition-all duration-300 opacity-100">
+                                hopps
+                            </span>
+                            <AlphaBadge />
+                        </>
+                    )}
                 </div>
 
                 <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">{mainItems.map(renderNavItem)}</nav>

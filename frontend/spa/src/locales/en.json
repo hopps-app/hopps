@@ -1,4 +1,10 @@
 {
+    "alpha": {
+        "badge": "Alpha",
+        "consentText": "You are using an alpha test version of Hopps. The software is still under development. Full data protection and compliance requirements cannot be guaranteed at this stage. We are continuously working on improvements.",
+        "consentLabel": "I understand that this is an alpha version and I agree to use it.",
+        "consentRequired": "Please agree to the use of the alpha version"
+    },
     "banner": {
         "text1": "Try hopps for 14 days free of",
         "text2": "charge"

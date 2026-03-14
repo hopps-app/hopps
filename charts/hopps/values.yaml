@@ -354,6 +354,8 @@ zugferd:
       mountPath: /tmp
 
 frontend:
+  # Enable alpha version banner and registration consent
+  alphaVersion: true
   replicaCount: 1
   # List of imagePullSecrets for private image repositories
   imagePullSecrets: []
