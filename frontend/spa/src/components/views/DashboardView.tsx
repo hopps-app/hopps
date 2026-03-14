@@ -2,14 +2,12 @@ import { CalendarIcon, CheckIcon, ChevronDownIcon } from '@radix-ui/react-icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { de, enUS, uk } from 'date-fns/locale';
-import { RefreshCw, X, Upload } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
-import BunnyIcon from '@/components/Receipts/BunnyIcon';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import Emoji from '@/components/ui/Emoji';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
@@ -37,8 +35,6 @@ function DashboardView() {
     const isSmallScreen = useMediaQuery('(max-width: 639px)');
     const { organization } = useStore();
     const { allBommels, rootBommel, loadBommels } = useBommelsStore();
-    const navigate = useNavigate();
-
     // Bommel filter state – defaults to root bommel (includes all sub-bommels)
     const [selectedBommelId, setSelectedBommelId] = useState<number | undefined>(undefined);
     const [openBommel, setOpenBommel] = useState(false);
@@ -150,10 +146,6 @@ function DashboardView() {
 
     // Aggregate transactions by month
     const chartData = useMemo(() => {
-        if (!transactions || transactions.length === 0) {
-            return [];
-        }
-
         const monthlyData: Record<string, { income: number; expenses: number }> = {};
 
         // Initialize all months
@@ -161,6 +153,14 @@ function DashboardView() {
         months.forEach((month) => {
             monthlyData[month] = { income: 0, expenses: 0 };
         });
+
+        if (!transactions || transactions.length === 0) {
+            return months.map((month) => ({
+                month,
+                income: 0,
+                expenses: 0,
+            }));
+        }
 
         // Aggregate transactions by month
         transactions.forEach((transaction) => {
@@ -185,9 +185,6 @@ function DashboardView() {
             expenses: monthlyData[month].expenses,
         }));
     }, [transactions]);
-
-    // Check if there's any data to display
-    const hasData = chartData.some((d) => d.income > 0 || d.expenses > 0);
 
     // Format dates for display using current locale
     const formattedStart = format(new Date(startDate), 'P', { locale: getDateLocale() });
@@ -377,19 +374,7 @@ function DashboardView() {
                     </div>
                 )}
 
-                {!isLoading && !error && !hasData && (
-                    <div className="flex flex-col items-center justify-center flex-1 min-h-[208px] text-gray-500">
-                        <BunnyIcon className="mb-4" />
-                        <p className="text-lg font-medium mb-2">{t('dashboard.noData')}</p>
-                        <p className="text-sm text-center max-w-sm mb-4">{t('dashboard.noDataHint')}</p>
-                        <BaseButton variant="outline" size="sm" onClick={() => navigate('/receipts/new')} className="gap-2">
-                            <Upload className="h-4 w-4" />
-                            {t('dashboard.uploadFirst')}
-                        </BaseButton>
-                    </div>
-                )}
-
-                {!isLoading && !error && hasData && (
+                {!isLoading && !error && (
                     <div className="flex-1 flex flex-col min-h-[250px]">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                             {t('dashboard.timeRange', { startDate: formattedStart, endDate: formattedEnd })}
