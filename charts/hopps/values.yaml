@@ -467,13 +467,55 @@ frontend:
   volumes: {}
   volumeMounts: {}
 
+# Mail Dev Service (GreenMail + Roundcube)
+# Enable this to spin up a dev mail infrastructure for testing
+mailDev:
+  enabled: true
+  greenmail:
+    image:
+      repository: greenmail/standalone
+      tag: "2.1.2"
+      pullPolicy: IfNotPresent
+    resources: {}
+    #  requests:
+    #    cpu: 100m
+    #    memory: 256Mi
+    #  limits:
+    #    cpu: 200m
+    #    memory: 512Mi
+  roundcube:
+    image:
+      repository: roundcube/roundcubemail
+      tag: "1.6.9-apache"
+      pullPolicy: IfNotPresent
+    resources: {}
+    #  requests:
+    #    cpu: 100m
+    #    memory: 128Mi
+    #  limits:
+    #    cpu: 200m
+    #    memory: 256Mi
+    ingress:
+      enabled: false
+      annotations: {}
+      ingressClassName: ~
+      hosts:
+        - host: mail.dev.hopps.local
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []
+      # - secretName: roundcube-tls
+      #   hosts:
+      #     - mail.dev.hopps.local
+
 # external dependencies
 keycloak:
   enabled: false
   image:
     # use our keycloak image to provide hopps theme
     repository: ghcr.io/hopps-app/hopps/hopps-keycloak
-    tag: 18-keycloak-26.2.1
+    tag: 101-keycloak-26.2.1
   securityContext:
     runAsUser: 1000
     runAsNonRoot: true

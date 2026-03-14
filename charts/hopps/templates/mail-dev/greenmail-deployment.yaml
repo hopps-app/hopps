@@ -1,0 +1,36 @@
+{{- if .Values.mailDev.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hopps.greenmailFullname" . }}
+  labels:
+    {{- include "hopps.greenmailLabels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "hopps.greenmailSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hopps.greenmailSelectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: greenmail
+          image: "{{ .Values.mailDev.greenmail.image.repository }}:{{ .Values.mailDev.greenmail.image.tag }}"
+          imagePullPolicy: {{ .Values.mailDev.greenmail.image.pullPolicy }}
+          ports:
+            - name: smtp
+              containerPort: 3025
+              protocol: TCP
+            - name: imap
+              containerPort: 3143
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- with .Values.mailDev.greenmail.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

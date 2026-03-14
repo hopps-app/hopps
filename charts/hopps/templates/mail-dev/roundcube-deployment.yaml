@@ -1,0 +1,51 @@
+{{- if .Values.mailDev.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hopps.roundcubeFullname" . }}
+  labels:
+    {{- include "hopps.roundcubeLabels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "hopps.roundcubeSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hopps.roundcubeSelectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: roundcube
+          image: "{{ .Values.mailDev.roundcube.image.repository }}:{{ .Values.mailDev.roundcube.image.tag }}"
+          imagePullPolicy: {{ .Values.mailDev.roundcube.image.pullPolicy }}
+          env:
+            - name: ROUNDCUBEMAIL_DEFAULT_HOST
+              value: {{ include "hopps.greenmailFullname" . }}
+            - name: ROUNDCUBEMAIL_DEFAULT_PORT
+              value: "3143"
+            - name: ROUNDCUBEMAIL_SMTP_SERVER
+              value: {{ include "hopps.greenmailFullname" . }}
+            - name: ROUNDCUBEMAIL_SMTP_PORT
+              value: "3025"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- with .Values.mailDev.roundcube.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

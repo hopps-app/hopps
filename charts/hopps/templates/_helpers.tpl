@@ -195,3 +195,61 @@ zugferd fully qualified name
 {{- define "hopps.zugferdFullname" -}}
 {{- printf "%s-zugferd" (include "hopps.fullname" .) -}}
 {{- end -}}
+
+{{/*
+greenmail labels
+*/}}
+{{- define "hopps.greenmailLabels" -}}
+{{ include "hopps.commonLabels" . }}
+{{ include "hopps.greenmailSelectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
+{{- end -}}
+{{/*
+greenmail selector labels
+*/}}
+{{- define "hopps.greenmailSelectorLabels" -}}
+{{ include "hopps.commonSelectorLabels" . }}
+app.kubernetes.io/name: {{ printf "%s-greenmail" (include "hopps.name" .) }}
+app.kubernetes.io/component: greenmail
+{{- end -}}
+{{/*
+greenmail name
+*/}}
+{{- define "hopps.greenmailName" -}}
+{{- printf "%s-greenmail" (include "hopps.name" .) -}}
+{{- end -}}
+{{/*
+greenmail fully qualified name
+*/}}
+{{- define "hopps.greenmailFullname" -}}
+{{- printf "%s-greenmail" (include "hopps.fullname" .) -}}
+{{- end -}}
+
+{{/*
+roundcube labels
+*/}}
+{{- define "hopps.roundcubeLabels" -}}
+{{ include "hopps.commonLabels" . }}
+{{ include "hopps.roundcubeSelectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
+{{- end -}}
+{{/*
+roundcube selector labels
+*/}}
+{{- define "hopps.roundcubeSelectorLabels" -}}
+{{ include "hopps.commonSelectorLabels" . }}
+app.kubernetes.io/name: {{ printf "%s-roundcube" (include "hopps.name" .) }}
+app.kubernetes.io/component: roundcube
+{{- end -}}
+{{/*
+roundcube name
+*/}}
+{{- define "hopps.roundcubeName" -}}
+{{- printf "%s-roundcube" (include "hopps.name" .) -}}
+{{- end -}}
+{{/*
+roundcube fully qualified name
+*/}}
+{{- define "hopps.roundcubeFullname" -}}
+{{- printf "%s-roundcube" (include "hopps.fullname" .) -}}
+{{- end -}}
