@@ -103,7 +103,6 @@ function InvoicesView() {
             <LoadingOverlay isEnabled={isLoading} />
             <Header
                 title={t('settings.menu.invoices')}
-                icon="Archive"
                 actions={
                     <Button onClick={reload} disabled={isLoading}>
                         {t('common.refresh')}

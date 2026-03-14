@@ -30,7 +30,7 @@ function germanToIso(german: string): string {
 
 function OrganizationDetailsSettingsView() {
     const { t } = useTranslation();
-    usePageTitle(t('organization.details.title'), 'Backpack');
+    usePageTitle(t('organization.details.title'));
     const { toast } = useToast();
     const organization = useStore((state) => state.organization);
     const countryOptions = useCountries();

@@ -9,7 +9,7 @@ import themeService, { Themes } from '@/services/ThemeService.ts';
 
 function ProfileSettingsView() {
     const { t } = useTranslation();
-    usePageTitle(t('settings.menu.profile'), 'Avatar');
+    usePageTitle(t('settings.menu.profile'));
     const themeOptions = useMemo(
         () => [
             { label: t('profile.themes.light'), value: 'light' },
