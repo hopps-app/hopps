@@ -414,7 +414,7 @@ function ReceiptUploadView() {
             totalTax: taxAmount ? parseFloat(taxAmount) : undefined,
             transactionDate: receiptDate?.toISOString().split('T')[0],
             dueDate: dueDate?.toISOString().split('T')[0],
-            bommelId: bommelId ?? undefined,
+            bommelId: bommelId ?? 0,
             senderName: contractPartner || undefined,
             privatelyPaid: isUnpaid,
             area: area || undefined,
