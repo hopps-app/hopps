@@ -1,17 +1,13 @@
-import { STATUS_DRAFT, STATUS_FAILED, STATUS_PAID, STATUS_UNPAID } from '../constants/constants';
+import { STATUS_DRAFT, STATUS_SAVED } from '../constants/constants';
 
 import { Receipt, ReceiptStatusCheck } from '@/components/Receipts/types';
 
 export function getStatusTranslationKey(status: Receipt['status']): string {
     switch (status) {
-        case 'paid':
-            return 'receipts.status.paid';
-        case 'unpaid':
-            return 'receipts.status.unpaid';
         case 'draft':
             return 'receipts.status.draft';
-        case 'failed':
-            return 'receipts.status.failed';
+        case 'saved':
+            return 'receipts.status.saved';
         default:
             return '';
     }
@@ -30,12 +26,8 @@ export function checkReceiptStatus(status: Receipt['status'], check: ReceiptStat
     switch (check) {
         case 'isDraft':
             return status === STATUS_DRAFT;
-        case 'isFailed':
-            return status === STATUS_FAILED;
-        case 'isPaid':
-            return status === STATUS_PAID;
-        case 'isUnpaid':
-            return status === STATUS_UNPAID;
+        case 'isSaved':
+            return status === STATUS_SAVED;
         default:
             return false;
     }

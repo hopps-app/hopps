@@ -343,9 +343,14 @@
             "project": "Bommel",
             "category": "Kategorie",
             "status": "Status",
+            "paid": "Bezahlt",
             "amount": "Betrag",
             "purpose": "Verwendungszweck",
             "reference": "Referenz"
+        },
+        "paidLabel": {
+            "yes": "Ja",
+            "no": "Nein"
         },
         "emptyState": {
             "title": "Noch keine Belege hochgeladen",

@@ -417,9 +417,14 @@
             "project": "Bommel",
             "category": "Category",
             "status": "Status",
+            "paid": "Paid",
             "amount": "Amount",
             "purpose": "Purpose",
             "reference": "Reference"
+        },
+        "paidLabel": {
+            "yes": "Yes",
+            "no": "No"
         },
         "emptyState": {
             "title": "No receipts uploaded yet",

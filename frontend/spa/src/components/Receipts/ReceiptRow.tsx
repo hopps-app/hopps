@@ -17,10 +17,8 @@ type ReceiptRowProps = {
 };
 
 const statusStyles: Record<Receipt['status'], string> = {
-    paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    unpaid: 'bg-amber-50 text-amber-700 border-amber-200',
     draft: 'bg-gray-100 text-gray-600 border-[#A7A7A7]',
-    failed: 'bg-red-50 text-red-700 border-red-200',
+    saved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
 };
 
 const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, onDelete }) => {
@@ -29,7 +27,6 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
     const expandRef = useRef<HTMLDivElement>(null);
 
     const isDraft = receipt.status === 'draft';
-    const isFailed = receipt.status === 'failed';
     const isUnassigned = !receipt.project;
 
     const handleRowClick = useCallback(() => {
@@ -93,8 +90,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                 isExpanded
                     ? 'border-[var(--purple-300)] border-l-[3px] border-l-[var(--purple-500)]'
                     : 'border-[#E0E0E0] hover:border-primary hover:ring-primary',
-                isFailed && !isExpanded && 'bg-red-50/50',
-                isUnassigned && !isFailed && !isDraft && !isExpanded && 'border-l-[3px] border-l-amber-400'
+                isUnassigned && !isDraft && !isExpanded && 'border-l-[3px] border-l-amber-400'
             )}
         >
             {/* Desktop Row */}
@@ -154,7 +150,6 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                             statusStyles[receipt.status]
                         )}
                     >
-                        {isFailed && <ExclamationTriangleIcon className="w-3 h-3" />}
                         {t(`receipts.statusBadge.${receipt.status}`)}
                     </span>
                 </div>
@@ -220,7 +215,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                     </div>
                     <div className="text-right shrink-0">
                         <span className={cn('text-sm font-semibold tabular-nums', amountColorClass(receipt.amount))}>{formatAmount(receipt.amount)}</span>
-                        <div className="mt-1">
+                        <div className="mt-1 flex items-center justify-end gap-1">
                             <span
                                 className={cn(
                                     'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium',

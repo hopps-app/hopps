@@ -4,7 +4,7 @@ export interface Receipt {
     date: string;
     amount: number;
     category: string;
-    status: 'paid' | 'unpaid' | 'draft' | 'failed';
+    status: 'draft' | 'saved';
     project: string;
     bommelEmoji: string;
     area: string;
@@ -15,7 +15,7 @@ export interface Receipt {
     documentId: number | null;
 }
 
-export type ReceiptStatusCheck = 'isDraft' | 'isFailed' | 'isPaid' | 'isUnpaid';
+export type ReceiptStatusCheck = 'isDraft' | 'isSaved';
 
 export interface ReceiptFiltersState {
     search: string;
@@ -25,7 +25,6 @@ export interface ReceiptFiltersState {
     category: string | null;
     area: string | null;
     status: {
-        unpaid: boolean;
         draft: boolean;
         unassigned: boolean;
     };
