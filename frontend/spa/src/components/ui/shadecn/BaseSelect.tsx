@@ -15,27 +15,26 @@ const SelectTrigger = React.forwardRef<
     React.ElementRef<typeof SelectPrimitive.Trigger>,
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & { error?: boolean }
 >(({ className, children, error, ...props }, ref) => (
-        <SelectPrimitive.Trigger
-            ref={ref}
-            className={cn(
-                'flex w-full text-gray-800 text-sm items-center justify-between whitespace-nowrap',
-                'border px-3 h-10 rounded-xl outline-none bg-white transition-colors',
-                'placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
-                'focus-visible:outline-none',
-                error
-                    ? 'border-red-500 focus-visible:border-red-500 data-[state=open]:border-red-500'
-                    : 'border-[#d1d5db] focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]',
-                className
-            )}
-            {...props}
-        >
-            {children}
-            <SelectPrimitive.Icon asChild>
-                <ChevronDownIcon className="h-4 w-4 text-[#666]" />
-            </SelectPrimitive.Icon>
-        </SelectPrimitive.Trigger>
-    )
-);
+    <SelectPrimitive.Trigger
+        ref={ref}
+        className={cn(
+            'flex w-full text-gray-800 text-sm items-center justify-between whitespace-nowrap',
+            'border px-3 h-10 rounded-xl outline-none bg-white transition-colors',
+            'placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+            'focus-visible:outline-none',
+            error
+                ? 'border-red-500 focus-visible:border-red-500 data-[state=open]:border-red-500'
+                : 'border-[#d1d5db] focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]',
+            className
+        )}
+        {...props}
+    >
+        {children}
+        <SelectPrimitive.Icon asChild>
+            <ChevronDownIcon className="h-4 w-4 text-[#666]" />
+        </SelectPrimitive.Icon>
+    </SelectPrimitive.Trigger>
+));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 const SelectScrollUpButton = React.forwardRef<

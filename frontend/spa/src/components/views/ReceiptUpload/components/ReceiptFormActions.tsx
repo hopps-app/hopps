@@ -12,15 +12,7 @@ interface ReceiptFormActionsProps {
     onEdit?: () => void;
 }
 
-export function ReceiptFormActions({
-    canSaveDraft,
-    onSubmit,
-    onSaveDraft,
-    onCancel,
-    saveDisabled = false,
-    readOnly,
-    onEdit,
-}: ReceiptFormActionsProps) {
+export function ReceiptFormActions({ canSaveDraft, onSubmit, onSaveDraft, onCancel, saveDisabled = false, readOnly, onEdit }: ReceiptFormActionsProps) {
     const { t } = useTranslation();
 
     if (readOnly) {
