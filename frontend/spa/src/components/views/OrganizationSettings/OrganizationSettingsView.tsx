@@ -34,13 +34,12 @@ function OrganizationSettingsView() {
 
     const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
 
-    const realTree = useOrganizationTree({ bommelStats });
-    const demoTree = useDemoTree();
+    const realTreeData = useOrganizationTree({ bommelStats });
+    const demoTreeData = useDemoTree();
 
     // Select data source based on demo mode
-    const { isOrganizationError, isLoading, rootBommel, tree, createTreeNode, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } = isDemoMode
-        ? demoTree
-        : realTree;
+    const activeData = isDemoMode ? demoTreeData : realTreeData;
+    const { isOrganizationError, isLoading, rootBommel, tree, createTreeNode, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } = activeData;
 
     const { countSubBommels } = useTreeCalculations(tree);
 
