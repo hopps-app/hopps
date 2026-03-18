@@ -226,7 +226,9 @@
                 "moveError": "Fehler beim Verschieben des Bommels",
                 "createChildSuccess": "Unterbommel erfolgreich erstellt",
                 "createChildError": "Fehler beim Erstellen des Unterbommels"
-            }
+            },
+            "demoMode": "Demodaten anzeigen",
+            "demoBanner": "Sie sehen Beispieldaten zur Orientierung. Diese Daten sind nicht bearbeitbar."
         },
         "details": {
             "title": "Organisationsdetails",

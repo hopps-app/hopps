@@ -8,7 +8,7 @@ import Emoji from '@/components/ui/Emoji';
 interface BommelDetailsPanelProps {
     selectedBommel: OrganizationTreeNodeModel | null;
     subBommelsCount: number;
-    onNavigateToReceipts: () => void;
+    onNavigateToReceipts?: () => void;
 }
 
 export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigateToReceipts }: BommelDetailsPanelProps) {
@@ -66,9 +66,11 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                     </div>
                 </div>
 
-                <Button onClick={onNavigateToReceipts} className="w-full" variant="default">
-                    {t('organization.structure.details.toReceipts')}
-                </Button>
+                {onNavigateToReceipts && (
+                    <Button onClick={onNavigateToReceipts} className="w-full" variant="default">
+                        {t('organization.structure.details.toReceipts')}
+                    </Button>
+                )}
             </CardContent>
         </Card>
     );

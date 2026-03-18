@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { BommelDetailsPanel } from './components';
-import { useOrganizationTree, useTreeCalculations, useStatistics } from './hooks';
+import { useOrganizationTree, useTreeCalculations, useStatistics, useDemoTree } from './hooks';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
 import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree';
@@ -24,6 +24,7 @@ function OrganizationSettingsView() {
     const bommelId = searchParams.get('bommelId');
     const [isEditMode, setIsEditMode] = useState(false);
     const [isDragDropMode, setIsDragDropMode] = useState(false);
+    const [isDemoMode, setIsDemoMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -33,10 +34,27 @@ function OrganizationSettingsView() {
 
     const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
 
-    const { isOrganizationError, isLoading, rootBommel, tree, createTreeNode, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } =
-        useOrganizationTree({ bommelStats });
+    const realTree = useOrganizationTree({ bommelStats });
+    const demoTree = useDemoTree();
+
+    // Select data source based on demo mode
+    const { isOrganizationError, isLoading, rootBommel, tree, createTreeNode, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } = isDemoMode
+        ? demoTree
+        : realTree;
 
     const { countSubBommels } = useTreeCalculations(tree);
+
+    // Reset selection when switching between demo and real mode
+    const handleDemoModeChange = useCallback((enabled: boolean) => {
+        setIsDemoMode(enabled);
+        setSelectedBommel(null);
+        setBommelNotFound(false);
+        // Exit edit mode when switching to demo
+        if (enabled) {
+            setIsEditMode(false);
+            setIsDragDropMode(false);
+        }
+    }, []);
 
     // Deep link: select Bommel from URL parameter when tree is loaded
     useEffect(() => {
@@ -76,13 +94,13 @@ function OrganizationSettingsView() {
         (node: OrganizationTreeNodeModel | null) => {
             setSelectedBommel(node);
             setBommelNotFound(false);
-            if (node) {
+            if (node && !isDemoMode) {
                 setSearchParams({ bommelId: String(node.id) }, { replace: true });
-            } else {
+            } else if (!isDemoMode) {
                 setSearchParams({}, { replace: true });
             }
         },
-        [setSearchParams]
+        [setSearchParams, isDemoMode]
     );
 
     const handleBommelSelect = useCallback(
@@ -94,12 +112,13 @@ function OrganizationSettingsView() {
     );
 
     const handleNavigateToReceipts = useCallback(() => {
+        if (isDemoMode) return;
         if (selectedBommel?.id) {
             navigate(`/receipts?bommelId=${selectedBommel.id}`);
         } else {
             navigate('/receipts');
         }
-    }, [navigate, selectedBommel]);
+    }, [navigate, selectedBommel, isDemoMode]);
 
     const handleTreeNodeClick = useCallback(
         (nodeData: { attributes?: { id?: number } }) => {
@@ -157,7 +176,7 @@ function OrganizationSettingsView() {
         [tree, moveTreeNode]
     );
 
-    if (isOrganizationError) {
+    if (isOrganizationError && !isDemoMode) {
         return (
             <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <div className="rounded-full bg-destructive/10 p-3">
@@ -185,15 +204,24 @@ function OrganizationSettingsView() {
 
     return (
         <>
-            {(isLoading || isStatsLoading) && <LoadingOverlay />}
+            {(isLoading || isStatsLoading) && !isDemoMode && <LoadingOverlay />}
 
             <div className="h-full flex flex-col">
+                {/* Demo Mode Banner */}
+                {isDemoMode && (
+                    <div className="flex items-center gap-2 px-4 py-2.5 mb-4 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 text-sm">
+                        <Info className="w-4 h-4 flex-shrink-0" />
+                        <span>{t('organization.structure.demoBanner')}</span>
+                    </div>
+                )}
+
                 <div className={`grid grid-cols-1 ${isSidebarOpen ? 'xl:grid-cols-4' : 'xl:grid-cols-1'} gap-6 flex-1 min-h-0`}>
                     {/* Left Side - Structure Views */}
                     <div className={`${isSidebarOpen ? 'xl:col-span-3' : 'xl:col-span-1'} flex flex-col min-h-0`}>
                         <div className="flex items-center justify-end mb-4 flex-shrink-0">
                             <div className="flex items-center gap-4">
-                                {!isEditMode && (
+                                <Switch label={t('organization.structure.demoMode')} checked={isDemoMode} onCheckedChange={handleDemoModeChange} />
+                                {!isEditMode && !isDemoMode && (
                                     <>
                                         <Switch
                                             label={t('organization.structure.includeDrafts')}
@@ -207,7 +235,7 @@ function OrganizationSettingsView() {
                                         />
                                     </>
                                 )}
-                                {isEditMode && (
+                                {isEditMode && !isDemoMode && (
                                     <>
                                         {isDragDropMode && (
                                             <span className="text-sm text-blue-600 flex items-center gap-1.5">
@@ -218,26 +246,28 @@ function OrganizationSettingsView() {
                                         <Switch label={t('organization.structure.dragDrop')} checked={isDragDropMode} onCheckedChange={setIsDragDropMode} />
                                     </>
                                 )}
-                                <Button
-                                    variant={isEditMode ? 'default' : 'outline'}
-                                    onClick={() => {
-                                        const newEditMode = !isEditMode;
-                                        setIsEditMode(newEditMode);
-                                        if (!newEditMode) setIsDragDropMode(false);
-                                    }}
-                                >
-                                    {isEditMode ? (
-                                        <>
-                                            <Check className="w-4 h-4 mr-2" />
-                                            {t('organization.structure.done')}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Edit className="w-4 h-4 mr-2" />
-                                            {t('organization.structure.edit')}
-                                        </>
-                                    )}
-                                </Button>
+                                {!isDemoMode && (
+                                    <Button
+                                        variant={isEditMode ? 'default' : 'outline'}
+                                        onClick={() => {
+                                            const newEditMode = !isEditMode;
+                                            setIsEditMode(newEditMode);
+                                            if (!newEditMode) setIsDragDropMode(false);
+                                        }}
+                                    >
+                                        {isEditMode ? (
+                                            <>
+                                                <Check className="w-4 h-4 mr-2" />
+                                                {t('organization.structure.done')}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Edit className="w-4 h-4 mr-2" />
+                                                {t('organization.structure.edit')}
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -259,11 +289,11 @@ function OrganizationSettingsView() {
                         {isLargeScreen ? (
                             <div className="flex-1 min-h-0">
                                 <BommelTreeComponent
-                                    key={`tree-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
+                                    key={`tree-${isDemoMode}-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
                                     tree={tree}
                                     rootBommel={rootBommel}
-                                    editable={isEditMode}
-                                    dragDropEnabled={isDragDropMode}
+                                    editable={isDemoMode ? false : isEditMode}
+                                    dragDropEnabled={isDemoMode ? false : isDragDropMode}
                                     onNodeClick={handleTreeNodeClick}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
@@ -274,7 +304,7 @@ function OrganizationSettingsView() {
                         ) : (
                             <OrganizationTree
                                 tree={tree}
-                                editable={isEditMode}
+                                editable={isDemoMode ? false : isEditMode}
                                 selectable={true}
                                 createNode={createTreeNode}
                                 updateNode={updateTreeNode}
@@ -307,7 +337,7 @@ function OrganizationSettingsView() {
                                 <BommelDetailsPanel
                                     selectedBommel={selectedBommel}
                                     subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
-                                    onNavigateToReceipts={handleNavigateToReceipts}
+                                    onNavigateToReceipts={isDemoMode ? undefined : handleNavigateToReceipts}
                                 />
                             )}
                         </div>

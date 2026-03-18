@@ -227,7 +227,9 @@
                 "moveError": "Failed to move Bommel",
                 "createChildSuccess": "Child Bommel successfully created",
                 "createChildError": "Failed to create child Bommel"
-            }
+            },
+            "demoMode": "Show demo data",
+            "demoBanner": "You are viewing sample data for orientation. This data is read-only."
         },
         "details": {
             "title": "Organization Details",
