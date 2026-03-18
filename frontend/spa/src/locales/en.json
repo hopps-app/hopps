@@ -100,7 +100,12 @@
         "privately": "Privately paid",
         "invoice": "Invoice",
         "receipt": "Receipt",
-        "docType": "Transaction type"
+        "docType": "Transaction type",
+        "pdfNavigation": {
+            "previousPage": "Previous page",
+            "nextPage": "Next page",
+            "pageIndicator": "{{current}} / {{total}}"
+        }
     },
     "invoices": {
         "loadFailed": "Failed to load invoices",

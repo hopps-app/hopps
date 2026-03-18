@@ -61,7 +61,12 @@
     "privately": "Оплачено приватно",
     "invoice": "Рахунок",
     "receipt": "Квитанція",
-    "docType": "Тип квитанції"
+    "docType": "Тип квитанції",
+    "pdfNavigation": {
+      "previousPage": "Попередня сторінка",
+      "nextPage": "Наступна сторінка",
+      "pageIndicator": "{{current}} / {{total}}"
+    }
   },
   "invoices": {
     "loadFailed": "Не вдалося завантажити рахунки",

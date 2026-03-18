@@ -99,7 +99,12 @@
         "privately": "Privat bezahlt",
         "invoice": "Rechnung",
         "receipt": "Quittung",
-        "docType": "Art des Vorgangs"
+        "docType": "Art des Vorgangs",
+        "pdfNavigation": {
+            "previousPage": "Vorherige Seite",
+            "nextPage": "Nächste Seite",
+            "pageIndicator": "{{current}} / {{total}}"
+        }
     },
     "invoices": {
         "loadFailed": "Fehler beim Laden der Rechnungen",

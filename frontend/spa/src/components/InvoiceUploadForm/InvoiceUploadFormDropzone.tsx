@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getDocument, GlobalWorkerOptions, PDFDocumentProxy } from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.mjs?worker&url';
 import { type FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,12 +16,62 @@ type InvoiceUploadFormDropzoneProps = {
     previewContentType?: string;
 };
 
+type PdfPageNavigationProps = {
+    currentPage: number;
+    totalPages: number;
+    onPrevious: (e: React.MouseEvent) => void;
+    onNext: (e: React.MouseEvent) => void;
+    t: (key: string, options?: Record<string, unknown>) => string;
+};
+
+const PdfPageNavigation: FC<PdfPageNavigationProps> = ({ currentPage, totalPages, onPrevious, onNext, t }) => (
+    <>
+        {/* Left arrow */}
+        <button
+            type="button"
+            onClick={onPrevious}
+            disabled={currentPage <= 1}
+            aria-label={t('invoiceUpload.pdfNavigation.previousPage')}
+            className={cn(
+                'absolute left-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-150',
+                currentPage <= 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg hover:scale-105 cursor-pointer'
+            )}
+        >
+            <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+        </button>
+
+        {/* Right arrow */}
+        <button
+            type="button"
+            onClick={onNext}
+            disabled={currentPage >= totalPages}
+            aria-label={t('invoiceUpload.pdfNavigation.nextPage')}
+            className={cn(
+                'absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-150',
+                currentPage >= totalPages
+                    ? 'opacity-30 cursor-not-allowed'
+                    : 'hover:bg-white dark:hover:bg-gray-700 hover:shadow-lg hover:scale-105 cursor-pointer'
+            )}
+        >
+            <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+        </button>
+
+        {/* Page indicator */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-700 dark:text-gray-200">
+            <span>{t('invoiceUpload.pdfNavigation.pageIndicator', { current: currentPage, total: totalPages })}</span>
+        </div>
+    </>
+);
+
 const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFilesChanged, previewFile, previewUrl: externalPreviewUrl, previewContentType }) => {
     const { t } = useTranslation();
     const { showError } = useToast();
 
     const [isHighlightDrop, setIsHighlightDrop] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const pdfDocRef = useRef<PDFDocumentProxy | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
 
     const onDrop = useCallback(() => {
         setIsHighlightDrop(false);
@@ -96,9 +147,32 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
         };
     }, [previewUrl]);
 
+    // Render a specific page of the current PDF document
+    const renderPdfPage = useCallback(async (pdf: PDFDocumentProxy, pageNumber: number) => {
+        try {
+            const page = await pdf.getPage(pageNumber);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const context = canvas.getContext('2d');
+            if (!context) return;
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: context, viewport }).promise;
+        } catch (e) {
+            console.error(e);
+        }
+    }, []);
+
+    // Load PDF document and render first page
     useEffect(() => {
-        const renderPdf = async () => {
-            // Render PDF from previewFile
+        const loadPdf = async () => {
+            // Reset page state when source changes
+            pdfDocRef.current = null;
+            setCurrentPage(1);
+            setTotalPages(0);
+
+            // Load PDF from previewFile
             if (previewFile) {
                 const isPdf = previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.pdf');
                 if (!isPdf) return;
@@ -106,44 +180,54 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
                     GlobalWorkerOptions.workerSrc = pdfjsWorker as string;
                     const arrayBuffer = await previewFile.arrayBuffer();
                     const pdf: PDFDocumentProxy = await getDocument({ data: arrayBuffer }).promise;
-                    const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 1.5 });
-                    const canvas = canvasRef.current;
-                    if (!canvas) return;
-                    const context = canvas.getContext('2d');
-                    if (!context) return;
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    await page.render({ canvasContext: context, viewport }).promise;
+                    pdfDocRef.current = pdf;
+                    setTotalPages(pdf.numPages);
+                    setCurrentPage(1);
+                    await renderPdfPage(pdf, 1);
                 } catch (e) {
                     console.error(e);
                 }
                 return;
             }
 
-            // Render PDF from external URL
+            // Load PDF from external URL
             if (externalPreviewUrl && previewContentType === 'application/pdf') {
                 try {
                     GlobalWorkerOptions.workerSrc = pdfjsWorker as string;
                     const response = await fetch(externalPreviewUrl);
                     const arrayBuffer = await response.arrayBuffer();
                     const pdf: PDFDocumentProxy = await getDocument({ data: arrayBuffer }).promise;
-                    const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 1.5 });
-                    const canvas = canvasRef.current;
-                    if (!canvas) return;
-                    const context = canvas.getContext('2d');
-                    if (!context) return;
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    await page.render({ canvasContext: context, viewport }).promise;
+                    pdfDocRef.current = pdf;
+                    setTotalPages(pdf.numPages);
+                    setCurrentPage(1);
+                    await renderPdfPage(pdf, 1);
                 } catch (e) {
                     console.error(e);
                 }
             }
         };
-        renderPdf();
-    }, [previewFile, externalPreviewUrl, previewContentType]);
+        loadPdf();
+    }, [previewFile, externalPreviewUrl, previewContentType, renderPdfPage]);
+
+    // Re-render when currentPage changes (for navigation)
+    useEffect(() => {
+        if (pdfDocRef.current && currentPage >= 1 && currentPage <= totalPages) {
+            renderPdfPage(pdfDocRef.current, currentPage);
+        }
+    }, [currentPage, totalPages, renderPdfPage]);
+
+    const goToPreviousPage = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setCurrentPage((prev) => Math.max(1, prev - 1));
+    }, []);
+
+    const goToNextPage = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+        },
+        [totalPages]
+    );
 
     const hasPreview = (previewFile && previewUrl) || externalPreviewUrl;
 
@@ -177,8 +261,11 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
             const isPdf = previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.pdf');
             if (isPdf) {
                 return (
-                    <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center overflow-hidden relative">
                         <canvas ref={canvasRef} className="max-h-full w-auto h-auto object-contain" />
+                        {totalPages > 1 && (
+                            <PdfPageNavigation currentPage={currentPage} totalPages={totalPages} onPrevious={goToPreviousPage} onNext={goToNextPage} t={t} />
+                        )}
                     </div>
                 );
             }
@@ -190,8 +277,11 @@ const InvoiceUploadFormDropzone: FC<InvoiceUploadFormDropzoneProps> = ({ onFiles
             const isPdf = previewContentType === 'application/pdf';
             if (isPdf) {
                 return (
-                    <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center overflow-hidden relative">
                         <canvas ref={canvasRef} className="max-h-full w-auto h-auto object-contain" />
+                        {totalPages > 1 && (
+                            <PdfPageNavigation currentPage={currentPage} totalPages={totalPages} onPrevious={goToPreviousPage} onNext={goToNextPage} t={t} />
+                        )}
                     </div>
                 );
             }
