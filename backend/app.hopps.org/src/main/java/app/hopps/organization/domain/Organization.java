@@ -73,6 +73,9 @@ public class Organization extends PanacheEntity {
     @Schema(examples = "+49 123 4567890")
     private String phoneNumber;
 
+    @Schema(description = "Whether uploaded documents should be automatically analyzed by AI", examples = "true")
+    private boolean autoAnalyzeDocuments = true;
+
     public Organization() {
         // no args constructor
     }
@@ -207,6 +210,14 @@ public class Organization extends PanacheEntity {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public boolean isAutoAnalyzeDocuments() {
+        return autoAnalyzeDocuments;
+    }
+
+    public void setAutoAnalyzeDocuments(boolean autoAnalyzeDocuments) {
+        this.autoAnalyzeDocuments = autoAnalyzeDocuments;
     }
 
     public enum TYPE {

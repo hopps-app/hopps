@@ -1,5 +1,5 @@
 import type { AnalysisStatus } from '@hopps/api-client';
-import { TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
+import { OrganizationInput, TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -223,6 +223,24 @@ function ReceiptUploadView() {
         getNextPollingInterval,
     ]);
 
+    // Load organization auto-analyze setting
+    const autoReadLoadedRef = useRef(false);
+    useEffect(() => {
+        if (autoReadLoadedRef.current) return;
+        autoReadLoadedRef.current = true;
+
+        apiService.orgService
+            .myGET()
+            .then((org) => {
+                if (org.autoAnalyzeDocuments !== undefined) {
+                    setIsAutoRead(org.autoAnalyzeDocuments);
+                }
+            })
+            .catch((e) => {
+                console.error('Failed to load organization settings:', e);
+            });
+    }, [setIsAutoRead]);
+
     useEffect(() => {
         if (!store.organization?.id) return;
         loadBommels(store.organization.id).catch(() => {});
@@ -335,7 +353,7 @@ function ReceiptUploadView() {
                     setEmptyFieldsLoading(true);
                 }
 
-                const response = await apiService.orgService.documentsPOST({
+                const response = await apiService.orgService.documentsPOST(isAutoRead, {
                     data: selected,
                     fileName: selected.name,
                 });
@@ -352,8 +370,6 @@ function ReceiptUploadView() {
                     if (isAutoRead) {
                         setAnalysisStatus(response.analysisStatus ?? 'PENDING');
                         setAnalysisError(null);
-                    } else {
-                        setFile(null);
                     }
                 }
             } catch (e) {
@@ -672,7 +688,18 @@ function ReceiptUploadView() {
                         </Button>
                     )}
                     <div className="flex-1" />
-                    {!isReadOnly && <Switch checked={isAutoRead} onCheckedChange={() => setIsAutoRead((v) => !v)} label={t('receipts.upload.autoRead')} />}
+                    {!isReadOnly && (
+                        <Switch
+                            checked={isAutoRead}
+                            onCheckedChange={(checked) => {
+                                setIsAutoRead(checked);
+                                apiService.orgService.myPUT(new OrganizationInput({ autoAnalyzeDocuments: checked })).catch((e: unknown) => {
+                                    console.error('Failed to save auto-analyze setting:', e);
+                                });
+                            }}
+                            label={t('receipts.upload.autoRead')}
+                        />
+                    )}
                 </div>
 
                 {/* Attributes (row 1, col 2) */}

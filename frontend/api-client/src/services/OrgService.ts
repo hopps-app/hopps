@@ -757,11 +757,16 @@ export class Client {
 
     /**
      * Upload a document
+     * @param analyze (optional) Whether to trigger automatic AI analysis after upload
      * @param file (optional) 
      * @return Document created successfully
      */
-    documentsPOST(file: FileParameter | undefined): Promise<DocumentResponse> {
-        let url_ = this.baseUrl + "/documents";
+    documentsPOST(analyze: boolean | undefined, file: FileParameter | undefined): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/documents?";
+        if (analyze === null)
+            throw new Error("The parameter 'analyze' cannot be null.");
+        else if (analyze !== undefined)
+            url_ += "analyze=" + encodeURIComponent("" + analyze) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -2618,6 +2623,7 @@ export class DocumentResponse implements IDocumentResponse {
     analysisError?: string;
     extractionSource?: ExtractionSource;
     name?: string;
+    legalDocumentId?: string;
     total?: number;
     totalTax?: number;
     currencyCode?: string;
@@ -2658,6 +2664,7 @@ export class DocumentResponse implements IDocumentResponse {
             this.analysisError = _data["analysisError"];
             this.extractionSource = _data["extractionSource"];
             this.name = _data["name"];
+            this.legalDocumentId = _data["legalDocumentId"];
             this.total = _data["total"];
             this.totalTax = _data["totalTax"];
             this.currencyCode = _data["currencyCode"];
@@ -2700,6 +2707,7 @@ export class DocumentResponse implements IDocumentResponse {
         data["analysisError"] = this.analysisError;
         data["extractionSource"] = this.extractionSource;
         data["name"] = this.name;
+        data["legalDocumentId"] = this.legalDocumentId;
         data["total"] = this.total;
         data["totalTax"] = this.totalTax;
         data["currencyCode"] = this.currencyCode;
@@ -2738,6 +2746,7 @@ export interface IDocumentResponse {
     analysisError?: string;
     extractionSource?: ExtractionSource;
     name?: string;
+    legalDocumentId?: string;
     total?: number;
     totalTax?: number;
     currencyCode?: string;
@@ -3032,6 +3041,8 @@ export class Organization implements IOrganization {
     taxNumber?: string;
     email?: string;
     phoneNumber?: string;
+    /** Whether uploaded documents should be automatically analyzed by AI */
+    autoAnalyzeDocuments?: boolean;
 
     [key: string]: any;
 
@@ -3070,6 +3081,7 @@ export class Organization implements IOrganization {
             this.taxNumber = _data["taxNumber"];
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
+            this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
         }
     }
 
@@ -3106,6 +3118,7 @@ export class Organization implements IOrganization {
         data["taxNumber"] = this.taxNumber;
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
+        data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
         return data;
     }
 
@@ -3135,6 +3148,8 @@ export interface IOrganization {
     taxNumber?: string;
     email?: string;
     phoneNumber?: string;
+    /** Whether uploaded documents should be automatically analyzed by AI */
+    autoAnalyzeDocuments?: boolean;
 
     [key: string]: any;
 }
@@ -3153,6 +3168,7 @@ export class OrganizationInput implements IOrganizationInput {
     taxNumber?: string;
     email?: string;
     phoneNumber?: string;
+    autoAnalyzeDocuments?: boolean;
 
     [key: string]: any;
 
@@ -3184,6 +3200,7 @@ export class OrganizationInput implements IOrganizationInput {
             this.taxNumber = _data["taxNumber"];
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
+            this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
         }
     }
 
@@ -3213,6 +3230,7 @@ export class OrganizationInput implements IOrganizationInput {
         data["taxNumber"] = this.taxNumber;
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
+        data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
         return data;
     }
 
@@ -3238,6 +3256,7 @@ export interface IOrganizationInput {
     taxNumber?: string;
     email?: string;
     phoneNumber?: string;
+    autoAnalyzeDocuments?: boolean;
 
     [key: string]: any;
 }
@@ -3378,7 +3397,7 @@ export interface IOwnerInput {
 
 export type TYPE = "EINGETRAGENER_VEREIN" | "ANDERE";
 
-export type TransactionArea = "IDEELL" | "ZWECKBETRIEB" | "VERMOEGENSVERWALTUNG" | "WIRTSCHAFTLICH";
+export type TransactionArea = "IDEELL" | "ZWECKBETRIEB" | "VERMOEGENSVERWALTUNG" | "WIRTSCHAFTLICH" | "UNKNOWN";
 
 export class TransactionCreateRequest implements ITransactionCreateRequest {
     name?: string;
@@ -3676,6 +3695,7 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
     senderZipCode?: string;
     senderCity?: string;
     tags?: string[];
+    status?: string;
 
     [key: string]: any;
 
@@ -3713,6 +3733,7 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
                 for (let item of _data["tags"])
                     this.tags!.push(item);
             }
+            this.status = _data["status"];
         }
     }
 
@@ -3748,6 +3769,7 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
             for (let item of this.tags)
                 data["tags"].push(item);
         }
+        data["status"] = this.status;
         return data;
     }
 
@@ -3775,6 +3797,7 @@ export interface ITransactionUpdateRequest {
     senderZipCode?: string;
     senderCity?: string;
     tags?: string[];
+    status?: string;
 
     [key: string]: any;
 }

@@ -75,7 +75,8 @@ public class DocumentResource {
     @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "Not authenticated")
     public Response uploadDocument(
-            @RestForm("file") FileUpload file) {
+            @RestForm("file") FileUpload file,
+            @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze) {
         // Validate input
         LOG.info("Upload request received - file: {}", file);
         if (file == null || file.fileName() == null || file.fileName().isBlank()) {
@@ -125,8 +126,13 @@ public class DocumentResource {
         // Set bidirectional relationship so transactionId is available in response
         document.setTransaction(transaction);
 
-        // Fire event to trigger async analysis after transaction commits
-        documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
+        // Fire event to trigger async analysis after transaction commits (only if requested)
+        if (analyze) {
+            documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
+        } else {
+            document.setAnalysisStatus(AnalysisStatus.SKIPPED);
+            LOG.info("Skipping analysis for document: id={} (analyze=false)", document.getId());
+        }
 
         // Return response with 201 Created status
         DocumentResponse response = DocumentResponse.from(document);

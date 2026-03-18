@@ -132,6 +132,9 @@ public class OrganizationResource {
         if (input.phoneNumber() != null) {
             organization.setPhoneNumber(input.phoneNumber());
         }
+        if (input.autoAnalyzeDocuments() != null) {
+            organization.setAutoAnalyzeDocuments(input.autoAnalyzeDocuments());
+        }
 
         organizationRepository.persist(organization);
         organizationRepository.flush();

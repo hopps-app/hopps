@@ -18,5 +18,6 @@ public record OrganizationInput(String name,
         String country,
         String taxNumber,
         String email,
-        String phoneNumber) {
+        String phoneNumber,
+        Boolean autoAnalyzeDocuments) {
 }

@@ -218,7 +218,7 @@ export function useReceiptForm() {
             // Analysis is complete — stop all loading animations regardless of which fields were filled
             setAllFieldsLoading(false);
         },
-        [setFieldLoading, setAllFieldsLoading]
+        [setAllFieldsLoading]
     );
 
     // Apply analysis results only to fields that are currently empty
