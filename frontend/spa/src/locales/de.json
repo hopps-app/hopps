@@ -437,7 +437,8 @@
                 "serviceUnavailable": "Der Analyse-Service ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
                 "pollingTimeout": "Die Analyse dauert länger als erwartet. Bitte versuchen Sie es später erneut.",
                 "retry": "Analyse erneut starten",
-                "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuchen Sie es später erneut."
+                "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuchen Sie es später erneut.",
+                "aiWarning": "KI kann Fehler machen. Bitte prüfen Sie alle automatisch ausgefüllten Felder vor dem Speichern."
             }
         },
         "areas": {

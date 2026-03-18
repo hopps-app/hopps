@@ -1,7 +1,7 @@
 import type { AnalysisStatus } from '@hopps/api-client';
 import { OrganizationInput, TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download } from 'lucide-react';
+import { AlertTriangle, Download } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -681,13 +681,6 @@ function ReceiptUploadView() {
 
                 {/* Left buttons (row 2, col 1) */}
                 <div className="flex items-center gap-3 md:col-start-1 md:row-start-2">
-                    {documentId && (
-                        <Button type="button" variant="outline" onClick={handleDownloadDocument} className="flex items-center justify-center gap-2">
-                            <Download className="w-4 h-4" />
-                            {t('receipts.downloadDocument')}
-                        </Button>
-                    )}
-                    <div className="flex-1" />
                     {!isReadOnly && (
                         <Switch
                             checked={isAutoRead}
@@ -696,14 +689,53 @@ function ReceiptUploadView() {
                                 apiService.orgService.myPUT(new OrganizationInput({ autoAnalyzeDocuments: checked })).catch((e: unknown) => {
                                     console.error('Failed to save auto-analyze setting:', e);
                                 });
+                                if (checked && documentId) {
+                                    if (!analysisStatus) {
+                                        // No analysis started yet — trigger it
+                                        handleRetryAnalysis();
+                                    } else if (analysisStatus === 'PENDING' || analysisStatus === 'ANALYZING') {
+                                        // Analysis still running — re-enable loading spinners, polling resumes via useEffect
+                                        setEmptyFieldsLoading(true);
+                                    } else if (analysisStatus === 'COMPLETED') {
+                                        // Analysis already finished — fetch and apply results now
+                                        setEmptyFieldsLoading(true);
+                                        apiService.orgService
+                                            .documentsGET(documentId)
+                                            .then((response) => {
+                                                applyAnalysisResult(response);
+                                            })
+                                            .catch((e: unknown) => {
+                                                console.error('Failed to fetch completed analysis:', e);
+                                                setAllFieldsLoading(false);
+                                            });
+                                    }
+                                } else if (!checked) {
+                                    // Stop loading animations when disabling auto-read
+                                    setAllFieldsLoading(false);
+                                }
                             }}
                             label={t('receipts.upload.autoRead')}
                         />
+                    )}
+                    <div className="flex-1" />
+                    {documentId && (
+                        <Button type="button" variant="outline" onClick={handleDownloadDocument} className="flex items-center justify-center gap-2">
+                            <Download className="w-4 h-4" />
+                            {t('receipts.downloadDocument')}
+                        </Button>
                     )}
                 </div>
 
                 {/* Attributes (row 1, col 2) */}
                 <div className="flex flex-col gap-4 md:col-start-2 md:row-start-1">
+                    {/* AI Warning Banner */}
+                    {isAutoRead && (
+                        <div className="flex items-start gap-3 p-4 rounded-xl border text-sm bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
+                            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                            <p className="text-xs">{t('receipts.upload.analysis.aiWarning')}</p>
+                        </div>
+                    )}
+
                     {/* Analysis Status Banner */}
                     {analysisStatus && (isAutoRead || analysisStatus === 'FAILED') && (
                         <div

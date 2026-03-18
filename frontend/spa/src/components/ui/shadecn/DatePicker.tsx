@@ -66,7 +66,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 'flex items-center justify-between text-left font-normal',
                                 !date && 'text-muted-foreground',
-                                loading ? 'pl-3 pr-3' : 'px-3',
+                                loading ? 'pl-9 pr-3' : 'px-3',
                                 className
                             )}
                         >
