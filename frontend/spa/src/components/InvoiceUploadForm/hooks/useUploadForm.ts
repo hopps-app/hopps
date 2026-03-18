@@ -221,7 +221,7 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
                 // Upload all files
                 const uploadResults = await Promise.all(
                     selectedFiles.map((file) =>
-                        apiService.orgService.documentsPOST({
+                        apiService.orgService.documentsPOST(undefined, {
                             data: file,
                             fileName: file.name,
                         })
