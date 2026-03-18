@@ -190,46 +190,35 @@ export function useReceiptForm() {
             // Apply extracted legal document ID (invoice/receipt number) to receipt number field
             if (response.legalDocumentId) {
                 setReceiptNumber((prev) => prev || response.legalDocumentId!);
-                setFieldLoading('receiptNumber', false);
             }
 
             if (response.transactionTime) {
                 const date = new Date(response.transactionTime);
                 setReceiptDate((prev) => prev ?? date);
-                setFieldLoading('receiptDate', false);
                 setDueDate((prev) => prev ?? date);
-                setFieldLoading('dueDate', false);
             }
 
             if (response.senderName) {
                 setContractPartner((prev) => prev || response.senderName!);
-                setFieldLoading('contractPartner', false);
             }
 
             if (response.tags && response.tags.length > 0) {
                 setTags((prev) => (prev.length > 0 ? prev : response.tags!));
             }
-            setFieldLoading('tags', false);
 
             // Set gross amount (total including tax) only if empty
             if (response.total !== undefined && response.total !== null) {
                 setGrossAmount((prev) => prev || response.total!.toFixed(2));
-                setFieldLoading('grossAmount', false);
             }
 
             if (response.totalTax !== undefined && response.totalTax !== null) {
                 setTaxAmount((prev) => prev || response.totalTax!.toFixed(2));
-                setFieldLoading('taxAmount', false);
             }
 
-            // Clear remaining loading states for fields that weren't filled
-            if (!response.transactionTime) {
-                setFieldLoading('dueDate', false);
-            }
-            setFieldLoading('category', false);
-            setFieldLoading('area', false);
+            // Analysis is complete — stop all loading animations regardless of which fields were filled
+            setAllFieldsLoading(false);
         },
-        [setFieldLoading]
+        [setFieldLoading, setAllFieldsLoading]
     );
 
     // Apply analysis results only to fields that are currently empty
