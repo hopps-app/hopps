@@ -25,6 +25,7 @@ public record DocumentResponse(
         ExtractionSource extractionSource,
         // Analysis results (may be null if analysis not complete)
         String name,
+        String legalDocumentId,
         BigDecimal total,
         BigDecimal totalTax,
         String currencyCode,
@@ -62,6 +63,7 @@ public record DocumentResponse(
                 doc.getAnalysisError(),
                 doc.getExtractionSource(),
                 doc.getName(),
+                doc.getLegalDocumentId(),
                 doc.getTotal(),
                 doc.getTotalTax(),
                 doc.getCurrencyCode(),

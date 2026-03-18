@@ -187,9 +187,9 @@ export function useReceiptForm() {
                 setExtractionSource(response.extractionSource);
             }
 
-            // Apply extracted data only to empty form fields
-            if (response.name) {
-                setReceiptNumber((prev) => prev || response.name!);
+            // Apply extracted legal document ID (invoice/receipt number) to receipt number field
+            if (response.legalDocumentId) {
+                setReceiptNumber((prev) => prev || response.legalDocumentId!);
                 setFieldLoading('receiptNumber', false);
             }
 
@@ -242,9 +242,9 @@ export function useReceiptForm() {
             setExtractionSource(response.extractionSource);
         }
 
-        // Apply extracted data only to empty form fields
-        if (response.name && !currentValues.receiptNumber) {
-            setReceiptNumber(response.name);
+        // Apply extracted legal document ID (invoice/receipt number) to receipt number field
+        if (response.legalDocumentId && !currentValues.receiptNumber) {
+            setReceiptNumber(response.legalDocumentId);
             hasAppliedValues = true;
         }
 

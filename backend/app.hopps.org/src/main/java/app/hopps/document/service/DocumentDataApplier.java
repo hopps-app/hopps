@@ -62,6 +62,7 @@ public class DocumentDataApplier {
         fieldsUpdated += applyTotalTax(document, data);
         fieldsUpdated += applySender(document, data);
         fieldsUpdated += applyDocumentName(document, data);
+        fieldsUpdated += applyLegalDocumentId(document, data);
         fieldsUpdated += applyTags(document, data, tagSource);
 
         LOG.info("Applied document data: documentId={}, fieldsUpdated={}", document.getId(), fieldsUpdated);
@@ -152,6 +153,15 @@ public class DocumentDataApplier {
             return 1;
         }
 
+        return 0;
+    }
+
+    private int applyLegalDocumentId(Document document, DocumentData data) {
+        if (data.documentId() != null && document.getLegalDocumentId() == null) {
+            document.setLegalDocumentId(data.documentId());
+            LOG.debug("Autofilled legalDocumentId: {}", data.documentId());
+            return 1;
+        }
         return 0;
     }
 

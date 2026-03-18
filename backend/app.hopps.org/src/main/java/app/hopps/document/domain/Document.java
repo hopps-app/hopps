@@ -27,6 +27,9 @@ public class Document extends PanacheEntity {
 
     private String name;
 
+    // The legal document identifier extracted from the document (e.g. invoice number, receipt number)
+    private String legalDocumentId;
+
     private BigDecimal total;
 
     private String currencyCode;
@@ -113,6 +116,14 @@ public class Document extends PanacheEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getLegalDocumentId() {
+        return legalDocumentId;
+    }
+
+    public void setLegalDocumentId(String legalDocumentId) {
+        this.legalDocumentId = legalDocumentId;
     }
 
     public BigDecimal getTotal() {

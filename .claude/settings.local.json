@@ -30,7 +30,8 @@
       "Bash(gh run list:*)",
       "Bash(npx eslint:*)",
       "Bash(xargs grep -l \"routes\\\\|<Route\")",
-      "Bash(xargs grep -l \"enum.*Area\\\\|enum.*Category\\\\|enum.*Status\\\\|enum.*Type\")"
+      "Bash(xargs grep -l \"enum.*Area\\\\|enum.*Category\\\\|enum.*Status\\\\|enum.*Type\")",
+      "Bash(find /d/workspace/hopps -type f \\\\\\(-name *.java -o -name *.ts -o -name *.tsx -o -name *.json \\\\\\))"
     ]
   }
 }
