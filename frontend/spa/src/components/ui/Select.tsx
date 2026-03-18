@@ -36,7 +36,7 @@ function Select(props: SelectProps) {
             <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} disabled={disabled} {...otherProps}>
                 <SelectTrigger
                     id={id}
-                    className={error ? 'border-red-500 focus-visible:border-red-500' : ''}
+                    error={!!error}
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
                     aria-required={required || undefined}

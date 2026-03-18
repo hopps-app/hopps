@@ -86,7 +86,6 @@ function ReceiptUploadView() {
         setEmptyFieldsLoading,
         setFieldLoading,
         resetForm,
-        isValid,
         canSaveDraft,
         documentId,
         setDocumentId,
@@ -493,10 +492,15 @@ function ReceiptUploadView() {
         [setArea, clearFieldError]
     );
 
-    // Submit handler - currently disabled, will be enabled when full validation passes
+    // Submit handler - validates and scrolls to first error if invalid
     const handleSubmit = useCallback(async () => {
         if (!validate()) {
             showError(t('common.validationError'));
+            // Scroll to first validation error
+            requestAnimationFrame(() => {
+                const firstError = document.querySelector('[role="alert"]');
+                firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
             return;
         }
         if (!transactionId) {
@@ -857,7 +861,6 @@ function ReceiptUploadView() {
                 {/* Right buttons (row 2, col 2) */}
                 <div className="flex items-center justify-end md:col-start-2 md:row-start-2">
                     <ReceiptFormActions
-                        isValid={isValid}
                         canSaveDraft={canSaveDraft}
                         onSubmit={handleSubmit}
                         onSaveDraft={handleSaveDraft}

@@ -4,7 +4,8 @@ import { CalendarIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
 import { de, enUS, uk } from 'date-fns/locale';
 import * as _ from 'lodash';
-import { useState } from 'react';
+import { X } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Calendar } from './Calendar';
@@ -44,10 +45,18 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
         }
     };
 
+    const handleClear = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onSelect?.(undefined);
+        },
+        [onSelect]
+    );
+
     return (
-        <div className="relative grid w-full items-center gap-1.5">
+        <div className="grid w-full items-center gap-1.5">
             {label && (
-                <Label htmlFor={id} required={required}>
+                <Label htmlFor={id} className={error ? 'text-red-500' : ''} required={required}>
                     {label}
                 </Label>
             )}
@@ -67,6 +76,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                                 'flex items-center justify-between text-left font-normal',
                                 !date && 'text-muted-foreground',
                                 loading ? 'pl-9 pr-3' : 'px-3',
+                                error && 'border-red-500 focus-visible:border-red-500',
                                 className
                             )}
                         >
@@ -76,7 +86,23 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                                 </div>
                             )}
                             {date ? format(date, 'PPP', { locale: getDateLocale() }) : <span>{defaultPlaceholder}</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 shrink-0" />
+                            <span className="ml-auto flex items-center gap-1 shrink-0">
+                                {date && !disabled && (
+                                    <span
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={handleClear}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') handleClear(e as unknown as React.MouseEvent);
+                                        }}
+                                        className="p-0.5 rounded-full hover:bg-gray-100 transition-colors"
+                                        aria-label={t('common.delete')}
+                                    >
+                                        <X className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
+                                    </span>
+                                )}
+                                <CalendarIcon className="h-4 w-4 shrink-0" />
+                            </span>
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -92,13 +118,9 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                 </Popover>
             </div>
             {error && (
-                <div
-                    id={errorId}
-                    role="alert"
-                    className="absolute bottom-0 right-0 bg-destructive text-destructive-foreground text-xs px-4 translate-y-2.5 select-none"
-                >
+                <p id={errorId} role="alert" className="text-xs text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
                     {error}
-                </div>
+                </p>
             )}
         </div>
     );

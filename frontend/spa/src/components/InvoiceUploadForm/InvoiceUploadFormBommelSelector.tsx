@@ -15,9 +15,10 @@ type InvoiceUploadFormBommelSelectorprops = {
     value?: number | null;
     onChange: (id: number | null | undefined) => void;
     disabled?: boolean;
+    error?: boolean;
 };
 
-const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> = ({ value, onChange, disabled }) => {
+const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> = ({ value, onChange, disabled, error }) => {
     const { allBommels } = useBommelsStore();
     const { t } = useTranslation();
 
@@ -56,7 +57,8 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                             'transition-colors focus:ring-primary focus:outline-none',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             !selectedBommel && 'text-[#666]',
-                            selectedBommel && !disabled && 'rounded-r-none border-r-0'
+                            selectedBommel && !disabled && 'rounded-r-none border-r-0',
+                            error && 'border-red-500 focus:border-red-500'
                         )}
                         aria-haspopup="listbox"
                         aria-expanded={open}
@@ -97,7 +99,10 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                         e.stopPropagation();
                         onDeselectBommel();
                     }}
-                    className="flex items-center h-10 py-3 px-3 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors"
+                    className={cn(
+                        'flex items-center h-10 py-3 px-3 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors',
+                        error && 'border-red-500'
+                    )}
                     aria-label={t('common.delete')}
                 >
                     <X className="w-4 h-4 text-[var(--purple-500)]" aria-hidden="true" />

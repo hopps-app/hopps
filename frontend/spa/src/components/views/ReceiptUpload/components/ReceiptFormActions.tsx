@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import Button from '@/components/ui/Button';
 
 interface ReceiptFormActionsProps {
-    isValid: boolean;
     canSaveDraft: boolean;
     onSubmit: () => void;
     onSaveDraft: () => void;
@@ -14,7 +13,6 @@ interface ReceiptFormActionsProps {
 }
 
 export function ReceiptFormActions({
-    isValid,
     canSaveDraft,
     onSubmit,
     onSaveDraft,
@@ -46,7 +44,7 @@ export function ReceiptFormActions({
             <Button variant="secondary" onClick={onSaveDraft} disabled={!canSaveDraft} type="button">
                 {t('receipts.upload.saveAsDraft')}
             </Button>
-            <Button onClick={onSubmit} disabled={saveDisabled || !isValid} type="button">
+            <Button onClick={onSubmit} disabled={saveDisabled} type="button">
                 {t('common.save')}
             </Button>
         </div>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FormErrors, LoadingStates } from '../hooks/useReceiptForm';
 
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { Label } from '@/components/ui/Label';
 import Radio from '@/components/ui/Radio';
 import SearchSelect, { SearchSelectItem } from '@/components/ui/SearchSelect';
 import Select, { SelectItem } from '@/components/ui/Select';
@@ -131,9 +132,9 @@ export function ReceiptFormFields({
                     disabled={readOnly}
                 />
                 {errors.transactionKind && (
-                    <div className="text-destructive text-xs mt-1" role="alert">
+                    <p className="text-xs text-red-500 mt-1 animate-in fade-in slide-in-from-top-1 duration-200" role="alert">
                         {errors.transactionKind}
-                    </div>
+                    </p>
                 )}
             </div>
             <div className="flex items-center">
@@ -156,17 +157,19 @@ export function ReceiptFormFields({
                 disabled={readOnly}
             />
             <div className="grid w-full items-center gap-1.5">
-                <label className="text-sm font-medium leading-none">
+                <Label className={errors.bommelId ? 'text-red-500' : ''} required>
                     {t('receipts.upload.bommel')}
-                    <span className="text-destructive ml-0.5" aria-hidden="true">
-                        *
-                    </span>
-                </label>
-                <InvoiceUploadFormBommelSelector value={bommelId} onChange={(id) => onBommelIdChange((id as number) ?? null)} disabled={readOnly} />
+                </Label>
+                <InvoiceUploadFormBommelSelector
+                    value={bommelId}
+                    onChange={(id) => onBommelIdChange((id as number) ?? null)}
+                    disabled={readOnly}
+                    error={!!errors.bommelId}
+                />
                 {errors.bommelId && (
-                    <div className="text-destructive text-xs" role="alert">
+                    <p className="text-xs text-red-500 animate-in fade-in slide-in-from-top-1 duration-200" role="alert">
                         {errors.bommelId}
-                    </div>
+                    </p>
                 )}
             </div>
 
