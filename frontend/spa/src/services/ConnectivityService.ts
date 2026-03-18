@@ -25,7 +25,7 @@ async function checkKeycloak(): Promise<boolean> {
 async function checkBackend(): Promise<boolean> {
     try {
         const apiUrl = import.meta.env.VITE_API_ORG_URL;
-        const url = `${apiUrl}/q/openapi`;
+        const url = `${apiUrl}/health`;
 
         const response = await fetchWithTimeout(url, { method: 'HEAD' });
         return response.ok;
