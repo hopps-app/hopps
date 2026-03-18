@@ -406,10 +406,8 @@
         "empty": "No receipts found",
         "newReceipt": "New receipt",
         "statusBadge": {
-            "paid": "Paid",
-            "unpaid": "Unpaid",
             "draft": "Draft",
-            "failed": "Failed"
+            "saved": "Saved"
         },
         "table": {
             "issuer": "Issuer",
@@ -432,10 +430,8 @@
             "action": "Upload first receipt"
         },
         "status": {
-            "paid": "Status: Paid",
-            "unpaid": "Status: Unpaid",
             "draft": "Status: Draft",
-            "failed": "Status: Failed"
+            "saved": "Status: Saved"
         },
         "filters": {
             "searchReceipt": "Search receipt",
@@ -451,7 +447,6 @@
             "selectStatus": "Select status",
             "status": "Status",
             "all": "All",
-            "onlyUnpaid": "Only unpaid",
             "drafts": "Drafts",
             "unassigned": "Unassigned",
             "displayType": "Display type",

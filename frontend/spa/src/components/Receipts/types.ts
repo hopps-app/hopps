@@ -5,6 +5,7 @@ export interface Receipt {
     amount: number;
     category: string;
     status: 'draft' | 'saved';
+    privatelyPaid: boolean;
     project: string;
     bommelEmoji: string;
     area: string;

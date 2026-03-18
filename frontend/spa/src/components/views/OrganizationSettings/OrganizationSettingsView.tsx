@@ -1,7 +1,7 @@
 import { Edit, Check, RefreshCw, AlertCircle, Info, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { BommelDetailsPanel } from './components';
 import { useOrganizationTree, useTreeCalculations, useStatistics } from './hooks';
@@ -18,6 +18,7 @@ import { usePageTitle } from '@/hooks/use-page-title';
 
 function OrganizationSettingsView() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     usePageTitle(t('menu.structure'));
     const [searchParams, setSearchParams] = useSearchParams();
     const bommelId = searchParams.get('bommelId');
@@ -93,9 +94,12 @@ function OrganizationSettingsView() {
     );
 
     const handleNavigateToReceipts = useCallback(() => {
-        // TODO: Navigate to receipts page with selected bommel filter
-        console.log('Navigate to receipts with bommel:', selectedBommel);
-    }, [selectedBommel]);
+        if (selectedBommel?.id) {
+            navigate(`/receipts?bommelId=${selectedBommel.id}`);
+        } else {
+            navigate('/receipts');
+        }
+    }, [navigate, selectedBommel]);
 
     const handleTreeNodeClick = useCallback(
         (nodeData: { attributes?: { id?: number } }) => {

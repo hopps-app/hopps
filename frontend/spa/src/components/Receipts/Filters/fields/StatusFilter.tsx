@@ -13,7 +13,7 @@ interface StatusFilterProps {
     label?: string;
 }
 
-const STATUS_KEYS = ['unpaid', 'draft', 'unassigned'] as const;
+const STATUS_KEYS = ['draft', 'unassigned'] as const;
 
 export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) => {
     const { t } = useTranslation();
@@ -24,18 +24,17 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
     const selectedCount = useMemo(() => STATUS_KEYS.filter((key) => filters.status[key]).length, [filters.status]);
 
     const handleToggle = useCallback(
-        (key: 'unpaid' | 'draft' | 'unassigned', checked: boolean) => {
+        (key: 'draft' | 'unassigned', checked: boolean) => {
             onChange('status', { ...filters.status, [key]: checked });
         },
         [filters.status, onChange]
     );
 
     const handleAllToggle = useCallback(() => {
-        onChange('status', { unpaid: false, draft: false, unassigned: false });
+        onChange('status', { draft: false, unassigned: false });
     }, [onChange]);
 
     const statusLabels: Record<(typeof STATUS_KEYS)[number], string> = {
-        unpaid: t('receipts.filters.onlyUnpaid'),
         draft: t('receipts.filters.drafts'),
         unassigned: t('receipts.filters.unassigned'),
     };

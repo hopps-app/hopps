@@ -76,7 +76,8 @@ export function transactionToReceipt(
     date: string;
     amount: number;
     category: string;
-    status: 'paid' | 'unpaid' | 'draft' | 'failed';
+    status: 'draft' | 'saved';
+    privatelyPaid: boolean;
     project: string;
     bommelEmoji: string;
     area: string;
@@ -86,13 +87,8 @@ export function transactionToReceipt(
     reference: string;
     documentId: number | null;
 } {
-    // Determine status based on transaction status and privatelyPaid
-    let status: 'paid' | 'unpaid' | 'draft' | 'failed' = 'paid';
-    if (tx.status === 'DRAFT') {
-        status = 'draft';
-    } else if (tx.privatelyPaid) {
-        status = 'unpaid';
-    }
+    // Determine status based on transaction status
+    const status: 'draft' | 'saved' = tx.status === 'DRAFT' ? 'draft' : 'saved';
 
     // Format date using current i18n locale
     const formatDate = (instant: Date | undefined | null): string => {
@@ -114,6 +110,7 @@ export function transactionToReceipt(
         amount,
         category: tx.categoryName ?? '',
         status,
+        privatelyPaid: tx.privatelyPaid ?? false,
         project: tx.bommelName ?? '',
         bommelEmoji,
         area: tx.area ?? '',

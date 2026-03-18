@@ -36,7 +36,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             status = 'DRAFT';
         }
 
-        const privatelyPaid = filters.status.unpaid ? true : undefined;
         const detached = filters.status.unassigned ? true : undefined;
 
         return {
@@ -47,7 +46,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             categoryId: filters.category ? parseInt(filters.category, 10) : undefined,
             area: (filters.area as TransactionFilters['area']) || undefined,
             status,
-            privatelyPaid,
             detached,
             page,
             size: pageSize,

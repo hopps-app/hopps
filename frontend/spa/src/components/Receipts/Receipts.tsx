@@ -35,7 +35,6 @@ const Receipts = () => {
         if (filters.project) count++;
         if (filters.category) count++;
         if (filters.area) count++;
-        if (filters.status.unpaid) count++;
         if (filters.status.draft) count++;
         if (filters.status.unassigned) count++;
         if (filters.displayAll) count++;

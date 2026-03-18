@@ -1,4 +1,3 @@
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ChevronRight, FileText, Trash2 } from 'lucide-react';
 import { FC, memo, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -100,7 +99,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                 onClick={handleRowClick}
                 onKeyDown={handleKeyDown}
                 className={cn(
-                    'hidden md:grid grid-cols-[24px_1.5fr_1fr_1fr_1fr_100px_100px_48px] gap-1 items-center',
+                    'hidden md:grid grid-cols-[24px_1.5fr_1fr_1fr_1fr_100px_80px_100px_48px] gap-1 items-center',
                     'px-5 py-3.5 cursor-pointer',
                     'hover:bg-[var(--background-tertiary)] transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--purple-500)] focus-visible:ring-inset'
@@ -151,6 +150,18 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         )}
                     >
                         {t(`receipts.statusBadge.${receipt.status}`)}
+                    </span>
+                </div>
+
+                {/* Paid */}
+                <div className="flex justify-center">
+                    <span
+                        className={cn(
+                            'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap',
+                            receipt.privatelyPaid ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        )}
+                    >
+                        {receipt.privatelyPaid ? t('receipts.paidLabel.no') : t('receipts.paidLabel.yes')}
                     </span>
                 </div>
 
@@ -223,6 +234,14 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                                 )}
                             >
                                 {t(`receipts.statusBadge.${receipt.status}`)}
+                            </span>
+                            <span
+                                className={cn(
+                                    'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium',
+                                    receipt.privatelyPaid ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                )}
+                            >
+                                {receipt.privatelyPaid ? t('receipts.paidLabel.no') : t('receipts.paidLabel.yes')}
                             </span>
                         </div>
                     </div>

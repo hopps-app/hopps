@@ -332,10 +332,8 @@
         "empty": "Keine Belege gefunden",
         "newReceipt": "Neuer Beleg",
         "statusBadge": {
-            "paid": "Bezahlt",
-            "unpaid": "Offen",
             "draft": "Entwurf",
-            "failed": "Fehlgeschlagen"
+            "saved": "Gespeichert"
         },
         "table": {
             "issuer": "Vertragspartner",
@@ -358,10 +356,8 @@
             "action": "Ersten Beleg hochladen"
         },
         "status": {
-            "paid": "Status: Bezahlt",
-            "unpaid": "Status: Offen",
             "draft": "Status: Entwurf",
-            "failed": "Fehlgeschlagen"
+            "saved": "Status: Gespeichert"
         },
         "filters": {
             "searchReceipt": "Beleg suchen",
@@ -377,7 +373,6 @@
             "status": "Status",
             "selectStatus": "Status wählen",
             "all": "Alle",
-            "onlyUnpaid": "Nur unbezahlt",
             "drafts": "Entwürfe",
             "unassigned": "Nicht zugewiesen",
             "displayType": "Anzeigeart",

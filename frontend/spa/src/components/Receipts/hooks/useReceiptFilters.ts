@@ -12,7 +12,7 @@ const defaultFilters: ReceiptFiltersState = {
     project: null,
     category: null,
     area: null,
-    status: { unpaid: false, draft: false, unassigned: false },
+    status: { draft: false, unassigned: false },
     displayAll: false,
 };
 
