@@ -474,6 +474,7 @@
             "receiptNumber": "Receipt number",
             "receiptDate": "Receipt date",
             "transactionType": "Transaction type",
+            "paymentStatus": "Payment status",
             "unpaid": "Unpaid",
             "paid": "Paid",
             "contractPartner": "Contract partner",
