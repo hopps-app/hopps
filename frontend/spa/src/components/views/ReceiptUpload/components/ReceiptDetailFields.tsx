@@ -78,7 +78,7 @@ export function ReceiptDetailFields({
     };
 
     return (
-        <div className="grid grid-cols-1 gap-x-4 gap-y-6 2xl:gap-x-8 2xl:gap-y-8 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-4 2xl:gap-x-8 2xl:gap-y-6 sm:grid-cols-2">
             <DetailField label={t('receipts.upload.receiptNumber')} value={receiptNumber} />
             <DetailField label={t('receipts.upload.receiptDate')} value={formatDate(receiptDate)} />
 
