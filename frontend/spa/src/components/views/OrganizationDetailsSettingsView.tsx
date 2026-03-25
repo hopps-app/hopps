@@ -205,9 +205,9 @@ function OrganizationDetailsSettingsView() {
 
             <form className="mt-4 flex-1 flex flex-col" onSubmit={handleSubmit(onSubmit)}>
                 <fieldset disabled={isSubmitting} className="flex-1 flex flex-col">
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-2 gap-8 2xl:gap-12">
                         {/* Allgemeine Informationen */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 2xl:space-y-6">
                             <h3 className="text-lg font-semibold text-foreground">{t('organization.details.generalInfo')}</h3>
 
                             <TextField
@@ -289,7 +289,7 @@ function OrganizationDetailsSettingsView() {
                         </div>
 
                         {/* Rechtliche Informationen */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 2xl:space-y-6">
                             <h3 className="text-lg font-semibold text-foreground">{t('organization.details.legalInfo')}</h3>
 
                             <TextField
@@ -320,7 +320,7 @@ function OrganizationDetailsSettingsView() {
                         </div>
 
                         {/* Kontakt Informationen */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 2xl:space-y-6 2xl:col-start-1">
                             <h3 className="text-lg font-semibold text-foreground">{t('organization.details.contactInfo')}</h3>
 
                             <TextField
@@ -344,7 +344,7 @@ function OrganizationDetailsSettingsView() {
                     </div>
 
                     {/* Save Button */}
-                    <div className="flex justify-end mt-auto pt-8 mb-2">
+                    <div className="flex justify-end mt-auto pt-8">
                         <Button type="submit" variant="default" disabled={isSubmitting}>
                             {isSubmitting ? t('common.loading') : t('common.save')}
                         </Button>
