@@ -42,9 +42,9 @@ function Tags({ label, value, onChange, placeholder, className, loading, disable
     );
 
     return (
-        <div className={`w-full min-h-32 ${className || ''}`}>
+        <div className={`grid w-full items-center gap-1.5 ${className || ''}`}>
             {label && <Label htmlFor={id}>{label}</Label>}
-            <div className="relative mt-1">
+            <div className="relative">
                 {loading && (
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
                         <InputLoader />
@@ -70,7 +70,7 @@ function Tags({ label, value, onChange, placeholder, className, loading, disable
                         type="button"
                         onClick={addTag}
                         disabled={value.length >= 4 || input.trim().length > 20}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-primary hover:text-primary-active disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Add tag"
                     >
                         <Icon icon="PlusCircled" />

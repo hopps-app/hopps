@@ -18,7 +18,7 @@ function PageHeader() {
     const navigate = useNavigate();
 
     return (
-        <div className="flex items-center justify-between py-2 sm:py-4 flex-shrink-0">
+        <div className="flex items-center justify-between pt-2 pb-4 flex-shrink-0">
             <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2 truncate min-w-0">
                 {icon && <Icon icon={icon} size={20} />}
                 <span className="truncate">{title}</span>

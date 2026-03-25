@@ -669,8 +669,8 @@ function ReceiptUploadView() {
     }
 
     return (
-        <div className="pb-4">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2 md:grid-rows-[1fr_auto]">
+        <div className="h-full flex flex-col">
+            <div className="flex-1 grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2 md:grid-rows-[1fr_auto]">
                 {/* Preview (row 1, col 1) */}
                 <div className="min-h-[400px] md:min-h-0 relative md:col-start-1 md:row-start-1">
                     <div className="h-full md:absolute md:inset-0">
@@ -734,9 +734,9 @@ function ReceiptUploadView() {
                 <div className="flex flex-col gap-4 md:col-start-2 md:row-start-1">
                     {/* AI Warning Banner */}
                     {isAutoRead && (
-                        <div className="flex items-start gap-3 p-4 rounded-xl border text-sm bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
-                            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                            <p className="text-xs">{t('receipts.upload.analysis.aiWarning')}</p>
+                        <div className="flex items-start gap-3 p-3 2xl:p-5 rounded-xl border text-sm bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
+                            <AlertTriangle className="h-4 w-4 2xl:h-5 2xl:w-5 shrink-0 mt-0.5" />
+                            <p className="text-xs 2xl:text-sm">{t('receipts.upload.analysis.aiWarning')}</p>
                         </div>
                     )}
 
@@ -825,7 +825,7 @@ function ReceiptUploadView() {
                         </div>
                     )}
 
-                    <div className="min-w-0 flex-1 border border-[#A7A7A7] bg-card rounded-[30px] p-5">
+                    <div className="h-full min-w-0 border border-[#A7A7A7] bg-card rounded-[30px] p-5 2xl:p-8">
                         <ReceiptFormFields
                             receiptNumber={receiptNumber}
                             onReceiptNumberChange={handleReceiptNumberChange}
