@@ -5,7 +5,7 @@ import DefaultPage from "keycloakify/login/DefaultPage";
 import type { KcContext } from "./KcContext";
 import { useI18n } from "./i18n";
 
-import DefaultTemplate from "keycloakify/login/Template";
+import DefaultTemplate from "./Template";
 
 import hoppsLogo from "../assets/hopps-logo.svg";
 
