@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { ReceiptFormActions, ReceiptFormFields } from './components';
+import { ReceiptDetailFields, ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
 
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
@@ -825,36 +825,54 @@ function ReceiptUploadView() {
                         </div>
                     )}
 
-                    <div className="h-full min-w-0 border border-[#A7A7A7] bg-card rounded-[30px] p-5 2xl:p-8">
-                        <ReceiptFormFields
-                            receiptNumber={receiptNumber}
-                            onReceiptNumberChange={handleReceiptNumberChange}
-                            receiptDate={receiptDate}
-                            onReceiptDateChange={handleReceiptDateChange}
-                            dueDate={dueDate}
-                            onDueDateChange={setDueDate}
-                            transactionKind={transactionKind}
-                            onTransactionKindChange={handleTransactionKindChange}
-                            isUnpaid={isUnpaid}
-                            onIsUnpaidChange={setIsUnpaid}
-                            contractPartner={contractPartner}
-                            onContractPartnerChange={handleContractPartnerChange}
-                            bommelId={bommelId}
-                            onBommelIdChange={handleBommelIdChange}
-                            category={category}
-                            onCategoryChange={setCategory}
-                            area={area}
-                            onAreaChange={handleAreaChange}
-                            tags={tags}
-                            onTagsChange={setTags}
-                            grossAmount={grossAmount}
-                            onGrossAmountChange={handleGrossAmountChange}
-                            taxAmount={taxAmount}
-                            onTaxAmountChange={handleTaxAmountChange}
-                            loadingStates={loadingStates}
-                            errors={formErrors}
-                            readOnly={isReadOnly}
-                        />
+                    <div
+                        className={`h-full min-w-0 border border-[#A7A7A7] rounded-[30px] p-5 2xl:p-8 shadow-md ${isReadOnly ? 'bg-white p-8 2xl:p-10' : 'bg-card'}`}
+                    >
+                        {isReadOnly ? (
+                            <ReceiptDetailFields
+                                receiptNumber={receiptNumber}
+                                receiptDate={receiptDate}
+                                dueDate={dueDate}
+                                transactionKind={transactionKind}
+                                isUnpaid={isUnpaid}
+                                contractPartner={contractPartner}
+                                bommelId={bommelId}
+                                category={category}
+                                area={area}
+                                tags={tags}
+                                grossAmount={grossAmount}
+                                taxAmount={taxAmount}
+                            />
+                        ) : (
+                            <ReceiptFormFields
+                                receiptNumber={receiptNumber}
+                                onReceiptNumberChange={handleReceiptNumberChange}
+                                receiptDate={receiptDate}
+                                onReceiptDateChange={handleReceiptDateChange}
+                                dueDate={dueDate}
+                                onDueDateChange={setDueDate}
+                                transactionKind={transactionKind}
+                                onTransactionKindChange={handleTransactionKindChange}
+                                isUnpaid={isUnpaid}
+                                onIsUnpaidChange={setIsUnpaid}
+                                contractPartner={contractPartner}
+                                onContractPartnerChange={handleContractPartnerChange}
+                                bommelId={bommelId}
+                                onBommelIdChange={handleBommelIdChange}
+                                category={category}
+                                onCategoryChange={setCategory}
+                                area={area}
+                                onAreaChange={handleAreaChange}
+                                tags={tags}
+                                onTagsChange={setTags}
+                                grossAmount={grossAmount}
+                                onGrossAmountChange={handleGrossAmountChange}
+                                taxAmount={taxAmount}
+                                onTaxAmountChange={handleTaxAmountChange}
+                                loadingStates={loadingStates}
+                                errors={formErrors}
+                            />
+                        )}
                     </div>
                 </div>
 
