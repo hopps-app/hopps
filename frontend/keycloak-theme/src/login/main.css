@@ -263,20 +263,25 @@ input[type="password"] {
         font-weight: 500;
     }
 }
-/* Sign in button */
-#kc-login {
-    background-color: #9955cc;
-    color: white;
+/* Primary buttons (sign in, password reset submit, etc.) */
+#kc-login,
+.pf-c-button.pf-m-primary {
+    background-color: #9955cc !important;
+    color: white !important;
     font-weight: 500;
     font-size: 1rem;
     border-radius: 0.75rem;
     padding: 0.75rem;
     margin-top: 1.5rem;
     width: 100%;
+    border: none;
+    cursor: pointer;
+    font-family: "Reddit Sans", sans-serif;
 }
 
-#kc-login:hover {
-    background-color: #552479;
+#kc-login:hover,
+.pf-c-button.pf-m-primary:hover {
+    background-color: #552479 !important;
 }
 
 /* Bottom register bar */
