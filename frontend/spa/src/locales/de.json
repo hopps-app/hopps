@@ -400,6 +400,7 @@
             "receiptNumber": "Belegnummer",
             "receiptDate": "Belegdatum",
             "transactionType": "Belegart",
+            "paymentStatus": "Zahlungsstatus",
             "unpaid": "Unbezahlt",
             "paid": "Bezahlt",
             "contractPartner": "Vertragspartner",
