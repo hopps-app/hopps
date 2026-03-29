@@ -44,7 +44,7 @@ function CategoriesSettingsView() {
                             placeholder={t('categories.searchInput.placeholder')}
                             className={cn(
                                 'w-full pl-9 pr-8 h-10 text-sm',
-                                'rounded-xl border border-[#d1d5db] bg-white',
+                                'rounded-xl border border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)]',
                                 'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
                                 'focus:border-[var(--purple-500)] transition-colors'
                             )}
@@ -86,10 +86,10 @@ function CategoriesSettingsView() {
                         </div>
                     ) : categories.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 px-4">
-                            <div className="bg-white rounded-[30px] p-8 max-w-2xl w-full flex flex-col items-center">
+                            <div className="bg-white dark:bg-[var(--purple-50)] rounded-[30px] p-8 max-w-2xl w-full flex flex-col items-center">
                                 <BunnyIcon className="mb-6" />
-                                <h3 className="text-lg font-semibold text-black mb-2">{t('categories.emptyState.title')}</h3>
-                                <p className="text-sm text-black text-center mb-6">{t('categories.emptyState.description')}</p>
+                                <h3 className="text-lg font-semibold text-[var(--font-color)] mb-2">{t('categories.emptyState.title')}</h3>
+                                <p className="text-sm text-[var(--font-color)] text-center mb-6">{t('categories.emptyState.description')}</p>
                             </div>
                         </div>
                     ) : results.length === 0 && query ? (
