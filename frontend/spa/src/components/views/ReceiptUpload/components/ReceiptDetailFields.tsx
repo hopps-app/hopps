@@ -78,39 +78,70 @@ export function ReceiptDetailFields({
     };
 
     return (
-        <div className="grid grid-cols-1 gap-x-4 gap-y-4 2xl:gap-x-8 2xl:gap-y-6 sm:grid-cols-2">
-            <DetailField label={t('receipts.upload.receiptNumber')} value={receiptNumber} />
-            <DetailField label={t('receipts.upload.receiptDate')} value={formatDate(receiptDate)} />
+        <div className="flex flex-col gap-3 2xl:gap-2">
+            {/* Belegnummer row with paid badge */}
+            <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                    <Label className="text-muted-foreground text-xs">{t('receipts.upload.receiptNumber')}</Label>
+                    <p className="text-lg font-semibold mt-1 min-h-[1.25rem]">{receiptNumber || '—'}</p>
+                </div>
+                <span
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold whitespace-nowrap shrink-0 shadow-sm ${
+                        isUnpaid
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    }`}
+                >
+                    {isUnpaid ? t('receipts.paidLabel.unpaid') : t('receipts.paidLabel.paid')}
+                </span>
+            </div>
 
-            <DetailField
-                label={t('receipts.upload.transactionKind')}
-                value={transactionKind === 'intake' ? t('receipts.types.income') : transactionKind === 'expense' ? t('receipts.types.expense') : ''}
-            />
-            <DetailField label={t('receipts.upload.paymentStatus')} value={isUnpaid ? t('receipts.upload.unpaid') : t('receipts.upload.paid')} />
+            <hr className="border-gray-200 -my-1" />
 
-            <DetailField label={t('receipts.upload.contractPartner')} value={contractPartner} fullWidth />
+            {/* Main fields grid */}
+            <div className="grid grid-cols-1 gap-x-4 gap-y-4 2xl:gap-x-8 2xl:gap-y-6 sm:grid-cols-2 pb-3 2xl:pb-4">
+                <DetailField label={t('receipts.upload.receiptDate')} value={formatDate(receiptDate)} />
+                <DetailField
+                    label={t('receipts.upload.transactionKind')}
+                    value={transactionKind === 'intake' ? t('receipts.types.income') : transactionKind === 'expense' ? t('receipts.types.expense') : ''}
+                />
 
-            <DetailField label={t('receipts.upload.bommel')} value={bommelName} />
-            <DetailField label={t('receipts.upload.area')} value={areaLabels[area] ?? area} />
+                <DetailField label={t('receipts.upload.contractPartner')} value={contractPartner} fullWidth />
 
-            <DetailField label={t('receipts.upload.dueDate')} value={formatDate(dueDate)} />
-            <DetailField label={t('receipts.upload.category')} value={categoryName} />
+                <DetailField label={t('receipts.upload.bommel')} value={bommelName} />
+                <DetailField label={t('receipts.upload.area')} value={areaLabels[area] ?? area} />
 
+                <DetailField label={t('receipts.upload.dueDate')} value={formatDate(dueDate)} />
+                <DetailField label={t('receipts.upload.category')} value={categoryName} />
+            </div>
+
+            {/* Tags as inline pills (no label) */}
             {tags.length > 0 && (
-                <div className="sm:col-span-2">
-                    <Label className="text-muted-foreground text-xs">{t('receipts.upload.tags')}</Label>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                        {tags.map((tag, idx) => (
-                            <span key={`${tag}-${idx}`} className="px-4 py-1.5 rounded-[15px] bg-purple-100 text-xs font-medium">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                    {tags.map((tag, idx) => (
+                        <span
+                            key={`${tag}-${idx}`}
+                            className="px-4 py-1.5 rounded-[15px] bg-purple-100 text-xs font-medium shadow-sm"
+                        >
+                            {tag}
+                        </span>
+                    ))}
                 </div>
             )}
 
-            <DetailField label={t('receipts.upload.taxAmount')} value={formatCurrency(taxAmount)} />
-            <DetailField label={t('receipts.upload.grossAmount')} value={formatCurrency(grossAmount)} />
+            {/* Amounts section */}
+            <div className="border-t border-gray-200 pt-4 2xl:pt-6">
+                <div className="grid grid-cols-1 gap-x-4 gap-y-4 2xl:gap-x-8 2xl:gap-y-6 sm:grid-cols-2">
+                    <div>
+                        <Label className="text-muted-foreground text-xs">{t('receipts.upload.taxAmount')}</Label>
+                        <p className="text-base font-semibold mt-1">{formatCurrency(taxAmount) || '—'}</p>
+                    </div>
+                    <div>
+                        <Label className="text-muted-foreground text-xs">{t('receipts.upload.grossAmount')}</Label>
+                        <p className="text-xl font-bold mt-1">{formatCurrency(grossAmount) || '—'}</p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
