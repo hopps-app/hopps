@@ -21,7 +21,7 @@ type DateRangeFilterProps = {
 
 const triggerStyles = cn(
     'flex items-center h-10 justify-between text-sm font-normal',
-    'rounded-xl border border-[#d1d5db] bg-white px-3',
+    'rounded-xl border border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] dark:text-gray-100 px-3',
     'outline-none transition-colors',
     'focus-visible:border-[var(--purple-500)]',
     'data-[state=open]:border-[var(--purple-500)]'
@@ -73,15 +73,15 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                     triggerStyles,
                                     'w-full',
                                     !filters.startDate && 'hover:border-[var(--purple-500)] hover:text-[var(--purple-500)]',
-                                    !filters.startDate && 'text-[#666]',
+                                    !filters.startDate && 'text-[#666] dark:text-gray-400',
                                     filters.startDate && 'rounded-r-none border-r-0'
                                 )}
                             >
                                 <span className="truncate">{formattedStart}</span>
-                                {!filters.startDate && <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" />}
+                                {!filters.startDate && <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" />}
                             </button>
                         </PopoverTrigger>
-                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white rounded-xl border border-[#d1d5db] shadow-lg w-auto">
+                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white dark:bg-[var(--purple-100)] rounded-xl border border-[#d1d5db] dark:border-gray-700 shadow-lg w-auto">
                             <Calendar
                                 mode="single"
                                 captionLayout="dropdown"
@@ -97,14 +97,14 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                         <button
                             type="button"
                             onClick={() => onChange('startDate', null)}
-                            className="flex items-center h-10 px-3 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors"
+                            className="flex items-center h-10 px-3 border border-l-0 border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] rounded-r-xl transition-colors"
                         >
                             <X className="h-3.5 w-3.5 text-[var(--purple-500)]" />
                         </button>
                     )}
                 </div>
 
-                <span className="text-sm text-[#666] shrink-0">&ndash;</span>
+                <span className="text-sm text-[#666] dark:text-gray-400 shrink-0">&ndash;</span>
 
                 <div className="flex items-center flex-1 min-w-0">
                     <Popover open={openEnd} onOpenChange={setOpenEnd}>
@@ -115,15 +115,15 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                     triggerStyles,
                                     'w-full',
                                     !filters.endDate && 'hover:border-[var(--purple-500)] hover:text-[var(--purple-500)]',
-                                    !filters.endDate && 'text-[#666]',
+                                    !filters.endDate && 'text-[#666] dark:text-gray-400',
                                     filters.endDate && 'rounded-r-none border-r-0'
                                 )}
                             >
                                 <span className="truncate">{formattedEnd}</span>
-                                {!filters.endDate && <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" />}
+                                {!filters.endDate && <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" />}
                             </button>
                         </PopoverTrigger>
-                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white rounded-xl border border-[#d1d5db] shadow-lg w-auto">
+                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white dark:bg-[var(--purple-100)] rounded-xl border border-[#d1d5db] dark:border-gray-700 shadow-lg w-auto">
                             <Calendar
                                 mode="single"
                                 captionLayout="dropdown"
@@ -139,7 +139,7 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                         <button
                             type="button"
                             onClick={() => onChange('endDate', null)}
-                            className="flex items-center h-10 px-2 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors"
+                            className="flex items-center h-10 px-2 border border-l-0 border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] rounded-r-xl transition-colors"
                         >
                             <X className="h-3.5 w-3.5 text-[var(--purple-500)]" />
                         </button>
