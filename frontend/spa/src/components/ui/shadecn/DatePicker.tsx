@@ -70,7 +70,7 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                             aria-invalid={error ? true : undefined}
                             aria-describedby={error ? errorId : undefined}
                             className={cn(
-                                'w-full text-gray-800 text-sm border border-[#d1d5db] h-10 rounded-xl outline-none bg-white',
+                                'w-full text-gray-800 dark:text-gray-100 text-sm border border-[#d1d5db] dark:border-gray-700 h-10 rounded-xl outline-none bg-white dark:bg-[var(--purple-50)]',
                                 'placeholder:text-muted focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)] transition-colors',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 'flex items-center justify-between text-left font-normal',
@@ -95,10 +95,10 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' || e.key === ' ') handleClear(e as unknown as React.MouseEvent);
                                         }}
-                                        className="p-0.5 rounded-full hover:bg-gray-100 transition-colors"
+                                        className="p-0.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                         aria-label={t('common.delete')}
                                     >
-                                        <X className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
+                                        <X className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
                                     </span>
                                 )}
                                 <CalendarIcon className="h-4 w-4 shrink-0" />

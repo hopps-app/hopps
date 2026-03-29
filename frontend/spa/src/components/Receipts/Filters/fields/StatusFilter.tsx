@@ -45,7 +45,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                 <PopoverTrigger asChild>
                     <button
                         type="button"
-                        className="flex items-center justify-between w-full h-10 px-3 rounded-xl border border-[#d1d5db] bg-white text-sm text-[var(--grey-900)] outline-none hover:border-[var(--purple-500)] hover:text-[var(--purple-500)] transition-colors focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]"
+                        className="flex items-center justify-between w-full h-10 px-3 rounded-xl border border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] text-sm text-[var(--font-color)] outline-none hover:border-[var(--purple-500)] hover:text-[var(--purple-500)] transition-colors focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]"
                     >
                         <span className="flex items-center gap-2">
                             <span>{label || t('receipts.filters.selectStatus')}</span>
@@ -55,7 +55,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                                 </span>
                             )}
                         </span>
-                        <ChevronDownIcon className="h-4 w-4 text-[var(--grey-900)]" />
+                        <ChevronDownIcon className="h-4 w-4 text-[var(--font-color)]" />
                     </button>
                 </PopoverTrigger>
 
@@ -67,7 +67,7 @@ export const StatusFilter = ({ filters, onChange, label }: StatusFilterProps) =>
                                 onCheckedChange={handleAllToggle}
                                 className="h-[18px] w-[18px] rounded border-[1.5px] border-[#ccc] bg-transparent data-[state=checked]:bg-[var(--purple-500)] data-[state=checked]:border-[var(--purple-500)]"
                             />
-                            <span className="text-sm text-[var(--grey-900)]">{t('receipts.filters.all')}</span>
+                            <span className="text-sm text-[var(--font-color)]">{t('receipts.filters.all')}</span>
                         </label>
 
                         {STATUS_KEYS.map((key) => (

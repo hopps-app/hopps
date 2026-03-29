@@ -14,7 +14,7 @@ type ReceiptFiltersProps = {
 
 export const ReceiptFilters = ({ filters, setFilter }: ReceiptFiltersProps) => {
     return (
-        <div className="rounded-2xl shadow-sm border border-[#E0E0E0] bg-white px-4 py-4">
+        <div className="rounded-2xl shadow-sm border border-[#E0E0E0] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)] px-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-3">
                 <ProjectFilter filters={filters} onChange={setFilter} />
                 <CategoryFilter filters={filters} onChange={setFilter} />
