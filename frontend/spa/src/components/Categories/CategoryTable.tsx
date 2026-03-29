@@ -59,7 +59,9 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                                     <div className="min-w-0 flex-1">
                                         <span className="font-medium text-sm truncate block">{category.name}</span>
                                         <span className="text-xs text-gray-500 dark:text-gray-400 truncate block">
-                                            {category.description || <span className="text-gray-400 dark:text-gray-500 italic">{t('categories.table.noDescription')}</span>}
+                                            {category.description || (
+                                                <span className="text-gray-400 dark:text-gray-500 italic">{t('categories.table.noDescription')}</span>
+                                            )}
                                         </span>
                                     </div>
                                     <div className="flex justify-end shrink-0 ml-4" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
@@ -89,7 +91,9 @@ export default function CategoryTable({ items, onActionSuccess }: TableProps) {
                                         <div className="min-w-0 flex-1">
                                             <span className="font-medium text-sm truncate block">{category.name}</span>
                                             <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 block truncate">
-                                                {category.description || <span className="text-gray-400 dark:text-gray-500 italic">{t('categories.table.noDescription')}</span>}
+                                                {category.description || (
+                                                    <span className="text-gray-400 dark:text-gray-500 italic">{t('categories.table.noDescription')}</span>
+                                                )}
                                             </span>
                                         </div>
                                     </div>

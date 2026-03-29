@@ -325,7 +325,9 @@ function OrganizationSettingsView() {
                                         </div>
                                         <div>
                                             <p className="text-destructive font-medium">{t('organization.structure.details.bommelNotFound')}</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('organization.structure.details.bommelNotFoundDescription')}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                {t('organization.structure.details.bommelNotFoundDescription')}
+                                            </p>
                                         </div>
                                         <Button variant="outline" onClick={() => setSearchParams({}, { replace: true })}>
                                             {t('organization.structure.details.backToStructure')}

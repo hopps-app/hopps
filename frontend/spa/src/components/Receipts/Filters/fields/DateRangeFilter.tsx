@@ -81,7 +81,12 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 {!filters.startDate && <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" />}
                             </button>
                         </PopoverTrigger>
-                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white dark:bg-[var(--purple-100)] rounded-xl border border-[#d1d5db] dark:border-gray-700 shadow-lg w-auto">
+                        <PopoverContent
+                            align="start"
+                            side="bottom"
+                            sideOffset={4}
+                            className="p-0 bg-white dark:bg-[var(--purple-100)] rounded-xl border border-[#d1d5db] dark:border-gray-700 shadow-lg w-auto"
+                        >
                             <Calendar
                                 mode="single"
                                 captionLayout="dropdown"
@@ -123,7 +128,12 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                                 {!filters.endDate && <CalendarIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" />}
                             </button>
                         </PopoverTrigger>
-                        <PopoverContent align="start" side="bottom" sideOffset={4} className="p-0 bg-white dark:bg-[var(--purple-100)] rounded-xl border border-[#d1d5db] dark:border-gray-700 shadow-lg w-auto">
+                        <PopoverContent
+                            align="start"
+                            side="bottom"
+                            sideOffset={4}
+                            className="p-0 bg-white dark:bg-[var(--purple-100)] rounded-xl border border-[#d1d5db] dark:border-gray-700 shadow-lg w-auto"
+                        >
                             <Calendar
                                 mode="single"
                                 captionLayout="dropdown"

@@ -79,7 +79,9 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     autoComplete={props.autoComplete}
                 />
                 {props.suffix && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none select-none">{props.suffix}</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none select-none">
+                        {props.suffix}
+                    </span>
                 )}
                 {isPassword && (
                     <button
