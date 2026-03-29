@@ -99,7 +99,7 @@ export function ReceiptFormFields({
     ];
 
     return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 2xl:gap-8 sm:grid-cols-2">
             {/* Row 1: Receipt number + Date */}
             <TextField
                 label={t('receipts.upload.receiptNumber')}
@@ -137,7 +137,7 @@ export function ReceiptFormFields({
                     </p>
                 )}
             </div>
-            <div className="flex items-center">
+            <div className="flex items-end">
                 <Switch
                     checked={isUnpaid}
                     onCheckedChange={onIsUnpaidChange}
@@ -146,16 +146,20 @@ export function ReceiptFormFields({
                 />
             </div>
 
-            {/* Row 3: Contract partner + Bommel */}
-            <TextField
-                label={t('receipts.upload.contractPartner')}
-                value={contractPartner}
-                onValueChange={onContractPartnerChange}
-                loading={loadingStates.contractPartner}
-                error={errors.contractPartner}
-                required
-                disabled={readOnly}
-            />
+            {/* Row 3: Contract partner (full width) */}
+            <div className="sm:col-span-2">
+                <TextField
+                    label={t('receipts.upload.contractPartner')}
+                    value={contractPartner}
+                    onValueChange={onContractPartnerChange}
+                    loading={loadingStates.contractPartner}
+                    error={errors.contractPartner}
+                    required
+                    disabled={readOnly}
+                />
+            </div>
+
+            {/* Row 4: Bommel + Area */}
             <div className="grid w-full items-center gap-1.5">
                 <Label className={errors.bommelId ? 'text-red-500' : ''} required>
                     {t('receipts.upload.bommel')}
@@ -172,8 +176,6 @@ export function ReceiptFormFields({
                     </p>
                 )}
             </div>
-
-            {/* Row 4: Area + Category */}
             <Select
                 label={t('receipts.upload.area')}
                 value={area}
@@ -183,22 +185,22 @@ export function ReceiptFormFields({
                 required
                 disabled={readOnly}
             />
-            <SearchSelect
-                label={t('receipts.upload.category')}
-                value={category}
-                onValueChange={onCategoryChange}
-                items={categoryItems}
-                placeholder={categoriesLoading ? t('common.loading') : t('receipts.upload.selectCategory')}
-                disabled={readOnly}
-            />
 
-            {/* Row 5: Due date (optional) */}
+            {/* Row 5: Due date + Category */}
             <DatePicker
                 label={t('receipts.upload.dueDate')}
                 date={dueDate}
                 onSelect={onDueDateChange}
                 className="w-full"
                 loading={loadingStates.dueDate}
+                disabled={readOnly}
+            />
+            <SearchSelect
+                label={t('receipts.upload.category')}
+                value={category}
+                onValueChange={onCategoryChange}
+                items={categoryItems}
+                placeholder={categoriesLoading ? t('common.loading') : t('receipts.upload.selectCategory')}
                 disabled={readOnly}
             />
 

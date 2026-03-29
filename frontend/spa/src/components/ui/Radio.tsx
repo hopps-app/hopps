@@ -21,7 +21,7 @@ interface RadioProps {
 
 const Radio: React.FC<RadioProps> = ({ items, value, label, onValueChange, className, layout, disabled, ...props }) => {
     return (
-        <>
+        <div className="grid w-full items-center gap-1.5">
             {label && <Label> {label} </Label>}
             <RadioGroup value={value} onValueChange={onValueChange} className={className} aria-label={label} disabled={disabled} {...props}>
                 <div className={layout === 'horizontal' ? 'flex flex-row gap-2' : ''}>
@@ -33,7 +33,7 @@ const Radio: React.FC<RadioProps> = ({ items, value, label, onValueChange, class
                     ))}
                 </div>
             </RadioGroup>
-        </>
+        </div>
     );
 };
 

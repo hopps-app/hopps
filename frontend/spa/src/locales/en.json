@@ -429,7 +429,9 @@
         },
         "paidLabel": {
             "yes": "Yes",
-            "no": "No"
+            "no": "No",
+            "paid": "Paid",
+            "unpaid": "Unpaid"
         },
         "emptyState": {
             "title": "No receipts uploaded yet",
@@ -474,6 +476,7 @@
             "receiptNumber": "Receipt number",
             "receiptDate": "Receipt date",
             "transactionType": "Transaction type",
+            "paymentStatus": "Payment status",
             "unpaid": "Unpaid",
             "paid": "Paid",
             "contractPartner": "Contract partner",

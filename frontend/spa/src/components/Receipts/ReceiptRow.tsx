@@ -266,46 +266,45 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                 <div className="mx-5 border-t border-[var(--purple-200)]" />
 
                 <div className="px-5 pb-4 pt-3">
-                    <div className="rounded-[10px] bg-white p-2 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                            {receipt.reference && (
-                                <div>
-                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.reference')}</span>
-                                    <p className="mt-0.5 text-sm">{receipt.reference}</p>
-                                </div>
-                            )}
-                            {receipt.purpose && (
-                                <div>
-                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.table.purpose')}</span>
-                                    <p className="mt-0.5 text-sm">{receipt.purpose}</p>
-                                </div>
-                            )}
-                            {receipt.dueDate && (
-                                <div>
-                                    <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.dueDate')}</span>
-                                    <p className="mt-0.5 text-sm">{receipt.dueDate}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {(receipt.area || receipt.tags.length > 0) && (
-                            <div className="flex flex-wrap items-center gap-2 pt-1">
-                                {receipt.area && (
-                                    <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                        {t(`receipts.areas.${receipt.area.toLowerCase()}`)}
-                                    </span>
+                    {(receipt.dueDate || receipt.area || receipt.tags.length > 0) && (
+                        <div className="rounded-[10px] bg-white p-2">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                {receipt.dueDate && (
+                                    <div className="px-1 py-1">
+                                        <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.dueDate')}</span>
+                                        <p className="mt-1 text-sm font-medium">{receipt.dueDate}</p>
+                                    </div>
                                 )}
-                                {receipt.tags.map((tag) => (
-                                    <span
-                                        key={tag}
-                                        className="bg-[var(--purple-100)] text-[var(--purple-900)] border border-[var(--purple-200)] text-xs font-medium px-2.5 py-0.5 rounded-full"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
+
+                                {receipt.area && (
+                                    <div className="px-1 py-1">
+                                        <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.upload.area')}</span>
+                                        <div className="mt-1">
+                                            <span className="inline-flex bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                {t(`receipts.areas.${receipt.area.toLowerCase()}`)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {receipt.tags.length > 0 && (
+                                    <div className="px-1 py-1">
+                                        <span className="text-xs font-medium text-[var(--grey-700)] uppercase tracking-wider">{t('receipts.upload.tags')}</span>
+                                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                                            {receipt.tags.map((tag) => (
+                                                <span
+                                                    key={tag}
+                                                    className="bg-[var(--purple-100)] text-[var(--purple-900)] border border-[var(--purple-200)] text-xs font-medium px-2.5 py-0.5 rounded-full"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
