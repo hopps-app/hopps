@@ -87,9 +87,7 @@ export function ReceiptDetailFields({
                 </div>
                 <span
                     className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold whitespace-nowrap shrink-0 shadow-sm ${
-                        isUnpaid
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        isUnpaid ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     }`}
                 >
                     {isUnpaid ? t('receipts.paidLabel.unpaid') : t('receipts.paidLabel.paid')}
@@ -119,10 +117,7 @@ export function ReceiptDetailFields({
             {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                     {tags.map((tag, idx) => (
-                        <span
-                            key={`${tag}-${idx}`}
-                            className="px-4 py-1.5 rounded-[15px] bg-purple-100 text-xs font-medium shadow-sm"
-                        >
+                        <span key={`${tag}-${idx}`} className="px-4 py-1.5 rounded-[15px] bg-purple-100 text-xs font-medium shadow-sm">
                             {tag}
                         </span>
                     ))}
