@@ -826,7 +826,7 @@ function ReceiptUploadView() {
                     )}
 
                     <div
-                        className={`h-full min-w-0 border border-[#A7A7A7] rounded-[30px] p-5 2xl:p-8 shadow-md ${isReadOnly ? 'bg-white p-8 2xl:p-10' : 'bg-card'}`}
+                        className={`h-full min-w-0 rounded-[30px] p-5 2xl:p-8 shadow-md ${isReadOnly ? 'bg-white p-8 2xl:p-10' : 'bg-card border border-[#A7A7A7]'}`}
                     >
                         {isReadOnly ? (
                             <ReceiptDetailFields
@@ -877,7 +877,7 @@ function ReceiptUploadView() {
                 </div>
 
                 {/* Right buttons (row 2, col 2) */}
-                <div className="flex items-center justify-end md:col-start-2 md:row-start-2">
+                <div className="flex items-center justify-end md:col-start-2 md:row-start-2 mb-2">
                     <ReceiptFormActions
                         canSaveDraft={canSaveDraft}
                         onSubmit={handleSubmit}

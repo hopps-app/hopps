@@ -355,7 +355,9 @@
         },
         "paidLabel": {
             "yes": "Ja",
-            "no": "Nein"
+            "no": "Nein",
+            "paid": "Bezahlt",
+            "unpaid": "Unbezahlt"
         },
         "emptyState": {
             "title": "Noch keine Belege hochgeladen",
