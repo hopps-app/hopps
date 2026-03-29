@@ -16,8 +16,8 @@ type ReceiptRowProps = {
 };
 
 const statusStyles: Record<Receipt['status'], string> = {
-    draft: 'bg-gray-100 text-gray-600 border-[#A7A7A7]',
-    saved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    draft: 'bg-gray-100 text-gray-600 border-[#A7A7A7] dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600',
+    saved: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
 };
 
 const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, onDelete }) => {
@@ -85,10 +85,10 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
     return (
         <div
             className={cn(
-                'group rounded-2xl border bg-white shadow-sm transition-all duration-200 overflow-hidden',
+                'group rounded-2xl border bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)] shadow-sm transition-all duration-200 overflow-hidden',
                 isExpanded
                     ? 'border-[var(--purple-300)] border-l-[3px] border-l-[var(--purple-500)]'
-                    : 'border-[#E0E0E0] hover:border-primary hover:ring-primary',
+                    : 'border-[#E0E0E0] dark:border-gray-700 hover:border-primary hover:ring-primary',
                 isUnassigned && !isDraft && !isExpanded && 'border-l-[3px] border-l-amber-400'
             )}
         >
@@ -158,7 +158,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                     <span
                         className={cn(
                             'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap',
-                            receipt.privatelyPaid ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            receipt.privatelyPaid ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
                         )}
                     >
                         {receipt.privatelyPaid ? t('receipts.paidLabel.no') : t('receipts.paidLabel.yes')}
@@ -174,7 +174,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         <button
                             type="button"
                             onClick={handleDelete}
-                            className="rounded-lg text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all"
+                            className="rounded-lg text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-950 transition-all"
                             aria-label={t('receipts.deleteDialog.title')}
                         >
                             <Trash2 className="w-4 h-4" />
@@ -238,7 +238,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                             <span
                                 className={cn(
                                     'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium',
-                                    receipt.privatelyPaid ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    receipt.privatelyPaid ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
                                 )}
                             >
                                 {receipt.privatelyPaid ? t('receipts.paidLabel.no') : t('receipts.paidLabel.yes')}
@@ -251,7 +251,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         <button
                             type="button"
                             onClick={handleDelete}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                            className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-950 transition-all"
                             aria-label={t('receipts.deleteDialog.title')}
                         >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -266,7 +266,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                 <div className="mx-5 border-t border-[var(--purple-200)]" />
 
                 <div className="px-5 pb-4 pt-3">
-                    <div className="rounded-[10px] bg-white p-2 space-y-3">
+                    <div className="rounded-[10px] bg-white dark:bg-[var(--purple-100)] p-2 space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                             {receipt.reference && (
                                 <div>
@@ -291,7 +291,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         {(receipt.area || receipt.tags.length > 0) && (
                             <div className="flex flex-wrap items-center gap-2 pt-1">
                                 {receipt.area && (
-                                    <span className="bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                    <span className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                         {t(`receipts.areas.${receipt.area.toLowerCase()}`)}
                                     </span>
                                 )}
