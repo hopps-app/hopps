@@ -82,7 +82,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }} # tags from the docker/metadata-action
 
       - name: Trigger deploy workflow
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         # only trigger deployment on main
         if: ${{ github.ref == 'refs/heads/main' }}
         with:

@@ -93,7 +93,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/frontend:${{ env.VERSION }}
 
       - name: Trigger deploy workflow
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         # only trigger deployment on main
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
