@@ -17,7 +17,7 @@
     "license": "MIT",
     "keywords": [],
     "dependencies": {
-        "@keycloak/keycloak-admin-client": "26.5.6",
+        "@keycloak/keycloak-admin-client": "26.5.7",
         "@keycloakify/keycloak-account-ui": "26.0.0-rc.2",
         "@patternfly/patternfly": "^5.4.0",
         "@patternfly/react-core": "^5.4.1",
