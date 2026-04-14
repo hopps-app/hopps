@@ -1,5 +1,5 @@
 import { CalendarIcon, CheckIcon, ChevronDownIcon } from '@radix-ui/react-icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { de, enUS, uk } from 'date-fns/locale';
 import { RefreshCw, X } from 'lucide-react';
@@ -13,10 +13,10 @@ import Emoji from '@/components/ui/Emoji';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { Calendar } from '@/components/ui/shadecn/Calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/shadecn/Popover';
+import { transactionKeys, useTransactions } from '@/hooks/queries/useTransactions';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
-import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 import { getUserFriendlyErrorMessage, isNetworkError } from '@/utils/errorUtils';
@@ -117,32 +117,14 @@ function DashboardView() {
 
     const isDefaultRange = startDate === getDefaultStartDate() && endDate === getDefaultEndDate() && selectedBommelId === rootBommel?.id;
 
+    // Root bommel means "whole organization" - omit bommelId so the backend returns all transactions
+    const effectiveBommelId = selectedBommelId === rootBommel?.id ? undefined : selectedBommelId;
+
+    const transactionFilters = useMemo(() => ({ bommelId: effectiveBommelId, startDate, endDate, size: 10000 }), [effectiveBommelId, startDate, endDate]);
+
     const queryClient = useQueryClient();
 
-    // Fetch all transactions for the selected date range
-    const {
-        data: transactions,
-        isLoading,
-        error,
-        isFetching,
-    } = useQuery({
-        queryKey: ['transactions', organization?.id, selectedBommelId, startDate, endDate],
-        queryFn: () =>
-            apiService.orgService.transactionsAll(
-                undefined, // area
-                selectedBommelId, // bommelId
-                undefined, // categoryId
-                undefined, // detached
-                endDate, // endDate
-                undefined, // page
-                undefined, // privatelyPaid
-                undefined, // search
-                10000, // size - large enough to get all transactions
-                startDate, // startDate
-                undefined // status
-            ),
-        enabled: !!organization?.id,
-    });
+    const { data: transactions, isLoading, error, isFetching } = useTransactions(transactionFilters);
 
     // Aggregate transactions by month
     const chartData = useMemo(() => {
@@ -363,9 +345,7 @@ function DashboardView() {
                             size="sm"
                             data-testid="dashboard-retry-button"
                             disabled={isFetching}
-                            onClick={() =>
-                                queryClient.invalidateQueries({ queryKey: ['transactions', organization?.id, selectedBommelId, startDate, endDate] })
-                            }
+                            onClick={() => queryClient.invalidateQueries({ queryKey: transactionKeys.list(transactionFilters) })}
                             className="gap-2"
                         >
                             <RefreshCw className={cn('h-4 w-4', isFetching && 'animate-spin')} />
