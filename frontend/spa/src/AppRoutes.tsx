@@ -23,6 +23,10 @@ const CategoriesSettingsView = lazy(() => import('./components/views/CategoriesS
 const OrganizationDetailsSettingsView = lazy(() => import('./components/views/OrganizationDetailsSettingsView'));
 const ReceiptView = lazy(() => import('@/components/views/ReceiptView'));
 const DebugErrorView = lazy(() => import('@/components/views/DebugErrorView'));
+const BankAccountsView = lazy(() => import('@/components/views/BankAccountsView').then((m) => ({ default: m.BankAccountsView })));
+const BankAccountDetailView = lazy(() => import('@/components/views/BankAccountDetailView').then((m) => ({ default: m.BankAccountDetailView })));
+const BankImportView = lazy(() => import('@/components/views/BankImportView').then((m) => ({ default: m.BankImportView })));
+const BankSchemasView = lazy(() => import('@/components/views/BankSchemasView').then((m) => ({ default: m.BankSchemasView })));
 
 function LazyRoute({ children }: { children: React.ReactNode }) {
     return <Suspense fallback={<LoadingState className="py-12" />}>{children}</Suspense>;
@@ -99,6 +103,40 @@ export default function AppRoutes() {
                     element={
                         <LazyRoute>
                             <ReceiptView />
+                        </LazyRoute>
+                    }
+                />
+
+                {/* bank accounts */}
+                <Route
+                    path="/bank-accounts"
+                    element={
+                        <LazyRoute>
+                            <BankAccountsView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
+                    path="/bank-accounts/:id"
+                    element={
+                        <LazyRoute>
+                            <BankAccountDetailView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
+                    path="/bank-accounts/:id/import"
+                    element={
+                        <LazyRoute>
+                            <BankImportView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
+                    path="/bank-schemas"
+                    element={
+                        <LazyRoute>
+                            <BankSchemasView />
                         </LazyRoute>
                     }
                 />

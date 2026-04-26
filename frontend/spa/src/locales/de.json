@@ -26,7 +26,8 @@
         "delete": "Löschen",
         "loading": "Wird geladen...",
         "validationError": "Bitte füllen Sie alle Pflichtfelder aus",
-        "unsavedChangesWarning": "Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?"
+        "unsavedChangesWarning": "Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?",
+        "next": "Weiter"
     },
     "notFound": {
         "title": "404 - Seite nicht gefunden",
@@ -320,6 +321,7 @@
         "expense": "Ausgabe",
         "intake": "Einnahme",
         "structure": "Bommel Struktur",
+        "bankAccounts": "Bankkonten",
         "admin": "Admin",
         "ngo-details": "Organisation",
         "categories": "Kategorien",
@@ -560,5 +562,210 @@
         "cancel": "Abbrechen",
         "no": "Nein",
         "yes": "Ja"
+    },
+    "bankAccounts": {
+        "title": "Bankkonten",
+        "subtitle": "Verwalten Sie Ihre Bankkonten und importieren Sie Kontoauszüge.",
+        "newAccount": "Neues Konto",
+        "manageSchemas": "Schemas verwalten",
+        "notFound": "Bankkonto nicht gefunden",
+        "card": {
+            "schema": "Schema"
+        },
+        "emptyState": {
+            "title": "Noch keine Bankkonten",
+            "description": "Fügen Sie Ihr erstes Bankkonto hinzu, um Kontoauszüge zu importieren."
+        },
+        "form": {
+            "createTitle": "Bankkonto erstellen",
+            "editTitle": "Bankkonto bearbeiten",
+            "name": "Kontoname",
+            "namePlaceholder": "z. B. Vereinskonto",
+            "iban": "IBAN",
+            "bic": "BIC",
+            "bankName": "Bankname",
+            "currency": "Währung",
+            "currencyPlaceholder": "Währung auswählen",
+            "openingBalance": "Eröffnungssaldo",
+            "color": "Farbe (Hex)",
+            "colorPicker": "Farbe auswählen",
+            "defaultSchema": "Standard-Schema",
+            "defaultSchemaPlaceholder": "Schema auswählen",
+            "noSchema": "Kein Schema",
+            "description": "Beschreibung",
+            "validation": {
+                "nameRequired": "Kontoname ist erforderlich",
+                "currencyRequired": "Währung ist erforderlich",
+                "colorInvalid": "Ungültige Farbe. Bitte verwenden Sie ein #RRGGBB-Format"
+            }
+        },
+        "table": {
+            "bookingDate": "Buchungsdatum",
+            "counterpartyName": "Auftraggeber/Empfänger",
+            "purpose": "Verwendungszweck",
+            "amount": "Betrag",
+            "status": "Status"
+        },
+        "transactions": {
+            "title": "Transaktionen",
+            "empty": "Keine Transaktionen vorhanden",
+            "export": "Exportieren"
+        },
+        "toast": {
+            "createSuccess": "Bankkonto erfolgreich erstellt",
+            "createError": "Fehler beim Erstellen des Bankkontos",
+            "updateSuccess": "Bankkonto erfolgreich aktualisiert",
+            "updateError": "Fehler beim Aktualisieren des Bankkontos",
+            "archiveSuccess": "Bankkonto archiviert",
+            "archiveError": "Fehler beim Archivieren des Bankkontos",
+            "restoreSuccess": "Bankkonto wiederhergestellt",
+            "restoreError": "Fehler beim Wiederherstellen des Bankkontos"
+        }
+    },
+    "bankImport": {
+        "title": "Kontoauszug importieren",
+        "startImport": "Importieren",
+        "status": {
+            "QUEUED": "In Warteschlange",
+            "PROCESSING": "Wird verarbeitet",
+            "COMPLETED": "Abgeschlossen",
+            "PARTIAL": "Teilweise importiert",
+            "FAILED": "Fehlgeschlagen",
+            "UNKNOWN": "Unbekannt"
+        },
+        "wizard": {
+            "stepFile": "Datei",
+            "stepSchema": "Schema",
+            "stepConfirm": "Bestätigen",
+            "stepProgress": "Fortschritt",
+            "stepResult": "Ergebnis",
+            "fileTitle": "CSV-Datei hochladen",
+            "fileDrop": "Datei hier ablegen oder klicken",
+            "fileDropHint": "Unterstützte Formate: .csv, .txt",
+            "fileDropReplace": "Klicken oder erneut ablegen, um die Datei zu ersetzen",
+            "schemaTitle": "Import-Schema auswählen",
+            "schemaSelect": "Schema",
+            "schemaPlaceholder": "Schema auswählen",
+            "schemaGroupOrg": "Meine Schemata",
+            "schemaGroupTemplates": "Vorlagen",
+            "previewButton": "Vorschau anzeigen",
+            "previewError": "Fehler beim Laden der Vorschau",
+            "confirmTitle": "Import bestätigen",
+            "startImport": "Import starten"
+        },
+        "preview": {
+            "encoding": "Kodierung",
+            "delimiter": "Trennzeichen",
+            "totalLines": "Zeilen gesamt"
+        },
+        "confirm": {
+            "schema": "Schema",
+            "encoding": "Kodierung",
+            "totalLines": "Zeilen gesamt",
+            "account": "Konto"
+        },
+        "progress": {
+            "processing": "Import wird verarbeitet...",
+            "rows": "{{imported}} von {{total}} Zeilen importiert"
+        },
+        "result": {
+            "success": "Import erfolgreich abgeschlossen!",
+            "partial": "Import teilweise abgeschlossen",
+            "failed": "Import fehlgeschlagen",
+            "imported": "Importierte Zeilen",
+            "duplicates": "Duplikate",
+            "errors": "Fehler",
+            "backToAccount": "Zurück zum Konto",
+            "viewTransactions": "Transaktionen anzeigen"
+        },
+        "history": {
+            "title": "Import-Verlauf",
+            "empty": "Noch keine Importe",
+            "fileName": "Dateiname",
+            "status": "Status",
+            "progress": "Fortschritt",
+            "imported": "Importiert",
+            "duplicates": "Duplikate",
+            "errors": "Fehler",
+            "finishedAt": "Abgeschlossen",
+            "actions": "Aktionen"
+        },
+        "rollback": {
+            "button": "Rückgängig",
+            "confirm": "Möchten Sie diesen Import wirklich rückgängig machen? Alle importierten Transaktionen werden gelöscht."
+        },
+        "toast": {
+            "rollbackSuccess": "Import erfolgreich rückgängig gemacht",
+            "rollbackError": "Fehler beim Rückgängigmachen des Imports"
+        }
+    },
+    "bankSchema": {
+        "title": "Import-Schemas",
+        "subtitle": "Definieren Sie CSV-Importschemas für verschiedene Banken.",
+        "newSchema": "Neues Schema",
+        "showArchived": "Archivierte anzeigen",
+        "hideArchived": "Archivierte ausblenden",
+        "archived": "Archiviert",
+        "systemTemplate": "Systemvorlage",
+        "systemTemplates": "Systemvorlagen",
+        "archive": "Archivieren",
+        "restore": "Wiederherstellen",
+        "deleteConfirm": "Möchten Sie das Schema '{{name}}' wirklich löschen?",
+        "card": {
+            "delimiter": "Trennzeichen"
+        },
+        "emptyState": {
+            "title": "Noch keine Schemas",
+            "description": "Erstellen Sie ein Import-Schema für Ihre Bank, um Kontoauszüge zu importieren."
+        },
+        "amountStrategy": {
+            "SIGNED_SINGLE_COLUMN": "Vorzeichenbehaftete Einzelspalte",
+            "DEBIT_CREDIT_COLUMNS": "Soll/Haben-Spalten",
+            "AMOUNT_PLUS_TYPE_COLUMN": "Betrag + Typ-Spalte"
+        },
+        "form": {
+            "createTitle": "Neues Import-Schema",
+            "editTitle": "Schema bearbeiten",
+            "startFromTemplate": "Aus Vorlage starten",
+            "templatePlaceholder": "Vorlage auswählen...",
+            "name": "Name",
+            "bankIdentifier": "Bankkennung",
+            "delimiter": "Trennzeichen",
+            "encoding": "Zeichenkodierung",
+            "skipLines": "Zeilen überspringen",
+            "hasHeader": "Kopfzeile",
+            "hasHeaderLabel": "Erste Zeile ist Kopfzeile",
+            "dateFormat": "Datumsformat",
+            "decimalSeparator": "Dezimaltrennzeichen",
+            "thousandSeparator": "Tausendertrennzeichen",
+            "amountStrategy": "Betragsstrategie",
+            "amountTypePositiveValues": "Positive Typwerte",
+            "amountTypePositiveValuesHint": "Kommagetrennte Werte, die einen Haben-Umsatz kennzeichnen",
+            "columnMappings": "Spaltenzuordnungen",
+            "addMapping": "Zuordnung hinzufügen",
+            "noMappings": "Noch keine Spaltenzuordnungen",
+            "mapping": "Zuordnung",
+            "targetField": "Zielfeld",
+            "targetFieldPlaceholder": "Feld auswählen",
+            "sourceColumnIndex": "Quellspaltenindex",
+            "sourceColumnName": "Quellspaltenname",
+            "transform": "Transformation",
+            "removeMapping": "Zuordnung entfernen",
+            "validation": {
+                "nameRequired": "Schema-Name ist erforderlich"
+            }
+        },
+        "toast": {
+            "createSuccess": "Schema erfolgreich erstellt",
+            "createError": "Fehler beim Erstellen des Schemas",
+            "updateSuccess": "Schema erfolgreich aktualisiert",
+            "updateError": "Fehler beim Aktualisieren des Schemas",
+            "deleteSuccess": "Schema erfolgreich gelöscht",
+            "deleteError": "Fehler beim Löschen des Schemas",
+            "archiveSuccess": "Schema archiviert",
+            "archiveError": "Fehler beim Archivieren des Schemas",
+            "restoreSuccess": "Schema wiederhergestellt",
+            "restoreError": "Fehler beim Wiederherstellen des Schemas"
+        }
     }
 }

@@ -20,6 +20,12 @@ export const menuConfig: MenuItem[] = [
         path: '/structure',
     },
     {
+        id: 'bank-accounts',
+        label: 'menu.bankAccounts',
+        icon: 'CardStack',
+        path: '/bank-accounts',
+    },
+    {
         id: 'ngo-details',
         label: 'menu.ngo-details',
         icon: 'Person',

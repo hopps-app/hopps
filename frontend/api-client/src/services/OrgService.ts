@@ -15,7 +15,1290 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
+
+    /**
+     * List bank CSV schemas
+     * @param includeArchived (optional) Include archived schemas
+     * @return List of schemas
+     */
+    bankSchemasAll(includeArchived: boolean | undefined): Promise<BankCsvSchemaResponse[]> {
+        let url_ = this.baseUrl + "/bank-schemas?";
+        if (includeArchived === null)
+            throw new Error("The parameter 'includeArchived' cannot be null.");
+        else if (includeArchived !== undefined)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankSchemasAll(_response);
+        });
+    }
+
+    protected processBankSchemasAll(response: Response): Promise<BankCsvSchemaResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankCsvSchemaResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankCsvSchemaResponse[]>(null as any);
+    }
+
+    /**
+     * Create a CSV schema
+     * @param fromTemplate (optional) Optional template ID to clone defaults from (e.g. "sparkasse-camt-v8")
+     * @return Schema created
+     */
+    bankSchemasPOST(fromTemplate: string | undefined, body: BankCsvSchemaCreateRequest): Promise<BankCsvSchemaResponse> {
+        let url_ = this.baseUrl + "/bank-schemas?";
+        if (fromTemplate === null)
+            throw new Error("The parameter 'fromTemplate' cannot be null.");
+        else if (fromTemplate !== undefined)
+            url_ += "fromTemplate=" + encodeURIComponent("" + fromTemplate) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankSchemasPOST(_response);
+        });
+    }
+
+    protected processBankSchemasPOST(response: Response): Promise<BankCsvSchemaResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = BankCsvSchemaResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input (missing required mappings, invalid amountStrategy combination)", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Template not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankCsvSchemaResponse>(null as any);
+    }
+
+    /**
+     * List system CSV templates
+     * @return List of system templates
+     */
+    templates(): Promise<BankCsvSchemaTemplateResponse[]> {
+        let url_ = this.baseUrl + "/bank-schemas/templates";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTemplates(_response);
+        });
+    }
+
+    protected processTemplates(response: Response): Promise<BankCsvSchemaTemplateResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankCsvSchemaTemplateResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankCsvSchemaTemplateResponse[]>(null as any);
+    }
+
+    /**
+     * Update a CSV schema
+     * @param id Schema ID
+     * @return Schema updated
+     */
+    bankSchemasPATCH(id: number, body: BankCsvSchemaUpdateRequest): Promise<BankCsvSchemaResponse> {
+        let url_ = this.baseUrl + "/bank-schemas/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankSchemasPATCH(_response);
+        });
+    }
+
+    protected processBankSchemasPATCH(response: Response): Promise<BankCsvSchemaResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankCsvSchemaResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Schema not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankCsvSchemaResponse>(null as any);
+    }
+
+    /**
+     * Get a CSV schema
+     * @param id Schema ID
+     * @return Schema found
+     */
+    bankSchemasGET(id: number): Promise<BankCsvSchemaResponse> {
+        let url_ = this.baseUrl + "/bank-schemas/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankSchemasGET(_response);
+        });
+    }
+
+    protected processBankSchemasGET(response: Response): Promise<BankCsvSchemaResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankCsvSchemaResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Schema not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankCsvSchemaResponse>(null as any);
+    }
+
+    /**
+     * Delete a CSV schema
+     * @param id Schema ID
+     * @return Schema deleted
+     */
+    bankSchemasDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/bank-schemas/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankSchemasDELETE(_response);
+        });
+    }
+
+    protected processBankSchemasDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Schema is referenced and cannot be deleted", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Schema not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Archive a CSV schema
+     * @param id Schema ID
+     * @return Schema archived
+     */
+    archive(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/bank-schemas/{id}/archive";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchive(_response);
+        });
+    }
+
+    protected processArchive(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Schema not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Restore an archived schema
+     * @param id Schema ID
+     * @return Schema restored
+     */
+    restore(id: number): Promise<BankCsvSchemaResponse> {
+        let url_ = this.baseUrl + "/bank-schemas/{id}/restore";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestore(_response);
+        });
+    }
+
+    protected processRestore(response: Response): Promise<BankCsvSchemaResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankCsvSchemaResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Schema not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankCsvSchemaResponse>(null as any);
+    }
+
+    /**
+     * List bank transactions
+     * @param accountIds (optional) Comma-separated bank account IDs (omit for all accounts)
+     * @param dateFrom (optional) Booking date inclusive (ISO-8601)
+     * @param dateTo (optional) Booking date inclusive (ISO-8601)
+     * @param page (optional) Page index (0-based)
+     * @param search (optional) Substring match on purpose / counterparty name
+     * @param size (optional) Page size
+     * @param status (optional) Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)
+     * @return List of transactions
+     */
+    bankTransactionsAll(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
+        let url_ = this.baseUrl + "/bank-transactions?";
+        if (accountIds === null)
+            throw new Error("The parameter 'accountIds' cannot be null.");
+        else if (accountIds !== undefined)
+            url_ += "accountIds=" + encodeURIComponent("" + accountIds) + "&";
+        if (dateFrom === null)
+            throw new Error("The parameter 'dateFrom' cannot be null.");
+        else if (dateFrom !== undefined)
+            url_ += "dateFrom=" + encodeURIComponent("" + dateFrom) + "&";
+        if (dateTo === null)
+            throw new Error("The parameter 'dateTo' cannot be null.");
+        else if (dateTo !== undefined)
+            url_ += "dateTo=" + encodeURIComponent("" + dateTo) + "&";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (search === null)
+            throw new Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (size === null)
+            throw new Error("The parameter 'size' cannot be null.");
+        else if (size !== undefined)
+            url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (status === null)
+            throw new Error("The parameter 'status' cannot be null.");
+        else if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankTransactionsAll(_response);
+        });
+    }
+
+    protected processBankTransactionsAll(response: Response): Promise<BankTransactionResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankTransactionResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankTransactionResponse[]>(null as any);
+    }
+
+    /**
+     * Aggregate totals
+     * @param accountIds (optional) 
+     * @param dateFrom (optional) 
+     * @param dateTo (optional) 
+     * @param search (optional) 
+     * @param status (optional) 
+     * @return Aggregated totals
+     */
+    aggregate(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, search: string | undefined, status: string | undefined): Promise<BankTransactionAggregateResponse> {
+        let url_ = this.baseUrl + "/bank-transactions/aggregate?";
+        if (accountIds === null)
+            throw new Error("The parameter 'accountIds' cannot be null.");
+        else if (accountIds !== undefined)
+            url_ += "accountIds=" + encodeURIComponent("" + accountIds) + "&";
+        if (dateFrom === null)
+            throw new Error("The parameter 'dateFrom' cannot be null.");
+        else if (dateFrom !== undefined)
+            url_ += "dateFrom=" + encodeURIComponent("" + dateFrom) + "&";
+        if (dateTo === null)
+            throw new Error("The parameter 'dateTo' cannot be null.");
+        else if (dateTo !== undefined)
+            url_ += "dateTo=" + encodeURIComponent("" + dateTo) + "&";
+        if (search === null)
+            throw new Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (status === null)
+            throw new Error("The parameter 'status' cannot be null.");
+        else if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAggregate(_response);
+        });
+    }
+
+    protected processAggregate(response: Response): Promise<BankTransactionAggregateResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankTransactionAggregateResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankTransactionAggregateResponse>(null as any);
+    }
+
+    /**
+     * List transactions of one account
+     * @param accountId Bank account ID
+     * @param dateFrom (optional) 
+     * @param dateTo (optional) 
+     * @param page (optional) 
+     * @param search (optional) 
+     * @param size (optional) 
+     * @param status (optional) 
+     * @return List of transactions
+     */
+    byAccount(accountId: number, dateFrom: string | undefined, dateTo: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
+        let url_ = this.baseUrl + "/bank-transactions/by-account/{accountId}?";
+        if (accountId === undefined || accountId === null)
+            throw new Error("The parameter 'accountId' must be defined.");
+        url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        if (dateFrom === null)
+            throw new Error("The parameter 'dateFrom' cannot be null.");
+        else if (dateFrom !== undefined)
+            url_ += "dateFrom=" + encodeURIComponent("" + dateFrom) + "&";
+        if (dateTo === null)
+            throw new Error("The parameter 'dateTo' cannot be null.");
+        else if (dateTo !== undefined)
+            url_ += "dateTo=" + encodeURIComponent("" + dateTo) + "&";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (search === null)
+            throw new Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (size === null)
+            throw new Error("The parameter 'size' cannot be null.");
+        else if (size !== undefined)
+            url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (status === null)
+            throw new Error("The parameter 'status' cannot be null.");
+        else if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processByAccount(_response);
+        });
+    }
+
+    protected processByAccount(response: Response): Promise<BankTransactionResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankTransactionResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankTransactionResponse[]>(null as any);
+    }
+
+    /**
+     * Get a bank transaction
+     * @param id Bank transaction ID
+     * @return Transaction found
+     */
+    bankTransactions(id: number): Promise<BankTransactionResponse> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankTransactions(_response);
+        });
+    }
+
+    protected processBankTransactions(response: Response): Promise<BankTransactionResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankTransactionResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankTransactionResponse>(null as any);
+    }
+
+    /**
+     * List bank accounts
+     * @param includeArchived (optional) Include archived (soft-deleted) accounts
+     * @return List of bank accounts
+     */
+    bankaccountsAll(includeArchived: boolean | undefined): Promise<BankAccountResponse[]> {
+        let url_ = this.baseUrl + "/bankaccounts?";
+        if (includeArchived === null)
+            throw new Error("The parameter 'includeArchived' cannot be null.");
+        else if (includeArchived !== undefined)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankaccountsAll(_response);
+        });
+    }
+
+    protected processBankaccountsAll(response: Response): Promise<BankAccountResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankAccountResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankAccountResponse[]>(null as any);
+    }
+
+    /**
+     * Create a bank account
+     * @return Bank account created
+     */
+    bankaccountsPOST(body: BankAccountCreateRequest): Promise<BankAccountResponse> {
+        let url_ = this.baseUrl + "/bankaccounts";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankaccountsPOST(_response);
+        });
+    }
+
+    protected processBankaccountsPOST(response: Response): Promise<BankAccountResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = BankAccountResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input (e.g. duplicate IBAN, invalid IBAN format)", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankAccountResponse>(null as any);
+    }
+
+    /**
+     * List imports for a bank account
+     * @param accountId Bank account ID
+     * @param limit (optional) Maximum number of imports returned (newest first)
+     * @return Import history
+     */
+    importsAll(accountId: number, limit: number | undefined): Promise<BankImportResponse[]> {
+        let url_ = this.baseUrl + "/bankaccounts/{accountId}/imports?";
+        if (accountId === undefined || accountId === null)
+            throw new Error("The parameter 'accountId' must be defined.");
+        url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        if (limit === null)
+            throw new Error("The parameter 'limit' cannot be null.");
+        else if (limit !== undefined)
+            url_ += "limit=" + encodeURIComponent("" + limit) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImportsAll(_response);
+        });
+    }
+
+    protected processImportsAll(response: Response): Promise<BankImportResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankImportResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankImportResponse[]>(null as any);
+    }
+
+    /**
+     * Queue a CSV import
+     * @param accountId Bank account ID
+     * @param file (optional) 
+     * @param schemaId (optional) 
+     * @return Import queued
+     */
+    importsPOST(accountId: number, file: FileParameter | undefined, schemaId: number | undefined): Promise<BankImportResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{accountId}/imports";
+        if (accountId === undefined || accountId === null)
+            throw new Error("The parameter 'accountId' must be defined.");
+        url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+        if (schemaId === null || schemaId === undefined)
+            throw new Error("The parameter 'schemaId' cannot be null.");
+        else
+            content_.append("schemaId", schemaId.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImportsPOST(_response);
+        });
+    }
+
+    protected processImportsPOST(response: Response): Promise<BankImportResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 202) {
+            return response.text().then((_responseText) => {
+            let result202: any = null;
+            let resultData202 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result202 = BankImportResponse.fromJS(resultData202);
+            return result202;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("File missing, schemaId missing, or duplicate file already queued", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Account or schema not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankImportResponse>(null as any);
+    }
+
+    /**
+     * Preview an uploaded CSV
+     * @param accountId Bank account ID
+     * @param file (optional) 
+     * @return Preview generated
+     */
+    preview(accountId: number, file: FileParameter | undefined): Promise<CsvPreviewResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{accountId}/imports/preview";
+        if (accountId === undefined || accountId === null)
+            throw new Error("The parameter 'accountId' must be defined.");
+        url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPreview(_response);
+        });
+    }
+
+    protected processPreview(response: Response): Promise<CsvPreviewResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CsvPreviewResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("File missing or unreadable", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CsvPreviewResponse>(null as any);
+    }
+
+    /**
+     * Update a bank account
+     * @param id Bank account ID
+     * @return Bank account updated
+     */
+    bankaccountsPATCH(id: number, body: BankAccountUpdateRequest): Promise<BankAccountResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankaccountsPATCH(_response);
+        });
+    }
+
+    protected processBankaccountsPATCH(response: Response): Promise<BankAccountResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankAccountResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankAccountResponse>(null as any);
+    }
+
+    /**
+     * Get a bank account
+     * @param id Bank account ID
+     * @return Bank account found
+     */
+    bankaccountsGET(id: number): Promise<BankAccountResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankaccountsGET(_response);
+        });
+    }
+
+    protected processBankaccountsGET(response: Response): Promise<BankAccountResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankAccountResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankAccountResponse>(null as any);
+    }
+
+    /**
+     * Archive a bank account
+     * @param id Bank account ID
+     * @return Bank account archived
+     */
+    bankaccountsDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/bankaccounts/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processBankaccountsDELETE(_response);
+        });
+    }
+
+    protected processBankaccountsDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Restore an archived bank account
+     * @param id Bank account ID
+     * @return Bank account restored
+     */
+    restore2(id: number): Promise<BankAccountResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{id}/restore";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestore2(_response);
+        });
+    }
+
+    protected processRestore2(response: Response): Promise<BankAccountResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankAccountResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankAccountResponse>(null as any);
     }
 
     /**
@@ -1155,6 +2438,114 @@ export class Client {
     }
 
     /**
+     * Rollback an import
+     * @param id Import ID
+     * @return Import rolled back
+     */
+    importsDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/imports/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImportsDELETE(_response);
+        });
+    }
+
+    protected processImportsDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Import is still QUEUED or PROCESSING", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Import not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Get import status
+     * @param id Import ID
+     * @return Import status
+     */
+    importsGET(id: number): Promise<BankImportResponse> {
+        let url_ = this.baseUrl + "/imports/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImportsGET(_response);
+        });
+    }
+
+    protected processImportsGET(response: Response): Promise<BankImportResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BankImportResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Import not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankImportResponse>(null as any);
+    }
+
+    /**
      * Validates the member input
      * @return Validation successful
      */
@@ -2229,7 +3620,1255 @@ export interface IAddress {
     [key: string]: any;
 }
 
+export type AmountStrategy = "SIGNED_SINGLE_COLUMN" | "DEBIT_CREDIT_COLUMNS" | "AMOUNT_PLUS_TYPE_COLUMN";
+
 export type AnalysisStatus = "PENDING" | "ANALYZING" | "COMPLETED" | "FAILED" | "SKIPPED";
+
+export class BankAccountCreateRequest implements IBankAccountCreateRequest {
+    name!: string;
+    iban!: string;
+    bic?: string;
+    bankName?: string;
+    accountHolder?: string;
+    currency?: string;
+    openingBalance?: number;
+    openingBalanceDate?: Date;
+    description?: string;
+    color?: string;
+    defaultSchemaId?: number;
+    bommelId?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IBankAccountCreateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.iban = _data["iban"];
+            this.bic = _data["bic"];
+            this.bankName = _data["bankName"];
+            this.accountHolder = _data["accountHolder"];
+            this.currency = _data["currency"];
+            this.openingBalance = _data["openingBalance"];
+            this.openingBalanceDate = _data["openingBalanceDate"] ? new Date(_data["openingBalanceDate"].toString()) : <any>undefined;
+            this.description = _data["description"];
+            this.color = _data["color"];
+            this.defaultSchemaId = _data["defaultSchemaId"];
+            this.bommelId = _data["bommelId"];
+        }
+    }
+
+    static fromJS(data: any): BankAccountCreateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankAccountCreateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["iban"] = this.iban;
+        data["bic"] = this.bic;
+        data["bankName"] = this.bankName;
+        data["accountHolder"] = this.accountHolder;
+        data["currency"] = this.currency;
+        data["openingBalance"] = this.openingBalance;
+        data["openingBalanceDate"] = this.openingBalanceDate ? formatDate(this.openingBalanceDate) : <any>undefined;
+        data["description"] = this.description;
+        data["color"] = this.color;
+        data["defaultSchemaId"] = this.defaultSchemaId;
+        data["bommelId"] = this.bommelId;
+        return data;
+    }
+
+    clone(): BankAccountCreateRequest {
+        const json = this.toJSON();
+        let result = new BankAccountCreateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankAccountCreateRequest {
+    name: string;
+    iban: string;
+    bic?: string;
+    bankName?: string;
+    accountHolder?: string;
+    currency?: string;
+    openingBalance?: number;
+    openingBalanceDate?: Date;
+    description?: string;
+    color?: string;
+    defaultSchemaId?: number;
+    bommelId?: number;
+
+    [key: string]: any;
+}
+
+export class BankAccountResponse implements IBankAccountResponse {
+    id?: number;
+    organizationId?: number;
+    bommelId?: number;
+    bommelName?: string;
+    name?: string;
+    iban?: string;
+    bic?: string;
+    bankName?: string;
+    accountHolder?: string;
+    currency?: string;
+    openingBalance?: number;
+    openingBalanceDate?: Date;
+    description?: string;
+    color?: string;
+    defaultSchemaId?: number;
+    defaultSchemaName?: string;
+    archived?: boolean;
+    archivedAt?: Date;
+    createdBy?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IBankAccountResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.organizationId = _data["organizationId"];
+            this.bommelId = _data["bommelId"];
+            this.bommelName = _data["bommelName"];
+            this.name = _data["name"];
+            this.iban = _data["iban"];
+            this.bic = _data["bic"];
+            this.bankName = _data["bankName"];
+            this.accountHolder = _data["accountHolder"];
+            this.currency = _data["currency"];
+            this.openingBalance = _data["openingBalance"];
+            this.openingBalanceDate = _data["openingBalanceDate"] ? new Date(_data["openingBalanceDate"].toString()) : <any>undefined;
+            this.description = _data["description"];
+            this.color = _data["color"];
+            this.defaultSchemaId = _data["defaultSchemaId"];
+            this.defaultSchemaName = _data["defaultSchemaName"];
+            this.archived = _data["archived"];
+            this.archivedAt = _data["archivedAt"] ? new Date(_data["archivedAt"].toString()) : <any>undefined;
+            this.createdBy = _data["createdBy"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): BankAccountResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankAccountResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["organizationId"] = this.organizationId;
+        data["bommelId"] = this.bommelId;
+        data["bommelName"] = this.bommelName;
+        data["name"] = this.name;
+        data["iban"] = this.iban;
+        data["bic"] = this.bic;
+        data["bankName"] = this.bankName;
+        data["accountHolder"] = this.accountHolder;
+        data["currency"] = this.currency;
+        data["openingBalance"] = this.openingBalance;
+        data["openingBalanceDate"] = this.openingBalanceDate ? formatDate(this.openingBalanceDate) : <any>undefined;
+        data["description"] = this.description;
+        data["color"] = this.color;
+        data["defaultSchemaId"] = this.defaultSchemaId;
+        data["defaultSchemaName"] = this.defaultSchemaName;
+        data["archived"] = this.archived;
+        data["archivedAt"] = this.archivedAt ? this.archivedAt.toISOString() : <any>undefined;
+        data["createdBy"] = this.createdBy;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): BankAccountResponse {
+        const json = this.toJSON();
+        let result = new BankAccountResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankAccountResponse {
+    id?: number;
+    organizationId?: number;
+    bommelId?: number;
+    bommelName?: string;
+    name?: string;
+    iban?: string;
+    bic?: string;
+    bankName?: string;
+    accountHolder?: string;
+    currency?: string;
+    openingBalance?: number;
+    openingBalanceDate?: Date;
+    description?: string;
+    color?: string;
+    defaultSchemaId?: number;
+    defaultSchemaName?: string;
+    archived?: boolean;
+    archivedAt?: Date;
+    createdBy?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    [key: string]: any;
+}
+
+export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
+    name?: string;
+    iban?: string;
+    bic?: string;
+    bankName?: string;
+    accountHolder?: string;
+    currency?: string;
+    openingBalance?: number;
+    openingBalanceDate?: Date;
+    description?: string;
+    color?: string;
+    defaultSchemaId?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IBankAccountUpdateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.iban = _data["iban"];
+            this.bic = _data["bic"];
+            this.bankName = _data["bankName"];
+            this.accountHolder = _data["accountHolder"];
+            this.currency = _data["currency"];
+            this.openingBalance = _data["openingBalance"];
+            this.openingBalanceDate = _data["openingBalanceDate"] ? new Date(_data["openingBalanceDate"].toString()) : <any>undefined;
+            this.description = _data["description"];
+            this.color = _data["color"];
+            this.defaultSchemaId = _data["defaultSchemaId"];
+        }
+    }
+
+    static fromJS(data: any): BankAccountUpdateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankAccountUpdateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["iban"] = this.iban;
+        data["bic"] = this.bic;
+        data["bankName"] = this.bankName;
+        data["accountHolder"] = this.accountHolder;
+        data["currency"] = this.currency;
+        data["openingBalance"] = this.openingBalance;
+        data["openingBalanceDate"] = this.openingBalanceDate ? formatDate(this.openingBalanceDate) : <any>undefined;
+        data["description"] = this.description;
+        data["color"] = this.color;
+        data["defaultSchemaId"] = this.defaultSchemaId;
+        return data;
+    }
+
+    clone(): BankAccountUpdateRequest {
+        const json = this.toJSON();
+        let result = new BankAccountUpdateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankAccountUpdateRequest {
+    name?: string;
+    iban?: string;
+    bic?: string;
+    bankName?: string;
+    accountHolder?: string;
+    currency?: string;
+    openingBalance?: number;
+    openingBalanceDate?: Date;
+    description?: string;
+    color?: string;
+    defaultSchemaId?: number;
+
+    [key: string]: any;
+}
+
+export class BankCsvColumnMappingDto implements IBankCsvColumnMappingDto {
+    targetField!: BankFieldType;
+    sourceColumnIndex?: number;
+    sourceColumnName?: string;
+    transform?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IBankCsvColumnMappingDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.targetField = _data["targetField"];
+            this.sourceColumnIndex = _data["sourceColumnIndex"];
+            this.sourceColumnName = _data["sourceColumnName"];
+            this.transform = _data["transform"];
+        }
+    }
+
+    static fromJS(data: any): BankCsvColumnMappingDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankCsvColumnMappingDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["targetField"] = this.targetField;
+        data["sourceColumnIndex"] = this.sourceColumnIndex;
+        data["sourceColumnName"] = this.sourceColumnName;
+        data["transform"] = this.transform;
+        return data;
+    }
+
+    clone(): BankCsvColumnMappingDto {
+        const json = this.toJSON();
+        let result = new BankCsvColumnMappingDto();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankCsvColumnMappingDto {
+    targetField: BankFieldType;
+    sourceColumnIndex?: number;
+    sourceColumnName?: string;
+    transform?: string;
+
+    [key: string]: any;
+}
+
+export class BankCsvSchemaCreateRequest implements IBankCsvSchemaCreateRequest {
+    name!: string;
+    bankIdentifier?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy!: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings!: BankCsvColumnMappingDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IBankCsvSchemaCreateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.columnMappings = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.bankIdentifier = _data["bankIdentifier"];
+            this.delimiter = _data["delimiter"];
+            this.quoteChar = _data["quoteChar"];
+            this.encoding = _data["encoding"];
+            this.skipLines = _data["skipLines"];
+            this.hasHeader = _data["hasHeader"];
+            this.dateFormat = _data["dateFormat"];
+            this.decimalSeparator = _data["decimalSeparator"];
+            this.thousandSeparator = _data["thousandSeparator"];
+            this.amountStrategy = _data["amountStrategy"];
+            if (Array.isArray(_data["amountTypePositiveValues"])) {
+                this.amountTypePositiveValues = [] as any;
+                for (let item of _data["amountTypePositiveValues"])
+                    this.amountTypePositiveValues!.push(item);
+            }
+            if (Array.isArray(_data["columnMappings"])) {
+                this.columnMappings = [] as any;
+                for (let item of _data["columnMappings"])
+                    this.columnMappings!.push(BankCsvColumnMappingDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): BankCsvSchemaCreateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankCsvSchemaCreateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["bankIdentifier"] = this.bankIdentifier;
+        data["delimiter"] = this.delimiter;
+        data["quoteChar"] = this.quoteChar;
+        data["encoding"] = this.encoding;
+        data["skipLines"] = this.skipLines;
+        data["hasHeader"] = this.hasHeader;
+        data["dateFormat"] = this.dateFormat;
+        data["decimalSeparator"] = this.decimalSeparator;
+        data["thousandSeparator"] = this.thousandSeparator;
+        data["amountStrategy"] = this.amountStrategy;
+        if (Array.isArray(this.amountTypePositiveValues)) {
+            data["amountTypePositiveValues"] = [];
+            for (let item of this.amountTypePositiveValues)
+                data["amountTypePositiveValues"].push(item);
+        }
+        if (Array.isArray(this.columnMappings)) {
+            data["columnMappings"] = [];
+            for (let item of this.columnMappings)
+                data["columnMappings"].push(item ? item.toJSON() : <any>undefined);
+        }
+        return data;
+    }
+
+    clone(): BankCsvSchemaCreateRequest {
+        const json = this.toJSON();
+        let result = new BankCsvSchemaCreateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankCsvSchemaCreateRequest {
+    name: string;
+    bankIdentifier?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings: BankCsvColumnMappingDto[];
+
+    [key: string]: any;
+}
+
+export class BankCsvSchemaResponse implements IBankCsvSchemaResponse {
+    id?: number;
+    organizationId?: number;
+    name?: string;
+    bankIdentifier?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy?: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings?: BankCsvColumnMappingDto[];
+    archived?: boolean;
+    archivedAt?: Date;
+    createdBy?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IBankCsvSchemaResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.organizationId = _data["organizationId"];
+            this.name = _data["name"];
+            this.bankIdentifier = _data["bankIdentifier"];
+            this.delimiter = _data["delimiter"];
+            this.quoteChar = _data["quoteChar"];
+            this.encoding = _data["encoding"];
+            this.skipLines = _data["skipLines"];
+            this.hasHeader = _data["hasHeader"];
+            this.dateFormat = _data["dateFormat"];
+            this.decimalSeparator = _data["decimalSeparator"];
+            this.thousandSeparator = _data["thousandSeparator"];
+            this.amountStrategy = _data["amountStrategy"];
+            if (Array.isArray(_data["amountTypePositiveValues"])) {
+                this.amountTypePositiveValues = [] as any;
+                for (let item of _data["amountTypePositiveValues"])
+                    this.amountTypePositiveValues!.push(item);
+            }
+            if (Array.isArray(_data["columnMappings"])) {
+                this.columnMappings = [] as any;
+                for (let item of _data["columnMappings"])
+                    this.columnMappings!.push(BankCsvColumnMappingDto.fromJS(item));
+            }
+            this.archived = _data["archived"];
+            this.archivedAt = _data["archivedAt"] ? new Date(_data["archivedAt"].toString()) : <any>undefined;
+            this.createdBy = _data["createdBy"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): BankCsvSchemaResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankCsvSchemaResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["organizationId"] = this.organizationId;
+        data["name"] = this.name;
+        data["bankIdentifier"] = this.bankIdentifier;
+        data["delimiter"] = this.delimiter;
+        data["quoteChar"] = this.quoteChar;
+        data["encoding"] = this.encoding;
+        data["skipLines"] = this.skipLines;
+        data["hasHeader"] = this.hasHeader;
+        data["dateFormat"] = this.dateFormat;
+        data["decimalSeparator"] = this.decimalSeparator;
+        data["thousandSeparator"] = this.thousandSeparator;
+        data["amountStrategy"] = this.amountStrategy;
+        if (Array.isArray(this.amountTypePositiveValues)) {
+            data["amountTypePositiveValues"] = [];
+            for (let item of this.amountTypePositiveValues)
+                data["amountTypePositiveValues"].push(item);
+        }
+        if (Array.isArray(this.columnMappings)) {
+            data["columnMappings"] = [];
+            for (let item of this.columnMappings)
+                data["columnMappings"].push(item ? item.toJSON() : <any>undefined);
+        }
+        data["archived"] = this.archived;
+        data["archivedAt"] = this.archivedAt ? this.archivedAt.toISOString() : <any>undefined;
+        data["createdBy"] = this.createdBy;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): BankCsvSchemaResponse {
+        const json = this.toJSON();
+        let result = new BankCsvSchemaResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankCsvSchemaResponse {
+    id?: number;
+    organizationId?: number;
+    name?: string;
+    bankIdentifier?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy?: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings?: BankCsvColumnMappingDto[];
+    archived?: boolean;
+    archivedAt?: Date;
+    createdBy?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    [key: string]: any;
+}
+
+export class BankCsvSchemaTemplateResponse implements IBankCsvSchemaTemplateResponse {
+    templateId?: string;
+    name?: string;
+    bankName?: string;
+    description?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy?: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings?: BankCsvColumnMappingDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IBankCsvSchemaTemplateResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.templateId = _data["templateId"];
+            this.name = _data["name"];
+            this.bankName = _data["bankName"];
+            this.description = _data["description"];
+            this.delimiter = _data["delimiter"];
+            this.quoteChar = _data["quoteChar"];
+            this.encoding = _data["encoding"];
+            this.skipLines = _data["skipLines"];
+            this.hasHeader = _data["hasHeader"];
+            this.dateFormat = _data["dateFormat"];
+            this.decimalSeparator = _data["decimalSeparator"];
+            this.thousandSeparator = _data["thousandSeparator"];
+            this.amountStrategy = _data["amountStrategy"];
+            if (Array.isArray(_data["amountTypePositiveValues"])) {
+                this.amountTypePositiveValues = [] as any;
+                for (let item of _data["amountTypePositiveValues"])
+                    this.amountTypePositiveValues!.push(item);
+            }
+            if (Array.isArray(_data["columnMappings"])) {
+                this.columnMappings = [] as any;
+                for (let item of _data["columnMappings"])
+                    this.columnMappings!.push(BankCsvColumnMappingDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): BankCsvSchemaTemplateResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankCsvSchemaTemplateResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["templateId"] = this.templateId;
+        data["name"] = this.name;
+        data["bankName"] = this.bankName;
+        data["description"] = this.description;
+        data["delimiter"] = this.delimiter;
+        data["quoteChar"] = this.quoteChar;
+        data["encoding"] = this.encoding;
+        data["skipLines"] = this.skipLines;
+        data["hasHeader"] = this.hasHeader;
+        data["dateFormat"] = this.dateFormat;
+        data["decimalSeparator"] = this.decimalSeparator;
+        data["thousandSeparator"] = this.thousandSeparator;
+        data["amountStrategy"] = this.amountStrategy;
+        if (Array.isArray(this.amountTypePositiveValues)) {
+            data["amountTypePositiveValues"] = [];
+            for (let item of this.amountTypePositiveValues)
+                data["amountTypePositiveValues"].push(item);
+        }
+        if (Array.isArray(this.columnMappings)) {
+            data["columnMappings"] = [];
+            for (let item of this.columnMappings)
+                data["columnMappings"].push(item ? item.toJSON() : <any>undefined);
+        }
+        return data;
+    }
+
+    clone(): BankCsvSchemaTemplateResponse {
+        const json = this.toJSON();
+        let result = new BankCsvSchemaTemplateResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankCsvSchemaTemplateResponse {
+    templateId?: string;
+    name?: string;
+    bankName?: string;
+    description?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy?: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings?: BankCsvColumnMappingDto[];
+
+    [key: string]: any;
+}
+
+export class BankCsvSchemaUpdateRequest implements IBankCsvSchemaUpdateRequest {
+    name?: string;
+    bankIdentifier?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy?: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings?: BankCsvColumnMappingDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IBankCsvSchemaUpdateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.bankIdentifier = _data["bankIdentifier"];
+            this.delimiter = _data["delimiter"];
+            this.quoteChar = _data["quoteChar"];
+            this.encoding = _data["encoding"];
+            this.skipLines = _data["skipLines"];
+            this.hasHeader = _data["hasHeader"];
+            this.dateFormat = _data["dateFormat"];
+            this.decimalSeparator = _data["decimalSeparator"];
+            this.thousandSeparator = _data["thousandSeparator"];
+            this.amountStrategy = _data["amountStrategy"];
+            if (Array.isArray(_data["amountTypePositiveValues"])) {
+                this.amountTypePositiveValues = [] as any;
+                for (let item of _data["amountTypePositiveValues"])
+                    this.amountTypePositiveValues!.push(item);
+            }
+            if (Array.isArray(_data["columnMappings"])) {
+                this.columnMappings = [] as any;
+                for (let item of _data["columnMappings"])
+                    this.columnMappings!.push(BankCsvColumnMappingDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): BankCsvSchemaUpdateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankCsvSchemaUpdateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["bankIdentifier"] = this.bankIdentifier;
+        data["delimiter"] = this.delimiter;
+        data["quoteChar"] = this.quoteChar;
+        data["encoding"] = this.encoding;
+        data["skipLines"] = this.skipLines;
+        data["hasHeader"] = this.hasHeader;
+        data["dateFormat"] = this.dateFormat;
+        data["decimalSeparator"] = this.decimalSeparator;
+        data["thousandSeparator"] = this.thousandSeparator;
+        data["amountStrategy"] = this.amountStrategy;
+        if (Array.isArray(this.amountTypePositiveValues)) {
+            data["amountTypePositiveValues"] = [];
+            for (let item of this.amountTypePositiveValues)
+                data["amountTypePositiveValues"].push(item);
+        }
+        if (Array.isArray(this.columnMappings)) {
+            data["columnMappings"] = [];
+            for (let item of this.columnMappings)
+                data["columnMappings"].push(item ? item.toJSON() : <any>undefined);
+        }
+        return data;
+    }
+
+    clone(): BankCsvSchemaUpdateRequest {
+        const json = this.toJSON();
+        let result = new BankCsvSchemaUpdateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankCsvSchemaUpdateRequest {
+    name?: string;
+    bankIdentifier?: string;
+    delimiter?: string;
+    quoteChar?: string;
+    encoding?: string;
+    skipLines?: number;
+    hasHeader?: boolean;
+    dateFormat?: string;
+    decimalSeparator?: string;
+    thousandSeparator?: string;
+    amountStrategy?: AmountStrategy;
+    amountTypePositiveValues?: string[];
+    columnMappings?: BankCsvColumnMappingDto[];
+
+    [key: string]: any;
+}
+
+export type BankFieldType = "BOOKING_DATE" | "VALUE_DATE" | "AMOUNT" | "DEBIT_AMOUNT" | "CREDIT_AMOUNT" | "AMOUNT_TYPE_INDICATOR" | "CURRENCY" | "PURPOSE" | "COUNTERPARTY_NAME" | "COUNTERPARTY_IBAN" | "COUNTERPARTY_BIC" | "TRANSACTION_TYPE" | "BANK_REFERENCE" | "BALANCE_AFTER" | "END_TO_END_REFERENCE" | "MANDATE_REFERENCE" | "CREDITOR_ID";
+
+export class BankImportResponse implements IBankImportResponse {
+    id?: number;
+    bankAccountId?: number;
+    schemaId?: number;
+    fileName?: string;
+    fileSize?: number;
+    fileSha256?: string;
+    s3FileKey?: string;
+    importedBy?: string;
+    importedAt?: Date;
+    startedAt?: Date;
+    finishedAt?: Date;
+    status?: BankImportStatus;
+    progress?: number;
+    totalRows?: number;
+    importedRows?: number;
+    duplicateRows?: number;
+    errorRows?: number;
+    errorReport?: string;
+    failureReason?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IBankImportResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.bankAccountId = _data["bankAccountId"];
+            this.schemaId = _data["schemaId"];
+            this.fileName = _data["fileName"];
+            this.fileSize = _data["fileSize"];
+            this.fileSha256 = _data["fileSha256"];
+            this.s3FileKey = _data["s3FileKey"];
+            this.importedBy = _data["importedBy"];
+            this.importedAt = _data["importedAt"] ? new Date(_data["importedAt"].toString()) : <any>undefined;
+            this.startedAt = _data["startedAt"] ? new Date(_data["startedAt"].toString()) : <any>undefined;
+            this.finishedAt = _data["finishedAt"] ? new Date(_data["finishedAt"].toString()) : <any>undefined;
+            this.status = _data["status"];
+            this.progress = _data["progress"];
+            this.totalRows = _data["totalRows"];
+            this.importedRows = _data["importedRows"];
+            this.duplicateRows = _data["duplicateRows"];
+            this.errorRows = _data["errorRows"];
+            this.errorReport = _data["errorReport"];
+            this.failureReason = _data["failureReason"];
+        }
+    }
+
+    static fromJS(data: any): BankImportResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankImportResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["bankAccountId"] = this.bankAccountId;
+        data["schemaId"] = this.schemaId;
+        data["fileName"] = this.fileName;
+        data["fileSize"] = this.fileSize;
+        data["fileSha256"] = this.fileSha256;
+        data["s3FileKey"] = this.s3FileKey;
+        data["importedBy"] = this.importedBy;
+        data["importedAt"] = this.importedAt ? this.importedAt.toISOString() : <any>undefined;
+        data["startedAt"] = this.startedAt ? this.startedAt.toISOString() : <any>undefined;
+        data["finishedAt"] = this.finishedAt ? this.finishedAt.toISOString() : <any>undefined;
+        data["status"] = this.status;
+        data["progress"] = this.progress;
+        data["totalRows"] = this.totalRows;
+        data["importedRows"] = this.importedRows;
+        data["duplicateRows"] = this.duplicateRows;
+        data["errorRows"] = this.errorRows;
+        data["errorReport"] = this.errorReport;
+        data["failureReason"] = this.failureReason;
+        return data;
+    }
+
+    clone(): BankImportResponse {
+        const json = this.toJSON();
+        let result = new BankImportResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankImportResponse {
+    id?: number;
+    bankAccountId?: number;
+    schemaId?: number;
+    fileName?: string;
+    fileSize?: number;
+    fileSha256?: string;
+    s3FileKey?: string;
+    importedBy?: string;
+    importedAt?: Date;
+    startedAt?: Date;
+    finishedAt?: Date;
+    status?: BankImportStatus;
+    progress?: number;
+    totalRows?: number;
+    importedRows?: number;
+    duplicateRows?: number;
+    errorRows?: number;
+    errorReport?: string;
+    failureReason?: string;
+
+    [key: string]: any;
+}
+
+export type BankImportStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "PARTIAL" | "FAILED";
+
+export class BankTransactionAggregateResponse implements IBankTransactionAggregateResponse {
+    sumIncoming?: number;
+    sumOutgoing?: number;
+    netAmount?: number;
+    count?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IBankTransactionAggregateResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.sumIncoming = _data["sumIncoming"];
+            this.sumOutgoing = _data["sumOutgoing"];
+            this.netAmount = _data["netAmount"];
+            this.count = _data["count"];
+        }
+    }
+
+    static fromJS(data: any): BankTransactionAggregateResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankTransactionAggregateResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["sumIncoming"] = this.sumIncoming;
+        data["sumOutgoing"] = this.sumOutgoing;
+        data["netAmount"] = this.netAmount;
+        data["count"] = this.count;
+        return data;
+    }
+
+    clone(): BankTransactionAggregateResponse {
+        const json = this.toJSON();
+        let result = new BankTransactionAggregateResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankTransactionAggregateResponse {
+    sumIncoming?: number;
+    sumOutgoing?: number;
+    netAmount?: number;
+    count?: number;
+
+    [key: string]: any;
+}
+
+export class BankTransactionResponse implements IBankTransactionResponse {
+    id?: number;
+    bankAccountId?: number;
+    bankAccountName?: string;
+    bankAccountColor?: string;
+    importId?: number;
+    bookingDate?: Date;
+    valueDate?: Date;
+    amount?: number;
+    currency?: string;
+    purpose?: string;
+    counterpartyName?: string;
+    counterpartyIban?: string;
+    counterpartyBic?: string;
+    transactionType?: string;
+    bankReference?: string;
+    endToEndReference?: string;
+    mandateReference?: string;
+    creditorId?: string;
+    balanceAfter?: number;
+    status?: BankTransactionStatus;
+    matchedAmount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IBankTransactionResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.bankAccountId = _data["bankAccountId"];
+            this.bankAccountName = _data["bankAccountName"];
+            this.bankAccountColor = _data["bankAccountColor"];
+            this.importId = _data["importId"];
+            this.bookingDate = _data["bookingDate"] ? new Date(_data["bookingDate"].toString()) : <any>undefined;
+            this.valueDate = _data["valueDate"] ? new Date(_data["valueDate"].toString()) : <any>undefined;
+            this.amount = _data["amount"];
+            this.currency = _data["currency"];
+            this.purpose = _data["purpose"];
+            this.counterpartyName = _data["counterpartyName"];
+            this.counterpartyIban = _data["counterpartyIban"];
+            this.counterpartyBic = _data["counterpartyBic"];
+            this.transactionType = _data["transactionType"];
+            this.bankReference = _data["bankReference"];
+            this.endToEndReference = _data["endToEndReference"];
+            this.mandateReference = _data["mandateReference"];
+            this.creditorId = _data["creditorId"];
+            this.balanceAfter = _data["balanceAfter"];
+            this.status = _data["status"];
+            this.matchedAmount = _data["matchedAmount"];
+        }
+    }
+
+    static fromJS(data: any): BankTransactionResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankTransactionResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["bankAccountId"] = this.bankAccountId;
+        data["bankAccountName"] = this.bankAccountName;
+        data["bankAccountColor"] = this.bankAccountColor;
+        data["importId"] = this.importId;
+        data["bookingDate"] = this.bookingDate ? formatDate(this.bookingDate) : <any>undefined;
+        data["valueDate"] = this.valueDate ? formatDate(this.valueDate) : <any>undefined;
+        data["amount"] = this.amount;
+        data["currency"] = this.currency;
+        data["purpose"] = this.purpose;
+        data["counterpartyName"] = this.counterpartyName;
+        data["counterpartyIban"] = this.counterpartyIban;
+        data["counterpartyBic"] = this.counterpartyBic;
+        data["transactionType"] = this.transactionType;
+        data["bankReference"] = this.bankReference;
+        data["endToEndReference"] = this.endToEndReference;
+        data["mandateReference"] = this.mandateReference;
+        data["creditorId"] = this.creditorId;
+        data["balanceAfter"] = this.balanceAfter;
+        data["status"] = this.status;
+        data["matchedAmount"] = this.matchedAmount;
+        return data;
+    }
+
+    clone(): BankTransactionResponse {
+        const json = this.toJSON();
+        let result = new BankTransactionResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IBankTransactionResponse {
+    id?: number;
+    bankAccountId?: number;
+    bankAccountName?: string;
+    bankAccountColor?: string;
+    importId?: number;
+    bookingDate?: Date;
+    valueDate?: Date;
+    amount?: number;
+    currency?: string;
+    purpose?: string;
+    counterpartyName?: string;
+    counterpartyIban?: string;
+    counterpartyBic?: string;
+    transactionType?: string;
+    bankReference?: string;
+    endToEndReference?: string;
+    mandateReference?: string;
+    creditorId?: string;
+    balanceAfter?: number;
+    status?: BankTransactionStatus;
+    matchedAmount?: number;
+
+    [key: string]: any;
+}
+
+export type BankTransactionStatus = "UNMATCHED" | "PARTIALLY_MATCHED" | "FULLY_MATCHED" | "IGNORED";
 
 export class Bommel implements IBommel {
     id?: number;
@@ -2607,6 +5246,113 @@ export interface ICategoryInput {
     name: string;
     /** Description of the category */
     description?: string;
+
+    [key: string]: any;
+}
+
+export class CsvPreviewResponse implements ICsvPreviewResponse {
+    detectedEncoding?: string;
+    detectedDelimiter?: string;
+    encodingValid?: boolean;
+    encodingWarning?: string;
+    totalLines?: number;
+    rawLines?: string[];
+    headerColumns?: string[];
+    sampleRows?: string[][];
+
+    [key: string]: any;
+
+    constructor(data?: ICsvPreviewResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.detectedEncoding = _data["detectedEncoding"];
+            this.detectedDelimiter = _data["detectedDelimiter"];
+            this.encodingValid = _data["encodingValid"];
+            this.encodingWarning = _data["encodingWarning"];
+            this.totalLines = _data["totalLines"];
+            if (Array.isArray(_data["rawLines"])) {
+                this.rawLines = [] as any;
+                for (let item of _data["rawLines"])
+                    this.rawLines!.push(item);
+            }
+            if (Array.isArray(_data["headerColumns"])) {
+                this.headerColumns = [] as any;
+                for (let item of _data["headerColumns"])
+                    this.headerColumns!.push(item);
+            }
+            if (Array.isArray(_data["sampleRows"])) {
+                this.sampleRows = [] as any;
+                for (let item of _data["sampleRows"])
+                    this.sampleRows!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CsvPreviewResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new CsvPreviewResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["detectedEncoding"] = this.detectedEncoding;
+        data["detectedDelimiter"] = this.detectedDelimiter;
+        data["encodingValid"] = this.encodingValid;
+        data["encodingWarning"] = this.encodingWarning;
+        data["totalLines"] = this.totalLines;
+        if (Array.isArray(this.rawLines)) {
+            data["rawLines"] = [];
+            for (let item of this.rawLines)
+                data["rawLines"].push(item);
+        }
+        if (Array.isArray(this.headerColumns)) {
+            data["headerColumns"] = [];
+            for (let item of this.headerColumns)
+                data["headerColumns"].push(item);
+        }
+        if (Array.isArray(this.sampleRows)) {
+            data["sampleRows"] = [];
+            for (let item of this.sampleRows)
+                data["sampleRows"].push(item);
+        }
+        return data;
+    }
+
+    clone(): CsvPreviewResponse {
+        const json = this.toJSON();
+        let result = new CsvPreviewResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICsvPreviewResponse {
+    detectedEncoding?: string;
+    detectedDelimiter?: string;
+    encodingValid?: boolean;
+    encodingWarning?: string;
+    totalLines?: number;
+    rawLines?: string[];
+    headerColumns?: string[];
+    sampleRows?: string[][];
 
     [key: string]: any;
 }

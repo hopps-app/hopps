@@ -26,7 +26,8 @@
         "delete": "Delete",
         "loading": "Loading...",
         "validationError": "Please fill in all required fields",
-        "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave this page?"
+        "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave this page?",
+        "next": "Next"
     },
     "notFound": {
         "title": "404 - Page Not Found",
@@ -321,6 +322,7 @@
         "expense": "Expense",
         "intake": "Intake",
         "structure": "Bommel structure",
+        "bankAccounts": "Bank accounts",
         "admin": "Admin",
         "ngo-details": "Ngo Details",
         "categories": "Categories",
@@ -550,6 +552,211 @@
     "bommel": {
         "empty": "No Bommel found",
         "select": "Select Bommel"
+    },
+    "bankAccounts": {
+        "title": "Bank accounts",
+        "subtitle": "Manage your bank accounts and import bank statements.",
+        "newAccount": "New account",
+        "manageSchemas": "Manage schemas",
+        "notFound": "Bank account not found",
+        "card": {
+            "schema": "Schema"
+        },
+        "emptyState": {
+            "title": "No bank accounts yet",
+            "description": "Add your first bank account to start importing bank statements."
+        },
+        "form": {
+            "createTitle": "Create bank account",
+            "editTitle": "Edit bank account",
+            "name": "Account name",
+            "namePlaceholder": "e.g. Club account",
+            "iban": "IBAN",
+            "bic": "BIC",
+            "bankName": "Bank name",
+            "currency": "Currency",
+            "currencyPlaceholder": "Select currency",
+            "openingBalance": "Opening balance",
+            "color": "Color (hex)",
+            "colorPicker": "Pick a color",
+            "defaultSchema": "Default schema",
+            "defaultSchemaPlaceholder": "Select schema",
+            "noSchema": "No schema",
+            "description": "Description",
+            "validation": {
+                "nameRequired": "Account name is required",
+                "currencyRequired": "Currency is required",
+                "colorInvalid": "Invalid color. Please use #RRGGBB format"
+            }
+        },
+        "table": {
+            "bookingDate": "Booking date",
+            "counterpartyName": "Counterparty",
+            "purpose": "Purpose",
+            "amount": "Amount",
+            "status": "Status"
+        },
+        "transactions": {
+            "title": "Transactions",
+            "empty": "No transactions yet",
+            "export": "Export"
+        },
+        "toast": {
+            "createSuccess": "Bank account created successfully",
+            "createError": "Failed to create bank account",
+            "updateSuccess": "Bank account updated successfully",
+            "updateError": "Failed to update bank account",
+            "archiveSuccess": "Bank account archived",
+            "archiveError": "Failed to archive bank account",
+            "restoreSuccess": "Bank account restored",
+            "restoreError": "Failed to restore bank account"
+        }
+    },
+    "bankImport": {
+        "title": "Import bank statement",
+        "startImport": "Import",
+        "status": {
+            "QUEUED": "Queued",
+            "PROCESSING": "Processing",
+            "COMPLETED": "Completed",
+            "PARTIAL": "Partially imported",
+            "FAILED": "Failed",
+            "UNKNOWN": "Unknown"
+        },
+        "wizard": {
+            "stepFile": "File",
+            "stepSchema": "Schema",
+            "stepConfirm": "Confirm",
+            "stepProgress": "Progress",
+            "stepResult": "Result",
+            "fileTitle": "Upload CSV file",
+            "fileDrop": "Drop file here or click to select",
+            "fileDropHint": "Supported formats: .csv, .txt",
+            "fileDropReplace": "Click or drop again to replace the file",
+            "schemaTitle": "Select import schema",
+            "schemaSelect": "Schema",
+            "schemaPlaceholder": "Select a schema",
+            "schemaGroupOrg": "My schemas",
+            "schemaGroupTemplates": "Templates",
+            "previewButton": "Show preview",
+            "previewError": "Failed to load preview",
+            "confirmTitle": "Confirm import",
+            "startImport": "Start import"
+        },
+        "preview": {
+            "encoding": "Encoding",
+            "delimiter": "Delimiter",
+            "totalLines": "Total lines"
+        },
+        "confirm": {
+            "schema": "Schema",
+            "encoding": "Encoding",
+            "totalLines": "Total lines",
+            "account": "Account"
+        },
+        "progress": {
+            "processing": "Processing import...",
+            "rows": "{{imported}} of {{total}} rows imported"
+        },
+        "result": {
+            "success": "Import completed successfully!",
+            "partial": "Import partially completed",
+            "failed": "Import failed",
+            "imported": "Imported rows",
+            "duplicates": "Duplicates",
+            "errors": "Errors",
+            "backToAccount": "Back to account",
+            "viewTransactions": "View transactions"
+        },
+        "history": {
+            "title": "Import history",
+            "empty": "No imports yet",
+            "fileName": "File name",
+            "status": "Status",
+            "progress": "Progress",
+            "imported": "Imported",
+            "duplicates": "Duplicates",
+            "errors": "Errors",
+            "finishedAt": "Finished",
+            "actions": "Actions"
+        },
+        "rollback": {
+            "button": "Rollback",
+            "confirm": "Are you sure you want to roll back this import? All imported transactions will be deleted."
+        },
+        "toast": {
+            "rollbackSuccess": "Import rolled back successfully",
+            "rollbackError": "Failed to roll back import"
+        }
+    },
+    "bankSchema": {
+        "title": "Import schemas",
+        "subtitle": "Define CSV import schemas for different banks.",
+        "newSchema": "New schema",
+        "showArchived": "Show archived",
+        "hideArchived": "Hide archived",
+        "archived": "Archived",
+        "systemTemplate": "System template",
+        "systemTemplates": "System templates",
+        "archive": "Archive",
+        "restore": "Restore",
+        "deleteConfirm": "Are you sure you want to delete the schema '{{name}}'?",
+        "card": {
+            "delimiter": "Delimiter"
+        },
+        "emptyState": {
+            "title": "No schemas yet",
+            "description": "Create an import schema for your bank to start importing bank statements."
+        },
+        "amountStrategy": {
+            "SIGNED_SINGLE_COLUMN": "Signed single column",
+            "DEBIT_CREDIT_COLUMNS": "Debit/credit columns",
+            "AMOUNT_PLUS_TYPE_COLUMN": "Amount + type column"
+        },
+        "form": {
+            "createTitle": "New import schema",
+            "editTitle": "Edit schema",
+            "startFromTemplate": "Start from template",
+            "templatePlaceholder": "Select a template...",
+            "name": "Name",
+            "bankIdentifier": "Bank identifier",
+            "delimiter": "Delimiter",
+            "encoding": "Encoding",
+            "skipLines": "Skip lines",
+            "hasHeader": "Has header",
+            "hasHeaderLabel": "First row is header",
+            "dateFormat": "Date format",
+            "decimalSeparator": "Decimal separator",
+            "thousandSeparator": "Thousand separator",
+            "amountStrategy": "Amount strategy",
+            "amountTypePositiveValues": "Positive type values",
+            "amountTypePositiveValuesHint": "Comma-separated values that indicate a credit transaction",
+            "columnMappings": "Column mappings",
+            "addMapping": "Add mapping",
+            "noMappings": "No column mappings yet",
+            "mapping": "Mapping",
+            "targetField": "Target field",
+            "targetFieldPlaceholder": "Select field",
+            "sourceColumnIndex": "Source column index",
+            "sourceColumnName": "Source column name",
+            "transform": "Transform",
+            "removeMapping": "Remove mapping",
+            "validation": {
+                "nameRequired": "Schema name is required"
+            }
+        },
+        "toast": {
+            "createSuccess": "Schema created successfully",
+            "createError": "Failed to create schema",
+            "updateSuccess": "Schema updated successfully",
+            "updateError": "Failed to update schema",
+            "deleteSuccess": "Schema deleted successfully",
+            "deleteError": "Failed to delete schema",
+            "archiveSuccess": "Schema archived",
+            "archiveError": "Failed to archive schema",
+            "restoreSuccess": "Schema restored",
+            "restoreError": "Failed to restore schema"
+        }
     },
     "connectivity": {
         "keycloak": {
