@@ -114,13 +114,30 @@
     box-shadow: none !important;
 }
 
+/* Hide dropdown by default, only show via JS click (aria-expanded) */
 #kc-locale ul {
+    display: none;
     background: #fff;
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     margin-top: 0.25rem;
     padding: 0.25rem 0;
     min-width: 120px;
+}
+
+#kc-locale button[aria-expanded="true"] + ul {
+    display: block;
+}
+
+/* Remove blue focus outline from dropdown items */
+#kc-locale ul a:focus {
+    outline: none;
+    background: #f3e8ff;
+    color: #7a2cbf;
+}
+
+#kc-locale button:focus {
+    outline: none;
 }
 
 #kc-locale ul a {
@@ -263,20 +280,25 @@ input[type="password"] {
         font-weight: 500;
     }
 }
-/* Sign in button */
-#kc-login {
-    background-color: #9955cc;
-    color: white;
+/* Primary buttons (sign in, password reset submit, etc.) */
+#kc-login,
+.pf-c-button.pf-m-primary {
+    background-color: #9955cc !important;
+    color: white !important;
     font-weight: 500;
     font-size: 1rem;
     border-radius: 0.75rem;
     padding: 0.75rem;
     margin-top: 1.5rem;
     width: 100%;
+    border: none;
+    cursor: pointer;
+    font-family: "Reddit Sans", sans-serif;
 }
 
-#kc-login:hover {
-    background-color: #552479;
+#kc-login:hover,
+.pf-c-button.pf-m-primary:hover {
+    background-color: #552479 !important;
 }
 
 /* Bottom register bar */

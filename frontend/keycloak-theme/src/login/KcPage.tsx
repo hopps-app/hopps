@@ -1,11 +1,13 @@
 import { Suspense, lazy } from "react";
 import type { ClassKey } from "keycloakify/login";
+import type { TemplateProps } from "keycloakify/login/TemplateProps";
 import DefaultPage from "keycloakify/login/DefaultPage";
 
 import type { KcContext } from "./KcContext";
+import type { I18n } from "./i18n";
 import { useI18n } from "./i18n";
 
-import DefaultTemplate from "keycloakify/login/Template";
+import DefaultTemplate from "./Template";
 
 import hoppsLogo from "../assets/hopps-logo.svg";
 
@@ -16,6 +18,34 @@ const UserProfileFormFields = lazy(
 );
 
 const doMakeUserConfirmPassword = true;
+
+function HoppsTemplate(props: TemplateProps<KcContext, I18n>) {
+    const { kcContext, i18n, children, ...rest } = props;
+    const { msg } = i18n;
+
+    return (
+        <DefaultTemplate
+            {...rest}
+            kcContext={kcContext}
+            i18n={i18n}
+        >
+            <div
+                id="kc-header-wrapper"
+                className="custom-header"
+            >
+                <img
+                    src={hoppsLogo}
+                    alt="Hopps Logo"
+                    className="custom-logo"
+                />
+                <p className="custom-subtitle">
+                    {msg("loginSubtitle")}
+                </p>
+            </div>
+            {children}
+        </DefaultTemplate>
+    );
+}
 
 export default function KcPage(props: { kcContext: KcContext }) {
     const { kcContext } = props;
@@ -32,31 +62,7 @@ export default function KcPage(props: { kcContext: KcContext }) {
                                 kcContext={kcContext}
                                 i18n={i18n}
                                 classes={classes}
-                                Template={({ kcContext, i18n, children, ...props }) => {
-                                    const { msg } = i18n;
-                                    return (
-                                        <DefaultTemplate
-                                            {...props}
-                                            kcContext={kcContext}
-                                            i18n={i18n}
-                                        >
-                                            <div
-                                                id="kc-header-wrapper"
-                                                className="custom-header"
-                                            >
-                                                <img
-                                                    src={hoppsLogo}
-                                                    alt="Hopps Logo"
-                                                    className="custom-logo"
-                                                />
-                                                <p className="custom-subtitle">
-                                                    {msg("loginSubtitle")}
-                                                </p>
-                                            </div>
-                                            {children}
-                                        </DefaultTemplate>
-                                    );
-                                }}
+                                Template={HoppsTemplate}
                                 doUseDefaultCss={true}
                                 UserProfileFormFields={UserProfileFormFields}
                                 doMakeUserConfirmPassword={doMakeUserConfirmPassword}
