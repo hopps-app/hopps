@@ -224,18 +224,18 @@ function BommelTreeComponent({
     return (
         <div
             ref={treeContainerRef}
-            className={`w-full h-full border rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 relative ${dragState.isDragging ? 'select-none' : ''}`}
+            className={`w-full h-full border dark:border-gray-700 rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[var(--purple-50)] dark:to-[var(--purple-100)] relative ${dragState.isDragging ? 'select-none' : ''}`}
             style={height ? { height } : undefined}
         >
             {/* Center tree button */}
             <button
                 type="button"
                 onClick={handleCenterTree}
-                className="absolute top-3 right-3 z-10 bg-white border border-gray-300 rounded-lg p-2 shadow-sm hover:bg-gray-50 hover:shadow-md transition-all"
+                className="absolute top-3 right-3 z-10 bg-white dark:bg-[var(--purple-100)] border border-gray-300 dark:border-gray-700 rounded-lg p-2 shadow-sm hover:bg-gray-50 dark:hover:bg-[var(--purple-200)] hover:shadow-md transition-all"
                 title={t('organization.structure.centerTree')}
                 aria-label={t('organization.structure.centerTree')}
             >
-                <Crosshair className="w-4 h-4 text-gray-600" aria-hidden="true" />
+                <Crosshair className="w-4 h-4 text-gray-600 dark:text-gray-300" aria-hidden="true" />
             </button>
 
             <div className="w-full h-full overflow-hidden">

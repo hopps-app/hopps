@@ -55,9 +55,9 @@ export default function DialogWrapper({
             <Trigger asChild>{trigger}</Trigger>
             <Portal>
                 <Overlay className="fixed inset-0 bg-black/40" />
-                <Content className="fixed left-1/2 top-1/2 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-xl">
+                <Content className="fixed left-1/2 top-1/2 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white dark:bg-[var(--purple-100)] text-[var(--font-color)] p-6 shadow-xl">
                     <Title className="text-lg font-semibold">{title}</Title>
-                    {description && <Description className="mt-1 text-sm text-gray-600">{description}</Description>}
+                    {description && <Description className="mt-1 text-sm text-gray-600 dark:text-gray-300">{description}</Description>}
                     <div className="mt-4">
                         {typeof children === 'function' ? children({ onSuccess: handleSuccess, setOpen, setSubmitting: handleSetSubmitting }) : children}
                     </div>

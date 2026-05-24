@@ -207,7 +207,7 @@ function DashboardView() {
                                         data-testid="dashboard-bommel-filter"
                                         className={cn(
                                             'w-full sm:w-[180px] h-10 justify-between text-sm font-normal',
-                                            'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 px-4',
+                                            'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 dark:text-gray-100 px-4',
                                             'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                         )}
                                     >
@@ -253,7 +253,7 @@ function DashboardView() {
                                                 data-testid="dashboard-start-date"
                                                 className={cn(
                                                     'w-[120px] sm:w-[140px] h-10 justify-between text-sm font-normal',
-                                                    'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 px-4',
+                                                    'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 dark:text-gray-100 px-4',
                                                     'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                                 )}
                                             >
@@ -291,7 +291,7 @@ function DashboardView() {
                                                 data-testid="dashboard-end-date"
                                                 className={cn(
                                                     'w-[120px] sm:w-[140px] h-10 justify-between text-sm font-normal',
-                                                    'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 px-4',
+                                                    'rounded-[var(--radius-l,0.5rem)] border border-[#A7A7A7] bg-white dark:bg-gray-700 dark:text-gray-100 px-4',
                                                     'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none'
                                                 )}
                                             >

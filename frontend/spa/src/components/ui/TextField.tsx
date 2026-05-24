@@ -52,7 +52,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     </div>
                 )}
                 {!props.loading && props.prependIcon && (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text">
                         <Icon icon={props.prependIcon} size="md" />
                     </div>
                 )}
@@ -79,13 +79,15 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     autoComplete={props.autoComplete}
                 />
                 {props.suffix && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none select-none">{props.suffix}</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none select-none">
+                        {props.suffix}
+                    </span>
                 )}
                 {isPassword && (
                     <button
                         type="button"
                         tabIndex={-1}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                         onClick={() => setShowPassword((prev) => !prev)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >

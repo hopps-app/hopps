@@ -88,7 +88,7 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                     onKeyDown={handleKeyDown}
                     autoFocus
                     maxLength={BOMMEL_NAME_MAX_LENGTH + 1}
-                    className={`flex-1 min-w-0 bg-white text-gray-700 text-xs font-semibold px-1.5 py-0.5 rounded border-2 outline-none ${
+                    className={`flex-1 min-w-0 bg-white dark:bg-[var(--purple-50)] text-gray-700 dark:text-gray-100 text-xs font-semibold px-1.5 py-0.5 rounded border-2 outline-none ${
                         validationError ? 'border-red-500' : 'border-purple-500'
                     }`}
                     aria-label={t('organization.structure.editName')}

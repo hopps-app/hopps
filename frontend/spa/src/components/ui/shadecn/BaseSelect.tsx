@@ -18,20 +18,20 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
         ref={ref}
         className={cn(
-            'flex w-full text-gray-800 text-sm items-center justify-between whitespace-nowrap',
-            'border px-3 h-10 rounded-xl outline-none bg-white transition-colors',
+            'flex w-full text-gray-800 dark:text-gray-100 text-sm items-center justify-between whitespace-nowrap',
+            'border px-3 h-10 rounded-xl outline-none bg-white dark:bg-[var(--purple-50)] transition-colors',
             'placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
             'focus-visible:outline-none',
             error
                 ? 'border-red-500 focus-visible:border-red-500 data-[state=open]:border-red-500'
-                : 'border-[#d1d5db] focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]',
+                : 'border-[#d1d5db] dark:border-gray-700 focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]',
             className
         )}
         {...props}
     >
         {children}
         <SelectPrimitive.Icon asChild>
-            <ChevronDownIcon className="h-4 w-4 text-[#666]" />
+            <ChevronDownIcon className="h-4 w-4 text-[#666] dark:text-gray-400" />
         </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
 ));
