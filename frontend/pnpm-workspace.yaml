@@ -3,3 +3,7 @@ packages:
   - 'mobile'
   - 'api-client'
   - 'figma_inspo'
+
+overrides:
+  '@types/react': ^19.1.0
+  '@types/react-dom': ^19.1.0
