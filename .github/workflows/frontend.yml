@@ -5,6 +5,9 @@ on:
     paths:
       - frontend/spa/**
       - frontend/api-client/**
+      - frontend/package.json
+      - frontend/pnpm-workspace.yaml
+      - frontend/pnpm-lock.yaml
       - .github/workflows/frontend.yml
     branches: [ "**" ]
     tags:
@@ -13,6 +16,9 @@ on:
     paths:
       - frontend/spa/**
       - frontend/api-client/**
+      - frontend/package.json
+      - frontend/pnpm-workspace.yaml
+      - frontend/pnpm-lock.yaml
       - .github/workflows/frontend.yml
     branches:
       - main
