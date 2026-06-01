@@ -144,8 +144,8 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
       react-hook-form:
-        specifier: ^7.77.0
-        version: 7.77.0(react@18.3.1)
+        specifier: ^7.76.1
+        version: 7.76.1(react@18.3.1)
       react-resizable-panels:
         specifier: ^2.1.7
         version: 2.1.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -348,7 +348,7 @@ importers:
         version: 1.1.1(emoji-mart@5.6.0)(react@19.1.0)
       '@hookform/resolvers':
         specifier: ^5.2.2
-        version: 5.4.0(react-hook-form@7.77.0(react@19.1.0))
+        version: 5.4.0(react-hook-form@7.76.1(react@19.1.0))
       '@hopps/api-client':
         specifier: workspace:*
         version: link:../api-client
@@ -473,8 +473,8 @@ importers:
         specifier: ^14.3.8
         version: 14.4.1(react@19.1.0)
       react-hook-form:
-        specifier: ^7.77.0
-        version: 7.77.0(react@19.1.0)
+        specifier: ^7.76.1
+        version: 7.76.1(react@19.1.0)
       react-i18next:
         specifier: ^15.0.3
         version: 15.7.4(i18next@23.16.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
@@ -7999,8 +7999,8 @@ packages:
     peerDependencies:
       react: '>=17.0.0'
 
-  react-hook-form@7.77.0:
-    resolution: {integrity: sha512-Sslh9YDYc0GDlWT/lxasnIduNo4v3yyvqRGvmGKUre5AFjDs/HV9/OafHGD8d+sB2yoL4UIL9L8X9i0WlZZebg==}
+  react-hook-form@7.76.1:
+    resolution: {integrity: sha512-rYM7tPiWlu3nZchkR/ex7piyzui2vFPyaLnXnI/RnblB/L4qfMmyses8llJVtF1NpE9WBBsJlGtcSZzPCXW1qQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -11151,10 +11151,10 @@ snapshots:
 
   '@gar/promise-retry@1.0.3': {}
 
-  '@hookform/resolvers@5.4.0(react-hook-form@7.77.0(react@19.1.0))':
+  '@hookform/resolvers@5.4.0(react-hook-form@7.76.1(react@19.1.0))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.77.0(react@19.1.0)
+      react-hook-form: 7.76.1(react@19.1.0)
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -18832,11 +18832,11 @@ snapshots:
     dependencies:
       react: 19.1.0
 
-  react-hook-form@7.77.0(react@18.3.1):
+  react-hook-form@7.76.1(react@18.3.1):
     dependencies:
       react: 18.3.1
 
-  react-hook-form@7.77.0(react@19.1.0):
+  react-hook-form@7.76.1(react@19.1.0):
     dependencies:
       react: 19.1.0
 
