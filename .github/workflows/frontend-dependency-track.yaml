@@ -41,7 +41,7 @@ jobs:
         working-directory: ${{ matrix.baseDirectory }}
 
       - name: Create sBom
-        run: pnpm sbom
+        run: pnpm run sbom
         working-directory: ${{ matrix.baseDirectory }}
 
       - name: Get current project version
