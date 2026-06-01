@@ -8,10 +8,10 @@ overrides:
   '@types/react': ^19.1.0
   '@types/react-dom': ^19.1.0
 
-onlyBuiltDependencies:
-  - '@pact-foundation/pact-node'
-  - '@parcel/watcher'
-  - '@swc/core'
-  - esbuild
-  - '@appthreat/sqlite3'
-  - unrs-resolver
+allowBuilds:
+  '@pact-foundation/pact-node': true
+  '@parcel/watcher': true
+  '@swc/core': true
+  esbuild: true
+  '@appthreat/sqlite3': true
+  unrs-resolver: true
