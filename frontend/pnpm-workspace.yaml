@@ -13,5 +13,5 @@ onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@swc/core'
   - esbuild
-  - sqlite3
+  - '@appthreat/sqlite3'
   - unrs-resolver
