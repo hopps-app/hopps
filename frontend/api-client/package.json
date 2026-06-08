@@ -36,7 +36,7 @@
     "@pact-foundation/pact-node": "^10.18.0",
     "@pact-foundation/pact-web": "^9.18.1",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.2",
+    "vitest": "^3.2.6",
     "nswag": "^14.4.0"
   }
 }
