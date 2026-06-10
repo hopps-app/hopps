@@ -322,6 +322,7 @@
         "intake": "Einnahme",
         "structure": "Bommel Struktur",
         "bankAccounts": "Konten",
+        "transactions": "Transaktionen",
         "admin": "Admin",
         "ngo-details": "Organisation",
         "categories": "Kategorien",
@@ -329,6 +330,66 @@
         "expand": "Ausklappen",
         "openMenu": "Menü öffnen",
         "navigation": "Navigation"
+    },
+    "transactions": {
+        "title": "Transaktionen",
+        "subtitle": "{{count}} Transaktionen · {{income}} Einnahmen · {{expense}} Ausgaben",
+        "new": "Transaktion erfassen",
+        "columns": {
+            "transaction": "Transaktion",
+            "category": "Kategorie",
+            "bommel": "Bommel",
+            "date": "Datum",
+            "status": "Status",
+            "amount": "Betrag"
+        },
+        "status": {
+            "all": "Alle",
+            "confirmed": "Bestätigt",
+            "draft": "Entwurf"
+        },
+        "filters": {
+            "search": "Suchen…",
+            "category": "Kategorie",
+            "bommel": "Bommel",
+            "area": "Sphäre",
+            "from": "Von",
+            "to": "Bis",
+            "privatelyPaid": "Privat bezahlt",
+            "detached": "Nicht verknüpft",
+            "reset": "Filter zurücksetzen",
+            "allCategories": "Alle Kategorien",
+            "allBommels": "Alle Bommels",
+            "allAreas": "Alle Sphären",
+            "advancedFilters": "Weitere Filter"
+        },
+        "unassigned": "Nicht zugeordnet",
+        "income": "Einnahme",
+        "expense": "Ausgabe",
+        "noResults": "Keine Transaktionen gefunden",
+        "noResultsDesc": "Passe die Filter an oder erfasse eine neue Transaktion.",
+        "detail": {
+            "title": "Transaktion",
+            "editTitle": "Transaktion bearbeiten",
+            "category": "Kategorie",
+            "bommel": "Bommel",
+            "area": "Sphäre",
+            "date": "Datum",
+            "direction": "Richtung",
+            "privatelyPaid": "Privat bezahlt",
+            "receipt": "Verknüpfter Beleg",
+            "noReceipt": "Kein Beleg verknüpft",
+            "payment": "Zahlung & Abgleich",
+            "notLinked": "Noch nicht verknüpft",
+            "cash": "Barzahlung",
+            "delete": "Löschen",
+            "edit": "Bearbeiten",
+            "confirm": "Bestätigen",
+            "save": "Speichern",
+            "cancel": "Abbrechen",
+            "yes": "Ja",
+            "no": "Nein"
+        }
     },
     "receipts": {
         "draft": "Entwurf",
@@ -844,6 +905,7 @@
             "file": "Datei",
             "imported": "Importiert",
             "duplicates": "Duplikate",
+            "matched": "Zugeordnet",
             "newImport": "Neuer Import",
             "empty": "Noch keine Importe",
             "emptyDesc": "Importiere einen Kontoauszug, um die Historie zu füllen."
@@ -856,6 +918,22 @@
             "subtitle": "Stammdaten des Kontos",
             "bankPlaceholder": "z. B. Sparkasse",
             "create": "Anlegen"
+        },
+        "drawer": {
+            "title": "Kontoumsatz zuordnen",
+            "linked": "Bereits zugeordnet",
+            "selectTx": "Passende Transaktion wählen",
+            "multiSelect": "Mehrfachauswahl möglich",
+            "noOpenTx": "Keine offene Transaktion passt. Prüfe deine Buchungen im Bereich Transaktionen.",
+            "exactMatch": "passt genau",
+            "unlink": "Zuordnung entfernen",
+            "bankAmount": "Betrag",
+            "covered": "Gedeckt",
+            "remaining": "Differenz",
+            "fullyCovered": "Vollständig gedeckt",
+            "ignore": "Ignorieren",
+            "unignore": "Nicht ignorieren",
+            "assign": "Zuordnen"
         }
     }
 }

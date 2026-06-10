@@ -320,6 +320,48 @@ export function useSuggestSchema(accountId: number, headerColumns: string[] | nu
 
 // ─── Bank Transactions ────────────────────────────────────────────────────────
 
+export function useBankTransaction(id: number | null) {
+    return useQuery({
+        queryKey: [...bankTransactionKeys.all, 'detail', id],
+        queryFn: () => apiService.orgService.bankTransactions(id!),
+        enabled: id !== null && id > 0,
+    });
+}
+
+export function useAddBankTransactionMatch() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) =>
+            apiService.orgService.matchesPOST(bankTxId, transactionId),
+        onSuccess: (_, vars) => {
+            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
+        },
+    });
+}
+
+export function useRemoveBankTransactionMatch() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) =>
+            apiService.orgService.matchesDELETE(bankTxId, transactionId),
+        onSuccess: (_, vars) => {
+            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
+        },
+    });
+}
+
+export function useIgnoreBankTransaction() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (bankTxId: number) => apiService.orgService.ignorePOST(bankTxId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+        },
+    });
+}
+
 export function useBankTransactionsByAccount(accountId: number, page = 0, size = 50, status?: string) {
     return useQuery({
         queryKey: bankTransactionKeys.byAccount(accountId, page, size, status),

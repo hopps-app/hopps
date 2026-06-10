@@ -5,6 +5,7 @@ import app.hopps.bankimport.domain.BankTransactionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Response DTO for {@link BankTransaction} list/detail endpoints. Includes account info so the cross-account view can
@@ -31,9 +32,14 @@ public record BankTransactionResponse(
         String creditorId,
         BigDecimal balanceAfter,
         BankTransactionStatus status,
-        BigDecimal matchedAmount) {
+        BigDecimal matchedAmount,
+        List<Long> matchedTransactionIds) {
 
     public static BankTransactionResponse from(BankTransaction tx) {
+        return from(tx, List.of());
+    }
+
+    public static BankTransactionResponse from(BankTransaction tx, List<Long> matchedTransactionIds) {
         return new BankTransactionResponse(
                 tx.getId(),
                 tx.getBankAccount() != null ? tx.getBankAccount().getId() : null,
@@ -55,6 +61,7 @@ public record BankTransactionResponse(
                 tx.getCreditorId(),
                 tx.getBalanceAfter(),
                 tx.getStatus(),
-                tx.getMatchedAmount());
+                tx.getMatchedAmount(),
+                matchedTransactionIds);
     }
 }

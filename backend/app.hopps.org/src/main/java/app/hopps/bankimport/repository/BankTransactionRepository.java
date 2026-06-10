@@ -12,6 +12,8 @@ import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,5 +162,32 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
 
     public List<BankTransaction> findForAccount(Long bankAccountId, Page page) {
         return findFiltered(new ArrayList<>(List.of(bankAccountId)), null, null, null, null, page);
+    }
+
+    /**
+     * Returns status counts per import ID for all given import IDs in a single query. Result map: importId → (status →
+     * count). Import IDs with no transactions are absent from the outer map.
+     */
+    public Map<Long, Map<BankTransactionStatus, Long>> countStatusesByImports(Collection<Long> importIds) {
+        if (importIds == null || importIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Object[]> rows = getEntityManager()
+                .createQuery(
+                        "SELECT t.bankImport.id, t.status, COUNT(t) FROM BankTransaction t " +
+                                "WHERE t.bankImport.id IN :importIds GROUP BY t.bankImport.id, t.status",
+                        Object[].class)
+                .setParameter("importIds", importIds)
+                .getResultList();
+
+        Map<Long, Map<BankTransactionStatus, Long>> result = new HashMap<>();
+        for (Object[] row : rows) {
+            Long importId = (Long) row[0];
+            BankTransactionStatus status = (BankTransactionStatus) row[1];
+            long count = (Long) row[2];
+            result.computeIfAbsent(importId, k -> new EnumMap<>(BankTransactionStatus.class))
+                    .put(status, count);
+        }
+        return result;
     }
 }

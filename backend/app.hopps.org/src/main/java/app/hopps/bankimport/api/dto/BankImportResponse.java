@@ -1,9 +1,11 @@
 package app.hopps.bankimport.api.dto;
 
 import app.hopps.bankimport.domain.BankImport;
+import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.domain.BankImportStatus;
 
 import java.time.Instant;
+import java.util.Map;
 
 /**
  * Status DTO for an import job. Returned by the polling status endpoint and the import history list.
@@ -27,9 +29,20 @@ public record BankImportResponse(
         int duplicateRows,
         int errorRows,
         String errorReport,
-        String failureReason) {
+        String failureReason,
+        int totalTransactions,
+        int matchedTransactions,
+        int ignoredTransactions) {
 
     public static BankImportResponse from(BankImport job) {
+        return from(job, Map.of());
+    }
+
+    public static BankImportResponse from(BankImport job, Map<BankTransactionStatus, Long> statusCounts) {
+        long total = statusCounts.values().stream().mapToLong(Long::longValue).sum();
+        long matched = statusCounts.getOrDefault(BankTransactionStatus.FULLY_MATCHED, 0L)
+                + statusCounts.getOrDefault(BankTransactionStatus.PARTIALLY_MATCHED, 0L);
+        long ignored = statusCounts.getOrDefault(BankTransactionStatus.IGNORED, 0L);
         return new BankImportResponse(
                 job.getId(),
                 job.getBankAccount() != null ? job.getBankAccount().getId() : null,
@@ -49,6 +62,9 @@ public record BankImportResponse(
                 job.getDuplicateRows(),
                 job.getErrorRows(),
                 job.getErrorReport(),
-                job.getFailureReason());
+                job.getFailureReason(),
+                (int) total,
+                (int) matched,
+                (int) ignored);
     }
 }

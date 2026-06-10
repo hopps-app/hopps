@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -767,6 +767,218 @@ export class Client {
     }
 
     /**
+     * Unmark a bank transaction as ignored
+     * @param id Bank transaction ID
+     * @return Transaction unignored
+     */
+    ignoreDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}/ignore";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processIgnoreDELETE(_response);
+        });
+    }
+
+    protected processIgnoreDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Mark a bank transaction as ignored
+     * @param id Bank transaction ID
+     * @return Transaction marked as ignored
+     */
+    ignorePOST(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}/ignore";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processIgnorePOST(_response);
+        });
+    }
+
+    protected processIgnorePOST(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Link a bank transaction to a hopps transaction
+     * @param id Bank transaction ID
+     * @return Match created
+     */
+    matchesPOST(id: number, body: number): Promise<void> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}/matches";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMatchesPOST(_response);
+        });
+    }
+
+    protected processMatchesPOST(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Cannot match an ignored bank transaction", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank transaction or transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Unlink a bank transaction from a hopps transaction
+     * @param id Bank transaction ID
+     * @param transactionId Hopps transaction ID
+     * @return Match removed
+     */
+    matchesDELETE(id: number, transactionId: number): Promise<void> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}/matches/{transactionId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (transactionId === undefined || transactionId === null)
+            throw new Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMatchesDELETE(_response);
+        });
+    }
+
+    protected processMatchesDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank transaction or match not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * List bank accounts
      * @param includeArchived (optional) Include archived (soft-deleted) accounts
      * @return List of bank accounts
@@ -963,7 +1175,9 @@ export class Client {
             throw new Error("The parameter 'file' cannot be null.");
         else
             content_.append("file", file.data, file.fileName ? file.fileName : "file");
-        if (schemaId !== null && schemaId !== undefined)
+        if (schemaId === null || schemaId === undefined)
+            throw new Error("The parameter 'schemaId' cannot be null.");
+        else
             content_.append("schemaId", schemaId.toString());
 
         let options_: RequestInit = {
@@ -4649,6 +4863,9 @@ export class BankImportResponse implements IBankImportResponse {
     errorRows?: number;
     errorReport?: string;
     failureReason?: string;
+    totalTransactions?: number;
+    matchedTransactions?: number;
+    ignoredTransactions?: number;
 
     [key: string]: any;
 
@@ -4686,6 +4903,9 @@ export class BankImportResponse implements IBankImportResponse {
             this.errorRows = _data["errorRows"];
             this.errorReport = _data["errorReport"];
             this.failureReason = _data["failureReason"];
+            this.totalTransactions = _data["totalTransactions"];
+            this.matchedTransactions = _data["matchedTransactions"];
+            this.ignoredTransactions = _data["ignoredTransactions"];
         }
     }
 
@@ -4721,6 +4941,9 @@ export class BankImportResponse implements IBankImportResponse {
         data["errorRows"] = this.errorRows;
         data["errorReport"] = this.errorReport;
         data["failureReason"] = this.failureReason;
+        data["totalTransactions"] = this.totalTransactions;
+        data["matchedTransactions"] = this.matchedTransactions;
+        data["ignoredTransactions"] = this.ignoredTransactions;
         return data;
     }
 
@@ -4752,6 +4975,9 @@ export interface IBankImportResponse {
     errorRows?: number;
     errorReport?: string;
     failureReason?: string;
+    totalTransactions?: number;
+    matchedTransactions?: number;
+    ignoredTransactions?: number;
 
     [key: string]: any;
 }
@@ -4847,6 +5073,7 @@ export class BankTransactionResponse implements IBankTransactionResponse {
     balanceAfter?: number;
     status?: BankTransactionStatus;
     matchedAmount?: number;
+    matchedTransactionIds?: number[];
 
     [key: string]: any;
 
@@ -4886,6 +5113,11 @@ export class BankTransactionResponse implements IBankTransactionResponse {
             this.balanceAfter = _data["balanceAfter"];
             this.status = _data["status"];
             this.matchedAmount = _data["matchedAmount"];
+            if (Array.isArray(_data["matchedTransactionIds"])) {
+                this.matchedTransactionIds = [] as any;
+                for (let item of _data["matchedTransactionIds"])
+                    this.matchedTransactionIds!.push(item);
+            }
         }
     }
 
@@ -4923,6 +5155,11 @@ export class BankTransactionResponse implements IBankTransactionResponse {
         data["balanceAfter"] = this.balanceAfter;
         data["status"] = this.status;
         data["matchedAmount"] = this.matchedAmount;
+        if (Array.isArray(this.matchedTransactionIds)) {
+            data["matchedTransactionIds"] = [];
+            for (let item of this.matchedTransactionIds)
+                data["matchedTransactionIds"].push(item);
+        }
         return data;
     }
 
@@ -4956,6 +5193,7 @@ export interface IBankTransactionResponse {
     balanceAfter?: number;
     status?: BankTransactionStatus;
     matchedAmount?: number;
+    matchedTransactionIds?: number[];
 
     [key: string]: any;
 }

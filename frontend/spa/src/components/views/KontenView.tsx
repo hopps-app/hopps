@@ -2,11 +2,11 @@ import { BankAccountResponse } from '@hopps/api-client';
 import { ArrowLeftRight, ArrowRight, Check, ChevronLeft, ChevronRight, Clock, Edit, Landmark, Link2, Plus, Sheet, Unlink, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
 
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
+import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { useBankAccounts, useBankTransactionsByAccount, bankTransactionKeys, bankImportKeys } from '@/hooks/queries/useBankAccounts';
 import apiService from '@/services/ApiService';
@@ -173,9 +173,8 @@ function AddAccountCard({ onClick }: { onClick: () => void }) {
 
 // ─── Abgleich Tab ─────────────────────────────────────────────────────────────
 
-function AbgleichTab({ accounts }: { accounts: BankAccountResponse[] }) {
+function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse[]; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
-    const navigate = useNavigate();
 
     const txResults = useQueries({
         queries: accounts.map((a) => ({
@@ -269,7 +268,7 @@ function AbgleichTab({ accounts }: { accounts: BankAccountResponse[] }) {
                                     <button
                                         type="button"
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm font-semibold hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0"
-                                        onClick={() => navigate(`/bank-accounts/${tx.bankAccountId ?? acct?.id}`)}
+                                        onClick={() => tx.id && onOpenDrawer(tx.id)}
                                     >
                                         {t('konten.assign')} <ArrowRight className="w-4 h-4" />
                                     </button>
@@ -300,9 +299,8 @@ type StatusFilter = 'ALL' | 'UNMATCHED' | 'FULLY_MATCHED' | 'IGNORED';
 
 const PAGE_SIZE = 50;
 
-function AccountTab({ account }: { account: BankAccountResponse }) {
+function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
     const [page, setPage] = useState(0);
 
@@ -369,11 +367,12 @@ function AccountTab({ account }: { account: BankAccountResponse }) {
                     {filtered.map((tx, i) => (
                         <div
                             key={tx.id}
+                            onClick={() => tx.id && onOpenDrawer(tx.id)}
                             className={cn(
                                 'grid items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer',
                                 i < filtered.length - 1 && 'border-b border-gray-100 dark:border-gray-700'
                             )}
-                            style={{ gridTemplateColumns: '0.9fr 1.8fr 1.1fr 1.2fr' }}
+                            style={{ gridTemplateColumns: '0.9fr 1.8fr 1.1fr auto auto' }}
                         >
                             <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(tx.bookingDate)}</span>
                             <div className="min-w-0">
@@ -386,6 +385,15 @@ function AccountTab({ account }: { account: BankAccountResponse }) {
                             <span className="flex justify-end">
                                 <StatusPill status={tx.status} />
                             </span>
+                            {(tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED') && (
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-semibold hover:bg-primary/10 hover:text-primary transition-colors ml-2"
+                                    onClick={(e) => { e.stopPropagation(); tx.id && onOpenDrawer(tx.id); }}
+                                >
+                                    {t('konten.assign')} <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+                            )}
                         </div>
                     ))}
                     {(page > 0 || filtered.length === PAGE_SIZE) && (
@@ -421,9 +429,8 @@ function AccountTab({ account }: { account: BankAccountResponse }) {
 
 // ─── Importe Tab ─────────────────────────────────────────────────────────────
 
-function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
+function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; onImport: (id: number) => void }) {
     const { t } = useTranslation();
-    const navigate = useNavigate();
 
     const importResults = useQueries({
         queries: accounts.map((a) => ({
@@ -462,7 +469,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                     <button
                         type="button"
                         className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
-                        onClick={() => setImportAccountId(accounts[0].id!)}
+                        onClick={() => onImport(accounts[0].id!)}
                     >
                         <Sheet className="w-4 h-4" />
                         {t('konten.imports.newImport')}
@@ -480,19 +487,25 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                     <div
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
-                        style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr' }}
+                        style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
                     >
                         <span>{t('konten.table.date')}</span>
                         <span>{t('konten.imports.account')}</span>
                         <span>{t('konten.imports.file')}</span>
                         <span className="text-right">{t('konten.imports.imported')}</span>
                         <span className="text-right">{t('konten.imports.duplicates')}</span>
+                        <span className="text-right">{t('konten.imports.matched')}</span>
                     </div>
-                    {allImports.map((imp, i) => (
+                    {allImports.map((imp, i) => {
+                        const total = imp.totalTransactions ?? 0;
+                        const matched = imp.matchedTransactions ?? 0;
+                        const ignored = imp.ignoredTransactions ?? 0;
+                        const matchedPct = total > 0 ? Math.round(((matched + ignored) / total) * 100) : 0;
+                        return (
                         <div
                             key={imp.id}
                             className={cn('grid items-center px-4 py-3', i < allImports.length - 1 && 'border-b border-gray-100 dark:border-gray-700')}
-                            style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr' }}
+                            style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
                         >
                             <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(imp.finishedAt)}</span>
                             <span className="flex items-center gap-1.5 text-sm">
@@ -512,8 +525,26 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                             </div>
                             <span className="text-right font-bold tabular-nums text-sm">{imp.importedRows ?? '—'}</span>
                             <span className="text-right tabular-nums text-sm text-muted-foreground">{imp.duplicateRows || '—'}</span>
+                            <div className="flex flex-col items-end gap-1">
+                                {total > 0 ? (
+                                    <>
+                                        <span className={cn('tabular-nums text-sm font-medium', matched + ignored === total ? 'text-emerald-600' : 'text-foreground')}>
+                                            {matched + ignored}/{total}
+                                        </span>
+                                        <div className="w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                                            <div
+                                                className={cn('h-full rounded-full transition-all', matched + ignored === total ? 'bg-emerald-500' : 'bg-primary')}
+                                                style={{ width: `${matchedPct}%` }}
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <span className="text-sm text-muted-foreground">—</span>
+                                )}
+                            </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
@@ -527,12 +558,12 @@ type TabId = 'abgleich' | 'importe' | string; // string = account id as string
 export function KontenView() {
     const { t } = useTranslation();
     usePageTitle(t('konten.title'), 'CardStack');
-    const navigate = useNavigate();
 
     const { data: accounts = [], isLoading, refetch } = useBankAccounts(false);
     const [tab, setTab] = useState<TabId>('abgleich');
     const [drawerAccount, setDrawerAccount] = useState<BankAccountResponse | 'new' | null>(null);
     const [importAccountId, setImportAccountId] = useState<number | null>(null);
+    const [matchDrawerBankTxId, setMatchDrawerBankTxId] = useState<number | null>(null);
 
     // Count open transactions per account for the badges
     const openCountResults = useQueries({
@@ -561,20 +592,7 @@ export function KontenView() {
     return (
         <div className="flex flex-col gap-6 max-w-screen-xl">
             {/* Page header */}
-            <div className="flex items-center justify-between">
-                <p className="text-muted-foreground text-sm">{t('konten.subtitle')}</p>
-                <button
-                    type="button"
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                    onClick={() => {
-                        const target = activeAccount ?? (accounts.length === 1 ? accounts[0] : null);
-                        if (target?.id) setImportAccountId(target.id);
-                    }}
-                >
-                    <Sheet className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('konten.importAction')}</span>
-                </button>
-            </div>
+            <p className="text-muted-foreground text-sm">{t('konten.subtitle')}</p>
 
             {/* Account cards row */}
             <div className="flex flex-wrap gap-4">
@@ -620,9 +638,9 @@ export function KontenView() {
             </div>
 
             {/* Tab content */}
-            {tab === 'abgleich' && <AbgleichTab accounts={accounts} />}
-            {activeAccount && <AccountTab account={activeAccount} />}
-            {tab === 'importe' && <ImporteTab accounts={accounts} />}
+            {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={setMatchDrawerBankTxId} />}
+            {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={setMatchDrawerBankTxId} />}
+            {tab === 'importe' && <ImporteTab accounts={accounts} onImport={setImportAccountId} />}
 
             {/* Empty state when no accounts at all */}
             {accounts.length === 0 && (
@@ -641,6 +659,14 @@ export function KontenView() {
                         {t('konten.addAccount')}
                     </button>
                 </div>
+            )}
+
+            {/* Match drawer */}
+            {matchDrawerBankTxId !== null && (
+                <MatchDrawer
+                    bankTxId={matchDrawerBankTxId}
+                    onClose={() => setMatchDrawerBankTxId(null)}
+                />
             )}
 
             {/* Create / Edit drawer */}

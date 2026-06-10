@@ -323,6 +323,7 @@
         "intake": "Intake",
         "structure": "Bommel structure",
         "bankAccounts": "Accounts",
+        "transactions": "Transactions",
         "admin": "Admin",
         "ngo-details": "Ngo Details",
         "categories": "Categories",
@@ -330,6 +331,66 @@
         "expand": "Expand",
         "openMenu": "Open menu",
         "navigation": "Navigation"
+    },
+    "transactions": {
+        "title": "Transactions",
+        "subtitle": "{{count}} transactions · {{income}} income · {{expense}} expenses",
+        "new": "Record transaction",
+        "columns": {
+            "transaction": "Transaction",
+            "category": "Category",
+            "bommel": "Bommel",
+            "date": "Date",
+            "status": "Status",
+            "amount": "Amount"
+        },
+        "status": {
+            "all": "All",
+            "confirmed": "Confirmed",
+            "draft": "Draft"
+        },
+        "filters": {
+            "search": "Search…",
+            "category": "Category",
+            "bommel": "Bommel",
+            "area": "Area",
+            "from": "From",
+            "to": "To",
+            "privatelyPaid": "Privately paid",
+            "detached": "Not linked",
+            "reset": "Reset filters",
+            "allCategories": "All categories",
+            "allBommels": "All bommels",
+            "allAreas": "All areas",
+            "advancedFilters": "More filters"
+        },
+        "unassigned": "Unassigned",
+        "income": "Income",
+        "expense": "Expense",
+        "noResults": "No transactions found",
+        "noResultsDesc": "Adjust the filters or record a new transaction.",
+        "detail": {
+            "title": "Transaction",
+            "editTitle": "Edit transaction",
+            "category": "Category",
+            "bommel": "Bommel",
+            "area": "Area",
+            "date": "Date",
+            "direction": "Direction",
+            "privatelyPaid": "Privately paid",
+            "receipt": "Linked receipt",
+            "noReceipt": "No receipt linked",
+            "payment": "Payment & reconciliation",
+            "notLinked": "Not yet linked",
+            "cash": "Cash payment",
+            "delete": "Delete",
+            "edit": "Edit",
+            "confirm": "Confirm",
+            "save": "Save",
+            "cancel": "Cancel",
+            "yes": "Yes",
+            "no": "No"
+        }
     },
     "datePicker": {
         "selectDate": "Select date"
@@ -845,6 +906,7 @@
             "file": "File",
             "imported": "Imported",
             "duplicates": "Duplicates",
+            "matched": "Matched",
             "newImport": "New import",
             "empty": "No imports yet",
             "emptyDesc": "Import a bank statement to populate the history."
@@ -857,6 +919,22 @@
             "subtitle": "Account master data",
             "bankPlaceholder": "e.g. Sparkasse",
             "create": "Create"
+        },
+        "drawer": {
+            "title": "Assign bank transaction",
+            "linked": "Already linked",
+            "selectTx": "Select matching transaction",
+            "multiSelect": "Multiple selection possible",
+            "noOpenTx": "No open transaction matches. Check your transactions list.",
+            "exactMatch": "exact match",
+            "unlink": "Remove link",
+            "bankAmount": "Amount",
+            "covered": "Covered",
+            "remaining": "Difference",
+            "fullyCovered": "Fully covered",
+            "ignore": "Ignore",
+            "unignore": "Unignore",
+            "assign": "Assign"
         }
     }
 }
