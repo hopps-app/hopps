@@ -4,6 +4,8 @@ import app.hopps.bankimport.api.dto.BankImportResponse;
 import app.hopps.bankimport.api.dto.CsvPreviewResponse;
 import app.hopps.bankimport.api.dto.SchemaDetectionResult;
 import app.hopps.bankimport.domain.BankImport;
+import app.hopps.bankimport.domain.BankTransactionStatus;
+import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bankimport.service.BankImportService;
 import app.hopps.bankimport.service.CsvPreviewService;
 import app.hopps.bankimport.service.SchemaDetectionService;
@@ -46,6 +48,9 @@ public class BankAccountImportResource {
 
     @Inject
     BankImportService importService;
+
+    @Inject
+    BankTransactionRepository transactionRepository;
 
     @Inject
     CsvPreviewService csvPreviewService;
@@ -133,6 +138,10 @@ public class BankAccountImportResource {
         if (limit != null && limit > 0 && jobs.size() > limit) {
             jobs = jobs.subList(0, limit);
         }
-        return jobs.stream().map(BankImportResponse::from).toList();
+        List<Long> importIds = jobs.stream().map(BankImport::getId).toList();
+        var statusCounts = transactionRepository.countStatusesByImports(importIds);
+        return jobs.stream()
+                .map(j -> BankImportResponse.from(j, statusCounts.getOrDefault(j.getId(), java.util.Map.of())))
+                .toList();
     }
 }

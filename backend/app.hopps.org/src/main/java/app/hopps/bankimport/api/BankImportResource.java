@@ -1,6 +1,8 @@
 package app.hopps.bankimport.api;
 
 import app.hopps.bankimport.api.dto.BankImportResponse;
+import app.hopps.bankimport.domain.BankTransactionStatus;
+import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bankimport.service.BankImportService;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
@@ -32,6 +34,9 @@ public class BankImportResource {
     @Inject
     BankImportService importService;
 
+    @Inject
+    BankTransactionRepository transactionRepository;
+
     @GET
     @Path("/{id}")
     @Operation(summary = "Get import status", description = "Returns the live status of an import job (progress, counters, error report). Always responds with HTTP 200 — clients inspect the status field rather than the HTTP code.")
@@ -40,7 +45,9 @@ public class BankImportResource {
     @APIResponse(responseCode = "404", description = "Import not found")
     public BankImportResponse getStatus(
             @PathParam("id") @Parameter(description = "Import ID") Long id) {
-        return BankImportResponse.from(importService.get(id));
+        var job = importService.get(id);
+        var statusCounts = transactionRepository.countStatusesByImports(java.util.List.of(job.getId()));
+        return BankImportResponse.from(job, statusCounts.getOrDefault(job.getId(), java.util.Map.of()));
     }
 
     @DELETE

@@ -5,17 +5,23 @@ import app.hopps.bankimport.api.dto.BankTransactionResponse;
 import app.hopps.bankimport.domain.BankTransaction;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
+import app.hopps.bankimport.service.BankTransactionMatchService;
 import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -38,6 +44,9 @@ public class BankTransactionResource {
 
     @Inject
     BankTransactionRepository transactionRepository;
+
+    @Inject
+    BankTransactionMatchService matchService;
 
     @GET
     @Operation(summary = "List bank transactions", description = "Cross-account listing scoped to the current org. Filters: accountIds, dateFrom/dateTo, status (multi), search (purpose/counterparty).")
@@ -87,7 +96,7 @@ public class BankTransactionResource {
 
     @GET
     @Path("/{id}")
-    @Operation(summary = "Get a bank transaction", description = "Returns a bank transaction by ID")
+    @Operation(summary = "Get a bank transaction", description = "Returns a bank transaction by ID, including matched transaction IDs")
     @APIResponse(responseCode = "200", description = "Transaction found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionResponse.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Transaction not found")
@@ -97,7 +106,63 @@ public class BankTransactionResource {
         if (tx == null) {
             throw new NotFoundException("Bank transaction not found");
         }
-        return BankTransactionResponse.from(tx);
+        List<Long> matchIds = matchService.getMatchedTransactionIds(id);
+        return BankTransactionResponse.from(tx, matchIds);
+    }
+
+    @POST
+    @Path("/{id}/matches")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Link a bank transaction to a hopps transaction", description = "Creates a MANUAL match between the bank transaction and a bookkeeping transaction.")
+    @APIResponse(responseCode = "204", description = "Match created")
+    @APIResponse(responseCode = "400", description = "Cannot match an ignored bank transaction")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank transaction or transaction not found")
+    public jakarta.ws.rs.core.Response addMatch(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id,
+            @Parameter(description = "Hopps transaction ID") Long transactionId,
+            @Context SecurityContext securityContext) {
+        String username = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName()
+                : "unknown";
+        matchService.addMatch(id, transactionId, username);
+        return jakarta.ws.rs.core.Response.noContent().build();
+    }
+
+    @DELETE
+    @Path("/{id}/matches/{transactionId}")
+    @Operation(summary = "Unlink a bank transaction from a hopps transaction", description = "Removes a match between the bank transaction and the bookkeeping transaction.")
+    @APIResponse(responseCode = "204", description = "Match removed")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank transaction or match not found")
+    public jakarta.ws.rs.core.Response removeMatch(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id,
+            @PathParam("transactionId") @Parameter(description = "Hopps transaction ID") Long transactionId) {
+        matchService.removeMatch(id, transactionId);
+        return jakarta.ws.rs.core.Response.noContent().build();
+    }
+
+    @POST
+    @Path("/{id}/ignore")
+    @Operation(summary = "Mark a bank transaction as ignored", description = "Sets the status to IGNORED — the transaction will not appear in the reconciliation worklist.")
+    @APIResponse(responseCode = "204", description = "Transaction marked as ignored")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank transaction not found")
+    public jakarta.ws.rs.core.Response ignore(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id) {
+        matchService.setIgnored(id);
+        return jakarta.ws.rs.core.Response.noContent().build();
+    }
+
+    @DELETE
+    @Path("/{id}/ignore")
+    @Operation(summary = "Unmark a bank transaction as ignored", description = "Reverts the IGNORED status — recomputes status from existing matches.")
+    @APIResponse(responseCode = "204", description = "Transaction unignored")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank transaction not found")
+    public jakarta.ws.rs.core.Response unignore(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id) {
+        matchService.unignore(id);
+        return jakarta.ws.rs.core.Response.noContent().build();
     }
 
     @GET
