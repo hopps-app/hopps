@@ -321,7 +321,7 @@
         "expense": "Ausgabe",
         "intake": "Einnahme",
         "structure": "Bommel Struktur",
-        "bankAccounts": "Bankkonten",
+        "bankAccounts": "Konten",
         "admin": "Admin",
         "ngo-details": "Organisation",
         "categories": "Kategorien",
@@ -587,6 +587,7 @@
             "currency": "Währung",
             "currencyPlaceholder": "Währung auswählen",
             "openingBalance": "Eröffnungssaldo",
+            "openingBalanceDate": "Datum des Eröffnungssaldos",
             "color": "Farbe (Hex)",
             "colorPicker": "Farbe auswählen",
             "defaultSchema": "Standard-Schema",
@@ -596,7 +597,15 @@
             "validation": {
                 "nameRequired": "Kontoname ist erforderlich",
                 "currencyRequired": "Währung ist erforderlich",
-                "colorInvalid": "Ungültige Farbe. Bitte verwenden Sie ein #RRGGBB-Format"
+                "colorInvalid": "Ungültige Farbe. Bitte verwenden Sie ein #RRGGBB-Format",
+                "ibanRequired": "IBAN ist erforderlich",
+                "ibanTooShort": "IBAN muss mindestens 15 Zeichen lang sein",
+                "ibanTooLong": "IBAN darf maximal 34 Zeichen lang sein",
+                "ibanInvalidFormat": "Ungültiges IBAN-Format (z. B. DE89370400440532013000)",
+                "bicTooLong": "BIC darf maximal 11 Zeichen lang sein",
+                "openingBalanceDateRequired": "Datum des Eröffnungssaldos ist erforderlich, wenn ein Saldo angegeben wird",
+                "openingBalanceRequired": "Eröffnungssaldo ist erforderlich, wenn ein Datum angegeben wird",
+                "duplicateIban": "Ein Konto mit dieser IBAN existiert bereits in Ihrer Organisation"
             }
         },
         "table": {
@@ -642,6 +651,18 @@
             "fileTitle": "CSV-Datei hochladen",
             "fileDrop": "Datei hier ablegen oder klicken",
             "fileDropHint": "Unterstützte Formate: .csv, .txt",
+            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps erkennt das Format automatisch — kein Einrichten nötig.",
+            "mt940Detected": "MT940 erkannt · {{count}} Umsätze gefunden · kein Schema nötig",
+            "showMore": "mehr",
+            "showLess": "weniger",
+            "detecting": "Format wird erkannt…",
+            "noFormatDetected": "Format konnte nicht automatisch erkannt werden. Bitte wähle unten ein Schema aus.",
+            "formatDetected": "Format erkannt: {{schema}} · Konto {{account}} · {{lines}} Zeilen gelesen",
+            "schemaRequired": "Import-Schema auswählen",
+            "importBtn": "{{count}} Umsätze importieren",
+            "duplicateRow": "Duplikat",
+            "duplicateHint_one": "{{count}} bereits vorhandener Umsatz wird übersprungen",
+            "duplicateHint_other": "{{count}} bereits vorhandene Umsätze werden übersprungen",
             "fileDropReplace": "Klicken oder erneut ablegen, um die Datei zu ersetzen",
             "schemaTitle": "Import-Schema auswählen",
             "schemaSelect": "Schema",
@@ -766,6 +787,75 @@
             "archiveError": "Fehler beim Archivieren des Schemas",
             "restoreSuccess": "Schema wiederhergestellt",
             "restoreError": "Fehler beim Wiederherstellen des Schemas"
+        }
+    },
+    "konten": {
+        "title": "Konten",
+        "subtitle": "Bankkonten — alle Geldtöpfe des Vereins an einem Ort.",
+        "balance": "Saldo",
+        "open": "offen",
+        "allMatched": "abgeglichen",
+        "addAccount": "Bankkonto hinzufügen",
+        "importAction": "Umsätze importieren",
+        "import": "Importieren",
+        "assign": "Zuordnen",
+        "noTransactions": "Keine Umsätze gefunden.",
+        "unknownCounterparty": "Unbekannt",
+        "tabs": {
+            "abgleich": "Abgleich",
+            "importe": "Importe"
+        },
+        "status": {
+            "open": "Offen",
+            "matched": "Zugeordnet",
+            "partial": "Teilweise",
+            "ignored": "Ignoriert"
+        },
+        "filter": {
+            "all": "Alle",
+            "open": "Offen",
+            "matched": "Zugeordnet",
+            "ignored": "Ignoriert"
+        },
+        "abgleich": {
+            "allClear": "Alles abgeglichen",
+            "allClearDesc": "Jeder Kontoumsatz ist einer Transaktion zugeordnet.",
+            "openSingular": "Umsatz noch nicht zugeordnet",
+            "openPlural": "Umsätze noch nicht zugeordnet",
+            "matched": "abgeglichen",
+            "openDesc": "Ordne die offenen Umsätze unten zu oder erstelle eine Transaktion daraus.",
+            "openBookings": "Offene Kontoumsätze",
+            "noData": "Noch keine Umsätze",
+            "noDataDesc": "Importiere einen Kontoauszug, um den Abgleich zu starten."
+        },
+        "table": {
+            "date": "Datum",
+            "counterparty": "Gegenpartei / Zweck",
+            "amount": "Betrag",
+            "status": "Status"
+        },
+        "pagination": {
+            "page": "Seite {{page}}"
+        },
+        "imports": {
+            "title": "Import-Historie",
+            "subtitle": "Nachvollziehbar: welche Kontoauszüge wann importiert wurden.",
+            "account": "Konto",
+            "file": "Datei",
+            "imported": "Importiert",
+            "duplicates": "Duplikate",
+            "newImport": "Neuer Import",
+            "empty": "Noch keine Importe",
+            "emptyDesc": "Importiere einen Kontoauszug, um die Historie zu füllen."
+        },
+        "empty": {
+            "title": "Noch keine Bankkonten",
+            "desc": "Füge dein erstes Bankkonto hinzu, um Kontoauszüge zu importieren."
+        },
+        "form": {
+            "subtitle": "Stammdaten des Kontos",
+            "bankPlaceholder": "z. B. Sparkasse",
+            "create": "Anlegen"
         }
     }
 }

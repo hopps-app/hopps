@@ -3,6 +3,8 @@ package app.hopps.bankimport.service;
 import app.hopps.bankimport.api.dto.CsvPreviewResponse;
 import app.hopps.bankimport.parser.DelimiterDetector;
 import app.hopps.bankimport.parser.EncodingDetector;
+import app.hopps.bankimport.parser.Mt940Parser;
+import app.hopps.bankimport.parser.Mt940Parser.ParsedMt940Transaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -10,8 +12,10 @@ import org.apache.commons.csv.CSVRecord;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,7 +28,14 @@ public class CsvPreviewService {
     /** Maximum number of raw lines returned to the UI. Tuned for visual scanning, not full validation. */
     private static final int PREVIEW_LINES = 20;
 
+    /** Maximum number of MT940 sample transactions returned in the preview. */
+    private static final int MT940_PREVIEW_TRANSACTIONS = 5;
+
     public CsvPreviewResponse preview(byte[] content) {
+        // Fast-path: detect MT940 before CSV processing
+        if (Mt940Parser.isMt940(content)) {
+            return previewMt940(content);
+        }
         Charset charset;
         String text;
         String warning = null;
@@ -88,7 +99,68 @@ public class CsvPreviewService {
                 allLines.size(),
                 rawLines,
                 headerColumns,
-                sampleRows);
+                sampleRows,
+                "CSV");
+    }
+
+    private CsvPreviewResponse previewMt940(byte[] content) {
+        String text;
+        String warning = null;
+        Charset charset;
+        boolean encodingValid = true;
+        try {
+            charset = EncodingDetector.detect(content);
+            text = EncodingDetector.decodeStrict(content, charset);
+        } catch (IllegalArgumentException e) {
+            try {
+                charset = EncodingDetector.FALLBACK_CHARSET;
+                text = EncodingDetector.decodeStrict(content, charset);
+                warning = "Detected encoding produced unreadable characters; falling back to "
+                        + charset.displayName();
+            } catch (IllegalArgumentException e2) {
+                charset = EncodingDetector.FALLBACK_CHARSET;
+                text = new String(content, charset);
+                encodingValid = false;
+                warning = "Could not decode file cleanly. Please choose an encoding manually.";
+            }
+        }
+
+        List<ParsedMt940Transaction> transactions;
+        try {
+            transactions = Mt940Parser.parse(text);
+        } catch (Exception e) {
+            transactions = List.of();
+            warning = (warning == null ? "" : warning + " ") + "MT940 parsing failed: " + e.getMessage();
+        }
+
+        int totalTransactions = transactions.size();
+        List<ParsedMt940Transaction> sample = transactions.size() > MT940_PREVIEW_TRANSACTIONS
+                ? transactions.subList(0, MT940_PREVIEW_TRANSACTIONS)
+                : transactions;
+
+        // Build sample rows: [date, amount, currency, purpose, counterparty]
+        List<List<String>> sampleRows = new ArrayList<>();
+        for (ParsedMt940Transaction tx : sample) {
+            sampleRows.add(Arrays.asList(
+                    tx.bookingDate() != null ? tx.bookingDate().toString() : "",
+                    tx.amount() != null ? tx.amount().toPlainString() : "",
+                    tx.currency() != null ? tx.currency() : "",
+                    tx.purpose() != null ? tx.purpose() : "",
+                    tx.counterpartyName() != null ? tx.counterpartyName() : ""));
+        }
+
+        List<String> headerColumns = List.of("bookingDate", "amount", "currency", "purpose", "counterpartyName");
+
+        return new CsvPreviewResponse(
+                charset.name(),
+                null,
+                encodingValid,
+                warning,
+                totalTransactions,
+                List.of(),
+                headerColumns,
+                sampleRows,
+                "MT940");
     }
 
     private static List<String> splitLines(String text) {

@@ -1,4 +1,5 @@
 import {
+    ApiException,
     BankAccountCreateRequest,
     BankAccountUpdateRequest,
     BankCsvSchemaCreateRequest,
@@ -38,7 +39,8 @@ export const bankImportKeys = {
 
 export const bankTransactionKeys = {
     all: ['bankTransactions'] as const,
-    byAccount: (accountId: number, page?: number, size?: number) => [...bankTransactionKeys.all, 'account', accountId, { page, size }] as const,
+    byAccount: (accountId: number, page?: number, size?: number, status?: string) =>
+        [...bankTransactionKeys.all, 'account', accountId, { page, size, status }] as const,
 };
 
 // ─── Bank Accounts ───────────────────────────────────────────────────────────
@@ -70,7 +72,8 @@ export function useCreateBankAccount() {
             queryClient.invalidateQueries({ queryKey: bankAccountKeys.lists() });
             showSuccess(t('bankAccounts.toast.createSuccess'));
         },
-        onError: () => {
+        onError: (err) => {
+            if (ApiException.isApiException(err) && err.status === 409) return;
             showError(t('bankAccounts.toast.createError'));
         },
     });
@@ -89,7 +92,8 @@ export function useUpdateBankAccount() {
             queryClient.invalidateQueries({ queryKey: bankAccountKeys.detail(variables.id) });
             showSuccess(t('bankAccounts.toast.updateSuccess'));
         },
-        onError: () => {
+        onError: (err) => {
+            if (ApiException.isApiException(err) && err.status === 409) return;
             showError(t('bankAccounts.toast.updateError'));
         },
     });
@@ -260,6 +264,11 @@ export function useBankImport(id: number | null) {
         queryKey: bankImportKeys.detail(id ?? 0),
         queryFn: () => apiService.orgService.importsGET(id!),
         enabled: id !== null && id > 0,
+        refetchInterval: (query) => {
+            const status = query.state.data?.status;
+            if (status === 'COMPLETED' || status === 'PARTIAL' || status === 'FAILED') return false;
+            return 1000;
+        },
     });
 }
 
@@ -267,7 +276,7 @@ export function useStartImport() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ accountId, file, schemaId }: { accountId: number; file: File; schemaId: number }) =>
+        mutationFn: ({ accountId, file, schemaId }: { accountId: number; file: File; schemaId?: number }) =>
             apiService.orgService.importsPOST(accountId, { data: file, fileName: file.name }, schemaId),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(variables.accountId) });
@@ -300,20 +309,29 @@ export function useCsvPreview() {
     });
 }
 
+export function useSuggestSchema(accountId: number, headerColumns: string[] | null) {
+    return useQuery({
+        queryKey: ['suggestSchema', accountId, headerColumns],
+        queryFn: () => apiService.orgService.suggestSchema(accountId, headerColumns!.join(',')),
+        enabled: headerColumns != null && headerColumns.length > 0,
+        staleTime: Infinity,
+    });
+}
+
 // ─── Bank Transactions ────────────────────────────────────────────────────────
 
-export function useBankTransactionsByAccount(accountId: number, page = 0, size = 50) {
+export function useBankTransactionsByAccount(accountId: number, page = 0, size = 50, status?: string) {
     return useQuery({
-        queryKey: bankTransactionKeys.byAccount(accountId, page, size),
+        queryKey: bankTransactionKeys.byAccount(accountId, page, size, status),
         queryFn: () =>
             apiService.orgService.byAccount(
                 accountId,
-                undefined, // dateFrom
-                undefined, // dateTo
+                undefined,
+                undefined,
                 page,
-                undefined, // search
+                undefined,
                 size,
-                undefined  // status
+                status
             ),
         enabled: !!accountId,
     });
@@ -329,6 +347,7 @@ export interface IBankAccountCreateRequest {
     accountHolder?: string;
     currency?: string;
     openingBalance?: number;
+    openingBalanceDate?: Date;
     description?: string;
     color?: string;
     defaultSchemaId?: number;
@@ -343,6 +362,7 @@ export interface IBankAccountUpdateRequest {
     accountHolder?: string;
     currency?: string;
     openingBalance?: number;
+    openingBalanceDate?: Date;
     description?: string;
     color?: string;
     defaultSchemaId?: number;
