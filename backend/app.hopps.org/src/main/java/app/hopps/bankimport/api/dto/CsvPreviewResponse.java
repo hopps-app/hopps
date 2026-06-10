@@ -14,5 +14,6 @@ public record CsvPreviewResponse(
         int totalLines,
         List<String> rawLines,
         List<String> headerColumns,
-        List<List<String>> sampleRows) {
+        List<List<String>> sampleRows,
+        String fileType) {
 }

@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -945,7 +945,7 @@ export class Client {
     }
 
     /**
-     * Queue a CSV import
+     * Queue a bank file import
      * @param accountId Bank account ID
      * @param file (optional) 
      * @param schemaId (optional) 
@@ -963,9 +963,7 @@ export class Client {
             throw new Error("The parameter 'file' cannot be null.");
         else
             content_.append("file", file.data, file.fileName ? file.fileName : "file");
-        if (schemaId === null || schemaId === undefined)
-            throw new Error("The parameter 'schemaId' cannot be null.");
-        else
+        if (schemaId !== null && schemaId !== undefined)
             content_.append("schemaId", schemaId.toString());
 
         let options_: RequestInit = {
@@ -1079,6 +1077,61 @@ export class Client {
             });
         }
         return Promise.resolve<CsvPreviewResponse>(null as any);
+    }
+
+    /**
+     * Auto-detect schema from CSV headers
+     * @param accountId Bank account ID
+     * @param headers (optional) Comma-separated CSV header column names
+     * @return Detection result (type may be NONE)
+     */
+    suggestSchema(accountId: number, headers: string | undefined): Promise<SchemaDetectionResult> {
+        let url_ = this.baseUrl + "/bankaccounts/{accountId}/imports/suggest-schema?";
+        if (accountId === undefined || accountId === null)
+            throw new Error("The parameter 'accountId' must be defined.");
+        url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        if (headers === null)
+            throw new Error("The parameter 'headers' cannot be null.");
+        else if (headers !== undefined)
+            url_ += "headers=" + encodeURIComponent("" + headers) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSuggestSchema(_response);
+        });
+    }
+
+    protected processSuggestSchema(response: Response): Promise<SchemaDetectionResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SchemaDetectionResult.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SchemaDetectionResult>(null as any);
     }
 
     /**
@@ -2435,6 +2488,45 @@ export class Client {
             });
         }
         return Promise.resolve<DocumentResponse>(null as any);
+    }
+
+    /**
+     * Health
+     * @return OK
+     */
+    health(): Promise<any> {
+        let url_ = this.baseUrl + "/health";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processHealth(_response);
+        });
+    }
+
+    protected processHealth(response: Response): Promise<any> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<any>(null as any);
     }
 
     /**
@@ -5259,6 +5351,7 @@ export class CsvPreviewResponse implements ICsvPreviewResponse {
     rawLines?: string[];
     headerColumns?: string[];
     sampleRows?: string[][];
+    fileType?: string;
 
     [key: string]: any;
 
@@ -5297,6 +5390,7 @@ export class CsvPreviewResponse implements ICsvPreviewResponse {
                 for (let item of _data["sampleRows"])
                     this.sampleRows!.push(item);
             }
+            this.fileType = _data["fileType"];
         }
     }
 
@@ -5333,6 +5427,7 @@ export class CsvPreviewResponse implements ICsvPreviewResponse {
             for (let item of this.sampleRows)
                 data["sampleRows"].push(item);
         }
+        data["fileType"] = this.fileType;
         return data;
     }
 
@@ -5353,9 +5448,12 @@ export interface ICsvPreviewResponse {
     rawLines?: string[];
     headerColumns?: string[];
     sampleRows?: string[][];
+    fileType?: string;
 
     [key: string]: any;
 }
+
+export type DetectionType = "ORG" | "TEMPLATE" | "NONE";
 
 export class DocumentResponse implements IDocumentResponse {
     id?: number;
@@ -6137,6 +6235,87 @@ export interface IOwnerInput {
     email?: string;
     firstName?: string;
     lastName?: string;
+
+    [key: string]: any;
+}
+
+export class SchemaDetectionResult implements ISchemaDetectionResult {
+    /** Type of match found */
+    type?: DetectionType;
+    /** ID of the matched org schema (only set when type=ORG) */
+    schemaId?: number;
+    /** Template ID of the matched system template (only set when type=TEMPLATE) */
+    templateId?: string;
+    /** Human-readable name of the matched schema or template */
+    name?: string;
+    /** Confidence score between 0.0 and 1.0 */
+    confidence?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ISchemaDetectionResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.schemaId = _data["schemaId"];
+            this.templateId = _data["templateId"];
+            this.name = _data["name"];
+            this.confidence = _data["confidence"];
+        }
+    }
+
+    static fromJS(data: any): SchemaDetectionResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new SchemaDetectionResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["schemaId"] = this.schemaId;
+        data["templateId"] = this.templateId;
+        data["name"] = this.name;
+        data["confidence"] = this.confidence;
+        return data;
+    }
+
+    clone(): SchemaDetectionResult {
+        const json = this.toJSON();
+        let result = new SchemaDetectionResult();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ISchemaDetectionResult {
+    /** Type of match found */
+    type?: DetectionType;
+    /** ID of the matched org schema (only set when type=ORG) */
+    schemaId?: number;
+    /** Template ID of the matched system template (only set when type=TEMPLATE) */
+    templateId?: string;
+    /** Human-readable name of the matched schema or template */
+    name?: string;
+    /** Confidence score between 0.0 and 1.0 */
+    confidence?: number;
 
     [key: string]: any;
 }

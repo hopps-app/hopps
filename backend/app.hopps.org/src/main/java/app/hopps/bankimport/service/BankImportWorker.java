@@ -28,6 +28,9 @@ public class BankImportWorker {
     @Inject
     CsvImportService importService;
 
+    @Inject
+    Mt940ImportService mt940ImportService;
+
     @Scheduled(every = "5s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void pollQueue() {
         Long claimedId = claimNextJob();
@@ -35,7 +38,12 @@ public class BankImportWorker {
             return;
         }
         try {
-            importService.runImport(claimedId);
+            String fileType = getFileType(claimedId);
+            if ("MT940".equals(fileType)) {
+                mt940ImportService.runImport(claimedId);
+            } else {
+                importService.runImport(claimedId);
+            }
         } catch (Exception e) {
             // CsvImportService is supposed to set FAILED on its own in the unhappy path, but if the transaction
             // itself blew up we mark the job here.
@@ -56,6 +64,12 @@ public class BankImportWorker {
         if (stuck > 0) {
             LOG.warn("Watchdog reset {} stuck import job(s) to FAILED", stuck);
         }
+    }
+
+    @Transactional
+    String getFileType(Long importId) {
+        BankImport job = BankImport.findById(importId);
+        return job != null ? job.getFileType() : "CSV";
     }
 
     @Transactional

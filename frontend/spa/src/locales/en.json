@@ -322,7 +322,7 @@
         "expense": "Expense",
         "intake": "Intake",
         "structure": "Bommel structure",
-        "bankAccounts": "Bank accounts",
+        "bankAccounts": "Accounts",
         "admin": "Admin",
         "ngo-details": "Ngo Details",
         "categories": "Categories",
@@ -577,6 +577,7 @@
             "currency": "Currency",
             "currencyPlaceholder": "Select currency",
             "openingBalance": "Opening balance",
+            "openingBalanceDate": "Opening balance date",
             "color": "Color (hex)",
             "colorPicker": "Pick a color",
             "defaultSchema": "Default schema",
@@ -586,7 +587,15 @@
             "validation": {
                 "nameRequired": "Account name is required",
                 "currencyRequired": "Currency is required",
-                "colorInvalid": "Invalid color. Please use #RRGGBB format"
+                "colorInvalid": "Invalid color. Please use #RRGGBB format",
+                "ibanRequired": "IBAN is required",
+                "ibanTooShort": "IBAN must be at least 15 characters",
+                "ibanTooLong": "IBAN must not exceed 34 characters",
+                "ibanInvalidFormat": "Invalid IBAN format (e.g. DE89370400440532013000)",
+                "bicTooLong": "BIC must not exceed 11 characters",
+                "openingBalanceDateRequired": "Opening balance date is required when a balance is provided",
+                "openingBalanceRequired": "Opening balance is required when a date is provided",
+                "duplicateIban": "An account with this IBAN already exists in your organisation"
             }
         },
         "table": {
@@ -632,6 +641,18 @@
             "fileTitle": "Upload CSV file",
             "fileDrop": "Drop file here or click to select",
             "fileDropHint": "Supported formats: .csv, .txt",
+            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps auto-detects the format — no setup needed.",
+            "mt940Detected": "MT940 detected · {{count}} transactions found · no schema needed",
+            "showMore": "more",
+            "showLess": "less",
+            "detecting": "Detecting format…",
+            "noFormatDetected": "Format could not be detected automatically. Please select a schema below.",
+            "formatDetected": "Format detected: {{schema}} · Account {{account}} · {{lines}} rows read",
+            "schemaRequired": "Select an import schema",
+            "importBtn": "Import {{count}} transactions",
+            "duplicateRow": "Duplicate",
+            "duplicateHint_one": "{{count}} existing transaction will be skipped",
+            "duplicateHint_other": "{{count}} existing transactions will be skipped",
             "fileDropReplace": "Click or drop again to replace the file",
             "schemaTitle": "Select import schema",
             "schemaSelect": "Schema",
@@ -768,5 +789,74 @@
             "description": "The backend server is currently unreachable. Some features are temporarily unavailable."
         },
         "buttonDisabledHint": "This action is unavailable because a required service is unreachable."
+    },
+    "konten": {
+        "title": "Accounts",
+        "subtitle": "Bank accounts — all funds of the club in one place.",
+        "balance": "Balance",
+        "open": "open",
+        "allMatched": "reconciled",
+        "addAccount": "Add bank account",
+        "importAction": "Import transactions",
+        "import": "Import",
+        "assign": "Assign",
+        "noTransactions": "No transactions found.",
+        "unknownCounterparty": "Unknown",
+        "tabs": {
+            "abgleich": "Reconciliation",
+            "importe": "Imports"
+        },
+        "status": {
+            "open": "Open",
+            "matched": "Matched",
+            "partial": "Partial",
+            "ignored": "Ignored"
+        },
+        "filter": {
+            "all": "All",
+            "open": "Open",
+            "matched": "Matched",
+            "ignored": "Ignored"
+        },
+        "abgleich": {
+            "allClear": "All reconciled",
+            "allClearDesc": "Every bank transaction is matched to a booking.",
+            "openSingular": "transaction not yet matched",
+            "openPlural": "transactions not yet matched",
+            "matched": "matched",
+            "openDesc": "Assign the open transactions below or create a booking from them.",
+            "openBookings": "Open bank transactions",
+            "noData": "No transactions yet",
+            "noDataDesc": "Import a bank statement to start reconciliation."
+        },
+        "table": {
+            "date": "Date",
+            "counterparty": "Counterparty / Purpose",
+            "amount": "Amount",
+            "status": "Status"
+        },
+        "pagination": {
+            "page": "Page {{page}}"
+        },
+        "imports": {
+            "title": "Import history",
+            "subtitle": "Track which bank statements were imported and when.",
+            "account": "Account",
+            "file": "File",
+            "imported": "Imported",
+            "duplicates": "Duplicates",
+            "newImport": "New import",
+            "empty": "No imports yet",
+            "emptyDesc": "Import a bank statement to populate the history."
+        },
+        "empty": {
+            "title": "No bank accounts yet",
+            "desc": "Add your first bank account to start importing bank statements."
+        },
+        "form": {
+            "subtitle": "Account master data",
+            "bankPlaceholder": "e.g. Sparkasse",
+            "create": "Create"
+        }
     }
 }

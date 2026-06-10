@@ -4,6 +4,7 @@ import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.domain.BankImport;
 import app.hopps.bankimport.domain.BankImportStatus;
+import app.hopps.bankimport.parser.Mt940Parser;
 import app.hopps.bankimport.repository.BankImportRepository;
 import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.shared.security.OrganizationContext;
@@ -64,12 +65,24 @@ public class BankImportService {
         if (account.isArchived()) {
             throw new BadRequestException("Cannot import into an archived account");
         }
-        BankCsvSchema schema = schemaService.get(schemaId);
         byte[] content;
         try {
             content = Files.readAllBytes(tempFile);
         } catch (IOException e) {
             throw new BadRequestException("Could not read uploaded file: " + e.getMessage());
+        }
+
+        // Detect file type
+        String fileType;
+        BankCsvSchema schema = null;
+        if (Mt940Parser.isMt940(content)) {
+            fileType = "MT940";
+        } else {
+            if (schemaId == null) {
+                throw new BadRequestException("schemaId is required for CSV imports");
+            }
+            fileType = "CSV";
+            schema = schemaService.get(schemaId);
         }
 
         String sha256 = DedupeHashService.sha256(content);
@@ -84,6 +97,7 @@ public class BankImportService {
         job.setOrganization(account.getOrganization());
         job.setBankAccount(account);
         job.setSchema(schema);
+        job.setFileType(fileType);
         job.setFileName(fileName);
         job.setFileSize(fileSize);
         job.setFileSha256(sha256);

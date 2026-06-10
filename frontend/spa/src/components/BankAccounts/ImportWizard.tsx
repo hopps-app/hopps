@@ -1,10 +1,10 @@
 import type { CsvPreviewResponse } from '@hopps/api-client';
-import { AlertCircle, CheckCircle, FileText, Loader2, UploadCloud, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, Loader2, Sheet, Sparkles, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import Button from '@/components/ui/Button';
 import Progress from '@/components/ui/Progress';
 import { BaseSelect, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/shadecn/BaseSelect';
@@ -13,75 +13,30 @@ import {
     useBankSchemaTemplates,
     useCreateBankSchema,
     useCsvPreview,
+    useSuggestSchema,
     useStartImport,
     useBankAccount,
     useBankImport,
 } from '@/hooks/queries/useBankAccounts';
 import { cn } from '@/lib/utils';
 
-type Step = 'file' | 'schema' | 'confirm' | 'progress' | 'result';
-
-function formatBytes(bytes: number | undefined): string {
-    if (!bytes) return '—';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-interface StepIndicatorProps {
-    steps: string[];
-    current: number;
-}
-
-function StepIndicator({ steps, current }: StepIndicatorProps) {
-    return (
-        <div className="flex items-center gap-0 mb-6">
-            {steps.map((label, i) => (
-                <div key={i} className="flex items-center flex-1 last:flex-none">
-                    <div className="flex flex-col items-center gap-1">
-                        <div
-                            className={cn(
-                                'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors',
-                                i < current
-                                    ? 'bg-primary border-primary text-primary-foreground'
-                                    : i === current
-                                        ? 'border-primary text-primary bg-white'
-                                        : 'border-gray-300 text-gray-400 bg-white'
-                            )}
-                        >
-                            {i < current ? <CheckCircle className="w-4 h-4" /> : i + 1}
-                        </div>
-                        <span
-                            className={cn(
-                                'text-[10px] hidden sm:block',
-                                i === current ? 'text-primary font-semibold' : 'text-muted-foreground'
-                            )}
-                        >
-                            {label}
-                        </span>
-                    </div>
-                    {i < steps.length - 1 && (
-                        <div className={cn('flex-1 h-0.5 mx-1', i < current ? 'bg-primary' : 'bg-gray-200')} />
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-}
+type WizardState = 'drop' | 'previewing' | 'preview' | 'importing' | 'done';
 
 interface ImportWizardProps {
     accountId: number;
+    onClose?: () => void;
 }
 
-export function ImportWizard({ accountId }: ImportWizardProps) {
+export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
     const { t } = useTranslation();
-    const navigate = useNavigate();
-    const [step, setStep] = useState<Step>('file');
+
+    const [state, setState] = useState<WizardState>('drop');
     const [file, setFile] = useState<File | null>(null);
-    const [schemaId, setSchemaId] = useState<string>('');
     const [preview, setPreview] = useState<CsvPreviewResponse | null>(null);
+    // schemaId is "org:123" | "tpl:sparkasse-camt-v8" | "" (not yet chosen)
+    const [schemaId, setSchemaId] = useState<string>('');
     const [importId, setImportId] = useState<number | null>(null);
-    const [pollInterval, setPollInterval] = useState<ReturnType<typeof setInterval> | null>(null);
+    const [showAllCols, setShowAllCols] = useState(false);
 
     const { data: account } = useBankAccount(accountId);
     const { data: schemas = [] } = useBankSchemas(false);
@@ -89,418 +44,388 @@ export function ImportWizard({ accountId }: ImportWizardProps) {
     const previewMutation = useCsvPreview();
     const startImportMutation = useStartImport();
     const createSchemaMutation = useCreateBankSchema();
-    // Tracks org schema created on-the-fly from a template during this wizard session
     const createdSchemaRef = useRef<number | null>(null);
 
-    // Set default schema from account
+    const isMt940 = preview?.fileType === 'MT940';
+
+    // Auto-detect schema from header columns once preview is loaded (CSV only)
+    const headerColumns = !isMt940 ? (preview?.headerColumns ?? null) : null;
+    const { data: detection } = useSuggestSchema(accountId, headerColumns);
+
+    // When detection result arrives and no schema is manually chosen yet, apply it
     useEffect(() => {
-        if (account?.defaultSchemaId && !schemaId) {
-            setSchemaId(`org:${account.defaultSchemaId}`);
+        if (isMt940 || !detection || schemaId) return;
+        if (detection.type === 'ORG' && detection.schemaId) {
+            setSchemaId(`org:${detection.schemaId}`);
+        } else if (detection.type === 'TEMPLATE' && detection.templateId) {
+            setSchemaId(`tpl:${detection.templateId}`);
         }
-    }, [account, schemaId]);
+    }, [detection, isMt940, schemaId]);
 
-    // Poll import status
-    const { data: importStatus, refetch: refetchImport } = useBankImport(importId);
-
+    // Poll import progress
+    const { data: importStatus } = useBankImport(importId);
     useEffect(() => {
-        if (step === 'progress' && importId) {
-            const interval = setInterval(() => {
-                refetchImport();
-            }, 2000);
-            setPollInterval(interval);
-            return () => clearInterval(interval);
+        if (state === 'importing' && importStatus?.status && ['COMPLETED', 'PARTIAL', 'FAILED'].includes(importStatus.status)) {
+            setState('done');
         }
-        return () => {
-            if (pollInterval) clearInterval(pollInterval);
-        };
-    }, [step, importId]);
+    }, [importStatus?.status, state]);
 
-    // Auto advance from progress to result
-    useEffect(() => {
-        if (
-            step === 'progress' &&
-            importStatus?.status &&
-            ['COMPLETED', 'PARTIAL', 'FAILED'].includes(importStatus.status)
-        ) {
-            if (pollInterval) clearInterval(pollInterval);
-            setStep('result');
-        }
-    }, [importStatus?.status, step]);
+    const isDetecting = state === 'preview' && !isMt940 && headerColumns != null && detection == null;
+    const isTemplateSelected = schemaId.startsWith('tpl:');
+    const selectedSchema = isTemplateSelected ? undefined : schemas.find((s) => String(s.id) === schemaId.replace('org:', ''));
+    const selectedTemplate = isTemplateSelected ? templates.find((tpl) => `tpl:${tpl.templateId}` === schemaId) : undefined;
+    const selectedName = selectedSchema?.name ?? selectedTemplate?.name ?? '';
+    const detectionFailed = state === 'preview' && !isMt940 && detection?.type === 'NONE';
+    const needsManualSchema = detectionFailed && !schemaId;
 
-    // File drop
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        if (acceptedFiles[0]) {
-            setFile(acceptedFiles[0]);
-        }
-    }, []);
+    // Trigger preview automatically on drop
+    const loadPreview = useCallback(
+        async (f: File) => {
+            setState('previewing');
+            setSchemaId('');
+            setShowAllCols(false);
+            try {
+                const result = await previewMutation.mutateAsync({ accountId, file: f });
+                setPreview(result);
+                setState('preview');
+            } catch {
+                setState('drop');
+            }
+        },
+        [accountId, previewMutation]
+    );
+
+    const onDrop = useCallback(
+        (acceptedFiles: File[]) => {
+            const f = acceptedFiles[0];
+            if (!f) return;
+            setFile(f);
+            loadPreview(f);
+        },
+        [loadPreview]
+    );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         multiple: false,
         accept: { 'text/csv': ['.csv'], 'text/plain': ['.txt'] },
+        disabled: state === 'previewing',
     });
 
-    // schemaId is either "org:123" or "tpl:sparkasse-camt-v8"
-    const isTemplateSelected = schemaId.startsWith('tpl:');
-    const selectedSchema = isTemplateSelected
-        ? undefined
-        : schemas.find((s) => String(s.id) === schemaId);
-    const selectedTemplate = isTemplateSelected
-        ? templates.find((t) => `tpl:${t.templateId}` === schemaId)
-        : undefined;
-    const selectedName = selectedSchema?.name ?? selectedTemplate?.name ?? '—';
+    const handleImport = async () => {
+        if (!file) return;
+        if (!isMt940 && !schemaId) return;
+        setState('importing');
+        let resolvedSchemaId: number | undefined;
+        if (!isMt940) {
+            if (isTemplateSelected && selectedTemplate) {
+                if (createdSchemaRef.current) {
+                    resolvedSchemaId = createdSchemaRef.current;
+                } else {
+                    const created = await createSchemaMutation.mutateAsync({
+                        fromTemplate: selectedTemplate.templateId,
+                        data: {
+                            name: selectedTemplate.name ?? selectedTemplate.templateId ?? 'Schema',
+                            amountStrategy: selectedTemplate.amountStrategy ?? 'SIGNED_SINGLE_COLUMN',
+                            columnMappings: (selectedTemplate.columnMappings ?? []).map((m) => ({
+                                targetField: m.targetField!,
+                                sourceColumnIndex: m.sourceColumnIndex ?? undefined,
+                                sourceColumnName: m.sourceColumnName ?? undefined,
+                                transform: m.transform ?? undefined,
+                            })),
+                        },
+                    });
+                    resolvedSchemaId = created.id!;
+                    createdSchemaRef.current = resolvedSchemaId;
+                }
+            } else {
+                resolvedSchemaId = Number(schemaId.replace('org:', ''));
+            }
+        }
+        const result = await startImportMutation.mutateAsync({ accountId, file, schemaId: resolvedSchemaId });
+        setImportId(result.id ?? null);
+    };
 
-    const steps = [
-        t('bankImport.wizard.stepFile'),
-        t('bankImport.wizard.stepSchema'),
-        t('bankImport.wizard.stepConfirm'),
-        t('bankImport.wizard.stepProgress'),
-        t('bankImport.wizard.stepResult'),
-    ];
-    const stepIndex = ['file', 'schema', 'confirm', 'progress', 'result'].indexOf(step);
-
-    // ─── Step: File ───────────────────────────────────────────────────────────
-    const renderFileStep = () => (
-        <div className="flex flex-col gap-4">
-            <h3 className="font-semibold text-base">{t('bankImport.wizard.fileTitle')}</h3>
+    // ── Drop / uploading ─────────────────────────────────────────────────────────
+    if (state === 'drop' || state === 'previewing') {
+        return (
             <div
                 {...getRootProps()}
                 className={cn(
-                    'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150',
-                    isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary/50',
-                    file ? 'border-emerald-400 bg-emerald-50' : ''
+                    'border-2 border-dashed rounded-2xl p-10 flex flex-col items-center text-center gap-4 cursor-pointer transition-all duration-150 select-none',
+                    isDragActive ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/40',
+                    state === 'previewing' ? 'opacity-50 pointer-events-none' : ''
                 )}
             >
                 <input {...getInputProps()} />
-                {file ? (
-                    <div className="flex flex-col items-center gap-2">
-                        <FileText className="w-10 h-10 text-emerald-500" />
-                        <p className="font-medium text-emerald-700">{file.name}</p>
-                        <p className="text-sm text-muted-foreground">{formatBytes(file.size)}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{t('bankImport.wizard.fileDropReplace')}</p>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center gap-3">
-                        <UploadCloud className="w-10 h-10 text-muted-foreground" />
-                        <p className="font-medium">{t('bankImport.wizard.fileDrop')}</p>
-                        <p className="text-sm text-muted-foreground">{t('bankImport.wizard.fileDropHint')}</p>
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary grid place-items-center">
+                    {state === 'previewing' ? <Loader2 className="w-7 h-7 animate-spin" /> : <Sheet className="w-7 h-7" />}
+                </div>
+                <div>
+                    <p className="text-[17px] font-extrabold">{t('bankImport.wizard.fileDrop')}</p>
+                    <p className="text-sm text-muted-foreground mt-1 max-w-sm leading-relaxed">{t('bankImport.wizard.dropSubtitle')}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">{t('bankImport.wizard.fileDropHint')}</p>
+                {previewMutation.isError && (
+                    <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-xl px-3 py-2 w-full">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        {t('bankImport.wizard.previewError')}
                     </div>
                 )}
             </div>
+        );
+    }
 
-            <div className="flex justify-end">
-                <Button onClick={() => setStep('schema')} disabled={!file}>
-                    {t('common.next')}
-                </Button>
-            </div>
-        </div>
-    );
+    // ── Preview ───────────────────────────────────────────────────────────────────
+    if (state === 'preview' && preview) {
+        const totalRows = preview.totalLines ?? 0;
 
-    // ─── Step: Schema ─────────────────────────────────────────────────────────
-    const renderSchemaStep = () => (
-        <div className="flex flex-col gap-4">
-            <h3 className="font-semibold text-base">{t('bankImport.wizard.schemaTitle')}</h3>
-
-            <div className="grid gap-1.5">
-                <label className="text-sm font-medium">{t('bankImport.wizard.schemaSelect')}</label>
-                <BaseSelect value={schemaId} onValueChange={setSchemaId}>
-                    <SelectTrigger>
-                        <SelectValue placeholder={t('bankImport.wizard.schemaPlaceholder')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {schemas.length > 0 && (
-                            <SelectGroup>
-                                <SelectLabel>{t('bankImport.wizard.schemaGroupOrg')}</SelectLabel>
-                                {schemas.map((s) => (
-                                    <SelectItem key={`org:${s.id}`} value={`org:${s.id}`}>
-                                        {s.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        )}
-                        {templates.length > 0 && (
-                            <SelectGroup>
-                                <SelectLabel>{t('bankImport.wizard.schemaGroupTemplates')}</SelectLabel>
-                                {templates.map((t) => (
-                                    <SelectItem key={`tpl:${t.templateId}`} value={`tpl:${t.templateId}`}>
-                                        {t.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectGroup>
-                        )}
-                    </SelectContent>
-                </BaseSelect>
-            </div>
-
-            <Button
-                variant="outline"
-                disabled={!schemaId || !file || previewMutation.isPending || createSchemaMutation.isPending}
-                onClick={async () => {
-                    if (!file) return;
-                    const result = await previewMutation.mutateAsync({ accountId, file });
-                    setPreview(result);
-                }}
-            >
-                {previewMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                {t('bankImport.wizard.previewButton')}
-            </Button>
-
-            {previewMutation.isError && (
-                <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg p-3">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    {t('bankImport.wizard.previewError')}
-                </div>
-            )}
-
-            {preview && (
-                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 space-y-3">
-                    <div className="flex flex-wrap gap-4 text-sm">
-                        <span>
-                            <span className="font-medium">{t('bankImport.preview.encoding')}:</span>{' '}
-                            {preview.detectedEncoding}
-                        </span>
-                        <span>
-                            <span className="font-medium">{t('bankImport.preview.delimiter')}:</span>{' '}
-                            <code className="bg-gray-200 px-1 rounded">{preview.detectedDelimiter}</code>
-                        </span>
-                        <span>
-                            <span className="font-medium">{t('bankImport.preview.totalLines')}:</span>{' '}
-                            {preview.totalLines}
-                        </span>
+        return (
+            <div className="flex flex-col gap-3 min-w-0">
+                {/* Format detection banner */}
+                {isMt940 ? (
+                    <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 rounded-xl px-4 py-3">
+                        <Sparkles className="w-5 h-5 flex-shrink-0" />
+                        <p className="text-[13.5px] font-semibold">
+                            {t('bankImport.wizard.mt940Detected', { count: totalRows })}
+                        </p>
                     </div>
+                ) : isDetecting ? (
+                    <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3 text-muted-foreground text-sm">
+                        <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+                        {t('bankImport.wizard.detecting')}
+                    </div>
+                ) : detection?.type !== 'NONE' && selectedName ? (
+                    <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 rounded-xl px-4 py-3">
+                        <Sparkles className="w-5 h-5 flex-shrink-0" />
+                        <p className="text-[13.5px] font-semibold">
+                            {t('bankImport.wizard.formatDetected', {
+                                schema: selectedName,
+                                account: account?.name ?? '',
+                                lines: totalRows,
+                            })}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 rounded-xl px-4 py-3">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <p className="text-[13.5px] font-semibold">{t('bankImport.wizard.noFormatDetected')}</p>
+                    </div>
+                )}
 
-                    {!preview.encodingValid && preview.encodingWarning && (
-                        <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 rounded-lg p-3">
-                            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                            {preview.encodingWarning}
-                        </div>
-                    )}
+                {/* Manual schema picker — only shown when auto-detection failed */}
+                {detectionFailed || (detection?.type === 'NONE' && schemaId) ? (
+                    <div className="grid gap-1.5">
+                        <label className="text-sm font-medium">{t('bankImport.wizard.schemaRequired')}</label>
+                        <BaseSelect value={schemaId} onValueChange={setSchemaId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder={t('bankImport.wizard.schemaPlaceholder')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {schemas.length > 0 && (
+                                    <SelectGroup>
+                                        <SelectLabel>{t('bankImport.wizard.schemaGroupOrg')}</SelectLabel>
+                                        {schemas.map((s) => (
+                                            <SelectItem key={`org:${s.id}`} value={`org:${s.id}`}>
+                                                {s.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                )}
+                                {templates.length > 0 && (
+                                    <SelectGroup>
+                                        <SelectLabel>{t('bankImport.wizard.schemaGroupTemplates')}</SelectLabel>
+                                        {templates.map((tpl) => (
+                                            <SelectItem key={`tpl:${tpl.templateId}`} value={`tpl:${tpl.templateId}`}>
+                                                {tpl.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                )}
+                            </SelectContent>
+                        </BaseSelect>
+                    </div>
+                ) : null}
 
-                    {preview.sampleRows && preview.sampleRows.length > 0 && (
-                        <div className="overflow-x-auto">
-                            <table className="text-xs w-full border-collapse">
+                {/* Encoding warning */}
+                {!preview.encodingValid && preview.encodingWarning && (
+                    <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 dark:bg-amber-950/30 rounded-xl p-3">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        {preview.encodingWarning}
+                    </div>
+                )}
+
+                {/* Sample rows table */}
+                {preview.sampleRows && preview.sampleRows.length > 0 && (() => {
+                    const MAX_COLS = 6;
+                    const allCols = preview.headerColumns ?? [];
+                    // CSV: sampleRows[0] is the header row duplicated — skip it
+                    const dataRows = !isMt940 ? preview.sampleRows.slice(1, 6) : preview.sampleRows.slice(0, 5);
+                    // Drop columns where every data row has the same value (e.g. own IBAN in AUFTRAGSKONTO)
+                    const interestingIndices = allCols
+                        .map((_, ci) => ci)
+                        .filter((ci) => {
+                            if (dataRows.length === 0) return true;
+                            const first = dataRows[0][ci] ?? '';
+                            return dataRows.some((r) => (r[ci] ?? '') !== first);
+                        });
+                    const visibleIndices = showAllCols ? interestingIndices : interestingIndices.slice(0, MAX_COLS);
+                    const hiddenCount = interestingIndices.length - visibleIndices.length;
+                    return (
+                        <div className={cn('rounded-xl border border-gray-200 dark:border-gray-700 w-full', showAllCols ? 'overflow-x-auto' : 'overflow-hidden')}>
+                            <table className={cn('text-[11px] border-collapse', showAllCols ? 'w-max' : 'w-full table-fixed')}>
                                 <thead>
-                                    <tr className="border-b border-gray-200">
-                                        {preview.headerColumns?.map((col, i) => (
-                                            <th key={i} className="py-1 px-2 text-left font-medium text-muted-foreground whitespace-nowrap">
-                                                {col}
+                                    <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                                        {visibleIndices.map((ci) => (
+                                            <th key={ci} className={cn('py-2 px-3 text-left font-semibold text-muted-foreground uppercase tracking-wide text-[10px]', showAllCols ? 'whitespace-nowrap' : 'truncate')}>
+                                                {allCols[ci]}
                                             </th>
                                         ))}
+                                        {hiddenCount > 0 ? (
+                                            <th className="py-2 px-3 w-10">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowAllCols(true)}
+                                                    className="text-[10px] font-semibold text-primary hover:underline whitespace-nowrap"
+                                                >
+                                                    +{hiddenCount} {t('bankImport.wizard.showMore')}
+                                                </button>
+                                            </th>
+                                        ) : showAllCols && interestingIndices.length > MAX_COLS ? (
+                                            <th className="py-2 px-3 w-10">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowAllCols(false)}
+                                                    className="text-[10px] font-semibold text-muted-foreground hover:underline whitespace-nowrap"
+                                                >
+                                                    {t('bankImport.wizard.showLess')}
+                                                </button>
+                                            </th>
+                                        ) : null}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {preview.sampleRows.slice(0, 5).map((row, ri) => (
-                                        <tr key={ri} className="border-b border-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                            {row.map((cell, ci) => (
-                                                <td key={ci} className="py-1 px-2 whitespace-nowrap max-w-[200px] truncate">
-                                                    {cell}
+                                    {dataRows.map((row, ri) => (
+                                        <tr key={ri} className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50/60 dark:hover:bg-gray-800/40">
+                                            {visibleIndices.map((ci) => (
+                                                <td key={ci} className={cn('py-2 px-3', showAllCols ? 'whitespace-nowrap max-w-[200px] truncate' : 'truncate')} title={row[ci] ?? ''}>
+                                                    {row[ci] ?? ''}
                                                 </td>
                                             ))}
+                                            {hiddenCount > 0 && <td className="py-2 px-3 w-10 text-muted-foreground opacity-30">…</td>}
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                    )}
-                </div>
-            )}
+                    );
+                })()}
 
-            <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setStep('file')}>
-                    {t('common.goBack')}
-                </Button>
-                <Button onClick={() => setStep('confirm')} disabled={!schemaId || (!isTemplateSelected && !selectedSchema)}>
-                    {t('common.next')}
-                </Button>
-            </div>
-        </div>
-    );
-
-    // ─── Step: Confirm ────────────────────────────────────────────────────────
-    const renderConfirmStep = () => (
-        <div className="flex flex-col gap-4">
-            <h3 className="font-semibold text-base">{t('bankImport.wizard.confirmTitle')}</h3>
-
-            <div className="border rounded-xl p-5 bg-gray-50 dark:bg-gray-900 space-y-3">
+                {/* Actions */}
                 <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                    <div>
-                        <p className="font-medium">{file?.name}</p>
-                        <p className="text-sm text-muted-foreground">{formatBytes(file?.size)}</p>
-                    </div>
-                </div>
-                <hr className="border-gray-200 dark:border-gray-700" />
-                <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">{t('bankImport.confirm.schema')}:</span>
-                        <span className="font-medium">{selectedName}</span>
-                    </div>
-                    {preview && (
-                        <>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">{t('bankImport.confirm.encoding')}:</span>
-                                <span>{preview.detectedEncoding}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">{t('bankImport.confirm.totalLines')}:</span>
-                                <span>{preview.totalLines}</span>
-                            </div>
-                        </>
-                    )}
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">{t('bankImport.confirm.account')}:</span>
-                        <span>{account?.name}</span>
-                    </div>
+                    <Button variant="outline" onClick={() => { setState('drop'); setPreview(null); setSchemaId(''); }}>
+                        {t('common.goBack')}
+                    </Button>
+                    <div className="flex-1" />
+                    <Button onClick={handleImport} disabled={(!isMt940 && !schemaId) || isDetecting}>
+                        {t('bankImport.wizard.importBtn', { count: totalRows })}
+                    </Button>
                 </div>
             </div>
+        );
+    }
 
-            <Button
-                className="w-full"
-                onClick={async () => {
-                    if (!file) return;
-                    let resolvedSchemaId: number;
-                    if (isTemplateSelected && selectedTemplate) {
-                        // Reuse org schema created in this wizard session, or create a new one
-                        if (createdSchemaRef.current) {
-                            resolvedSchemaId = createdSchemaRef.current;
-                        } else {
-                            const created = await createSchemaMutation.mutateAsync({
-                                fromTemplate: selectedTemplate.templateId,
-                                data: {
-                                    name: selectedTemplate.name ?? selectedTemplate.templateId ?? 'Schema',
-                                    amountStrategy: selectedTemplate.amountStrategy ?? 'SIGNED_SINGLE_COLUMN',
-                                    columnMappings: (selectedTemplate.columnMappings ?? []).map((m) => ({
-                                        targetField: m.targetField!,
-                                        sourceColumnIndex: m.sourceColumnIndex ?? undefined,
-                                        sourceColumnName: m.sourceColumnName ?? undefined,
-                                        transform: m.transform ?? undefined,
-                                    })),
-                                },
-                            });
-                            resolvedSchemaId = created.id!;
-                            createdSchemaRef.current = resolvedSchemaId;
-                        }
-                    } else {
-                        resolvedSchemaId = Number(schemaId.replace('org:', ''));
-                    }
-                    const result = await startImportMutation.mutateAsync({
-                        accountId,
-                        file,
-                        schemaId: resolvedSchemaId,
-                    });
-                    setImportId(result.id ?? null);
-                    setStep('progress');
-                }}
-                disabled={startImportMutation.isPending || createSchemaMutation.isPending}
-            >
-                {startImportMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                {t('bankImport.wizard.startImport')}
-            </Button>
-
-            <div className="flex justify-start">
-                <Button variant="outline" onClick={() => setStep('schema')}>
-                    {t('common.goBack')}
-                </Button>
-            </div>
-        </div>
-    );
-
-    // ─── Step: Progress ───────────────────────────────────────────────────────
-    const renderProgressStep = () => (
-        <div className="flex flex-col gap-6 items-center py-6">
-            <Loader2 className="w-12 h-12 text-primary animate-spin" />
-            <div className="w-full max-w-sm space-y-2">
-                <Progress value={importStatus?.progress ?? 0} className="h-2" />
-                <p className="text-center text-sm text-muted-foreground">
-                    {importStatus?.progress ?? 0}%
-                </p>
-            </div>
-            <div className="space-y-1 text-sm text-center">
-                <p className="font-medium">{t('bankImport.progress.processing')}</p>
+    // ── Importing ─────────────────────────────────────────────────────────────────
+    if (state === 'importing') {
+        return (
+            <div className="flex flex-col items-center gap-6 py-8">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                <div className="w-full max-w-xs space-y-2">
+                    <Progress value={importStatus?.progress ?? 0} className="h-2" />
+                    <p className="text-center text-sm text-muted-foreground">{importStatus?.progress ?? 0}%</p>
+                </div>
+                <p className="font-semibold">{t('bankImport.progress.processing')}</p>
                 {importStatus?.importedRows !== undefined && (
-                    <p className="text-muted-foreground">
-                        {t('bankImport.progress.rows', {
-                            imported: importStatus.importedRows,
-                            total: importStatus.totalRows ?? '?',
-                        })}
+                    <p className="text-sm text-muted-foreground">
+                        {t('bankImport.progress.rows', { imported: importStatus.importedRows, total: importStatus.totalRows ?? '?' })}
                     </p>
                 )}
             </div>
-        </div>
-    );
+        );
+    }
 
-    // ─── Step: Result ─────────────────────────────────────────────────────────
-    const renderResultStep = () => {
+    // ── Done ──────────────────────────────────────────────────────────────────────
+    if (state === 'done') {
         const status = importStatus?.status;
         const isSuccess = status === 'COMPLETED';
         const isPartial = status === 'PARTIAL';
         const isFailed = status === 'FAILED';
 
         return (
-            <div className="flex flex-col gap-6 items-center py-6">
+            <div className="flex flex-col items-center gap-5 py-6">
                 {isSuccess && <CheckCircle className="w-14 h-14 text-emerald-500" />}
                 {isPartial && <AlertCircle className="w-14 h-14 text-amber-500" />}
                 {isFailed && <XCircle className="w-14 h-14 text-red-500" />}
 
-                <h3 className="text-xl font-semibold text-center">
+                <h3 className="text-xl font-bold text-center">
                     {isSuccess && t('bankImport.result.success')}
                     {isPartial && t('bankImport.result.partial')}
                     {isFailed && t('bankImport.result.failed')}
                 </h3>
 
-                {importStatus && (
-                    <div className="border rounded-xl p-4 bg-gray-50 dark:bg-gray-900 w-full max-w-sm space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t('bankImport.result.imported')}:</span>
-                            <span className="font-medium text-emerald-600">{importStatus.importedRows ?? 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t('bankImport.result.duplicates')}:</span>
-                            <span>{importStatus.duplicateRows ?? 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t('bankImport.result.errors')}:</span>
-                            <span className={importStatus.errorRows ? 'text-red-500' : ''}>{importStatus.errorRows ?? 0}</span>
-                        </div>
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 w-full max-w-xs divide-y divide-gray-100 dark:divide-gray-800">
+                    <div className="flex justify-between items-center px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">{t('bankImport.result.imported')}</span>
+                        <span className="font-semibold text-emerald-600">{importStatus?.importedRows ?? 0}</span>
                     </div>
-                )}
+                    <div className="flex justify-between items-center px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">{t('bankImport.result.duplicates')}</span>
+                        <span className="font-semibold">{importStatus?.duplicateRows ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-3 text-sm">
+                        <span className="text-muted-foreground">{t('bankImport.result.errors')}</span>
+                        <span className={cn('font-semibold', importStatus?.errorRows ? 'text-red-500' : '')}>{importStatus?.errorRows ?? 0}</span>
+                    </div>
+                </div>
 
                 {isFailed && importStatus?.failureReason && (
-                    <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 rounded-lg p-3 w-full max-w-sm">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 rounded-xl p-3 w-full max-w-xs">
+                        <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                         {importStatus.failureReason}
                     </div>
                 )}
 
-                <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => navigate(`/bank-accounts/${accountId}`)}>
-                        {t('bankImport.result.backToAccount')}
-                    </Button>
-                    {!isFailed && (
-                        <Button onClick={() => navigate(`/bank-accounts/${accountId}`)}>
-                            {t('bankImport.result.viewTransactions')}
-                        </Button>
-                    )}
-                </div>
+                <Button onClick={() => onClose?.()}>
+                    {t('bankImport.result.viewTransactions')}
+                </Button>
             </div>
         );
-    };
+    }
 
+    return null;
+}
+
+// ── Dialog wrapper ────────────────────────────────────────────────────────────
+
+interface ImportWizardDialogProps {
+    accountId: number | null;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}
+
+export function ImportWizardDialog({ accountId, open, onOpenChange }: ImportWizardDialogProps) {
+    const { t } = useTranslation();
     return (
-        <div className="max-w-2xl mx-auto">
-            <StepIndicator steps={steps} current={stepIndex} />
-
-            <div className="bg-white dark:bg-gray-800 rounded-[20px] shadow border border-gray-100 dark:border-gray-700 p-6">
-                {step === 'file' && renderFileStep()}
-                {step === 'schema' && renderSchemaStep()}
-                {step === 'confirm' && renderConfirmStep()}
-                {step === 'progress' && renderProgressStep()}
-                {step === 'result' && renderResultStep()}
-            </div>
-        </div>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-4xl w-[90vw]">
+                <DialogHeader>
+                    <DialogTitle>{t('bankImport.title')}</DialogTitle>
+                    <p className="text-sm text-muted-foreground">{t('bankImport.wizard.dropSubtitle')}</p>
+                </DialogHeader>
+                {accountId != null && (
+                    <ImportWizard accountId={accountId} onClose={() => onOpenChange(false)} />
+                )}
+            </DialogContent>
+        </Dialog>
     );
 }

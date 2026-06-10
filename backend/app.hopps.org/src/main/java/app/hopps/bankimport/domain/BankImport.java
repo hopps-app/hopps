@@ -29,9 +29,12 @@ public class BankImport extends PanacheEntity {
     @JoinColumn(name = "bankaccount_id", nullable = false)
     private BankAccount bankAccount;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "schema_id", nullable = false)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "schema_id", nullable = true)
     private BankCsvSchema schema;
+
+    @Column(name = "file_type", nullable = false, length = 10)
+    private String fileType = "CSV";
 
     @Column(name = "filename", nullable = false)
     private String fileName;
@@ -112,6 +115,14 @@ public class BankImport extends PanacheEntity {
 
     public void setSchema(BankCsvSchema schema) {
         this.schema = schema;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
     }
 
     public String getFileName() {

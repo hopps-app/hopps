@@ -1,0 +1,11 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - img "Hopps" [ref=e5]
+    - generic [ref=e6]:
+      - img "Hopps" [ref=e7]
+      - paragraph [ref=e8]: Hopps is a free, open-source accounting software built for associations. Manage finances, receipts, and expenses easily and efficiently.
+      - generic [ref=e9]:
+        - button "Register organization" [ref=e10] [cursor=pointer]
+        - button "Login" [ref=e11] [cursor=pointer]
+  - region "Notifications (F8)":
+    - list
