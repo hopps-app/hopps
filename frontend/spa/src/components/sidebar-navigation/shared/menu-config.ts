@@ -14,6 +14,12 @@ export const menuConfig: MenuItem[] = [
         path: '/receipts',
     },
     {
+        id: 'transactions',
+        label: 'menu.transactions',
+        icon: 'Loop',
+        path: '/transactions',
+    },
+    {
         id: 'structure',
         label: 'menu.structure',
         icon: 'Commit',

@@ -46,7 +46,7 @@ public class AzureAiService {
             LOG.warn("Document analysis for '{}' found {} documents, using first one", documentName, documents.size());
         }
 
-        AnalyzedDocument document = documents.getFirst();
+        AnalyzedDocument document = documents.get(0);
         LOG.info("Scanned document '{}': docType={}, fields={}", documentName, document.getDocumentType(),
                 document.getFields().keySet());
 
