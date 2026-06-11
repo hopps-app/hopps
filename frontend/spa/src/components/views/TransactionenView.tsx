@@ -22,8 +22,8 @@ import {
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
+import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useTransactions, useTransaction, useDeleteTransaction, TransactionFilters } from '@/hooks/queries/useTransactions';
@@ -95,7 +95,7 @@ function TxIcon({ size = 36, incoming }: { size?: number; incoming?: boolean }) 
     // Use purple tint for expense (outgoing), green tint for income
     const bg = incoming ? '#E7F4EC' : '#F3EAFB';
     const color = incoming ? '#1F7A50' : '#7E3FB4';
-    const Icon = incoming ? ArrowDownRight : ArrowUpRight;
+    const Icon = incoming ? ArrowUpRight : ArrowDownRight;
     return (
         <span
             className="inline-flex items-center justify-center flex-shrink-0"
@@ -356,7 +356,6 @@ function TransactionRow({ tx, onClick, selected }: { tx: TransactionResponse; on
 
 export function TransactionenView() {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     usePageTitle(t('transactions.title'));
 
     const [search, setSearch] = useState('');
@@ -371,6 +370,7 @@ export function TransactionenView() {
     const [detached, setDetached] = useState(false);
     const [page, setPage] = useState(0);
     const [selectedTxId, setSelectedTxId] = useState<number | null>(null);
+    const [createOpen, setCreateOpen] = useState(false);
     const PAGE_SIZE = 30;
 
     const filters: TransactionFilters = {
@@ -456,7 +456,7 @@ export function TransactionenView() {
                     </p>
                 </div>
                 <button
-                    onClick={() => navigate('/receipts/new')}
+                    onClick={() => setCreateOpen(true)}
                     className="inline-flex items-center gap-2 whitespace-nowrap text-white font-bold transition-opacity hover:opacity-90"
                     style={{
                         background: 'linear-gradient(100deg,#7E3FB4,#9955CC)',
@@ -711,6 +711,9 @@ export function TransactionenView() {
                 onClose={() => setSelectedTxId(null)}
                 onDeleted={() => setSelectedTxId(null)}
             />
+
+            {/* Create transaction drawer */}
+            <CreateTransactionDrawer open={createOpen} onClose={() => setCreateOpen(false)} />
         </div>
     );
 }
