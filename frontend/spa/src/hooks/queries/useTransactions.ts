@@ -1,5 +1,5 @@
 import type { TransactionArea, TransactionStatus } from '@hopps/api-client';
-import { TransactionResponse } from '@hopps/api-client';
+import { TransactionCreateRequest, TransactionResponse } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import i18n from '@/i18n';
@@ -52,6 +52,17 @@ export function useTransaction(id: number) {
         queryKey: transactionKeys.detail(id),
         queryFn: () => apiService.orgService.transactionsGET(id),
         enabled: !!id,
+    });
+}
+
+export function useCreateTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: TransactionCreateRequest) => apiService.orgService.transactionsPOST(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+        },
     });
 }
 
