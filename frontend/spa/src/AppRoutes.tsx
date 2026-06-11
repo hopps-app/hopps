@@ -24,6 +24,7 @@ const OrganizationDetailsSettingsView = lazy(() => import('./components/views/Or
 const ReceiptView = lazy(() => import('@/components/views/ReceiptView'));
 const DebugErrorView = lazy(() => import('@/components/views/DebugErrorView'));
 const KontenView = lazy(() => import('@/components/views/KontenView').then((m) => ({ default: m.KontenView })));
+const TransactionenView = lazy(() => import('@/components/views/TransactionenView').then((m) => ({ default: m.TransactionenView })));
 const BankAccountsView = lazy(() => import('@/components/views/BankAccountsView').then((m) => ({ default: m.BankAccountsView })));
 const BankAccountDetailView = lazy(() => import('@/components/views/BankAccountDetailView').then((m) => ({ default: m.BankAccountDetailView })));
 const BankImportView = lazy(() => import('@/components/views/BankImportView').then((m) => ({ default: m.BankImportView })));
@@ -104,6 +105,16 @@ export default function AppRoutes() {
                     element={
                         <LazyRoute>
                             <ReceiptView />
+                        </LazyRoute>
+                    }
+                />
+
+                {/* transactions */}
+                <Route
+                    path="/transactions"
+                    element={
+                        <LazyRoute>
+                            <TransactionenView />
                         </LazyRoute>
                     }
                 />
