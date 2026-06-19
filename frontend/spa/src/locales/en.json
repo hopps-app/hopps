@@ -383,6 +383,7 @@
       "noReceipt": "No receipt linked",
       "payment": "Payment & reconciliation",
       "notLinked": "Not yet linked",
+      "openBankTransaction": "Go to bank transaction",
       "cash": "Cash payment",
       "delete": "Delete",
       "edit": "Edit",
@@ -540,6 +541,10 @@
       "confirmed": "Confirmed",
       "failed": "Failed"
     },
+    "statusDescription": {
+      "pending": "Receipt uploaded – analysis is about to start.",
+      "confirmed": "Receipt reviewed and confirmed – the linked transaction has been created."
+    },
     "filters": {
       "searchReceipt": "Search receipt",
       "searchPlaceholder": "Search",
@@ -628,8 +633,19 @@
       "completedHint": "Please review the detected data and correct it if needed.",
       "failedTitle": "Analysis failed",
       "failedHint": "Please enter the data manually or restart the analysis.",
+      "serviceUnavailableTitle": "Analysis service unavailable",
+      "serviceUnavailableHint": "The receipt could not be analysed automatically right now. You can fill in all fields yourself and enter the receipt manually at any time.",
       "linkedTransaction": "Linked transaction",
-      "openTransaction": "Go to transaction"
+      "openTransaction": "Go to transaction",
+      "bankReconcileTitle": "Created from a bank transaction",
+      "bankReconcileHint": "The transaction is already pre-filled with the bank data. Review the receipt and apply the detected values where needed.",
+      "aiSuggestion": "Receipt",
+      "applySuggestion": "Apply",
+      "tabTransaction": "Transaction",
+      "tabReceipt": "Receipt",
+      "extractedBy": "Detected by {{source}}",
+      "noReceiptDataTitle": "No receipt data",
+      "noReceiptDataHint": "No data was automatically extracted from the receipt. You can enter the values manually in the \"Transaction\" tab."
     },
     "filter": {
       "all": "All",
@@ -639,12 +655,28 @@
     "noUnreviewed": "All receipts have been reviewed",
     "noUnreviewedDesc": "Upload new receipts to review them.",
     "deleteConfirm": "Really delete this receipt?",
+    "analysisUnavailable": {
+      "title": "Analysis service unavailable",
+      "description": "The receipt could not be analysed automatically right now. You can still enter all information manually at any time."
+    },
+    "preview": {
+      "loading": "Loading receipt …",
+      "error": "The preview could not be loaded.",
+      "missingTitle": "File no longer available",
+      "missingHint": "The uploaded file is no longer present in storage. Please upload the receipt again.",
+      "reupload": "Drag the receipt here or click to upload it again",
+      "reuploadDrop": "Drop the receipt here …",
+      "reuploading": "Uploading …",
+      "unsupported": "No preview available for this file type.",
+      "openNewTab": "Open in new tab",
+      "download": "Download"
+    },
     "direction": {
       "label": "Document type",
-      "incoming": "Incoming receipt",
-      "incomingHint": "Expense",
-      "outgoing": "Outgoing receipt",
-      "outgoingHint": "Income"
+      "incoming": "Expense",
+      "incomingHint": "Money spent",
+      "outgoing": "Income",
+      "outgoingHint": "Money received"
     }
   },
   "bommel": {
@@ -965,13 +997,18 @@
       "noOpenTx": "No open transaction matches. Check your transactions list.",
       "exactMatch": "exact match",
       "unlink": "Remove link",
+      "openTransaction": "Go to transaction",
       "bankAmount": "Amount",
       "covered": "Covered",
       "remaining": "Difference",
       "fullyCovered": "Fully covered",
       "ignore": "Ignore",
       "unignore": "Unignore",
-      "assign": "Assign"
+      "assign": "Assign",
+      "uploadReceipt": "Upload a receipt",
+      "uploadReceiptHint": "Drag a receipt here or click – a transaction is created and linked automatically",
+      "uploadReceiptDrop": "Drop the receipt here …",
+      "uploadReceiptBusy": "Uploading receipt …"
     }
   }
 }

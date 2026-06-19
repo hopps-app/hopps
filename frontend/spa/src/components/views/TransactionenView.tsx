@@ -188,18 +188,26 @@ function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                 <div className="space-y-2">
                     {linked.map((b) => (
                         <div key={b.id} className="flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
-                            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#E7F4EC' }}>
-                                <Landmark size={16} className="text-[#1F7A50]" />
-                            </span>
-                            <span className="flex flex-col min-w-0 flex-1">
-                                <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
-                                <span className="text-[12px] text-[#6B6B76]">
-                                    {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
+                            <button
+                                type="button"
+                                onClick={() => navigate(`/bank-accounts?bankTx=${b.id}`)}
+                                title={t('transactions.detail.openBankTransaction')}
+                                className="flex items-center gap-3 min-w-0 flex-1 text-left group"
+                            >
+                                <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#E7F4EC' }}>
+                                    <Landmark size={16} className="text-[#1F7A50]" />
                                 </span>
-                            </span>
-                            <span className="text-[13px] font-bold tabular-nums flex-shrink-0" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
-                                {fmtCurrency(b.amount)}
-                            </span>
+                                <span className="flex flex-col min-w-0 flex-1">
+                                    <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
+                                    <span className="text-[12px] text-[#6B6B76]">
+                                        {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
+                                    </span>
+                                </span>
+                                <span className="text-[13px] font-bold tabular-nums flex-shrink-0" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                                    {fmtCurrency(b.amount)}
+                                </span>
+                                <ExternalLink size={15} className="text-[#9A9AA3] group-hover:text-[#7E3FB4] transition-colors flex-shrink-0" />
+                            </button>
                             <button
                                 onClick={() => unlink(b.id!)}
                                 disabled={removeMatch.isPending}

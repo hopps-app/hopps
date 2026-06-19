@@ -7,11 +7,13 @@ import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionArea;
+import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -56,6 +58,9 @@ public class TransactionResource {
 
     @Inject
     TransactionUpdateConverter updateConverter;
+
+    @Inject
+    Event<TransactionDeletedEvent> transactionDeletedEvent;
 
     @GET
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
@@ -195,6 +200,9 @@ public class TransactionResource {
         if (transaction == null) {
             throw new NotFoundException("Transaction not found");
         }
+
+        // Clean up any bank-transaction matches (and recompute their status) before the row is removed.
+        transactionDeletedEvent.fire(new TransactionDeletedEvent(transaction.getId()));
 
         transactionRepository.delete(transaction);
         LOG.info("Transaction deleted: id={}", id);

@@ -5,6 +5,8 @@ import app.hopps.bankimport.domain.BankTransactionMatch;
 import app.hopps.bankimport.domain.BankTransactionMatchType;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
+import app.hopps.organization.domain.Organization;
+import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -24,6 +26,9 @@ public class BankTransactionMatchService {
 
     @Inject
     EntityManager em;
+
+    @Inject
+    OrganizationContext organizationContext;
 
     @Transactional
     public void addMatch(Long bankTxId, Long transactionId, String username) {
@@ -54,7 +59,9 @@ public class BankTransactionMatchService {
         BankTransactionMatch match = new BankTransactionMatch();
         match.setBankTransaction(bankTx);
         match.setTransaction(tx);
-        match.setMatchedAmount(tx.getTotal() != null ? new BigDecimal(tx.getTotal().toString()) : BigDecimal.ZERO);
+        // matchedAmount is the covered magnitude. Both bank amount and transaction total share the same sign
+        // (expense = negative, income = positive), so we compare absolute values in recomputeStatus.
+        match.setMatchedAmount(tx.getTotal() != null ? tx.getTotal().abs() : BigDecimal.ZERO);
         match.setMatchType(BankTransactionMatchType.MANUAL);
         match.setMatchedBy(username);
         em.persist(match);
@@ -82,6 +89,33 @@ public class BankTransactionMatchService {
         recomputeStatus(bankTx);
     }
 
+    /**
+     * Removes all matches that reference the given bookkeeping transaction (e.g. because it is being deleted) and
+     * recomputes the status of every affected bank transaction. The DB-level {@code on delete cascade} removes the
+     * match rows, but it does not refresh the denormalized {@code status}/{@code matchedAmount} on the bank transaction
+     * — so without this it would stay stuck in MATCHED state.
+     */
+    @Transactional
+    public void removeMatchesForTransaction(Long transactionId) {
+        List<BankTransaction> affected = em.createQuery(
+                "SELECT DISTINCT m.bankTransaction FROM BankTransactionMatch m WHERE m.transaction.id = :txId",
+                BankTransaction.class)
+                .setParameter("txId", transactionId)
+                .getResultList();
+
+        if (affected.isEmpty()) {
+            return;
+        }
+
+        em.createQuery("DELETE FROM BankTransactionMatch m WHERE m.transaction.id = :txId")
+                .setParameter("txId", transactionId)
+                .executeUpdate();
+
+        for (BankTransaction bankTx : affected) {
+            recomputeStatus(bankTx);
+        }
+    }
+
     @Transactional
     public void setIgnored(Long bankTxId) {
         BankTransaction bankTx = bankTransactionRepository.findByIdScoped(bankTxId);
@@ -99,6 +133,25 @@ public class BankTransactionMatchService {
             throw new NotFoundException("Bank transaction not found");
         }
         recomputeStatus(bankTx);
+    }
+
+    /**
+     * Returns the bank transactions linked (matched) to the given bookkeeping transaction — the reverse direction of
+     * the N:M mapping. Scoped to the current organization.
+     */
+    public List<BankTransaction> getBankTransactionsForTransaction(Long transactionId) {
+        Organization org = organizationContext.getCurrentOrganization();
+        if (org == null) {
+            return List.of();
+        }
+        return em.createQuery(
+                "SELECT DISTINCT m.bankTransaction FROM BankTransactionMatch m "
+                        + "WHERE m.transaction.id = :txId AND m.bankTransaction.organization.id = :orgId "
+                        + "ORDER BY m.bankTransaction.bookingDate DESC",
+                BankTransaction.class)
+                .setParameter("txId", transactionId)
+                .setParameter("orgId", org.getId())
+                .getResultList();
     }
 
     public List<Long> getMatchedTransactionIds(Long bankTxId) {

@@ -97,6 +97,8 @@ export function useDeleteTransaction() {
         mutationFn: (id: number) => apiService.orgService.transactionsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            // Deleting a transaction may unmatch a bank transaction (status reset on the backend) — refresh those too.
+            queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
         },
     });
 }

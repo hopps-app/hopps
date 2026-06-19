@@ -1,4 +1,4 @@
-import { DocumentDirection, DocumentResponse, DocumentUpdateRequest } from '@hopps/api-client';
+import { DocumentDirection, DocumentResponse, DocumentUpdateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import {
     Upload,
@@ -16,12 +16,14 @@ import {
     ArrowDownRight,
     Coins,
     ExternalLink,
+    Link2,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { LoadingState } from '@/components/common/LoadingState';
 import {
     useDocuments,
@@ -34,11 +36,19 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
+import { useTransaction, useUpdateTransaction } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { useToast } from '@/hooks/use-toast';
+import { useDocumentEvents } from '@/hooks/useDocumentEvents';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
+
+// Stable marker set by the backend when the AI analysis service was unreachable (mirrors
+// DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
+const ANALYSIS_SERVICE_UNAVAILABLE = 'ANALYSIS_SERVICE_UNAVAILABLE';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -198,6 +208,45 @@ function InputField({
     );
 }
 
+// ─── Receipt data row (bank-reconcile "Beleg" tab) ──────────────────────────────
+
+/**
+ * One read-only row of AI-extracted receipt data with an optional "apply" action that copies the value into the
+ * editable transaction form. Used in the "Beleg" tab so the user can compare the analysed receipt against the
+ * transaction and pull values over field by field.
+ */
+function ReceiptDataRow({
+    label,
+    value,
+    canApply,
+    onApply,
+    applyLabel,
+}: {
+    label: string;
+    value: string | null;
+    canApply: boolean;
+    onApply: () => void;
+    applyLabel: string;
+}) {
+    return (
+        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+            <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3]">{label}</div>
+                <div className="text-[13.5px] text-[#1B1B1F] truncate">{value || '—'}</div>
+            </div>
+            {value && canApply && (
+                <button
+                    type="button"
+                    onClick={onApply}
+                    className="text-[12px] font-bold text-[#7E3FB4] hover:underline whitespace-nowrap flex-shrink-0"
+                >
+                    {applyLabel}
+                </button>
+            )}
+        </div>
+    );
+}
+
 // ─── Review Drawer ────────────────────────────────────────────────────────────
 
 function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
@@ -208,11 +257,22 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const updateMutation = useUpdateDocument();
     const deleteMutation = useDeleteDocument();
     const reanalyzeMutation = useReanalyzeDocument();
+    const updateTransaction = useUpdateTransaction();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const rootBommel = useBommelsStore((s) => s.rootBommel);
 
     // Live document — polls every 2s while the AI analysis is still running so results appear automatically
     const { data: liveDoc } = useDocument(docProp?.id);
     const doc = liveDoc ?? docProp;
+
+    // When the receipt has a linked transaction (created from a bank transaction, or after confirming), the detail view
+    // shows the transaction data (primary) and the analysed receipt data in a second tab. `hasLinkedTransaction` drives
+    // the display; `isBankReconcile` (only while not yet confirmed) additionally allows editing/applying onto the
+    // transaction.
+    const linkedTransactionId = docProp?.transactionId ?? undefined;
+    const hasLinkedTransaction = linkedTransactionId != null;
+    const isBankReconcile = hasLinkedTransaction && docProp?.documentStatus !== 'CONFIRMED';
+    const { data: linkedTx } = useTransaction(linkedTransactionId ?? 0);
 
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
@@ -221,12 +281,18 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const [bommelId, setBommelId] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
     const [direction, setDirection] = useState<DocumentDirection>('INCOMING');
+    // In bank-reconcile mode the detail view is split into the transaction data (primary) and the analysed receipt data.
+    const [detailTab, setDetailTab] = useState<'transaction' | 'receipt'>('transaction');
+    useEffect(() => {
+        setDetailTab('transaction');
+    }, [docProp?.id]);
 
     const open = docProp !== null;
     const analysisStatus = doc?.analysisStatus;
     const isAnalyzing = analysisStatus === 'PENDING' || analysisStatus === 'ANALYZING';
     const status = doc ? getDocumentReviewStatus(doc) : 'pending';
     const isConfirmed = status === 'confirmed';
+    const serviceUnavailable = doc?.analysisError === ANALYSIS_SERVICE_UNAVAILABLE;
 
     // Initialize the form once per opened document (uses the list snapshot, which already holds
     // any previously extracted data for already-analyzed receipts).
@@ -237,6 +303,21 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
             return;
         }
         if (initializedIdRef.current === docProp.id) return;
+
+        if (hasLinkedTransaction) {
+            // Seed the form from the linked transaction; wait until it has loaded.
+            if (!linkedTx) return;
+            initializedIdRef.current = docProp.id ?? null;
+            setName(linkedTx.name ?? '');
+            setAmount(linkedTx.total != null ? String(Math.abs(Number(linkedTx.total))) : '');
+            setDate(linkedTx.transactionTime ? new Date(linkedTx.transactionTime).toISOString().slice(0, 10) : '');
+            setSenderName(linkedTx.senderName ?? '');
+            setBommelId(linkedTx.bommelId != null ? String(linkedTx.bommelId) : '');
+            setPrivatelyPaid(linkedTx.privatelyPaid ?? false);
+            setDirection(Number(linkedTx.total ?? 0) < 0 ? 'INCOMING' : 'OUTGOING');
+            return;
+        }
+
         initializedIdRef.current = docProp.id ?? null;
         setName(docProp.name ?? '');
         setAmount(docProp.total != null ? String(Math.abs(Number(docProp.total))) : '');
@@ -245,18 +326,28 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         setBommelId(docProp.bommelId != null ? String(docProp.bommelId) : '');
         setPrivatelyPaid(docProp.privatelyPaid ?? false);
         setDirection(docProp.direction ?? 'INCOMING');
-    }, [docProp]);
+    }, [docProp, hasLinkedTransaction, linkedTx]);
 
-    // As the AI analysis streams in via polling, fill ONLY the fields the user has left empty.
-    // Manually entered values are preserved (prev || value).
+    // As the AI analysis streams in via polling, fill ONLY the fields the user has left empty. Manually entered values
+    // are preserved (prev || value). Skipped when a linked transaction exists — there the form shows the transaction
+    // data and the AI values live in the separate "Beleg" tab.
     useEffect(() => {
+        if (hasLinkedTransaction) return;
         if (!liveDoc || liveDoc.id !== initializedIdRef.current) return;
         if (liveDoc.name) setName((p) => p || liveDoc.name!);
         if (liveDoc.total != null) setAmount((p) => p || String(Math.abs(Number(liveDoc.total))));
         if (liveDoc.transactionTime) setDate((p) => p || new Date(liveDoc.transactionTime!).toISOString().slice(0, 10));
         if (liveDoc.senderName) setSenderName((p) => p || liveDoc.senderName!);
         if (liveDoc.bommelId != null) setBommelId((p) => p || String(liveDoc.bommelId));
-    }, [liveDoc]);
+    }, [liveDoc, hasLinkedTransaction]);
+
+    // A bommel must always be selected — default to the root bommel when none is set (also once the bommels finish
+    // loading, since loading is asynchronous).
+    useEffect(() => {
+        if (open && !bommelId && rootBommel?.id != null) {
+            setBommelId(String(rootBommel.id));
+        }
+    }, [open, bommelId, rootBommel]);
 
     // Refresh the list once analysis finishes so the row's status/amount update too.
     const prevAnalyzingRef = useRef(false);
@@ -266,6 +357,14 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         }
         prevAnalyzingRef.current = isAnalyzing;
     }, [isAnalyzing, queryClient]);
+
+    // AI-extracted values from the analysed document, shown in the "Beleg" tab of the reconcile view.
+    const aiName = liveDoc?.name ?? undefined;
+    const aiAmount = liveDoc?.total != null ? String(Math.abs(Number(liveDoc.total))) : undefined;
+    const aiDate = liveDoc?.transactionTime ? new Date(liveDoc.transactionTime).toISOString().slice(0, 10) : undefined;
+    const aiSender = liveDoc?.senderName ?? undefined;
+    // Whether the document analysis actually produced any usable data.
+    const receiptHasData = !!(aiName || aiAmount || aiDate || aiSender);
 
     function buildPayload() {
         const rawAmount = parseFloat(amount.replace(',', '.'));
@@ -280,14 +379,41 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         });
     }
 
+    // In reconcile mode the chosen values are written onto the EXISTING transaction (signed by direction).
+    function buildTransactionPayload() {
+        const rawAmount = parseFloat(amount.replace(',', '.'));
+        const signed = isNaN(rawAmount) ? undefined : direction === 'OUTGOING' ? Math.abs(rawAmount) : -Math.abs(rawAmount);
+        return new TransactionUpdateRequest({
+            name: name || undefined,
+            total: signed,
+            transactionDate: date || undefined,
+            senderName: senderName || undefined,
+            bommelId: bommelId ? Number(bommelId) : undefined,
+            privatelyPaid,
+        });
+    }
+
     async function handleSave() {
         if (!doc?.id) return;
+        if (isBankReconcile && doc.transactionId) {
+            await updateTransaction.mutateAsync({ id: doc.transactionId, data: buildTransactionPayload() });
+            onClose();
+            return;
+        }
         await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
         onClose();
     }
 
     async function handleConfirm() {
         if (!doc?.id) return;
+        if (isBankReconcile && doc.transactionId) {
+            // Apply the reconciled values to the existing transaction, then mark the receipt reviewed.
+            // confirm is idempotent for already-linked documents (it keeps the existing transaction).
+            await updateTransaction.mutateAsync({ id: doc.transactionId, data: buildTransactionPayload() });
+            await confirmMutation.mutateAsync(doc.id);
+            onClose();
+            return;
+        }
         // Persist the current (possibly manually edited) values incl. direction before creating the transaction.
         await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
         await confirmMutation.mutateAsync(doc.id);
@@ -302,7 +428,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         onClose();
     }
 
-    const busy = updateMutation.isPending || confirmMutation.isPending;
+    const busy = updateMutation.isPending || confirmMutation.isPending || updateTransaction.isPending;
     const fieldsDisabled = isConfirmed || busy;
 
     return (
@@ -311,6 +437,17 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                 className={cn('fixed inset-0 bg-black/25 z-40 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0 pointer-events-none')}
                 onClick={onClose}
             />
+            {/* Large file preview to the left of the detail drawer (desktop only). pointer-events-none on the wrapper so
+                clicks on the surrounding area fall through to the scrim and close the drawer. */}
+            <div
+                className={cn(
+                    'hidden lg:flex fixed top-0 bottom-0 left-0 z-50 p-4 pointer-events-none transition-transform duration-300 ease-out',
+                    open ? 'translate-x-0' : '-translate-x-full'
+                )}
+                style={{ right: 460, fontFamily: FONT }}
+            >
+                {doc && <DocumentFilePreview doc={doc} />}
+            </div>
             <div
                 className={cn(
                     'fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out',
@@ -339,11 +476,15 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                 ) : (
                     <>
                         <div className="flex-1 overflow-y-auto">
-                            {/* Status bar */}
-                            <div className="px-6 py-3 border-b border-[#E9E9EE] flex items-center gap-2" style={{ background: '#F8F8FA' }}>
-                                <StatusBadge status={status} />
-                                {isConfirmed && <span className="text-[13px] text-[#6B6B76]">{t('receipts.review.alreadyConfirmed')}</span>}
-                                {status === 'failed' && doc.analysisError && <span className="text-[12px] text-[#B12C4C] truncate">{doc.analysisError}</span>}
+                            {/* Status bar — the analyzing/ready/failed states are explained by the banner below, so the
+                                short description is only shown for the states without a banner (pending, confirmed). */}
+                            <div className="px-6 py-3 border-b border-[#E9E9EE] flex flex-col gap-1.5" style={{ background: '#F8F8FA' }}>
+                                <div className="flex items-center gap-2">
+                                    <StatusBadge status={status} />
+                                </div>
+                                {(status === 'confirmed' || status === 'pending') && (
+                                    <p className="text-[12px] text-[#6B6B76] leading-snug">{t(`receipts.statusDescription.${status}`)}</p>
+                                )}
                             </div>
 
                             {/* File preview card */}
@@ -394,13 +535,30 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                         <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-[12px]" style={{ background: '#FBEAEF' }}>
                                             <AlertCircle size={16} className="text-[#B12C4C] flex-shrink-0 mt-0.5" />
                                             <div className="min-w-0">
-                                                <p className="text-[13px] font-bold text-[#B12C4C]">{t('receipts.review.failedTitle')}</p>
+                                                <p className="text-[13px] font-bold text-[#B12C4C]">
+                                                    {serviceUnavailable ? t('receipts.review.serviceUnavailableTitle') : t('receipts.review.failedTitle')}
+                                                </p>
                                                 <p className="text-[12px] text-[#B12C4C] opacity-80 leading-snug">
-                                                    {doc.analysisError || t('receipts.review.failedHint')}
+                                                    {serviceUnavailable
+                                                        ? t('receipts.review.serviceUnavailableHint')
+                                                        : doc.analysisError || t('receipts.review.failedHint')}
                                                 </p>
                                             </div>
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Bank reconcile hint */}
+                            {isBankReconcile && (
+                                <div className="px-6 pt-1">
+                                    <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-[12px]" style={{ background: '#E7F4EC' }}>
+                                        <Link2 size={16} className="text-[#1F7A50] flex-shrink-0 mt-0.5" />
+                                        <div className="min-w-0">
+                                            <p className="text-[13px] font-bold text-[#1F7A50]">{t('receipts.review.bankReconcileTitle')}</p>
+                                            <p className="text-[12px] text-[#1F7A50] opacity-80 leading-snug">{t('receipts.review.bankReconcileHint')}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -429,86 +587,176 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                 </div>
                             )}
 
-                            {/* Editable form */}
-                            <div className="px-6 py-5 space-y-3">
-                                <div>
-                                    <label className={FIELD_LABEL_CLS}>{t('receipts.direction.label')}</label>
-                                    <DirectionToggle value={direction} onChange={setDirection} compact disabled={fieldsDisabled} />
-                                </div>
-                                <InputField
-                                    label={t('receipts.review.name')}
-                                    value={name}
-                                    onChange={setName}
-                                    loading={isAnalyzing && !name}
-                                    disabled={fieldsDisabled}
-                                />
-                                <div className="grid grid-cols-2 gap-3">
-                                    <InputField
-                                        label={`${t('receipts.review.amount')} (€)`}
-                                        value={amount}
-                                        onChange={setAmount}
-                                        type="text"
-                                        inputMode="decimal"
-                                        loading={isAnalyzing && !amount}
-                                        disabled={fieldsDisabled}
-                                    />
-                                    <InputField
-                                        label={t('receipts.review.date')}
-                                        value={date}
-                                        onChange={setDate}
-                                        type="date"
-                                        loading={isAnalyzing && !date}
-                                        disabled={fieldsDisabled}
-                                    />
-                                </div>
-                                <InputField
-                                    label={t('receipts.review.sender')}
-                                    value={senderName}
-                                    onChange={setSenderName}
-                                    loading={isAnalyzing && !senderName}
-                                    disabled={fieldsDisabled}
-                                />
-                                <div>
-                                    <label className={FIELD_LABEL_CLS}>{t('receipts.review.bommel')}</label>
-                                    <select
-                                        value={bommelId}
-                                        onChange={(e) => setBommelId(e.target.value)}
-                                        disabled={fieldsDisabled}
-                                        className={FIELD_INPUT_CLS}
-                                    >
-                                        <option value="">—</option>
-                                        {allBommels.map((b) => (
-                                            <option key={b.id} value={b.id ?? ''}>
-                                                {(b as { name?: string }).name}
-                                            </option>
+                            {/* Tab toggle — only when a linked transaction exists. */}
+                            {hasLinkedTransaction && (
+                                <div className="px-6 pt-4">
+                                    <div className="flex rounded-xl p-0.5 gap-0.5" style={{ background: '#F1F1F4' }}>
+                                        {(['transaction', 'receipt'] as const).map((tabKey) => (
+                                            <button
+                                                key={tabKey}
+                                                type="button"
+                                                onClick={() => setDetailTab(tabKey)}
+                                                className={cn(
+                                                    'flex-1 px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors',
+                                                    detailTab === tabKey ? 'bg-white shadow-sm text-[#1B1B1F]' : 'text-[#6B6B76] hover:text-[#1B1B1F]'
+                                                )}
+                                            >
+                                                {t(tabKey === 'transaction' ? 'receipts.review.tabTransaction' : 'receipts.review.tabReceipt')}
+                                            </button>
                                         ))}
-                                    </select>
+                                    </div>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setPrivatelyPaid((v) => !v)}
-                                    disabled={fieldsDisabled}
-                                    className="w-full flex items-center gap-3 p-3 rounded-[10px] border transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                                    style={{
-                                        borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE',
-                                        background: privatelyPaid ? '#F3EAFB' : '#F8F8FA',
-                                    }}
-                                >
-                                    <span
-                                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                                        style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
+                            )}
+
+                            {/* Transaction data — the editable form (primary). */}
+                            {(!hasLinkedTransaction || detailTab === 'transaction') && (
+                                <div className="px-6 py-5 space-y-3">
+                                    <div>
+                                        <label className={FIELD_LABEL_CLS}>{t('receipts.direction.label')}</label>
+                                        <DirectionToggle value={direction} onChange={setDirection} compact disabled={fieldsDisabled} />
+                                    </div>
+                                    <InputField
+                                        label={t('receipts.review.name')}
+                                        value={name}
+                                        onChange={setName}
+                                        loading={isAnalyzing && !name}
+                                        disabled={fieldsDisabled}
+                                    />
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <InputField
+                                            label={`${t('receipts.review.amount')} (€)`}
+                                            value={amount}
+                                            onChange={setAmount}
+                                            type="text"
+                                            inputMode="decimal"
+                                            loading={isAnalyzing && !amount}
+                                            disabled={fieldsDisabled}
+                                        />
+                                        <InputField
+                                            label={t('receipts.review.date')}
+                                            value={date}
+                                            onChange={setDate}
+                                            type="date"
+                                            loading={isAnalyzing && !date}
+                                            disabled={fieldsDisabled}
+                                        />
+                                    </div>
+                                    <InputField
+                                        label={t('receipts.review.sender')}
+                                        value={senderName}
+                                        onChange={setSenderName}
+                                        loading={isAnalyzing && !senderName}
+                                        disabled={fieldsDisabled}
+                                    />
+                                    <div>
+                                        <label className={FIELD_LABEL_CLS}>{t('receipts.review.bommel')}</label>
+                                        <select
+                                            value={bommelId}
+                                            onChange={(e) => setBommelId(e.target.value)}
+                                            disabled={fieldsDisabled}
+                                            className={FIELD_INPUT_CLS}
+                                        >
+                                            {allBommels.length === 0 && <option value={bommelId}>—</option>}
+                                            {allBommels.map((b) => (
+                                                <option key={b.id} value={b.id ?? ''}>
+                                                    {(b as { name?: string }).name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPrivatelyPaid((v) => !v)}
+                                        disabled={fieldsDisabled}
+                                        className="w-full flex items-center gap-3 p-3 rounded-[10px] border transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                                        style={{
+                                            borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE',
+                                            background: privatelyPaid ? '#F3EAFB' : '#F8F8FA',
+                                        }}
                                     >
-                                        {privatelyPaid ? (
-                                            <Check size={14} strokeWidth={2.5} color="#7E3FB4" />
-                                        ) : (
-                                            <span className="w-3.5 h-3.5 rounded border-2 border-[#C0C0CC]" />
-                                        )}
-                                    </span>
-                                    <span className="text-[13.5px] font-semibold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
-                                        {t('receipts.review.privatelyPaid')}
-                                    </span>
-                                </button>
-                            </div>
+                                        <span
+                                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                                            style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
+                                        >
+                                            {privatelyPaid ? (
+                                                <Check size={14} strokeWidth={2.5} color="#7E3FB4" />
+                                            ) : (
+                                                <span className="w-3.5 h-3.5 rounded border-2 border-[#C0C0CC]" />
+                                            )}
+                                        </span>
+                                        <span className="text-[13.5px] font-semibold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
+                                            {t('receipts.review.privatelyPaid')}
+                                        </span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Analysed receipt data (read-only) with per-field "apply to transaction". */}
+                            {hasLinkedTransaction && detailTab === 'receipt' && (
+                                <div className="px-6 py-5">
+                                    {isAnalyzing && !receiptHasData ? (
+                                        <div className="flex flex-col items-center justify-center gap-2 py-8 text-[#6B6B76]">
+                                            <Loader2 size={22} className="animate-spin text-[#7E3FB4]" />
+                                            <span className="text-[13px]">{t('receipts.review.analyzing')}</span>
+                                        </div>
+                                    ) : receiptHasData ? (
+                                        <div className="space-y-2.5">
+                                            <ReceiptDataRow
+                                                label={t('receipts.review.name')}
+                                                value={aiName ?? null}
+                                                canApply={!fieldsDisabled && !!aiName && aiName !== name}
+                                                onApply={() => setName(aiName!)}
+                                                applyLabel={t('receipts.review.applySuggestion')}
+                                            />
+                                            <ReceiptDataRow
+                                                label={`${t('receipts.review.amount')} (€)`}
+                                                value={aiAmount ? fmtCurrency(Number(aiAmount)) : null}
+                                                canApply={!fieldsDisabled && !!aiAmount && aiAmount !== amount}
+                                                onApply={() => setAmount(aiAmount!)}
+                                                applyLabel={t('receipts.review.applySuggestion')}
+                                            />
+                                            <ReceiptDataRow
+                                                label={t('receipts.review.date')}
+                                                value={aiDate ? fmtDate(aiDate) : null}
+                                                canApply={!fieldsDisabled && !!aiDate && aiDate !== date}
+                                                onApply={() => setDate(aiDate!)}
+                                                applyLabel={t('receipts.review.applySuggestion')}
+                                            />
+                                            <ReceiptDataRow
+                                                label={t('receipts.review.sender')}
+                                                value={aiSender ?? null}
+                                                canApply={!fieldsDisabled && !!aiSender && aiSender !== senderName}
+                                                onApply={() => setSenderName(aiSender!)}
+                                                applyLabel={t('receipts.review.applySuggestion')}
+                                            />
+                                            {doc.extractionSource && (
+                                                <p className="text-[11px] text-[#9A9AA3] pt-1">
+                                                    {t('receipts.review.extractedBy', { source: doc.extractionSource })}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center text-center gap-3 py-10">
+                                            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: '#F1F1F4' }}>
+                                                <FileText size={22} className="text-[#9A9AA3]" />
+                                            </div>
+                                            <p className="text-[14px] font-semibold text-[#1B1B1F]">{t('receipts.review.noReceiptDataTitle')}</p>
+                                            <p className="text-[13px] text-[#6B6B76] max-w-xs">{t('receipts.review.noReceiptDataHint')}</p>
+                                            {(status === 'failed' || status === 'ready') && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => doc.id && reanalyzeMutation.mutate(doc.id)}
+                                                    disabled={reanalyzeMutation.isPending}
+                                                    className="mt-1 flex items-center gap-1.5 py-2 px-4 rounded-full text-[13px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                                                >
+                                                    <RefreshCw size={13} className={reanalyzeMutation.isPending ? 'animate-spin' : ''} />
+                                                    {t('receipts.review.reanalyze')}
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Footer */}
@@ -721,6 +969,48 @@ export function BelegeView() {
     const { data: allDocs, isLoading, refetch } = useDocuments();
 
     const docs = (allDocs ?? []) as DocumentResponse[];
+
+    const queryClient = useQueryClient();
+    const { showWarning } = useToast();
+
+    // Load the organization's bommels so the detail view's bommel select is populated.
+    const { organization } = useStore();
+    const bommelCount = useBommelsStore((s) => s.allBommels.length);
+    const loadBommels = useBommelsStore((s) => s.loadBommels);
+    useEffect(() => {
+        if (organization?.id && bommelCount === 0) {
+            loadBommels(organization.id);
+        }
+    }, [organization?.id, bommelCount, loadBommels]);
+
+    // Live updates: reload the whole document list whenever the backend signals a change (e.g. analysis finished).
+    // The message carries the exact document ID, but we always reload the full list.
+    useDocumentEvents(() => {
+        queryClient.invalidateQueries({ queryKey: documentKeys.all });
+    });
+
+    // Notify the user when a receipt could not be analysed because the analysis service was unreachable.
+    const toastedRef = useRef<Set<number>>(new Set());
+    const seededRef = useRef(false);
+    useEffect(() => {
+        if (!allDocs) return;
+        const unavailable = docs.filter((d) => d.analysisError === ANALYSIS_SERVICE_UNAVAILABLE && d.id != null);
+        if (!seededRef.current) {
+            // Don't notify for failures that already existed when the page opened — only for new ones.
+            unavailable.forEach((d) => toastedRef.current.add(d.id!));
+            seededRef.current = true;
+            return;
+        }
+        for (const d of unavailable) {
+            if (!toastedRef.current.has(d.id!)) {
+                toastedRef.current.add(d.id!);
+                showWarning(t('receipts.analysisUnavailable.title'), {
+                    description: t('receipts.analysisUnavailable.description'),
+                });
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allDocs]);
 
     // Open a specific document when navigated to with ?id= (e.g. from a linked transaction)
     const [searchParams, setSearchParams] = useSearchParams();
