@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -713,6 +713,63 @@ export class Client {
     }
 
     /**
+     * List bank transactions linked to a bookkeeping transaction
+     * @param transactionId Bookkeeping transaction ID
+     * @return List of linked bank transactions
+     */
+    forTransaction(transactionId: number): Promise<BankTransactionResponse[]> {
+        let url_ = this.baseUrl + "/bank-transactions/for-transaction/{transactionId}";
+        if (transactionId === undefined || transactionId === null)
+            throw new Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processForTransaction(_response);
+        });
+    }
+
+    protected processForTransaction(response: Response): Promise<BankTransactionResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankTransactionResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BankTransactionResponse[]>(null as any);
+    }
+
+    /**
      * Get a bank transaction
      * @param id Bank transaction ID
      * @return Transaction found
@@ -976,6 +1033,77 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Create a receipt and a linked transaction for a bank transaction
+     * @param id Bank transaction ID
+     * @param analyze (optional) Whether to trigger automatic AI analysis of the receipt
+     * @param file (optional) 
+     * @return Receipt uploaded and transaction created
+     */
+    receipt(id: number, analyze: boolean | undefined, file: FileParameter | undefined): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}/receipt?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (analyze === null)
+            throw new Error("The parameter 'analyze' cannot be null.");
+        else if (analyze !== undefined)
+            url_ += "analyze=" + encodeURIComponent("" + analyze) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReceipt(_response);
+        });
+    }
+
+    protected processReceipt(response: Response): Promise<DocumentResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = DocumentResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid file or ignored bank transaction", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentResponse>(null as any);
     }
 
     /**
@@ -2652,11 +2780,82 @@ export class Client {
     }
 
     /**
+     * Replace a document's file
+     * @param id Document ID
+     * @param analyze (optional) Whether to re-trigger automatic AI analysis after upload
+     * @param file (optional) 
+     * @return File replaced
+     */
+    filePOST(id: number, analyze: boolean | undefined, file: FileParameter | undefined): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/documents/{id}/file?";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (analyze === null)
+            throw new Error("The parameter 'analyze' cannot be null.");
+        else if (analyze !== undefined)
+            url_ += "analyze=" + encodeURIComponent("" + analyze) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processFilePOST(_response);
+        });
+    }
+
+    protected processFilePOST(response: Response): Promise<DocumentResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid file", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentResponse>(null as any);
+    }
+
+    /**
      * Download document file
      * @param id Document ID
      * @return File content
      */
-    file(id: number): Promise<FileResponse> {
+    fileGET(id: number): Promise<FileResponse> {
         let url_ = this.baseUrl + "/documents/{id}/file";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -2671,11 +2870,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processFile(_response);
+            return this.processFileGET(_response);
         });
     }
 
-    protected processFile(response: Response): Promise<FileResponse> {
+    protected processFileGET(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200 || status === 206) {

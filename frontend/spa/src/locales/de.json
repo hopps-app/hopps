@@ -382,6 +382,7 @@
       "noReceipt": "Kein Beleg verknüpft",
       "payment": "Zahlung & Abgleich",
       "notLinked": "Noch nicht verknüpft",
+      "openBankTransaction": "Zur Banktransaktion wechseln",
       "cash": "Barzahlung",
       "delete": "Löschen",
       "edit": "Bearbeiten",
@@ -465,6 +466,10 @@
       "ready": "Prüfen",
       "confirmed": "Bestätigt",
       "failed": "Fehlgeschlagen"
+    },
+    "statusDescription": {
+      "pending": "Beleg hochgeladen – die Analyse startet gleich.",
+      "confirmed": "Beleg geprüft und bestätigt – die zugehörige Transaktion wurde erstellt."
     },
     "filters": {
       "searchReceipt": "Beleg suchen",
@@ -554,8 +559,19 @@
       "completedHint": "Bitte prüfe die erkannten Daten und korrigiere sie bei Bedarf.",
       "failedTitle": "Analyse fehlgeschlagen",
       "failedHint": "Bitte gib die Daten manuell ein oder starte die Analyse neu.",
+      "serviceUnavailableTitle": "Analyse-Service nicht erreichbar",
+      "serviceUnavailableHint": "Der Beleg konnte technisch gerade nicht automatisch analysiert werden. Du kannst alle Felder jederzeit selbst ausfüllen und den Beleg manuell erfassen.",
       "linkedTransaction": "Verknüpfte Transaktion",
-      "openTransaction": "Zur Transaktion wechseln"
+      "openTransaction": "Zur Transaktion wechseln",
+      "bankReconcileTitle": "Aus Kontoumsatz erstellt",
+      "bankReconcileHint": "Die Transaktion ist bereits mit den Bankdaten vorbefüllt. Prüfe den Beleg und übernimm bei Bedarf die erkannten Werte.",
+      "aiSuggestion": "Beleg",
+      "applySuggestion": "Übernehmen",
+      "tabTransaction": "Transaktion",
+      "tabReceipt": "Beleg",
+      "extractedBy": "Erkannt durch {{source}}",
+      "noReceiptDataTitle": "Keine Belegdaten",
+      "noReceiptDataHint": "Es wurden keine Daten automatisch aus dem Beleg extrahiert. Du kannst die Werte im Tab „Transaktion“ manuell eingeben."
     },
     "filter": {
       "all": "Alle",
@@ -565,12 +581,28 @@
     "noUnreviewed": "Alle Belege wurden geprüft",
     "noUnreviewedDesc": "Lade neue Belege hoch, um sie zu prüfen.",
     "deleteConfirm": "Beleg wirklich löschen?",
+    "analysisUnavailable": {
+      "title": "Analyse-Service nicht erreichbar",
+      "description": "Der Beleg konnte technisch gerade nicht automatisch analysiert werden. Du kannst alle Informationen jederzeit auch manuell eingeben."
+    },
+    "preview": {
+      "loading": "Beleg wird geladen …",
+      "error": "Vorschau konnte nicht geladen werden.",
+      "missingTitle": "Datei nicht mehr verfügbar",
+      "missingHint": "Die hochgeladene Datei ist im Speicher nicht mehr vorhanden. Bitte lade den Beleg erneut hoch.",
+      "reupload": "Beleg hierher ziehen oder klicken, um ihn erneut hochzuladen",
+      "reuploadDrop": "Beleg hier ablegen …",
+      "reuploading": "Wird hochgeladen …",
+      "unsupported": "Für diesen Dateityp ist keine Vorschau verfügbar.",
+      "openNewTab": "In neuem Tab öffnen",
+      "download": "Herunterladen"
+    },
     "direction": {
       "label": "Belegart",
-      "incoming": "Eingangsbeleg",
-      "incomingHint": "Ausgabe",
-      "outgoing": "Ausgangsbeleg",
-      "outgoingHint": "Einnahme"
+      "incoming": "Ausgabe",
+      "incomingHint": "Geld ausgegeben",
+      "outgoing": "Einnahme",
+      "outgoingHint": "Geld erhalten"
     }
   },
   "bommel": {
@@ -964,13 +996,18 @@
       "noOpenTx": "Keine offene Transaktion passt. Prüfe deine Buchungen im Bereich Transaktionen.",
       "exactMatch": "passt genau",
       "unlink": "Zuordnung entfernen",
+      "openTransaction": "Zur Transaktion wechseln",
       "bankAmount": "Betrag",
       "covered": "Gedeckt",
       "remaining": "Differenz",
       "fullyCovered": "Vollständig gedeckt",
       "ignore": "Ignorieren",
       "unignore": "Nicht ignorieren",
-      "assign": "Zuordnen"
+      "assign": "Zuordnen",
+      "uploadReceipt": "Neuen Beleg hochladen",
+      "uploadReceiptHint": "Beleg hierher ziehen oder klicken – Transaktion wird automatisch erstellt und zugeordnet",
+      "uploadReceiptDrop": "Beleg hier ablegen …",
+      "uploadReceiptBusy": "Beleg wird hochgeladen …"
     }
   }
 }

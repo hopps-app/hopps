@@ -1,7 +1,8 @@
 import { BankAccountResponse } from '@hopps/api-client';
 import { ArrowLeftRight, ArrowRight, Check, ChevronLeft, ChevronRight, Clock, Edit, Landmark, Link2, Plus, Sheet, Unlink, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
 
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
@@ -565,6 +566,21 @@ export function KontenView() {
     const [importAccountId, setImportAccountId] = useState<number | null>(null);
     const [matchDrawerBankTxId, setMatchDrawerBankTxId] = useState<number | null>(null);
 
+    // Open a specific bank transaction's detail drawer when navigated to with ?bankTx= (e.g. from a linked transaction).
+    const [searchParams, setSearchParams] = useSearchParams();
+    useEffect(() => {
+        const param = searchParams.get('bankTx');
+        if (param) setMatchDrawerBankTxId(Number(param));
+    }, [searchParams]);
+
+    const closeMatchDrawer = () => {
+        setMatchDrawerBankTxId(null);
+        if (searchParams.has('bankTx')) {
+            searchParams.delete('bankTx');
+            setSearchParams(searchParams, { replace: true });
+        }
+    };
+
     // Count open transactions per account for the badges
     const openCountResults = useQueries({
         queries: accounts.map((a) => ({
@@ -665,7 +681,7 @@ export function KontenView() {
             {matchDrawerBankTxId !== null && (
                 <MatchDrawer
                     bankTxId={matchDrawerBankTxId}
-                    onClose={() => setMatchDrawerBankTxId(null)}
+                    onClose={closeMatchDrawer}
                 />
             )}
 

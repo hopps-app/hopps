@@ -49,6 +49,22 @@ export function useUploadDocument() {
     });
 }
 
+/**
+ * Replaces the file of an existing document (keeping its ID and links) and re-triggers analysis — used to restore a
+ * receipt whose file is no longer available in storage.
+ */
+export function useReuploadDocumentFile() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, file }: { id: number; file: File }) =>
+            apiService.orgService.filePOST(id, true, { data: file, fileName: file.name }),
+        onSuccess: (_data, vars) => {
+            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+            queryClient.invalidateQueries({ queryKey: documentKeys.detail(vars.id) });
+        },
+    });
+}
+
 export function useConfirmDocument() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -77,6 +93,9 @@ export function useDeleteDocument() {
         mutationFn: (id: number) => apiService.orgService.documentsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
+            // Deleting a document also deletes its transaction, which may unmatch a bank transaction.
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
         },
     });
 }

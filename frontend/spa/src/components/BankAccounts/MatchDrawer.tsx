@@ -1,7 +1,9 @@
 import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
-import { ArrowDownRight, ArrowUpRight, Check, Landmark, Link2, Unlink, X } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, Landmark, Link2, Loader2, Unlink, Upload, X } from 'lucide-react';
 import { useState } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -9,6 +11,7 @@ import {
     useAddBankTransactionMatch,
     useRemoveBankTransactionMatch,
     useIgnoreBankTransaction,
+    useCreateReceiptForBankTransaction,
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
 import apiService from '@/services/ApiService';
@@ -93,7 +96,24 @@ interface MatchDrawerProps {
 
 export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [sel, setSel] = useState<Set<number>>(new Set());
+    const createReceipt = useCreateReceiptForBankTransaction();
+
+    // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked transaction and
+    // opens the receipt for review.
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop: async (acceptedFiles) => {
+            const file = acceptedFiles[0];
+            if (!file) return;
+            const doc = await createReceipt.mutateAsync({ bankTxId, file });
+            onClose();
+            if (doc?.id) navigate(`/receipts?id=${doc.id}`);
+        },
+        multiple: false,
+        accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
+        disabled: createReceipt.isPending,
+    });
 
     const { data: bankTx } = useBankTransaction(bankTxId);
 
@@ -221,6 +241,33 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                             </div>
                         </div>
 
+                        {/* Upload a receipt (drag-and-drop or click) → creates & links a pre-filled transaction directly */}
+                        {bankTx.status !== 'IGNORED' && (
+                            <div
+                                {...getRootProps()}
+                                className={cn(
+                                    'w-full flex items-center gap-3 p-3.5 rounded-2xl border border-dashed transition-colors text-left cursor-pointer select-none',
+                                    isDragActive ? 'border-primary bg-primary/10' : 'border-primary/40 bg-primary/5 hover:bg-primary/10',
+                                    createReceipt.isPending && 'opacity-60 pointer-events-none cursor-not-allowed'
+                                )}
+                            >
+                                <input {...getInputProps()} />
+                                <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                                    {createReceipt.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                                </span>
+                                <span className="flex flex-col min-w-0">
+                                    <span className="text-sm font-bold">{t('konten.drawer.uploadReceipt')}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                        {createReceipt.isPending
+                                            ? t('konten.drawer.uploadReceiptBusy')
+                                            : isDragActive
+                                              ? t('konten.drawer.uploadReceiptDrop')
+                                              : t('konten.drawer.uploadReceiptHint')}
+                                    </span>
+                                </span>
+                            </div>
+                        )}
+
                         {/* Already linked */}
                         {linkedTx.length > 0 && (
                             <div>
@@ -233,10 +280,18 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                             key={tx.id}
                                             className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 flex items-center gap-3"
                                         >
-                                            <div className="flex-1 min-w-0">
-                                                <HoppsTxMini tx={tx} />
-                                            </div>
-                                            <SignedAmount amount={tx.total} currency={tx.currencyCode ?? 'EUR'} size="sm" />
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate(`/transactions?id=${tx.id}`)}
+                                                title={t('konten.drawer.openTransaction')}
+                                                className="flex-1 min-w-0 flex items-center gap-3 text-left group"
+                                            >
+                                                <div className="flex-1 min-w-0">
+                                                    <HoppsTxMini tx={tx} />
+                                                </div>
+                                                <SignedAmount amount={tx.total} currency={tx.currencyCode ?? 'EUR'} size="sm" />
+                                                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                                            </button>
                                             <button
                                                 type="button"
                                                 className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"

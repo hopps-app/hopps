@@ -5,10 +5,12 @@ import app.hopps.document.client.DocumentData;
 import app.hopps.document.client.ZugFerdClient;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentChangedEvent;
 import app.hopps.document.domain.ExtractionSource;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.context.ManagedExecutor;
@@ -26,8 +28,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DocumentAnalysisService {
     private static final Logger LOG = getLogger(DocumentAnalysisService.class);
 
+    /**
+     * Stable marker stored in {@code analysisError} when the analysis could not run because the AI service was not
+     * reachable (connection refused / timeout). The frontend maps this code to a localized message and notifies the
+     * user that the receipt could not be analysed automatically and must be filled in manually.
+     */
+    public static final String ANALYSIS_SERVICE_UNAVAILABLE = "ANALYSIS_SERVICE_UNAVAILABLE";
+
     @Inject
     ManagedExecutor executor;
+
+    @Inject
+    Event<DocumentChangedEvent> documentChangedEvent;
 
     @Inject
     DocumentRepository documentRepository;
@@ -81,6 +93,7 @@ public class DocumentAnalysisService {
         if (!document.hasFile()) {
             LOG.warn("Document has no file to analyze: id={}", documentId);
             document.setAnalysisStatus(AnalysisStatus.SKIPPED);
+            fireChanged(document);
             return;
         }
 
@@ -133,8 +146,59 @@ public class DocumentAnalysisService {
         } catch (Exception e) {
             LOG.error("Document analysis failed: id={}", documentId, e);
             document.setAnalysisStatus(AnalysisStatus.FAILED);
-            document.setAnalysisError(extractUserFriendlyError(e));
+            document.setAnalysisError(
+                    isServiceUnavailable(e) ? ANALYSIS_SERVICE_UNAVAILABLE : extractUserFriendlyError(e));
         }
+
+        fireChanged(document);
+    }
+
+    /**
+     * Fires a {@link DocumentChangedEvent} so connected WebSocket clients reload after this transaction commits.
+     */
+    private void fireChanged(Document document) {
+        Long orgId = document.getOrganization() != null ? document.getOrganization().getId() : null;
+        documentChangedEvent.fire(new DocumentChangedEvent(document.getId(), orgId));
+    }
+
+    /**
+     * Detects whether the failure was caused by the AI analysis service being unreachable (connection refused, no
+     * route, timeout) rather than by a problem with the document content.
+     */
+    private boolean isServiceUnavailable(Throwable e) {
+        Throwable current = e;
+        while (current != null) {
+            if (current instanceof java.net.ConnectException
+                    || current instanceof java.net.UnknownHostException
+                    || current instanceof java.net.NoRouteToHostException
+                    || current instanceof java.net.SocketTimeoutException
+                    || current instanceof jakarta.ws.rs.ProcessingException
+                    || current instanceof org.eclipse.microprofile.faulttolerance.exceptions.TimeoutException) {
+                return true;
+            }
+            String message = current.getMessage();
+            if (message != null) {
+                String lower = message.toLowerCase(java.util.Locale.ROOT);
+                if (lower.contains("connection refused")
+                        || lower.contains("connection reset")
+                        || lower.contains("connection timed out")
+                        || lower.contains("failed to connect")
+                        || lower.contains("no route to host")
+                        || lower.contains("unknownhost")
+                        || lower.contains("service unavailable")) {
+                    return true;
+                }
+            }
+            // A 502/503/504 from the AI service also means it is (temporarily) unavailable.
+            if (current instanceof jakarta.ws.rs.WebApplicationException wae) {
+                int status = wae.getResponse() != null ? wae.getResponse().getStatus() : 0;
+                if (status == 502 || status == 503 || status == 504) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     /**

@@ -6,6 +6,8 @@ import app.hopps.bankimport.domain.BankTransaction;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bankimport.service.BankTransactionMatchService;
+import app.hopps.bankimport.service.BankTransactionReceiptService;
+import app.hopps.document.api.dto.DocumentResponse;
 import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
@@ -21,7 +23,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -47,6 +52,9 @@ public class BankTransactionResource {
 
     @Inject
     BankTransactionMatchService matchService;
+
+    @Inject
+    BankTransactionReceiptService receiptService;
 
     @GET
     @Operation(summary = "List bank transactions", description = "Cross-account listing scoped to the current org. Filters: accountIds, dateFrom/dateTo, status (multi), search (purpose/counterparty).")
@@ -128,6 +136,25 @@ public class BankTransactionResource {
         return jakarta.ws.rs.core.Response.noContent().build();
     }
 
+    @POST
+    @Path("/{id}/receipt")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Operation(summary = "Create a receipt and a linked transaction for a bank transaction", description = "Uploads a receipt document and creates a DRAFT bookkeeping transaction pre-filled from the bank movement (counterparty as trade party, amount and purpose). The document, the transaction and the bank transaction are linked, and the document is analysed by the Document-AI for later review.")
+    @APIResponse(responseCode = "201", description = "Receipt uploaded and transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "400", description = "Invalid file or ignored bank transaction")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank transaction not found")
+    public Response createReceipt(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id,
+            @RestForm("file") FileUpload file,
+            @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis of the receipt") boolean analyze,
+            @Context SecurityContext securityContext) {
+        String username = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName()
+                : "unknown";
+        DocumentResponse response = receiptService.createReceiptForBankTransaction(id, file, analyze, username);
+        return Response.status(Response.Status.CREATED).entity(response).build();
+    }
+
     @DELETE
     @Path("/{id}/matches/{transactionId}")
     @Operation(summary = "Unlink a bank transaction from a hopps transaction", description = "Removes a match between the bank transaction and the bookkeeping transaction.")
@@ -163,6 +190,19 @@ public class BankTransactionResource {
             @PathParam("id") @Parameter(description = "Bank transaction ID") Long id) {
         matchService.unignore(id);
         return jakarta.ws.rs.core.Response.noContent().build();
+    }
+
+    @GET
+    @Path("/for-transaction/{transactionId}")
+    @Operation(summary = "List bank transactions linked to a bookkeeping transaction", description = "Returns the bank transactions matched to the given transaction — the reverse direction of the N:M match mapping, scoped to the current organization.")
+    @APIResponse(responseCode = "200", description = "List of linked bank transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionResponse[].class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    public List<BankTransactionResponse> listForTransaction(
+            @PathParam("transactionId") @Parameter(description = "Bookkeeping transaction ID") Long transactionId) {
+        return matchService.getBankTransactionsForTransaction(transactionId)
+                .stream()
+                .map(tx -> BankTransactionResponse.from(tx, matchService.getMatchedTransactionIds(tx.getId())))
+                .toList();
     }
 
     @GET

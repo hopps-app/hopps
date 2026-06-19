@@ -12,6 +12,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { useToast } from '@/hooks/use-toast';
+import { documentKeys } from '@/hooks/queries/useDocuments';
+import { transactionKeys } from '@/hooks/queries/useTransactions';
 import apiService from '@/services/ApiService';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
@@ -307,6 +309,24 @@ export function useCsvPreview() {
     });
 }
 
+/**
+ * Uploads a receipt for an unmatched bank transaction. The backend creates a DRAFT transaction pre-filled from the bank
+ * movement (counterparty, amount, purpose), links the receipt to it and matches it to the bank transaction. Returns the
+ * created document so the caller can open it for review.
+ */
+export function useCreateReceiptForBankTransaction() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ bankTxId, file }: { bankTxId: number; file: File }) =>
+            apiService.orgService.receipt(bankTxId, true, { data: file, fileName: file.name }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+        },
+    });
+}
+
 export function useSuggestSchema(accountId: number, headerColumns: string[] | null) {
     return useQuery({
         queryKey: ['suggestSchema', accountId, headerColumns],
@@ -366,15 +386,12 @@ export function useBankTransactionsByAccount(accountId: number, page = 0, size =
     });
 }
 
-// Bank transactions currently linked (matched) to a given hopps transaction.
-// The API exposes matches only from the bank-transaction side, so we scan the list and filter by matchedTransactionIds.
+// Bank transactions currently linked (matched) to a given hopps transaction — the reverse direction of the N:M mapping,
+// served directly by the backend so the link is visible from the transaction side too.
 export function useBankTransactionsForTransaction(transactionId: number | null | undefined) {
     return useQuery({
         queryKey: [...bankTransactionKeys.all, 'forTransaction', transactionId],
-        queryFn: async () => {
-            const all = await apiService.orgService.bankTransactionsAll(undefined, undefined, undefined, 0, undefined, 500, undefined);
-            return all.filter((bt) => bt.matchedTransactionIds?.includes(transactionId!));
-        },
+        queryFn: () => apiService.orgService.forTransaction(transactionId!),
         enabled: !!transactionId,
     });
 }
