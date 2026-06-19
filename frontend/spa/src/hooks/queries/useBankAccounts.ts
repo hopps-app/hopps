@@ -66,8 +66,7 @@ export function useCreateBankAccount() {
     const { t } = useTranslation();
 
     return useMutation({
-        mutationFn: (data: IBankAccountCreateRequest) =>
-            apiService.orgService.bankaccountsPOST(new BankAccountCreateRequest(data)),
+        mutationFn: (data: IBankAccountCreateRequest) => apiService.orgService.bankaccountsPOST(new BankAccountCreateRequest(data)),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bankAccountKeys.lists() });
             showSuccess(t('bankAccounts.toast.createSuccess'));
@@ -304,8 +303,7 @@ export function useRollbackImport() {
 
 export function useCsvPreview() {
     return useMutation({
-        mutationFn: ({ accountId, file }: { accountId: number; file: File }) =>
-            apiService.orgService.preview(accountId, { data: file, fileName: file.name }),
+        mutationFn: ({ accountId, file }: { accountId: number; file: File }) => apiService.orgService.preview(accountId, { data: file, fileName: file.name }),
     });
 }
 
@@ -331,8 +329,7 @@ export function useBankTransaction(id: number | null) {
 export function useAddBankTransactionMatch() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) =>
-            apiService.orgService.matchesPOST(bankTxId, transactionId),
+        mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) => apiService.orgService.matchesPOST(bankTxId, transactionId),
         onSuccess: (_, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
@@ -343,8 +340,7 @@ export function useAddBankTransactionMatch() {
 export function useRemoveBankTransactionMatch() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) =>
-            apiService.orgService.matchesDELETE(bankTxId, transactionId),
+        mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) => apiService.orgService.matchesDELETE(bankTxId, transactionId),
         onSuccess: (_, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
@@ -365,17 +361,31 @@ export function useIgnoreBankTransaction() {
 export function useBankTransactionsByAccount(accountId: number, page = 0, size = 50, status?: string) {
     return useQuery({
         queryKey: bankTransactionKeys.byAccount(accountId, page, size, status),
-        queryFn: () =>
-            apiService.orgService.byAccount(
-                accountId,
-                undefined,
-                undefined,
-                page,
-                undefined,
-                size,
-                status
-            ),
+        queryFn: () => apiService.orgService.byAccount(accountId, undefined, undefined, page, undefined, size, status),
         enabled: !!accountId,
+    });
+}
+
+// Bank transactions currently linked (matched) to a given hopps transaction.
+// The API exposes matches only from the bank-transaction side, so we scan the list and filter by matchedTransactionIds.
+export function useBankTransactionsForTransaction(transactionId: number | null | undefined) {
+    return useQuery({
+        queryKey: [...bankTransactionKeys.all, 'forTransaction', transactionId],
+        queryFn: async () => {
+            const all = await apiService.orgService.bankTransactionsAll(undefined, undefined, undefined, 0, undefined, 500, undefined);
+            return all.filter((bt) => bt.matchedTransactionIds?.includes(transactionId!));
+        },
+        enabled: !!transactionId,
+    });
+}
+
+// Searchable list of bank transactions to pick from when linking manually.
+// Only returns not-yet-linked (UNMATCHED) bank transactions.
+export function useBankTransactionSearch(search: string, enabled: boolean) {
+    return useQuery({
+        queryKey: [...bankTransactionKeys.all, 'search', search],
+        queryFn: () => apiService.orgService.bankTransactionsAll(undefined, undefined, undefined, 0, search || undefined, 25, 'UNMATCHED'),
+        enabled,
     });
 }
 

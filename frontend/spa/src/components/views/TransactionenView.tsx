@@ -1,4 +1,4 @@
-import { TransactionResponse, TransactionStatus } from '@hopps/api-client';
+import { TransactionResponse, TransactionStatus, TransactionUpdateRequest } from '@hopps/api-client';
 import {
     ArrowDownRight,
     ArrowUpRight,
@@ -13,23 +13,46 @@ import {
     Trash2,
     Pencil,
     Check,
-    Download,
     Upload,
     SlidersHorizontal,
     Link2,
     Unlink,
-    Coins,
+    ExternalLink,
+    Landmark,
+    Loader2,
 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
-import { usePageTitle } from '@/hooks/use-page-title';
-import { useTransactions, useTransaction, useDeleteTransaction, TransactionFilters } from '@/hooks/queries/useTransactions';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import {
+    useBankTransactionsForTransaction,
+    useBankTransactionSearch,
+    useAddBankTransactionMatch,
+    useRemoveBankTransactionMatch,
+} from '@/hooks/queries/useBankAccounts';
 import { useCategories } from '@/hooks/queries/useCategories';
-import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import {
+    useTransactions,
+    useTransaction,
+    useDeleteTransaction,
+    useUpdateTransaction,
+    useConfirmTransaction,
+    TransactionFilters,
+} from '@/hooks/queries/useTransactions';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
+
+const AREAS = [
+    { value: 'IDEELL', label: 'Ideell' },
+    { value: 'ZWECKBETRIEB', label: 'Zweckbetrieb' },
+    { value: 'WIRTSCHAFTLICH', label: 'Wirtschaftlicher Geschäftsbetrieb' },
+    { value: 'VERMOEGENSVERWALTUNG', label: 'Vermögensverwaltung' },
+];
 
 // ─── Design tokens (from prototype) ──────────────────────────────────────────
 // bg: #F3F4F6 · surface: #FFFFFF · surface-2: #F8F8FA · surface-3: #F1F1F4
@@ -86,7 +109,12 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 function StatusBadge({ status }: { status?: TransactionStatus }) {
     const { t } = useTranslation();
     if (status === 'CONFIRMED') {
-        return <Badge variant="pos"><Check size={11} strokeWidth={2.5} />{t('transactions.status.confirmed')}</Badge>;
+        return (
+            <Badge variant="pos">
+                <Check size={11} strokeWidth={2.5} />
+                {t('transactions.status.confirmed')}
+            </Badge>
+        );
     }
     return <Badge variant="warn">{t('transactions.status.draft')}</Badge>;
 }
@@ -97,10 +125,7 @@ function TxIcon({ size = 36, incoming }: { size?: number; incoming?: boolean }) 
     const color = incoming ? '#1F7A50' : '#7E3FB4';
     const Icon = incoming ? ArrowUpRight : ArrowDownRight;
     return (
-        <span
-            className="inline-flex items-center justify-center flex-shrink-0"
-            style={{ width: size, height: size, borderRadius: 10, background: bg, color }}
-        >
+        <span className="inline-flex items-center justify-center flex-shrink-0" style={{ width: size, height: size, borderRadius: 10, background: bg, color }}>
             <Icon size={Math.round(size * 0.47)} strokeWidth={2} />
         </span>
     );
@@ -120,24 +145,243 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
     );
 }
 
+// ─── Bank reconciliation section ────────────────────────────────────────────────
+
+function BankMatchSection({ tx }: { tx: TransactionResponse }) {
+    const { t } = useTranslation();
+    const navigate = useNavigate();
+    const { data: linked, isLoading } = useBankTransactionsForTransaction(tx.id);
+    const addMatch = useAddBankTransactionMatch();
+    const removeMatch = useRemoveBankTransactionMatch();
+
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const { data: results, isFetching } = useBankTransactionSearch(search, pickerOpen);
+
+    const linkedIds = new Set((linked ?? []).map((b) => b.id));
+
+    async function link(bankTxId: number) {
+        if (!tx.id) return;
+        await addMatch.mutateAsync({ bankTxId, transactionId: tx.id });
+        setPickerOpen(false);
+        setSearch('');
+    }
+
+    async function unlink(bankTxId: number) {
+        if (!tx.id) return;
+        await removeMatch.mutateAsync({ bankTxId, transactionId: tx.id });
+    }
+
+    return (
+        <div className="px-6 py-5">
+            <div className="flex items-center gap-2 mb-3">
+                <Link2 size={15} className="text-[#7E3FB4]" />
+                <span className="text-[14px] font-bold text-[#1B1B1F]">{t('transactions.detail.payment')}</span>
+            </div>
+
+            {isLoading ? (
+                <div className="flex items-center gap-2 p-3 text-[13px] text-[#6B6B76]">
+                    <Loader2 size={14} className="animate-spin" />
+                    {t('transactions.detail.bankLoading')}
+                </div>
+            ) : linked && linked.length > 0 ? (
+                <div className="space-y-2">
+                    {linked.map((b) => (
+                        <div key={b.id} className="flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+                            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#E7F4EC' }}>
+                                <Landmark size={16} className="text-[#1F7A50]" />
+                            </span>
+                            <span className="flex flex-col min-w-0 flex-1">
+                                <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
+                                <span className="text-[12px] text-[#6B6B76]">
+                                    {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
+                                </span>
+                            </span>
+                            <span className="text-[13px] font-bold tabular-nums flex-shrink-0" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                                {fmtCurrency(b.amount)}
+                            </span>
+                            <button
+                                onClick={() => unlink(b.id!)}
+                                disabled={removeMatch.isPending}
+                                title={t('transactions.detail.unlink')}
+                                className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#B12C4C] hover:border-[#E8A0B2] transition-colors flex-shrink-0 disabled:opacity-50"
+                            >
+                                <Unlink size={14} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="flex items-start gap-3 p-3 rounded-[10px] mb-2" style={{ background: '#F3EAFB' }}>
+                    <Unlink size={15} className="text-[#7E3FB4] mt-0.5 flex-shrink-0" />
+                    <p className="text-[13px] text-[#7E3FB4] font-medium">{t('transactions.detail.notLinked')}</p>
+                </div>
+            )}
+
+            {/* Link picker */}
+            {pickerOpen ? (
+                <div className="mt-3 rounded-[12px] border border-[#E9E9EE] overflow-hidden">
+                    <div className="flex items-center gap-2 px-3 py-2 border-b border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+                        <Search size={14} className="text-[#9A9AA3]" />
+                        <input
+                            autoFocus
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder={t('transactions.detail.bankSearchPlaceholder')}
+                            className="flex-1 bg-transparent text-[13px] text-[#1B1B1F] placeholder-[#9A9AA3] outline-none"
+                        />
+                        <button onClick={() => setPickerOpen(false)} className="text-[#9A9AA3] hover:text-[#1B1B1F] transition-colors">
+                            <X size={15} />
+                        </button>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                        {isFetching ? (
+                            <div className="flex items-center gap-2 px-3 py-4 text-[13px] text-[#6B6B76]">
+                                <Loader2 size={14} className="animate-spin" />
+                                {t('transactions.detail.bankLoading')}
+                            </div>
+                        ) : (results ?? []).filter((b) => !linkedIds.has(b.id)).length === 0 ? (
+                            <p className="px-3 py-4 text-[13px] text-[#9A9AA3] text-center">{t('transactions.detail.bankNoResults')}</p>
+                        ) : (
+                            (results ?? [])
+                                .filter((b) => !linkedIds.has(b.id))
+                                .map((b) => (
+                                    <button
+                                        key={b.id}
+                                        onClick={() => link(b.id!)}
+                                        disabled={addMatch.isPending}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-[#F1F1F4] last:border-b-0 hover:bg-[#F3EAFB] transition-colors disabled:opacity-50"
+                                    >
+                                        <span
+                                            className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
+                                            style={{ background: '#F1F1F4' }}
+                                        >
+                                            <Landmark size={15} className="text-[#6B6B76]" />
+                                        </span>
+                                        <span className="flex flex-col min-w-0 flex-1">
+                                            <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
+                                            <span className="text-[12px] text-[#6B6B76]">
+                                                {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
+                                            </span>
+                                        </span>
+                                        <span
+                                            className="text-[13px] font-bold tabular-nums flex-shrink-0"
+                                            style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}
+                                        >
+                                            {fmtCurrency(b.amount)}
+                                        </span>
+                                    </button>
+                                ))
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <button
+                    onClick={() => setPickerOpen(true)}
+                    className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors"
+                >
+                    <Link2 size={14} />
+                    {t('transactions.detail.linkBankTransaction')}
+                </button>
+            )}
+
+            {/* Hint to manage matches from the bank side */}
+            {tx.id && (
+                <button
+                    onClick={() => navigate('/bank-accounts')}
+                    className="mt-2 w-full text-[12px] text-[#9A9AA3] hover:text-[#7E3FB4] transition-colors text-center"
+                >
+                    {t('transactions.detail.openBankAccounts')}
+                </button>
+            )}
+        </div>
+    );
+}
+
 // ─── Detail Drawer ────────────────────────────────────────────────────────────
 
 function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; onClose: () => void; onDeleted: () => void }) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { data: tx, isLoading } = useTransaction(txId ?? 0);
     const deleteMutation = useDeleteTransaction();
+    const updateMutation = useUpdateTransaction();
+    const confirmMutation = useConfirmTransaction();
+    const { data: categoriesData } = useCategories();
+    const allBommels = useBommelsStore((s) => s.allBommels);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
 
+    // Edit form state
+    const [kind, setKind] = useState<'expense' | 'income'>('expense');
+    const [name, setName] = useState('');
+    const [amountStr, setAmountStr] = useState('');
+    const [date, setDate] = useState('');
+    const [senderName, setSenderName] = useState('');
+    const [categoryId, setCategoryId] = useState('');
+    const [bommelId, setBommelId] = useState('');
+    const [area, setArea] = useState('');
+    const [privatelyPaid, setPrivatelyPaid] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
+    // Reset edit mode whenever a different transaction is opened
+    useEffect(() => {
+        setEditMode(false);
+        setConfirmDeleteOpen(false);
+    }, [txId]);
+
+    function startEdit() {
+        if (!tx) return;
+        const total = tx.total != null ? Number(tx.total) : 0;
+        setKind(total < 0 ? 'expense' : 'income');
+        setName(tx.name ?? '');
+        setAmountStr(tx.total != null ? String(Math.abs(total)) : '');
+        setDate(tx.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : '');
+        setSenderName(tx.senderName ?? '');
+        setCategoryId(tx.categoryId != null ? String(tx.categoryId) : '');
+        setBommelId(tx.bommelId != null ? String(tx.bommelId) : '');
+        setArea(tx.area ?? '');
+        setPrivatelyPaid(tx.privatelyPaid ?? false);
+        setEditMode(true);
+    }
+
+    async function handleSave() {
+        if (!tx?.id) return;
+        const raw = parseFloat(amountStr.replace(',', '.'));
+        const signed = isNaN(raw) ? undefined : kind === 'expense' ? -Math.abs(raw) : Math.abs(raw);
+        const data = new TransactionUpdateRequest({
+            name: name || undefined,
+            total: signed,
+            transactionDate: date || undefined,
+            senderName: senderName || undefined,
+            categoryId: categoryId ? Number(categoryId) : 0,
+            bommelId: bommelId ? Number(bommelId) : 0,
+            area: area || undefined,
+            privatelyPaid,
+        });
+        await updateMutation.mutateAsync({ id: tx.id, data });
+        setEditMode(false);
+    }
+
     async function handleDelete() {
         if (!txId) return;
-        if (!window.confirm(t('transactions.detail.delete') + '?')) return;
         await deleteMutation.mutateAsync(txId);
+        setConfirmDeleteOpen(false);
         onDeleted();
         onClose();
     }
 
+    async function handleConfirm() {
+        if (!tx?.id) return;
+        await confirmMutation.mutateAsync(tx.id);
+    }
+
     const amount = tx?.total ? Number(tx.total) : 0;
+
+    const inputCls =
+        'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2 text-[13.5px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
+    const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3] mb-1';
 
     return (
         <>
@@ -149,7 +393,10 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
 
             {/* Drawer */}
             <div
-                className={cn('fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out', open ? 'translate-x-0' : 'translate-x-full')}
+                className={cn(
+                    'fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out',
+                    open ? 'translate-x-0' : 'translate-x-full'
+                )}
                 style={{ width: 420, maxWidth: '100vw', background: '#FFFFFF', boxShadow: '0 12px 40px rgba(20,20,40,.16)', fontFamily: FONT }}
             >
                 {/* Sticky header */}
@@ -167,7 +414,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                     <div className="flex-1 flex items-center justify-center">
                         <LoadingState />
                     </div>
-                ) : (
+                ) : !editMode ? (
                     <div className="flex-1 overflow-y-auto">
                         {/* Hero */}
                         <div className="px-6 pt-7 pb-6 flex flex-col items-center text-center border-b border-[#E9E9EE]">
@@ -176,10 +423,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 {tx.name ?? '—'}
                             </h2>
                             {tx.senderName && <p className="mt-1 text-[13.5px] text-[#6B6B76]">{tx.senderName}</p>}
-                            <p
-                                className="mt-4 font-bold tabular-nums leading-none"
-                                style={{ fontSize: 38, color: amount >= 0 ? '#1F7A50' : '#B12C4C' }}
-                            >
+                            <p className="mt-4 font-bold tabular-nums leading-none" style={{ fontSize: 38, color: amount >= 0 ? '#1F7A50' : '#B12C4C' }}>
                                 {fmtCurrency(amount)}
                             </p>
                             <div className="mt-3">
@@ -212,16 +456,20 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 <span className="text-[14px] font-bold text-[#1B1B1F]">{t('transactions.detail.receipt')}</span>
                             </div>
                             {tx.documentId ? (
-                                <div
-                                    className="flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE]"
+                                <button
+                                    onClick={() => navigate(`/receipts?id=${tx.documentId}`)}
+                                    className="w-full flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE] text-left transition-colors hover:border-[#C7A2E3] hover:bg-[#F3EAFB]"
                                     style={{ background: '#F8F8FA' }}
                                 >
                                     <Badge variant="neutral">PDF</Badge>
-                                    <span className="flex-1 text-[13px] text-[#1B1B1F] truncate">{t('transactions.detail.receipt')} #{tx.documentId}</span>
-                                    <button className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#1B1B1F] transition-colors">
-                                        <Download size={14} />
-                                    </button>
-                                </div>
+                                    <span className="flex-1 text-[13px] text-[#1B1B1F] truncate">
+                                        {t('transactions.detail.receipt')} #{tx.documentId}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 text-[12.5px] font-bold text-[#7E3FB4] flex-shrink-0">
+                                        {t('transactions.detail.openReceipt')}
+                                        <ExternalLink size={13} />
+                                    </span>
+                                </button>
                             ) : (
                                 <div
                                     className="flex flex-col items-center justify-center gap-2 p-6 rounded-[14px] border-2 border-dashed text-center"
@@ -236,55 +484,200 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                         </div>
 
                         {/* Zahlung & Abgleich */}
-                        <div className="px-6 py-5">
-                            <div className="flex items-center gap-2 mb-3">
-                                <Link2 size={15} className="text-[#7E3FB4]" />
-                                <span className="text-[14px] font-bold text-[#1B1B1F]">{t('transactions.detail.payment')}</span>
-                            </div>
-                            <div
-                                className="flex items-start gap-3 p-3 rounded-[10px]"
-                                style={{ background: '#F3EAFB' }}
-                            >
-                                <Unlink size={15} className="text-[#7E3FB4] mt-0.5 flex-shrink-0" />
-                                <p className="text-[13px] text-[#7E3FB4] font-medium">{t('transactions.detail.notLinked')}</p>
+                        <BankMatchSection tx={tx} />
+                    </div>
+                ) : (
+                    /* Edit form */
+                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                        {/* Direction */}
+                        <div>
+                            <label className={labelCls}>{t('transactions.create.direction')}</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(['expense', 'income'] as const).map((d) => {
+                                    const active = kind === d;
+                                    const Icon = d === 'expense' ? ArrowDownRight : ArrowUpRight;
+                                    const c =
+                                        d === 'expense'
+                                            ? { bg: '#FBEAEF', border: '#E8A0B2', text: '#B12C4C', iconBg: '#F5C6D2' }
+                                            : { bg: '#E7F4EC', border: '#7DC4A0', text: '#1F7A50', iconBg: '#B8E4CA' };
+                                    return (
+                                        <button
+                                            key={d}
+                                            type="button"
+                                            onClick={() => setKind(d)}
+                                            className="flex items-center gap-2.5 p-3 rounded-[12px] border-2 transition-all text-left"
+                                            style={{ borderColor: active ? c.border : '#E9E9EE', background: active ? c.bg : '#F8F8FA' }}
+                                        >
+                                            <span
+                                                className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
+                                                style={{ background: active ? c.iconBg : '#EBEBF0', color: active ? c.text : '#9A9AA3' }}
+                                            >
+                                                <Icon size={16} strokeWidth={2} />
+                                            </span>
+                                            <span className="font-bold text-[13.5px]" style={{ color: active ? c.text : '#6B6B76' }}>
+                                                {t(`transactions.create.${d}`)}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
+
+                        {/* Amount + Date */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className={labelCls}>{t('transactions.create.amount')} (€)</label>
+                                <input type="text" inputMode="decimal" value={amountStr} onChange={(e) => setAmountStr(e.target.value)} className={inputCls} />
+                            </div>
+                            <div>
+                                <label className={labelCls}>{t('transactions.detail.date')}</label>
+                                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+                            </div>
+                        </div>
+
+                        {/* Name */}
+                        <div>
+                            <label className={labelCls}>{t('transactions.create.name')}</label>
+                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+                        </div>
+
+                        {/* Sender */}
+                        <div>
+                            <label className={labelCls}>{t('transactions.create.sender')}</label>
+                            <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputCls} />
+                        </div>
+
+                        {/* Category + Bommel */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className={labelCls}>{t('transactions.detail.category')}</label>
+                                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
+                                    <option value="">—</option>
+                                    {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className={labelCls}>{t('transactions.detail.bommel')}</label>
+                                <select value={bommelId} onChange={(e) => setBommelId(e.target.value)} className={inputCls}>
+                                    <option value="">—</option>
+                                    {allBommels.map((b) => (
+                                        <option key={b.id} value={b.id ?? ''}>
+                                            {(b as { name?: string }).name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Area */}
+                        <div>
+                            <label className={labelCls}>{t('transactions.detail.area')}</label>
+                            <select value={area} onChange={(e) => setArea(e.target.value)} className={inputCls}>
+                                <option value="">—</option>
+                                {AREAS.map((a) => (
+                                    <option key={a.value} value={a.value}>
+                                        {a.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Privately paid */}
+                        <button
+                            type="button"
+                            onClick={() => setPrivatelyPaid((v) => !v)}
+                            className="w-full flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
+                            style={{ borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE', background: privatelyPaid ? '#F3EAFB' : '#F8F8FA' }}
+                        >
+                            <span
+                                className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
+                                style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
+                            >
+                                {privatelyPaid ? (
+                                    <Check size={16} strokeWidth={2.5} color="#7E3FB4" />
+                                ) : (
+                                    <span className="w-4 h-4 rounded border-2 border-[#C0C0CC]" />
+                                )}
+                            </span>
+                            <span className="text-[13.5px] font-bold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
+                                {t('transactions.detail.privatelyPaid')}
+                            </span>
+                        </button>
                     </div>
                 )}
 
                 {/* Sticky footer */}
                 {tx && !isLoading && (
                     <div className="px-6 py-4 border-t border-[#E9E9EE] flex items-center gap-2" style={{ background: '#FFFFFF' }}>
-                        <button
-                            onClick={handleDelete}
-                            disabled={deleteMutation.isPending}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors"
-                        >
-                            <Trash2 size={14} />
-                            {t('transactions.detail.delete')}
-                        </button>
-                        <div className="flex-1" />
-                        {!editMode && (
-                            <button
-                                onClick={() => setEditMode(true)}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#1B1B1F] hover:bg-[#F8F8FA] transition-colors"
-                            >
-                                <Pencil size={14} />
-                                {t('transactions.detail.edit')}
-                            </button>
-                        )}
-                        {tx.status === 'DRAFT' && (
-                            <button
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-white transition-all hover:opacity-90"
-                                style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
-                            >
-                                <Check size={14} strokeWidth={2.5} />
-                                {t('transactions.detail.confirm')}
-                            </button>
+                        {editMode ? (
+                            <>
+                                <button
+                                    onClick={() => setEditMode(false)}
+                                    className="px-4 py-2 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors"
+                                >
+                                    {t('transactions.detail.cancel')}
+                                </button>
+                                <div className="flex-1" />
+                                <button
+                                    onClick={handleSave}
+                                    disabled={updateMutation.isPending}
+                                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                                    style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                >
+                                    <Check size={14} strokeWidth={2.5} />
+                                    {updateMutation.isPending ? '…' : t('transactions.detail.save')}
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => setConfirmDeleteOpen(true)}
+                                    disabled={deleteMutation.isPending}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors"
+                                >
+                                    <Trash2 size={14} />
+                                    {t('transactions.detail.delete')}
+                                </button>
+                                <div className="flex-1" />
+                                <button
+                                    onClick={startEdit}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#1B1B1F] hover:bg-[#F8F8FA] transition-colors"
+                                >
+                                    <Pencil size={14} />
+                                    {t('transactions.detail.edit')}
+                                </button>
+                                {tx.status === 'DRAFT' && (
+                                    <button
+                                        onClick={handleConfirm}
+                                        disabled={confirmMutation.isPending}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                                        style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                    >
+                                        <Check size={14} strokeWidth={2.5} />
+                                        {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                title={t('transactions.detail.deleteConfirmTitle')}
+                description={t('transactions.detail.deleteConfirmText')}
+                confirmLabel={t('transactions.detail.delete')}
+                cancelLabel={t('transactions.detail.cancel')}
+                onConfirm={handleDelete}
+                destructive
+                loading={deleteMutation.isPending}
+            />
         </>
     );
 }
@@ -306,8 +699,12 @@ function TransactionRow({ tx, onClick, selected }: { tx: TransactionResponse; on
                 background: selected ? '#F3EAFB' : undefined,
                 fontFamily: FONT,
             }}
-            onMouseEnter={(e) => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA'; }}
-            onMouseLeave={(e) => { if (!selected) (e.currentTarget as HTMLButtonElement).style.background = ''; }}
+            onMouseEnter={(e) => {
+                if (!selected) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA';
+            }}
+            onMouseLeave={(e) => {
+                if (!selected) (e.currentTarget as HTMLButtonElement).style.background = '';
+            }}
         >
             {/* Transaktion */}
             <span className="flex items-center gap-3 min-w-0 pr-4">
@@ -342,10 +739,7 @@ function TransactionRow({ tx, onClick, selected }: { tx: TransactionResponse; on
             </span>
 
             {/* Amount */}
-            <span
-                className="text-right font-bold tabular-nums whitespace-nowrap"
-                style={{ fontSize: 14.5, color: incoming ? '#1F7A50' : '#B12C4C' }}
-            >
+            <span className="text-right font-bold tabular-nums whitespace-nowrap" style={{ fontSize: 14.5, color: incoming ? '#1F7A50' : '#B12C4C' }}>
                 {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
             </span>
         </button>
@@ -372,6 +766,21 @@ export function TransactionenView() {
     const [selectedTxId, setSelectedTxId] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
     const PAGE_SIZE = 30;
+
+    // Open a specific transaction when navigated to with ?id= (e.g. from a linked receipt)
+    const [searchParams, setSearchParams] = useSearchParams();
+    useEffect(() => {
+        const idParam = searchParams.get('id');
+        if (idParam) setSelectedTxId(Number(idParam));
+    }, [searchParams]);
+
+    const closeDrawer = () => {
+        setSelectedTxId(null);
+        if (searchParams.has('id')) {
+            searchParams.delete('id');
+            setSearchParams(searchParams, { replace: true });
+        }
+    };
 
     const filters: TransactionFilters = {
         search: search || undefined,
@@ -404,12 +813,8 @@ export function TransactionenView() {
         return r.totalElements ?? r.total ?? transactions.length;
     }, [txData, transactions]);
 
-    const totalIncome = transactions
-        .filter((tx) => Number(tx.total ?? 0) >= 0)
-        .reduce((s, tx) => s + Number(tx.total ?? 0), 0);
-    const totalExpense = transactions
-        .filter((tx) => Number(tx.total ?? 0) < 0)
-        .reduce((s, tx) => s + Math.abs(Number(tx.total ?? 0)), 0);
+    const totalIncome = transactions.filter((tx) => Number(tx.total ?? 0) >= 0).reduce((s, tx) => s + Number(tx.total ?? 0), 0);
+    const totalExpense = transactions.filter((tx) => Number(tx.total ?? 0) < 0).reduce((s, tx) => s + Math.abs(Number(tx.total ?? 0)), 0);
 
     const activeFilters: { key: string; label: string; clear: () => void }[] = [];
     if (search) activeFilters.push({ key: 'search', label: `"${search}"`, clear: () => setSearch('') });
@@ -428,19 +833,27 @@ export function TransactionenView() {
     if (detached) activeFilters.push({ key: 'det', label: t('transactions.filters.detached'), clear: () => setDetached(false) });
 
     function resetAll() {
-        setSearch(''); setStatusFilter('ALL'); setCategoryId(undefined); setBommelId(undefined);
-        setArea(undefined); setStartDate(''); setEndDate(''); setPrivatelyPaid(false); setDetached(false); setPage(0);
+        setSearch('');
+        setStatusFilter('ALL');
+        setCategoryId(undefined);
+        setBommelId(undefined);
+        setArea(undefined);
+        setStartDate('');
+        setEndDate('');
+        setPrivatelyPaid(false);
+        setDetached(false);
+        setPage(0);
     }
 
     const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
     const hasFilters = activeFilters.length > 0 || statusFilter !== 'ALL';
 
     // Input/select base style
-    const inputCls = 'rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-1.5 text-[13.5px] text-[#1B1B1F] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
+    const inputCls =
+        'rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-1.5 text-[13.5px] text-[#1B1B1F] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
 
     return (
         <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
-
             {/* ── Header ── */}
             <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
@@ -483,21 +896,24 @@ export function TransactionenView() {
                         <input
                             type="text"
                             value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setPage(0);
+                            }}
                             placeholder={t('transactions.filters.search')}
                             className={cn(inputCls, 'w-full pl-9')}
                         />
                     </div>
 
                     {/* Status segmented toggle */}
-                    <div
-                        className="inline-flex p-1 gap-0.5"
-                        style={{ background: '#F1F1F4', borderRadius: 12 }}
-                    >
+                    <div className="inline-flex p-1 gap-0.5" style={{ background: '#F1F1F4', borderRadius: 12 }}>
                         {(['ALL', 'CONFIRMED', 'DRAFT'] as const).map((s) => (
                             <button
                                 key={s}
-                                onClick={() => { setStatusFilter(s); setPage(0); }}
+                                onClick={() => {
+                                    setStatusFilter(s);
+                                    setPage(0);
+                                }}
                                 className="px-3 py-1.5 font-bold transition-all"
                                 style={{
                                     fontSize: 13.5,
@@ -546,25 +962,50 @@ export function TransactionenView() {
                     <div className="pt-3 border-t border-[#E9E9EE] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.category')}</label>
-                            <select value={categoryId ?? ''} onChange={(e) => { setCategoryId(e.target.value ? Number(e.target.value) : undefined); setPage(0); }} className={inputCls}>
+                            <select
+                                value={categoryId ?? ''}
+                                onChange={(e) => {
+                                    setCategoryId(e.target.value ? Number(e.target.value) : undefined);
+                                    setPage(0);
+                                }}
+                                className={inputCls}
+                            >
                                 <option value="">{t('transactions.filters.allCategories')}</option>
                                 {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
                                 ))}
                             </select>
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.bommel')}</label>
-                            <select value={bommelId ?? ''} onChange={(e) => { setBommelId(e.target.value ? Number(e.target.value) : undefined); setPage(0); }} className={inputCls}>
+                            <select
+                                value={bommelId ?? ''}
+                                onChange={(e) => {
+                                    setBommelId(e.target.value ? Number(e.target.value) : undefined);
+                                    setPage(0);
+                                }}
+                                className={inputCls}
+                            >
                                 <option value="">{t('transactions.filters.allBommels')}</option>
                                 {allBommels.map((b) => (
-                                    <option key={b.id} value={b.id ?? ''}>{(b as { name?: string }).name}</option>
+                                    <option key={b.id} value={b.id ?? ''}>
+                                        {(b as { name?: string }).name}
+                                    </option>
                                 ))}
                             </select>
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.area')}</label>
-                            <select value={area ?? ''} onChange={(e) => { setArea(e.target.value || undefined); setPage(0); }} className={inputCls}>
+                            <select
+                                value={area ?? ''}
+                                onChange={(e) => {
+                                    setArea(e.target.value || undefined);
+                                    setPage(0);
+                                }}
+                                className={inputCls}
+                            >
                                 <option value="">{t('transactions.filters.allAreas')}</option>
                                 <option value="IDEAL">Ideell</option>
                                 <option value="ZWECKBETRIEB">Zweckbetrieb</option>
@@ -574,18 +1015,50 @@ export function TransactionenView() {
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.from')}</label>
-                            <input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setPage(0); }} className={inputCls} />
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => {
+                                    setStartDate(e.target.value);
+                                    setPage(0);
+                                }}
+                                className={inputCls}
+                            />
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.to')}</label>
-                            <input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setPage(0); }} className={inputCls} />
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => {
+                                    setEndDate(e.target.value);
+                                    setPage(0);
+                                }}
+                                className={inputCls}
+                            />
                         </div>
                         <div className="flex flex-col gap-1.5 sm:col-span-2">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">Eigenschaften</label>
                             <div className="flex gap-2 flex-wrap">
                                 {[
-                                    { key: 'priv', label: t('transactions.filters.privatelyPaid'), active: privatelyPaid, toggle: () => { setPrivatelyPaid((v) => !v); setPage(0); } },
-                                    { key: 'det', label: t('transactions.filters.detached'), active: detached, toggle: () => { setDetached((v) => !v); setPage(0); } },
+                                    {
+                                        key: 'priv',
+                                        label: t('transactions.filters.privatelyPaid'),
+                                        active: privatelyPaid,
+                                        toggle: () => {
+                                            setPrivatelyPaid((v) => !v);
+                                            setPage(0);
+                                        },
+                                    },
+                                    {
+                                        key: 'det',
+                                        label: t('transactions.filters.detached'),
+                                        active: detached,
+                                        toggle: () => {
+                                            setDetached((v) => !v);
+                                            setPage(0);
+                                        },
+                                    },
                                 ].map(({ key, label, active, toggle }) => (
                                     <button
                                         key={key}
@@ -632,7 +1105,9 @@ export function TransactionenView() {
                         <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: '#F3EAFB' }}>
                             <FileText size={26} className="text-[#9955CC]" />
                         </div>
-                        <p className="font-bold text-[#1B1B1F]" style={{ fontSize: 16 }}>{t('transactions.noResults')}</p>
+                        <p className="font-bold text-[#1B1B1F]" style={{ fontSize: 16 }}>
+                            {t('transactions.noResults')}
+                        </p>
                         <p className="mt-1 text-[13.5px] text-[#6B6B76]">{t('transactions.noResultsDesc')}</p>
                     </div>
                 ) : (
@@ -669,12 +1144,7 @@ export function TransactionenView() {
                         </div>
 
                         {transactions.map((tx) => (
-                            <TransactionRow
-                                key={tx.id}
-                                tx={tx}
-                                onClick={() => setSelectedTxId(tx.id ?? null)}
-                                selected={selectedTxId === tx.id}
-                            />
+                            <TransactionRow key={tx.id} tx={tx} onClick={() => setSelectedTxId(tx.id ?? null)} selected={selectedTxId === tx.id} />
                         ))}
                     </div>
                 )}
@@ -706,11 +1176,7 @@ export function TransactionenView() {
             )}
 
             {/* Detail drawer */}
-            <TransactionDrawer
-                txId={selectedTxId}
-                onClose={() => setSelectedTxId(null)}
-                onDeleted={() => setSelectedTxId(null)}
-            />
+            <TransactionDrawer txId={selectedTxId} onClose={closeDrawer} onDeleted={closeDrawer} />
 
             {/* Create transaction drawer */}
             <CreateTransactionDrawer open={createOpen} onClose={() => setCreateOpen(false)} />

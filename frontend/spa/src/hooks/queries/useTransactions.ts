@@ -1,5 +1,5 @@
 import type { TransactionArea, TransactionStatus } from '@hopps/api-client';
-import { TransactionCreateRequest, TransactionResponse } from '@hopps/api-client';
+import { TransactionCreateRequest, TransactionResponse, TransactionUpdateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import i18n from '@/i18n';
@@ -62,6 +62,30 @@ export function useCreateTransaction() {
         mutationFn: (data: TransactionCreateRequest) => apiService.orgService.transactionsPOST(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+        },
+    });
+}
+
+export function useUpdateTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: TransactionUpdateRequest }) => apiService.orgService.transactionsPATCH(id, data),
+        onSuccess: (_data, vars) => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.detail(vars.id) });
+        },
+    });
+}
+
+export function useConfirmTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => apiService.orgService.confirm2(id),
+        onSuccess: (_data, id) => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
         },
     });
 }

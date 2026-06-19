@@ -1,7 +1,7 @@
-import Receipts from '@/components/Receipts/Receipts';
+import { BelegeView } from '@/components/views/BelegeView';
 
 const ReceiptView = () => {
-    return <Receipts />;
+    return <BelegeView />;
 };
 
 export default ReceiptView;
