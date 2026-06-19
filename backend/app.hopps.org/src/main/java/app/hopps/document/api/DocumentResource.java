@@ -30,6 +30,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
@@ -76,7 +77,8 @@ public class DocumentResource {
     @APIResponse(responseCode = "401", description = "Not authenticated")
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
-            @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze) {
+            @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze,
+            @QueryParam("direction") @Parameter(description = "Document direction: INCOMING (Eingangsbeleg, expense) or OUTGOING (Ausgangsbeleg, income). Defaults to INCOMING.") DocumentDirection direction) {
         // Validate input
         LOG.info("Upload request received - file: {}", file);
         if (file == null || file.fileName() == null || file.fileName().isBlank()) {
@@ -105,26 +107,15 @@ public class DocumentResource {
         document.setOrganization(organization);
         document.setAnalysisStatus(AnalysisStatus.PENDING);
         document.setUploadedBy(principal);
+        document.setDirection(direction != null ? direction : DocumentDirection.INCOMING);
 
         // Upload file to S3 and set file metadata
         fileService.handleFileUpload(document, file);
 
         // Persist document
+        document.setDocumentStatus(DocumentStatus.UPLOADED);
         documentRepository.persist(document);
         LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
-
-        // Create linked transaction
-        Transaction transaction = new Transaction();
-        transaction.setOrganization(organization);
-        transaction.setDocument(document);
-        transaction.setCreatedBy(principal);
-        transaction.setStatus(TransactionStatus.DRAFT);
-        transactionRepository.persist(transaction);
-        LOG.info("Transaction created for document: transactionId={}, documentId={}",
-                transaction.getId(), document.getId());
-
-        // Set bidirectional relationship so transactionId is available in response
-        document.setTransaction(transaction);
 
         // Fire event to trigger async analysis after transaction commits (only if requested)
         if (analyze) {
@@ -247,6 +238,10 @@ public class DocumentResource {
 
         document.setPrivatelyPaid(request.privatelyPaid());
 
+        if (request.direction() != null) {
+            document.setDirection(request.direction());
+        }
+
         // Update tags if provided
         if (request.tags() != null) {
             updateDocumentTags(document, request.tags());
@@ -339,6 +334,60 @@ public class DocumentResource {
         documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
 
         LOG.info("Re-analysis triggered: id={}", id);
+        return DocumentResponse.from(document);
+    }
+
+    @POST
+    @Path("/{id}/confirm")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data.")
+    @APIResponse(responseCode = "200", description = "Document confirmed and transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "404", description = "Document not found")
+    @APIResponse(responseCode = "409", description = "Document already confirmed")
+    public DocumentResponse confirmDocument(
+            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+        if (document.getDocumentStatus() == DocumentStatus.CONFIRMED) {
+            throw new ClientErrorException("Document is already confirmed", Response.Status.CONFLICT);
+        }
+
+        String principal = securityIdentity.getPrincipal().getName();
+        Organization organization = organizationContext.getCurrentOrganization();
+
+        Transaction transaction = new Transaction();
+        transaction.setOrganization(organization);
+        transaction.setDocument(document);
+        transaction.setCreatedBy(principal);
+        transaction.setStatus(TransactionStatus.DRAFT);
+        transaction.setName(document.getName());
+        // Sign the amount by direction: INCOMING (Eingangsbeleg) = expense (negative),
+        // OUTGOING (Ausgangsbeleg) = income (positive)
+        BigDecimal total = document.getTotal();
+        if (total != null) {
+            boolean outgoing = document.getDirection() == DocumentDirection.OUTGOING;
+            transaction.setTotal(outgoing ? total.abs() : total.abs().negate());
+        }
+        transaction.setTotalTax(document.getTotalTax());
+        transaction.setCurrencyCode(document.getCurrencyCode());
+        transaction.setTransactionTime(document.getTransactionTime());
+        transaction.setPrivatelyPaid(document.isPrivatelyPaid());
+        if (document.getBommel() != null) {
+            transaction.setBommel(document.getBommel());
+        }
+        if (document.getSender() != null) {
+            transaction.setSender(document.getSender());
+        }
+        transactionRepository.persist(transaction);
+
+        document.setTransaction(transaction);
+        document.setDocumentStatus(DocumentStatus.CONFIRMED);
+        document.setReviewedBy(principal);
+
+        LOG.info("Document confirmed: id={}, transactionId={}", document.getId(), transaction.getId());
         return DocumentResponse.from(document);
     }
 

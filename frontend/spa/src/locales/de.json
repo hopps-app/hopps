@@ -27,7 +27,8 @@
     "loading": "Wird geladen...",
     "validationError": "Bitte füllen Sie alle Pflichtfelder aus",
     "unsavedChangesWarning": "Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?",
-    "next": "Weiter"
+    "next": "Weiter",
+    "confirm": "Bestätigen"
   },
   "notFound": {
     "title": "404 - Seite nicht gefunden",
@@ -388,7 +389,16 @@
       "save": "Speichern",
       "cancel": "Abbrechen",
       "yes": "Ja",
-      "no": "Nein"
+      "no": "Nein",
+      "openReceipt": "Beleg öffnen",
+      "bankLoading": "Bankumsätze werden geladen …",
+      "bankSearchPlaceholder": "Bankumsatz suchen …",
+      "bankNoResults": "Keine passenden Bankumsätze gefunden",
+      "linkBankTransaction": "Bankumsatz verknüpfen",
+      "unlink": "Verknüpfung lösen",
+      "openBankAccounts": "In Bankkonten verwalten",
+      "deleteConfirmTitle": "Transaktion löschen?",
+      "deleteConfirmText": "Diese Transaktion wird dauerhaft gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden."
     },
     "create": {
       "title": "Neue Transaktion",
@@ -450,8 +460,11 @@
       "action": "Ersten Beleg hochladen"
     },
     "status": {
-      "draft": "Status: Entwurf",
-      "saved": "Status: Gespeichert"
+      "pending": "Ausstehend",
+      "analyzing": "Wird analysiert",
+      "ready": "Prüfen",
+      "confirmed": "Bestätigt",
+      "failed": "Fehlgeschlagen"
     },
     "filters": {
       "searchReceipt": "Beleg suchen",
@@ -479,61 +492,11 @@
       "showFilters": "Filter"
     },
     "upload": {
-      "title": "Hochladen",
-      "editTitle": "Beleg bearbeiten",
-      "viewTitle": "Belegdetails",
-      "transactionKind": "Belegart",
-      "loadFailed": "Fehler beim Laden des Belegs",
-      "receiptNumber": "Belegnummer",
-      "receiptDate": "Belegdatum",
-      "transactionType": "Belegart",
-      "unpaid": "Unbezahlt",
-      "paid": "Bezahlt",
-      "contractPartner": "Vertragspartner",
-      "bommel": "Bommel",
-      "dueDate": "Fälligkeitsdatum",
-      "category": "Kategorie",
-      "selectCategory": "Kategorie auswählen",
-      "area": "Bereich",
-      "tags": "Tags",
-      "addTag": "Tag hinzufügen",
-      "grossAmount": "Bruttobetrag",
-      "taxAmount": "Steuerbetrag",
-      "autoRead": "Automatisches Auslesen",
-      "saveAsDraft": "Als Entwurf speichern",
-      "uploadSuccess": "Beleg erfolgreich hochgeladen",
-      "uploadFailed": "Upload fehlgeschlagen",
-      "saveSuccess": "Beleg erfolgreich gespeichert",
-      "saveFailed": "Fehler beim Speichern des Belegs",
-      "draftSaved": "Entwurf gespeichert",
-      "noDocumentOrFile": "Bitte laden Sie zuerst eine Datei hoch oder füllen Sie die Formulardaten aus",
-      "validation": {
-        "receiptNumberRequired": "Belegnummer ist erforderlich",
-        "receiptDateRequired": "Belegdatum ist erforderlich",
-        "transactionKindRequired": "Bitte wählen Sie eine Belegart",
-        "contractPartnerRequired": "Vertragspartner ist erforderlich",
-        "bommelRequired": "Bitte wählen Sie einen Bommel",
-        "areaRequired": "Bitte wählen Sie einen Bereich",
-        "grossAmountRequired": "Bruttobetrag ist erforderlich",
-        "grossAmountInvalid": "Bitte geben Sie einen gültigen Betrag ein",
-        "taxAmountInvalid": "Bitte geben Sie einen gültigen Betrag ein"
-      },
-      "analysis": {
-        "pending": "Dokument wird vorbereitet...",
-        "analyzing": "Dokument wird analysiert...",
-        "completed": "Daten erfolgreich extrahiert",
-        "completedDescription": "Die KI hat die folgenden Daten aus Ihrem Beleg extrahiert. Bitte prüfen Sie die Werte und passen Sie sie bei Bedarf an, bevor Sie speichern.",
-        "extractedViaDocumentAI": "Extrahiert via Document AI",
-        "extractedViaZugferd": "Extrahiert via ZUGFeRD",
-        "failed": "Analyse fehlgeschlagen",
-        "error": "Fehler bei der Analyse: {{error}}",
-        "errorDetail": "Details: {{error}}",
-        "serviceUnavailable": "Der Analyse-Service ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
-        "pollingTimeout": "Die Analyse dauert länger als erwartet. Bitte versuchen Sie es später erneut.",
-        "retry": "Analyse erneut starten",
-        "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuchen Sie es später erneut.",
-        "aiWarning": "KI kann Fehler machen. Bitte prüfen Sie alle automatisch ausgefüllten Felder vor dem Speichern."
-      }
+      "dropzone": "Dateien hier ablegen oder klicken zum Auswählen",
+      "dropzoneActive": "Loslassen zum Hochladen",
+      "hint": "PDF, PNG oder JPEG bis 10 MB",
+      "uploading": "Wird hochgeladen…",
+      "analyzeLabel": "Automatisch analysieren (KI)"
     },
     "areas": {
       "ideell": "Ideeller Bereich",
@@ -558,6 +521,56 @@
       "confirm": "Ja, löschen",
       "error": "Fehler beim Löschen des Belegs",
       "success": "Beleg erfolgreich gelöscht"
+    },
+    "title": "Belege",
+    "subtitle": "{{count}} ungeprüfte Belege",
+    "columns": {
+      "document": "Dokument",
+      "date": "Datum",
+      "amount": "Betrag",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "review": {
+      "title": "Beleg prüfen",
+      "confirm": "Als Transaktion bestätigen",
+      "confirmHint": "Erstellt eine ENTWURF-Transaktion mit den Belegdaten",
+      "reanalyze": "Neu analysieren",
+      "delete": "Beleg löschen",
+      "name": "Bezeichnung",
+      "amount": "Betrag",
+      "date": "Datum",
+      "sender": "Aussteller",
+      "bommel": "Bereich (Bommel)",
+      "privatelyPaid": "Privat bezahlt",
+      "analysisResult": "KI-Analyse",
+      "manualEdit": "Manuell bearbeiten",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "alreadyConfirmed": "Bereits bestätigt — Transaktion wurde erstellt",
+      "analyzing": "Beleg wird analysiert …",
+      "analyzingHint": "Die erkannten Daten erscheinen automatisch. Du kannst Felder schon jetzt selbst ausfüllen.",
+      "completed": "Analyse abgeschlossen",
+      "completedHint": "Bitte prüfe die erkannten Daten und korrigiere sie bei Bedarf.",
+      "failedTitle": "Analyse fehlgeschlagen",
+      "failedHint": "Bitte gib die Daten manuell ein oder starte die Analyse neu.",
+      "linkedTransaction": "Verknüpfte Transaktion",
+      "openTransaction": "Zur Transaktion wechseln"
+    },
+    "filter": {
+      "all": "Alle",
+      "unreviewed": "Ungeprüft",
+      "confirmed": "Bestätigt"
+    },
+    "noUnreviewed": "Alle Belege wurden geprüft",
+    "noUnreviewedDesc": "Lade neue Belege hoch, um sie zu prüfen.",
+    "deleteConfirm": "Beleg wirklich löschen?",
+    "direction": {
+      "label": "Belegart",
+      "incoming": "Eingangsbeleg",
+      "incomingHint": "Ausgabe",
+      "outgoing": "Ausgangsbeleg",
+      "outgoingHint": "Einnahme"
     }
   },
   "bommel": {

@@ -2308,15 +2308,20 @@ export class Client {
     /**
      * Upload a document
      * @param analyze (optional) Whether to trigger automatic AI analysis after upload
+     * @param direction (optional) Document direction: INCOMING (Eingangsbeleg, expense) or OUTGOING (Ausgangsbeleg, income). Defaults to INCOMING.
      * @param file (optional) 
      * @return Document created successfully
      */
-    documentsPOST(analyze: boolean | undefined, file: FileParameter | undefined): Promise<DocumentResponse> {
+    documentsPOST(analyze: boolean | undefined, direction: DocumentDirection | undefined, file: FileParameter | undefined): Promise<DocumentResponse> {
         let url_ = this.baseUrl + "/documents?";
         if (analyze === null)
             throw new Error("The parameter 'analyze' cannot be null.");
         else if (analyze !== undefined)
             url_ += "analyze=" + encodeURIComponent("" + analyze) + "&";
+        if (direction === null)
+            throw new Error("The parameter 'direction' cannot be null.");
+        else if (direction !== undefined)
+            url_ += "direction=" + encodeURIComponent("" + direction) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -2586,6 +2591,64 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Confirm a document
+     * @param id Document ID
+     * @return Document confirmed and transaction created
+     */
+    confirm(id: number): Promise<DocumentResponse> {
+        let url_ = this.baseUrl + "/documents/{id}/confirm";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConfirm(_response);
+        });
+    }
+
+    protected processConfirm(response: Response): Promise<DocumentResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Document already confirmed", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentResponse>(null as any);
     }
 
     /**
@@ -3803,7 +3866,7 @@ export class Client {
      * @param id Transaction ID
      * @return Transaction confirmed
      */
-    confirm(id: number): Promise<TransactionResponse> {
+    confirm2(id: number): Promise<TransactionResponse> {
         let url_ = this.baseUrl + "/transactions/{id}/confirm";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -3818,11 +3881,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processConfirm(_response);
+            return this.processConfirm2(_response);
         });
     }
 
-    protected processConfirm(response: Response): Promise<TransactionResponse> {
+    protected processConfirm2(response: Response): Promise<TransactionResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5693,6 +5756,8 @@ export interface ICsvPreviewResponse {
 
 export type DetectionType = "ORG" | "TEMPLATE" | "NONE";
 
+export type DocumentDirection = "INCOMING" | "OUTGOING";
+
 export class DocumentResponse implements IDocumentResponse {
     id?: number;
     transactionId?: number;
@@ -5701,6 +5766,8 @@ export class DocumentResponse implements IDocumentResponse {
     fileSize?: number;
     bommelId?: number;
     privatelyPaid?: boolean;
+    documentStatus?: DocumentStatus;
+    direction?: DocumentDirection;
     analysisStatus?: AnalysisStatus;
     analysisError?: string;
     extractionSource?: ExtractionSource;
@@ -5742,6 +5809,8 @@ export class DocumentResponse implements IDocumentResponse {
             this.fileSize = _data["fileSize"];
             this.bommelId = _data["bommelId"];
             this.privatelyPaid = _data["privatelyPaid"];
+            this.documentStatus = _data["documentStatus"];
+            this.direction = _data["direction"];
             this.analysisStatus = _data["analysisStatus"];
             this.analysisError = _data["analysisError"];
             this.extractionSource = _data["extractionSource"];
@@ -5785,6 +5854,8 @@ export class DocumentResponse implements IDocumentResponse {
         data["fileSize"] = this.fileSize;
         data["bommelId"] = this.bommelId;
         data["privatelyPaid"] = this.privatelyPaid;
+        data["documentStatus"] = this.documentStatus;
+        data["direction"] = this.direction;
         data["analysisStatus"] = this.analysisStatus;
         data["analysisError"] = this.analysisError;
         data["extractionSource"] = this.extractionSource;
@@ -5824,6 +5895,8 @@ export interface IDocumentResponse {
     fileSize?: number;
     bommelId?: number;
     privatelyPaid?: boolean;
+    documentStatus?: DocumentStatus;
+    direction?: DocumentDirection;
     analysisStatus?: AnalysisStatus;
     analysisError?: string;
     extractionSource?: ExtractionSource;
@@ -5844,6 +5917,8 @@ export interface IDocumentResponse {
     [key: string]: any;
 }
 
+export type DocumentStatus = "UPLOADED" | "ANALYZING" | "ANALYZED" | "CONFIRMED" | "FAILED";
+
 export class DocumentUpdateRequest implements IDocumentUpdateRequest {
     name?: string;
     total?: number;
@@ -5856,6 +5931,7 @@ export class DocumentUpdateRequest implements IDocumentUpdateRequest {
     senderZipCode?: string;
     senderCity?: string;
     privatelyPaid?: boolean;
+    direction?: DocumentDirection;
     tags?: string[];
 
     [key: string]: any;
@@ -5886,6 +5962,7 @@ export class DocumentUpdateRequest implements IDocumentUpdateRequest {
             this.senderZipCode = _data["senderZipCode"];
             this.senderCity = _data["senderCity"];
             this.privatelyPaid = _data["privatelyPaid"];
+            this.direction = _data["direction"];
             if (Array.isArray(_data["tags"])) {
                 this.tags = [] as any;
                 for (let item of _data["tags"])
@@ -5918,6 +5995,7 @@ export class DocumentUpdateRequest implements IDocumentUpdateRequest {
         data["senderZipCode"] = this.senderZipCode;
         data["senderCity"] = this.senderCity;
         data["privatelyPaid"] = this.privatelyPaid;
+        data["direction"] = this.direction;
         if (Array.isArray(this.tags)) {
             data["tags"] = [];
             for (let item of this.tags)
@@ -5946,6 +6024,7 @@ export interface IDocumentUpdateRequest {
     senderZipCode?: string;
     senderCity?: string;
     privatelyPaid?: boolean;
+    direction?: DocumentDirection;
     tags?: string[];
 
     [key: string]: any;

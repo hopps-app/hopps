@@ -70,6 +70,10 @@ public class Document extends PanacheEntity {
     @Enumerated(EnumType.STRING)
     private DocumentStatus documentStatus;
 
+    // Direction: INCOMING (Eingangsbeleg, expense) or OUTGOING (Ausgangsbeleg, income)
+    @Enumerated(EnumType.STRING)
+    private DocumentDirection direction;
+
     // User tracking for multi-user scenarios
     private String uploadedBy;
     private String analyzedBy;
@@ -426,6 +430,14 @@ public class Document extends PanacheEntity {
                 .map(DocumentTag::getName)
                 .sorted()
                 .collect(Collectors.joining(", "));
+    }
+
+    public DocumentDirection getDirection() {
+        return direction;
+    }
+
+    public void setDirection(DocumentDirection direction) {
+        this.direction = direction;
     }
 
     public DocumentStatus getDocumentStatus() {
