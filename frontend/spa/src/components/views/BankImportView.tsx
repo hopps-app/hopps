@@ -30,7 +30,7 @@ export function BankImportView() {
             </div>
 
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-                <ImportWizard accountId={accountId} />
+                <ImportWizard accountId={accountId} onClose={() => navigate(`/bank-accounts/${accountId}`)} />
             </div>
         </div>
     );

@@ -1,5 +1,6 @@
 import type { CsvPreviewResponse } from '@hopps/api-client';
 import { AlertCircle, CheckCircle, Info, Loader2, Sheet, Sparkles, XCircle } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,9 @@ import {
     useStartImport,
     useBankAccount,
     useBankImport,
+    bankTransactionKeys,
+    bankAccountKeys,
+    bankImportKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +33,7 @@ interface ImportWizardProps {
 
 export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
 
     const [state, setState] = useState<WizardState>('drop');
     const [file, setFile] = useState<File | null>(null);
@@ -67,8 +72,18 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
     useEffect(() => {
         if (state === 'importing' && importStatus?.status && ['COMPLETED', 'PARTIAL', 'FAILED'].includes(importStatus.status)) {
             setState('done');
+            // A successful (or partial) import created new bank transactions and changed
+            // account balances / import history. The transaction queries have a 5-minute
+            // staleTime, so they won't refetch on their own when the user navigates to the
+            // transactions list — invalidate them explicitly so the new rows show up.
+            if (importStatus.status !== 'FAILED') {
+                queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+                queryClient.invalidateQueries({ queryKey: bankAccountKeys.lists() });
+                queryClient.invalidateQueries({ queryKey: bankAccountKeys.detail(accountId) });
+                queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(accountId) });
+            }
         }
-    }, [importStatus?.status, state]);
+    }, [importStatus?.status, state, queryClient, accountId]);
 
     const isDetecting = state === 'preview' && !isMt940 && headerColumns != null && detection == null;
     const isTemplateSelected = schemaId.startsWith('tpl:');

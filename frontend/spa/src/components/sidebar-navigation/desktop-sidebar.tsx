@@ -1,4 +1,4 @@
-import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
+import { DoubleArrowLeftIcon, DoubleArrowRightIcon, PersonIcon } from '@radix-ui/react-icons';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -134,7 +134,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                                     className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm"
                                     style={{ background: 'linear-gradient(135deg,#7E3FB4,#9955CC)' }}
                                 >
-                                    {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
+                                    {user?.name ? user.name.charAt(0).toUpperCase() : <PersonIcon className="w-4 h-4" />}
                                 </div>
                                 {!collapsed && (
                                     <div className="flex flex-col min-w-0 text-left">
