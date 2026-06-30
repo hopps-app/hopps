@@ -17,6 +17,7 @@ import {
     Coins,
     ExternalLink,
     Link2,
+    Landmark,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -25,6 +26,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { LoadingState } from '@/components/common/LoadingState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
     useDocuments,
     useDocument,
@@ -36,6 +38,7 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
+import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useTransaction, useUpdateTransaction } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -273,6 +276,8 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const hasLinkedTransaction = linkedTransactionId != null;
     const isBankReconcile = hasLinkedTransaction && docProp?.documentStatus !== 'CONFIRMED';
     const { data: linkedTx } = useTransaction(linkedTransactionId ?? 0);
+    // The bank transaction(s) the linked transaction is matched to — shown for cross-checking the auto-filled values.
+    const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(linkedTransactionId);
 
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
@@ -283,6 +288,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const [direction, setDirection] = useState<DocumentDirection>('INCOMING');
     // In bank-reconcile mode the detail view is split into the transaction data (primary) and the analysed receipt data.
     const [detailTab, setDetailTab] = useState<'transaction' | 'receipt'>('transaction');
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     useEffect(() => {
         setDetailTab('transaction');
     }, [docProp?.id]);
@@ -422,8 +428,8 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
 
     async function handleDelete() {
         if (!doc?.id) return;
-        if (!window.confirm(t('receipts.deleteConfirm'))) return;
         await deleteMutation.mutateAsync(doc.id);
+        setConfirmDeleteOpen(false);
         onDeleted();
         onClose();
     }
@@ -584,6 +590,48 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                         </span>
                                         <ExternalLink size={15} className="text-[#7E3FB4] ml-auto flex-shrink-0" />
                                     </button>
+                                </div>
+                            )}
+
+                            {/* Linked bank transaction(s) — reference to cross-check the auto-filled values. */}
+                            {hasLinkedTransaction && linkedBankTxns.length > 0 && (
+                                <div className="px-6 pt-2 space-y-2">
+                                    {linkedBankTxns.map((b) => (
+                                        <div key={b.id} className="rounded-[12px] border border-[#E9E9EE] p-3.5" style={{ background: '#F8F8FA' }}>
+                                            <div className="flex items-center gap-2 mb-2.5">
+                                                <Landmark size={14} className="text-[#1F7A50] flex-shrink-0" />
+                                                <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3]">
+                                                    {t('receipts.review.linkedBankTx')}
+                                                </span>
+                                                {b.bankAccountName && (
+                                                    <span className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-[#6B6B76]">
+                                                        <span className="w-2 h-2 rounded-full" style={{ background: b.bankAccountColor || '#9955CC' }} />
+                                                        {b.bankAccountName}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                                                <div className="min-w-0">
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.counterparty')}</div>
+                                                    <div className="text-[13px] text-[#1B1B1F] truncate">{b.counterpartyName || '—'}</div>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.amount')}</div>
+                                                    <div className="text-[13px] font-bold tabular-nums" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                                                        {fmtCurrency(b.amount)}
+                                                    </div>
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.date')}</div>
+                                                    <div className="text-[13px] text-[#1B1B1F] tabular-nums">{fmtDate(b.bookingDate)}</div>
+                                                </div>
+                                                <div className="col-span-2 min-w-0">
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.purpose')}</div>
+                                                    <div className="text-[13px] text-[#1B1B1F] leading-snug break-words">{b.purpose || '—'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
 
@@ -765,7 +813,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-[13px] text-[#6B6B76]">{t('receipts.review.alreadyConfirmed')}</span>
                                     <button
-                                        onClick={handleDelete}
+                                        onClick={() => setConfirmDeleteOpen(true)}
                                         disabled={deleteMutation.isPending}
                                         className="py-2 px-4 rounded-full text-[13.5px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors disabled:opacity-50"
                                     >
@@ -815,6 +863,18 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                     </>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                title={t('receipts.deleteConfirm')}
+                description={t('receipts.review.deleteConfirmText')}
+                confirmLabel={t('receipts.review.delete')}
+                cancelLabel={t('receipts.review.cancel')}
+                onConfirm={handleDelete}
+                destructive
+                loading={deleteMutation.isPending}
+            />
         </>
     );
 }

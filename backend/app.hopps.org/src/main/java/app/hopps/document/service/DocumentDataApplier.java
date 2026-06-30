@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -93,7 +93,7 @@ public class DocumentDataApplier {
             LocalTime time = data.time() != null ? data.time() : LocalTime.MIDNIGHT;
             document.setTransactionTime(data.date()
                     .atTime(time)
-                    .atZone(ZoneId.systemDefault())
+                    .atZone(ZoneOffset.UTC)
                     .toInstant());
             LOG.debug("Autofilled transactionTime: {} {}", data.date(), time);
             return 1;

@@ -13,7 +13,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 
 @ApplicationScoped
@@ -35,12 +35,12 @@ public class TransactionCreateConverter {
 
         if (request.transactionDate() != null && !request.transactionDate().isBlank()) {
             LocalDate date = LocalDate.parse(request.transactionDate());
-            transaction.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            transaction.setTransactionTime(date.atStartOfDay(ZoneOffset.UTC).toInstant());
         }
 
         if (request.dueDate() != null && !request.dueDate().isBlank()) {
             LocalDate date = LocalDate.parse(request.dueDate());
-            transaction.setDueDate(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            transaction.setDueDate(date.atStartOfDay(ZoneOffset.UTC).toInstant());
         }
 
         if (request.bommelId() != null) {
