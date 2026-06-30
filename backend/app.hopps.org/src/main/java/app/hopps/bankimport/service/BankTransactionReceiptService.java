@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -124,7 +124,7 @@ public class BankTransactionReceiptService {
         transaction.setTotal(amount);
         transaction.setCurrencyCode(bankTx.getCurrency());
         if (bankTx.getBookingDate() != null) {
-            transaction.setTransactionTime(bankTx.getBookingDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            transaction.setTransactionTime(bankTx.getBookingDate().atStartOfDay(ZoneOffset.UTC).toInstant());
         }
         if (bankTx.getBankAccount() != null) {
             transaction.setBommel(bankTx.getBankAccount().getBommel());

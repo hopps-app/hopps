@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState';
 import { SchemaForm } from '@/components/BankAccounts/SchemaForm';
 import Button from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { usePageTitle } from '@/hooks/use-page-title';
 import {
@@ -30,11 +31,12 @@ function SchemaRow({
     const deleteMutation = useDeleteBankSchema();
     const archiveMutation = useArchiveBankSchema();
     const restoreMutation = useRestoreBankSchema();
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     const handleDelete = async () => {
         if (!schema.id) return;
-        if (!window.confirm(t('bankSchema.deleteConfirm', { name: schema.name }))) return;
         await deleteMutation.mutateAsync(schema.id);
+        setConfirmDeleteOpen(false);
         onRefresh();
     };
 
@@ -116,7 +118,7 @@ function SchemaRow({
                                 <Button
                                     variant="destructive"
                                     size="sm"
-                                    onClick={handleDelete}
+                                    onClick={() => setConfirmDeleteOpen(true)}
                                     disabled={isLoading}
                                     title={t('common.delete')}
                                 >
@@ -127,6 +129,18 @@ function SchemaRow({
                     </>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={confirmDeleteOpen}
+                onOpenChange={setConfirmDeleteOpen}
+                title={t('bankSchema.deleteTitle')}
+                description={t('bankSchema.deleteConfirm', { name: schema.name })}
+                confirmLabel={t('common.delete')}
+                cancelLabel={t('common.cancel')}
+                onConfirm={handleDelete}
+                destructive
+                loading={deleteMutation.isPending}
+            />
         </div>
     );
 }

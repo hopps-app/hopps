@@ -12,6 +12,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 import { LoadingState } from '@/components/common/LoadingState';
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import Button from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import Progress from '@/components/ui/Progress';
 import { usePageTitle } from '@/hooks/use-page-title';
 import {
@@ -76,11 +77,12 @@ function ImportHistoryRow({ imp, accountId, onRollback }: { imp: BankImportRespo
     const { t } = useTranslation();
     const rollbackMutation = useRollbackImport();
     const canRollback = imp.status === 'COMPLETED' || imp.status === 'PARTIAL';
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const handleRollback = async () => {
         if (!imp.id) return;
-        if (!window.confirm(t('bankImport.rollback.confirm'))) return;
         await rollbackMutation.mutateAsync({ importId: imp.id, accountId });
+        setConfirmOpen(false);
         onRollback();
     };
 
@@ -104,12 +106,23 @@ function ImportHistoryRow({ imp, accountId, onRollback }: { imp: BankImportRespo
                     <Button
                         variant="destructive"
                         size="sm"
-                        onClick={handleRollback}
+                        onClick={() => setConfirmOpen(true)}
                         disabled={rollbackMutation.isPending}
                     >
                         {t('bankImport.rollback.button')}
                     </Button>
                 )}
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onOpenChange={setConfirmOpen}
+                    title={t('bankImport.rollback.title')}
+                    description={t('bankImport.rollback.confirm')}
+                    confirmLabel={t('bankImport.rollback.button')}
+                    cancelLabel={t('common.cancel')}
+                    onConfirm={handleRollback}
+                    destructive
+                    loading={rollbackMutation.isPending}
+                />
             </td>
         </tr>
     );

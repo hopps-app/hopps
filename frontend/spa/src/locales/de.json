@@ -542,6 +542,7 @@
       "confirmHint": "Erstellt eine ENTWURF-Transaktion mit den Belegdaten",
       "reanalyze": "Neu analysieren",
       "delete": "Beleg löschen",
+      "deleteConfirmText": "Der Beleg und – falls vorhanden – die daraus erstellte Transaktion werden dauerhaft gelöscht.",
       "name": "Bezeichnung",
       "amount": "Betrag",
       "date": "Datum",
@@ -569,6 +570,9 @@
       "applySuggestion": "Übernehmen",
       "tabTransaction": "Transaktion",
       "tabReceipt": "Beleg",
+      "linkedBankTx": "Verknüpfter Kontoumsatz",
+      "counterparty": "Empfänger",
+      "purpose": "Verwendungszweck",
       "extractedBy": "Erkannt durch {{source}}",
       "noReceiptDataTitle": "Keine Belegdaten",
       "noReceiptDataHint": "Es wurden keine Daten automatisch aus dem Beleg extrahiert. Du kannst die Werte im Tab „Transaktion“ manuell eingeben."
@@ -842,6 +846,7 @@
       "actions": "Aktionen"
     },
     "rollback": {
+      "title": "Import rückgängig machen?",
       "button": "Rückgängig",
       "confirm": "Möchten Sie diesen Import wirklich rückgängig machen? Alle importierten Transaktionen werden gelöscht."
     },
@@ -861,6 +866,7 @@
     "systemTemplates": "Systemvorlagen",
     "archive": "Archivieren",
     "restore": "Wiederherstellen",
+    "deleteTitle": "Schema löschen?",
     "deleteConfirm": "Möchten Sie das Schema '{{name}}' wirklich löschen?",
     "card": {
       "delimiter": "Trennzeichen"

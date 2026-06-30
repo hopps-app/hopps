@@ -34,7 +34,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 
@@ -216,7 +216,7 @@ public class DocumentResource {
 
         if (request.transactionDate() != null && !request.transactionDate().isBlank()) {
             LocalDate date = LocalDate.parse(request.transactionDate());
-            document.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            document.setTransactionTime(date.atStartOfDay(ZoneOffset.UTC).toInstant());
             modified = true;
         }
 

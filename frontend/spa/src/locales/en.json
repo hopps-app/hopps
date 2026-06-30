@@ -616,6 +616,7 @@
       "confirmHint": "Creates a DRAFT transaction from the receipt data",
       "reanalyze": "Re-analyze",
       "delete": "Delete receipt",
+      "deleteConfirmText": "The receipt and any transaction created from it will be permanently deleted.",
       "name": "Description",
       "amount": "Amount",
       "date": "Date",
@@ -643,6 +644,9 @@
       "applySuggestion": "Apply",
       "tabTransaction": "Transaction",
       "tabReceipt": "Receipt",
+      "linkedBankTx": "Linked bank transaction",
+      "counterparty": "Recipient",
+      "purpose": "Purpose",
       "extractedBy": "Detected by {{source}}",
       "noReceiptDataTitle": "No receipt data",
       "noReceiptDataHint": "No data was automatically extracted from the receipt. You can enter the values manually in the \"Transaction\" tab."
@@ -832,6 +836,7 @@
       "actions": "Actions"
     },
     "rollback": {
+      "title": "Roll back import?",
       "button": "Rollback",
       "confirm": "Are you sure you want to roll back this import? All imported transactions will be deleted."
     },
@@ -851,6 +856,7 @@
     "systemTemplates": "System templates",
     "archive": "Archive",
     "restore": "Restore",
+    "deleteTitle": "Delete schema?",
     "deleteConfirm": "Are you sure you want to delete the schema '{{name}}'?",
     "card": {
       "delimiter": "Delimiter"
