@@ -190,6 +190,17 @@ function BankMatchSection({ tx }: { tx: TransactionResponse }) {
 
     const linkedIds = new Set((linked ?? []).map((b) => b.id));
 
+    // The transaction total is the amount still to be reconciled — pre-fill it as the search term so the matching
+    // bank transactions surface immediately. German decimal comma matches what the user sees; the backend also
+    // accepts a dot. Bank transactions are found by their full or still-open amount.
+    const openAmount = tx.total != null ? Math.abs(Number(tx.total)) : 0;
+    const openAmountStr = openAmount ? openAmount.toFixed(2).replace('.', ',') : '';
+
+    function openPicker() {
+        setSearch(openAmountStr);
+        setPickerOpen(true);
+    }
+
     async function link(bankTxId: number) {
         if (!tx.id) return;
         await addMatch.mutateAsync({ bankTxId, transactionId: tx.id });
@@ -314,7 +325,7 @@ function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                 </div>
             ) : (
                 <button
-                    onClick={() => setPickerOpen(true)}
+                    onClick={openPicker}
                     className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors"
                 >
                     <Link2 size={14} />

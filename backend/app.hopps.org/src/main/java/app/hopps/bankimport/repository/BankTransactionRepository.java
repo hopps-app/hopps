@@ -81,8 +81,18 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             params.put("statuses", statuses);
         }
         if (search != null && !search.isBlank()) {
-            query.append(" and (lower(purpose) like :search or lower(counterpartyName) like :search)");
+            query.append(" and (lower(purpose) like :search or lower(counterpartyName) like :search");
             params.put("search", "%" + search.toLowerCase() + "%");
+            BigDecimal amount = parseSearchAmount(search);
+            if (amount != null) {
+                // A numeric search term additionally matches the amount, on the absolute value so the sign
+                // convention (outgoing = negative) is irrelevant to the user. Both the full amount and the
+                // still-open amount (full minus already matched) are matched, so a receipt can be found by the
+                // remaining amount shown in the picker.
+                query.append(" or abs(amount) = :searchAmount or abs(amount) - matchedAmount = :searchAmount");
+                params.put("searchAmount", amount.abs());
+            }
+            query.append(")");
         }
 
         return find(query.toString(),
@@ -123,8 +133,14 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             params.put("statuses", statuses);
         }
         if (search != null && !search.isBlank()) {
-            where.append(" AND (lower(t.purpose) LIKE :search OR lower(t.counterpartyName) LIKE :search)");
+            where.append(" AND (lower(t.purpose) LIKE :search OR lower(t.counterpartyName) LIKE :search");
             params.put("search", "%" + search.toLowerCase() + "%");
+            BigDecimal amount = parseSearchAmount(search);
+            if (amount != null) {
+                where.append(" OR abs(t.amount) = :searchAmount OR abs(t.amount) - t.matchedAmount = :searchAmount");
+                params.put("searchAmount", amount.abs());
+            }
+            where.append(")");
         }
 
         String jpql = "SELECT " +
@@ -162,6 +178,19 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
 
     public List<BankTransaction> findForAccount(Long bankAccountId, Page page) {
         return findFiltered(new ArrayList<>(List.of(bankAccountId)), null, null, null, null, page);
+    }
+
+    /**
+     * Parses a free-text search term as a monetary amount so it can additionally be matched against the transaction
+     * amount. Accepts both comma and dot as decimal separator; returns {@code null} for non-numeric terms.
+     */
+    private static BigDecimal parseSearchAmount(String search) {
+        String normalized = search.trim().replace(" ", "").replace(",", ".");
+        try {
+            return new BigDecimal(normalized);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
