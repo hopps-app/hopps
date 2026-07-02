@@ -24,9 +24,11 @@ import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { LoadingState } from '@/components/common/LoadingState';
+import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { SortHeader } from '@/components/ui/SortHeader';
+import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import {
     useDocuments,
     useDocument,
@@ -38,7 +40,6 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
-import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useTransaction, useUpdateTransaction } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -48,6 +49,10 @@ import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
+
+// Shared column layout for the documents table header and rows (must stay in sync).
+// Beleg | Datum | Erstellt am | Betrag | Status | Chevron
+const DOC_GRID = 'minmax(0,2.3fr) 1fr 1fr 1fr 1.1fr 40px';
 
 // Stable marker set by the backend when the AI analysis service was unreachable (mirrors
 // DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
@@ -238,11 +243,7 @@ function ReceiptDataRow({
                 <div className="text-[13.5px] text-[#1B1B1F] truncate">{value || '—'}</div>
             </div>
             {value && canApply && (
-                <button
-                    type="button"
-                    onClick={onApply}
-                    className="text-[12px] font-bold text-[#7E3FB4] hover:underline whitespace-nowrap flex-shrink-0"
-                >
+                <button type="button" onClick={onApply} className="text-[12px] font-bold text-[#7E3FB4] hover:underline whitespace-nowrap flex-shrink-0">
                     {applyLabel}
                 </button>
             )}
@@ -612,21 +613,32 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                             </div>
                                             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                                                 <div className="min-w-0">
-                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.counterparty')}</div>
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">
+                                                        {t('receipts.review.counterparty')}
+                                                    </div>
                                                     <div className="text-[13px] text-[#1B1B1F] truncate">{b.counterpartyName || '—'}</div>
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.amount')}</div>
-                                                    <div className="text-[13px] font-bold tabular-nums" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">
+                                                        {t('receipts.review.amount')}
+                                                    </div>
+                                                    <div
+                                                        className="text-[13px] font-bold tabular-nums"
+                                                        style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}
+                                                    >
                                                         {fmtCurrency(b.amount)}
                                                     </div>
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.date')}</div>
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">
+                                                        {t('receipts.review.date')}
+                                                    </div>
                                                     <div className="text-[13px] text-[#1B1B1F] tabular-nums">{fmtDate(b.bookingDate)}</div>
                                                 </div>
                                                 <div className="col-span-2 min-w-0">
-                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{t('receipts.review.purpose')}</div>
+                                                    <div className="text-[10px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">
+                                                        {t('receipts.review.purpose')}
+                                                    </div>
                                                     <div className="text-[13px] text-[#1B1B1F] leading-snug break-words">{b.purpose || '—'}</div>
                                                 </div>
                                             </div>
@@ -891,7 +903,7 @@ function DocumentRow({ doc, onClick, selected }: { doc: DocumentResponse; onClic
             onClick={onClick}
             className="w-full grid items-center text-left border-b border-[#E9E9EE] last:border-b-0 transition-colors"
             style={{
-                gridTemplateColumns: 'minmax(0,2.5fr) 1fr 1fr 1.1fr 40px',
+                gridTemplateColumns: DOC_GRID,
                 padding: '13px 20px',
                 background: selected ? '#F3EAFB' : undefined,
                 fontFamily: FONT,
@@ -916,6 +928,9 @@ function DocumentRow({ doc, onClick, selected }: { doc: DocumentResponse; onClic
 
             {/* Date */}
             <span className="text-[13px] text-[#6B6B76] tabular-nums">{fmtDate(doc.transactionTime)}</span>
+
+            {/* Created at */}
+            <span className="text-[13px] text-[#9A9AA3] tabular-nums">{fmtDate(doc.createdAt)}</span>
 
             {/* Amount, signed by document direction */}
             <span className="font-bold tabular-nums text-[13.5px]" style={{ color: amount != null ? (outgoing ? '#1F7A50' : '#B12C4C') : '#9A9AA3' }}>
@@ -1024,6 +1039,8 @@ export function BelegeView() {
     usePageTitle(t('receipts.title'));
 
     const [filter, setFilter] = useState<'unreviewed' | 'all' | 'confirmed'>('unreviewed');
+    const [sortBy, setSortBy] = useState<'createdAt' | 'updatedAt' | 'transactionTime' | 'total'>('createdAt');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [selectedDoc, setSelectedDoc] = useState<DocumentResponse | null>(null);
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
@@ -1095,6 +1112,30 @@ export function BelegeView() {
         return true;
     });
 
+    const sortValue = (d: DocumentResponse): number => {
+        switch (sortBy) {
+            case 'total':
+                return d.total != null ? Number(d.total) : 0;
+            case 'transactionTime':
+                return d.transactionTime ? new Date(d.transactionTime).getTime() : 0;
+            case 'updatedAt':
+                return d.updatedAt ? new Date(d.updatedAt).getTime() : 0;
+            default:
+                return d.createdAt ? new Date(d.createdAt).getTime() : 0;
+        }
+    };
+    const sorted = [...filtered].sort((a, b) => (sortDir === 'asc' ? sortValue(a) - sortValue(b) : sortValue(b) - sortValue(a)));
+
+    // Toggle sorting from a table column header: same column flips direction, new column starts descending.
+    const handleSort = (field: typeof sortBy) => {
+        if (sortBy === field) {
+            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortBy(field);
+            setSortDir('desc');
+        }
+    };
+
     const unreviewedCount = docs.filter((d) => d.documentStatus !== 'CONFIRMED').length;
 
     return (
@@ -1115,7 +1156,7 @@ export function BelegeView() {
             </div>
 
             {/* Filter tabs */}
-            <div className="flex items-center gap-1 mb-3">
+            <div className="flex items-center gap-1 mb-3 flex-wrap">
                 {(['unreviewed', 'confirmed', 'all'] as const).map((f) => (
                     <button
                         key={f}
@@ -1169,24 +1210,40 @@ export function BelegeView() {
                         <div
                             className="grid items-center border-b border-[#E9E9EE]"
                             style={{
-                                gridTemplateColumns: 'minmax(0,2.5fr) 1fr 1fr 1.1fr 40px',
+                                gridTemplateColumns: DOC_GRID,
                                 padding: '10px 20px',
                                 background: '#F8F8FA',
+                                fontFamily: FONT,
                             }}
                         >
-                            {[t('receipts.columns.document'), t('receipts.columns.date'), t('receipts.columns.amount'), t('receipts.columns.status'), ''].map(
-                                (col, i) => (
-                                    <span
-                                        key={i}
-                                        style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}
-                                    >
-                                        {col}
-                                    </span>
-                                )
-                            )}
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                                {t('receipts.columns.document')}
+                            </span>
+                            <SortHeader
+                                label={t('receipts.columns.date')}
+                                active={sortBy === 'transactionTime'}
+                                direction={sortDir}
+                                onClick={() => handleSort('transactionTime')}
+                            />
+                            <SortHeader
+                                label={t('receipts.columns.createdAt')}
+                                active={sortBy === 'createdAt'}
+                                direction={sortDir}
+                                onClick={() => handleSort('createdAt')}
+                            />
+                            <SortHeader
+                                label={t('receipts.columns.amount')}
+                                active={sortBy === 'total'}
+                                direction={sortDir}
+                                onClick={() => handleSort('total')}
+                            />
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                                {t('receipts.columns.status')}
+                            </span>
+                            <span />
                         </div>
 
-                        {filtered.map((doc) => (
+                        {sorted.map((doc) => (
                             <DocumentRow key={doc.id} doc={doc} onClick={() => setSelectedDoc(doc)} selected={selectedDoc?.id === doc.id} />
                         ))}
                     </div>

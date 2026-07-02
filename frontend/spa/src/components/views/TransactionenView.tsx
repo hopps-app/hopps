@@ -28,6 +28,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { SortHeader } from '@/components/ui/SortHeader';
 import {
     useBankTransactionsForTransaction,
     useBankTransactionSearch,
@@ -42,6 +43,8 @@ import {
     useUpdateTransaction,
     useConfirmTransaction,
     TransactionFilters,
+    TransactionSortBy,
+    SortDirection,
 } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
@@ -66,6 +69,10 @@ const AREAS = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
+
+// Shared column layout for the transactions table header and rows (must stay in sync).
+// Transaktion | Kategorie | Bommel | Datum | Erstellt am | Status | Betrag
+const TX_GRID = 'minmax(0,2fr) 1.1fr 1fr 0.95fr 1fr 0.85fr 1fr';
 
 function fmtCurrency(amount: number | undefined): string {
     if (amount === undefined || amount === null) return '—';
@@ -147,6 +154,29 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 
 // ─── Bank reconciliation section ────────────────────────────────────────────────
 
+// Shows a bank transaction's amount. If it is already partially matched, the still-open (uncovered) amount
+// is shown below the actual amount.
+function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmount?: number }) {
+    const { t } = useTranslation();
+    const total = amount ?? 0;
+    const matched = matchedAmount ?? 0;
+    const partiallyMatched = matched > 0 && matched < Math.abs(total);
+    const open = Math.abs(total) - matched;
+
+    return (
+        <span className="flex flex-col items-end flex-shrink-0 leading-tight">
+            <span className="text-[13px] font-bold tabular-nums" style={{ color: total >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                {fmtCurrency(total)}
+            </span>
+            {partiallyMatched && (
+                <span className="text-[11px] font-semibold text-[#B47C18] tabular-nums">
+                    {t('transactions.detail.openAmount', { amount: fmtCurrency(open) })}
+                </span>
+            )}
+        </span>
+    );
+}
+
 function BankMatchSection({ tx }: { tx: TransactionResponse }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -203,7 +233,10 @@ function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                                         {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                     </span>
                                 </span>
-                                <span className="text-[13px] font-bold tabular-nums flex-shrink-0" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                                <span
+                                    className="text-[13px] font-bold tabular-nums flex-shrink-0"
+                                    style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}
+                                >
                                     {fmtCurrency(b.amount)}
                                 </span>
                                 <ExternalLink size={15} className="text-[#9A9AA3] group-hover:text-[#7E3FB4] transition-colors flex-shrink-0" />
@@ -273,12 +306,7 @@ function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                                                 {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                             </span>
                                         </span>
-                                        <span
-                                            className="text-[13px] font-bold tabular-nums flex-shrink-0"
-                                            style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}
-                                        >
-                                            {fmtCurrency(b.amount)}
-                                        </span>
+                                        <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
                                     </button>
                                 ))
                         )}
@@ -702,7 +730,7 @@ function TransactionRow({ tx, onClick, selected }: { tx: TransactionResponse; on
             onClick={onClick}
             className={cn('w-full grid items-center text-left border-b border-[#E9E9EE] last:border-b-0 transition-colors')}
             style={{
-                gridTemplateColumns: 'minmax(0,2.3fr) 1.3fr 1.2fr 0.9fr 1fr 1.1fr',
+                gridTemplateColumns: TX_GRID,
                 padding: '14px 20px',
                 background: selected ? '#F3EAFB' : undefined,
                 fontFamily: FONT,
@@ -741,6 +769,9 @@ function TransactionRow({ tx, onClick, selected }: { tx: TransactionResponse; on
             {/* Date */}
             <span className="text-[13.5px] text-[#6B6B76] whitespace-nowrap tabular-nums">{fmtDate(tx.transactionTime)}</span>
 
+            {/* Created at */}
+            <span className="text-[13px] text-[#9A9AA3] whitespace-nowrap tabular-nums">{fmtDate(tx.createdAt)}</span>
+
             {/* Status */}
             <span className="flex flex-col items-start gap-1">
                 <StatusBadge status={tx.status} />
@@ -770,6 +801,8 @@ export function TransactionenView() {
     const [endDate, setEndDate] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
     const [detached, setDetached] = useState(false);
+    const [sortBy, setSortBy] = useState<TransactionSortBy>('createdAt');
+    const [sortDir, setSortDir] = useState<SortDirection>('desc');
     const [page, setPage] = useState(0);
     const [selectedTxId, setSelectedTxId] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
@@ -790,6 +823,17 @@ export function TransactionenView() {
         }
     };
 
+    // Toggle sorting from a table column header: same column flips direction, new column starts descending.
+    const handleSort = (field: TransactionSortBy) => {
+        if (sortBy === field) {
+            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortBy(field);
+            setSortDir('desc');
+        }
+        setPage(0);
+    };
+
     const filters: TransactionFilters = {
         search: search || undefined,
         status: statusFilter === 'ALL' ? undefined : (statusFilter as TransactionStatus),
@@ -799,6 +843,8 @@ export function TransactionenView() {
         endDate: endDate || undefined,
         privatelyPaid: privatelyPaid || undefined,
         detached: detached || undefined,
+        sortBy,
+        sortDir,
         page,
         size: PAGE_SIZE,
     };
@@ -1127,28 +1173,42 @@ export function TransactionenView() {
                         <div
                             className="grid items-center border-b border-[#E9E9EE]"
                             style={{
-                                gridTemplateColumns: 'minmax(0,2.3fr) 1.3fr 1.2fr 0.9fr 1fr 1.1fr',
+                                gridTemplateColumns: TX_GRID,
                                 padding: '11px 20px',
                                 background: '#F8F8FA',
                                 fontFamily: FONT,
                             }}
                         >
-                            {[
-                                t('transactions.columns.transaction'),
-                                t('transactions.columns.category'),
-                                t('transactions.columns.bommel'),
-                                t('transactions.columns.date'),
-                                t('transactions.columns.status'),
-                                t('transactions.columns.amount'),
-                            ].map((col, i) => (
+                            {[t('transactions.columns.transaction'), t('transactions.columns.category'), t('transactions.columns.bommel')].map((col) => (
                                 <span
                                     key={col}
-                                    className={cn(i === 5 ? 'text-right' : '')}
                                     style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}
                                 >
                                     {col}
                                 </span>
                             ))}
+                            <SortHeader
+                                label={t('transactions.columns.date')}
+                                active={sortBy === 'transactionTime'}
+                                direction={sortDir}
+                                onClick={() => handleSort('transactionTime')}
+                            />
+                            <SortHeader
+                                label={t('transactions.columns.createdAt')}
+                                active={sortBy === 'createdAt'}
+                                direction={sortDir}
+                                onClick={() => handleSort('createdAt')}
+                            />
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                                {t('transactions.columns.status')}
+                            </span>
+                            <SortHeader
+                                label={t('transactions.columns.amount')}
+                                active={sortBy === 'total'}
+                                direction={sortDir}
+                                onClick={() => handleSort('total')}
+                                align="right"
+                            />
                         </div>
 
                         {transactions.map((tx) => (

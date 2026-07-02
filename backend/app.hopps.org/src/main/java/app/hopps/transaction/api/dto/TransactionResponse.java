@@ -40,6 +40,7 @@ public record TransactionResponse(
         ExtractionSource extractionSource,
         String analysisError,
         Instant createdAt,
+        Instant updatedAt,
         String createdBy) {
 
     /**
@@ -85,6 +86,7 @@ public record TransactionResponse(
                 extractionSource,
                 analysisError,
                 tx.getCreatedAt(),
+                tx.getUpdatedAt(),
                 tx.getCreatedBy());
     }
 }

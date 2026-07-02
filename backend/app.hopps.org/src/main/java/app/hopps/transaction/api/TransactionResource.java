@@ -11,6 +11,7 @@ import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
 import io.quarkus.panache.common.Page;
+import io.quarkus.panache.common.Sort;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.event.Event;
@@ -75,10 +76,13 @@ public class TransactionResource {
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
             @QueryParam("area") @Parameter(description = "Filter by transaction area (IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)") TransactionArea area,
+            @QueryParam("sortBy") @DefaultValue("createdAt") @Parameter(description = "Field to sort by: createdAt, updatedAt, transactionTime or total") String sortBy,
+            @QueryParam("sortDir") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String sortDir,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
             @QueryParam("size") @DefaultValue("25") @Parameter(description = "Page size") int pageSize) {
 
         Page page = new Page(pageIndex, pageSize);
+        Sort sort = buildSort(sortBy, sortDir);
 
         // Parse dates
         Instant startInstant = null;
@@ -101,11 +105,27 @@ public class TransactionResource {
                 privatelyPaid,
                 detached,
                 area,
+                sort,
                 page);
 
         return transactions.stream()
                 .map(TransactionResponse::from)
                 .toList();
+    }
+
+    /**
+     * Builds a Panache Sort from user input, whitelisting sortable columns to prevent invalid/unsafe JPQL.
+     */
+    private static Sort buildSort(String sortBy, String sortDir) {
+        String column = switch (sortBy == null ? "" : sortBy) {
+            case "updatedAt" -> "updatedAt";
+            case "transactionTime" -> "transactionTime";
+            case "total" -> "total";
+            default -> "createdAt";
+        };
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.Ascending
+                : Sort.Direction.Descending;
+        return Sort.by(column, direction);
     }
 
     @GET
@@ -141,7 +161,8 @@ public class TransactionResource {
         // Apply request fields
         createConverter.applyRequestToTransaction(transaction, request, organization);
 
-        transactionRepository.persist(transaction);
+        // Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before building the response.
+        transactionRepository.persistAndFlush(transaction);
         LOG.info("Transaction created: id={}", transaction.getId());
 
         return Response.status(Response.Status.CREATED)
