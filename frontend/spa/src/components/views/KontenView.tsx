@@ -1,18 +1,18 @@
 import { BankAccountResponse } from '@hopps/api-client';
+import { useQueries } from '@tanstack/react-query';
 import { ArrowLeftRight, ArrowRight, Check, ChevronLeft, ChevronRight, Clock, Edit, Landmark, Link2, Plus, Sheet, Unlink, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { useQueries } from '@tanstack/react-query';
 
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { useBankAccounts, useBankTransactionsByAccount, bankTransactionKeys, bankImportKeys } from '@/hooks/queries/useBankAccounts';
-import apiService from '@/services/ApiService';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
+import apiService from '@/services/ApiService';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -63,13 +63,36 @@ function StatusPill({ status }: { status?: string }) {
     );
 }
 
-function SignedAmount({ amount, currency = 'EUR', size = 'base' }: { amount: number | undefined; currency?: string; size?: 'sm' | 'base' | 'lg' }) {
-    const pos = (amount ?? 0) >= 0;
+function SignedAmount({
+    amount,
+    currency = 'EUR',
+    size = 'base',
+    matchedAmount,
+}: {
+    amount: number | undefined;
+    currency?: string;
+    size?: 'sm' | 'base' | 'lg';
+    matchedAmount?: number;
+}) {
+    const { t } = useTranslation();
+    const total = amount ?? 0;
+    const matched = matchedAmount ?? 0;
+    // Show the actual transaction amount as the headline; if partially covered, add the still-open amount below.
+    const partiallyMatched = matched > 0 && matched < Math.abs(total);
+    const open = Math.abs(total) - matched;
+    const pos = total >= 0;
     const sizeClass = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-sm' : 'text-base';
     return (
-        <span className={cn('font-bold tabular-nums whitespace-nowrap', sizeClass, pos ? 'text-emerald-600' : 'text-foreground')}>
-            {pos ? '+ ' : '– '}
-            {fmtCurrency(Math.abs(amount ?? 0), currency)}
+        <span className="inline-flex flex-col items-end leading-tight">
+            <span className={cn('font-bold tabular-nums whitespace-nowrap', sizeClass, pos ? 'text-emerald-600' : 'text-foreground')}>
+                {pos ? '+ ' : '– '}
+                {fmtCurrency(Math.abs(total), currency)}
+            </span>
+            {partiallyMatched && (
+                <span className="text-[11px] font-semibold text-amber-600 tabular-nums whitespace-nowrap">
+                    {t('konten.openAmount', { amount: fmtCurrency(open, currency) })}
+                </span>
+            )}
         </span>
     );
 }
@@ -185,7 +208,8 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
     });
 
     const allTx = txResults.flatMap((r) => r.data ?? []);
-    const unmatchedTx = allTx.filter((t) => t.status === 'UNMATCHED' || !t.status);
+    // "Open" = not yet fully covered: unmatched or only partially matched.
+    const unmatchedTx = allTx.filter((t) => t.status === 'UNMATCHED' || t.status === 'PARTIALLY_MATCHED' || !t.status);
     const matchedTx = allTx.filter((t) => t.status === 'FULLY_MATCHED');
     const totalOpen = unmatchedTx.length;
     const isLoading = txResults.some((r) => r.isLoading);
@@ -265,7 +289,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                                             {acct.name}
                                         </span>
                                     )}
-                                    <SignedAmount amount={tx.amount} currency={tx.currency ?? 'EUR'} />
+                                    <SignedAmount amount={tx.amount} currency={tx.currency ?? 'EUR'} matchedAmount={tx.matchedAmount} />
                                     <button
                                         type="button"
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm font-semibold hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0"
@@ -305,7 +329,8 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
     const [page, setPage] = useState(0);
 
-    const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter;
+    // "Offen" covers everything not yet fully matched (unmatched + partially matched).
+    const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter === 'UNMATCHED' ? 'UNMATCHED,PARTIALLY_MATCHED' : statusFilter;
     const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus);
 
     const filtered = transactions;
@@ -334,7 +359,10 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                         <button
                             key={f.key}
                             type="button"
-                            onClick={() => { setStatusFilter(f.key); setPage(0); }}
+                            onClick={() => {
+                                setStatusFilter(f.key);
+                                setPage(0);
+                            }}
                             className={cn(
                                 'px-3 py-1 rounded-lg text-sm font-medium transition-colors',
                                 statusFilter === f.key ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
@@ -381,7 +409,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                                 <div className="text-xs text-muted-foreground truncate">{tx.purpose}</div>
                             </div>
                             <span className="text-right">
-                                <SignedAmount amount={tx.amount} currency={tx.currency ?? 'EUR'} size="sm" />
+                                <SignedAmount amount={tx.amount} currency={tx.currency ?? 'EUR'} size="sm" matchedAmount={tx.matchedAmount} />
                             </span>
                             <span className="flex justify-end">
                                 <StatusPill status={tx.status} />
@@ -390,7 +418,10 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                                 <button
                                     type="button"
                                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-semibold hover:bg-primary/10 hover:text-primary transition-colors ml-2"
-                                    onClick={(e) => { e.stopPropagation(); tx.id && onOpenDrawer(tx.id); }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (tx.id) onOpenDrawer(tx.id);
+                                    }}
                                 >
                                     {t('konten.assign')} <ArrowRight className="w-3.5 h-3.5" />
                                 </button>
@@ -399,9 +430,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                     ))}
                     {(page > 0 || filtered.length === PAGE_SIZE) && (
                         <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40">
-                            <span className="text-xs text-muted-foreground">
-                                {t('konten.pagination.page', { page: page + 1 })}
-                            </span>
+                            <span className="text-xs text-muted-foreground">{t('konten.pagination.page', { page: page + 1 })}</span>
                             <div className="flex items-center gap-1">
                                 <button
                                     type="button"
@@ -503,47 +532,55 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
                         const ignored = imp.ignoredTransactions ?? 0;
                         const matchedPct = total > 0 ? Math.round(((matched + ignored) / total) * 100) : 0;
                         return (
-                        <div
-                            key={imp.id}
-                            className={cn('grid items-center px-4 py-3', i < allImports.length - 1 && 'border-b border-gray-100 dark:border-gray-700')}
-                            style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
-                        >
-                            <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(imp.finishedAt)}</span>
-                            <span className="flex items-center gap-1.5 text-sm">
-                                <AccountDot color={imp.account.color} />
-                                {imp.account.name}
-                            </span>
-                            <div className="min-w-0">
-                                <div className="text-sm font-bold truncate">{imp.fileName}</div>
-                                <span
-                                    className={cn(
-                                        'inline-block px-1.5 py-0.5 rounded text-xs font-medium mt-0.5',
-                                        importStatusColor[imp.status ?? ''] ?? 'bg-gray-100 text-gray-600'
-                                    )}
-                                >
-                                    {imp.status}
+                            <div
+                                key={imp.id}
+                                className={cn('grid items-center px-4 py-3', i < allImports.length - 1 && 'border-b border-gray-100 dark:border-gray-700')}
+                                style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
+                            >
+                                <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(imp.finishedAt)}</span>
+                                <span className="flex items-center gap-1.5 text-sm">
+                                    <AccountDot color={imp.account.color} />
+                                    {imp.account.name}
                                 </span>
+                                <div className="min-w-0">
+                                    <div className="text-sm font-bold truncate">{imp.fileName}</div>
+                                    <span
+                                        className={cn(
+                                            'inline-block px-1.5 py-0.5 rounded text-xs font-medium mt-0.5',
+                                            importStatusColor[imp.status ?? ''] ?? 'bg-gray-100 text-gray-600'
+                                        )}
+                                    >
+                                        {imp.status}
+                                    </span>
+                                </div>
+                                <span className="text-right font-bold tabular-nums text-sm">{imp.importedRows ?? '—'}</span>
+                                <span className="text-right tabular-nums text-sm text-muted-foreground">{imp.duplicateRows || '—'}</span>
+                                <div className="flex flex-col items-end gap-1">
+                                    {total > 0 ? (
+                                        <>
+                                            <span
+                                                className={cn(
+                                                    'tabular-nums text-sm font-medium',
+                                                    matched + ignored === total ? 'text-emerald-600' : 'text-foreground'
+                                                )}
+                                            >
+                                                {matched + ignored}/{total}
+                                            </span>
+                                            <div className="w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                                                <div
+                                                    className={cn(
+                                                        'h-full rounded-full transition-all',
+                                                        matched + ignored === total ? 'bg-emerald-500' : 'bg-primary'
+                                                    )}
+                                                    style={{ width: `${matchedPct}%` }}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <span className="text-sm text-muted-foreground">—</span>
+                                    )}
+                                </div>
                             </div>
-                            <span className="text-right font-bold tabular-nums text-sm">{imp.importedRows ?? '—'}</span>
-                            <span className="text-right tabular-nums text-sm text-muted-foreground">{imp.duplicateRows || '—'}</span>
-                            <div className="flex flex-col items-end gap-1">
-                                {total > 0 ? (
-                                    <>
-                                        <span className={cn('tabular-nums text-sm font-medium', matched + ignored === total ? 'text-emerald-600' : 'text-foreground')}>
-                                            {matched + ignored}/{total}
-                                        </span>
-                                        <div className="w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                                            <div
-                                                className={cn('h-full rounded-full transition-all', matched + ignored === total ? 'bg-emerald-500' : 'bg-primary')}
-                                                style={{ width: `${matchedPct}%` }}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <span className="text-sm text-muted-foreground">—</span>
-                                )}
-                            </div>
-                        </div>
                         );
                     })}
                 </div>
@@ -589,7 +626,10 @@ export function KontenView() {
         })),
     });
     const openCountByAccount = Object.fromEntries(
-        accounts.map((a, i) => [String(a.id), (openCountResults[i]?.data ?? []).filter((tx) => !tx.status || tx.status === 'UNMATCHED').length])
+        accounts.map((a, i) => [
+            String(a.id),
+            (openCountResults[i]?.data ?? []).filter((tx) => !tx.status || tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED').length,
+        ])
     );
     const totalOpen = Object.values(openCountByAccount).reduce((a, b) => a + b, 0);
 
@@ -678,12 +718,7 @@ export function KontenView() {
             )}
 
             {/* Match drawer */}
-            {matchDrawerBankTxId !== null && (
-                <MatchDrawer
-                    bankTxId={matchDrawerBankTxId}
-                    onClose={closeMatchDrawer}
-                />
-            )}
+            {matchDrawerBankTxId !== null && <MatchDrawer bankTxId={matchDrawerBankTxId} onClose={closeMatchDrawer} />}
 
             {/* Create / Edit drawer */}
             <BankAccountDrawer

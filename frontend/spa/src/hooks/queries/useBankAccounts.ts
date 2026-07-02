@@ -11,9 +11,9 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import { useToast } from '@/hooks/use-toast';
 import { documentKeys } from '@/hooks/queries/useDocuments';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
+import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
@@ -397,11 +397,12 @@ export function useBankTransactionsForTransaction(transactionId: number | null |
 }
 
 // Searchable list of bank transactions to pick from when linking manually.
-// Only returns not-yet-linked (UNMATCHED) bank transactions.
+// Returns transactions whose amount is not yet fully covered — i.e. UNMATCHED and PARTIALLY_MATCHED.
+// A bank transaction only drops out of this list once it is FULLY_MATCHED (or ignored).
 export function useBankTransactionSearch(search: string, enabled: boolean) {
     return useQuery({
         queryKey: [...bankTransactionKeys.all, 'search', search],
-        queryFn: () => apiService.orgService.bankTransactionsAll(undefined, undefined, undefined, 0, search || undefined, 25, 'UNMATCHED'),
+        queryFn: () => apiService.orgService.bankTransactionsAll(undefined, undefined, undefined, 0, search || undefined, 25, 'UNMATCHED,PARTIALLY_MATCHED'),
         enabled,
     });
 }
