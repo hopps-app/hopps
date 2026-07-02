@@ -586,7 +586,11 @@
       "dropzoneActive": "Release to upload",
       "hint": "PDF, PNG or JPEG up to 10 MB",
       "uploading": "Uploading…",
-      "analyzeLabel": "Auto-analyze (AI)"
+      "analyzeLabel": "Auto-analyze (AI)",
+      "progress": "{{done}} of {{total}} uploaded",
+      "itemUploading": "Uploading …",
+      "itemDone": "Uploaded",
+      "itemError": "Failed"
     },
     "areas": {
       "ideell": "Non-profit area",

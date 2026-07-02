@@ -240,9 +240,9 @@ export function BankAccountDetailView() {
 
                     <span className={cn(
                         'text-lg font-bold px-3 py-1 rounded-full',
-                        (account.openingBalance ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                        (account.balance ?? account.openingBalance ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
                     )}>
-                        {formatCurrency(account.openingBalance, account.currency ?? 'EUR')}
+                        {formatCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
                     </span>
                 </div>
 

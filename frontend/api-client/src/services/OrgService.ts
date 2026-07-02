@@ -4314,6 +4314,7 @@ export class BankAccountResponse implements IBankAccountResponse {
     currency?: string;
     openingBalance?: number;
     openingBalanceDate?: Date;
+    balance?: number;
     description?: string;
     color?: string;
     defaultSchemaId?: number;
@@ -4353,6 +4354,7 @@ export class BankAccountResponse implements IBankAccountResponse {
             this.currency = _data["currency"];
             this.openingBalance = _data["openingBalance"];
             this.openingBalanceDate = _data["openingBalanceDate"] ? new Date(_data["openingBalanceDate"].toString()) : <any>undefined;
+            this.balance = _data["balance"];
             this.description = _data["description"];
             this.color = _data["color"];
             this.defaultSchemaId = _data["defaultSchemaId"];
@@ -4390,6 +4392,7 @@ export class BankAccountResponse implements IBankAccountResponse {
         data["currency"] = this.currency;
         data["openingBalance"] = this.openingBalance;
         data["openingBalanceDate"] = this.openingBalanceDate ? formatDate(this.openingBalanceDate) : <any>undefined;
+        data["balance"] = this.balance;
         data["description"] = this.description;
         data["color"] = this.color;
         data["defaultSchemaId"] = this.defaultSchemaId;
@@ -4423,6 +4426,7 @@ export interface IBankAccountResponse {
     currency?: string;
     openingBalance?: number;
     openingBalanceDate?: Date;
+    balance?: number;
     description?: string;
     color?: string;
     defaultSchemaId?: number;

@@ -22,6 +22,7 @@ public record BankAccountResponse(
         String currency,
         BigDecimal openingBalance,
         LocalDate openingBalanceDate,
+        BigDecimal balance,
         String description,
         String color,
         Long defaultSchemaId,
@@ -32,7 +33,12 @@ public record BankAccountResponse(
         Instant createdAt,
         Instant updatedAt) {
 
-    public static BankAccountResponse from(BankAccount account) {
+    /**
+     * @param balance
+     *            the computed current balance (opening balance + transactions booked after the opening date); pass
+     *            {@code null} when the balance is not relevant (it then falls back to the opening balance).
+     */
+    public static BankAccountResponse from(BankAccount account, BigDecimal balance) {
         return new BankAccountResponse(
                 account.getId(),
                 account.getOrganization() != null ? account.getOrganization().id : null,
@@ -46,6 +52,7 @@ public record BankAccountResponse(
                 account.getCurrency(),
                 account.getOpeningBalance(),
                 account.getOpeningBalanceDate(),
+                balance != null ? balance : account.getOpeningBalance(),
                 account.getDescription(),
                 account.getColor(),
                 account.getDefaultSchema() != null ? account.getDefaultSchema().getId() : null,
