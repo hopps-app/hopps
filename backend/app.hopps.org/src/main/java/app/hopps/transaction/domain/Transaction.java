@@ -8,6 +8,8 @@ import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -96,20 +98,15 @@ public class Transaction extends PanacheEntity {
     @Column(name = "document_key")
     private String documentKey;
 
+    // Set automatically by Hibernate on first insert; never updated afterwards.
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    // Set automatically by Hibernate on insert and refreshed on every update.
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    public Transaction() {
-        this.createdAt = Instant.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = Instant.now();
-    }
 
     // Getters and Setters
 

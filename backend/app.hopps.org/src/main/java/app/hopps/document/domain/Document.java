@@ -5,6 +5,8 @@ import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.domain.Transaction;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -79,8 +81,14 @@ public class Document extends PanacheEntity {
     private String analyzedBy;
     private String reviewedBy;
 
+    // Set automatically by Hibernate on first insert; never updated afterwards.
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    // Set automatically by Hibernate on insert and refreshed on every update.
+    @UpdateTimestamp
+    private Instant updatedAt;
 
     // Transient field for transaction count (populated by controller)
     @Transient
@@ -91,7 +99,6 @@ public class Document extends PanacheEntity {
     private Transaction transaction;
 
     public Document() {
-        this.createdAt = Instant.now();
     }
 
     public Long getId() {
@@ -234,6 +241,10 @@ public class Document extends PanacheEntity {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
     }
 
     public String getDisplayTotal() {

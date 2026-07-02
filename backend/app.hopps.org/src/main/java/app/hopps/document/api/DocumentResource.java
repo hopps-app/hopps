@@ -120,9 +120,9 @@ public class DocumentResource {
         // Upload file to S3 and set file metadata
         fileService.handleFileUpload(document, file);
 
-        // Persist document
+        // Persist document. Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before the response.
         document.setDocumentStatus(DocumentStatus.UPLOADED);
-        documentRepository.persist(document);
+        documentRepository.persistAndFlush(document);
         LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
 
         // Fire event to trigger async analysis after transaction commits (only if requested)

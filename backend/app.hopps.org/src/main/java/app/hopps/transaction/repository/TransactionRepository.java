@@ -106,6 +106,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Boolean privatelyPaid,
             Boolean detached,
             TransactionArea area,
+            Sort sort,
             Page page) {
 
         Long orgId = organizationContext.getCurrentOrganizationId();
@@ -163,7 +164,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             params.put("area", area);
         }
 
-        return find(query.toString(), Sort.descending("createdAt"), params)
+        return find(query.toString(), sort != null ? sort : Sort.descending("createdAt"), params)
                 .page(page)
                 .list();
     }

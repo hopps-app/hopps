@@ -43,6 +43,7 @@ public record DocumentResponse(
         List<String> tags,
         // Timestamps
         Instant createdAt,
+        Instant updatedAt,
         String uploadedBy) {
     /**
      * Creates a DocumentResponse from a Document entity.
@@ -80,6 +81,7 @@ public record DocumentResponse(
                 doc.getSenderCity(),
                 tagNames,
                 doc.getCreatedAt(),
+                doc.getUpdatedAt(),
                 doc.getUploadedBy());
     }
 }

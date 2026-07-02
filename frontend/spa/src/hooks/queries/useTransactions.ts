@@ -5,6 +5,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from '@/i18n';
 import apiService from '@/services/ApiService';
 
+export type TransactionSortBy = 'createdAt' | 'updatedAt' | 'transactionTime' | 'total';
+export type SortDirection = 'asc' | 'desc';
+
 export interface TransactionFilters {
     search?: string;
     startDate?: string;
@@ -15,6 +18,8 @@ export interface TransactionFilters {
     privatelyPaid?: boolean;
     detached?: boolean;
     area?: TransactionArea;
+    sortBy?: TransactionSortBy;
+    sortDir?: SortDirection;
     page?: number;
     size?: number;
 }
@@ -41,6 +46,8 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.privatelyPaid,
                 filters.search,
                 filters.size ?? 50,
+                filters.sortBy,
+                filters.sortDir,
                 filters.startDate,
                 filters.status
             ),

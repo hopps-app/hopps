@@ -343,7 +343,8 @@
       "bommel": "Bommel",
       "date": "Date",
       "status": "Status",
-      "amount": "Amount"
+      "amount": "Amount",
+      "createdAt": "Created"
     },
     "status": {
       "all": "All",
@@ -400,7 +401,8 @@
       "unlink": "Remove link",
       "openBankAccounts": "Manage in bank accounts",
       "deleteConfirmTitle": "Delete transaction?",
-      "deleteConfirmText": "This transaction will be permanently deleted. This action cannot be undone."
+      "deleteConfirmText": "This transaction will be permanently deleted. This action cannot be undone.",
+      "openAmount": "open: {{amount}}"
     },
     "create": {
       "title": "New Transaction",
@@ -425,6 +427,15 @@
       "save": "Save",
       "cancel": "Cancel",
       "errorAmount": "Please enter an amount"
+    },
+    "sort": {
+      "label": "Sort by",
+      "createdAt": "Created",
+      "updatedAt": "Last modified",
+      "transactionTime": "Transaction date",
+      "total": "Amount",
+      "ascending": "Ascending",
+      "descending": "Descending"
     }
   },
   "datePicker": {
@@ -608,7 +619,8 @@
       "date": "Date",
       "amount": "Amount",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "createdAt": "Created"
     },
     "review": {
       "title": "Review Receipt",
@@ -681,6 +693,15 @@
       "incomingHint": "Money spent",
       "outgoing": "Income",
       "outgoingHint": "Money received"
+    },
+    "sort": {
+      "label": "Sort by",
+      "createdAt": "Created",
+      "updatedAt": "Last modified",
+      "transactionTime": "Receipt date",
+      "total": "Amount",
+      "ascending": "Ascending",
+      "descending": "Descending"
     }
   },
   "bommel": {
@@ -1015,6 +1036,7 @@
       "uploadReceiptHint": "Drag a receipt here or click – a transaction is created and linked automatically",
       "uploadReceiptDrop": "Drop the receipt here …",
       "uploadReceiptBusy": "Uploading receipt …"
-    }
+    },
+    "openAmount": "open: {{amount}}"
   }
 }

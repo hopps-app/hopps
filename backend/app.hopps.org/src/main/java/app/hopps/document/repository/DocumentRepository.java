@@ -24,7 +24,7 @@ public class DocumentRepository implements PanacheRepository<Document> {
             return List.of();
         }
         return find(
-                "SELECT DISTINCT d FROM Document d LEFT JOIN FETCH d.documentTags WHERE d.organization.id = ?1 ORDER BY d.transactionTime DESC, d.createdAt DESC",
+                "SELECT DISTINCT d FROM Document d LEFT JOIN FETCH d.documentTags WHERE d.organization.id = ?1 ORDER BY d.createdAt DESC",
                 orgId).list();
     }
 

@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -3747,11 +3747,13 @@ export class Client {
      * @param privatelyPaid (optional) Filter by privately paid flag
      * @param search (optional) Search in name and sender name
      * @param size (optional) Page size
+     * @param sortBy (optional) Field to sort by: createdAt, updatedAt, transactionTime or total
+     * @param sortDir (optional) Sort direction: asc or desc
      * @param startDate (optional) Filter transactions from this date (ISO format: YYYY-MM-DD)
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return List of transactions
      */
-    transactionsAll(area: TransactionArea | undefined, bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
+    transactionsAll(area: TransactionArea | undefined, bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, sortBy: string | undefined, sortDir: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
         let url_ = this.baseUrl + "/transactions?";
         if (area === null)
             throw new Error("The parameter 'area' cannot be null.");
@@ -3789,6 +3791,14 @@ export class Client {
             throw new Error("The parameter 'size' cannot be null.");
         else if (size !== undefined)
             url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (sortBy === null)
+            throw new Error("The parameter 'sortBy' cannot be null.");
+        else if (sortBy !== undefined)
+            url_ += "sortBy=" + encodeURIComponent("" + sortBy) + "&";
+        if (sortDir === null)
+            throw new Error("The parameter 'sortDir' cannot be null.");
+        else if (sortDir !== undefined)
+            url_ += "sortDir=" + encodeURIComponent("" + sortDir) + "&";
         if (startDate === null)
             throw new Error("The parameter 'startDate' cannot be null.");
         else if (startDate !== undefined)
@@ -5982,6 +5992,7 @@ export class DocumentResponse implements IDocumentResponse {
     senderCity?: string;
     tags?: string[];
     createdAt?: Date;
+    updatedAt?: Date;
     uploadedBy?: string;
 
     [key: string]: any;
@@ -6029,6 +6040,7 @@ export class DocumentResponse implements IDocumentResponse {
                     this.tags!.push(item);
             }
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : <any>undefined;
             this.uploadedBy = _data["uploadedBy"];
         }
     }
@@ -6074,6 +6086,7 @@ export class DocumentResponse implements IDocumentResponse {
                 data["tags"].push(item);
         }
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : <any>undefined;
         data["uploadedBy"] = this.uploadedBy;
         return data;
     }
@@ -6111,6 +6124,7 @@ export interface IDocumentResponse {
     senderCity?: string;
     tags?: string[];
     createdAt?: Date;
+    updatedAt?: Date;
     uploadedBy?: string;
 
     [key: string]: any;
@@ -6984,6 +6998,7 @@ export class TransactionResponse implements ITransactionResponse {
     extractionSource?: ExtractionSource;
     analysisError?: string;
     createdAt?: Date;
+    updatedAt?: Date;
     createdBy?: string;
 
     [key: string]: any;
@@ -7031,6 +7046,7 @@ export class TransactionResponse implements ITransactionResponse {
             this.extractionSource = _data["extractionSource"];
             this.analysisError = _data["analysisError"];
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : <any>undefined;
             this.createdBy = _data["createdBy"];
         }
     }
@@ -7076,6 +7092,7 @@ export class TransactionResponse implements ITransactionResponse {
         data["extractionSource"] = this.extractionSource;
         data["analysisError"] = this.analysisError;
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : <any>undefined;
         data["createdBy"] = this.createdBy;
         return data;
     }
@@ -7113,6 +7130,7 @@ export interface ITransactionResponse {
     extractionSource?: ExtractionSource;
     analysisError?: string;
     createdAt?: Date;
+    updatedAt?: Date;
     createdBy?: string;
 
     [key: string]: any;

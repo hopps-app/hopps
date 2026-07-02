@@ -342,7 +342,8 @@
       "bommel": "Bommel",
       "date": "Datum",
       "status": "Status",
-      "amount": "Betrag"
+      "amount": "Betrag",
+      "createdAt": "Erstellt am"
     },
     "status": {
       "all": "Alle",
@@ -399,7 +400,8 @@
       "unlink": "Verknüpfung lösen",
       "openBankAccounts": "In Bankkonten verwalten",
       "deleteConfirmTitle": "Transaktion löschen?",
-      "deleteConfirmText": "Diese Transaktion wird dauerhaft gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden."
+      "deleteConfirmText": "Diese Transaktion wird dauerhaft gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
+      "openAmount": "offen: {{amount}}"
     },
     "create": {
       "title": "Neue Transaktion",
@@ -424,6 +426,15 @@
       "save": "Speichern",
       "cancel": "Abbrechen",
       "errorAmount": "Bitte einen Betrag eingeben"
+    },
+    "sort": {
+      "label": "Sortieren nach",
+      "createdAt": "Erstellt am",
+      "updatedAt": "Zuletzt geändert",
+      "transactionTime": "Transaktionsdatum",
+      "total": "Betrag",
+      "ascending": "Aufsteigend",
+      "descending": "Absteigend"
     }
   },
   "receipts": {
@@ -534,7 +545,8 @@
       "date": "Datum",
       "amount": "Betrag",
       "status": "Status",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "createdAt": "Erstellt am"
     },
     "review": {
       "title": "Beleg prüfen",
@@ -607,6 +619,15 @@
       "incomingHint": "Geld ausgegeben",
       "outgoing": "Einnahme",
       "outgoingHint": "Geld erhalten"
+    },
+    "sort": {
+      "label": "Sortieren nach",
+      "createdAt": "Erstellt am",
+      "updatedAt": "Zuletzt geändert",
+      "transactionTime": "Beleg-Datum",
+      "total": "Betrag",
+      "ascending": "Aufsteigend",
+      "descending": "Absteigend"
     }
   },
   "bommel": {
@@ -1014,6 +1035,7 @@
       "uploadReceiptHint": "Beleg hierher ziehen oder klicken – Transaktion wird automatisch erstellt und zugeordnet",
       "uploadReceiptDrop": "Beleg hier ablegen …",
       "uploadReceiptBusy": "Beleg wird hochgeladen …"
-    }
+    },
+    "openAmount": "offen: {{amount}}"
   }
 }
