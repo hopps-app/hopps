@@ -5,7 +5,7 @@ import app.hopps.bankimport.api.dto.BankAccountUpdateRequest;
 import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.repository.BankAccountRepository;
-Saimport app.hopps.bankimport.repository.BankTransactionRepository;
+import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.organization.domain.Organization;
