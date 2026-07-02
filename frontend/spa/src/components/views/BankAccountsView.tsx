@@ -45,10 +45,10 @@ function BankAccountCard({ account, onClick }: { account: BankAccountResponse; o
                 <span
                     className={cn(
                         'text-lg font-bold flex-shrink-0',
-                        (account.openingBalance ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-500'
+                        (account.balance ?? account.openingBalance ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-500'
                     )}
                 >
-                    {formatCurrency(account.openingBalance, account.currency ?? 'EUR')}
+                    {formatCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
                 </span>
             </div>
 

@@ -512,7 +512,11 @@
       "dropzoneActive": "Loslassen zum Hochladen",
       "hint": "PDF, PNG oder JPEG bis 10 MB",
       "uploading": "Wird hochgeladen…",
-      "analyzeLabel": "Automatisch analysieren (KI)"
+      "analyzeLabel": "Automatisch analysieren (KI)",
+      "progress": "{{done}} von {{total}} hochgeladen",
+      "itemUploading": "Wird hochgeladen …",
+      "itemDone": "Hochgeladen",
+      "itemError": "Fehlgeschlagen"
     },
     "areas": {
       "ideell": "Ideeller Bereich",

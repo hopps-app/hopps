@@ -167,12 +167,21 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
         return delete("bankImport.id = ?1", importId);
     }
 
-    /** Computes the running balance starting from the account's opening balance + sum of imported amounts. */
-    public BigDecimal computeBalance(Long bankAccountId, BigDecimal opening) {
-        BigDecimal sum = (BigDecimal) getEntityManager()
-                .createQuery("SELECT COALESCE(SUM(t.amount), 0) FROM BankTransaction t WHERE t.bankAccount.id = :id")
-                .setParameter("id", bankAccountId)
-                .getSingleResult();
+    /**
+     * Computes the current balance as the account's opening balance plus the sum of all transaction amounts booked
+     * strictly after the opening balance date. Only transactions after that date are added, because the opening balance
+     * already reflects everything up to and including it — so after a gap-free import the result matches the balance
+     * shown by the bank. When no opening date is set, all transactions of the account are summed.
+     */
+    public BigDecimal computeBalance(Long bankAccountId, BigDecimal opening, LocalDate openingDate) {
+        String jpql = "SELECT COALESCE(SUM(t.amount), 0) FROM BankTransaction t WHERE t.bankAccount.id = :id"
+                + (openingDate != null ? " AND t.bookingDate > :openingDate" : "");
+        var query = getEntityManager().createQuery(jpql, BigDecimal.class)
+                .setParameter("id", bankAccountId);
+        if (openingDate != null) {
+            query.setParameter("openingDate", openingDate);
+        }
+        BigDecimal sum = query.getSingleResult();
         return (opening == null ? BigDecimal.ZERO : opening).add(sum);
     }
 

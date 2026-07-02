@@ -952,22 +952,38 @@ function DocumentRow({ doc, onClick, selected }: { doc: DocumentResponse; onClic
 
 // ─── Upload Dropzone ──────────────────────────────────────────────────────────
 
+type UploadItem = { key: string; name: string; status: 'uploading' | 'done' | 'error' };
+
 function UploadZone({ onUploaded }: { onUploaded: () => void }) {
     const { t } = useTranslation();
     const uploadMutation = useUploadDocument();
     const [analyze, setAnalyze] = useState(true);
-    const [uploadingCount, setUploadingCount] = useState(0);
+    const [items, setItems] = useState<UploadItem[]>([]);
 
     const onDrop = useCallback(
-        async (acceptedFiles: File[]) => {
-            setUploadingCount(acceptedFiles.length);
-            try {
-                // Direction (Eingangs-/Ausgangsbeleg) is chosen later in the detail view, not at upload time.
-                await Promise.all(acceptedFiles.map((file) => uploadMutation.mutateAsync({ file, analyze, direction: 'INCOMING' })));
-                onUploaded();
-            } finally {
-                setUploadingCount(0);
-            }
+        (acceptedFiles: File[]) => {
+            if (acceptedFiles.length === 0) return;
+            const batch = acceptedFiles.map((file, i) => ({ key: `${Date.now()}-${i}-${file.name}`, file }));
+            // Start a fresh batch: keep rows still uploading, drop finished/failed ones from earlier drops.
+            setItems((prev) => [
+                ...prev.filter((it) => it.status === 'uploading'),
+                ...batch.map(({ key, file }) => ({ key, name: file.name, status: 'uploading' as const })),
+            ]);
+
+            // Each file goes up in its own request. As each one settles, its row flips to done/error and the document
+            // list is refreshed right away — so results show up one by one instead of all at once at the end. One
+            // failing upload does not abort the others. Direction is chosen later in the detail view, not at upload.
+            batch.forEach(({ key, file }) => {
+                uploadMutation
+                    .mutateAsync({ file, analyze, direction: 'INCOMING' })
+                    .then(() => {
+                        setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'done' } : it)));
+                        onUploaded();
+                    })
+                    .catch(() => {
+                        setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'error' } : it)));
+                    });
+            });
         },
         [uploadMutation, analyze, onUploaded]
     );
@@ -978,7 +994,8 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         multiple: true,
     });
 
-    const isUploading = uploadingCount > 0;
+    const isUploading = items.some((it) => it.status === 'uploading');
+    const doneCount = items.filter((it) => it.status === 'done').length;
 
     return (
         <div
@@ -1007,6 +1024,42 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                     )}
                 </div>
             </div>
+
+            {/* Per-file upload progress — updates row by row as each individual request settles. */}
+            {items.length > 0 && (
+                <div className="mt-3 space-y-1.5">
+                    {isUploading && (
+                        <p className="px-1 text-[12px] font-semibold text-[#6B6B76]">
+                            {t('receipts.upload.progress', { done: doneCount, total: items.length })}
+                        </p>
+                    )}
+                    {items.map((it) => {
+                        const label = it.status === 'uploading' ? 'itemUploading' : it.status === 'done' ? 'itemDone' : 'itemError';
+                        const color = it.status === 'error' ? '#B12C4C' : it.status === 'done' ? '#1F7A50' : '#9A9AA3';
+                        return (
+                            <div
+                                key={it.key}
+                                className="flex items-center gap-2.5 px-3 py-2 rounded-[10px] border border-[#E9E9EE]"
+                                style={{ background: '#F8F8FA' }}
+                            >
+                                <span className="flex-shrink-0">
+                                    {it.status === 'uploading' && <Loader2 size={15} className="text-[#7E3FB4] animate-spin" />}
+                                    {it.status === 'done' && (
+                                        <span className="w-[18px] h-[18px] rounded-full flex items-center justify-center" style={{ background: '#E7F4EC' }}>
+                                            <Check size={12} strokeWidth={2.5} className="text-[#1F7A50]" />
+                                        </span>
+                                    )}
+                                    {it.status === 'error' && <AlertCircle size={16} className="text-[#B12C4C]" />}
+                                </span>
+                                <span className="flex-1 min-w-0 truncate text-[13px] text-[#1B1B1F]">{it.name}</span>
+                                <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
+                                    {t(`receipts.upload.${label}`)}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* AI analyze toggle */}
             <button

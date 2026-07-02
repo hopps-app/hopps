@@ -153,7 +153,9 @@ function AccountCard({
             <div className="flex items-end justify-between mt-3">
                 <div>
                     <div className="text-xs font-semibold text-muted-foreground">{t('konten.balance')}</div>
-                    <div className="text-[22px] font-black tabular-nums mt-0.5">{fmtCurrency(account.openingBalance, account.currency ?? 'EUR')}</div>
+                    <div className="text-[22px] font-black tabular-nums mt-0.5">
+                        {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
+                    </div>
                 </div>
                 <div className="text-right">
                     {openCount > 0 ? (
@@ -348,9 +350,9 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                 <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                     <AccountDot color={account.color} />
                     <span className="font-mono">{account.iban}</span>
-                    {account.openingBalance !== undefined && (
+                    {(account.balance ?? account.openingBalance) !== undefined && (
                         <span>
-                            · {t('konten.balance')} {fmtCurrency(account.openingBalance, account.currency ?? 'EUR')}
+                            · {t('konten.balance')} {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
                         </span>
                     )}
                 </span>

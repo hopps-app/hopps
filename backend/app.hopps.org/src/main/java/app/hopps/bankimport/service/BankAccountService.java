@@ -5,6 +5,7 @@ import app.hopps.bankimport.api.dto.BankAccountUpdateRequest;
 import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.repository.BankAccountRepository;
+Saimport app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.organization.domain.Organization;
@@ -16,6 +17,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -31,6 +33,9 @@ public class BankAccountService {
 
     @Inject
     BankAccountRepository bankAccountRepository;
+
+    @Inject
+    BankTransactionRepository bankTransactionRepository;
 
     @Inject
     BommelRepository bommelRepository;
@@ -51,6 +56,15 @@ public class BankAccountService {
             throw new NotFoundException("Bank account not found");
         }
         return account;
+    }
+
+    /**
+     * Current balance of the account: the opening balance plus all transaction amounts booked after the opening balance
+     * date. After a gap-free import this matches the balance reported by the bank.
+     */
+    public BigDecimal computeBalance(BankAccount account) {
+        return bankTransactionRepository.computeBalance(
+                account.getId(), account.getOpeningBalance(), account.getOpeningBalanceDate());
     }
 
     @Transactional

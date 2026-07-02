@@ -52,7 +52,7 @@ public class BankAccountResource {
             @QueryParam("includeArchived") @DefaultValue("false") @Parameter(description = "Include archived (soft-deleted) accounts") boolean includeArchived) {
         return bankAccountService.list(includeArchived)
                 .stream()
-                .map(BankAccountResponse::from)
+                .map(account -> BankAccountResponse.from(account, bankAccountService.computeBalance(account)))
                 .toList();
     }
 
@@ -65,7 +65,7 @@ public class BankAccountResource {
     public BankAccountResponse getBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.get(id);
-        return BankAccountResponse.from(account);
+        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
     }
 
     @POST
@@ -77,7 +77,7 @@ public class BankAccountResource {
         BankAccount account = bankAccountService.create(request);
         LOG.info("Bank account created: id={}, iban={}", account.getId(), account.getIban());
         return Response.status(Response.Status.CREATED)
-                .entity(BankAccountResponse.from(account))
+                .entity(BankAccountResponse.from(account, bankAccountService.computeBalance(account)))
                 .build();
     }
 
@@ -93,7 +93,7 @@ public class BankAccountResource {
             @Valid BankAccountUpdateRequest request) {
         BankAccount account = bankAccountService.update(id, request);
         LOG.info("Bank account updated: id={}", account.getId());
-        return BankAccountResponse.from(account);
+        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
     }
 
     @DELETE
@@ -118,6 +118,6 @@ public class BankAccountResource {
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.restore(id);
         LOG.info("Bank account restored: id={}", id);
-        return BankAccountResponse.from(account);
+        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
     }
 }

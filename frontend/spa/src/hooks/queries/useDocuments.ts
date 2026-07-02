@@ -15,6 +15,14 @@ export function useDocuments(bommelId?: number) {
     return useQuery({
         queryKey: documentKeys.list(bommelId),
         queryFn: () => apiService.orgService.documentsAll(bommelId),
+        // While any document is still being analysed, poll so freshly uploaded receipts progress from
+        // analyzing → ready live, even if the document-change WebSocket is unavailable. Stops once nothing analyses.
+        refetchInterval: (query) => {
+            const data = query.state.data as DocumentResponse[] | undefined;
+            if (!data) return false;
+            const analysing = data.some((d) => d.analysisStatus === 'PENDING' || d.analysisStatus === 'ANALYZING');
+            return analysing ? 3000 : false;
+        },
     });
 }
 
@@ -56,8 +64,7 @@ export function useUploadDocument() {
 export function useReuploadDocumentFile() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, file }: { id: number; file: File }) =>
-            apiService.orgService.filePOST(id, true, { data: file, fileName: file.name }),
+        mutationFn: ({ id, file }: { id: number; file: File }) => apiService.orgService.filePOST(id, true, { data: file, fileName: file.name }),
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
             queryClient.invalidateQueries({ queryKey: documentKeys.detail(vars.id) });
