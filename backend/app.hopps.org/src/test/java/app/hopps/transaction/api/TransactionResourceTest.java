@@ -275,6 +275,46 @@ class TransactionResourceTest {
     }
 
     @Test
+    void shouldReopenConfirmedTransaction() {
+        // Create and confirm a transaction
+        String createBody = """
+                {
+                    "name": "Confirmed Transaction",
+                    "total": 40.00,
+                    "privatelyPaid": false
+                }
+                """;
+
+        Integer id = given()
+                .contentType("application/json")
+                .body(createBody)
+                .when()
+                .post()
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", id)
+                .then()
+                .statusCode(200)
+                .body("status", is("CONFIRMED"));
+
+        // Reopen it back to draft
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/reopen", id)
+                .then()
+                .statusCode(200)
+                .body("id", equalTo(id))
+                .body("status", is("DRAFT"));
+    }
+
+    @Test
     void shouldDeleteTransaction() {
         // First create a transaction
         String createBody = """

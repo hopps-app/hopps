@@ -97,6 +97,18 @@ export function useConfirmTransaction() {
     });
 }
 
+export function useReopenTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => apiService.orgService.reopen(id),
+        onSuccess: (_data, id) => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
+        },
+    });
+}
+
 export function useDeleteTransaction() {
     const queryClient = useQueryClient();
 

@@ -118,6 +118,22 @@ export function useReanalyzeDocument() {
     });
 }
 
+// Re-analyze several documents at once (e.g. all previously failed / not-yet-analyzed receipts). Each request
+// is independent — one failure does not abort the rest — and the list is refreshed once at the end. Returns the
+// number of documents for which re-analysis was successfully triggered.
+export function useReanalyzeDocuments() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (ids: number[]) => {
+            const results = await Promise.allSettled(ids.map((id) => apiService.orgService.reanalyze(id)));
+            return results.filter((r) => r.status === 'fulfilled').length;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+        },
+    });
+}
+
 // Derive a human-readable "review status" from documentStatus + analysisStatus
 export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'analyzing' | 'ready' | 'confirmed' | 'failed' {
     if (doc.documentStatus === 'CONFIRMED') return 'confirmed';

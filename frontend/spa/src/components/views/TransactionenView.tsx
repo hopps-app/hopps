@@ -15,26 +15,18 @@ import {
     Check,
     Upload,
     SlidersHorizontal,
-    Link2,
-    Unlink,
     ExternalLink,
-    Landmark,
-    Loader2,
+    RotateCcw,
 } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
+import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SortHeader } from '@/components/ui/SortHeader';
-import {
-    useBankTransactionsForTransaction,
-    useBankTransactionSearch,
-    useAddBankTransactionMatch,
-    useRemoveBankTransactionMatch,
-} from '@/hooks/queries/useBankAccounts';
 import { useCategories } from '@/hooks/queries/useCategories';
 import {
     useTransactions,
@@ -42,6 +34,7 @@ import {
     useDeleteTransaction,
     useUpdateTransaction,
     useConfirmTransaction,
+    useReopenTransaction,
     TransactionFilters,
     TransactionSortBy,
     SortDirection,
@@ -152,200 +145,6 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
     );
 }
 
-// ─── Bank reconciliation section ────────────────────────────────────────────────
-
-// Shows a bank transaction's amount. If it is already partially matched, the still-open (uncovered) amount
-// is shown below the actual amount.
-function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmount?: number }) {
-    const { t } = useTranslation();
-    const total = amount ?? 0;
-    const matched = matchedAmount ?? 0;
-    const partiallyMatched = matched > 0 && matched < Math.abs(total);
-    const open = Math.abs(total) - matched;
-
-    return (
-        <span className="flex flex-col items-end flex-shrink-0 leading-tight">
-            <span className="text-[13px] font-bold tabular-nums" style={{ color: total >= 0 ? '#1F7A50' : '#B12C4C' }}>
-                {fmtCurrency(total)}
-            </span>
-            {partiallyMatched && (
-                <span className="text-[11px] font-semibold text-[#B47C18] tabular-nums">
-                    {t('transactions.detail.openAmount', { amount: fmtCurrency(open) })}
-                </span>
-            )}
-        </span>
-    );
-}
-
-function BankMatchSection({ tx }: { tx: TransactionResponse }) {
-    const { t } = useTranslation();
-    const navigate = useNavigate();
-    const { data: linked, isLoading } = useBankTransactionsForTransaction(tx.id);
-    const addMatch = useAddBankTransactionMatch();
-    const removeMatch = useRemoveBankTransactionMatch();
-
-    const [pickerOpen, setPickerOpen] = useState(false);
-    const [search, setSearch] = useState('');
-    const { data: results, isFetching } = useBankTransactionSearch(search, pickerOpen);
-
-    const linkedIds = new Set((linked ?? []).map((b) => b.id));
-
-    // The transaction total is the amount still to be reconciled — pre-fill it as the search term so the matching
-    // bank transactions surface immediately. German decimal comma matches what the user sees; the backend also
-    // accepts a dot. Bank transactions are found by their full or still-open amount.
-    const openAmount = tx.total != null ? Math.abs(Number(tx.total)) : 0;
-    const openAmountStr = openAmount ? openAmount.toFixed(2).replace('.', ',') : '';
-
-    function openPicker() {
-        setSearch(openAmountStr);
-        setPickerOpen(true);
-    }
-
-    async function link(bankTxId: number) {
-        if (!tx.id) return;
-        await addMatch.mutateAsync({ bankTxId, transactionId: tx.id });
-        setPickerOpen(false);
-        setSearch('');
-    }
-
-    async function unlink(bankTxId: number) {
-        if (!tx.id) return;
-        await removeMatch.mutateAsync({ bankTxId, transactionId: tx.id });
-    }
-
-    return (
-        <div className="px-6 py-5">
-            <div className="flex items-center gap-2 mb-3">
-                <Link2 size={15} className="text-[#7E3FB4]" />
-                <span className="text-[14px] font-bold text-[#1B1B1F]">{t('transactions.detail.payment')}</span>
-            </div>
-
-            {isLoading ? (
-                <div className="flex items-center gap-2 p-3 text-[13px] text-[#6B6B76]">
-                    <Loader2 size={14} className="animate-spin" />
-                    {t('transactions.detail.bankLoading')}
-                </div>
-            ) : linked && linked.length > 0 ? (
-                <div className="space-y-2">
-                    {linked.map((b) => (
-                        <div key={b.id} className="flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
-                            <button
-                                type="button"
-                                onClick={() => navigate(`/bank-accounts?bankTx=${b.id}`)}
-                                title={t('transactions.detail.openBankTransaction')}
-                                className="flex items-center gap-3 min-w-0 flex-1 text-left group"
-                            >
-                                <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#E7F4EC' }}>
-                                    <Landmark size={16} className="text-[#1F7A50]" />
-                                </span>
-                                <span className="flex flex-col min-w-0 flex-1">
-                                    <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
-                                    <span className="text-[12px] text-[#6B6B76]">
-                                        {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
-                                    </span>
-                                </span>
-                                <span
-                                    className="text-[13px] font-bold tabular-nums flex-shrink-0"
-                                    style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}
-                                >
-                                    {fmtCurrency(b.amount)}
-                                </span>
-                                <ExternalLink size={15} className="text-[#9A9AA3] group-hover:text-[#7E3FB4] transition-colors flex-shrink-0" />
-                            </button>
-                            <button
-                                onClick={() => unlink(b.id!)}
-                                disabled={removeMatch.isPending}
-                                title={t('transactions.detail.unlink')}
-                                className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#B12C4C] hover:border-[#E8A0B2] transition-colors flex-shrink-0 disabled:opacity-50"
-                            >
-                                <Unlink size={14} />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="flex items-start gap-3 p-3 rounded-[10px] mb-2" style={{ background: '#F3EAFB' }}>
-                    <Unlink size={15} className="text-[#7E3FB4] mt-0.5 flex-shrink-0" />
-                    <p className="text-[13px] text-[#7E3FB4] font-medium">{t('transactions.detail.notLinked')}</p>
-                </div>
-            )}
-
-            {/* Link picker */}
-            {pickerOpen ? (
-                <div className="mt-3 rounded-[12px] border border-[#E9E9EE] overflow-hidden">
-                    <div className="flex items-center gap-2 px-3 py-2 border-b border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
-                        <Search size={14} className="text-[#9A9AA3]" />
-                        <input
-                            autoFocus
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder={t('transactions.detail.bankSearchPlaceholder')}
-                            className="flex-1 bg-transparent text-[13px] text-[#1B1B1F] placeholder-[#9A9AA3] outline-none"
-                        />
-                        <button onClick={() => setPickerOpen(false)} className="text-[#9A9AA3] hover:text-[#1B1B1F] transition-colors">
-                            <X size={15} />
-                        </button>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto">
-                        {isFetching ? (
-                            <div className="flex items-center gap-2 px-3 py-4 text-[13px] text-[#6B6B76]">
-                                <Loader2 size={14} className="animate-spin" />
-                                {t('transactions.detail.bankLoading')}
-                            </div>
-                        ) : (results ?? []).filter((b) => !linkedIds.has(b.id)).length === 0 ? (
-                            <p className="px-3 py-4 text-[13px] text-[#9A9AA3] text-center">{t('transactions.detail.bankNoResults')}</p>
-                        ) : (
-                            (results ?? [])
-                                .filter((b) => !linkedIds.has(b.id))
-                                .map((b) => (
-                                    <button
-                                        key={b.id}
-                                        onClick={() => link(b.id!)}
-                                        disabled={addMatch.isPending}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-[#F1F1F4] last:border-b-0 hover:bg-[#F3EAFB] transition-colors disabled:opacity-50"
-                                    >
-                                        <span
-                                            className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
-                                            style={{ background: '#F1F1F4' }}
-                                        >
-                                            <Landmark size={15} className="text-[#6B6B76]" />
-                                        </span>
-                                        <span className="flex flex-col min-w-0 flex-1">
-                                            <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
-                                            <span className="text-[12px] text-[#6B6B76]">
-                                                {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
-                                            </span>
-                                        </span>
-                                        <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
-                                    </button>
-                                ))
-                        )}
-                    </div>
-                </div>
-            ) : (
-                <button
-                    onClick={openPicker}
-                    className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors"
-                >
-                    <Link2 size={14} />
-                    {t('transactions.detail.linkBankTransaction')}
-                </button>
-            )}
-
-            {/* Hint to manage matches from the bank side */}
-            {tx.id && (
-                <button
-                    onClick={() => navigate('/bank-accounts')}
-                    className="mt-2 w-full text-[12px] text-[#9A9AA3] hover:text-[#7E3FB4] transition-colors text-center"
-                >
-                    {t('transactions.detail.openBankAccounts')}
-                </button>
-            )}
-        </div>
-    );
-}
-
 // ─── Detail Drawer ────────────────────────────────────────────────────────────
 
 function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; onClose: () => void; onDeleted: () => void }) {
@@ -355,6 +154,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const deleteMutation = useDeleteTransaction();
     const updateMutation = useUpdateTransaction();
     const confirmMutation = useConfirmTransaction();
+    const reopenMutation = useReopenTransaction();
     const { data: categoriesData } = useCategories();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const [editMode, setEditMode] = useState(false);
@@ -372,11 +172,28 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
+    // Tracks the transaction id we have already auto-opened in edit mode, so cancelling/saving
+    // a draft does not immediately re-enter edit mode.
+    const autoEditedRef = useRef<number | null>(null);
+
     // Reset edit mode whenever a different transaction is opened
     useEffect(() => {
         setEditMode(false);
         setConfirmDeleteOpen(false);
+        autoEditedRef.current = null;
     }, [txId]);
+
+    // Unconfirmed (draft) transactions open directly in edit mode with all fields editable
+    // and the bank transaction linking available, so the user can complete them in one step.
+    useEffect(() => {
+        if (!tx || tx.id == null || tx.id !== txId) return;
+        if (autoEditedRef.current === txId) return;
+        if (tx.status === 'DRAFT') {
+            autoEditedRef.current = txId;
+            startEdit();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tx, txId]);
 
     function startEdit() {
         if (!tx) return;
@@ -422,6 +239,11 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     async function handleConfirm() {
         if (!tx?.id) return;
         await confirmMutation.mutateAsync(tx.id);
+    }
+
+    async function handleReopen() {
+        if (!tx?.id) return;
+        await reopenMutation.mutateAsync(tx.id);
     }
 
     const amount = tx?.total ? Number(tx.total) : 0;
@@ -535,125 +357,138 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                     </div>
                 ) : (
                     /* Edit form */
-                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-                        {/* Direction */}
-                        <div>
-                            <label className={labelCls}>{t('transactions.create.direction')}</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(['expense', 'income'] as const).map((d) => {
-                                    const active = kind === d;
-                                    const Icon = d === 'expense' ? ArrowDownRight : ArrowUpRight;
-                                    const c =
-                                        d === 'expense'
-                                            ? { bg: '#FBEAEF', border: '#E8A0B2', text: '#B12C4C', iconBg: '#F5C6D2' }
-                                            : { bg: '#E7F4EC', border: '#7DC4A0', text: '#1F7A50', iconBg: '#B8E4CA' };
-                                    return (
-                                        <button
-                                            key={d}
-                                            type="button"
-                                            onClick={() => setKind(d)}
-                                            className="flex items-center gap-2.5 p-3 rounded-[12px] border-2 transition-all text-left"
-                                            style={{ borderColor: active ? c.border : '#E9E9EE', background: active ? c.bg : '#F8F8FA' }}
-                                        >
-                                            <span
-                                                className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
-                                                style={{ background: active ? c.iconBg : '#EBEBF0', color: active ? c.text : '#9A9AA3' }}
+                    <div className="flex-1 overflow-y-auto">
+                        <div className="px-6 py-5 space-y-4">
+                            {/* Direction */}
+                            <div>
+                                <label className={labelCls}>{t('transactions.create.direction')}</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {(['expense', 'income'] as const).map((d) => {
+                                        const active = kind === d;
+                                        const Icon = d === 'expense' ? ArrowDownRight : ArrowUpRight;
+                                        const c =
+                                            d === 'expense'
+                                                ? { bg: '#FBEAEF', border: '#E8A0B2', text: '#B12C4C', iconBg: '#F5C6D2' }
+                                                : { bg: '#E7F4EC', border: '#7DC4A0', text: '#1F7A50', iconBg: '#B8E4CA' };
+                                        return (
+                                            <button
+                                                key={d}
+                                                type="button"
+                                                onClick={() => setKind(d)}
+                                                className="flex items-center gap-2.5 p-3 rounded-[12px] border-2 transition-all text-left"
+                                                style={{ borderColor: active ? c.border : '#E9E9EE', background: active ? c.bg : '#F8F8FA' }}
                                             >
-                                                <Icon size={16} strokeWidth={2} />
-                                            </span>
-                                            <span className="font-bold text-[13.5px]" style={{ color: active ? c.text : '#6B6B76' }}>
-                                                {t(`transactions.create.${d}`)}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
+                                                <span
+                                                    className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
+                                                    style={{ background: active ? c.iconBg : '#EBEBF0', color: active ? c.text : '#9A9AA3' }}
+                                                >
+                                                    <Icon size={16} strokeWidth={2} />
+                                                </span>
+                                                <span className="font-bold text-[13.5px]" style={{ color: active ? c.text : '#6B6B76' }}>
+                                                    {t(`transactions.create.${d}`)}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Amount + Date */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className={labelCls}>{t('transactions.create.amount')} (€)</label>
-                                <input type="text" inputMode="decimal" value={amountStr} onChange={(e) => setAmountStr(e.target.value)} className={inputCls} />
+                            {/* Amount + Date */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className={labelCls}>{t('transactions.create.amount')} (€)</label>
+                                    <input
+                                        type="text"
+                                        inputMode="decimal"
+                                        value={amountStr}
+                                        onChange={(e) => setAmountStr(e.target.value)}
+                                        className={inputCls}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelCls}>{t('transactions.detail.date')}</label>
+                                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+                                </div>
                             </div>
+
+                            {/* Name */}
                             <div>
-                                <label className={labelCls}>{t('transactions.detail.date')}</label>
-                                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
+                                <label className={labelCls}>{t('transactions.create.name')}</label>
+                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
                             </div>
-                        </div>
 
-                        {/* Name */}
-                        <div>
-                            <label className={labelCls}>{t('transactions.create.name')}</label>
-                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
-                        </div>
-
-                        {/* Sender */}
-                        <div>
-                            <label className={labelCls}>{t('transactions.create.sender')}</label>
-                            <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputCls} />
-                        </div>
-
-                        {/* Category + Bommel */}
-                        <div className="grid grid-cols-2 gap-3">
+                            {/* Sender — labelled by direction: income means the counterparty is the recipient. */}
                             <div>
-                                <label className={labelCls}>{t('transactions.detail.category')}</label>
-                                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
+                                <label className={labelCls}>{kind === 'income' ? t('transactions.create.recipient') : t('transactions.create.issuer')}</label>
+                                <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputCls} />
+                            </div>
+
+                            {/* Category + Bommel */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className={labelCls}>{t('transactions.detail.category')}</label>
+                                    <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
+                                        <option value="">—</option>
+                                        {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
+                                            <option key={c.id} value={c.id}>
+                                                {c.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className={labelCls}>{t('transactions.detail.bommel')}</label>
+                                    <select value={bommelId} onChange={(e) => setBommelId(e.target.value)} className={inputCls}>
+                                        <option value="">—</option>
+                                        {allBommels.map((b) => (
+                                            <option key={b.id} value={b.id ?? ''}>
+                                                {(b as { name?: string }).name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Area */}
+                            <div>
+                                <label className={labelCls}>{t('transactions.detail.area')}</label>
+                                <select value={area} onChange={(e) => setArea(e.target.value)} className={inputCls}>
                                     <option value="">—</option>
-                                    {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name}
+                                    {AREAS.map((a) => (
+                                        <option key={a.value} value={a.value}>
+                                            {a.label}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-                            <div>
-                                <label className={labelCls}>{t('transactions.detail.bommel')}</label>
-                                <select value={bommelId} onChange={(e) => setBommelId(e.target.value)} className={inputCls}>
-                                    <option value="">—</option>
-                                    {allBommels.map((b) => (
-                                        <option key={b.id} value={b.id ?? ''}>
-                                            {(b as { name?: string }).name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
 
-                        {/* Area */}
-                        <div>
-                            <label className={labelCls}>{t('transactions.detail.area')}</label>
-                            <select value={area} onChange={(e) => setArea(e.target.value)} className={inputCls}>
-                                <option value="">—</option>
-                                {AREAS.map((a) => (
-                                    <option key={a.value} value={a.value}>
-                                        {a.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Privately paid */}
-                        <button
-                            type="button"
-                            onClick={() => setPrivatelyPaid((v) => !v)}
-                            className="w-full flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
-                            style={{ borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE', background: privatelyPaid ? '#F3EAFB' : '#F8F8FA' }}
-                        >
-                            <span
-                                className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
-                                style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
+                            {/* Privately paid */}
+                            <button
+                                type="button"
+                                onClick={() => setPrivatelyPaid((v) => !v)}
+                                className="w-full flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
+                                style={{ borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE', background: privatelyPaid ? '#F3EAFB' : '#F8F8FA' }}
                             >
-                                {privatelyPaid ? (
-                                    <Check size={16} strokeWidth={2.5} color="#7E3FB4" />
-                                ) : (
-                                    <span className="w-4 h-4 rounded border-2 border-[#C0C0CC]" />
-                                )}
-                            </span>
-                            <span className="text-[13.5px] font-bold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
-                                {t('transactions.detail.privatelyPaid')}
-                            </span>
-                        </button>
+                                <span
+                                    className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
+                                    style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
+                                >
+                                    {privatelyPaid ? (
+                                        <Check size={16} strokeWidth={2.5} color="#7E3FB4" />
+                                    ) : (
+                                        <span className="w-4 h-4 rounded border-2 border-[#C0C0CC]" />
+                                    )}
+                                </span>
+                                <span className="text-[13.5px] font-bold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
+                                    {t('transactions.detail.privatelyPaid')}
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Zahlung & Abgleich – Banktransaktionen direkt beim Bearbeiten verknüpfen */}
+                        <div className="border-t border-[#E9E9EE]">
+                            <BankMatchSection tx={tx} />
+                        </div>
                     </div>
                 )}
 
@@ -697,7 +532,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     <Pencil size={14} />
                                     {t('transactions.detail.edit')}
                                 </button>
-                                {tx.status === 'DRAFT' && (
+                                {tx.status === 'DRAFT' ? (
                                     <button
                                         onClick={handleConfirm}
                                         disabled={confirmMutation.isPending}
@@ -706,6 +541,15 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     >
                                         <Check size={14} strokeWidth={2.5} />
                                         {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleReopen}
+                                        disabled={reopenMutation.isPending}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#B47C18] hover:bg-[#FBF1DD] hover:border-[#E4C876] transition-colors disabled:opacity-50"
+                                    >
+                                        <RotateCcw size={14} />
+                                        {reopenMutation.isPending ? '…' : t('transactions.detail.reopen')}
                                     </button>
                                 )}
                             </>

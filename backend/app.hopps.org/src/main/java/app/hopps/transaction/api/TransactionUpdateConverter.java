@@ -26,6 +26,11 @@ public class TransactionUpdateConverter {
     CategoryRepository categoryRepository;
 
     public void applyUpdateRequestToTransaction(Transaction transaction, TransactionUpdateRequest request) {
+        // Capture the counterparty and direction before total (and thus the direction) may change below, so
+        // the parties can be re-placed correctly if the transaction flips between expense and income.
+        TradeParty previousCounterparty = transaction.getCounterparty();
+        boolean wasIncome = transaction.isIncome();
+
         if (request.name() != null) {
             transaction.setName(request.name());
         }
@@ -76,18 +81,19 @@ public class TransactionUpdateConverter {
             transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
         }
 
-        // Update sender
+        // Re-place the counterparty (senderName* fields) on the side matching the current direction and keep
+        // the organization on the other side. A new counterparty is built when one was supplied; otherwise the
+        // existing one is only moved when the direction flipped, to avoid needless churn.
         if (request.senderName() != null && !request.senderName().isBlank()) {
-            TradeParty sender = transaction.getSender();
-            if (sender == null) {
-                sender = new TradeParty();
-                sender.setOrganization(transaction.getOrganization());
-                transaction.setSender(sender);
-            }
-            sender.setName(request.senderName());
-            sender.setStreet(request.senderStreet());
-            sender.setZipCode(request.senderZipCode());
-            sender.setCity(request.senderCity());
+            TradeParty counterparty = new TradeParty();
+            counterparty.setOrganization(transaction.getOrganization());
+            counterparty.setName(request.senderName());
+            counterparty.setStreet(request.senderStreet());
+            counterparty.setZipCode(request.senderZipCode());
+            counterparty.setCity(request.senderCity());
+            transaction.setCounterparty(counterparty);
+        } else if (wasIncome != transaction.isIncome()) {
+            transaction.setCounterparty(previousCounterparty);
         }
 
         if (request.tags() != null) {

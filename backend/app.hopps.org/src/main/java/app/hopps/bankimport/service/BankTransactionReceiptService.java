@@ -129,15 +129,18 @@ public class BankTransactionReceiptService {
         if (bankTx.getBankAccount() != null) {
             transaction.setBommel(bankTx.getBankAccount().getBommel());
         }
-        // Vertragspartner = counterparty of the bank movement.
+        // Vertragspartner = counterparty of the bank movement. The entity places it on the side matching the
+        // direction and records the organization on the other side.
         if (bankTx.getCounterpartyName() != null && !bankTx.getCounterpartyName().isBlank()) {
-            TradeParty sender = new TradeParty();
-            sender.setOrganization(organization);
-            sender.setName(bankTx.getCounterpartyName());
+            TradeParty counterparty = new TradeParty();
+            counterparty.setOrganization(organization);
+            counterparty.setName(bankTx.getCounterpartyName());
             if (bankTx.getCounterpartyIban() != null && !bankTx.getCounterpartyIban().isBlank()) {
-                sender.setVatId(bankTx.getCounterpartyIban());
+                counterparty.setVatId(bankTx.getCounterpartyIban());
             }
-            transaction.setSender(sender);
+            transaction.setCounterparty(counterparty);
+        } else {
+            transaction.setCounterparty(null);
         }
         transactionRepository.persist(transaction);
 

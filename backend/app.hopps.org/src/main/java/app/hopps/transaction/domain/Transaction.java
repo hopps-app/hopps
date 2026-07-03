@@ -294,20 +294,67 @@ public class Transaction extends PanacheEntity {
 
     // Helper methods
 
+    /**
+     * Whether this transaction records income (money received). Expenses carry a negative total, income is zero or
+     * positive. Drives on which side ({@link #sender} / {@link #recipient}) the counterparty and the organization are
+     * stored.
+     */
+    public boolean isIncome() {
+        return total != null && total.signum() >= 0;
+    }
+
+    /**
+     * The counterparty — the "other" party shown and edited in the UI. For an expense this is the invoice issuer
+     * ({@link #sender}); for income it is the addressee ({@link #recipient}). The organization itself is always stored
+     * on the opposite side.
+     */
+    public TradeParty getCounterparty() {
+        return isIncome() ? recipient : sender;
+    }
+
+    /**
+     * Stores the counterparty on the side matching the current direction and records the organization on the opposite
+     * side (expense → recipient = organization, income → sender = organization). {@link #total} (direction) and
+     * {@link #organization} must be set beforehand.
+     */
+    public void setCounterparty(TradeParty counterparty) {
+        if (isIncome()) {
+            this.recipient = counterparty;
+            this.sender = organizationTradeParty();
+        } else {
+            this.sender = counterparty;
+            this.recipient = organizationTradeParty();
+        }
+    }
+
+    private TradeParty organizationTradeParty() {
+        if (organization == null) {
+            return null;
+        }
+        TradeParty party = new TradeParty();
+        party.setOrganization(organization);
+        party.setName(organization.getName());
+        return party;
+    }
+
     public String getSenderName() {
-        return sender != null ? sender.getName() : null;
+        TradeParty counterparty = getCounterparty();
+        return counterparty != null ? counterparty.getName() : null;
     }
 
     public String getSenderStreet() {
-        return sender != null ? sender.getStreet() : null;
+        TradeParty counterparty = getCounterparty();
+        return counterparty != null ? counterparty.getStreet() : null;
     }
 
     public String getSenderZipCode() {
-        return sender != null ? sender.getZipCode() : null;
+        TradeParty counterparty = getCounterparty();
+        return counterparty != null ? counterparty.getZipCode() : null;
     }
 
     public String getSenderCity() {
-        return sender != null ? sender.getCity() : null;
+        TradeParty counterparty = getCounterparty();
+        return counterparty != null ? counterparty.getCity() : null;
     }
 
     public boolean hasDocument() {
