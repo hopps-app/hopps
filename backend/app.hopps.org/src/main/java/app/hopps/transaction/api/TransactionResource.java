@@ -7,6 +7,7 @@ import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionArea;
+import app.hopps.transaction.domain.TransactionChangedEvent;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
@@ -29,6 +30,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -62,6 +64,9 @@ public class TransactionResource {
 
     @Inject
     Event<TransactionDeletedEvent> transactionDeletedEvent;
+
+    @Inject
+    Event<TransactionChangedEvent> transactionChangedEvent;
 
     @GET
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
@@ -184,10 +189,28 @@ public class TransactionResource {
             throw new NotFoundException("Transaction not found");
         }
 
+        BigDecimal previousTotal = transaction.getTotal();
         updateConverter.applyUpdateRequestToTransaction(transaction, request);
+
+        // If the amount changed, refresh any bank-transaction match snapshot so a partially covered bank transaction
+        // no longer stays FULLY_MATCHED (and the still-open amount reappears in the list).
+        if (totalChanged(previousTotal, transaction.getTotal())) {
+            transactionChangedEvent.fire(new TransactionChangedEvent(transaction.getId()));
+        }
 
         LOG.info("Transaction updated: id={}", transaction.getId());
         return TransactionResponse.from(transaction);
+    }
+
+    /**
+     * Compares two amounts by value (ignoring scale so e.g. {@code 10.0} equals {@code 10.00}) and treating null as "no
+     * amount". Returns true when the amount effectively changed.
+     */
+    private static boolean totalChanged(BigDecimal previous, BigDecimal current) {
+        if (previous == null || current == null) {
+            return previous != current;
+        }
+        return previous.compareTo(current) != 0;
     }
 
     @POST
