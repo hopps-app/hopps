@@ -550,7 +550,7 @@
       "analyzing": "Analyzing",
       "ready": "Review",
       "confirmed": "Confirmed",
-      "failed": "Failed"
+      "failed": "Manual entry"
     },
     "statusDescription": {
       "pending": "Receipt uploaded – analysis is about to start.",
@@ -590,7 +590,22 @@
       "progress": "{{done}} of {{total}} uploaded",
       "itemUploading": "Uploading …",
       "itemDone": "Uploaded",
-      "itemError": "Failed"
+      "itemError": "Failed",
+      "analysis": {
+        "aiWarning": "The data recognized by the AI may contain errors. Please check all fields before saving.",
+        "pending": "Analysis is about to start …",
+        "analyzing": "Analyzing receipt …",
+        "completed": "Analysis complete",
+        "completedDescription": "Please check the recognized data and correct it if needed.",
+        "extractedViaZugferd": "Data taken from ZUGFeRD invoice",
+        "extractedViaDocumentAI": "Data recognized via AI analysis",
+        "failed": "Automatic analysis not possible – please enter the data manually",
+        "serviceUnavailable": "Analysis service unavailable right now – please enter the data manually",
+        "pollingTimeout": "The analysis is taking longer than expected. You can enter the data yourself at any time.",
+        "errorDetail": "Details: {{error}}",
+        "retry": "Restart analysis",
+        "retryFailed": "The analysis could not be restarted. Please try again later."
+      }
     },
     "areas": {
       "ideell": "Non-profit area",
