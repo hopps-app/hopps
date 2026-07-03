@@ -232,6 +232,25 @@ public class TransactionResource {
         return TransactionResponse.from(transaction);
     }
 
+    @POST
+    @Path("/{id}/reopen")
+    @Transactional
+    @Operation(summary = "Reopen a transaction", description = "Reverts a confirmed transaction back to draft status")
+    @APIResponse(responseCode = "200", description = "Transaction reopened", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse.class)))
+    @APIResponse(responseCode = "404", description = "Transaction not found")
+    public TransactionResponse reopenTransaction(
+            @PathParam("id") @Parameter(description = "Transaction ID") Long id) {
+        Transaction transaction = transactionRepository.findByIdScoped(id);
+        if (transaction == null) {
+            throw new NotFoundException("Transaction not found");
+        }
+
+        transaction.setStatus(TransactionStatus.DRAFT);
+        LOG.info("Transaction reopened: id={}", transaction.getId());
+
+        return TransactionResponse.from(transaction);
+    }
+
     @DELETE
     @Path("/{id}")
     @Transactional

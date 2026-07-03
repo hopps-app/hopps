@@ -3,10 +3,10 @@ import { X, Check, ArrowDownRight, ArrowUpRight, Plus } from 'lucide-react';
 import { useState, useRef, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useCreateTransaction } from '@/hooks/queries/useTransactions';
 import { useCategories } from '@/hooks/queries/useCategories';
-import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useCreateTransaction } from '@/hooks/queries/useTransactions';
 import { cn } from '@/lib/utils';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
@@ -72,7 +72,10 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
     }
 
     function handleTagKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-        if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTag();
+        }
         if (e.key === 'Backspace' && !tagInput && tags.length) {
             setTags((prev) => prev.slice(0, -1));
         }
@@ -81,7 +84,10 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         const rawAmount = parseFloat(amount.replace(',', '.'));
-        if (!amount || isNaN(rawAmount)) { setAmountError(true); return; }
+        if (!amount || isNaN(rawAmount)) {
+            setAmountError(true);
+            return;
+        }
         setAmountError(false);
 
         const signedAmount = direction === 'expense' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
@@ -103,7 +109,8 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
     }
 
     // Shared input style
-    const inputCls = 'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2.5 text-[14px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
+    const inputCls =
+        'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2.5 text-[14px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
     const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3] mb-1.5';
 
     return (
@@ -116,15 +123,16 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
 
             {/* Drawer */}
             <div
-                className={cn('fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out', open ? 'translate-x-0' : 'translate-x-full')}
+                className={cn(
+                    'fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out',
+                    open ? 'translate-x-0' : 'translate-x-full'
+                )}
                 style={{ width: 460, maxWidth: '100vw', background: '#FFFFFF', boxShadow: '0 12px 40px rgba(20,20,40,.16)', fontFamily: FONT }}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-[#E9E9EE]">
                     <div>
-                        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">
-                            {t('transactions.create.title')}
-                        </span>
+                        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">{t('transactions.create.title')}</span>
                         <p className="mt-0.5 text-[13px] text-[#6B6B76]">{t('transactions.create.subtitle')}</p>
                     </div>
                     <button
@@ -137,7 +145,6 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
 
                 {/* Scrollable body */}
                 <form id="create-tx-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-
                     {/* Direction toggle */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.direction')}</label>
@@ -145,7 +152,10 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                             {(['expense', 'income'] as const).map((d) => {
                                 const active = direction === d;
                                 const Icon = d === 'expense' ? ArrowDownRight : ArrowUpRight;
-                                const activeColor = d === 'expense' ? { bg: '#FBEAEF', border: '#E8A0B2', text: '#B12C4C', iconBg: '#F5C6D2' } : { bg: '#E7F4EC', border: '#7DC4A0', text: '#1F7A50', iconBg: '#B8E4CA' };
+                                const activeColor =
+                                    d === 'expense'
+                                        ? { bg: '#FBEAEF', border: '#E8A0B2', text: '#B12C4C', iconBg: '#F5C6D2' }
+                                        : { bg: '#E7F4EC', border: '#7DC4A0', text: '#1F7A50', iconBg: '#B8E4CA' };
                                 return (
                                     <button
                                         key={d}
@@ -167,7 +177,10 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                                             {t(`transactions.create.${d}`)}
                                         </span>
                                         {active && (
-                                            <span className="ml-auto w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: activeColor.text }}>
+                                            <span
+                                                className="ml-auto w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                                                style={{ background: activeColor.text }}
+                                            >
                                                 <Check size={11} color="white" strokeWidth={3} />
                                             </span>
                                         )}
@@ -187,7 +200,10 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                                     type="text"
                                     inputMode="decimal"
                                     value={amount}
-                                    onChange={(e) => { setAmount(e.target.value); setAmountError(false); }}
+                                    onChange={(e) => {
+                                        setAmount(e.target.value);
+                                        setAmountError(false);
+                                    }}
                                     placeholder={t('transactions.create.amountPlaceholder')}
                                     className={cn(inputCls, 'pl-7', amountError && 'border-[#E8A0B2] bg-[#FFF5F7]')}
                                 />
@@ -212,9 +228,9 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                         />
                     </div>
 
-                    {/* Sender */}
+                    {/* Sender — labelled by direction: income means the counterparty is the recipient. */}
                     <div>
-                        <label className={labelCls}>{t('transactions.create.sender')}</label>
+                        <label className={labelCls}>{direction === 'income' ? t('transactions.create.recipient') : t('transactions.create.issuer')}</label>
                         <input
                             type="text"
                             value={senderName}
@@ -231,7 +247,9 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                             <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
                                 <option value="">—</option>
                                 {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -240,7 +258,9 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                             <select value={bommelId} onChange={(e) => setBommelId(e.target.value)} className={inputCls}>
                                 <option value="">—</option>
                                 {allBommels.map((b) => (
-                                    <option key={b.id} value={b.id ?? ''}>{(b as { name?: string }).name}</option>
+                                    <option key={b.id} value={b.id ?? ''}>
+                                        {(b as { name?: string }).name}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -251,7 +271,9 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                         <label className={labelCls}>{t('transactions.create.area')}</label>
                         <select value={area} onChange={(e) => setArea(e.target.value)} className={inputCls}>
                             {AREAS.map((a) => (
-                                <option key={a.value} value={a.value}>{a.label ?? t(a.labelKey!)}</option>
+                                <option key={a.value} value={a.value}>
+                                    {a.label ?? t(a.labelKey!)}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -271,10 +293,11 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                                 className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-colors"
                                 style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
                             >
-                                {privatelyPaid
-                                    ? <Check size={17} strokeWidth={2.5} color="#7E3FB4" />
-                                    : <span className="w-4 h-4 rounded border-2 border-[#C0C0CC]" />
-                                }
+                                {privatelyPaid ? (
+                                    <Check size={17} strokeWidth={2.5} color="#7E3FB4" />
+                                ) : (
+                                    <span className="w-4 h-4 rounded border-2 border-[#C0C0CC]" />
+                                )}
                             </span>
                             <div className="min-w-0">
                                 <p className="text-[14px] font-bold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
@@ -299,7 +322,11 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                                     style={{ background: '#F3EAFB', color: '#7E3FB4' }}
                                 >
                                     {tag}
-                                    <button type="button" onClick={() => setTags((prev) => prev.filter((t) => t !== tag))} className="hover:text-[#B12C4C] transition-colors">
+                                    <button
+                                        type="button"
+                                        onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                                        className="hover:text-[#B12C4C] transition-colors"
+                                    >
                                         <X size={11} strokeWidth={2.5} />
                                     </button>
                                 </span>

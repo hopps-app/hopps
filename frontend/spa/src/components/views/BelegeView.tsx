@@ -8,6 +8,7 @@ import {
     Check,
     RefreshCw,
     ChevronRight,
+    ChevronDown,
     Sparkles,
     AlertCircle,
     Clock,
@@ -21,12 +22,13 @@ import {
     PencilLine,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileRejection } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { LoadingState } from '@/components/common/LoadingState';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
+import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
@@ -38,6 +40,7 @@ import {
     useUpdateDocument,
     useDeleteDocument,
     useReanalyzeDocument,
+    useReanalyzeDocuments,
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
@@ -58,6 +61,16 @@ const DOC_GRID = 'minmax(0,2.3fr) 1fr 1fr 1fr 1.1fr 40px';
 // Stable marker set by the backend when the AI analysis service was unreachable (mirrors
 // DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
 const ANALYSIS_SERVICE_UNAVAILABLE = 'ANALYSIS_SERVICE_UNAVAILABLE';
+
+// Whether a document is a candidate for (re-)analysis: analysis previously failed, or it was never analyzed
+// (uploaded with analysis skipped / no status yet). Already-analyzed (COMPLETED), in-progress (PENDING /
+// ANALYZING) and confirmed documents are deliberately excluded, and it must have a file to analyze.
+function canReanalyzeDocument(doc: DocumentResponse): boolean {
+    if (doc.documentStatus === 'CONFIRMED' || !doc.fileName) return false;
+    const failed = doc.analysisStatus === 'FAILED' || doc.documentStatus === 'FAILED';
+    const notAnalyzed = doc.analysisStatus === 'SKIPPED' || doc.analysisStatus == null;
+    return failed || notAnalyzed;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -373,6 +386,10 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const aiSender = liveDoc?.senderName ?? undefined;
     // Whether the document analysis actually produced any usable data.
     const receiptHasData = !!(aiName || aiAmount || aiDate || aiSender);
+
+    // For income ("Einnahme" = OUTGOING direction) the counterparty is the recipient, so the sender field
+    // is labelled "Empfänger"; for an expense it stays "Aussteller".
+    const senderLabel = direction === 'OUTGOING' ? t('receipts.review.recipient') : t('receipts.review.sender');
 
     function buildPayload() {
         const rawAmount = parseFloat(amount.replace(',', '.'));
@@ -703,7 +720,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                         />
                                     </div>
                                     <InputField
-                                        label={t('receipts.review.sender')}
+                                        label={senderLabel}
                                         value={senderName}
                                         onChange={setSenderName}
                                         loading={isAnalyzing && !senderName}
@@ -752,6 +769,14 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                 </div>
                             )}
 
+                            {/* Bank reconciliation — assign the bank transaction directly here, without opening the
+                                transaction screen. Only available once a linked transaction exists. */}
+                            {hasLinkedTransaction && detailTab === 'transaction' && linkedTx && (
+                                <div className="border-t border-[#E9E9EE]">
+                                    <BankMatchSection tx={linkedTx} />
+                                </div>
+                            )}
+
                             {/* Analysed receipt data (read-only) with per-field "apply to transaction". */}
                             {hasLinkedTransaction && detailTab === 'receipt' && (
                                 <div className="px-6 py-5">
@@ -784,7 +809,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                                 applyLabel={t('receipts.review.applySuggestion')}
                                             />
                                             <ReceiptDataRow
-                                                label={t('receipts.review.sender')}
+                                                label={senderLabel}
                                                 value={aiSender ?? null}
                                                 canApply={!fieldsDisabled && !!aiSender && aiSender !== senderName}
                                                 onApply={() => setSenderName(aiSender!)}
@@ -953,13 +978,31 @@ function DocumentRow({ doc, onClick, selected }: { doc: DocumentResponse; onClic
 
 // ─── Upload Dropzone ──────────────────────────────────────────────────────────
 
+// Largest receipt accepted for upload. Kept in sync with the backend limits (org service and the
+// az-document-ai analysis service, both `quarkus.http.limits.max-body-size=10M`). Enforced client-side so
+// oversized files get a clear message instead of a backend 413.
+const MAX_UPLOAD_MB = 10;
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+
 type UploadItem = { key: string; name: string; status: 'uploading' | 'done' | 'error' };
 
 function UploadZone({ onUploaded }: { onUploaded: () => void }) {
     const { t } = useTranslation();
+    const { showWarning } = useToast();
     const uploadMutation = useUploadDocument();
     const [analyze, setAnalyze] = useState(true);
     const [items, setItems] = useState<UploadItem[]>([]);
+    // Whether the upload area is collapsed to a slim bar, so the document list gets more room. The
+    // component stays mounted while collapsed, so in-progress uploads keep running. The choice is remembered.
+    const [collapsed, setCollapsed] = useState(() => localStorage.getItem('receipts.uploadCollapsed') === 'true');
+
+    function toggleCollapsed() {
+        setCollapsed((c) => {
+            const next = !c;
+            localStorage.setItem('receipts.uploadCollapsed', String(next));
+            return next;
+        });
+    }
 
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
@@ -989,9 +1032,31 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         [uploadMutation, analyze, onUploaded]
     );
 
+    // Files the dropzone rejected (too large, or an unsupported type) never reach onDrop — surface a clear
+    // warning so the upload doesn't just silently drop them.
+    const onDropRejected = useCallback(
+        (rejections: FileRejection[]) => {
+            const tooLarge = rejections.filter((r) => r.errors.some((e) => e.code === 'file-too-large')).map((r) => r.file.name);
+            const wrongType = rejections.filter((r) => r.errors.some((e) => e.code === 'file-invalid-type')).map((r) => r.file.name);
+            if (tooLarge.length > 0) {
+                showWarning(t('receipts.upload.tooLargeTitle'), {
+                    description: t('receipts.upload.tooLargeDescription', { files: tooLarge.join(', '), max: MAX_UPLOAD_MB }),
+                });
+            }
+            if (wrongType.length > 0) {
+                showWarning(t('receipts.upload.invalidTypeTitle'), {
+                    description: t('receipts.upload.invalidTypeDescription', { files: wrongType.join(', ') }),
+                });
+            }
+        },
+        [showWarning, t]
+    );
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
+        onDropRejected,
         accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
+        maxSize: MAX_UPLOAD_BYTES,
         multiple: true,
     });
 
@@ -1000,88 +1065,123 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
 
     return (
         <div
-            className="rounded-[18px] border border-[#E9E9EE] p-5"
+            className="rounded-[18px] border border-[#E9E9EE] px-5 py-4"
             style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
         >
-            <div
-                {...getRootProps()}
-                className={cn(
-                    'flex flex-col items-center justify-center gap-3 rounded-[14px] border-2 border-dashed py-10 px-6 cursor-pointer transition-all',
-                    isDragActive ? 'border-[#9955CC] bg-[#F3EAFB]' : 'border-[#E0E0E6] hover:border-[#C7A2E3] hover:bg-[#FAFAFA]'
-                )}
-            >
-                <input {...getInputProps()} />
-                <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: isDragActive ? '#E0C8F5' : '#F3EAFB' }}>
-                    {isUploading ? <Loader2 size={26} className="text-[#7E3FB4] animate-spin" /> : <Upload size={26} className="text-[#7E3FB4]" />}
-                </div>
-                <div className="text-center">
-                    <p className="font-bold text-[15px] text-[#1B1B1F]" style={{ fontFamily: FONT }}>
-                        {isUploading ? t('receipts.upload.uploading') : isDragActive ? t('receipts.upload.dropzoneActive') : t('receipts.upload.dropzone')}
-                    </p>
-                    {!isUploading && (
-                        <p className="mt-1 text-[13px] text-[#9A9AA3]" style={{ fontFamily: FONT }}>
-                            {t('receipts.upload.hint')}
-                        </p>
-                    )}
-                </div>
-            </div>
-
-            {/* Per-file upload progress — updates row by row as each individual request settles. */}
-            {items.length > 0 && (
-                <div className="mt-3 space-y-1.5">
-                    {isUploading && (
-                        <p className="px-1 text-[12px] font-semibold text-[#6B6B76]">
-                            {t('receipts.upload.progress', { done: doneCount, total: items.length })}
-                        </p>
-                    )}
-                    {items.map((it) => {
-                        const label = it.status === 'uploading' ? 'itemUploading' : it.status === 'done' ? 'itemDone' : 'itemError';
-                        const color = it.status === 'error' ? '#B12C4C' : it.status === 'done' ? '#1F7A50' : '#9A9AA3';
-                        return (
-                            <div
-                                key={it.key}
-                                className="flex items-center gap-2.5 px-3 py-2 rounded-[10px] border border-[#E9E9EE]"
-                                style={{ background: '#F8F8FA' }}
-                            >
-                                <span className="flex-shrink-0">
-                                    {it.status === 'uploading' && <Loader2 size={15} className="text-[#7E3FB4] animate-spin" />}
-                                    {it.status === 'done' && (
-                                        <span className="w-[18px] h-[18px] rounded-full flex items-center justify-center" style={{ background: '#E7F4EC' }}>
-                                            <Check size={12} strokeWidth={2.5} className="text-[#1F7A50]" />
-                                        </span>
-                                    )}
-                                    {it.status === 'error' && <AlertCircle size={16} className="text-[#B12C4C]" />}
-                                </span>
-                                <span className="flex-1 min-w-0 truncate text-[13px] text-[#1B1B1F]">{it.name}</span>
-                                <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
-                                    {t(`receipts.upload.${label}`)}
-                                </span>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {/* AI analyze toggle */}
+            {/* Collapsible header — click to fold the whole upload area away so the receipt list has more room. */}
             <button
                 type="button"
-                onClick={() => setAnalyze((v) => !v)}
-                className="mt-3 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] border transition-all"
-                style={{
-                    borderColor: analyze ? '#9955CC' : '#E9E9EE',
-                    background: analyze ? '#F3EAFB' : '#F8F8FA',
-                }}
+                onClick={toggleCollapsed}
+                aria-expanded={!collapsed}
+                aria-label={collapsed ? t('receipts.upload.expand') : t('receipts.upload.collapse')}
+                className="w-full flex items-center gap-3"
             >
-                <span
-                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
-                    style={{ background: analyze ? '#E0C8F5' : '#EBEBF0' }}
-                >
-                    {analyze ? <Check size={14} strokeWidth={2.5} color="#7E3FB4" /> : <Sparkles size={14} color="#9A9AA3" />}
+                <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
+                    {isUploading ? <Loader2 size={18} className="text-[#7E3FB4] animate-spin" /> : <Upload size={18} className="text-[#7E3FB4]" />}
                 </span>
-                <span className="text-[13.5px] font-semibold" style={{ color: analyze ? '#7E3FB4' : '#6B6B76', fontFamily: FONT }}>
-                    {t('receipts.upload.analyzeLabel')}
+                <span className="flex flex-col min-w-0 flex-1 text-left">
+                    <span className="text-[14px] font-bold text-[#1B1B1F]" style={{ fontFamily: FONT }}>
+                        {t('receipts.upload.sectionTitle')}
+                    </span>
+                    {collapsed && (
+                        <span className="text-[12px] text-[#9A9AA3] truncate" style={{ fontFamily: FONT }}>
+                            {isUploading ? t('receipts.upload.progress', { done: doneCount, total: items.length }) : t('receipts.upload.hint')}
+                        </span>
+                    )}
                 </span>
+                <ChevronDown size={18} className={cn('text-[#9A9AA3] transition-transform flex-shrink-0', collapsed ? '' : 'rotate-180')} />
             </button>
+
+            {!collapsed && (
+                <div className="mt-4">
+                    <div
+                        {...getRootProps()}
+                        className={cn(
+                            'flex flex-col items-center justify-center gap-3 rounded-[14px] border-2 border-dashed py-10 px-6 cursor-pointer transition-all',
+                            isDragActive ? 'border-[#9955CC] bg-[#F3EAFB]' : 'border-[#E0E0E6] hover:border-[#C7A2E3] hover:bg-[#FAFAFA]'
+                        )}
+                    >
+                        <input {...getInputProps()} />
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: isDragActive ? '#E0C8F5' : '#F3EAFB' }}>
+                            {isUploading ? <Loader2 size={26} className="text-[#7E3FB4] animate-spin" /> : <Upload size={26} className="text-[#7E3FB4]" />}
+                        </div>
+                        <div className="text-center">
+                            <p className="font-bold text-[15px] text-[#1B1B1F]" style={{ fontFamily: FONT }}>
+                                {isUploading
+                                    ? t('receipts.upload.uploading')
+                                    : isDragActive
+                                      ? t('receipts.upload.dropzoneActive')
+                                      : t('receipts.upload.dropzone')}
+                            </p>
+                            {!isUploading && (
+                                <p className="mt-1 text-[13px] text-[#9A9AA3]" style={{ fontFamily: FONT }}>
+                                    {t('receipts.upload.hint')}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Per-file upload progress — updates row by row as each individual request settles. */}
+                    {items.length > 0 && (
+                        <div className="mt-3 space-y-1.5">
+                            {isUploading && (
+                                <p className="px-1 text-[12px] font-semibold text-[#6B6B76]">
+                                    {t('receipts.upload.progress', { done: doneCount, total: items.length })}
+                                </p>
+                            )}
+                            {items.map((it) => {
+                                const label = it.status === 'uploading' ? 'itemUploading' : it.status === 'done' ? 'itemDone' : 'itemError';
+                                const color = it.status === 'error' ? '#B12C4C' : it.status === 'done' ? '#1F7A50' : '#9A9AA3';
+                                return (
+                                    <div
+                                        key={it.key}
+                                        className="flex items-center gap-2.5 px-3 py-2 rounded-[10px] border border-[#E9E9EE]"
+                                        style={{ background: '#F8F8FA' }}
+                                    >
+                                        <span className="flex-shrink-0">
+                                            {it.status === 'uploading' && <Loader2 size={15} className="text-[#7E3FB4] animate-spin" />}
+                                            {it.status === 'done' && (
+                                                <span
+                                                    className="w-[18px] h-[18px] rounded-full flex items-center justify-center"
+                                                    style={{ background: '#E7F4EC' }}
+                                                >
+                                                    <Check size={12} strokeWidth={2.5} className="text-[#1F7A50]" />
+                                                </span>
+                                            )}
+                                            {it.status === 'error' && <AlertCircle size={16} className="text-[#B12C4C]" />}
+                                        </span>
+                                        <span className="flex-1 min-w-0 truncate text-[13px] text-[#1B1B1F]">{it.name}</span>
+                                        <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
+                                            {t(`receipts.upload.${label}`)}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* AI analyze toggle */}
+                    <button
+                        type="button"
+                        onClick={() => setAnalyze((v) => !v)}
+                        className="mt-3 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] border transition-all"
+                        style={{
+                            borderColor: analyze ? '#9955CC' : '#E9E9EE',
+                            background: analyze ? '#F3EAFB' : '#F8F8FA',
+                        }}
+                    >
+                        <span
+                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+                            style={{ background: analyze ? '#E0C8F5' : '#EBEBF0' }}
+                        >
+                            {analyze ? <Check size={14} strokeWidth={2.5} color="#7E3FB4" /> : <Sparkles size={14} color="#9A9AA3" />}
+                        </span>
+                        <span className="text-[13.5px] font-semibold" style={{ color: analyze ? '#7E3FB4' : '#6B6B76', fontFamily: FONT }}>
+                            {t('receipts.upload.analyzeLabel')}
+                        </span>
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -1102,7 +1202,19 @@ export function BelegeView() {
     const docs = (allDocs ?? []) as DocumentResponse[];
 
     const queryClient = useQueryClient();
-    const { showWarning } = useToast();
+    const { showWarning, showSuccess } = useToast();
+    const reanalyzeDocuments = useReanalyzeDocuments();
+
+    // Receipts that can be (re-)analyzed: previously failed or never analyzed. Drives both the button's
+    // visibility and which documents the bulk action targets — already-analyzed receipts are left untouched.
+    const reanalyzable = docs.filter(canReanalyzeDocument);
+
+    async function handleReanalyzeAll() {
+        const ids = reanalyzable.map((d) => d.id).filter((id): id is number => id != null);
+        if (ids.length === 0) return;
+        const count = await reanalyzeDocuments.mutateAsync(ids);
+        showSuccess(t('receipts.reanalyzeStarted', { count }));
+    }
 
     // Load the organization's bommels so the detail view's bommel select is populated.
     const { organization } = useStore();
@@ -1209,31 +1321,48 @@ export function BelegeView() {
                 <UploadZone onUploaded={() => refetch()} />
             </div>
 
-            {/* Filter tabs */}
-            <div className="flex items-center gap-1 mb-3 flex-wrap">
-                {(['unreviewed', 'confirmed', 'all'] as const).map((f) => (
+            {/* Filter tabs + bulk re-analyze action */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <div className="flex items-center gap-1 flex-wrap">
+                    {(['unreviewed', 'confirmed', 'all'] as const).map((f) => (
+                        <button
+                            key={f}
+                            onClick={() => setFilter(f)}
+                            className="px-4 py-1.5 rounded-full font-bold transition-all"
+                            style={{
+                                fontSize: 13.5,
+                                color: filter === f ? '#FFFFFF' : '#6B6B76',
+                                background: filter === f ? 'linear-gradient(100deg,#7E3FB4,#9955CC)' : '#FFFFFF',
+                                border: filter === f ? 'none' : '1px solid #E9E9EE',
+                            }}
+                        >
+                            {t(`receipts.filter.${f}`)}
+                            {f === 'unreviewed' && unreviewedCount > 0 && (
+                                <span
+                                    className="ml-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold"
+                                    style={{ background: filter === f ? 'rgba(255,255,255,.25)' : '#F3EAFB', color: filter === f ? 'white' : '#7E3FB4' }}
+                                >
+                                    {unreviewedCount}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
+                {reanalyzable.length > 0 && (
                     <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className="px-4 py-1.5 rounded-full font-bold transition-all"
-                        style={{
-                            fontSize: 13.5,
-                            color: filter === f ? '#FFFFFF' : '#6B6B76',
-                            background: filter === f ? 'linear-gradient(100deg,#7E3FB4,#9955CC)' : '#FFFFFF',
-                            border: filter === f ? 'none' : '1px solid #E9E9EE',
-                        }}
+                        onClick={handleReanalyzeAll}
+                        disabled={reanalyzeDocuments.isPending}
+                        className="ml-auto inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] bg-white hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors disabled:opacity-50"
                     >
-                        {t(`receipts.filter.${f}`)}
-                        {f === 'unreviewed' && unreviewedCount > 0 && (
-                            <span
-                                className="ml-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold"
-                                style={{ background: filter === f ? 'rgba(255,255,255,.25)' : '#F3EAFB', color: filter === f ? 'white' : '#7E3FB4' }}
-                            >
-                                {unreviewedCount}
-                            </span>
-                        )}
+                        <RefreshCw size={14} className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
+                        {t('receipts.reanalyzeAll')}
+                        <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: '#F3EAFB', color: '#7E3FB4' }}>
+                            {reanalyzable.length}
+                        </span>
                     </button>
-                ))}
+                )}
             </div>
 
             {/* Document list */}

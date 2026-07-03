@@ -457,9 +457,9 @@ public class DocumentResource {
         if (document.getBommel() != null) {
             transaction.setBommel(document.getBommel());
         }
-        if (document.getSender() != null) {
-            transaction.setSender(document.getSender());
-        }
+        // The document's sender is the counterparty; the entity places it on the side matching the direction
+        // and records the organization on the other side.
+        transaction.setCounterparty(document.getSender());
         transactionRepository.persist(transaction);
 
         document.setTransaction(transaction);
