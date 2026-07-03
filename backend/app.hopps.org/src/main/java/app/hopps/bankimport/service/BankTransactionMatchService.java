@@ -116,6 +116,42 @@ public class BankTransactionMatchService {
         }
     }
 
+    /**
+     * Refreshes the {@code matchedAmount} snapshot of every match that references the given bookkeeping transaction to
+     * the transaction's current total, then recomputes the status of each affected bank transaction. Needed because the
+     * match stores the covered magnitude at match time (see {@link #addMatch}); when the user later edits the
+     * transaction amount (e.g. because a receipt only covers part of the bank movement) the snapshot would otherwise go
+     * stale and the bank transaction would stay FULLY_MATCHED with the still-open amount hidden.
+     */
+    @Transactional
+    public void updateMatchedAmountForTransaction(Long transactionId) {
+        List<BankTransactionMatch> matches = em.createQuery(
+                "SELECT m FROM BankTransactionMatch m WHERE m.transaction.id = :txId",
+                BankTransactionMatch.class)
+                .setParameter("txId", transactionId)
+                .getResultList();
+
+        if (matches.isEmpty()) {
+            return;
+        }
+
+        Transaction tx = em.find(Transaction.class, transactionId);
+        BigDecimal newMatchedAmount = tx != null && tx.getTotal() != null
+                ? tx.getTotal().abs()
+                : BigDecimal.ZERO;
+
+        for (BankTransactionMatch match : matches) {
+            match.setMatchedAmount(newMatchedAmount);
+        }
+
+        // A transaction can be linked to several bank transactions; recompute each affected one exactly once.
+        // Hibernate returns the same managed instance per row, so distinct() dedupes by identity here.
+        matches.stream()
+                .map(BankTransactionMatch::getBankTransaction)
+                .distinct()
+                .forEach(this::recomputeStatus);
+    }
+
     @Transactional
     public void setIgnored(Long bankTxId) {
         BankTransaction bankTx = bankTransactionRepository.findByIdScoped(bankTxId);

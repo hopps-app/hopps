@@ -65,6 +65,42 @@ class BankTransactionMatchServiceTest {
         assertDoesNotThrow(() -> matchService.removeMatchesForTransaction(999_999L));
     }
 
+    /**
+     * When the amount of a matched transaction is reduced (e.g. the receipt only covers part of the bank movement), the
+     * bank transaction must drop from FULLY_MATCHED to PARTIALLY_MATCHED, and both the match snapshot and the
+     * denormalized matched amount must reflect the new, smaller total — so the still-open amount reappears in the list.
+     */
+    @Test
+    @TestTransaction
+    void reducingMatchedTransactionAmountMarksBankTransactionPartiallyMatched() {
+        Fixture f = createFullyMatchedFixture();
+
+        // Precondition: the -49.90 bank transaction is fully covered.
+        assertEquals(BankTransactionStatus.FULLY_MATCHED, f.bankTx.getStatus());
+
+        // Act: the receipt only covers 20.00 — the user reduces the transaction amount.
+        f.transaction.setTotal(new BigDecimal("-20.00"));
+        em.flush();
+        matchService.updateMatchedAmountForTransaction(f.transaction.getId());
+
+        // Assert: the bank transaction is only partially matched now, with the reduced amount everywhere.
+        BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
+        assertEquals(BankTransactionStatus.PARTIALLY_MATCHED, reloaded.getStatus());
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("20.00")));
+
+        BankTransactionMatch match = em.createQuery(
+                "SELECT m FROM BankTransactionMatch m WHERE m.transaction.id = :txId", BankTransactionMatch.class)
+                .setParameter("txId", f.transaction.getId())
+                .getSingleResult();
+        assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("20.00")));
+    }
+
+    @Test
+    @TestTransaction
+    void updateMatchedAmountForTransactionWithoutMatchesIsNoop() {
+        assertDoesNotThrow(() -> matchService.updateMatchedAmountForTransaction(999_999L));
+    }
+
     // ── Test fixture ────────────────────────────────────────────────────────────
 
     private record Fixture(BankTransaction bankTx, Transaction transaction) {
