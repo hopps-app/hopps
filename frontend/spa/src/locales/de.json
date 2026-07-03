@@ -476,7 +476,7 @@
       "analyzing": "Wird analysiert",
       "ready": "Prüfen",
       "confirmed": "Bestätigt",
-      "failed": "Fehlgeschlagen"
+      "failed": "Manuelle Eingabe"
     },
     "statusDescription": {
       "pending": "Beleg hochgeladen – die Analyse startet gleich.",
@@ -516,7 +516,22 @@
       "progress": "{{done}} von {{total}} hochgeladen",
       "itemUploading": "Wird hochgeladen …",
       "itemDone": "Hochgeladen",
-      "itemError": "Fehlgeschlagen"
+      "itemError": "Fehlgeschlagen",
+      "analysis": {
+        "aiWarning": "Die per KI erkannten Daten können Fehler enthalten. Bitte prüfe alle Felder vor dem Speichern.",
+        "pending": "Analyse startet gleich …",
+        "analyzing": "Beleg wird analysiert …",
+        "completed": "Analyse abgeschlossen",
+        "completedDescription": "Bitte prüfe die erkannten Daten und korrigiere sie bei Bedarf.",
+        "extractedViaZugferd": "Daten aus ZUGFeRD-Rechnung übernommen",
+        "extractedViaDocumentAI": "Daten per KI-Analyse erkannt",
+        "failed": "Automatische Analyse nicht möglich – bitte manuell eingeben",
+        "serviceUnavailable": "Analyse-Service gerade nicht erreichbar – bitte manuell eingeben",
+        "pollingTimeout": "Die Analyse dauert länger als erwartet. Du kannst die Daten jederzeit selbst eingeben.",
+        "errorDetail": "Details: {{error}}",
+        "retry": "Analyse erneut starten",
+        "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuche es später erneut."
+      }
     },
     "areas": {
       "ideell": "Ideeller Bereich",

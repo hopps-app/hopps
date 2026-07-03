@@ -18,6 +18,7 @@ import {
     ExternalLink,
     Link2,
     Landmark,
+    PencilLine,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -90,7 +91,7 @@ function StatusBadge({ status }: { status: ReviewStatus }) {
         analyzing: { bg: '#EDF4FF', color: '#2563EB', icon: <Loader2 size={11} className="animate-spin" /> },
         ready: { bg: '#FBF1DD', color: '#B47C18', icon: <Sparkles size={11} /> },
         confirmed: { bg: '#E7F4EC', color: '#1F7A50', icon: <Check size={11} strokeWidth={2.5} /> },
-        failed: { bg: '#FBEAEF', color: '#B12C4C', icon: <AlertCircle size={11} /> },
+        failed: { bg: '#F3EAFB', color: '#7E3FB4', icon: <PencilLine size={11} /> },
     };
 
     const s = styles[status];
@@ -539,13 +540,13 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                         </div>
                                     )}
                                     {status === 'failed' && (
-                                        <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-[12px]" style={{ background: '#FBEAEF' }}>
-                                            <AlertCircle size={16} className="text-[#B12C4C] flex-shrink-0 mt-0.5" />
+                                        <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-[12px]" style={{ background: '#F3EAFB' }}>
+                                            <PencilLine size={16} className="text-[#7E3FB4] flex-shrink-0 mt-0.5" />
                                             <div className="min-w-0">
-                                                <p className="text-[13px] font-bold text-[#B12C4C]">
+                                                <p className="text-[13px] font-bold text-[#7E3FB4]">
                                                     {serviceUnavailable ? t('receipts.review.serviceUnavailableTitle') : t('receipts.review.failedTitle')}
                                                 </p>
-                                                <p className="text-[12px] text-[#B12C4C] opacity-80 leading-snug">
+                                                <p className="text-[12px] text-[#7E3FB4] opacity-80 leading-snug">
                                                     {serviceUnavailable
                                                         ? t('receipts.review.serviceUnavailableHint')
                                                         : doc.analysisError || t('receipts.review.failedHint')}
