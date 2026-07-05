@@ -3,6 +3,7 @@ package app.hopps.org.service;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
+import app.hopps.shared.security.KeycloakPrincipals;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -29,8 +30,8 @@ public class UserOrganizationService {
      *             if user is not found or has no organization
      */
     public Organization getUserOrganization(SecurityContext securityContext) {
-        String userName = securityContext.getUserPrincipal().getName();
-        Member me = memberRepository.findByEmail(userName);
+        String keycloakId = KeycloakPrincipals.keycloakId(securityContext.getUserPrincipal());
+        Member me = memberRepository.findByKeycloakId(keycloakId);
         if (me == null) {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
                     .entity("User not found in database")
@@ -40,7 +41,7 @@ public class UserOrganizationService {
         Collection<Organization> orgs = me.getOrganizations();
         if (orgs.size() > 1) {
             throw new IllegalStateException(
-                    "More than one organization is currently not implemented. User: " + userName);
+                    "More than one organization is currently not implemented. User: " + me.getEmail());
         }
 
         return orgs.stream()

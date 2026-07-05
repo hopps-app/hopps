@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -6048,6 +6048,7 @@ export class DocumentResponse implements IDocumentResponse {
     senderStreet?: string;
     senderZipCode?: string;
     senderCity?: string;
+    recipientName?: string;
     tags?: string[];
     createdAt?: Date;
     updatedAt?: Date;
@@ -6092,6 +6093,7 @@ export class DocumentResponse implements IDocumentResponse {
             this.senderStreet = _data["senderStreet"];
             this.senderZipCode = _data["senderZipCode"];
             this.senderCity = _data["senderCity"];
+            this.recipientName = _data["recipientName"];
             if (Array.isArray(_data["tags"])) {
                 this.tags = [] as any;
                 for (let item of _data["tags"])
@@ -6138,6 +6140,7 @@ export class DocumentResponse implements IDocumentResponse {
         data["senderStreet"] = this.senderStreet;
         data["senderZipCode"] = this.senderZipCode;
         data["senderCity"] = this.senderCity;
+        data["recipientName"] = this.recipientName;
         if (Array.isArray(this.tags)) {
             data["tags"] = [];
             for (let item of this.tags)
@@ -6180,6 +6183,7 @@ export interface IDocumentResponse {
     senderStreet?: string;
     senderZipCode?: string;
     senderCity?: string;
+    recipientName?: string;
     tags?: string[];
     createdAt?: Date;
     updatedAt?: Date;

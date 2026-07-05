@@ -61,6 +61,7 @@ public class DocumentDataApplier {
         fieldsUpdated += applyTransactionTime(document, data);
         fieldsUpdated += applyTotalTax(document, data);
         fieldsUpdated += applySender(document, data);
+        fieldsUpdated += applyRecipient(document, data);
         fieldsUpdated += applyDocumentName(document, data);
         fieldsUpdated += applyLegalDocumentId(document, data);
         fieldsUpdated += applyTags(document, data, tagSource);
@@ -136,6 +137,32 @@ public class DocumentDataApplier {
         }
 
         return 0;
+    }
+
+    private int applyRecipient(Document document, DocumentData data) {
+        if (document.getRecipient() != null) {
+            return 0;
+        }
+
+        if (data.customerName() == null && data.customerAddress() == null) {
+            return 0;
+        }
+
+        // Unlike the sender, the recipient (customer) has no scalar fallback field, so a name-only customer is
+        // still captured as a TradeParty. Persist + flush before setting the FK, matching applySender.
+        TradeParty recipient = mapTradeParty(data.customerAddress(), document);
+        if (recipient == null) {
+            recipient = new TradeParty();
+            recipient.setOrganization(document.getOrganization());
+        }
+        if (data.customerName() != null) {
+            recipient.setName(data.customerName());
+        }
+        entityManager.persist(recipient);
+        entityManager.flush();
+        document.setRecipient(recipient);
+        LOG.debug("Autofilled recipient: {} (id={})", recipient.getName(), recipient.id);
+        return 1;
     }
 
     private int applyDocumentName(Document document, DocumentData data) {

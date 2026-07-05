@@ -304,6 +304,10 @@ public class Document extends PanacheEntity {
         return sender != null ? sender.getCity() : "";
     }
 
+    public String getRecipientName() {
+        return recipient != null && recipient.getName() != null ? recipient.getName() : "";
+    }
+
     public String getFileKey() {
         return fileKey;
     }

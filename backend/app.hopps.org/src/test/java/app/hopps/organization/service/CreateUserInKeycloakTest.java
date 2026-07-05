@@ -62,6 +62,9 @@ class CreateUserInKeycloakTest {
         assertEquals(newUser.getFirstName(), createdUser.getFirstName());
         assertEquals(newUser.getLastName(), createdUser.getLastName());
 
+        // The stable Keycloak id must be captured on the member for id-based linking
+        assertEquals(createdUser.getId(), newUser.getKeycloakId());
+
         // Assert that user got the default role
         var realmRoles = usersResource.get(createdUser.getId())
                 .roles()

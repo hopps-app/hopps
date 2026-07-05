@@ -1,5 +1,7 @@
 package app.hopps.transaction.api;
 
+import app.hopps.bankimport.service.BankTransactionMatchService;
+import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
@@ -34,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,6 +70,9 @@ public class TransactionResource {
 
     @Inject
     Event<TransactionChangedEvent> transactionChangedEvent;
+
+    @Inject
+    BankTransactionMatchService bankTransactionMatchService;
 
     @GET
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
@@ -216,8 +222,9 @@ public class TransactionResource {
     @POST
     @Path("/{id}/confirm")
     @Transactional
-    @Operation(summary = "Confirm a transaction", description = "Marks a transaction as confirmed")
+    @Operation(summary = "Confirm a transaction", description = "Marks a transaction as confirmed. Only permitted when the mandatory fields (amount, date, counterparty, name) are set and the amount is exactly covered by linked bank transactions.")
     @APIResponse(responseCode = "200", description = "Transaction confirmed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse.class)))
+    @APIResponse(responseCode = "400", description = "Transaction is not ready to be confirmed (missing fields or amount not covered by bank transactions)")
     @APIResponse(responseCode = "404", description = "Transaction not found")
     public TransactionResponse confirmTransaction(
             @PathParam("id") @Parameter(description = "Transaction ID") Long id) {
@@ -226,10 +233,54 @@ public class TransactionResource {
             throw new NotFoundException("Transaction not found");
         }
 
+        // Guard: a transaction may only be confirmed when it is complete and fully backed by bank transactions.
+        // The UI greys out the confirm button under the same conditions; this is the server-side enforcement.
+        if (transaction.getStatus() != TransactionStatus.CONFIRMED) {
+            List<String> missing = collectConfirmBlockers(transaction);
+            if (!missing.isEmpty()) {
+                throw new BadRequestException(
+                        "Transaction cannot be confirmed, still missing/invalid: " + String.join(", ", missing));
+            }
+        }
+
         transaction.setStatus(TransactionStatus.CONFIRMED);
         LOG.info("Transaction confirmed: id={}", transaction.getId());
 
         return TransactionResponse.from(transaction);
+    }
+
+    /**
+     * Collects the reasons a transaction cannot yet be confirmed. Empty list means it is ready. The mandatory fields
+     * mirror the frontend gate: amount, date, counterparty and name must be set, and the amount must be exactly covered
+     * by the linked bank transactions (sum of their absolute amounts equals the transaction amount).
+     */
+    private List<String> collectConfirmBlockers(Transaction transaction) {
+        List<String> missing = new ArrayList<>();
+
+        BigDecimal total = transaction.getTotal();
+        boolean hasAmount = total != null && total.compareTo(BigDecimal.ZERO) != 0;
+        if (!hasAmount) {
+            missing.add("amount");
+        }
+        if (transaction.getTransactionTime() == null) {
+            missing.add("date");
+        }
+        TradeParty counterparty = transaction.getCounterparty();
+        if (counterparty == null || counterparty.getName() == null || counterparty.getName().isBlank()) {
+            missing.add("counterparty");
+        }
+        if (transaction.getName() == null || transaction.getName().isBlank()) {
+            missing.add("name");
+        }
+
+        if (hasAmount) {
+            BigDecimal covered = bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId());
+            if (covered.compareTo(total.abs()) != 0) {
+                missing.add("bankCoverage");
+            }
+        }
+
+        return missing;
     }
 
     @POST

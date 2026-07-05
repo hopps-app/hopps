@@ -6,6 +6,8 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import io.quarkus.test.security.oidc.Claim;
+import io.quarkus.test.security.oidc.OidcSecurity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -27,6 +29,9 @@ import static org.mockito.Mockito.doNothing;
 
 @QuarkusTest
 @TestSecurity(user = "alice@example.test")
+@OidcSecurity(claims = {
+        @Claim(key = "sub", value = "eb4123a3-b722-4798-9af5-8957f823657a")
+})
 @TestHTTPEndpoint(DocumentResource.class)
 class DocumentResourceTest {
 

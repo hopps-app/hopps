@@ -30,6 +30,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import {
@@ -44,10 +45,11 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
-import { useTransaction, useUpdateTransaction } from '@/hooks/queries/useTransactions';
+import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useDocumentEvents } from '@/hooks/useDocumentEvents';
+import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -276,6 +278,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const deleteMutation = useDeleteDocument();
     const reanalyzeMutation = useReanalyzeDocument();
     const updateTransaction = useUpdateTransaction();
+    const confirmTransaction = useConfirmTransaction();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const rootBommel = useBommelsStore((s) => s.rootBommel);
 
@@ -287,11 +290,16 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     // shows the transaction data (primary) and the analysed receipt data in a second tab. `hasLinkedTransaction` drives
     // the display; `isBankReconcile` (only while not yet confirmed) additionally allows editing/applying onto the
     // transaction.
-    const linkedTransactionId = docProp?.transactionId ?? undefined;
+    // Read the transaction link from the *live* document, so a transaction created while the drawer stays open (via
+    // "Als Transaktion bestätigen") is picked up immediately and the drawer switches into reconcile mode.
+    const linkedTransactionId = doc?.transactionId ?? undefined;
     const hasLinkedTransaction = linkedTransactionId != null;
+    // Bank-origin receipts (created from a Kontoumsatz) already carry a linked transaction while the document is not
+    // yet confirmed — used only to show the "Aus Kontoumsatz erstellt" hint.
     const isBankReconcile = hasLinkedTransaction && docProp?.documentStatus !== 'CONFIRMED';
     const { data: linkedTx } = useTransaction(linkedTransactionId ?? 0);
-    // The bank transaction(s) the linked transaction is matched to — shown for cross-checking the auto-filled values.
+    // The bank transaction(s) the linked transaction is matched to — shown for cross-checking the auto-filled values
+    // and used to decide whether the amount is fully covered (a prerequisite for confirming).
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(linkedTransactionId);
 
     const [name, setName] = useState('');
@@ -312,7 +320,12 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const analysisStatus = doc?.analysisStatus;
     const isAnalyzing = analysisStatus === 'PENDING' || analysisStatus === 'ANALYZING';
     const status = doc ? getDocumentReviewStatus(doc) : 'pending';
-    const isConfirmed = status === 'confirmed';
+    // The transaction lifecycle — not the document status — now drives editability: while the linked transaction is a
+    // draft the receipt stays fully editable (fill values, match bank transactions). A receipt is "finalized"
+    // (read-only) only once its transaction has been confirmed.
+    const txConfirmed = linkedTx?.status === 'CONFIRMED';
+    const isReconcile = hasLinkedTransaction && !txConfirmed;
+    const isFinalized = txConfirmed;
     const serviceUnavailable = doc?.analysisError === ANALYSIS_SERVICE_UNAVAILABLE;
 
     // Initialize the form once per opened document (uses the list snapshot, which already holds
@@ -384,12 +397,25 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const aiAmount = liveDoc?.total != null ? String(Math.abs(Number(liveDoc.total))) : undefined;
     const aiDate = liveDoc?.transactionTime ? new Date(liveDoc.transactionTime).toISOString().slice(0, 10) : undefined;
     const aiSender = liveDoc?.senderName ?? undefined;
+    const aiRecipient = liveDoc?.recipientName || undefined;
+    // The extracted party matching the current direction: expense (INCOMING) → the merchant/sender,
+    // income (OUTGOING) → the customer/recipient. This is what the counterparty field is filled with.
+    const aiCounterparty = direction === 'OUTGOING' ? aiRecipient : aiSender;
     // Whether the document analysis actually produced any usable data.
-    const receiptHasData = !!(aiName || aiAmount || aiDate || aiSender);
+    const receiptHasData = !!(aiName || aiAmount || aiDate || aiSender || aiRecipient);
 
     // For income ("Einnahme" = OUTGOING direction) the counterparty is the recipient, so the sender field
     // is labelled "Empfänger"; for an expense it stays "Aussteller".
     const senderLabel = direction === 'OUTGOING' ? t('receipts.review.recipient') : t('receipts.review.sender');
+
+    // Switching direction fills the counterparty field from the party the analysis extracted for that direction
+    // (expense → merchant, income → customer). Only overwrites when an extracted value exists, so a value the
+    // user typed manually isn't wiped.
+    function handleDirectionChange(next: DocumentDirection) {
+        setDirection(next);
+        const extracted = next === 'OUTGOING' ? aiRecipient : aiSender;
+        if (extracted) setSenderName(extracted);
+    }
 
     function buildPayload() {
         const rawAmount = parseFloat(amount.replace(',', '.'));
@@ -418,30 +444,34 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         });
     }
 
+    // Fresh receipt (no transaction yet): persist the edited values, then create the DRAFT transaction and keep the
+    // drawer open. The live document refetches with the new transactionId, so the receipt switches into reconcile
+    // mode where the remaining values and bank matches can be added right here — no detour via the transactions tab.
+    async function handleCreateTransaction() {
+        if (!doc?.id) return;
+        await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
+        await confirmMutation.mutateAsync(doc.id);
+        // No onClose: liveDoc now carries the transactionId and the drawer re-renders in reconcile mode.
+    }
+
+    // Save the current values. Once a transaction is linked the values are written onto it (kept as a DRAFT so
+    // incomplete transactions can always be saved); otherwise the document itself is updated.
     async function handleSave() {
         if (!doc?.id) return;
-        if (isBankReconcile && doc.transactionId) {
-            await updateTransaction.mutateAsync({ id: doc.transactionId, data: buildTransactionPayload() });
-            onClose();
-            return;
+        if (isReconcile && linkedTransactionId) {
+            await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
+        } else {
+            await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
         }
-        await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
         onClose();
     }
 
-    async function handleConfirm() {
-        if (!doc?.id) return;
-        if (isBankReconcile && doc.transactionId) {
-            // Apply the reconciled values to the existing transaction, then mark the receipt reviewed.
-            // confirm is idempotent for already-linked documents (it keeps the existing transaction).
-            await updateTransaction.mutateAsync({ id: doc.transactionId, data: buildTransactionPayload() });
-            await confirmMutation.mutateAsync(doc.id);
-            onClose();
-            return;
-        }
-        // Persist the current (possibly manually edited) values incl. direction before creating the transaction.
-        await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
-        await confirmMutation.mutateAsync(doc.id);
+    // Finalize: write the reconciled values onto the transaction and confirm it (DRAFT → CONFIRMED). Only reachable
+    // when confirmState.canConfirm, so the backend confirm guard always passes.
+    async function handleFinalize() {
+        if (!doc?.id || !linkedTransactionId) return;
+        await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
+        await confirmTransaction.mutateAsync(linkedTransactionId);
         onClose();
     }
 
@@ -453,8 +483,16 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         onClose();
     }
 
-    const busy = updateMutation.isPending || confirmMutation.isPending || updateTransaction.isPending;
-    const fieldsDisabled = isConfirmed || busy;
+    const busy = updateMutation.isPending || confirmMutation.isPending || updateTransaction.isPending || confirmTransaction.isPending;
+    const fieldsDisabled = isFinalized || busy;
+
+    // Whether the linked draft transaction may be confirmed here — same rule as the transaction drawer: amount, date,
+    // counterparty and description set AND the amount exactly covered by the linked bank transactions.
+    const parsedAmount = parseFloat(amount.replace(',', '.'));
+    const confirmState = getTransactionConfirmState(
+        { amount: isNaN(parsedAmount) ? null : parsedAmount, date: date || null, counterparty: senderName || null, name: name || null },
+        linkedBankTxns
+    );
 
     return (
         <>
@@ -533,7 +571,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                             </div>
 
                             {/* AI analysis banner */}
-                            {!isConfirmed && (isAnalyzing || status === 'ready' || status === 'failed') && (
+                            {!isFinalized && (isAnalyzing || status === 'ready' || status === 'failed') && (
                                 <div className="px-6 pt-1">
                                     {isAnalyzing && (
                                         <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-[12px]" style={{ background: '#EDF4FF' }}>
@@ -587,8 +625,8 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                 </div>
                             )}
 
-                            {/* Link to the created transaction (only once confirmed) */}
-                            {isConfirmed && doc.transactionId && (
+                            {/* Link to the created transaction (only once the transaction is confirmed/finalized) */}
+                            {isFinalized && doc.transactionId && (
                                 <div className="px-6 pt-1">
                                     <button
                                         onClick={() => navigate(`/transactions?id=${doc.transactionId}`)}
@@ -691,7 +729,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                 <div className="px-6 py-5 space-y-3">
                                     <div>
                                         <label className={FIELD_LABEL_CLS}>{t('receipts.direction.label')}</label>
-                                        <DirectionToggle value={direction} onChange={setDirection} compact disabled={fieldsDisabled} />
+                                        <DirectionToggle value={direction} onChange={handleDirectionChange} compact disabled={fieldsDisabled} />
                                     </div>
                                     <InputField
                                         label={t('receipts.review.name')}
@@ -810,9 +848,9 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                             />
                                             <ReceiptDataRow
                                                 label={senderLabel}
-                                                value={aiSender ?? null}
-                                                canApply={!fieldsDisabled && !!aiSender && aiSender !== senderName}
-                                                onApply={() => setSenderName(aiSender!)}
+                                                value={aiCounterparty ?? null}
+                                                canApply={!fieldsDisabled && !!aiCounterparty && aiCounterparty !== senderName}
+                                                onApply={() => setSenderName(aiCounterparty!)}
                                                 applyLabel={t('receipts.review.applySuggestion')}
                                             />
                                             {doc.extractionSource && (
@@ -847,7 +885,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
 
                         {/* Footer */}
                         <div className="px-6 py-4 border-t border-[#E9E9EE] flex flex-col gap-2" style={{ background: '#FFFFFF' }}>
-                            {isConfirmed ? (
+                            {isFinalized ? (
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-[13px] text-[#6B6B76]">{t('receipts.review.alreadyConfirmed')}</span>
                                     <button
@@ -858,16 +896,60 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                         <Trash2 size={14} />
                                     </button>
                                 </div>
+                            ) : isReconcile ? (
+                                /* Draft transaction linked: finalize (only when complete + covered) or keep as a draft. */
+                                <>
+                                    <HintTooltip
+                                        className="w-full"
+                                        content={
+                                            confirmState.canConfirm ? null : (
+                                                <>
+                                                    <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
+                                                    <span className="block mt-0.5">
+                                                        {confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)).join(', ')}
+                                                    </span>
+                                                </>
+                                            )
+                                        }
+                                    >
+                                        <button
+                                            onClick={handleFinalize}
+                                            disabled={busy || !confirmState.canConfirm}
+                                            className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[14.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)', boxShadow: '0 4px 16px rgba(120,60,200,.22)' }}
+                                        >
+                                            <Check size={16} strokeWidth={2.5} />
+                                            {confirmTransaction.isPending ? '…' : t('receipts.review.finalize')}
+                                        </button>
+                                    </HintTooltip>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={busy}
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                                        >
+                                            {updateTransaction.isPending && !confirmTransaction.isPending ? '…' : t('receipts.review.saveDraft')}
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            disabled={deleteMutation.isPending}
+                                            className="py-2 px-4 rounded-full text-[13.5px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors disabled:opacity-50"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </>
                             ) : (
+                                /* Fresh receipt without a transaction yet: create the draft transaction (stays open) or save the receipt. */
                                 <>
                                     <button
-                                        onClick={handleConfirm}
+                                        onClick={handleCreateTransaction}
                                         disabled={busy}
                                         className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[14.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                                         style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)', boxShadow: '0 4px 16px rgba(120,60,200,.22)' }}
                                     >
                                         <Check size={16} strokeWidth={2.5} />
-                                        {confirmMutation.isPending ? '…' : t('receipts.review.confirm')}
+                                        {confirmMutation.isPending ? '…' : t('receipts.review.createTransaction')}
                                     </button>
                                     <div className="flex gap-2">
                                         <button

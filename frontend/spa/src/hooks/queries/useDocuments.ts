@@ -76,8 +76,13 @@ export function useConfirmDocument() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => apiService.orgService.confirm(id),
-        onSuccess: () => {
+        onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
+            // Refetch the single document too, so a drawer kept open picks up the freshly linked transactionId
+            // (the receipt then switches into the editable reconcile mode instead of closing).
+            queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
+            // A transaction was created — refresh the transaction lists/detail so it appears immediately.
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
         },
     });
 }

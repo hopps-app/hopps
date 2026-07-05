@@ -43,42 +43,49 @@ members:
   # gruenes-herz-ev members
   - id: 2
     email: "emanuel_urban@domain.none"
+    keycloakId: "00000000-0000-0000-0000-000000000002"
     firstName: "Emanuel"
     lastName: "Urban"
     organizationIds: [2]
 
   - id: 3
     email: "hartlieb-reuter@xyz.none"
+    keycloakId: "00000000-0000-0000-0000-000000000003"
     firstName: "Hartlieb"
     lastName: "Reuter"
     organizationIds: [2]
 
   - id: 4
     email: "elgard-nicklas@trashmail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000004"
     firstName: "Elgard"
     lastName: "Nicklas"
     organizationIds: [2]
 
   - id: 5
     email: "gerald.geiger@company.none"
+    keycloakId: "00000000-0000-0000-0000-000000000005"
     firstName: "Gerald"
     lastName: "Geiger"
     organizationIds: [2]
 
   - id: 6
     email: "jannick.1923@net-mail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000006"
     firstName: "Jannick"
     lastName: "Cao"
     organizationIds: [2]
 
   - id: 7
     email: "constance.wendling@justmail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000007"
     firstName: "Constance"
     lastName: "Wendling"
     organizationIds: [2]
 
   - id: 8
     email: "florenz-huefner@spam-mail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000008"
     firstName: "Florenz"
     lastName: "Häfner"
     organizationIds: [2]
@@ -86,36 +93,42 @@ members:
   # kaeltekrieger members
   - id: 9
     email: "h1978@company.none"
+    keycloakId: "00000000-0000-0000-0000-000000000009"
     firstName: "Herlind"
     lastName: "Kutscher"
     organizationIds: [3]
 
   - id: 10
     email: "annekathrinfeldhoff@inter-mail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000010"
     firstName: "Annekathrin"
     lastName: "Feldhof"
     organizationIds: [3]
 
   - id: 11
     email: "rosegunde-19@anymail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000011"
     firstName: "Rosegunde"
     lastName: "Wilhelmy"
     organizationIds: [3]
 
   - id: 12
     email: "eckhardweirich@spam-mail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000012"
     firstName: "Eckhard"
     lastName: "Weirich"
     organizationIds: [3]
 
   - id: 13
     email: "g_2011@inter-mail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000013"
     firstName: "Godo"
     lastName: "Beckers"
     organizationIds: [3]
 
   - id: 14
     email: "klothilde1916@net-mail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000014"
     firstName: "Klothilde"
     lastName: "Püppel"
     organizationIds: [3]
@@ -123,36 +136,42 @@ members:
   # buehnefrei-ev members
   - id: 15
     email: "samantha1284@net-mail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000015"
     firstName: "Samantha"
     lastName: "Adomeit"
     organizationIds: [4]
 
   - id: 16
     email: "m-linner@private.none"
+    keycloakId: "00000000-0000-0000-0000-000000000016"
     firstName: "Margund"
     lastName: "Linner"
     organizationIds: [4]
 
   - id: 17
     email: "b-bork@mymail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000017"
     firstName: "Birgit"
     lastName: "Bork"
     organizationIds: [4]
 
   - id: 18
     email: "gkalb@quickmail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000018"
     firstName: "Gunther"
     lastName: "Kalb"
     organizationIds: [4]
 
   - id: 19
     email: "b-schlicker@trashmail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000019"
     firstName: "Burckhard"
     lastName: "Schlicker"
     organizationIds: [4]
 
   - id: 20
     email: "alix1980@validmail.none"
+    keycloakId: "00000000-0000-0000-0000-000000000020"
     firstName: "Alix"
     lastName: "Raff"
     organizationIds: [4]
@@ -160,18 +179,21 @@ members:
   # Test users (used in tests)
   - id: 21
     email: "alice@example.test"
+    keycloakId: "eb4123a3-b722-4798-9af5-8957f823657a"
     firstName: "Alice"
     lastName: "Musterfrau"
     organizationIds: [4]
 
   - id: 22
     email: "jdoe@example.test"
+    keycloakId: "1eed6a8e-a853-4597-b4c6-c4c2533546a0"
     firstName: "Jdoe"
     lastName: "Mustermann"
     organizationIds: [4]
 
   - id: 23
     email: "bob@example.test"
+    keycloakId: "00000000-0000-0000-0000-000000000023"
     firstName: "Bob"
     lastName: "Mustermann"
     organizationIds: [4]
