@@ -1,11 +1,12 @@
 import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, Landmark, Link2, Loader2, Unlink, Upload, X } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Unlink, Upload, X } from 'lucide-react';
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import {
     useBankTransaction,
     useAddBankTransactionMatch,
@@ -98,6 +99,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [sel, setSel] = useState<Set<number>>(new Set());
+    const [showCreate, setShowCreate] = useState(false);
     const createReceipt = useCreateReceiptForBankTransaction();
 
     // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked transaction and
@@ -266,6 +268,23 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                     </span>
                                 </span>
                             </div>
+                        )}
+
+                        {/* Alternative: create a transaction without a receipt, prefilled from the bank movement */}
+                        {bankTx.status !== 'IGNORED' && (
+                            <button
+                                type="button"
+                                onClick={() => setShowCreate(true)}
+                                className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:bg-primary/5 transition-colors text-left"
+                            >
+                                <span className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center flex-shrink-0">
+                                    <FilePlus className="w-5 h-5" />
+                                </span>
+                                <span className="flex flex-col min-w-0">
+                                    <span className="text-sm font-bold">{t('konten.drawer.createTransaction')}</span>
+                                    <span className="text-xs text-muted-foreground">{t('konten.drawer.createTransactionHint')}</span>
+                                </span>
+                            </button>
                         )}
 
                         {/* Already linked */}
@@ -441,6 +460,18 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                     )}
                 </div>
             </div>
+
+            {/* Create a linked transaction (no receipt), prefilled from this bank movement */}
+            <CreateTransactionDrawer
+                open={showCreate}
+                onClose={() => setShowCreate(false)}
+                bankTx={bankTx}
+                onCreated={(id) => {
+                    setShowCreate(false);
+                    onClose();
+                    if (id) navigate(`/transactions?id=${id}`);
+                }}
+            />
         </>
     );
 }

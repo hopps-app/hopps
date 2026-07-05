@@ -1,14 +1,29 @@
-import { TransactionCreateRequest } from '@hopps/api-client';
+import { BankTransactionResponse, TransactionCreateRequest } from '@hopps/api-client';
 import { X, Check, ArrowDownRight, ArrowUpRight, Plus } from 'lucide-react';
-import { useState, useRef, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
 import { useCategories } from '@/hooks/queries/useCategories';
-import { useCreateTransaction } from '@/hooks/queries/useTransactions';
+import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
+
+/**
+ * Formats a date-only value (the api-client deserializes `bookingDate` to a `Date` at UTC midnight) as the
+ * `YYYY-MM-DD` string an `<input type="date">` expects. UTC parts are used so the day never shifts by a timezone.
+ */
+function toDateInputValue(value: Date | string | undefined): string {
+    if (!value) return '';
+    const d = typeof value === 'string' ? new Date(value) : value;
+    if (Number.isNaN(d.getTime())) return '';
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
 
 const AREAS = [
     { value: '', labelKey: 'transactions.filters.allAreas' },
@@ -21,13 +36,33 @@ const AREAS = [
 interface Props {
     open: boolean;
     onClose: () => void;
+    /**
+     * When set, the transaction is created linked to this bank transaction: the form is prefilled from the bank
+     * movement, the created transaction is auto-matched to it, and a "save & confirm" action is offered.
+     */
+    bankTx?: BankTransactionResponse;
+    /** Called with the created transaction id after a successful create (+ link/confirm). */
+    onCreated?: (transactionId: number | undefined) => void;
 }
 
-export function CreateTransactionDrawer({ open, onClose }: Props) {
+export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Props) {
     const { t } = useTranslation();
     const createMutation = useCreateTransaction();
+    const addMatch = useAddBankTransactionMatch();
+    const confirmMutation = useConfirmTransaction();
     const { data: categoriesData } = useCategories();
+    const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const loadBommels = useBommelsStore((s) => s.loadBommels);
+    const bankMode = !!bankTx;
+
+    // The bommel store is populated on-demand per view; the Konten view doesn't load it, so ensure it's fetched when
+    // this drawer opens (otherwise the bommel selector would be empty).
+    useEffect(() => {
+        if (open && organization?.id && allBommels.length === 0) {
+            loadBommels(organization.id);
+        }
+    }, [open, organization?.id, allBommels.length, loadBommels]);
 
     // form state
     const [direction, setDirection] = useState<'expense' | 'income'>('expense');
@@ -44,6 +79,19 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
     const [amountError, setAmountError] = useState(false);
 
     const tagInputRef = useRef<HTMLInputElement>(null);
+
+    // Prefill the form from the bank movement whenever the drawer opens in bank-linked mode (same field mapping as
+    // creating a receipt from a bank transaction: purpose → name, amount → total, booking date → date, counterparty).
+    useEffect(() => {
+        if (!open || !bankTx) return;
+        const amt = bankTx.amount ?? 0;
+        setDirection(amt < 0 ? 'expense' : 'income');
+        setName(bankTx.purpose ?? '');
+        setAmount(amt !== 0 ? String(Math.abs(amt)) : '');
+        setDate(toDateInputValue(bankTx.bookingDate) || new Date().toISOString().slice(0, 10));
+        setSenderName(bankTx.counterpartyName ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, bankTx?.id]);
 
     function reset() {
         setDirection('expense');
@@ -81,18 +129,17 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
         }
     }
 
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
+    function buildPayload(): TransactionCreateRequest | null {
         const rawAmount = parseFloat(amount.replace(',', '.'));
         if (!amount || isNaN(rawAmount)) {
             setAmountError(true);
-            return;
+            return null;
         }
         setAmountError(false);
 
         const signedAmount = direction === 'expense' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
 
-        const payload = new TransactionCreateRequest({
+        return new TransactionCreateRequest({
             name: name || undefined,
             total: signedAmount,
             transactionDate: date || undefined,
@@ -103,10 +150,45 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
             privatelyPaid,
             tags: tags.length ? tags : undefined,
         });
+    }
 
-        await createMutation.mutateAsync(payload);
+    // Creates the transaction. In bank-linked mode it is additionally matched to the bank transaction and — when
+    // `confirm` is true and the criteria are met — confirmed in the same flow.
+    async function submit(confirm: boolean) {
+        const payload = buildPayload();
+        if (!payload) return;
+
+        const created = await createMutation.mutateAsync(payload);
+        if (bankTx?.id && created?.id) {
+            await addMatch.mutateAsync({ bankTxId: bankTx.id, transactionId: created.id });
+            if (confirm) {
+                await confirmMutation.mutateAsync(created.id);
+            }
+        }
+        onCreated?.(created?.id);
         handleClose();
     }
+
+    function handleFormSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        // Enter / primary submit saves a draft; confirming is an explicit secondary action.
+        submit(false);
+    }
+
+    const parsedAmount = amount ? parseFloat(amount.replace(',', '.')) : null;
+    const confirmState = bankMode
+        ? getTransactionConfirmState(
+              {
+                  amount: parsedAmount != null && !Number.isNaN(parsedAmount) ? parsedAmount : null,
+                  date: date || null,
+                  counterparty: senderName || null,
+                  name: name || null,
+              },
+              [{ amount: bankTx?.amount }]
+          )
+        : null;
+
+    const isBusy = createMutation.isPending || addMatch.isPending || confirmMutation.isPending;
 
     // Shared input style
     const inputCls =
@@ -132,8 +214,12 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-[#E9E9EE]">
                     <div>
-                        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">{t('transactions.create.title')}</span>
-                        <p className="mt-0.5 text-[13px] text-[#6B6B76]">{t('transactions.create.subtitle')}</p>
+                        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">
+                            {bankMode ? t('konten.createTx.title') : t('transactions.create.title')}
+                        </span>
+                        <p className="mt-0.5 text-[13px] text-[#6B6B76]">
+                            {bankMode ? t('konten.createTx.subtitle') : t('transactions.create.subtitle')}
+                        </p>
                     </div>
                     <button
                         onClick={handleClose}
@@ -144,7 +230,7 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                 </div>
 
                 {/* Scrollable body */}
-                <form id="create-tx-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                <form id="create-tx-form" onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
                     {/* Direction toggle */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.direction')}</label>
@@ -255,14 +341,10 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                         </div>
                         <div>
                             <label className={labelCls}>{t('transactions.create.bommel')}</label>
-                            <select value={bommelId} onChange={(e) => setBommelId(e.target.value)} className={inputCls}>
-                                <option value="">—</option>
-                                {allBommels.map((b) => (
-                                    <option key={b.id} value={b.id ?? ''}>
-                                        {(b as { name?: string }).name}
-                                    </option>
-                                ))}
-                            </select>
+                            <InvoiceUploadFormBommelSelector
+                                value={bommelId ? Number(bommelId) : null}
+                                onChange={(id) => setBommelId(id ? String(id) : '')}
+                            />
                         </div>
                     </div>
 
@@ -355,16 +437,42 @@ export function CreateTransactionDrawer({ open, onClose }: Props) {
                         {t('transactions.create.cancel')}
                     </button>
                     <div className="flex-1" />
-                    <button
-                        form="create-tx-form"
-                        type="submit"
-                        disabled={createMutation.isPending}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                        style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
-                    >
-                        <Plus size={15} strokeWidth={2.5} />
-                        {createMutation.isPending ? '…' : t('transactions.create.save')}
-                    </button>
+                    {bankMode ? (
+                        <>
+                            {/* Save as draft */}
+                            <button
+                                type="button"
+                                onClick={() => submit(false)}
+                                disabled={isBusy}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                            >
+                                {isBusy ? '…' : t('konten.createTx.saveDraft')}
+                            </button>
+                            {/* Save & confirm — only when the confirmation criteria are met */}
+                            <button
+                                type="button"
+                                onClick={() => submit(true)}
+                                disabled={isBusy || !confirmState?.canConfirm}
+                                title={!confirmState?.canConfirm ? t('konten.createTx.confirmBlocked') : undefined}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                            >
+                                <Check size={15} strokeWidth={2.5} />
+                                {isBusy ? '…' : t('konten.createTx.saveConfirm')}
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            form="create-tx-form"
+                            type="submit"
+                            disabled={createMutation.isPending}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                        >
+                            <Plus size={15} strokeWidth={2.5} />
+                            {createMutation.isPending ? '…' : t('transactions.create.save')}
+                        </button>
+                    )}
                 </div>
             </div>
         </>

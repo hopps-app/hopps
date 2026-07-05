@@ -13,6 +13,7 @@ import {
     Trash2,
     Pencil,
     Check,
+    Minus,
     Upload,
     SlidersHorizontal,
     ExternalLink,
@@ -24,6 +25,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
+import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
@@ -45,6 +47,7 @@ import { usePageTitle } from '@/hooks/use-page-title';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
 const AREAS = [
     { value: 'IDEELL', label: 'Ideell' },
@@ -68,7 +71,7 @@ const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
 // Shared column layout for the transactions table header and rows (must stay in sync).
 // Transaktion | Kategorie | Bommel | Datum | Erstellt am | Status | Betrag
-const TX_GRID = 'minmax(0,2fr) 1.1fr 1fr 0.95fr 1fr 0.85fr 1fr';
+const TX_GRID = '40px minmax(0,2fr) 1.1fr 1fr 0.95fr 1fr 0.85fr 1fr';
 
 function fmtCurrency(amount: number | undefined): string {
     if (amount === undefined || amount === null) return '—';
@@ -161,9 +164,19 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     // The bank transaction(s) matched to this transaction — used to gate the confirm action on full coverage.
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { data: categoriesData } = useCategories();
+    const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const loadBommels = useBommelsStore((s) => s.loadBommels);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
+
+    // The bommel store is populated on-demand per view; make sure it's loaded while the drawer is open so the bommel
+    // selector isn't empty (e.g. when arriving here right after creating a transaction from a bank movement).
+    useEffect(() => {
+        if (open && organization?.id && allBommels.length === 0) {
+            loadBommels(organization.id);
+        }
+    }, [open, organization?.id, allBommels.length, loadBommels]);
 
     // Edit form state
     const [kind, setKind] = useState<'expense' | 'income'>('expense');
@@ -478,14 +491,10 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 </div>
                                 <div>
                                     <label className={labelCls}>{t('transactions.detail.bommel')}</label>
-                                    <select value={bommelId} onChange={(e) => setBommelId(e.target.value)} className={inputCls}>
-                                        <option value="">—</option>
-                                        {allBommels.map((b) => (
-                                            <option key={b.id} value={b.id ?? ''}>
-                                                {(b as { name?: string }).name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <InvoiceUploadFormBommelSelector
+                                        value={bommelId ? Number(bommelId) : null}
+                                        onChange={(id) => setBommelId(id ? String(id) : '')}
+                                    />
                                 </div>
                             </div>
 
@@ -640,10 +649,23 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
 
 // ─── Transaction row ──────────────────────────────────────────────────────────
 
-function TransactionRow({ tx, onClick, selected }: { tx: TransactionResponse; onClick: () => void; selected: boolean }) {
+function TransactionRow({
+    tx,
+    onClick,
+    selected,
+    bulkSelected,
+    onToggleBulk,
+}: {
+    tx: TransactionResponse;
+    onClick: () => void;
+    selected: boolean;
+    bulkSelected: boolean;
+    onToggleBulk: () => void;
+}) {
     const { t } = useTranslation();
     const amount = tx.total ? Number(tx.total) : 0;
     const incoming = amount >= 0;
+    const highlighted = selected || bulkSelected;
 
     return (
         <button
@@ -652,16 +674,41 @@ function TransactionRow({ tx, onClick, selected }: { tx: TransactionResponse; on
             style={{
                 gridTemplateColumns: TX_GRID,
                 padding: '14px 20px',
-                background: selected ? '#F3EAFB' : undefined,
+                background: highlighted ? '#F3EAFB' : undefined,
                 fontFamily: FONT,
             }}
             onMouseEnter={(e) => {
-                if (!selected) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA';
+                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA';
             }}
             onMouseLeave={(e) => {
-                if (!selected) (e.currentTarget as HTMLButtonElement).style.background = '';
+                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '';
             }}
         >
+            {/* Bulk-select checkbox — stops propagation so ticking a row doesn't open the drawer */}
+            <span
+                role="checkbox"
+                aria-checked={bulkSelected}
+                aria-label={t('transactions.bulk.selectRow')}
+                tabIndex={0}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleBulk();
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onToggleBulk();
+                    }
+                }}
+                className={cn(
+                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                    bulkSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
+                )}
+            >
+                {bulkSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+            </span>
+
             {/* Transaktion */}
             <span className="flex items-center gap-3 min-w-0 pr-4">
                 <TxIcon size={36} incoming={incoming} />
@@ -726,6 +773,9 @@ export function TransactionenView() {
     const [page, setPage] = useState(0);
     const [selectedTxId, setSelectedTxId] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const bulkDelete = useDeleteTransaction();
     const PAGE_SIZE = 30;
 
     // Open a specific transaction when navigated to with ?id= (e.g. from a linked receipt)
@@ -789,6 +839,41 @@ export function TransactionenView() {
 
     const totalIncome = transactions.filter((tx) => Number(tx.total ?? 0) >= 0).reduce((s, tx) => s + Number(tx.total ?? 0), 0);
     const totalExpense = transactions.filter((tx) => Number(tx.total ?? 0) < 0).reduce((s, tx) => s + Math.abs(Number(tx.total ?? 0)), 0);
+
+    // ── Bulk selection (for multi-delete) ──
+    const pageIds = transactions.map((tx) => tx.id).filter((id): id is number => id != null);
+    const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+    const somePageSelected = pageIds.some((id) => selectedIds.has(id));
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    // Header checkbox toggles the whole current page (selections on other pages are kept).
+    const toggleSelectAll = () => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+            else pageIds.forEach((id) => next.add(id));
+            return next;
+        });
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const handleBulkDelete = async () => {
+        const ids = Array.from(selectedIds);
+        // allSettled so one failed delete doesn't abort the rest; the list refetches via query invalidation.
+        await Promise.allSettled(ids.map((id) => bulkDelete.mutateAsync(id)));
+        if (selectedTxId != null && selectedIds.has(selectedTxId)) setSelectedTxId(null);
+        clearSelection();
+        setBulkDeleteOpen(false);
+    };
 
     const activeFilters: { key: string; label: string; clear: () => void }[] = [];
     if (search) activeFilters.push({ key: 'search', label: `"${search}"`, clear: () => setSearch('') });
@@ -1065,6 +1150,36 @@ export function TransactionenView() {
                         ))}
                     </div>
                 )}
+
+                {/* Bulk selection toolbar */}
+                {selectedIds.size > 0 && (
+                    <div
+                        className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1"
+                        style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}
+                    >
+                        <span className="text-[13.5px] font-bold text-[#1B1B1F]">
+                            {t('transactions.bulk.selectedCount', { n: selectedIds.size })}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={clearSelection}
+                            className="text-[13px] font-semibold text-[#6B6B76] hover:text-[#1B1B1F] transition-colors"
+                        >
+                            {t('transactions.bulk.clear')}
+                        </button>
+                        <div className="flex-1" />
+                        <button
+                            type="button"
+                            onClick={() => setBulkDeleteOpen(true)}
+                            disabled={bulkDelete.isPending}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                            style={{ background: '#B12C4C' }}
+                        >
+                            <Trash2 size={14} />
+                            {t('transactions.bulk.delete')}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* ── Table ── */}
@@ -1099,6 +1214,30 @@ export function TransactionenView() {
                                 fontFamily: FONT,
                             }}
                         >
+                            {/* Select-all checkbox (current page) */}
+                            <span
+                                role="checkbox"
+                                aria-checked={allPageSelected ? 'true' : somePageSelected ? 'mixed' : 'false'}
+                                aria-label={t('transactions.bulk.selectAll')}
+                                tabIndex={0}
+                                onClick={toggleSelectAll}
+                                onKeyDown={(e) => {
+                                    if (e.key === ' ' || e.key === 'Enter') {
+                                        e.preventDefault();
+                                        toggleSelectAll();
+                                    }
+                                }}
+                                className={cn(
+                                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                                    allPageSelected || somePageSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
+                                )}
+                            >
+                                {allPageSelected ? (
+                                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                                ) : somePageSelected ? (
+                                    <Minus className="w-3 h-3 text-white" strokeWidth={3} />
+                                ) : null}
+                            </span>
                             {[t('transactions.columns.transaction'), t('transactions.columns.category'), t('transactions.columns.bommel')].map((col) => (
                                 <span
                                     key={col}
@@ -1132,7 +1271,14 @@ export function TransactionenView() {
                         </div>
 
                         {transactions.map((tx) => (
-                            <TransactionRow key={tx.id} tx={tx} onClick={() => setSelectedTxId(tx.id ?? null)} selected={selectedTxId === tx.id} />
+                            <TransactionRow
+                                key={tx.id}
+                                tx={tx}
+                                onClick={() => setSelectedTxId(tx.id ?? null)}
+                                selected={selectedTxId === tx.id}
+                                bulkSelected={tx.id != null && selectedIds.has(tx.id)}
+                                onToggleBulk={() => tx.id != null && toggleSelect(tx.id)}
+                            />
                         ))}
                     </div>
                 )}
@@ -1168,6 +1314,18 @@ export function TransactionenView() {
 
             {/* Create transaction drawer */}
             <CreateTransactionDrawer open={createOpen} onClose={() => setCreateOpen(false)} />
+
+            <ConfirmDialog
+                open={bulkDeleteOpen}
+                onOpenChange={setBulkDeleteOpen}
+                title={t('transactions.bulk.confirmTitle')}
+                description={t('transactions.bulk.confirmDesc', { n: selectedIds.size })}
+                confirmLabel={t('transactions.bulk.delete')}
+                cancelLabel={t('common.cancel')}
+                onConfirm={handleBulkDelete}
+                destructive
+                loading={bulkDelete.isPending}
+            />
         </div>
     );
 }

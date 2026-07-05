@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -471,13 +471,15 @@ export class Client {
      * @param accountIds (optional) Comma-separated bank account IDs (omit for all accounts)
      * @param dateFrom (optional) Booking date inclusive (ISO-8601)
      * @param dateTo (optional) Booking date inclusive (ISO-8601)
+     * @param direction (optional) Sort direction: asc or desc
      * @param page (optional) Page index (0-based)
      * @param search (optional) Substring match on purpose / counterparty name
      * @param size (optional) Page size
+     * @param sort (optional) Sort field: bookingDate, amount or counterpartyName
      * @param status (optional) Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)
      * @return List of transactions
      */
-    bankTransactionsAll(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
+    bankTransactionsAll(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
         let url_ = this.baseUrl + "/bank-transactions?";
         if (accountIds === null)
             throw new Error("The parameter 'accountIds' cannot be null.");
@@ -491,6 +493,10 @@ export class Client {
             throw new Error("The parameter 'dateTo' cannot be null.");
         else if (dateTo !== undefined)
             url_ += "dateTo=" + encodeURIComponent("" + dateTo) + "&";
+        if (direction === null)
+            throw new Error("The parameter 'direction' cannot be null.");
+        else if (direction !== undefined)
+            url_ += "direction=" + encodeURIComponent("" + direction) + "&";
         if (page === null)
             throw new Error("The parameter 'page' cannot be null.");
         else if (page !== undefined)
@@ -503,6 +509,10 @@ export class Client {
             throw new Error("The parameter 'size' cannot be null.");
         else if (size !== undefined)
             url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (sort === null)
+            throw new Error("The parameter 'sort' cannot be null.");
+        else if (sort !== undefined)
+            url_ += "sort=" + encodeURIComponent("" + sort) + "&";
         if (status === null)
             throw new Error("The parameter 'status' cannot be null.");
         else if (status !== undefined)
@@ -630,13 +640,15 @@ export class Client {
      * @param accountId Bank account ID
      * @param dateFrom (optional) 
      * @param dateTo (optional) 
+     * @param direction (optional) Sort direction: asc or desc
      * @param page (optional) 
      * @param search (optional) 
      * @param size (optional) 
+     * @param sort (optional) Sort field: bookingDate, amount or counterpartyName
      * @param status (optional) 
      * @return List of transactions
      */
-    byAccount(accountId: number, dateFrom: string | undefined, dateTo: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
+    byAccount(accountId: number, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
         let url_ = this.baseUrl + "/bank-transactions/by-account/{accountId}?";
         if (accountId === undefined || accountId === null)
             throw new Error("The parameter 'accountId' must be defined.");
@@ -649,6 +661,10 @@ export class Client {
             throw new Error("The parameter 'dateTo' cannot be null.");
         else if (dateTo !== undefined)
             url_ += "dateTo=" + encodeURIComponent("" + dateTo) + "&";
+        if (direction === null)
+            throw new Error("The parameter 'direction' cannot be null.");
+        else if (direction !== undefined)
+            url_ += "direction=" + encodeURIComponent("" + direction) + "&";
         if (page === null)
             throw new Error("The parameter 'page' cannot be null.");
         else if (page !== undefined)
@@ -661,6 +677,10 @@ export class Client {
             throw new Error("The parameter 'size' cannot be null.");
         else if (size !== undefined)
             url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (sort === null)
+            throw new Error("The parameter 'sort' cannot be null.");
+        else if (sort !== undefined)
+            url_ += "sort=" + encodeURIComponent("" + sort) + "&";
         if (status === null)
             throw new Error("The parameter 'status' cannot be null.");
         else if (status !== undefined)
@@ -4103,6 +4123,10 @@ export class Client {
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = TransactionResponse.fromJS(resultData200);
             return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Transaction is not ready to be confirmed (missing fields or amount not covered by bank transactions)", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {

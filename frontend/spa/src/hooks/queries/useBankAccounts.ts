@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { documentKeys } from '@/hooks/queries/useDocuments';
-import { transactionKeys } from '@/hooks/queries/useTransactions';
+import { transactionKeys, type SortDirection } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 
@@ -39,10 +39,24 @@ export const bankImportKeys = {
     detail: (id: number) => [...bankImportKeys.all, 'detail', id] as const,
 };
 
+export type BankTransactionSortField = 'bookingDate' | 'amount' | 'counterpartyName';
+
 export const bankTransactionKeys = {
     all: ['bankTransactions'] as const,
-    byAccount: (accountId: number, page?: number, size?: number, status?: string) =>
-        [...bankTransactionKeys.all, 'account', accountId, { page, size, status }] as const,
+    byAccount: (
+        accountId: number,
+        page?: number,
+        size?: number,
+        status?: string,
+        sort?: BankTransactionSortField,
+        direction?: SortDirection,
+    ) => [...bankTransactionKeys.all, 'account', accountId, { page, size, status, sort, direction }] as const,
+    // Cross-account listing (all accounts when accountIds is omitted).
+    list: (status?: string, page?: number, size?: number, sort?: BankTransactionSortField, direction?: SortDirection) =>
+        [...bankTransactionKeys.all, 'list', { status, page, size, sort, direction }] as const,
+    // Aggregate totals + true (uncapped) count for a filter set.
+    aggregate: (accountIds?: string, status?: string) =>
+        [...bankTransactionKeys.all, 'aggregate', { accountIds, status }] as const,
 };
 
 // ─── Bank Accounts ───────────────────────────────────────────────────────────
@@ -378,11 +392,69 @@ export function useIgnoreBankTransaction() {
     });
 }
 
-export function useBankTransactionsByAccount(accountId: number, page = 0, size = 50, status?: string) {
+export function useBankTransactionsByAccount(
+    accountId: number,
+    page = 0,
+    size = 50,
+    status?: string,
+    sort: BankTransactionSortField = 'bookingDate',
+    direction: SortDirection = 'desc',
+) {
     return useQuery({
-        queryKey: bankTransactionKeys.byAccount(accountId, page, size, status),
-        queryFn: () => apiService.orgService.byAccount(accountId, undefined, undefined, page, undefined, size, status),
+        queryKey: bankTransactionKeys.byAccount(accountId, page, size, status, sort, direction),
+        queryFn: () =>
+            apiService.orgService.byAccount(
+                accountId,
+                undefined, // dateFrom
+                undefined, // dateTo
+                direction,
+                page,
+                undefined, // search
+                size,
+                sort,
+                status,
+            ),
         enabled: !!accountId,
+    });
+}
+
+/**
+ * Cross-account bank transaction listing (all accounts) with server-side paging. Used by the reconciliation feed so
+ * that more than one page of open transactions can be reached.
+ */
+export function useAllBankTransactions(
+    status: string | undefined,
+    page = 0,
+    size = 25,
+    sort: BankTransactionSortField = 'bookingDate',
+    direction: SortDirection = 'desc',
+) {
+    return useQuery({
+        queryKey: bankTransactionKeys.list(status, page, size, sort, direction),
+        queryFn: () =>
+            apiService.orgService.bankTransactionsAll(
+                undefined, // accountIds → all accounts
+                undefined, // dateFrom
+                undefined, // dateTo
+                direction,
+                page,
+                undefined, // search
+                size,
+                sort,
+                status,
+            ),
+    });
+}
+
+/**
+ * Aggregate totals and the true (uncapped) transaction count for a filter set. Pass a single account id via
+ * {@code accountIds} for per-account figures, or omit it for the whole organization.
+ */
+export function useBankTransactionAggregate(accountIds?: string, status?: string, enabled = true) {
+    return useQuery({
+        queryKey: bankTransactionKeys.aggregate(accountIds, status),
+        queryFn: () => apiService.orgService.aggregate(accountIds, undefined, undefined, undefined, status),
+        enabled,
     });
 }
 
@@ -402,7 +474,18 @@ export function useBankTransactionsForTransaction(transactionId: number | null |
 export function useBankTransactionSearch(search: string, enabled: boolean) {
     return useQuery({
         queryKey: [...bankTransactionKeys.all, 'search', search],
-        queryFn: () => apiService.orgService.bankTransactionsAll(undefined, undefined, undefined, 0, search || undefined, 25, 'UNMATCHED,PARTIALLY_MATCHED'),
+        queryFn: () =>
+            apiService.orgService.bankTransactionsAll(
+                undefined, // accountIds
+                undefined, // dateFrom
+                undefined, // dateTo
+                undefined, // direction
+                0, // page
+                search || undefined,
+                25, // size
+                undefined, // sort
+                'UNMATCHED,PARTIALLY_MATCHED', // status
+            ),
         enabled,
     });
 }
