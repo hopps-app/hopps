@@ -769,6 +769,7 @@
         }
       ],
       "defaultClientScopes": [
+        "basic",
         "profile",
         "microprofile-jwt",
         "email"
