@@ -55,6 +55,8 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             LocalDate toDate,
             List<BankTransactionStatus> statuses,
             String search,
+            String sortBy,
+            boolean ascending,
             Page page) {
         Long orgId = organizationContext.getCurrentOrganizationId();
         StringBuilder query = new StringBuilder("organization.id = :orgId");
@@ -95,10 +97,24 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             query.append(")");
         }
 
-        return find(query.toString(),
-                Sort.descending("bookingDate").and("id", Sort.Direction.Descending), params)
-                        .page(page)
-                        .list();
+        return find(query.toString(), buildSort(sortBy, ascending), params)
+                .page(page)
+                .list();
+    }
+
+    /**
+     * Builds a whitelisted {@link Sort} for the transaction listing. Only a fixed set of columns may be sorted on (to
+     * prevent injecting arbitrary JPQL paths); anything else falls back to {@code bookingDate}. A descending {@code id}
+     * is always appended as a stable tie-breaker.
+     */
+    private static Sort buildSort(String sortBy, boolean ascending) {
+        String column = switch (sortBy == null ? "" : sortBy) {
+            case "amount" -> "amount";
+            case "counterpartyName" -> "counterpartyName";
+            default -> "bookingDate";
+        };
+        Sort.Direction direction = ascending ? Sort.Direction.Ascending : Sort.Direction.Descending;
+        return Sort.by(column, direction).and("id", Sort.Direction.Descending);
     }
 
     /** Returns [sumIncoming, sumOutgoing] for the same filter set. Net = sumIncoming + sumOutgoing (signed). */
@@ -108,15 +124,63 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             LocalDate toDate,
             List<BankTransactionStatus> statuses,
             String search) {
+        if (accountIds != null && accountIds.isEmpty()) {
+            return new BigDecimal[] { BigDecimal.ZERO, BigDecimal.ZERO };
+        }
+        Map<String, Object> params = new HashMap<>();
+        String where = buildAggregateWhere(accountIds, fromDate, toDate, statuses, search, params);
+
+        String jpql = "SELECT " +
+                "COALESCE(SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END), 0), " +
+                "COALESCE(SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END), 0) " +
+                "FROM BankTransaction t WHERE " + where;
+
+        var query = getEntityManager().createQuery(jpql, Object[].class);
+        params.forEach(query::setParameter);
+        Object[] result = query.getSingleResult();
+        return new BigDecimal[] {
+                (BigDecimal) result[0],
+                (BigDecimal) result[1]
+        };
+    }
+
+    /**
+     * Counts the transactions matching the same filter set as {@link #findFiltered}. Used for pagination and the
+     * reconciliation badges, so the total is not capped by a page size.
+     */
+    public long countFiltered(
+            List<Long> accountIds,
+            LocalDate fromDate,
+            LocalDate toDate,
+            List<BankTransactionStatus> statuses,
+            String search) {
+        if (accountIds != null && accountIds.isEmpty()) {
+            return 0L;
+        }
+        Map<String, Object> params = new HashMap<>();
+        String where = buildAggregateWhere(accountIds, fromDate, toDate, statuses, search, params);
+
+        var query = getEntityManager().createQuery("SELECT COUNT(t) FROM BankTransaction t WHERE " + where, Long.class);
+        params.forEach(query::setParameter);
+        return query.getSingleResult();
+    }
+
+    /**
+     * Builds the shared WHERE clause (org scope + optional filters) for the aggregate/count queries and fills
+     * {@code params}. Callers must handle the empty-{@code accountIds} case (no results) before calling this.
+     */
+    private String buildAggregateWhere(
+            List<Long> accountIds,
+            LocalDate fromDate,
+            LocalDate toDate,
+            List<BankTransactionStatus> statuses,
+            String search,
+            Map<String, Object> params) {
         Long orgId = organizationContext.getCurrentOrganizationId();
         StringBuilder where = new StringBuilder("t.organization.id = :orgId");
-        Map<String, Object> params = new HashMap<>();
         params.put("orgId", orgId);
 
         if (accountIds != null) {
-            if (accountIds.isEmpty()) {
-                return new BigDecimal[] { BigDecimal.ZERO, BigDecimal.ZERO };
-            }
             where.append(" AND t.bankAccount.id IN :accountIds");
             params.put("accountIds", accountIds);
         }
@@ -142,19 +206,7 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             }
             where.append(")");
         }
-
-        String jpql = "SELECT " +
-                "COALESCE(SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END), 0), " +
-                "COALESCE(SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END), 0) " +
-                "FROM BankTransaction t WHERE " + where;
-
-        var query = getEntityManager().createQuery(jpql, Object[].class);
-        params.forEach(query::setParameter);
-        Object[] result = query.getSingleResult();
-        return new BigDecimal[] {
-                (BigDecimal) result[0],
-                (BigDecimal) result[1]
-        };
+        return where.toString();
     }
 
     public List<BankTransaction> findByImport(Long importId) {
@@ -186,7 +238,7 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
     }
 
     public List<BankTransaction> findForAccount(Long bankAccountId, Page page) {
-        return findFiltered(new ArrayList<>(List.of(bankAccountId)), null, null, null, null, page);
+        return findFiltered(new ArrayList<>(List.of(bankAccountId)), null, null, null, null, null, false, page);
     }
 
     /**

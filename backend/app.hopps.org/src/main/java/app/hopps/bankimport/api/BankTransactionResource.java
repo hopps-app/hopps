@@ -66,6 +66,8 @@ public class BankTransactionResource {
             @QueryParam("dateTo") @Parameter(description = "Booking date inclusive (ISO-8601)") String dateTo,
             @QueryParam("status") @Parameter(description = "Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)") String statusesCsv,
             @QueryParam("search") @Parameter(description = "Substring match on purpose / counterparty name") String search,
+            @QueryParam("sort") @DefaultValue("bookingDate") @Parameter(description = "Sort field: bookingDate, amount or counterpartyName") String sort,
+            @QueryParam("direction") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String direction,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
             @QueryParam("size") @DefaultValue("50") @Parameter(description = "Page size") int pageSize) {
         List<Long> accountIds = parseLongList(accountIdsCsv);
@@ -74,7 +76,7 @@ public class BankTransactionResource {
         LocalDate to = parseDate(dateTo);
 
         List<BankTransaction> rows = transactionRepository.findFiltered(
-                accountIds, from, to, statuses, search, new Page(pageIndex, pageSize));
+                accountIds, from, to, statuses, search, sort, isAscending(direction), new Page(pageIndex, pageSize));
         return rows.stream().map(BankTransactionResponse::from).toList();
     }
 
@@ -96,9 +98,7 @@ public class BankTransactionResource {
         BigDecimal[] aggr = transactionRepository.aggregate(accountIds, from, to, statuses, search);
         BigDecimal incoming = aggr[0];
         BigDecimal outgoing = aggr[1];
-        // count uses the filtered list size — for MVP we re-run a paged query with a high cap. Keep simple.
-        long count = transactionRepository.findFiltered(
-                accountIds, from, to, statuses, search, new Page(0, Integer.MAX_VALUE)).size();
+        long count = transactionRepository.countFiltered(accountIds, from, to, statuses, search);
         return new BankTransactionAggregateResponse(incoming, outgoing, incoming.add(outgoing), count);
     }
 
@@ -216,13 +216,16 @@ public class BankTransactionResource {
             @QueryParam("dateTo") String dateTo,
             @QueryParam("status") String statusesCsv,
             @QueryParam("search") String search,
+            @QueryParam("sort") @DefaultValue("bookingDate") @Parameter(description = "Sort field: bookingDate, amount or counterpartyName") String sort,
+            @QueryParam("direction") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String direction,
             @QueryParam("page") @DefaultValue("0") int pageIndex,
             @QueryParam("size") @DefaultValue("50") int pageSize) {
         List<BankTransactionStatus> statuses = parseStatusList(statusesCsv);
         LocalDate from = parseDate(dateFrom);
         LocalDate to = parseDate(dateTo);
         List<BankTransaction> rows = transactionRepository.findFiltered(
-                List.of(accountId), from, to, statuses, search, new Page(pageIndex, pageSize));
+                List.of(accountId), from, to, statuses, search, sort, isAscending(direction),
+                new Page(pageIndex, pageSize));
         return rows.stream().map(BankTransactionResponse::from).toList();
     }
 
@@ -250,5 +253,10 @@ public class BankTransactionResource {
 
     private static LocalDate parseDate(String value) {
         return (value == null || value.isBlank()) ? null : LocalDate.parse(value);
+    }
+
+    /** Maps the {@code direction} query param to a boolean; anything other than {@code asc} means descending. */
+    private static boolean isAscending(String direction) {
+        return "asc".equalsIgnoreCase(direction);
     }
 }

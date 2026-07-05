@@ -447,6 +447,15 @@
       "counterparty": "Empfänger/Aussteller",
       "name": "Bezeichnung",
       "coverage": "Deckung durch Banktransaktionen"
+    },
+    "bulk": {
+      "selectAll": "Alle auf dieser Seite auswählen",
+      "selectRow": "Transaktion auswählen",
+      "selectedCount": "{{n}} ausgewählt",
+      "clear": "Auswahl aufheben",
+      "delete": "Löschen",
+      "confirmTitle": "Ausgewählte Transaktionen löschen?",
+      "confirmDesc": "Möchtest du die ausgewählten Transaktionen ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
     }
   },
   "receipts": {
@@ -1036,7 +1045,8 @@
       "status": "Status"
     },
     "pagination": {
-      "page": "Seite {{page}}"
+      "page": "Seite {{page}}",
+      "pageOf": "Seite {{page}} von {{total}}"
     },
     "imports": {
       "title": "Import-Historie",
@@ -1078,8 +1088,17 @@
       "uploadReceipt": "Neuen Beleg hochladen",
       "uploadReceiptHint": "Beleg hierher ziehen oder klicken – Transaktion wird automatisch erstellt und zugeordnet",
       "uploadReceiptDrop": "Beleg hier ablegen …",
-      "uploadReceiptBusy": "Beleg wird hochgeladen …"
+      "uploadReceiptBusy": "Beleg wird hochgeladen …",
+      "createTransaction": "Transaktion ohne Beleg erstellen",
+      "createTransactionHint": "Vorbelegt aus der Banktransaktion – ohne verknüpften Beleg"
     },
-    "openAmount": "offen: {{amount}}"
+    "openAmount": "offen: {{amount}}",
+    "createTx": {
+      "title": "Transaktion aus Banktransaktion",
+      "subtitle": "Vorbelegt aus der Banktransaktion – wird automatisch zugeordnet",
+      "saveDraft": "Als Entwurf speichern",
+      "saveConfirm": "Speichern & bestätigen",
+      "confirmBlocked": "Zum Bestätigen fehlen noch Pflichtangaben (Bezeichnung, Gegenpartei, Datum, Betrag)."
+    }
   }
 }

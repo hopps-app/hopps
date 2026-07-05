@@ -1,5 +1,5 @@
 import { BankImportResponse, BankTransactionResponse } from '@hopps/api-client';
-import { ColDef } from 'ag-grid-community';
+import { ColDef, SortChangedEvent } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { ArrowLeft, Edit, Upload, AlertCircle } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -20,7 +20,9 @@ import {
     useBankTransactionsByAccount,
     useBankImports,
     useRollbackImport,
+    type BankTransactionSortField,
 } from '@/hooks/queries/useBankAccounts';
+import type { SortDirection } from '@/hooks/queries/useTransactions';
 import { cn } from '@/lib/utils';
 
 function formatCurrency(amount: number | undefined, currency = 'EUR'): string {
@@ -135,10 +137,19 @@ export function BankAccountDetailView() {
     const navigate = useNavigate();
     const [editOpen, setEditOpen] = useState(false);
     const [page] = useState(0);
+    const [sortBy, setSortBy] = useState<BankTransactionSortField>('bookingDate');
+    const [sortDir, setSortDir] = useState<SortDirection>('desc');
     const gridRef = useRef<AgGridReact>(null);
 
     const { data: account, isLoading: accountLoading, refetch: refetchAccount } = useBankAccount(accountId);
-    const { data: transactions = [], isLoading: txLoading } = useBankTransactionsByAccount(accountId, page, 50);
+    const { data: transactions = [], isLoading: txLoading } = useBankTransactionsByAccount(
+        accountId,
+        page,
+        50,
+        undefined,
+        sortBy,
+        sortDir,
+    );
     const { data: imports = [], refetch: refetchImports } = useBankImports(accountId);
 
     usePageTitle(account?.name ?? t('bankAccounts.title'), 'CardStack');
@@ -148,6 +159,11 @@ export function BankAccountDetailView() {
             field: 'bookingDate',
             headerName: t('bankAccounts.table.bookingDate'),
             width: 130,
+            // Sorting is done server-side; the no-op comparator keeps the order the backend returns while still
+            // rendering the sort arrow and firing onSortChanged.
+            sortable: true,
+            comparator: () => 0,
+            sort: 'desc',
             valueFormatter: (p: { value: string }) => formatDate(p.value),
         },
         {
@@ -155,12 +171,15 @@ export function BankAccountDetailView() {
             headerName: t('bankAccounts.table.counterpartyName'),
             flex: 1,
             minWidth: 150,
+            sortable: true,
+            comparator: () => 0,
         },
         {
             field: 'purpose',
             headerName: t('bankAccounts.table.purpose'),
             flex: 2,
             minWidth: 200,
+            sortable: false,
             cellRenderer: (p: { value: string }) =>
                 p.value ? (
                     <span title={p.value} className="block truncate max-w-full">{p.value}</span>
@@ -171,6 +190,8 @@ export function BankAccountDetailView() {
             headerName: t('bankAccounts.table.amount'),
             width: 140,
             type: 'numericColumn',
+            sortable: true,
+            comparator: () => 0,
             cellRenderer: (p: { data: BankTransactionResponse }) => {
                 const v = p.data.amount;
                 if (v === undefined || v === null) return '—';
@@ -186,12 +207,23 @@ export function BankAccountDetailView() {
             field: 'status',
             headerName: t('bankAccounts.table.status'),
             width: 130,
+            sortable: false,
             cellRenderer: (p: { value: string }) => <TransactionStatusBadge status={p.value} />,
         },
     ], [t]);
 
     const onBtnExport = useCallback(() => {
         gridRef.current?.api?.exportDataAsCsv();
+    }, []);
+
+    // Translate the grid's active sort column into the server-side sort params. Only the whitelisted sortable
+    // columns can become active, so the cast is safe.
+    const onSortChanged = useCallback((e: SortChangedEvent) => {
+        const active = e.api.getColumnState().find((c) => c.sort);
+        if (active?.colId) {
+            setSortBy(active.colId as BankTransactionSortField);
+            setSortDir(active.sort as SortDirection);
+        }
     }, []);
 
     if (accountLoading) {
@@ -282,6 +314,8 @@ export function BankAccountDetailView() {
                             pagination={false}
                             domLayout="normal"
                             suppressCellFocus
+                            sortingOrder={['desc', 'asc']}
+                            onSortChanged={onSortChanged}
                         />
                     </div>
                 )}

@@ -9,7 +9,17 @@ import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
-import { useBankAccounts, useBankTransactionsByAccount, bankTransactionKeys, bankImportKeys } from '@/hooks/queries/useBankAccounts';
+import { SortHeader } from '@/components/ui/SortHeader';
+import {
+    useBankAccounts,
+    useBankTransactionsByAccount,
+    useAllBankTransactions,
+    useBankTransactionAggregate,
+    bankTransactionKeys,
+    bankImportKeys,
+    type BankTransactionSortField,
+} from '@/hooks/queries/useBankAccounts';
+import type { SortDirection } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
@@ -199,28 +209,48 @@ function AddAccountCard({ onClick }: { onClick: () => void }) {
 
 // ─── Abgleich Tab ─────────────────────────────────────────────────────────────
 
+const ABGLEICH_PAGE_SIZE = 25;
+
 function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse[]; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
+    const [page, setPage] = useState(0);
+    const [sortBy, setSortBy] = useState<BankTransactionSortField>('bookingDate');
+    const [sortDir, setSortDir] = useState<SortDirection>('desc');
 
-    const txResults = useQueries({
-        queries: accounts.map((a) => ({
-            queryKey: bankTransactionKeys.byAccount(a.id!, 0, 100),
-            queryFn: () => apiService.orgService.byAccount(a.id!, undefined, undefined, 0, undefined, 100),
-        })),
-    });
+    // Toggle direction on the active column, otherwise switch column (default descending). Sorting is server-side and
+    // spans all pages, so reset to the first page.
+    const handleSort = (field: BankTransactionSortField) => {
+        if (sortBy === field) {
+            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortBy(field);
+            setSortDir('desc');
+        }
+        setPage(0);
+    };
 
-    const allTx = txResults.flatMap((r) => r.data ?? []);
-    // "Open" = not yet fully covered: unmatched or only partially matched.
-    const unmatchedTx = allTx.filter((t) => t.status === 'UNMATCHED' || t.status === 'PARTIALLY_MATCHED' || !t.status);
-    const matchedTx = allTx.filter((t) => t.status === 'FULLY_MATCHED');
-    const totalOpen = unmatchedTx.length;
-    const isLoading = txResults.some((r) => r.isLoading);
+    // Open = not yet fully covered: unmatched or partially matched. Counts come from the aggregate endpoint so they
+    // reflect the true totals (not a single capped page), while the feed itself is paged server-side.
+    const openAgg = useBankTransactionAggregate(undefined, 'UNMATCHED,PARTIALLY_MATCHED');
+    const matchedAgg = useBankTransactionAggregate(undefined, 'FULLY_MATCHED');
+    const feed = useAllBankTransactions('UNMATCHED,PARTIALLY_MATCHED', page, ABGLEICH_PAGE_SIZE, sortBy, sortDir);
 
-    if (isLoading) {
+    const openCount = openAgg.data?.count ?? 0;
+    const matchedCount = matchedAgg.data?.count ?? 0;
+    const unmatchedTx = feed.data ?? [];
+    const totalPages = Math.max(1, Math.ceil(openCount / ABGLEICH_PAGE_SIZE));
+
+    // Reconciling items shrinks the open set; clamp the page so we never sit on a now-empty page past the end.
+    useEffect(() => {
+        if (page > 0 && page >= totalPages) setPage(totalPages - 1);
+    }, [page, totalPages]);
+
+    if (openAgg.isLoading || feed.isLoading) {
         return <LoadingState className="py-12" />;
     }
 
-    const allReconciled = totalOpen === 0 && allTx.length > 0;
+    const allReconciled = openCount === 0 && matchedCount > 0;
+    const noData = openCount === 0 && matchedCount === 0;
 
     return (
         <div className="flex flex-col gap-6">
@@ -248,11 +278,11 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                     ) : (
                         <>
                             <div className="font-bold text-base">
-                                {totalOpen} {totalOpen === 1 ? t('konten.abgleich.openSingular') : t('konten.abgleich.openPlural')}
-                                {matchedTx.length > 0 && (
+                                {openCount} {openCount === 1 ? t('konten.abgleich.openSingular') : t('konten.abgleich.openPlural')}
+                                {matchedCount > 0 && (
                                     <span className="text-muted-foreground font-semibold">
                                         {' '}
-                                        · {matchedTx.length} {t('konten.abgleich.matched')}
+                                        · {matchedCount} {t('konten.abgleich.matched')}
                                     </span>
                                 )}
                             </div>
@@ -262,12 +292,34 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                 </div>
             </div>
 
-            {/* Open bookings */}
-            {unmatchedTx.length > 0 && (
+            {/* Open bookings (paged) */}
+            {openCount > 0 && (
                 <div>
-                    <h3 className="font-bold text-[16.5px] mb-3">
-                        {t('konten.abgleich.openBookings')} <span className="text-muted-foreground font-semibold">· {unmatchedTx.length}</span>
-                    </h3>
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                        <h3 className="font-bold text-[16.5px]">
+                            {t('konten.abgleich.openBookings')} <span className="text-muted-foreground font-semibold">· {openCount}</span>
+                        </h3>
+                        <div className="flex items-center gap-4">
+                            <SortHeader
+                                label={t('konten.table.date')}
+                                active={sortBy === 'bookingDate'}
+                                direction={sortDir}
+                                onClick={() => handleSort('bookingDate')}
+                            />
+                            <SortHeader
+                                label={t('konten.table.counterparty')}
+                                active={sortBy === 'counterpartyName'}
+                                direction={sortDir}
+                                onClick={() => handleSort('counterpartyName')}
+                            />
+                            <SortHeader
+                                label={t('konten.table.amount')}
+                                active={sortBy === 'amount'}
+                                direction={sortDir}
+                                onClick={() => handleSort('amount')}
+                            />
+                        </div>
+                    </div>
                     <div className="flex flex-col gap-2.5">
                         {unmatchedTx.map((tx) => {
                             const acct = accounts.find((a) => a.id === tx.bankAccountId);
@@ -303,11 +355,38 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                             );
                         })}
                     </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-4">
+                            <span className="text-xs text-muted-foreground">
+                                {t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}
+                            </span>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((p) => p + 1)}
+                                    disabled={page + 1 >= totalPages}
+                                    className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Empty state when all is reconciled */}
-            {allTx.length === 0 && (
+            {/* Empty state when there are no bank transactions at all */}
+            {noData && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3">
                     <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <Unlink className="w-7 h-7 text-muted-foreground" />
@@ -330,10 +409,24 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
     const { t } = useTranslation();
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
     const [page, setPage] = useState(0);
+    const [sortBy, setSortBy] = useState<BankTransactionSortField>('bookingDate');
+    const [sortDir, setSortDir] = useState<SortDirection>('desc');
 
     // "Offen" covers everything not yet fully matched (unmatched + partially matched).
     const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter === 'UNMATCHED' ? 'UNMATCHED,PARTIALLY_MATCHED' : statusFilter;
-    const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus);
+    const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus, sortBy, sortDir);
+
+    // Toggle direction when re-clicking the active column, otherwise switch column and default to descending.
+    // Reset to the first page since server-side sorting reorders the whole result set.
+    const handleSort = (field: BankTransactionSortField) => {
+        if (sortBy === field) {
+            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortBy(field);
+            setSortDir('desc');
+        }
+        setPage(0);
+    };
 
     const filtered = transactions;
 
@@ -390,9 +483,25 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
                         style={{ gridTemplateColumns: '0.9fr 1.8fr 1.1fr 1.2fr' }}
                     >
-                        <span>{t('konten.table.date')}</span>
-                        <span>{t('konten.table.counterparty')}</span>
-                        <span className="text-right">{t('konten.table.amount')}</span>
+                        <SortHeader
+                            label={t('konten.table.date')}
+                            active={sortBy === 'bookingDate'}
+                            direction={sortDir}
+                            onClick={() => handleSort('bookingDate')}
+                        />
+                        <SortHeader
+                            label={t('konten.table.counterparty')}
+                            active={sortBy === 'counterpartyName'}
+                            direction={sortDir}
+                            onClick={() => handleSort('counterpartyName')}
+                        />
+                        <SortHeader
+                            label={t('konten.table.amount')}
+                            active={sortBy === 'amount'}
+                            direction={sortDir}
+                            onClick={() => handleSort('amount')}
+                            align="right"
+                        />
                         <span className="text-right">{t('konten.table.status')}</span>
                     </div>
                     {filtered.map((tx, i) => (
@@ -620,18 +729,16 @@ export function KontenView() {
         }
     };
 
-    // Count open transactions per account for the badges
+    // True open-transaction count per account for the badges — from the aggregate endpoint so it is not capped by a
+    // page size (the tab badge is the sum across accounts).
     const openCountResults = useQueries({
         queries: accounts.map((a) => ({
-            queryKey: bankTransactionKeys.byAccount(a.id!, 0, 100),
-            queryFn: () => apiService.orgService.byAccount(a.id!, undefined, undefined, 0, undefined, 100),
+            queryKey: bankTransactionKeys.aggregate(String(a.id), 'UNMATCHED,PARTIALLY_MATCHED'),
+            queryFn: () => apiService.orgService.aggregate(String(a.id), undefined, undefined, undefined, 'UNMATCHED,PARTIALLY_MATCHED'),
         })),
     });
     const openCountByAccount = Object.fromEntries(
-        accounts.map((a, i) => [
-            String(a.id),
-            (openCountResults[i]?.data ?? []).filter((tx) => !tx.status || tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED').length,
-        ])
+        accounts.map((a, i) => [String(a.id), openCountResults[i]?.data?.count ?? 0])
     );
     const totalOpen = Object.values(openCountByAccount).reduce((a, b) => a + b, 0);
 

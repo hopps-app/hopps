@@ -448,6 +448,15 @@
       "counterparty": "Recipient/Issuer",
       "name": "Description",
       "coverage": "Coverage by bank transactions"
+    },
+    "bulk": {
+      "selectAll": "Select all on this page",
+      "selectRow": "Select transaction",
+      "selectedCount": "{{n}} selected",
+      "clear": "Clear selection",
+      "delete": "Delete",
+      "confirmTitle": "Delete selected transactions?",
+      "confirmDesc": "Do you really want to delete the selected transactions ({{n}})? This cannot be undone."
     }
   },
   "datePicker": {
@@ -1037,7 +1046,8 @@
       "status": "Status"
     },
     "pagination": {
-      "page": "Page {{page}}"
+      "page": "Page {{page}}",
+      "pageOf": "Page {{page}} of {{total}}"
     },
     "imports": {
       "title": "Import history",
@@ -1079,8 +1089,17 @@
       "uploadReceipt": "Upload a receipt",
       "uploadReceiptHint": "Drag a receipt here or click – a transaction is created and linked automatically",
       "uploadReceiptDrop": "Drop the receipt here …",
-      "uploadReceiptBusy": "Uploading receipt …"
+      "uploadReceiptBusy": "Uploading receipt …",
+      "createTransaction": "Create transaction without receipt",
+      "createTransactionHint": "Prefilled from the bank transaction – no linked receipt"
     },
-    "openAmount": "open: {{amount}}"
+    "openAmount": "open: {{amount}}",
+    "createTx": {
+      "title": "Transaction from bank transaction",
+      "subtitle": "Prefilled from the bank transaction – linked automatically",
+      "saveDraft": "Save as draft",
+      "saveConfirm": "Save & confirm",
+      "confirmBlocked": "Some required fields are still missing to confirm (name, counterparty, date, amount)."
+    }
   }
 }
