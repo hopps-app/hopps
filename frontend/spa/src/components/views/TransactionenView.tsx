@@ -26,7 +26,9 @@ import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransac
 import { LoadingState } from '@/components/common/LoadingState';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
+import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategories } from '@/hooks/queries/useCategories';
 import {
     useTransactions,
@@ -40,6 +42,7 @@ import {
     SortDirection,
 } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
@@ -155,6 +158,8 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const updateMutation = useUpdateTransaction();
     const confirmMutation = useConfirmTransaction();
     const reopenMutation = useReopenTransaction();
+    // The bank transaction(s) matched to this transaction — used to gate the confirm action on full coverage.
+    const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { data: categoriesData } = useCategories();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const [editMode, setEditMode] = useState(false);
@@ -210,7 +215,8 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
         setEditMode(true);
     }
 
-    async function handleSave() {
+    // Writes the current edit-form values onto the transaction (kept as-is; a draft can always be saved incomplete).
+    async function persistEdits() {
         if (!tx?.id) return;
         const raw = parseFloat(amountStr.replace(',', '.'));
         const signed = isNaN(raw) ? undefined : kind === 'expense' ? -Math.abs(raw) : Math.abs(raw);
@@ -225,6 +231,19 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
             privatelyPaid,
         });
         await updateMutation.mutateAsync({ id: tx.id, data });
+    }
+
+    async function handleSave() {
+        await persistEdits();
+        setEditMode(false);
+    }
+
+    // Save the edits and immediately confirm — the confirm button is only enabled when confirmState.canConfirm, so
+    // the backend guard passes.
+    async function handleSaveAndConfirm() {
+        if (!tx?.id) return;
+        await persistEdits();
+        await confirmMutation.mutateAsync(tx.id);
         setEditMode(false);
     }
 
@@ -247,6 +266,27 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     }
 
     const amount = tx?.total ? Number(tx.total) : 0;
+
+    // Whether the transaction may be confirmed, plus the list of still-missing requirements for the tooltip. In edit
+    // mode the live form values are used (so the button reacts to unsaved edits); otherwise the saved values.
+    const parsedEditAmount = parseFloat(amountStr.replace(',', '.'));
+    const confirmState = getTransactionConfirmState(
+        editMode
+            ? { amount: isNaN(parsedEditAmount) ? null : parsedEditAmount, date: date || null, counterparty: senderName || null, name: name || null }
+            : {
+                  amount: tx?.total != null ? Math.abs(Number(tx.total)) : null,
+                  date: tx?.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : null,
+                  counterparty: tx?.senderName || null,
+                  name: tx?.name || null,
+              },
+        linkedBankTxns
+    );
+    const confirmBlockers = confirmState.canConfirm ? null : (
+        <>
+            <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
+            <span className="block mt-0.5">{confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)).join(', ')}</span>
+        </>
+    );
 
     const inputCls =
         'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2 text-[13.5px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
@@ -504,15 +544,38 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     {t('transactions.detail.cancel')}
                                 </button>
                                 <div className="flex-1" />
+                                {/* Saving is always allowed — a draft may stay incomplete. For a draft, Save is the
+                                    secondary action and Confirm (gated) the primary one; a confirmed transaction being
+                                    edited only offers Save. */}
                                 <button
                                     onClick={handleSave}
                                     disabled={updateMutation.isPending}
-                                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                                    style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                    className={cn(
+                                        'inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 disabled:opacity-50',
+                                        tx.status === 'DRAFT' ? 'border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA]' : 'text-white'
+                                    )}
+                                    style={tx.status === 'DRAFT' ? undefined : { background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
                                 >
-                                    <Check size={14} strokeWidth={2.5} />
-                                    {updateMutation.isPending ? '…' : t('transactions.detail.save')}
+                                    {tx.status !== 'DRAFT' && <Check size={14} strokeWidth={2.5} />}
+                                    {updateMutation.isPending
+                                        ? '…'
+                                        : tx.status === 'DRAFT'
+                                          ? t('transactions.detail.saveDraft')
+                                          : t('transactions.detail.save')}
                                 </button>
+                                {tx.status === 'DRAFT' && (
+                                    <HintTooltip content={confirmBlockers}>
+                                        <button
+                                            onClick={handleSaveAndConfirm}
+                                            disabled={updateMutation.isPending || confirmMutation.isPending || !confirmState.canConfirm}
+                                            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                        >
+                                            <Check size={14} strokeWidth={2.5} />
+                                            {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
+                                        </button>
+                                    </HintTooltip>
+                                )}
                             </>
                         ) : (
                             <>
@@ -533,15 +596,17 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     {t('transactions.detail.edit')}
                                 </button>
                                 {tx.status === 'DRAFT' ? (
-                                    <button
-                                        onClick={handleConfirm}
-                                        disabled={confirmMutation.isPending}
-                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                                        style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
-                                    >
-                                        <Check size={14} strokeWidth={2.5} />
-                                        {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
-                                    </button>
+                                    <HintTooltip content={confirmBlockers}>
+                                        <button
+                                            onClick={handleConfirm}
+                                            disabled={confirmMutation.isPending || !confirmState.canConfirm}
+                                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                        >
+                                            <Check size={14} strokeWidth={2.5} />
+                                            {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
+                                        </button>
+                                    </HintTooltip>
                                 ) : (
                                     <button
                                         onClick={handleReopen}

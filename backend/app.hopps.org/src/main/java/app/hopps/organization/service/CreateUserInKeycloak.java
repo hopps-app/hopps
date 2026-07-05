@@ -55,6 +55,9 @@ public class CreateUserInKeycloak {
         UserRepresentation createdUser = usersResource.search(userRepresentation.getUsername())
                 .getFirst();
 
+        // Persist the stable Keycloak user id (sub) on the member so it can be linked by id, not by the mutable email.
+        user.setKeycloakId(createdUser.getId());
+
         usersResource.get(createdUser.getId())
                 .roles()
                 .realmLevel()

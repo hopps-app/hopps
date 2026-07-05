@@ -190,6 +190,19 @@ public class BankTransactionMatchService {
                 .getResultList();
     }
 
+    /**
+     * Returns the total magnitude of bank movement linked to the given bookkeeping transaction — the sum of the
+     * absolute amounts of all bank transactions matched to it. Used to check whether a transaction's amount is fully
+     * covered by bank transactions before it may be confirmed. Bank amount and transaction total share the same sign
+     * convention, so absolute values are compared.
+     */
+    public BigDecimal getCoveredAmountForTransaction(Long transactionId) {
+        return (BigDecimal) em.createQuery(
+                "SELECT COALESCE(SUM(ABS(m.bankTransaction.amount)), 0) FROM BankTransactionMatch m WHERE m.transaction.id = :txId")
+                .setParameter("txId", transactionId)
+                .getSingleResult();
+    }
+
     public List<Long> getMatchedTransactionIds(Long bankTxId) {
         return em.createQuery(
                 "SELECT m.transaction.id FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId",

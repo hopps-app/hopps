@@ -403,7 +403,8 @@
       "openBankAccounts": "Manage in bank accounts",
       "deleteConfirmTitle": "Delete transaction?",
       "deleteConfirmText": "This transaction will be permanently deleted. This action cannot be undone.",
-      "openAmount": "open: {{amount}}"
+      "openAmount": "open: {{amount}}",
+      "saveDraft": "Save as draft"
     },
     "create": {
       "title": "New Transaction",
@@ -439,6 +440,14 @@
       "total": "Amount",
       "ascending": "Ascending",
       "descending": "Descending"
+    },
+    "confirmBlockers": {
+      "title": "Still needed to confirm:",
+      "amount": "Amount",
+      "date": "Date",
+      "counterparty": "Recipient/Issuer",
+      "name": "Description",
+      "coverage": "Coverage by bank transactions"
     }
   },
   "datePicker": {
@@ -693,7 +702,10 @@
       "purpose": "Purpose",
       "extractedBy": "Detected by {{source}}",
       "noReceiptDataTitle": "No receipt data",
-      "noReceiptDataHint": "No data was automatically extracted from the receipt. You can enter the values manually in the \"Transaction\" tab."
+      "noReceiptDataHint": "No data was automatically extracted from the receipt. You can enter the values manually in the \"Transaction\" tab.",
+      "saveDraft": "Save as draft",
+      "finalize": "Confirm",
+      "createTransaction": "Create transaction"
     },
     "filter": {
       "all": "All",

@@ -402,7 +402,8 @@
       "openBankAccounts": "In Bankkonten verwalten",
       "deleteConfirmTitle": "Transaktion löschen?",
       "deleteConfirmText": "Diese Transaktion wird dauerhaft gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
-      "openAmount": "offen: {{amount}}"
+      "openAmount": "offen: {{amount}}",
+      "saveDraft": "Als Entwurf speichern"
     },
     "create": {
       "title": "Neue Transaktion",
@@ -438,6 +439,14 @@
       "total": "Betrag",
       "ascending": "Aufsteigend",
       "descending": "Absteigend"
+    },
+    "confirmBlockers": {
+      "title": "Zum Bestätigen fehlt noch:",
+      "amount": "Betrag",
+      "date": "Datum",
+      "counterparty": "Empfänger/Aussteller",
+      "name": "Bezeichnung",
+      "coverage": "Deckung durch Banktransaktionen"
     }
   },
   "receipts": {
@@ -619,7 +628,10 @@
       "purpose": "Verwendungszweck",
       "extractedBy": "Erkannt durch {{source}}",
       "noReceiptDataTitle": "Keine Belegdaten",
-      "noReceiptDataHint": "Es wurden keine Daten automatisch aus dem Beleg extrahiert. Du kannst die Werte im Tab „Transaktion“ manuell eingeben."
+      "noReceiptDataHint": "Es wurden keine Daten automatisch aus dem Beleg extrahiert. Du kannst die Werte im Tab „Transaktion“ manuell eingeben.",
+      "saveDraft": "Als Entwurf speichern",
+      "finalize": "Bestätigen",
+      "createTransaction": "Als Transaktion bestätigen"
     },
     "filter": {
       "all": "Alle",

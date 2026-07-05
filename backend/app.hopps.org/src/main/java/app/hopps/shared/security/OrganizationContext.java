@@ -49,8 +49,8 @@ public class OrganizationContext {
             return;
         }
 
-        String userName = securityIdentity.getPrincipal().getName();
-        Member member = memberRepository.findByEmail(userName);
+        String keycloakId = KeycloakPrincipals.keycloakId(securityIdentity.getPrincipal());
+        Member member = memberRepository.findByKeycloakId(keycloakId);
         if (member == null) {
             return;
         }

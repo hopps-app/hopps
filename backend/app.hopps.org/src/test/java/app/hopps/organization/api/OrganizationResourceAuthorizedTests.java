@@ -7,6 +7,8 @@ import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import io.quarkus.test.security.oidc.Claim;
+import io.quarkus.test.security.oidc.OidcSecurity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import org.flywaydb.core.Flyway;
@@ -44,6 +46,9 @@ class OrganizationResourceAuthorizedTests {
     @Test
     @DisplayName("should return Organization of current user")
     @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
     void shouldReturnMyOrg() {
 
         given()
@@ -58,6 +63,9 @@ class OrganizationResourceAuthorizedTests {
     @Test
     @DisplayName("should update root bommel name when organization name changes")
     @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
     void shouldUpdateRootBommelNameOnOrgNameChange() {
 
         String newName = "Neuer Vereinsname e.V.";

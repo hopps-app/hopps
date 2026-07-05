@@ -35,8 +35,8 @@ public class SecurityUtils {
      *             if user belongs to multiple organizations (not yet supported)
      */
     public Organization getUserOrganization(SecurityContext securityContext) {
-        String userName = securityContext.getUserPrincipal().getName();
-        Member me = memberRepository.findByEmail(userName);
+        String keycloakId = KeycloakPrincipals.keycloakId(securityContext.getUserPrincipal());
+        Member me = memberRepository.findByKeycloakId(keycloakId);
 
         if (me == null) {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
@@ -47,7 +47,7 @@ public class SecurityUtils {
         Collection<Organization> orgs = me.getOrganizations();
         if (orgs.size() > 1) {
             throw new IllegalStateException(
-                    "More than one organization is currently not implemented. User: " + userName);
+                    "More than one organization is currently not implemented. User: " + me.getEmail());
         }
 
         return orgs.stream()
@@ -69,8 +69,8 @@ public class SecurityUtils {
      *             if user not found (404)
      */
     public Member getCurrentUser(SecurityContext securityContext) {
-        String userName = securityContext.getUserPrincipal().getName();
-        Member member = memberRepository.findByEmail(userName);
+        String keycloakId = KeycloakPrincipals.keycloakId(securityContext.getUserPrincipal());
+        Member member = memberRepository.findByKeycloakId(keycloakId);
 
         if (member == null) {
             throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)

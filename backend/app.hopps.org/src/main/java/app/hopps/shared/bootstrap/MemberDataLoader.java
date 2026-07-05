@@ -35,13 +35,14 @@ public class MemberDataLoader implements EntityDataLoader<TestdataConfig.MemberD
         for (TestdataConfig.MemberData member : config.getMembers()) {
             // Insert member
             String memberSql = """
-                    INSERT INTO Member (id, email, firstName, lastName)
-                    VALUES (:id, :email, :firstName, :lastName)
+                    INSERT INTO Member (id, email, keycloak_id, firstName, lastName)
+                    VALUES (:id, :email, :keycloakId, :firstName, :lastName)
                     """;
 
             entityManager.createNativeQuery(memberSql)
                     .setParameter("id", member.getId())
                     .setParameter("email", member.getEmail())
+                    .setParameter("keycloakId", member.getKeycloakId())
                     .setParameter("firstName", member.getFirstName())
                     .setParameter("lastName", member.getLastName())
                     .executeUpdate();

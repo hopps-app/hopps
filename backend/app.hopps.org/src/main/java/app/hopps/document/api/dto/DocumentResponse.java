@@ -34,11 +34,13 @@ public record DocumentResponse(
         BigDecimal totalTax,
         String currencyCode,
         Instant transactionTime,
-        // Sender information
+        // Sender information (the merchant/vendor extracted from the document)
         String senderName,
         String senderStreet,
         String senderZipCode,
         String senderCity,
+        // Recipient information (the customer extracted from the document)
+        String recipientName,
         // Tags
         List<String> tags,
         // Timestamps
@@ -79,6 +81,7 @@ public record DocumentResponse(
                 doc.getSenderStreet(),
                 doc.getSenderZipCode(),
                 doc.getSenderCity(),
+                doc.getRecipientName(),
                 tagNames,
                 doc.getCreatedAt(),
                 doc.getUpdatedAt(),
