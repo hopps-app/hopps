@@ -21,6 +21,7 @@ import {
 } from '@/hooks/queries/useBankAccounts';
 import type { SortDirection } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 
@@ -214,8 +215,8 @@ const ABGLEICH_PAGE_SIZE = 25;
 function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse[]; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
     const [page, setPage] = useState(0);
-    const [sortBy, setSortBy] = useState<BankTransactionSortField>('bookingDate');
-    const [sortDir, setSortDir] = useState<SortDirection>('desc');
+    const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.abgleich.sortBy', 'bookingDate');
+    const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.abgleich.sortDir', 'desc');
 
     // Toggle direction on the active column, otherwise switch column (default descending). Sorting is server-side and
     // spans all pages, so reset to the first page.
@@ -407,10 +408,10 @@ const PAGE_SIZE = 50;
 
 function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
+    const [statusFilter, setStatusFilter] = usePersistedState<StatusFilter>('hopps.konten.account.statusFilter', 'ALL');
     const [page, setPage] = useState(0);
-    const [sortBy, setSortBy] = useState<BankTransactionSortField>('bookingDate');
-    const [sortDir, setSortDir] = useState<SortDirection>('desc');
+    const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
+    const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
 
     // "Offen" covers everything not yet fully matched (unmatched + partially matched).
     const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter === 'UNMATCHED' ? 'UNMATCHED,PARTIALLY_MATCHED' : statusFilter;

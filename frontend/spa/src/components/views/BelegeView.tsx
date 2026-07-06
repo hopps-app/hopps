@@ -22,11 +22,14 @@ import {
     PencilLine,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
+
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { LoadingState } from '@/components/common/LoadingState';
+import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -279,7 +282,6 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const reanalyzeMutation = useReanalyzeDocument();
     const updateTransaction = useUpdateTransaction();
     const confirmTransaction = useConfirmTransaction();
-    const allBommels = useBommelsStore((s) => s.allBommels);
     const rootBommel = useBommelsStore((s) => s.rootBommel);
 
     // Live document — polls every 2s while the AI analysis is still running so results appear automatically
@@ -766,19 +768,11 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                     />
                                     <div>
                                         <label className={FIELD_LABEL_CLS}>{t('receipts.review.bommel')}</label>
-                                        <select
-                                            value={bommelId}
-                                            onChange={(e) => setBommelId(e.target.value)}
+                                        <InvoiceUploadFormBommelSelector
+                                            value={bommelId ? Number(bommelId) : null}
+                                            onChange={(id) => setBommelId(id ? String(id) : '')}
                                             disabled={fieldsDisabled}
-                                            className={FIELD_INPUT_CLS}
-                                        >
-                                            {allBommels.length === 0 && <option value={bommelId}>—</option>}
-                                            {allBommels.map((b) => (
-                                                <option key={b.id} value={b.id ?? ''}>
-                                                    {(b as { name?: string }).name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        />
                                     </div>
                                     <button
                                         type="button"
@@ -1274,9 +1268,9 @@ export function BelegeView() {
     const { t } = useTranslation();
     usePageTitle(t('receipts.title'));
 
-    const [filter, setFilter] = useState<'unreviewed' | 'all' | 'confirmed'>('unreviewed');
-    const [sortBy, setSortBy] = useState<'createdAt' | 'updatedAt' | 'transactionTime' | 'total'>('createdAt');
-    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [filter, setFilter] = usePersistedState<'unreviewed' | 'all' | 'confirmed'>('hopps.belege.filter', 'unreviewed');
+    const [sortBy, setSortBy] = usePersistedState<'createdAt' | 'updatedAt' | 'transactionTime' | 'total'>('hopps.belege.sortBy', 'createdAt');
+    const [sortDir, setSortDir] = usePersistedState<'asc' | 'desc'>('hopps.belege.sortDir', 'desc');
     const [selectedDoc, setSelectedDoc] = useState<DocumentResponse | null>(null);
 
     const { data: allDocs, isLoading, refetch } = useDocuments();

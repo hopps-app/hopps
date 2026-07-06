@@ -83,6 +83,7 @@ public class DocumentResource {
     @APIResponse(responseCode = "201", description = "Document created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
     @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "Not authenticated")
+    @APIResponse(responseCode = "409", description = "A document with identical file content already exists in the organization")
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
             @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze,

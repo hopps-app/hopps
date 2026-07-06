@@ -144,6 +144,7 @@ public class BankTransactionResource {
     @APIResponse(responseCode = "400", description = "Invalid file or ignored bank transaction")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank transaction not found")
+    @APIResponse(responseCode = "409", description = "A document with identical file content already exists in the organization")
     public Response createReceipt(
             @PathParam("id") @Parameter(description = "Bank transaction ID") Long id,
             @RestForm("file") FileUpload file,

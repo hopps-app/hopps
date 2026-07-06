@@ -633,7 +633,9 @@
         "errorDetail": "Details: {{error}}",
         "retry": "Restart analysis",
         "retryFailed": "The analysis could not be restarted. Please try again later."
-      }
+      },
+      "duplicate": "This receipt has already been uploaded.",
+      "uploadFailed": "Failed to upload the receipt."
     },
     "areas": {
       "ideell": "Non-profit area",

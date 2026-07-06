@@ -44,6 +44,7 @@ import {
     SortDirection,
 } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -758,18 +759,18 @@ export function TransactionenView() {
     const { t } = useTranslation();
     usePageTitle(t('transactions.title'));
 
-    const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'ALL' | 'CONFIRMED' | 'DRAFT'>('ALL');
+    const [search, setSearch] = usePersistedState<string>('hopps.transactions.search', '');
+    const [statusFilter, setStatusFilter] = usePersistedState<'ALL' | 'CONFIRMED' | 'DRAFT'>('hopps.transactions.statusFilter', 'ALL');
     const [advancedOpen, setAdvancedOpen] = useState(false);
-    const [categoryId, setCategoryId] = useState<number | undefined>();
-    const [bommelId, setBommelId] = useState<number | undefined>();
-    const [area, setArea] = useState<string | undefined>();
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [privatelyPaid, setPrivatelyPaid] = useState(false);
-    const [detached, setDetached] = useState(false);
-    const [sortBy, setSortBy] = useState<TransactionSortBy>('createdAt');
-    const [sortDir, setSortDir] = useState<SortDirection>('desc');
+    const [categoryId, setCategoryId] = usePersistedState<number | undefined>('hopps.transactions.categoryId', undefined);
+    const [bommelId, setBommelId] = usePersistedState<number | undefined>('hopps.transactions.bommelId', undefined);
+    const [area, setArea] = usePersistedState<string | undefined>('hopps.transactions.area', undefined);
+    const [startDate, setStartDate] = usePersistedState<string>('hopps.transactions.startDate', '');
+    const [endDate, setEndDate] = usePersistedState<string>('hopps.transactions.endDate', '');
+    const [privatelyPaid, setPrivatelyPaid] = usePersistedState<boolean>('hopps.transactions.privatelyPaid', false);
+    const [detached, setDetached] = usePersistedState<boolean>('hopps.transactions.detached', false);
+    const [sortBy, setSortBy] = usePersistedState<TransactionSortBy>('hopps.transactions.sortBy', 'createdAt');
+    const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.transactions.sortDir', 'desc');
     const [page, setPage] = useState(0);
     const [selectedTxId, setSelectedTxId] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);

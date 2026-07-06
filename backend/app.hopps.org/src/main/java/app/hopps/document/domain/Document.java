@@ -58,6 +58,9 @@ public class Document extends PanacheEntity {
     private String fileContentType; // MIME type
     private Long fileSize; // Size in bytes
 
+    // SHA-256 hex digest of the file content; used to reject duplicate uploads. Unique per organization.
+    private String fileHash;
+
     // AI analysis status
     @Enumerated(EnumType.STRING)
     private AnalysisStatus analysisStatus;
@@ -352,6 +355,14 @@ public class Document extends PanacheEntity {
 
     public void setFileSize(Long fileSize) {
         this.fileSize = fileSize;
+    }
+
+    public String getFileHash() {
+        return fileHash;
+    }
+
+    public void setFileHash(String fileHash) {
+        this.fileHash = fileHash;
     }
 
     public boolean hasFile() {
