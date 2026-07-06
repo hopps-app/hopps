@@ -559,7 +559,9 @@
         "errorDetail": "Details: {{error}}",
         "retry": "Analyse erneut starten",
         "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuche es später erneut."
-      }
+      },
+      "duplicate": "Dieser Beleg wurde bereits hochgeladen.",
+      "uploadFailed": "Fehler beim Hochladen des Belegs."
     },
     "areas": {
       "ideell": "Ideeller Bereich",

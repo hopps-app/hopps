@@ -15,6 +15,7 @@ import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import Progress from '@/components/ui/Progress';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import {
     useBankAccount,
     useBankTransactionsByAccount,
@@ -137,8 +138,8 @@ export function BankAccountDetailView() {
     const navigate = useNavigate();
     const [editOpen, setEditOpen] = useState(false);
     const [page] = useState(0);
-    const [sortBy, setSortBy] = useState<BankTransactionSortField>('bookingDate');
-    const [sortDir, setSortDir] = useState<SortDirection>('desc');
+    const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
+    const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
     const gridRef = useRef<AgGridReact>(null);
 
     const { data: account, isLoading: accountLoading, refetch: refetchAccount } = useBankAccount(accountId);

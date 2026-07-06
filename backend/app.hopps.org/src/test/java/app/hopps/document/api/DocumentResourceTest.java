@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -171,11 +172,11 @@ class DocumentResourceTest {
 
     @Test
     void shouldListDocuments() {
-        // Upload two documents first
+        // Upload two documents first. The second must have distinct content — identical content is rejected as a
+        // duplicate (see shouldRejectDuplicateUpload).
         InputStream file1 = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
-        InputStream file2 = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
         assertNotNull(file1);
-        assertNotNull(file2);
+        byte[] file2 = "second distinct test document".getBytes(StandardCharsets.UTF_8);
 
         given()
                 .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -201,6 +202,31 @@ class DocumentResourceTest {
                 .statusCode(Response.Status.OK.getStatusCode())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("size()", greaterThanOrEqualTo(2));
+    }
+
+    @Test
+    void shouldRejectDuplicateUpload() {
+        InputStream first = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        InputStream second = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(first);
+        assertNotNull(second);
+
+        given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", "ZUGFeRD.pdf", first, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode());
+
+        // Same content again (even under a different filename) must be rejected as a duplicate.
+        given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", "again.pdf", second, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CONFLICT.getStatusCode());
     }
 
     @Test

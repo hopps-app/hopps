@@ -15,8 +15,10 @@ import {
     useCreateReceiptForBankTransaction,
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
+import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { cn } from '@/lib/utils';
+import { getErrorStatus } from '@/utils/errorUtils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -98,6 +100,7 @@ interface MatchDrawerProps {
 export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { showError } = useToast();
     const [sel, setSel] = useState<Set<number>>(new Set());
     const [showCreate, setShowCreate] = useState(false);
     const createReceipt = useCreateReceiptForBankTransaction();
@@ -108,9 +111,14 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         onDrop: async (acceptedFiles) => {
             const file = acceptedFiles[0];
             if (!file) return;
-            const doc = await createReceipt.mutateAsync({ bankTxId, file });
-            onClose();
-            if (doc?.id) navigate(`/receipts?id=${doc.id}`);
+            try {
+                const doc = await createReceipt.mutateAsync({ bankTxId, file });
+                onClose();
+                if (doc?.id) navigate(`/receipts?id=${doc.id}`);
+            } catch (e) {
+                // 409 = identical receipt already uploaded before.
+                showError(getErrorStatus(e) === 409 ? t('receipts.upload.duplicate') : t('receipts.upload.uploadFailed'));
+            }
         },
         multiple: false,
         accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
