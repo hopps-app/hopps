@@ -1496,7 +1496,36 @@
   "enabledEventTypes": [],
   "adminEventsEnabled": false,
   "adminEventsDetailsEnabled": false,
-  "identityProviders": [],
+  "identityProviders": [
+    {
+      "alias": "authentik",
+      "displayName": "Authentik",
+      "providerId": "oidc",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "on",
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "K8L5KlhDnwhEEhLuocQoj8c2pilrLVIXGhFC5ySt",
+        "clientSecret": "Xxa0fKKxZv2qHNA0pOfowWuL5nBXjwMui9vRUm1BkFNH7iWlfoo3jFUhJ1629xcmoRZzPtt52JZfxlUkSFfHARAcbgVm2D5H4QcYDWPlaHmcrUTtbSCLfG0jubn4NR6o",
+        "clientAuthMethod": "client_secret_post",
+        "authorizationUrl": "http://authentik.local:9000/application/o/authorize/",
+        "logoutUrl": "http://authentik.local:9000/application/o/keycloak/end-session/",
+        "tokenUrl": "http://host.docker.internal:9000/application/o/token/",
+        "userInfoUrl": "http://host.docker.internal:9000/application/o/userinfo/",
+        "issuer": "http://host.docker.internal:9000/application/o/keycloak/",
+        "jwksUrl": "http://host.docker.internal:9000/application/o/keycloak/jwks/",
+        "useJwksUrl": "true",
+        "validateSignature": "false",
+        "defaultScope": "openid email profile",
+        "syncMode": "IMPORT"
+      }
+    }
+  ],
   "identityProviderMappers": [],
   "components": {
     "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy": [
@@ -1659,8 +1688,11 @@
       }
     ]
   },
-  "internationalizationEnabled": false,
-  "supportedLocales": [],
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "de",
+    "en"
+  ],
   "authenticationFlows": [
     {
       "id": "36ecd2ef-fb9c-43bd-b7e2-fdc279595436",
@@ -2321,78 +2353,102 @@
     "clientSessionMaxLifespan": "0",
     "organizationsEnabled": "false"
   },
-  "users" : [ {
-    "id" : "af134cab-f41c-4675-b141-205f975db679",
-    "username" : "admin",
-    "enabled" : true,
-    "totp" : false,
-    "emailVerified" : false,
-    "credentials" : [ {
-      "type" : "password",
-      "hashedSaltedValue" : "NICTtwsvSxJ5hL8hLAuleDUv9jwZcuXgxviMXvR++cciyPtiIEStEaJUyfA9DOir59awjPrHOumsclPVjNBplA==",
-      "salt" : "T/2P5o5oxFJUEk68BRURRg==",
-      "hashIterations" : 27500,
-      "counter" : 0,
-      "algorithm" : "pbkdf2-sha256",
-      "digits" : 0,
-      "period" : 0,
-      "createdDate" : 1554245879354,
-      "config" : { }
-    } ],
-    "disableableCredentialTypes" : [ "password" ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "admin", "user" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "eb4123a3-b722-4798-9af5-8957f823657a",
-    "username" : "alice",
-    "enabled" : true,
-    "email": "alice@example.test",
-    "totp" : false,
-    "emailVerified": true,
-    "credentials" : [ {
-      "type" : "password",
-      "hashedSaltedValue" : "A3okqV2T/ybXTVEgKfosoSjP8Yc9IZbFP/SY4cEd6hag7TABQrQ6nUSuwagGt96l8cw1DTijO75PqX6uiTXMzw==",
-      "salt" : "sl4mXx6T9FypPH/s9TngfQ==",
-      "hashIterations" : 27500,
-      "counter" : 0,
-      "algorithm" : "pbkdf2-sha256",
-      "digits" : 0,
-      "period" : 0,
-      "createdDate" : 1554245879116,
-      "config" : { }
-    } ],
-    "disableableCredentialTypes" : [ "password" ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "user" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "1eed6a8e-a853-4597-b4c6-c4c2533546a0",
-    "username" : "jdoe",
-    "email": "jdoe@example.test",
-    "enabled" : true,
-    "totp" : false,
-    "emailVerified": true,
-    "credentials" : [ {
-      "type" : "password",
-      "hashedSaltedValue" : "JV3DUNLjqOadjbBOtC4rvacQI553CGaDGAzBS8MR5ReCr7SwF3E6CsW3T7/XO8ITZAsch8+A/6loeuCoVLLJrg==",
-      "salt" : "uCbOH7HZtyDtMd0E9DG/nw==",
-      "hashIterations" : 27500,
-      "counter" : 0,
-      "algorithm" : "pbkdf2-sha256",
-      "digits" : 0,
-      "period" : 0,
-      "createdDate" : 1554245879227,
-      "config" : { }
-    } ],
-    "disableableCredentialTypes" : [ "password" ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "confidential", "user" ],
-    "notBefore" : 0,
-    "groups" : [ ]
-  }],
+  "users": [
+    {
+      "id": "af134cab-f41c-4675-b141-205f975db679",
+      "username": "admin",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": false,
+      "credentials": [
+        {
+          "type": "password",
+          "hashedSaltedValue": "NICTtwsvSxJ5hL8hLAuleDUv9jwZcuXgxviMXvR++cciyPtiIEStEaJUyfA9DOir59awjPrHOumsclPVjNBplA==",
+          "salt": "T/2P5o5oxFJUEk68BRURRg==",
+          "hashIterations": 27500,
+          "counter": 0,
+          "algorithm": "pbkdf2-sha256",
+          "digits": 0,
+          "period": 0,
+          "createdDate": 1554245879354,
+          "config": {}
+        }
+      ],
+      "disableableCredentialTypes": [
+        "password"
+      ],
+      "requiredActions": [],
+      "realmRoles": [
+        "admin",
+        "user"
+      ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
+      "id": "eb4123a3-b722-4798-9af5-8957f823657a",
+      "username": "alice",
+      "enabled": true,
+      "email": "alice@example.test",
+      "totp": false,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "hashedSaltedValue": "A3okqV2T/ybXTVEgKfosoSjP8Yc9IZbFP/SY4cEd6hag7TABQrQ6nUSuwagGt96l8cw1DTijO75PqX6uiTXMzw==",
+          "salt": "sl4mXx6T9FypPH/s9TngfQ==",
+          "hashIterations": 27500,
+          "counter": 0,
+          "algorithm": "pbkdf2-sha256",
+          "digits": 0,
+          "period": 0,
+          "createdDate": 1554245879116,
+          "config": {}
+        }
+      ],
+      "disableableCredentialTypes": [
+        "password"
+      ],
+      "requiredActions": [],
+      "realmRoles": [
+        "user"
+      ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
+      "id": "1eed6a8e-a853-4597-b4c6-c4c2533546a0",
+      "username": "jdoe",
+      "email": "jdoe@example.test",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "hashedSaltedValue": "JV3DUNLjqOadjbBOtC4rvacQI553CGaDGAzBS8MR5ReCr7SwF3E6CsW3T7/XO8ITZAsch8+A/6loeuCoVLLJrg==",
+          "salt": "uCbOH7HZtyDtMd0E9DG/nw==",
+          "hashIterations": 27500,
+          "counter": 0,
+          "algorithm": "pbkdf2-sha256",
+          "digits": 0,
+          "period": 0,
+          "createdDate": 1554245879227,
+          "config": {}
+        }
+      ],
+      "disableableCredentialTypes": [
+        "password"
+      ],
+      "requiredActions": [],
+      "realmRoles": [
+        "confidential",
+        "user"
+      ],
+      "notBefore": 0,
+      "groups": []
+    }
+  ],
   "keycloakVersion": "25.0.6",
   "userManagedAccessAllowed": false,
   "organizationsEnabled": false,
@@ -2401,5 +2457,7 @@
   },
   "clientPolicies": {
     "policies": []
-  }
+  },
+  "loginTheme": "hopps-login-theme",
+  "defaultLocale": "de"
 }

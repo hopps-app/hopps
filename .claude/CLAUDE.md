@@ -266,7 +266,7 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
   `%dev.quarkus.keycloak.devservices.image-name=hopps-keycloak-theme:local`.
   Dieses Image existiert **nur lokal** (kein Registry-Pull) — es muss vorher gebaut werden, sonst schlägt der Dev-Start mit Image-Pull-Fehler fehl (es gibt **kein** Fallback auf das Standard-Keycloak).
 - Das Realm braucht `"loginTheme": "hopps-login-theme"` (sonst Standard-Login) und den `identityProviders`-Eintrag mit `alias: authentik`.
-- Authentik läuft aus `infrastructure/hopps-app/docker-compose.yaml` (Services `authentik-server`/`-worker`/`-postgres`/`-redis`) auf **Port 9000**. Admin: `akadmin` / `akadmin` (`AUTHENTIK_BOOTSTRAP_PASSWORD`).
+- Authentik läuft aus der eigenen Datei `infrastructure/hopps-app/docker-compose.authentik.yaml` (Services `authentik-server`/`-worker`/`-postgres`/`-redis`) auf **Port 9000**. Admin: `akadmin` / `akadmin` (`AUTHENTIK_BOOTSTRAP_PASSWORD`).
 
 **Ablauf zum Testen:**
 1. **Theme-Image bauen** (nach jeder Theme-Änderung neu):
@@ -275,18 +275,23 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
    pnpm install --ignore-workspace --ignore-scripts   # standalone: NICHT Teil des frontend-Workspaces
    docker build -t hopps-keycloak-theme:local .
    ```
-2. **Authentik hochfahren:**
+2. **Dev Services auf das Theme-Image zeigen lassen** — folgende Zeile in `backend/app.hopps.org/src/main/resources/application.properties` eintragen (falls noch nicht vorhanden):
+   ```properties
+   %dev.quarkus.keycloak.devservices.image-name=hopps-keycloak-theme:local
+   ```
+   Zusätzlich im Realm `quarkus-realm.json` `"loginTheme": "hopps-login-theme"` setzen und den `authentik`-IdP-Eintrag (`identityProviders`) anlegen.
+3. **Authentik hochfahren** (eigene Compose-Datei, lässt die Haupt-`docker-compose.yaml` unberührt):
    ```bash
    cd infrastructure/hopps-app
-   docker compose up -d authentik-postgres authentik-redis authentik-server authentik-worker
+   docker compose -f docker-compose.authentik.yaml up -d
    ```
    Dann in Authentik (http://localhost:9000, `akadmin`/`akadmin`) einen **OIDC-Provider + Application** für Keycloak anlegen und als Redirect-URI **`http://localhost:8554/realms/quarkus/broker/authentik/endpoint`** hinterlegen. `clientId`/`clientSecret` von dort in den `authentik`-Eintrag in `quarkus-realm.json` übernehmen.
-3. **Backend im Dev-Mode starten** (zieht das lokale Theme-Image in den Dev-Services-Keycloak):
+4. **Backend im Dev-Mode starten** (zieht das lokale Theme-Image in den Dev-Services-Keycloak):
    ```bash
    cd backend/app.hopps.org
    ./mvnw quarkus:dev
    ```
-4. **Login testen:** SPA auf `http://localhost:5173/` starten und einloggen — oder direkt die Keycloak-Login-Seite über einen gültigen Client öffnen:
+5. **Login testen:** SPA auf `http://localhost:5173/` starten und einloggen — oder direkt die Keycloak-Login-Seite über einen gültigen Client öffnen:
    ```
    http://localhost:8554/realms/quarkus/protocol/openid-connect/auth?client_id=quarkus-app&redirect_uri=http://localhost:5173/&response_type=code&scope=openid
    ```
