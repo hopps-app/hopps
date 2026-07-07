@@ -24,7 +24,7 @@ public class DocumentRepository implements PanacheRepository<Document> {
             return List.of();
         }
         return find(
-                "SELECT DISTINCT d FROM Document d LEFT JOIN FETCH d.documentTags WHERE d.organization.id = ?1 ORDER BY d.transactionTime DESC, d.createdAt DESC",
+                "SELECT DISTINCT d FROM Document d LEFT JOIN FETCH d.documentTags WHERE d.organization.id = ?1 ORDER BY d.createdAt DESC",
                 orgId).list();
     }
 
@@ -73,5 +73,22 @@ public class DocumentRepository implements PanacheRepository<Document> {
             return null;
         }
         return find("id = ?1 and organization.id = ?2", id, orgId).firstResult();
+    }
+
+    /**
+     * Finds an existing document with the same file content hash in the current organization. Used to detect and reject
+     * duplicate uploads of the same receipt file.
+     *
+     * @param fileHash
+     *            SHA-256 hex digest of the file content
+     *
+     * @return the existing document, or null if none has this hash (or hash/org is null)
+     */
+    public Document findByFileHash(String fileHash) {
+        Long orgId = organizationContext.getCurrentOrganizationId();
+        if (orgId == null || fileHash == null) {
+            return null;
+        }
+        return find("fileHash = ?1 and organization.id = ?2", fileHash, orgId).firstResult();
     }
 }

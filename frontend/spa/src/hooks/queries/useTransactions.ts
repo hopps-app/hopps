@@ -1,9 +1,12 @@
 import type { TransactionArea, TransactionStatus } from '@hopps/api-client';
-import { TransactionResponse } from '@hopps/api-client';
+import { TransactionCreateRequest, TransactionResponse, TransactionUpdateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import i18n from '@/i18n';
 import apiService from '@/services/ApiService';
+
+export type TransactionSortBy = 'createdAt' | 'updatedAt' | 'transactionTime' | 'total';
+export type SortDirection = 'asc' | 'desc';
 
 export interface TransactionFilters {
     search?: string;
@@ -15,6 +18,8 @@ export interface TransactionFilters {
     privatelyPaid?: boolean;
     detached?: boolean;
     area?: TransactionArea;
+    sortBy?: TransactionSortBy;
+    sortDir?: SortDirection;
     page?: number;
     size?: number;
 }
@@ -41,6 +46,8 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.privatelyPaid,
                 filters.search,
                 filters.size ?? 50,
+                filters.sortBy,
+                filters.sortDir,
                 filters.startDate,
                 filters.status
             ),
@@ -55,6 +62,57 @@ export function useTransaction(id: number) {
     });
 }
 
+export function useCreateTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: TransactionCreateRequest) => apiService.orgService.transactionsPOST(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+        },
+    });
+}
+
+export function useUpdateTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: TransactionUpdateRequest }) => apiService.orgService.transactionsPATCH(id, data),
+        onSuccess: (_data, vars) => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.detail(vars.id) });
+        },
+    });
+}
+
+export function useConfirmTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => apiService.orgService.confirm2(id),
+        onSuccess: (_data, id) => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
+            // Confirming a transaction also confirms its linked document (Beleg) on the backend — refresh documents.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+        },
+    });
+}
+
+export function useReopenTransaction() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => apiService.orgService.reopen(id),
+        onSuccess: (_data, id) => {
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
+            // Reopening reverts the linked document back to a reviewable state — refresh documents.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+        },
+    });
+}
+
 export function useDeleteTransaction() {
     const queryClient = useQueryClient();
 
@@ -62,6 +120,8 @@ export function useDeleteTransaction() {
         mutationFn: (id: number) => apiService.orgService.transactionsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            // Deleting a transaction may unmatch a bank transaction (status reset on the backend) — refresh those too.
+            queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
         },
     });
 }

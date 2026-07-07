@@ -2,6 +2,8 @@ package app.hopps.document.api.dto;
 
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentDirection;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.ExtractionSource;
 
 import java.math.BigDecimal;
@@ -20,6 +22,8 @@ public record DocumentResponse(
         Long fileSize,
         Long bommelId,
         boolean privatelyPaid,
+        DocumentStatus documentStatus,
+        DocumentDirection direction,
         AnalysisStatus analysisStatus,
         String analysisError,
         ExtractionSource extractionSource,
@@ -30,15 +34,18 @@ public record DocumentResponse(
         BigDecimal totalTax,
         String currencyCode,
         Instant transactionTime,
-        // Sender information
+        // Sender information (the merchant/vendor extracted from the document)
         String senderName,
         String senderStreet,
         String senderZipCode,
         String senderCity,
+        // Recipient information (the customer extracted from the document)
+        String recipientName,
         // Tags
         List<String> tags,
         // Timestamps
         Instant createdAt,
+        Instant updatedAt,
         String uploadedBy) {
     /**
      * Creates a DocumentResponse from a Document entity.
@@ -59,6 +66,8 @@ public record DocumentResponse(
                 doc.getFileSize(),
                 doc.getBommel() != null ? doc.getBommel().id : null,
                 doc.isPrivatelyPaid(),
+                doc.getDocumentStatus(),
+                doc.getDirection(),
                 doc.getAnalysisStatus(),
                 doc.getAnalysisError(),
                 doc.getExtractionSource(),
@@ -72,8 +81,10 @@ public record DocumentResponse(
                 doc.getSenderStreet(),
                 doc.getSenderZipCode(),
                 doc.getSenderCity(),
+                doc.getRecipientName(),
                 tagNames,
                 doc.getCreatedAt(),
+                doc.getUpdatedAt(),
                 doc.getUploadedBy());
     }
 }

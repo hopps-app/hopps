@@ -138,6 +138,8 @@ function DashboardView() {
                 undefined, // privatelyPaid
                 undefined, // search
                 10000, // size - large enough to get all transactions
+                undefined, // sortBy
+                undefined, // sortDir
                 startDate, // startDate
                 undefined // status
             ),

@@ -227,8 +227,9 @@ class TransactionCreateConverterTest {
     }
 
     @Test
-    @DisplayName("should create sender trade party with organization")
-    void shouldCreateSenderTradeParty() {
+    @DisplayName("should store counterparty as recipient and organization as sender for income")
+    void shouldCreateCounterpartyForIncome() {
+        // Positive total => income: the counterparty is the recipient, the organization is the sender.
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, null, null, false,
@@ -237,17 +238,41 @@ class TransactionCreateConverterTest {
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
+        assertNotNull(transaction.getCounterparty());
+        assertEquals("ACME Corp", transaction.getCounterparty().getName());
+        assertEquals("Main Street 1", transaction.getCounterparty().getStreet());
+        assertEquals("12345", transaction.getCounterparty().getZipCode());
+        assertEquals("Berlin", transaction.getCounterparty().getCity());
+        assertEquals(organization, transaction.getCounterparty().getOrganization());
+        // income => counterparty on recipient side, organization on sender side
+        assertSame(transaction.getRecipient(), transaction.getCounterparty());
         assertNotNull(transaction.getSender());
-        assertEquals("ACME Corp", transaction.getSender().getName());
-        assertEquals("Main Street 1", transaction.getSender().getStreet());
-        assertEquals("12345", transaction.getSender().getZipCode());
-        assertEquals("Berlin", transaction.getSender().getCity());
-        assertEquals(organization, transaction.getSender().getOrganization());
+        assertEquals("Test Org", transaction.getSender().getName());
     }
 
     @Test
-    @DisplayName("should not create sender when name is null")
-    void shouldNotCreateSenderWhenNameNull() {
+    @DisplayName("should store counterparty as sender and organization as recipient for an expense")
+    void shouldCreateCounterpartyForExpense() {
+        // Negative total => expense: the counterparty is the sender, the organization is the recipient.
+        var request = new TransactionCreateRequest(
+                "Test", BigDecimal.TEN.negate(), null, null,
+                null, null, null, null, null, false,
+                "ACME Corp", "Main Street 1", "12345", "Berlin",
+                null);
+
+        converter.applyRequestToTransaction(transaction, request, organization);
+
+        assertNotNull(transaction.getCounterparty());
+        assertEquals("ACME Corp", transaction.getCounterparty().getName());
+        // expense => counterparty on sender side, organization on recipient side
+        assertSame(transaction.getSender(), transaction.getCounterparty());
+        assertNotNull(transaction.getRecipient());
+        assertEquals("Test Org", transaction.getRecipient().getName());
+    }
+
+    @Test
+    @DisplayName("should not create counterparty when name is null but still record organization")
+    void shouldNotCreateCounterpartyWhenNameNull() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, null, null, false,
@@ -256,12 +281,15 @@ class TransactionCreateConverterTest {
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
-        assertNull(transaction.getSender());
+        assertNull(transaction.getCounterparty());
+        // income => organization is recorded on the sender side even without a counterparty
+        assertNotNull(transaction.getSender());
+        assertEquals("Test Org", transaction.getSender().getName());
     }
 
     @Test
-    @DisplayName("should not create sender when name is blank")
-    void shouldNotCreateSenderWhenNameBlank() {
+    @DisplayName("should not create counterparty when name is blank but still record organization")
+    void shouldNotCreateCounterpartyWhenNameBlank() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, null, null, false,
@@ -270,7 +298,9 @@ class TransactionCreateConverterTest {
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
-        assertNull(transaction.getSender());
+        assertNull(transaction.getCounterparty());
+        assertNotNull(transaction.getSender());
+        assertEquals("Test Org", transaction.getSender().getName());
     }
 
     @Test

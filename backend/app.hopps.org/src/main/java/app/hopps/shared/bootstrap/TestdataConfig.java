@@ -171,6 +171,7 @@ public class TestdataConfig {
     public static class MemberData {
         private Long id;
         private String email;
+        private String keycloakId;
         private String firstName;
         private String lastName;
         private List<Long> organizationIds;
@@ -189,6 +190,14 @@ public class TestdataConfig {
 
         public void setEmail(String email) {
             this.email = email;
+        }
+
+        public String getKeycloakId() {
+            return keycloakId;
+        }
+
+        public void setKeycloakId(String keycloakId) {
+            this.keycloakId = keycloakId;
         }
 
         public String getFirstName() {

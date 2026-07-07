@@ -5,6 +5,8 @@ import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.domain.Transaction;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -56,6 +58,9 @@ public class Document extends PanacheEntity {
     private String fileContentType; // MIME type
     private Long fileSize; // Size in bytes
 
+    // SHA-256 hex digest of the file content; used to reject duplicate uploads. Unique per organization.
+    private String fileHash;
+
     // AI analysis status
     @Enumerated(EnumType.STRING)
     private AnalysisStatus analysisStatus;
@@ -70,13 +75,23 @@ public class Document extends PanacheEntity {
     @Enumerated(EnumType.STRING)
     private DocumentStatus documentStatus;
 
+    // Direction: INCOMING (Eingangsbeleg, expense) or OUTGOING (Ausgangsbeleg, income)
+    @Enumerated(EnumType.STRING)
+    private DocumentDirection direction;
+
     // User tracking for multi-user scenarios
     private String uploadedBy;
     private String analyzedBy;
     private String reviewedBy;
 
+    // Set automatically by Hibernate on first insert; never updated afterwards.
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    // Set automatically by Hibernate on insert and refreshed on every update.
+    @UpdateTimestamp
+    private Instant updatedAt;
 
     // Transient field for transaction count (populated by controller)
     @Transient
@@ -87,7 +102,6 @@ public class Document extends PanacheEntity {
     private Transaction transaction;
 
     public Document() {
-        this.createdAt = Instant.now();
     }
 
     public Long getId() {
@@ -232,6 +246,10 @@ public class Document extends PanacheEntity {
         return createdAt;
     }
 
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
     public String getDisplayTotal() {
         if (total == null) {
             return "-";
@@ -289,6 +307,10 @@ public class Document extends PanacheEntity {
         return sender != null ? sender.getCity() : "";
     }
 
+    public String getRecipientName() {
+        return recipient != null && recipient.getName() != null ? recipient.getName() : "";
+    }
+
     public String getFileKey() {
         return fileKey;
     }
@@ -333,6 +355,14 @@ public class Document extends PanacheEntity {
 
     public void setFileSize(Long fileSize) {
         this.fileSize = fileSize;
+    }
+
+    public String getFileHash() {
+        return fileHash;
+    }
+
+    public void setFileHash(String fileHash) {
+        this.fileHash = fileHash;
     }
 
     public boolean hasFile() {
@@ -426,6 +456,14 @@ public class Document extends PanacheEntity {
                 .map(DocumentTag::getName)
                 .sorted()
                 .collect(Collectors.joining(", "));
+    }
+
+    public DocumentDirection getDirection() {
+        return direction;
+    }
+
+    public void setDirection(DocumentDirection direction) {
+        this.direction = direction;
     }
 
     public DocumentStatus getDocumentStatus() {

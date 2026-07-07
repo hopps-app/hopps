@@ -90,15 +90,17 @@ class TransactionUpdateConverterTest {
     }
 
     @Test
-    @DisplayName("should keep original total when null in request")
-    void shouldKeepTotalWhenNull() {
+    @DisplayName("should clear total when null in request")
+    void shouldClearTotalWhenNull() {
+        // A null total clears the amount: the frontend always sends the full form state, so null means "cleared"
+        // (e.g. the analysed value was in the wrong currency and the correct euro amount isn't known yet).
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
                 null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
-        assertEquals(BigDecimal.valueOf(50), transaction.getTotal());
+        assertNull(transaction.getTotal());
     }
 
     @Test
@@ -329,73 +331,110 @@ class TransactionUpdateConverterTest {
     }
 
     @Test
-    @DisplayName("should create new sender when transaction has none")
-    void shouldCreateNewSender() {
+    @DisplayName("should create counterparty (recipient for income) when transaction has none")
+    void shouldCreateNewCounterparty() {
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 "New Sender", "Street 1", "54321", "Munich",
                 null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
-        assertNotNull(transaction.getSender());
-        assertEquals("New Sender", transaction.getSender().getName());
-        assertEquals("Street 1", transaction.getSender().getStreet());
-        assertEquals("54321", transaction.getSender().getZipCode());
-        assertEquals("Munich", transaction.getSender().getCity());
-        assertEquals(organization, transaction.getSender().getOrganization());
+        assertNotNull(transaction.getCounterparty());
+        assertEquals("New Sender", transaction.getCounterparty().getName());
+        assertEquals("Street 1", transaction.getCounterparty().getStreet());
+        assertEquals("54321", transaction.getCounterparty().getZipCode());
+        assertEquals("Munich", transaction.getCounterparty().getCity());
+        assertEquals(organization, transaction.getCounterparty().getOrganization());
+        // income (total 50) => counterparty on recipient side, organization on sender side
+        assertSame(transaction.getRecipient(), transaction.getCounterparty());
+        assertEquals("Test Org", transaction.getSender().getName());
     }
 
     @Test
-    @DisplayName("should update existing sender")
-    void shouldUpdateExistingSender() {
-        TradeParty existingSender = new TradeParty();
-        existingSender.setOrganization(organization);
-        existingSender.setName("Old Sender");
-        transaction.setSender(existingSender);
+    @DisplayName("should replace the counterparty with updated values")
+    void shouldReplaceCounterparty() {
+        TradeParty existing = new TradeParty();
+        existing.setOrganization(organization);
+        existing.setName("Old Sender");
+        // income => the counterparty lives on the recipient side
+        transaction.setRecipient(existing);
 
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 "Updated Sender", "New Street 5", "99999", "Hamburg",
                 null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
-        assertSame(existingSender, transaction.getSender());
-        assertEquals("Updated Sender", existingSender.getName());
-        assertEquals("New Street 5", existingSender.getStreet());
-        assertEquals("99999", existingSender.getZipCode());
-        assertEquals("Hamburg", existingSender.getCity());
+        assertNotNull(transaction.getCounterparty());
+        assertEquals("Updated Sender", transaction.getCounterparty().getName());
+        assertEquals("New Street 5", transaction.getCounterparty().getStreet());
+        assertEquals("99999", transaction.getCounterparty().getZipCode());
+        assertEquals("Hamburg", transaction.getCounterparty().getCity());
+        assertEquals("Test Org", transaction.getSender().getName());
     }
 
     @Test
-    @DisplayName("should not touch sender when name is null")
-    void shouldNotTouchSenderWhenNameNull() {
+    @DisplayName("should not touch parties when name is null")
+    void shouldNotTouchPartiesWhenNameNull() {
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 null, "Street 1", "12345", "Berlin",
                 null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
+        assertNull(transaction.getCounterparty());
         assertNull(transaction.getSender());
+        assertNull(transaction.getRecipient());
     }
 
     @Test
-    @DisplayName("should not touch sender when name is blank")
-    void shouldNotTouchSenderWhenNameBlank() {
+    @DisplayName("should not touch parties when name is blank")
+    void shouldNotTouchPartiesWhenNameBlank() {
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 "  ", "Street 1", "12345", "Berlin",
                 null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
+        assertNull(transaction.getCounterparty());
         assertNull(transaction.getSender());
+        assertNull(transaction.getRecipient());
+    }
+
+    @Test
+    @DisplayName("should move counterparty to the other side when the direction flips to expense")
+    void shouldMoveCounterpartyOnDirectionFlip() {
+        TradeParty existing = new TradeParty();
+        existing.setOrganization(organization);
+        existing.setName("Contact");
+        // starts as income (total 50) => counterparty on the recipient side
+        transaction.setRecipient(existing);
+
+        // flip to an expense without re-sending the counterparty name
+        var request = new TransactionUpdateRequest(
+                null, BigDecimal.valueOf(-99), null, null, null, null,
+                null, null, null, false,
+                null, null, null, null,
+                null, null);
+
+        converter.applyUpdateRequestToTransaction(transaction, request);
+
+        // expense => counterparty now on the sender side, organization on the recipient side
+        assertEquals("Contact", transaction.getCounterparty().getName());
+        assertSame(transaction.getSender(), transaction.getCounterparty());
+        assertEquals("Test Org", transaction.getRecipient().getName());
     }
 
     @Test
@@ -472,7 +511,8 @@ class TransactionUpdateConverterTest {
         assertEquals(bommel, transaction.getBommel());
         assertEquals(category, transaction.getCategory());
         assertEquals(TransactionArea.ZWECKBETRIEB, transaction.getArea());
-        assertEquals("Full Sender", transaction.getSender().getName());
+        // total 999 => income, so the counterparty is stored on the recipient side
+        assertEquals("Full Sender", transaction.getCounterparty().getName());
         assertEquals(Set.of("tag1", "tag2"), transaction.getTags());
     }
 }

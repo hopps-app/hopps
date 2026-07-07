@@ -1,4 +1,4 @@
-import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
+import { DoubleArrowLeftIcon, DoubleArrowRightIcon, PersonIcon } from '@radix-ui/react-icons';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,10 @@ import { menuConfig } from './shared/menu-config';
 import type { MenuItem } from './shared/types';
 
 import AlphaBadge from '@/components/ui/AlphaBadge';
+import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 import Icon from '@/components/ui/Icon';
+import authService from '@/services/auth/auth.service.ts';
+import { useStore } from '@/store/store.ts';
 
 type DesktopSidebarProps = {
     collapsed: boolean;
@@ -19,6 +22,15 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
     const location = useLocation();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { user, isAuthenticated } = useStore();
+
+    const userMenuItems = React.useMemo<DropdownMenuItem[]>(
+        () => [
+            { title: t('settings.menu.profile'), onClick: () => navigate('/profile'), icon: <Icon icon="Avatar" /> },
+            { title: t('header.logout'), onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> },
+        ],
+        [t, navigate]
+    );
 
     const isItemActive = (path: string) => {
         const cleanPath = path.split('?')[0];
@@ -108,6 +120,35 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                         </div>
                     )}
                     {adminItems.map(renderNavItem)}
+
+                    <div className="border-t border-separator my-2" />
+
+                    {/* User profile */}
+                    {isAuthenticated && (
+                        <DropdownMenu items={userMenuItems} className="w-52">
+                            <button
+                                type="button"
+                                className={`w-full flex items-center gap-2.5 rounded-[10px] transition-colors hover:bg-hover-effect dark:hover:bg-purple-200 ${collapsed ? 'justify-center p-2' : 'px-2 py-2'}`}
+                            >
+                                <div
+                                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm"
+                                    style={{ background: 'linear-gradient(135deg,#7E3FB4,#9955CC)' }}
+                                >
+                                    {user?.name ? user.name.charAt(0).toUpperCase() : <PersonIcon className="w-4 h-4" />}
+                                </div>
+                                {!collapsed && (
+                                    <div className="flex flex-col min-w-0 text-left">
+                                        <span className="text-[13px] font-semibold text-[#1B1B1F] dark:text-white truncate leading-tight">
+                                            {user?.name ?? 'User'}
+                                        </span>
+                                        <span className="text-[11px] text-[#9A9AA3] truncate leading-tight">{user?.email ?? ''}</span>
+                                    </div>
+                                )}
+                            </button>
+                        </DropdownMenu>
+                    )}
+
+                    {/* Collapse toggle */}
                     <button
                         type="button"
                         onClick={onToggle}

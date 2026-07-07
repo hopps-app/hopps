@@ -30,6 +30,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -53,6 +54,9 @@ public class OrganizationResource {
 
     @Inject
     SecurityUtils securityUtils;
+
+    @Inject
+    JsonWebToken jwt;
 
     @GET
     @Path("{slug}")
@@ -144,6 +148,65 @@ public class OrganizationResource {
 
         LOG.info("Successfully updated organization: {}", organization.getSlug());
         return Response.ok(organization).build();
+    }
+
+    @POST
+    @Path("/my")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Create my organization", description = "Creates a new organization and links it to the already-authenticated user (found or created by their Keycloak id) — without provisioning a new Keycloak user. The organization becomes the user's default organization on the next login.")
+    @APIResponse(responseCode = "201", description = "Organization created and linked to the current user", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "409", description = "Slug already exists, or the user is already assigned to an organization")
+    public Response createMyOrganization(OrganizationInput input) {
+        Organization organization = input.toOrganization();
+
+        String keycloakId = jwt.getSubject();
+        String email = firstNonBlank(jwt.getClaim("email"), jwt.getName());
+        String firstName = firstNonBlank(jwt.getClaim("given_name"), jwt.getClaim("preferred_username"),
+                localPart(email), "Konto");
+        String lastName = firstNonBlank(jwt.getClaim("family_name"), "-");
+
+        try {
+            organizationCreationService.createOrganizationForCurrentUser(organization, keycloakId, email, firstName,
+                    lastName);
+        } catch (ConstraintViolationException e) {
+            LOG.warn("Validation failed for organization creation: {}", e.getMessage());
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build());
+        } catch (NonUniqueConstraintViolation.NonUniqueConstraintViolationException e) {
+            LOG.warn("Uniqueness constraint violation: {}", e.getMessage());
+            Set<String> conflictingFields = e.getViolations()
+                    .stream()
+                    .map(NonUniqueConstraintViolation::field)
+                    .collect(Collectors.toSet());
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("conflictingFields", conflictingFields))
+                    .build();
+        }
+
+        LOG.info("Successfully created organization for current user: {}", organization.getSlug());
+        return Response.status(Response.Status.CREATED).entity(organization).build();
+    }
+
+    /** Returns the first non-null, non-blank value, or {@code null} if none. */
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /** The part of an email address before the {@code @}, used as a fallback first name. */
+    private static String localPart(String email) {
+        if (email == null) {
+            return null;
+        }
+        int at = email.indexOf('@');
+        return at > 0 ? email.substring(0, at) : email;
     }
 
     @GET

@@ -14,10 +14,22 @@ export const menuConfig: MenuItem[] = [
         path: '/receipts',
     },
     {
+        id: 'transactions',
+        label: 'menu.transactions',
+        icon: 'Loop',
+        path: '/transactions',
+    },
+    {
         id: 'structure',
         label: 'menu.structure',
         icon: 'Commit',
         path: '/structure',
+    },
+    {
+        id: 'bank-accounts',
+        label: 'menu.bankAccounts',
+        icon: 'CardStack',
+        path: '/bank-accounts',
     },
     {
         id: 'ngo-details',

@@ -19,6 +19,7 @@ import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
+import { getErrorStatus } from '@/utils/errorUtils';
 
 const POLLING_INTERVAL_BASE = 2000; // 2 seconds base interval
 const POLLING_MAX_INTERVAL = 30000; // 30 seconds max interval
@@ -39,7 +40,7 @@ function ReceiptUploadView() {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     // Page title set after isReadOnly state is defined below
-    const { showError, showSuccess } = useToast();
+    const { showError, showSuccess, showWarning } = useToast();
     const { loadBommels, rootBommel } = useBommelsStore();
     const store = useStore();
     const queryClient = useQueryClient();
@@ -156,7 +157,7 @@ function ReceiptUploadView() {
                 setAnalysisStatus('FAILED');
                 setAnalysisError(t('receipts.upload.analysis.pollingTimeout'));
                 setAllFieldsLoading(false);
-                showError(t('receipts.upload.analysis.pollingTimeout'));
+                showWarning(t('receipts.upload.analysis.pollingTimeout'));
                 return;
             }
 
@@ -174,7 +175,7 @@ function ReceiptUploadView() {
                 } else if (status === 'FAILED') {
                     setAnalysisError(response.analysisError ?? null);
                     setAllFieldsLoading(false);
-                    showError(t('receipts.upload.analysis.failed'));
+                    showWarning(t('receipts.upload.analysis.failed'));
                 } else {
                     // Schedule next poll with base interval (no errors)
                     pollingRef.current = setTimeout(pollAnalysisStatus, POLLING_INTERVAL_BASE);
@@ -189,7 +190,7 @@ function ReceiptUploadView() {
                     setAnalysisStatus('FAILED');
                     setAnalysisError(t('receipts.upload.analysis.serviceUnavailable'));
                     setAllFieldsLoading(false);
-                    showError(t('receipts.upload.analysis.serviceUnavailable'));
+                    showWarning(t('receipts.upload.analysis.serviceUnavailable'));
                 } else {
                     // Schedule next poll with exponential backoff
                     const nextInterval = getNextPollingInterval(consecutiveErrorsRef.current);
@@ -217,7 +218,7 @@ function ReceiptUploadView() {
         applyAnalysisResult,
         setAllFieldsLoading,
         showSuccess,
-        showError,
+        showWarning,
         t,
         getNextPollingInterval,
     ]);
@@ -352,7 +353,7 @@ function ReceiptUploadView() {
                     setEmptyFieldsLoading(true);
                 }
 
-                const response = await apiService.orgService.documentsPOST(isAutoRead, {
+                const response = await apiService.orgService.documentsPOST(isAutoRead, undefined, {
                     data: selected,
                     fileName: selected.name,
                 });
@@ -373,7 +374,8 @@ function ReceiptUploadView() {
                 }
             } catch (e) {
                 console.error(e);
-                showError(t('receipts.upload.uploadFailed'));
+                // 409 = the identical file was already uploaded before.
+                showError(getErrorStatus(e) === 409 ? t('receipts.upload.duplicate') : t('receipts.upload.uploadFailed'));
                 setAllFieldsLoading(false);
             } finally {
                 setIsSubmitting(false);
@@ -647,9 +649,9 @@ function ReceiptUploadView() {
             setAnalysisStatus('FAILED');
             setAnalysisError(t('receipts.upload.analysis.serviceUnavailable'));
             setAllFieldsLoading(false);
-            showError(t('receipts.upload.analysis.retryFailed'));
+            showWarning(t('receipts.upload.analysis.retryFailed'));
         }
-    }, [documentId, setAnalysisStatus, setAnalysisError, setEmptyFieldsLoading, setAllFieldsLoading, showError, t]);
+    }, [documentId, setAnalysisStatus, setAnalysisError, setEmptyFieldsLoading, setAllFieldsLoading, showWarning, t]);
 
     // Cleanup document URL on unmount
     useEffect(() => {
@@ -747,7 +749,7 @@ function ReceiptUploadView() {
                                 analysisStatus === 'COMPLETED'
                                     ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-200'
                                     : analysisStatus === 'FAILED'
-                                      ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200'
+                                      ? 'bg-purple-50 border-purple-200 text-purple-800 dark:bg-purple-950 dark:border-purple-800 dark:text-purple-200'
                                       : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200'
                             }`}
                         >
@@ -786,9 +788,8 @@ function ReceiptUploadView() {
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                     >
-                                        <circle cx="12" cy="12" r="10" />
-                                        <line x1="15" y1="9" x2="9" y2="15" />
-                                        <line x1="9" y1="9" x2="15" y2="15" />
+                                        <path d="M12 20h9" />
+                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
                                     </svg>
                                 )}
                             </div>

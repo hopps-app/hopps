@@ -68,4 +68,16 @@ public class CreationValidationDelegate {
             throw new NonUniqueConstraintViolation.NonUniqueConstraintViolationException(nonUniqueConstraintViolations);
         }
     }
+
+    /**
+     * Validates only that the organization slug is unique. Used when an already-authenticated user creates an
+     * organization — their email/account already exists, so the email uniqueness check must be skipped.
+     */
+    public void validateSlugUnique(Organization organization)
+            throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException {
+        if (organizationRepository.findBySlug(organization.getSlug()) != null) {
+            throw new NonUniqueConstraintViolation.NonUniqueConstraintViolationException(
+                    Set.of(new NonUniqueConstraintViolation("slug", organization)));
+        }
+    }
 }

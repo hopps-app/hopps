@@ -10,6 +10,7 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,6 +107,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Boolean privatelyPaid,
             Boolean detached,
             TransactionArea area,
+            Sort sort,
             Page page) {
 
         Long orgId = organizationContext.getCurrentOrganizationId();
@@ -115,10 +117,18 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         Map<String, Object> params = new HashMap<>();
         params.put("orgId", orgId);
 
-        // Search filter (name or senderName)
+        // Search filter: name and counterparty (sender/recipient) by text, plus the amount when the term is numeric —
+        // so a bank amount can be pasted to find the matching transaction (mirrors the bank-transaction search).
         if (search != null && !search.isBlank()) {
-            query.append(" and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search)");
+            query.append(
+                    " and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search OR LOWER(recipient.name) LIKE :search");
             params.put("search", "%" + search.toLowerCase() + "%");
+            BigDecimal searchAmount = parseSearchAmount(search);
+            if (searchAmount != null) {
+                query.append(" OR abs(total) = :searchAmount");
+                params.put("searchAmount", searchAmount.abs());
+            }
+            query.append(")");
         }
 
         // Date range filter
@@ -163,9 +173,22 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             params.put("area", area);
         }
 
-        return find(query.toString(), Sort.descending("createdAt"), params)
+        return find(query.toString(), sort != null ? sort : Sort.descending("createdAt"), params)
                 .page(page)
                 .list();
+    }
+
+    /**
+     * Parses a free-text search term as a monetary amount so it can additionally be matched against the transaction
+     * total. Accepts both comma and dot as decimal separator; returns {@code null} for non-numeric terms.
+     */
+    private static BigDecimal parseSearchAmount(String search) {
+        String normalized = search.trim().replace(" ", "").replace(",", ".");
+        try {
+            return new BigDecimal(normalized);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -189,8 +212,15 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         params.put("orgId", orgId);
 
         if (search != null && !search.isBlank()) {
-            query.append(" and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search)");
+            query.append(
+                    " and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search OR LOWER(recipient.name) LIKE :search");
             params.put("search", "%" + search.toLowerCase() + "%");
+            BigDecimal searchAmount = parseSearchAmount(search);
+            if (searchAmount != null) {
+                query.append(" OR abs(total) = :searchAmount");
+                params.put("searchAmount", searchAmount.abs());
+            }
+            query.append(")");
         }
 
         if (startDate != null) {

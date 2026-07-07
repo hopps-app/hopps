@@ -11,6 +11,19 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
+// The most recently *selected* bommel is remembered across forms so that assigning several receipts/transactions to
+// the same bommel in a row doesn't require re-picking it every time. Forms opt in to the default via `getLastBommelId`.
+const LAST_BOMMEL_KEY = 'hopps.lastBommelId';
+
+export function getLastBommelId(): number | null {
+    try {
+        const id = Number(localStorage.getItem(LAST_BOMMEL_KEY));
+        return Number.isFinite(id) && id > 0 ? id : null;
+    } catch {
+        return null;
+    }
+}
+
 type InvoiceUploadFormBommelSelectorprops = {
     value?: number | null;
     onChange: (id: number | null | undefined) => void;
@@ -33,6 +46,14 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
 
             if (searchedBommel) {
                 onChange(searchedBommel.id);
+                // Remember this pick so the next form can pre-select the same bommel.
+                if (searchedBommel.id != null) {
+                    try {
+                        localStorage.setItem(LAST_BOMMEL_KEY, String(searchedBommel.id));
+                    } catch {
+                        // storage unavailable — just skip remembering
+                    }
+                }
             }
 
             setOpen(false);

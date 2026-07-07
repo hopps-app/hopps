@@ -1,5 +1,7 @@
 package app.hopps.document.api.dto;
 
+import app.hopps.document.domain.DocumentDirection;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -18,5 +20,6 @@ public record DocumentUpdateRequest(
         String senderZipCode,
         String senderCity,
         boolean privatelyPaid,
+        DocumentDirection direction,
         List<String> tags) {
 }

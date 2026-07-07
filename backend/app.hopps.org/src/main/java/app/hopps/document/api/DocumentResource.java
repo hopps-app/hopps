@@ -10,6 +10,7 @@ import app.hopps.document.service.DocumentFileService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
+import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
 import jakarta.enterprise.event.Event;
@@ -29,9 +30,11 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 
@@ -61,6 +64,12 @@ public class DocumentResource {
     Event<DocumentCreatedEvent> documentCreatedEvent;
 
     @Inject
+    Event<DocumentChangedEvent> documentChangedEvent;
+
+    @Inject
+    Event<TransactionDeletedEvent> transactionDeletedEvent;
+
+    @Inject
     OrganizationContext organizationContext;
 
     @Inject
@@ -74,9 +83,11 @@ public class DocumentResource {
     @APIResponse(responseCode = "201", description = "Document created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
     @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "Not authenticated")
+    @APIResponse(responseCode = "409", description = "A document with identical file content already exists in the organization")
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
-            @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze) {
+            @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze,
+            @QueryParam("direction") @Parameter(description = "Document direction: INCOMING (Eingangsbeleg, expense) or OUTGOING (Ausgangsbeleg, income). Defaults to INCOMING.") DocumentDirection direction) {
         // Validate input
         LOG.info("Upload request received - file: {}", file);
         if (file == null || file.fileName() == null || file.fileName().isBlank()) {
@@ -105,26 +116,15 @@ public class DocumentResource {
         document.setOrganization(organization);
         document.setAnalysisStatus(AnalysisStatus.PENDING);
         document.setUploadedBy(principal);
+        document.setDirection(direction != null ? direction : DocumentDirection.INCOMING);
 
         // Upload file to S3 and set file metadata
         fileService.handleFileUpload(document, file);
 
-        // Persist document
-        documentRepository.persist(document);
+        // Persist document. Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before the response.
+        document.setDocumentStatus(DocumentStatus.UPLOADED);
+        documentRepository.persistAndFlush(document);
         LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
-
-        // Create linked transaction
-        Transaction transaction = new Transaction();
-        transaction.setOrganization(organization);
-        transaction.setDocument(document);
-        transaction.setCreatedBy(principal);
-        transaction.setStatus(TransactionStatus.DRAFT);
-        transactionRepository.persist(transaction);
-        LOG.info("Transaction created for document: transactionId={}, documentId={}",
-                transaction.getId(), document.getId());
-
-        // Set bidirectional relationship so transactionId is available in response
-        document.setTransaction(transaction);
 
         // Fire event to trigger async analysis after transaction commits (only if requested)
         if (analyze) {
@@ -133,6 +133,8 @@ public class DocumentResource {
             document.setAnalysisStatus(AnalysisStatus.SKIPPED);
             LOG.info("Skipping analysis for document: id={} (analyze=false)", document.getId());
         }
+
+        notifyChanged(document);
 
         // Return response with 201 Created status
         DocumentResponse response = DocumentResponse.from(document);
@@ -215,7 +217,7 @@ public class DocumentResource {
 
         if (request.transactionDate() != null && !request.transactionDate().isBlank()) {
             LocalDate date = LocalDate.parse(request.transactionDate());
-            document.setTransactionTime(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            document.setTransactionTime(date.atStartOfDay(ZoneOffset.UTC).toInstant());
             modified = true;
         }
 
@@ -247,6 +249,10 @@ public class DocumentResource {
 
         document.setPrivatelyPaid(request.privatelyPaid());
 
+        if (request.direction() != null) {
+            document.setDirection(request.direction());
+        }
+
         // Update tags if provided
         if (request.tags() != null) {
             updateDocumentTags(document, request.tags());
@@ -258,6 +264,7 @@ public class DocumentResource {
             document.setExtractionSource(ExtractionSource.MANUAL);
         }
 
+        notifyChanged(document);
         LOG.info("Document updated: id={}", document.getId());
         return DocumentResponse.from(document);
     }
@@ -278,6 +285,8 @@ public class DocumentResource {
         // Delete associated transaction first (due to foreign key constraint)
         Transaction transaction = transactionRepository.findByDocumentId(id);
         if (transaction != null) {
+            // Clean up bank-transaction matches (and recompute their status) before the row is removed.
+            transactionDeletedEvent.fire(new TransactionDeletedEvent(transaction.getId()));
             transactionRepository.delete(transaction);
             LOG.info("Transaction deleted for document: transactionId={}, documentId={}",
                     transaction.getId(), id);
@@ -288,6 +297,7 @@ public class DocumentResource {
             fileService.deleteFile(document.getFileKey());
         }
 
+        notifyChanged(document);
         documentRepository.delete(document);
         LOG.info("Document deleted: id={}", id);
     }
@@ -305,11 +315,63 @@ public class DocumentResource {
             throw new NotFoundException("Document or file not found");
         }
 
-        var inputStream = fileService.downloadFile(document.getFileKey());
-        return Response.ok(inputStream)
-                .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
-                .header("Content-Type", document.getFileContentType())
-                .build();
+        try {
+            var inputStream = fileService.downloadFile(document.getFileKey());
+            return Response.ok(inputStream)
+                    .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
+                    .header("Content-Type", document.getFileContentType())
+                    .build();
+        } catch (NoSuchKeyException e) {
+            // The DB record exists but the stored object is gone (e.g. ephemeral local storage was reset). Return a
+            // clean 404 instead of leaking a 500 with internal storage details.
+            LOG.warn("File missing in storage for document {}: key={}", id, document.getFileKey());
+            throw new NotFoundException("File is no longer available in storage");
+        }
+    }
+
+    @POST
+    @Path("/{id}/file")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Operation(summary = "Replace a document's file", description = "Replaces the file of an existing document (keeping its ID and links) and re-triggers analysis. Useful to restore a file that is no longer available in storage.")
+    @APIResponse(responseCode = "200", description = "File replaced", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "400", description = "Invalid file")
+    @APIResponse(responseCode = "404", description = "Document not found")
+    public DocumentResponse replaceFile(
+            @PathParam("id") @Parameter(description = "Document ID") Long id,
+            @RestForm("file") FileUpload file,
+            @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to re-trigger automatic AI analysis after upload") boolean analyze) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+        if (file == null || file.fileName() == null || file.fileName().isBlank()) {
+            throw new BadRequestException("File is required");
+        }
+        if (!ALLOWED_CONTENT_TYPES.contains(file.contentType())) {
+            throw new ClientErrorException(
+                    "Unsupported file type: " + file.contentType() + ". Allowed: " + ALLOWED_CONTENT_TYPES,
+                    Response.Status.UNSUPPORTED_MEDIA_TYPE);
+        }
+
+        String oldKey = document.getFileKey();
+        fileService.handleFileUpload(document, file);
+        if (oldKey != null && !oldKey.equals(document.getFileKey())) {
+            fileService.deleteFile(oldKey);
+        }
+
+        if (analyze) {
+            document.setAnalysisStatus(AnalysisStatus.PENDING);
+            document.setAnalysisError(null);
+            documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
+        } else {
+            document.setAnalysisStatus(AnalysisStatus.SKIPPED);
+        }
+
+        notifyChanged(document);
+        LOG.info("Document file replaced: id={}, fileName={}", id, document.getFileName());
+        return DocumentResponse.from(document);
     }
 
     @POST
@@ -340,6 +402,82 @@ public class DocumentResource {
 
         LOG.info("Re-analysis triggered: id={}", id);
         return DocumentResponse.from(document);
+    }
+
+    @POST
+    @Path("/{id}/confirm")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data.")
+    @APIResponse(responseCode = "200", description = "Document confirmed and transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @APIResponse(responseCode = "404", description = "Document not found")
+    @APIResponse(responseCode = "409", description = "Document already confirmed")
+    public DocumentResponse confirmDocument(
+            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+        if (document.getDocumentStatus() == DocumentStatus.CONFIRMED) {
+            throw new ClientErrorException("Document is already confirmed", Response.Status.CONFLICT);
+        }
+
+        String principal = securityIdentity.getPrincipal().getName();
+
+        // If a transaction is already linked (e.g. the document was created from a bank transaction), do not create a
+        // second one — the user has reconciled the values onto the existing transaction; just mark the document
+        // reviewed.
+        if (document.getTransaction() != null) {
+            document.setDocumentStatus(DocumentStatus.CONFIRMED);
+            document.setReviewedBy(principal);
+            notifyChanged(document);
+            LOG.info("Document confirmed (existing transaction kept): id={}, transactionId={}", document.getId(),
+                    document.getTransactionId());
+            return DocumentResponse.from(document);
+        }
+
+        Organization organization = organizationContext.getCurrentOrganization();
+
+        Transaction transaction = new Transaction();
+        transaction.setOrganization(organization);
+        transaction.setDocument(document);
+        transaction.setCreatedBy(principal);
+        transaction.setStatus(TransactionStatus.DRAFT);
+        transaction.setName(document.getName());
+        // Sign the amount by direction: INCOMING (Eingangsbeleg) = expense (negative),
+        // OUTGOING (Ausgangsbeleg) = income (positive)
+        BigDecimal total = document.getTotal();
+        if (total != null) {
+            boolean outgoing = document.getDirection() == DocumentDirection.OUTGOING;
+            transaction.setTotal(outgoing ? total.abs() : total.abs().negate());
+        }
+        transaction.setTotalTax(document.getTotalTax());
+        transaction.setCurrencyCode(document.getCurrencyCode());
+        transaction.setTransactionTime(document.getTransactionTime());
+        transaction.setPrivatelyPaid(document.isPrivatelyPaid());
+        if (document.getBommel() != null) {
+            transaction.setBommel(document.getBommel());
+        }
+        // The document's sender is the counterparty; the entity places it on the side matching the direction
+        // and records the organization on the other side.
+        transaction.setCounterparty(document.getSender());
+        transactionRepository.persist(transaction);
+
+        document.setTransaction(transaction);
+        document.setDocumentStatus(DocumentStatus.CONFIRMED);
+        document.setReviewedBy(principal);
+
+        notifyChanged(document);
+        LOG.info("Document confirmed: id={}, transactionId={}", document.getId(), transaction.getId());
+        return DocumentResponse.from(document);
+    }
+
+    /**
+     * Notifies connected WebSocket clients (after commit) that this document changed so they reload the list.
+     */
+    private void notifyChanged(Document document) {
+        Long orgId = document.getOrganization() != null ? document.getOrganization().getId() : null;
+        documentChangedEvent.fire(new DocumentChangedEvent(document.getId(), orgId));
     }
 
     /**
