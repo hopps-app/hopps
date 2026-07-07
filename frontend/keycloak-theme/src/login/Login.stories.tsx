@@ -68,18 +68,17 @@ export const WithSocialProviders: Story = {
                     displayInfo: true,
                     providers: [
                         {
+                            loginUrl: "authentik",
+                            alias: "authentik",
+                            providerId: "oidc",
+                            displayName: "Authentik"
+                        },
+                        {
                             loginUrl: "google",
                             alias: "google",
                             providerId: "google",
                             displayName: "Google",
                             iconClasses: "fa fa-google"
-                        },
-                        {
-                            loginUrl: "microsoft",
-                            alias: "microsoft",
-                            providerId: "microsoft",
-                            displayName: "Microsoft",
-                            iconClasses: "fa fa-windows"
                         }
                     ]
                 }
