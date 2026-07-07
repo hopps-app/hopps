@@ -1,0 +1,5 @@
+# Standalone project (built in its own Docker image). pnpm v10+ blocks
+# dependency build scripts by default and fails the install in CI.
+# onlyBuiltDependencies does not govern the root package's own dependencies
+# in a single-package setup, so we allow all build scripts here.
+dangerouslyAllowAllBuilds: true
