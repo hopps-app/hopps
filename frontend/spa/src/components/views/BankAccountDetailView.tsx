@@ -9,13 +9,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 
-import { LoadingState } from '@/components/common/LoadingState';
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
+import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import Progress from '@/components/ui/Progress';
-import { usePageTitle } from '@/hooks/use-page-title';
-import { usePersistedState } from '@/hooks/usePersistedState';
 import {
     useBankAccount,
     useBankTransactionsByAccount,
@@ -24,6 +22,8 @@ import {
     type BankTransactionSortField,
 } from '@/hooks/queries/useBankAccounts';
 import type { SortDirection } from '@/hooks/queries/useTransactions';
+import { usePageTitle } from '@/hooks/use-page-title';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/lib/utils';
 
 function formatCurrency(amount: number | undefined, currency = 'EUR'): string {
@@ -62,11 +62,7 @@ function TransactionStatusBadge({ status }: { status?: string }) {
         IGNORED: 'bg-red-100 text-red-700',
     };
     const cls = colorMap[status ?? ''] ?? 'bg-gray-100 text-gray-700';
-    return (
-        <span className={cn('inline-block px-2 py-0.5 rounded text-xs font-medium', cls)}>
-            {status ?? '—'}
-        </span>
-    );
+    return <span className={cn('inline-block px-2 py-0.5 rounded text-xs font-medium', cls)}>{status ?? '—'}</span>;
 }
 
 function ImportHistoryRow({ imp, accountId, onRollback }: { imp: BankImportResponse; accountId: number; onRollback: () => void }) {
@@ -84,8 +80,12 @@ function ImportHistoryRow({ imp, accountId, onRollback }: { imp: BankImportRespo
 
     return (
         <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-            <td className="py-2 px-3 text-sm max-w-[200px] truncate" title={imp.fileName}>{imp.fileName ?? '—'}</td>
-            <td className="py-2 px-3 text-sm"><ImportStatusBadge status={imp.status} /></td>
+            <td className="py-2 px-3 text-sm max-w-[200px] truncate" title={imp.fileName}>
+                {imp.fileName ?? '—'}
+            </td>
+            <td className="py-2 px-3 text-sm">
+                <ImportStatusBadge status={imp.status} />
+            </td>
             <td className="py-2 px-3 text-sm min-w-[120px]">
                 {imp.status === 'PROCESSING' || imp.status === 'QUEUED' ? (
                     <Progress value={imp.progress ?? 0} className="h-1.5" />
@@ -99,12 +99,7 @@ function ImportHistoryRow({ imp, accountId, onRollback }: { imp: BankImportRespo
             <td className="py-2 px-3 text-sm text-muted-foreground">{formatDate(imp.finishedAt)}</td>
             <td className="py-2 px-3 text-sm">
                 {canRollback && (
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setConfirmOpen(true)}
-                        disabled={rollbackMutation.isPending}
-                    >
+                    <Button variant="destructive" size="sm" onClick={() => setConfirmOpen(true)} disabled={rollbackMutation.isPending}>
                         {t('bankImport.rollback.button')}
                     </Button>
                 )}
@@ -136,75 +131,69 @@ export function BankAccountDetailView() {
     const gridRef = useRef<AgGridReact>(null);
 
     const { data: account, isLoading: accountLoading, refetch: refetchAccount } = useBankAccount(accountId);
-    const { data: transactions = [], isLoading: txLoading } = useBankTransactionsByAccount(
-        accountId,
-        page,
-        50,
-        undefined,
-        sortBy,
-        sortDir,
-    );
+    const { data: transactions = [], isLoading: txLoading } = useBankTransactionsByAccount(accountId, page, 50, undefined, sortBy, sortDir);
     const { data: imports = [], refetch: refetchImports } = useBankImports(accountId);
 
     usePageTitle(account?.name ?? t('bankAccounts.title'), 'CardStack');
 
-    const columnDefs = useMemo<ColDef[]>(() => [
-        {
-            field: 'bookingDate',
-            headerName: t('bankAccounts.table.bookingDate'),
-            width: 130,
-            // Sorting is done server-side; the no-op comparator keeps the order the backend returns while still
-            // rendering the sort arrow and firing onSortChanged.
-            sortable: true,
-            comparator: () => 0,
-            sort: 'desc',
-            valueFormatter: (p: { value: string }) => formatDate(p.value),
-        },
-        {
-            field: 'counterpartyName',
-            headerName: t('bankAccounts.table.counterpartyName'),
-            flex: 1,
-            minWidth: 150,
-            sortable: true,
-            comparator: () => 0,
-        },
-        {
-            field: 'purpose',
-            headerName: t('bankAccounts.table.purpose'),
-            flex: 2,
-            minWidth: 200,
-            sortable: false,
-            cellRenderer: (p: { value: string }) =>
-                p.value ? (
-                    <span title={p.value} className="block truncate max-w-full">{p.value}</span>
-                ) : null,
-        },
-        {
-            field: 'amount',
-            headerName: t('bankAccounts.table.amount'),
-            width: 140,
-            type: 'numericColumn',
-            sortable: true,
-            comparator: () => 0,
-            cellRenderer: (p: { data: BankTransactionResponse }) => {
-                const v = p.data.amount;
-                if (v === undefined || v === null) return '—';
-                const cls = v >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-500 font-semibold';
-                return (
-                    <span className={cls}>
-                        {formatCurrency(v, p.data.currency ?? 'EUR')}
-                    </span>
-                );
+    const columnDefs = useMemo<ColDef[]>(
+        () => [
+            {
+                field: 'bookingDate',
+                headerName: t('bankAccounts.table.bookingDate'),
+                width: 130,
+                // Sorting is done server-side; the no-op comparator keeps the order the backend returns while still
+                // rendering the sort arrow and firing onSortChanged.
+                sortable: true,
+                comparator: () => 0,
+                sort: 'desc',
+                valueFormatter: (p: { value: string }) => formatDate(p.value),
             },
-        },
-        {
-            field: 'status',
-            headerName: t('bankAccounts.table.status'),
-            width: 130,
-            sortable: false,
-            cellRenderer: (p: { value: string }) => <TransactionStatusBadge status={p.value} />,
-        },
-    ], [t]);
+            {
+                field: 'counterpartyName',
+                headerName: t('bankAccounts.table.counterpartyName'),
+                flex: 1,
+                minWidth: 150,
+                sortable: true,
+                comparator: () => 0,
+            },
+            {
+                field: 'purpose',
+                headerName: t('bankAccounts.table.purpose'),
+                flex: 2,
+                minWidth: 200,
+                sortable: false,
+                cellRenderer: (p: { value: string }) =>
+                    p.value ? (
+                        <span title={p.value} className="block truncate max-w-full">
+                            {p.value}
+                        </span>
+                    ) : null,
+            },
+            {
+                field: 'amount',
+                headerName: t('bankAccounts.table.amount'),
+                width: 140,
+                type: 'numericColumn',
+                sortable: true,
+                comparator: () => 0,
+                cellRenderer: (p: { data: BankTransactionResponse }) => {
+                    const v = p.data.amount;
+                    if (v === undefined || v === null) return '—';
+                    const cls = v >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-500 font-semibold';
+                    return <span className={cls}>{formatCurrency(v, p.data.currency ?? 'EUR')}</span>;
+                },
+            },
+            {
+                field: 'status',
+                headerName: t('bankAccounts.table.status'),
+                width: 130,
+                sortable: false,
+                cellRenderer: (p: { value: string }) => <TransactionStatusBadge status={p.value} />,
+            },
+        ],
+        [t]
+    );
 
     const onBtnExport = useCallback(() => {
         gridRef.current?.api?.exportDataAsCsv();
@@ -221,7 +210,11 @@ export function BankAccountDetailView() {
     }, []);
 
     if (accountLoading) {
-        return <div className="py-12"><LoadingState size="lg" /></div>;
+        return (
+            <div className="py-12">
+                <LoadingState size="lg" />
+            </div>
+        );
     }
 
     if (!account) {
@@ -259,15 +252,15 @@ export function BankAccountDetailView() {
                             />
                         )}
                         <h2 className="text-xl font-bold">{account.name}</h2>
-                        {account.iban && (
-                            <span className="text-sm text-muted-foreground font-mono">{account.iban}</span>
-                        )}
+                        {account.iban && <span className="text-sm text-muted-foreground font-mono">{account.iban}</span>}
                     </div>
 
-                    <span className={cn(
-                        'text-lg font-bold px-3 py-1 rounded-full',
-                        (account.balance ?? account.openingBalance ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
-                    )}>
+                    <span
+                        className={cn(
+                            'text-lg font-bold px-3 py-1 rounded-full',
+                            (account.balance ?? account.openingBalance ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+                        )}
+                    >
                         {formatCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
                     </span>
                 </div>
@@ -296,7 +289,9 @@ export function BankAccountDetailView() {
                     </Button>
                 </div>
                 {txLoading ? (
-                    <div className="py-8"><LoadingState /></div>
+                    <div className="py-8">
+                        <LoadingState />
+                    </div>
                 ) : transactions.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-6 text-center">{t('bankAccounts.transactions.empty')}</p>
                 ) : (
@@ -337,12 +332,7 @@ export function BankAccountDetailView() {
                             </thead>
                             <tbody>
                                 {imports.map((imp) => (
-                                    <ImportHistoryRow
-                                        key={imp.id}
-                                        imp={imp}
-                                        accountId={accountId}
-                                        onRollback={refetchImports}
-                                    />
+                                    <ImportHistoryRow key={imp.id} imp={imp} accountId={accountId} onRollback={refetchImports} />
                                 ))}
                             </tbody>
                         </table>

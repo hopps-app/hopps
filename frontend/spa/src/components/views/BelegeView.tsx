@@ -23,8 +23,6 @@ import {
     PencilLine,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
-
-import { usePersistedState } from '@/hooks/usePersistedState';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -53,6 +51,7 @@ import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/h
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useDocumentEvents } from '@/hooks/useDocumentEvents';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -1527,18 +1526,9 @@ export function BelegeView() {
 
             {/* Bulk selection toolbar */}
             {selectedIds.size > 0 && (
-                <div
-                    className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5"
-                    style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}
-                >
-                    <span className="text-[13.5px] font-bold text-[#1B1B1F]">
-                        {t('receipts.bulk.selectedCount', { n: selectedIds.size })}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={clearSelection}
-                        className="text-[13px] font-semibold text-[#6B6B76] hover:text-[#1B1B1F] transition-colors"
-                    >
+                <div className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5" style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}>
+                    <span className="text-[13.5px] font-bold text-[#1B1B1F]">{t('receipts.bulk.selectedCount', { n: selectedIds.size })}</span>
+                    <button type="button" onClick={clearSelection} className="text-[13px] font-semibold text-[#6B6B76] hover:text-[#1B1B1F] transition-colors">
                         {t('receipts.bulk.clear')}
                     </button>
                     <div className="flex-1" />

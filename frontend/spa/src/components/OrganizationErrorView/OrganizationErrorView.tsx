@@ -96,11 +96,7 @@ function OrganizationErrorView() {
                     </Button>
                 </form>
 
-                <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="mt-4 w-full text-sm text-gray-500 hover:text-gray-800 transition-colors"
-                >
+                <button type="button" onClick={handleLogout} className="mt-4 w-full text-sm text-gray-500 hover:text-gray-800 transition-colors">
                     {t('header.logout')}
                 </button>
             </div>

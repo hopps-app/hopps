@@ -43,20 +43,13 @@ export type BankTransactionSortField = 'bookingDate' | 'amount' | 'counterpartyN
 
 export const bankTransactionKeys = {
     all: ['bankTransactions'] as const,
-    byAccount: (
-        accountId: number,
-        page?: number,
-        size?: number,
-        status?: string,
-        sort?: BankTransactionSortField,
-        direction?: SortDirection,
-    ) => [...bankTransactionKeys.all, 'account', accountId, { page, size, status, sort, direction }] as const,
+    byAccount: (accountId: number, page?: number, size?: number, status?: string, sort?: BankTransactionSortField, direction?: SortDirection) =>
+        [...bankTransactionKeys.all, 'account', accountId, { page, size, status, sort, direction }] as const,
     // Cross-account listing (all accounts when accountIds is omitted).
     list: (status?: string, page?: number, size?: number, sort?: BankTransactionSortField, direction?: SortDirection) =>
         [...bankTransactionKeys.all, 'list', { status, page, size, sort, direction }] as const,
     // Aggregate totals + true (uncapped) count for a filter set.
-    aggregate: (accountIds?: string, status?: string) =>
-        [...bankTransactionKeys.all, 'aggregate', { accountIds, status }] as const,
+    aggregate: (accountIds?: string, status?: string) => [...bankTransactionKeys.all, 'aggregate', { accountIds, status }] as const,
 };
 
 // ─── Bank Accounts ───────────────────────────────────────────────────────────
@@ -401,7 +394,7 @@ export function useBankTransactionsByAccount(
     size = 50,
     status?: string,
     sort: BankTransactionSortField = 'bookingDate',
-    direction: SortDirection = 'desc',
+    direction: SortDirection = 'desc'
 ) {
     return useQuery({
         queryKey: bankTransactionKeys.byAccount(accountId, page, size, status, sort, direction),
@@ -415,7 +408,7 @@ export function useBankTransactionsByAccount(
                 undefined, // search
                 size,
                 sort,
-                status,
+                status
             ),
         enabled: !!accountId,
     });
@@ -430,7 +423,7 @@ export function useAllBankTransactions(
     page = 0,
     size = 25,
     sort: BankTransactionSortField = 'bookingDate',
-    direction: SortDirection = 'desc',
+    direction: SortDirection = 'desc'
 ) {
     return useQuery({
         queryKey: bankTransactionKeys.list(status, page, size, sort, direction),
@@ -444,7 +437,7 @@ export function useAllBankTransactions(
                 undefined, // search
                 size,
                 sort,
-                status,
+                status
             ),
     });
 }
@@ -487,7 +480,7 @@ export function useBankTransactionSearch(search: string, enabled: boolean) {
                 search || undefined,
                 25, // size
                 undefined, // sort
-                'UNMATCHED,PARTIALLY_MATCHED', // status
+                'UNMATCHED,PARTIALLY_MATCHED' // status
             ),
         enabled,
     });

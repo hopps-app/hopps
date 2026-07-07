@@ -1159,13 +1159,8 @@ export function TransactionenView() {
 
                 {/* Bulk selection toolbar */}
                 {selectedIds.size > 0 && (
-                    <div
-                        className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1"
-                        style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}
-                    >
-                        <span className="text-[13.5px] font-bold text-[#1B1B1F]">
-                            {t('transactions.bulk.selectedCount', { n: selectedIds.size })}
-                        </span>
+                    <div className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1" style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}>
+                        <span className="text-[13.5px] font-bold text-[#1B1B1F]">{t('transactions.bulk.selectedCount', { n: selectedIds.size })}</span>
                         <button
                             type="button"
                             onClick={clearSelection}

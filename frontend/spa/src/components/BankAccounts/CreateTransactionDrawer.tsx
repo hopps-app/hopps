@@ -226,9 +226,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                         <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">
                             {bankMode ? t('konten.createTx.title') : t('transactions.create.title')}
                         </span>
-                        <p className="mt-0.5 text-[13px] text-[#6B6B76]">
-                            {bankMode ? t('konten.createTx.subtitle') : t('transactions.create.subtitle')}
-                        </p>
+                        <p className="mt-0.5 text-[13px] text-[#6B6B76]">{bankMode ? t('konten.createTx.subtitle') : t('transactions.create.subtitle')}</p>
                     </div>
                     <button
                         onClick={handleClose}
@@ -350,10 +348,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                         </div>
                         <div>
                             <label className={labelCls}>{t('transactions.create.bommel')}</label>
-                            <InvoiceUploadFormBommelSelector
-                                value={bommelId ? Number(bommelId) : null}
-                                onChange={(id) => setBommelId(id ? String(id) : '')}
-                            />
+                            <InvoiceUploadFormBommelSelector value={bommelId ? Number(bommelId) : null} onChange={(id) => setBommelId(id ? String(id) : '')} />
                         </div>
                     </div>
 

@@ -1,5 +1,5 @@
-import { AmountStrategy, BankCsvSchemaResponse, BankCsvSchemaTemplateResponse, BankFieldType } from '@hopps/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { AmountStrategy, BankCsvSchemaResponse, BankCsvSchemaTemplateResponse, BankFieldType } from '@hopps/api-client';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Resolver, useFieldArray, useForm } from 'react-hook-form';
@@ -13,11 +13,7 @@ import { BaseInput } from '@/components/ui/shadecn/BaseInput';
 import { BaseSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadecn/BaseSelect';
 import { useBankSchemaTemplates, useCreateBankSchema, useUpdateBankSchema } from '@/hooks/queries/useBankAccounts';
 
-const AMOUNT_STRATEGIES: AmountStrategy[] = [
-    'SIGNED_SINGLE_COLUMN',
-    'DEBIT_CREDIT_COLUMNS',
-    'AMOUNT_PLUS_TYPE_COLUMN',
-];
+const AMOUNT_STRATEGIES: AmountStrategy[] = ['SIGNED_SINGLE_COLUMN', 'DEBIT_CREDIT_COLUMNS', 'AMOUNT_PLUS_TYPE_COLUMN'];
 
 const BANK_FIELD_TYPES: BankFieldType[] = [
     'BOOKING_DATE',
@@ -48,10 +44,7 @@ function buildSchema(t: (k: string) => string) {
         delimiter: z.string().optional(),
         quoteChar: z.string().optional(),
         encoding: z.string().optional(),
-        skipLines: z.preprocess(
-            (v) => (v === '' || v === undefined ? 0 : Number(v)),
-            z.number().int().min(0)
-        ),
+        skipLines: z.preprocess((v) => (v === '' || v === undefined ? 0 : Number(v)), z.number().int().min(0)),
         hasHeader: z.boolean(),
         dateFormat: z.string().optional(),
         decimalSeparator: z.string().optional(),
@@ -61,10 +54,7 @@ function buildSchema(t: (k: string) => string) {
         columnMappings: z.array(
             z.object({
                 targetField: z.string().min(1),
-                sourceColumnIndex: z.preprocess(
-                    (v) => (v === '' || v === undefined ? undefined : Number(v)),
-                    z.number().int().min(0).optional()
-                ),
+                sourceColumnIndex: z.preprocess((v) => (v === '' || v === undefined ? undefined : Number(v)), z.number().int().min(0).optional()),
                 sourceColumnName: z.string().optional(),
                 transform: z.string().optional(),
             })
@@ -90,12 +80,13 @@ function schemaResponseToForm(s: BankCsvSchemaResponse | BankCsvSchemaTemplateRe
         thousandSeparator: s.thousandSeparator ?? '',
         amountStrategy: (s.amountStrategy as AmountStrategy) ?? 'SIGNED_SINGLE_COLUMN',
         amountTypePositiveValues: s.amountTypePositiveValues?.join(',') ?? '',
-        columnMappings: s.columnMappings?.map((m) => ({
-            targetField: m.targetField ?? '',
-            sourceColumnIndex: m.sourceColumnIndex,
-            sourceColumnName: m.sourceColumnName ?? '',
-            transform: m.transform ?? '',
-        })) ?? [],
+        columnMappings:
+            s.columnMappings?.map((m) => ({
+                targetField: m.targetField ?? '',
+                sourceColumnIndex: m.sourceColumnIndex,
+                sourceColumnName: m.sourceColumnName ?? '',
+                transform: m.transform ?? '',
+            })) ?? [],
     };
 }
 
@@ -167,7 +158,10 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
         const payload = {
             ...values,
             amountTypePositiveValues: values.amountTypePositiveValues
-                ? values.amountTypePositiveValues.split(',').map((v) => v.trim()).filter(Boolean)
+                ? values.amountTypePositiveValues
+                      .split(',')
+                      .map((v) => v.trim())
+                      .filter(Boolean)
                 : [],
             columnMappings: values.columnMappings.map((m) => ({
                 targetField: m.targetField as BankFieldType,
@@ -202,9 +196,7 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
                             {templates.map((tmpl) => (
                                 <SelectItem key={tmpl.templateId} value={tmpl.templateId ?? ''}>
                                     {tmpl.name}
-                                    {tmpl.bankName && (
-                                        <span className="text-muted-foreground ml-2">({tmpl.bankName})</span>
-                                    )}
+                                    {tmpl.bankName && <span className="text-muted-foreground ml-2">({tmpl.bankName})</span>}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -241,7 +233,9 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
                         </SelectTrigger>
                         <SelectContent>
                             {ENCODINGS.map((e) => (
-                                <SelectItem key={e} value={e}>{e}</SelectItem>
+                                <SelectItem key={e} value={e}>
+                                    {e}
+                                </SelectItem>
                             ))}
                         </SelectContent>
                     </BaseSelect>
@@ -257,13 +251,10 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
                 <div className="grid gap-1.5">
                     <Label>{t('bankSchema.form.hasHeader')}</Label>
                     <div className="flex items-center gap-2 pt-3">
-                        <input
-                            type="checkbox"
-                            id="schema-hasHeader"
-                            {...register('hasHeader')}
-                            className="w-4 h-4 accent-primary"
-                        />
-                        <label htmlFor="schema-hasHeader" className="text-sm">{t('bankSchema.form.hasHeaderLabel')}</label>
+                        <input type="checkbox" id="schema-hasHeader" {...register('hasHeader')} className="w-4 h-4 accent-primary" />
+                        <label htmlFor="schema-hasHeader" className="text-sm">
+                            {t('bankSchema.form.hasHeaderLabel')}
+                        </label>
                     </div>
                 </div>
             </div>
@@ -288,11 +279,10 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
 
             {/* Amount Strategy */}
             <div className="grid gap-1.5">
-                <Label>{t('bankSchema.form.amountStrategy')} <span className="text-destructive">*</span></Label>
-                <BaseSelect
-                    value={amountStrategyValue}
-                    onValueChange={(v) => setValue('amountStrategy', v as AmountStrategy)}
-                >
+                <Label>
+                    {t('bankSchema.form.amountStrategy')} <span className="text-destructive">*</span>
+                </Label>
+                <BaseSelect value={amountStrategyValue} onValueChange={(v) => setValue('amountStrategy', v as AmountStrategy)}>
                     <SelectTrigger>
                         <SelectValue />
                     </SelectTrigger>
@@ -310,11 +300,7 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
             {amountStrategyValue === 'AMOUNT_PLUS_TYPE_COLUMN' && (
                 <div className="grid gap-1.5">
                     <Label htmlFor="schema-amountTypePos">{t('bankSchema.form.amountTypePositiveValues')}</Label>
-                    <BaseInput
-                        id="schema-amountTypePos"
-                        {...register('amountTypePositiveValues')}
-                        placeholder="Haben, Credit, +"
-                    />
+                    <BaseInput id="schema-amountTypePos" {...register('amountTypePositiveValues')} placeholder="Haben, Credit, +" />
                     <p className="text-xs text-muted-foreground">{t('bankSchema.form.amountTypePositiveValuesHint')}</p>
                 </div>
             )}
@@ -334,9 +320,7 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
                     </Button>
                 </div>
 
-                {fields.length === 0 && (
-                    <p className="text-sm text-muted-foreground">{t('bankSchema.form.noMappings')}</p>
-                )}
+                {fields.length === 0 && <p className="text-sm text-muted-foreground">{t('bankSchema.form.noMappings')}</p>}
 
                 {fields.map((field, index) => (
                     <div key={field.id} className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-900 space-y-2">
@@ -367,7 +351,9 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {BANK_FIELD_TYPES.map((f) => (
-                                            <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
+                                            <SelectItem key={f} value={f} className="text-xs">
+                                                {f}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </BaseSelect>
@@ -388,21 +374,13 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
                             {/* Source Column Name */}
                             <div className="grid gap-1">
                                 <label className="text-xs font-medium">{t('bankSchema.form.sourceColumnName')}</label>
-                                <BaseInput
-                                    {...register(`columnMappings.${index}.sourceColumnName`)}
-                                    className="py-2 text-xs"
-                                    placeholder="Buchungsdatum"
-                                />
+                                <BaseInput {...register(`columnMappings.${index}.sourceColumnName`)} className="py-2 text-xs" placeholder="Buchungsdatum" />
                             </div>
 
                             {/* Transform */}
                             <div className="grid gap-1">
                                 <label className="text-xs font-medium">{t('bankSchema.form.transform')}</label>
-                                <BaseInput
-                                    {...register(`columnMappings.${index}.transform`)}
-                                    className="py-2 text-xs"
-                                    placeholder=""
-                                />
+                                <BaseInput {...register(`columnMappings.${index}.transform`)} className="py-2 text-xs" placeholder="" />
                             </div>
                         </div>
                     </div>

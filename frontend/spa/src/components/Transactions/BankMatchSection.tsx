@@ -183,27 +183,24 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                             <p className="px-3 py-4 text-[13px] text-[#9A9AA3] text-center">{t('transactions.detail.bankNoResults')}</p>
                         ) : (
                             candidates.map((b) => (
-                                    <button
-                                        key={b.id}
-                                        onClick={() => link(b.id!)}
-                                        disabled={addMatch.isPending}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-[#F1F1F4] last:border-b-0 hover:bg-[#F3EAFB] transition-colors disabled:opacity-50"
-                                    >
-                                        <span
-                                            className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
-                                            style={{ background: '#F1F1F4' }}
-                                        >
-                                            <Landmark size={15} className="text-[#6B6B76]" />
+                                <button
+                                    key={b.id}
+                                    onClick={() => link(b.id!)}
+                                    disabled={addMatch.isPending}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-[#F1F1F4] last:border-b-0 hover:bg-[#F3EAFB] transition-colors disabled:opacity-50"
+                                >
+                                    <span className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F1F1F4' }}>
+                                        <Landmark size={15} className="text-[#6B6B76]" />
+                                    </span>
+                                    <span className="flex flex-col min-w-0 flex-1">
+                                        <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
+                                        <span className="text-[12px] text-[#6B6B76]">
+                                            {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                         </span>
-                                        <span className="flex flex-col min-w-0 flex-1">
-                                            <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
-                                            <span className="text-[12px] text-[#6B6B76]">
-                                                {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
-                                            </span>
-                                        </span>
-                                        <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
-                                    </button>
-                                ))
+                                    </span>
+                                    <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
+                                </button>
+                            ))
                         )}
                     </div>
                 </div>
