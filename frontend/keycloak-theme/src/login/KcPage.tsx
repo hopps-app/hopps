@@ -23,7 +23,12 @@ const doMakeUserConfirmPassword = true;
 // Shared template with the hopps logo + subtitle header. Reused by every page
 // (DefaultPage and the ejected pages below) so the branded header stays
 // consistent across the whole login theme.
-const HoppsTemplate = ({ kcContext, i18n, children, ...props }: TemplateProps<KcContext, I18n>) => {
+const HoppsTemplate = ({
+    kcContext,
+    i18n,
+    children,
+    ...props
+}: TemplateProps<KcContext, I18n>) => {
     const { msg } = i18n;
     return (
         <DefaultTemplate {...props} kcContext={kcContext} i18n={i18n}>
