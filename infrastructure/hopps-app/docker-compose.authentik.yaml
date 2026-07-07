@@ -1,0 +1,65 @@
+# Authentik — external OIDC identity provider for LOCAL TESTING ONLY.
+#
+# Standalone compose file so the main docker-compose.yaml stays untouched.
+# Start it on its own:
+#   docker compose -f docker-compose.authentik.yaml up -d
+# Stop + wipe:
+#   docker compose -f docker-compose.authentik.yaml down -v
+#
+# Reach Authentik at http://host.docker.internal:9000 from BOTH the browser and
+# the Keycloak container so the OIDC issuer/redirects stay consistent.
+# Initial admin: akadmin / see AUTHENTIK_BOOTSTRAP_PASSWORD below.
+#
+# See .claude/CLAUDE.md → "Authentik als Identity Provider lokal testen" for the
+# full end-to-end flow (Keycloak Dev Services on 8554, broker redirect URI, etc.).
+services:
+  authentik-postgres:
+    image: postgres:16-alpine
+    volumes:
+      - authentik_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=authentik
+      - POSTGRES_PASSWORD=authentik
+      - POSTGRES_DB=authentik
+
+  authentik-redis:
+    image: redis:alpine
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2024.12
+    command: server
+    ports:
+      - "9000:9000"
+    depends_on:
+      - authentik-postgres
+      - authentik-redis
+    environment:
+      # Dev-only secret. For production generate a real one: openssl rand -base64 60
+      - AUTHENTIK_SECRET_KEY=dev-only-change-me-generate-a-long-random-string
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-postgres
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      # Pre-seed the akadmin user so you can skip the initial-setup flow
+      - AUTHENTIK_BOOTSTRAP_PASSWORD=akadmin
+      - AUTHENTIK_BOOTSTRAP_EMAIL=admin@hopps.local
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2024.12
+    command: worker
+    depends_on:
+      - authentik-postgres
+      - authentik-redis
+    environment:
+      - AUTHENTIK_SECRET_KEY=dev-only-change-me-generate-a-long-random-string
+      - AUTHENTIK_POSTGRESQL__HOST=authentik-postgres
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD=authentik
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - AUTHENTIK_REDIS__HOST=authentik-redis
+      - AUTHENTIK_BOOTSTRAP_PASSWORD=akadmin
+      - AUTHENTIK_BOOTSTRAP_EMAIL=admin@hopps.local
+
+volumes:
+  authentik_db:
