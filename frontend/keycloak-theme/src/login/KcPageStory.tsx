@@ -9,6 +9,9 @@ const kcContextExtension: KcContextExtension = {
     themeName: themeNames[0],
     properties: {
         ...kcEnvDefaults
+    },
+    client: {
+        baseUrl: "http://localhost:5173"
     }
 };
 const kcContextExtensionPerPage: KcContextExtensionPerPage = {};

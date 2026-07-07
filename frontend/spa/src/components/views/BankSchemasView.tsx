@@ -3,30 +3,17 @@ import { Archive, Edit, Plus, RotateCcw, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { SchemaForm } from '@/components/BankAccounts/SchemaForm';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState';
-import { SchemaForm } from '@/components/BankAccounts/SchemaForm';
 import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { useBankSchemas, useDeleteBankSchema, useArchiveBankSchema, useRestoreBankSchema } from '@/hooks/queries/useBankAccounts';
 import { usePageTitle } from '@/hooks/use-page-title';
-import {
-    useBankSchemas,
-    useDeleteBankSchema,
-    useArchiveBankSchema,
-    useRestoreBankSchema,
-} from '@/hooks/queries/useBankAccounts';
 import { cn } from '@/lib/utils';
 
-function SchemaRow({
-    schema,
-    onEdit,
-    onRefresh,
-}: {
-    schema: BankCsvSchemaResponse;
-    onEdit: () => void;
-    onRefresh: () => void;
-}) {
+function SchemaRow({ schema, onEdit, onRefresh }: { schema: BankCsvSchemaResponse; onEdit: () => void; onRefresh: () => void }) {
     const { t } = useTranslation();
     const deleteMutation = useDeleteBankSchema();
     const archiveMutation = useArchiveBankSchema();
@@ -64,55 +51,33 @@ function SchemaRow({
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span className="font-medium truncate">{schema.name}</span>
-                    {schema.archived && (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                            {t('bankSchema.archived')}
-                        </span>
-                    )}
+                    {schema.archived && <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{t('bankSchema.archived')}</span>}
                 </div>
                 <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
                     {schema.bankIdentifier && <span>{schema.bankIdentifier}</span>}
                     {schema.delimiter && (
-                        <span>{t('bankSchema.card.delimiter')}: <code>{schema.delimiter}</code></span>
+                        <span>
+                            {t('bankSchema.card.delimiter')}: <code>{schema.delimiter}</code>
+                        </span>
                     )}
                     {schema.encoding && <span>{schema.encoding}</span>}
-                    {schema.amountStrategy && (
-                        <span>{t(`bankSchema.amountStrategy.${schema.amountStrategy}`)}</span>
-                    )}
+                    {schema.amountStrategy && <span>{t(`bankSchema.amountStrategy.${schema.amountStrategy}`)}</span>}
                 </div>
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                {(
+                {
                     <>
                         {schema.archived ? (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleRestore}
-                                disabled={isLoading}
-                                title={t('bankSchema.restore')}
-                            >
+                            <Button variant="outline" size="sm" onClick={handleRestore} disabled={isLoading} title={t('bankSchema.restore')}>
                                 <RotateCcw className="w-4 h-4" />
                             </Button>
                         ) : (
                             <>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={onEdit}
-                                    disabled={isLoading}
-                                    title={t('common.edit')}
-                                >
+                                <Button variant="outline" size="sm" onClick={onEdit} disabled={isLoading} title={t('common.edit')}>
                                     <Edit className="w-4 h-4" />
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleArchive}
-                                    disabled={isLoading}
-                                    title={t('bankSchema.archive')}
-                                >
+                                <Button variant="outline" size="sm" onClick={handleArchive} disabled={isLoading} title={t('bankSchema.archive')}>
                                     <Archive className="w-4 h-4" />
                                 </Button>
                                 <Button
@@ -127,7 +92,7 @@ function SchemaRow({
                             </>
                         )}
                     </>
-                )}
+                }
             </div>
 
             <ConfirmDialog
@@ -167,9 +132,7 @@ export function BankSchemasView() {
                         onClick={() => setShowArchived((p) => !p)}
                         className={cn(
                             'text-sm px-3 py-1.5 rounded-lg border transition-colors',
-                            showArchived
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'border-gray-300 text-gray-600 hover:border-gray-400'
+                            showArchived ? 'bg-primary text-primary-foreground border-primary' : 'border-gray-300 text-gray-600 hover:border-gray-400'
                         )}
                     >
                         {showArchived ? t('bankSchema.hideArchived') : t('bankSchema.showArchived')}
@@ -182,7 +145,9 @@ export function BankSchemasView() {
             </div>
 
             {isLoading ? (
-                <div className="py-12"><LoadingState size="lg" /></div>
+                <div className="py-12">
+                    <LoadingState size="lg" />
+                </div>
             ) : (
                 <div className="space-y-6">
                     {/* User schemas */}
@@ -196,12 +161,7 @@ export function BankSchemasView() {
                     ) : (
                         <div className="space-y-3">
                             {userSchemas.map((schema) => (
-                                <SchemaRow
-                                    key={schema.id}
-                                    schema={schema}
-                                    onEdit={() => setEditSchema(schema)}
-                                    onRefresh={refetch}
-                                />
+                                <SchemaRow key={schema.id} schema={schema} onEdit={() => setEditSchema(schema)} onRefresh={refetch} />
                             ))}
                         </div>
                     )}

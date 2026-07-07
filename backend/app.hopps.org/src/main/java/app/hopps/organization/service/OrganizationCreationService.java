@@ -1,11 +1,18 @@
 package app.hopps.organization.service;
 
+import app.hopps.bommel.domain.Bommel;
+import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +42,15 @@ public class OrganizationCreationService {
 
     @Inject
     PersistOrganizationDelegate persistenceDelegate;
+
+    @Inject
+    MemberRepository memberRepository;
+
+    @Inject
+    OrganizationRepository organizationRepository;
+
+    @Inject
+    BommelRepository bommelRepository;
 
     /**
      * Creates a new organization with its owner.
@@ -74,5 +90,67 @@ public class OrganizationCreationService {
         LOG.debug("Persisting organization entities");
         persistenceDelegate.persistOrg(organization, owner);
         LOG.info("Successfully created organization: {} ({})", organization.getName(), organization.getSlug());
+    }
+
+    /**
+     * Creates an organization for an already-authenticated Keycloak user. The user's member is looked up by their
+     * Keycloak id (JWT {@code sub}) and created on the fly if it doesn't exist yet — no new Keycloak user is
+     * provisioned. The organization is linked to that member (with a root bommel) and thereby becomes the user's
+     * default organization on the next login.
+     *
+     * @throws ConstraintViolationException
+     *             if the organization (or the newly built member) fails bean validation
+     * @throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException
+     *             if the slug already exists
+     * @throws ClientErrorException
+     *             (409 Conflict) if the user is already assigned to an organization
+     */
+    @Transactional
+    public Organization createOrganizationForCurrentUser(Organization organization, String keycloakId, String email,
+            String firstName, String lastName) {
+        if (keycloakId == null || keycloakId.isBlank()) {
+            throw new ClientErrorException("Missing user identity", Response.Status.UNAUTHORIZED);
+        }
+
+        Member member = memberRepository.findByKeycloakId(keycloakId);
+        if (member != null && !member.getOrganizations().isEmpty()) {
+            throw new ClientErrorException("User is already assigned to an organization", Response.Status.CONFLICT);
+        }
+
+        boolean newMember = member == null;
+        if (newMember) {
+            member = new Member();
+            member.setKeycloakId(keycloakId);
+            member.setEmail(email);
+            member.setFirstName(firstName);
+            member.setLastName(lastName);
+        }
+
+        // Validate the organization (and the member's mandatory fields); the email uniqueness check is skipped because
+        // the account already exists — only the slug must be unique.
+        validationDelegate.validateWithValidator(organization, member);
+        validationDelegate.validateSlugUnique(organization);
+
+        member.addOrganization(organization);
+
+        Bommel rootBommel = new Bommel();
+        rootBommel.setName(organization.getName());
+        rootBommel.setParent(null);
+        rootBommel.setOrganization(organization);
+        rootBommel.setEmoji(Bommel.DEFAULT_ROOT_BOMMEL_EMOJI);
+        rootBommel.setResponsibleMember(member);
+
+        organization.addMember(member);
+        organization.setRootBommel(rootBommel);
+
+        if (newMember) {
+            memberRepository.persist(member);
+        }
+        organizationRepository.persist(organization);
+        bommelRepository.persist(rootBommel);
+
+        LOG.info("Created organization {} ({}) for existing user {}", organization.getName(), organization.getSlug(),
+                keycloakId);
+        return organization;
     }
 }

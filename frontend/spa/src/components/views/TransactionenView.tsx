@@ -25,7 +25,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
-import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
@@ -223,7 +223,9 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
         setDate(tx.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : '');
         setSenderName(tx.senderName ?? '');
         setCategoryId(tx.categoryId != null ? String(tx.categoryId) : '');
-        setBommelId(tx.bommelId != null ? String(tx.bommelId) : '');
+        // Keep the transaction's own bommel; if it has none, default to the last picked one (batch assignment).
+        const lastBommel = getLastBommelId();
+        setBommelId(tx.bommelId != null ? String(tx.bommelId) : lastBommel ? String(lastBommel) : '');
         setArea(tx.area ?? '');
         setPrivatelyPaid(tx.privatelyPaid ?? false);
         setEditMode(true);
@@ -232,8 +234,11 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     // Writes the current edit-form values onto the transaction (kept as-is; a draft can always be saved incomplete).
     async function persistEdits() {
         if (!tx?.id) return;
-        const raw = parseFloat(amountStr.replace(',', '.'));
-        const signed = isNaN(raw) ? undefined : kind === 'expense' ? -Math.abs(raw) : Math.abs(raw);
+        // An empty (or invalid) amount clears the field: omit the total so the backend receives null and empties it,
+        // instead of silently keeping the old value. The euro amount can later be filled from a linked bank transaction.
+        const trimmed = amountStr.trim();
+        const raw = parseFloat(trimmed.replace(',', '.'));
+        const signed = trimmed === '' || isNaN(raw) ? undefined : kind === 'expense' ? -Math.abs(raw) : Math.abs(raw);
         const data = new TransactionUpdateRequest({
             name: name || undefined,
             total: signed,
@@ -450,7 +455,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                             {/* Amount + Date */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className={labelCls}>{t('transactions.create.amount')} (€)</label>
+                                    <label className={labelCls}>{t('transactions.create.amount')}</label>
                                     <input
                                         type="text"
                                         inputMode="decimal"
@@ -1154,13 +1159,8 @@ export function TransactionenView() {
 
                 {/* Bulk selection toolbar */}
                 {selectedIds.size > 0 && (
-                    <div
-                        className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1"
-                        style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}
-                    >
-                        <span className="text-[13.5px] font-bold text-[#1B1B1F]">
-                            {t('transactions.bulk.selectedCount', { n: selectedIds.size })}
-                        </span>
+                    <div className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1" style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}>
+                        <span className="text-[13.5px] font-bold text-[#1B1B1F]">{t('transactions.bulk.selectedCount', { n: selectedIds.size })}</span>
                         <button
                             type="button"
                             onClick={clearSelection}

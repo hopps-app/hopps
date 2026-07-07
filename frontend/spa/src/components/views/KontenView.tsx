@@ -360,9 +360,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between mt-4">
-                            <span className="text-xs text-muted-foreground">
-                                {t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}
-                            </span>
+                            <span className="text-xs text-muted-foreground">{t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}</span>
                             <div className="flex items-center gap-1">
                                 <button
                                     type="button"
@@ -738,16 +736,14 @@ export function KontenView() {
             queryFn: () => apiService.orgService.aggregate(String(a.id), undefined, undefined, undefined, 'UNMATCHED,PARTIALLY_MATCHED'),
         })),
     });
-    const openCountByAccount = Object.fromEntries(
-        accounts.map((a, i) => [String(a.id), openCountResults[i]?.data?.count ?? 0])
-    );
+    const openCountByAccount = Object.fromEntries(accounts.map((a, i) => [String(a.id), openCountResults[i]?.data?.count ?? 0]));
     const totalOpen = Object.values(openCountByAccount).reduce((a, b) => a + b, 0);
 
     const activeAccount = accounts.find((a) => String(a.id) === tab);
 
     const tabs: { id: TabId; label: string; badge?: number }[] = [
         { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen > 0 ? totalOpen : undefined },
-        ...accounts.map((a) => ({ id: String(a.id), label: a.name })),
+        ...accounts.map((a) => ({ id: String(a.id), label: a.name ?? '' })),
         { id: 'importe', label: t('konten.tabs.importe') },
     ];
 

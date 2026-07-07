@@ -1114,6 +1114,10 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Bank transaction not found", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A document with identical file content already exists in the organization", status, _responseText, _headers);
+            });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Not Allowed", status, _responseText, _headers);
@@ -2509,6 +2513,10 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Not authenticated", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A document with identical file content already exists in the organization", status, _responseText, _headers);
+            });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Not Allowed", status, _responseText, _headers);
@@ -3341,6 +3349,64 @@ export class Client {
         } else if (status === 401) {
             return response.text().then((_responseText) => {
             return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Organization>(null as any);
+    }
+
+    /**
+     * Create my organization
+     * @return Organization created and linked to the current user
+     */
+    myPOST(body: OrganizationInput): Promise<Organization> {
+        let url_ = this.baseUrl + "/organization/my";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMyPOST(_response);
+        });
+    }
+
+    protected processMyPOST(response: Response): Promise<Organization> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = Organization.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Validation of fields failed", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Slug already exists, or the user is already assigned to an organization", status, _responseText, _headers);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {

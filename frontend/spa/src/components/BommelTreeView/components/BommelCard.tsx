@@ -206,7 +206,7 @@ export function BommelCard({
         >
             {/* Card */}
             <div
-                className={`relative rounded-xl px-3 py-2 shadow-md transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white border border-purple-200'}`}
+                className={`relative rounded-xl px-3 py-2 shadow-md transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white dark:bg-[var(--purple-100)] border border-purple-200 dark:border-[var(--purple-300)]'}`}
             >
                 {/* Collapse toggle button */}
                 {hasChildren && (
@@ -216,7 +216,7 @@ export function BommelCard({
                             e.stopPropagation();
                             toggleNode();
                         }}
-                        className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white border-2 border-purple-500 rounded-full w-6 h-6 flex items-center justify-center cursor-pointer z-10 transition-all collapse-button hover:bg-purple-50"
+                        className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-[var(--purple-100)] border-2 border-purple-500 dark:border-[var(--purple-400)] rounded-full w-6 h-6 flex items-center justify-center cursor-pointer z-10 transition-all collapse-button hover:bg-purple-50 dark:hover:bg-[var(--purple-200)]"
                         aria-label={t('organization.structure.details.subBommels')}
                         aria-expanded={!isCollapsed}
                     >
@@ -236,7 +236,7 @@ export function BommelCard({
                             e.stopPropagation();
                             handleDeleteClick();
                         }}
-                        className="absolute -top-1.5 -right-1.5 bg-red-50 border border-red-200 text-red-400 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-red-100 hover:border-red-400 hover:text-red-600 transition-colors z-10"
+                        className="absolute -top-1.5 -right-1.5 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-400 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-red-100 dark:hover:bg-red-900 hover:border-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors z-10"
                         title={t('organization.structure.deleteBommel')}
                         aria-label={t('organization.structure.deleteBommel')}
                     >
@@ -270,7 +270,7 @@ export function BommelCard({
                                 </div>
                             )}
                             <div
-                                className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0 ${isRoot ? 'text-white' : 'text-gray-800'}`}
+                                className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0 ${isRoot ? 'text-white' : 'text-gray-800 dark:text-gray-100'}`}
                             >
                                 {nodeDatum.name}
                             </div>
@@ -289,7 +289,7 @@ export function BommelCard({
                             e.stopPropagation();
                             handleAddChild();
                         }}
-                        className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-green-50 border border-green-200 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 hover:border-green-400 hover:text-green-700 z-20 transition-colors"
+                        className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 dark:hover:bg-green-900 hover:border-green-400 hover:text-green-700 dark:hover:text-green-300 z-20 transition-colors"
                         title={t('organization.structure.addChild')}
                         aria-label={t('organization.structure.addChild')}
                     >
@@ -305,7 +305,7 @@ export function BommelCard({
                             e.stopPropagation();
                             handleAddSibling();
                         }}
-                        className="absolute -right-5 top-1/2 -translate-y-1/2 bg-green-50 border border-green-200 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 hover:border-green-400 hover:text-green-700 z-20 transition-colors"
+                        className="absolute -right-5 top-1/2 -translate-y-1/2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 dark:hover:bg-green-900 hover:border-green-400 hover:text-green-700 dark:hover:text-green-300 z-20 transition-colors"
                         title={t('organization.structure.addSibling')}
                         aria-label={t('organization.structure.addSibling')}
                     >

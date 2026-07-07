@@ -87,7 +87,7 @@ function SearchSelect({
                             aria-required={required || undefined}
                             className={cn(
                                 'flex items-center w-full h-10 justify-between text-sm font-normal',
-                                'rounded-xl border border-[#d1d5db] bg-white px-3 text-left',
+                                'rounded-xl border border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] dark:text-gray-100 px-3 text-left',
                                 'outline-none transition-colors',
                                 'hover:border-[var(--purple-500)]',
                                 'focus-visible:border-[var(--purple-500)]',
@@ -100,7 +100,7 @@ function SearchSelect({
                             )}
                         >
                             <span className="truncate">{selectedItem?.label || placeholder || t('common.search')}</span>
-                            {!selectedItem && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" />}
+                            {!selectedItem && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" />}
                         </button>
                     </PopoverTrigger>
                     <PopoverContent align="start" side="bottom" sideOffset={4} className="w-[--radix-popover-trigger-width] p-0">
@@ -131,7 +131,7 @@ function SearchSelect({
                     <button
                         type="button"
                         onClick={() => onValueChange?.('')}
-                        className="flex items-center h-10 px-3 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors"
+                        className="flex items-center h-10 px-3 border border-l-0 border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] rounded-r-xl transition-colors"
                     >
                         <X className="h-3.5 w-3.5 text-[var(--purple-500)]" />
                     </button>

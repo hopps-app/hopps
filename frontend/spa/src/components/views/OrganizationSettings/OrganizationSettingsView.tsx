@@ -318,14 +318,16 @@ function OrganizationSettingsView() {
                     {isSidebarOpen && (
                         <div className="xl:col-span-1">
                             {bommelNotFound ? (
-                                <Card className="sticky top-6 bg-white">
+                                <Card className="sticky top-6 bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)]">
                                     <CardContent className="py-8 text-center space-y-4">
                                         <div className="rounded-full bg-destructive/10 p-3 mx-auto w-fit">
                                             <AlertCircle className="h-6 w-6 text-destructive" />
                                         </div>
                                         <div>
                                             <p className="text-destructive font-medium">{t('organization.structure.details.bommelNotFound')}</p>
-                                            <p className="text-sm text-gray-500 mt-1">{t('organization.structure.details.bommelNotFoundDescription')}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                {t('organization.structure.details.bommelNotFoundDescription')}
+                                            </p>
                                         </div>
                                         <Button variant="outline" onClick={() => setSearchParams({}, { replace: true })}>
                                             {t('organization.structure.details.backToStructure')}

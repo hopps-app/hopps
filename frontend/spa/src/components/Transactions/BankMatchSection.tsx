@@ -68,6 +68,20 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
     const openAmount = tx.total != null ? Math.abs(Number(tx.total)) : 0;
     const openAmountStr = openAmount ? openAmount.toFixed(2).replace('.', ',') : '';
 
+    // Order the picker so the bank transaction whose booking date is the closest ON/AFTER the receipt (transaction)
+    // date is at the top — that is the most likely match (the money usually leaves the account on or shortly after the
+    // receipt date). Dates before the receipt date follow (nearest first); entries without a date go last.
+    const refDate = tx.transactionTime ? new Date(tx.transactionTime).getTime() : null;
+    const candidates = (results ?? [])
+        .filter((b) => !linkedIds.has(b.id))
+        .map((b) => {
+            const d = b.bookingDate ? new Date(b.bookingDate).getTime() : null;
+            const delta = d != null && refDate != null ? d - refDate : null;
+            return { b, group: delta == null ? 2 : delta >= 0 ? 0 : 1, dist: delta == null ? 0 : Math.abs(delta) };
+        })
+        .sort((x, y) => x.group - y.group || x.dist - y.dist)
+        .map((x) => x.b);
+
     function openPicker() {
         setSearch(openAmountStr);
         setPickerOpen(true);
@@ -165,33 +179,28 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                                 <Loader2 size={14} className="animate-spin" />
                                 {t('transactions.detail.bankLoading')}
                             </div>
-                        ) : (results ?? []).filter((b) => !linkedIds.has(b.id)).length === 0 ? (
+                        ) : candidates.length === 0 ? (
                             <p className="px-3 py-4 text-[13px] text-[#9A9AA3] text-center">{t('transactions.detail.bankNoResults')}</p>
                         ) : (
-                            (results ?? [])
-                                .filter((b) => !linkedIds.has(b.id))
-                                .map((b) => (
-                                    <button
-                                        key={b.id}
-                                        onClick={() => link(b.id!)}
-                                        disabled={addMatch.isPending}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-[#F1F1F4] last:border-b-0 hover:bg-[#F3EAFB] transition-colors disabled:opacity-50"
-                                    >
-                                        <span
-                                            className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
-                                            style={{ background: '#F1F1F4' }}
-                                        >
-                                            <Landmark size={15} className="text-[#6B6B76]" />
+                            candidates.map((b) => (
+                                <button
+                                    key={b.id}
+                                    onClick={() => link(b.id!)}
+                                    disabled={addMatch.isPending}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-[#F1F1F4] last:border-b-0 hover:bg-[#F3EAFB] transition-colors disabled:opacity-50"
+                                >
+                                    <span className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F1F1F4' }}>
+                                        <Landmark size={15} className="text-[#6B6B76]" />
+                                    </span>
+                                    <span className="flex flex-col min-w-0 flex-1">
+                                        <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
+                                        <span className="text-[12px] text-[#6B6B76]">
+                                            {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                         </span>
-                                        <span className="flex flex-col min-w-0 flex-1">
-                                            <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
-                                            <span className="text-[12px] text-[#6B6B76]">
-                                                {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
-                                            </span>
-                                        </span>
-                                        <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
-                                    </button>
-                                ))
+                                    </span>
+                                    <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
+                                </button>
+                            ))
                         )}
                     </div>
                 </div>

@@ -1,6 +1,8 @@
 package app.hopps.transaction.api;
 
 import app.hopps.bankimport.service.BankTransactionMatchService;
+import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
@@ -244,6 +246,14 @@ public class TransactionResource {
         }
 
         transaction.setStatus(TransactionStatus.CONFIRMED);
+
+        // Keep the linked receipt (Beleg) in sync: confirming the bookkeeping transaction also confirms its document,
+        // so it no longer lingers in the "needs manual review" state.
+        Document document = transaction.getDocument();
+        if (document != null) {
+            document.setDocumentStatus(DocumentStatus.CONFIRMED);
+        }
+
         LOG.info("Transaction confirmed: id={}", transaction.getId());
 
         return TransactionResponse.from(transaction);
@@ -297,6 +307,14 @@ public class TransactionResource {
         }
 
         transaction.setStatus(TransactionStatus.DRAFT);
+
+        // Mirror the document back to a reviewable state so it isn't shown as confirmed while its transaction is a
+        // draft.
+        Document document = transaction.getDocument();
+        if (document != null && document.getDocumentStatus() == DocumentStatus.CONFIRMED) {
+            document.setDocumentStatus(DocumentStatus.ANALYZED);
+        }
+
         LOG.info("Transaction reopened: id={}", transaction.getId());
 
         return TransactionResponse.from(transaction);

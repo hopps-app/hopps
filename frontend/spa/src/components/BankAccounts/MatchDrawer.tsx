@@ -1,10 +1,10 @@
 import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Unlink, Upload, X } from 'lucide-react';
-import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import {
@@ -15,10 +15,8 @@ import {
     useCreateReceiptForBankTransaction,
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
-import { useToast } from '@/hooks/use-toast';
-import apiService from '@/services/ApiService';
 import { cn } from '@/lib/utils';
-import { getErrorStatus } from '@/utils/errorUtils';
+import apiService from '@/services/ApiService';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,9 +58,7 @@ function HoppsTxMini({ tx }: { tx: TransactionResponse }) {
             <div
                 className={cn(
                     'w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center',
-                    isIncoming
-                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600'
-                        : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                    isIncoming ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
                 )}
             >
                 {isIncoming ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
@@ -100,9 +96,9 @@ interface MatchDrawerProps {
 export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { showError } = useToast();
     const [sel, setSel] = useState<Set<number>>(new Set());
     const [showCreate, setShowCreate] = useState(false);
+    const [txSearch, setTxSearch] = useState('');
     const createReceipt = useCreateReceiptForBankTransaction();
 
     // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked transaction and
@@ -115,9 +111,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                 const doc = await createReceipt.mutateAsync({ bankTxId, file });
                 onClose();
                 if (doc?.id) navigate(`/receipts?id=${doc.id}`);
-            } catch (e) {
-                // 409 = identical receipt already uploaded before.
-                showError(getErrorStatus(e) === 409 ? t('receipts.upload.duplicate') : t('receipts.upload.uploadFailed'));
+            } catch {
+                // The error toast (including the "already uploaded" 409 case) is shown by the mutation's onError;
+                // this catch only prevents an unhandled rejection.
             }
         },
         multiple: false,
@@ -127,13 +123,57 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
     const { data: bankTx } = useBankTransaction(bankTxId);
 
-    // Fetch open hopps transactions with same direction
+    // Full pool — used for the already-linked list and the amount reconciliation.
     const { data: allTx = [] } = useQuery({
         queryKey: ['transactions', 'forMatch'],
-        queryFn: () => apiService.orgService.transactionsAll(
-            undefined, undefined, undefined, undefined, undefined,
-            0, undefined, undefined, 200, undefined, undefined
-        ),
+        queryFn: () =>
+            apiService.orgService.transactionsAll(
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                0,
+                undefined,
+                undefined,
+                200,
+                undefined,
+                undefined,
+                undefined,
+                undefined
+            ),
+    });
+
+    // Pre-fill the search with the bank transaction's amount (German decimal comma) so matching transactions surface
+    // immediately; the backend search matches both the amount and the name/counterparty text.
+    useEffect(() => {
+        if (bankTx) {
+            const amt = Math.abs(bankTx.amount ?? 0);
+            setTxSearch(amt ? amt.toFixed(2).replace('.', ',') : '');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [bankTx?.id]);
+
+    // Search-driven candidates for the selection list (server-side: amount or text).
+    const { data: searchResults = [] } = useQuery({
+        queryKey: ['transactions', 'forMatch', 'search', txSearch],
+        queryFn: () =>
+            apiService.orgService.transactionsAll(
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                0,
+                undefined,
+                txSearch || undefined,
+                50,
+                undefined,
+                undefined,
+                undefined,
+                undefined
+            ),
+        enabled: !!bankTx,
     });
 
     const queryClient = useQueryClient();
@@ -153,8 +193,8 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const matchedIds = new Set(bankTx.matchedTransactionIds ?? []);
     const absAmount = Math.abs(bankTx.amount ?? 0);
 
-    // All unlinked Hopps transactions — sort exact-amount matches first
-    const openTx = allTx
+    // Candidates from the (amount-prefilled) search, minus already-linked, exact-amount matches first.
+    const openTx = searchResults
         .filter((t) => !matchedIds.has(t.id!))
         .sort((a, b) => {
             const aExact = Math.abs(a.total ?? 0) === absAmount ? 0 : 1;
@@ -165,18 +205,27 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     // Already linked hopps transactions
     const linkedTx = allTx.filter((t) => matchedIds.has(t.id!));
 
+    // Lookup across the pool and the current search results so a selected transaction's amount is still counted after
+    // the search term changes.
+    const txById = new Map<number, TransactionResponse>();
+    [...allTx, ...searchResults].forEach((t) => {
+        if (t.id != null) txById.set(t.id, t);
+    });
+
     // Amount reconciliation (signed: positive tx covers negative bank movement and vice versa)
     const alreadyMatchedSum = linkedTx.reduce((s, t) => s + (t.total ?? 0), 0);
-    const selectedSum = allTx
-        .filter((t) => sel.has(t.id!))
-        .reduce((s, t) => s + (t.total ?? 0), 0);
+    const selectedSum = Array.from(sel).reduce((s, id) => s + (txById.get(id)?.total ?? 0), 0);
     const remaining = (bankTx.amount ?? 0) - alreadyMatchedSum - selectedSum;
     const isFullyCovered = Math.abs(remaining) <= 0.005; // float tolerance
 
     const toggle = (id: number) => {
         setSel((prev) => {
             const next = new Set(prev);
-            next.has(id) ? next.delete(id) : next.add(id);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
             return next;
         });
     };
@@ -201,18 +250,13 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     return (
         <>
             {/* Scrim */}
-            <div
-                className="fixed inset-0 bg-black/30 z-40"
-                onClick={onClose}
-            />
+            <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
 
             {/* Drawer */}
             <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-50 flex flex-col shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
-                    <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                        {t('konten.drawer.title')}
-                    </div>
+                    <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('konten.drawer.title')}</div>
                     <button
                         type="button"
                         className="p-1.5 rounded-lg text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -234,7 +278,10 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                             <div className="flex gap-2 mt-3 flex-wrap">
                                 {bankTx.bankAccountName && (
                                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-muted-foreground">
-                                        <span className="inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ background: bankTx.bankAccountColor || '#9955CC' }} />
+                                        <span
+                                            className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                                            style={{ background: bankTx.bankAccountColor || '#9955CC' }}
+                                        />
                                         {bankTx.bankAccountName}
                                     </span>
                                 )}
@@ -298,9 +345,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                         {/* Already linked */}
                         {linkedTx.length > 0 && (
                             <div>
-                                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                                    {t('konten.drawer.linked')}
-                                </div>
+                                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{t('konten.drawer.linked')}</div>
                                 <div className="flex flex-col gap-2">
                                     {linkedTx.map((tx) => (
                                         <div
@@ -335,17 +380,17 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
                         {/* Amount reconciliation summary */}
                         {bankTx.status !== 'IGNORED' && (
-                            <div className={cn(
-                                'rounded-xl px-4 py-3 flex items-center justify-between gap-3 text-sm',
-                                isFullyCovered
-                                    ? 'bg-emerald-50 dark:bg-emerald-900/20'
-                                    : 'bg-gray-50 dark:bg-gray-800'
-                            )}>
+                            <div
+                                className={cn(
+                                    'rounded-xl px-4 py-3 flex items-center justify-between gap-3 text-sm',
+                                    isFullyCovered ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-gray-50 dark:bg-gray-800'
+                                )}
+                            >
                                 <div className="flex flex-col gap-0.5">
                                     <span className="text-xs text-muted-foreground font-medium">{t('konten.drawer.bankAmount')}</span>
                                     <span className="font-bold tabular-nums">{fmtCurrency(absAmount, bankTx.currency ?? 'EUR')}</span>
                                 </div>
-                                {(alreadyMatchedSum + selectedSum) > 0 && (
+                                {alreadyMatchedSum + selectedSum > 0 && (
                                     <div className="flex flex-col gap-0.5 text-right">
                                         <span className="text-xs text-muted-foreground font-medium">{t('konten.drawer.covered')}</span>
                                         <span className="font-bold tabular-nums text-emerald-600">
@@ -357,13 +402,8 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                     <span className="text-xs font-medium text-muted-foreground">
                                         {isFullyCovered ? t('konten.drawer.fullyCovered') : t('konten.drawer.remaining')}
                                     </span>
-                                    <span className={cn(
-                                        'font-bold tabular-nums',
-                                        isFullyCovered ? 'text-emerald-600' : 'text-amber-600'
-                                    )}>
-                                        {isFullyCovered
-                                            ? '✓'
-                                            : (remaining < 0 ? '– ' : '+ ') + fmtCurrency(Math.abs(remaining), bankTx.currency ?? 'EUR')}
+                                    <span className={cn('font-bold tabular-nums', isFullyCovered ? 'text-emerald-600' : 'text-amber-600')}>
+                                        {isFullyCovered ? '✓' : (remaining < 0 ? '– ' : '+ ') + fmtCurrency(Math.abs(remaining), bankTx.currency ?? 'EUR')}
                                     </span>
                                 </div>
                             </div>
@@ -372,16 +412,33 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                         {/* Select matching transaction */}
                         <div>
                             <div className="flex items-center justify-between mb-2">
-                                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                                    {t('konten.drawer.selectTx')}
-                                </div>
+                                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('konten.drawer.selectTx')}</div>
                                 <span className="text-xs text-muted-foreground">{t('konten.drawer.multiSelect')}</span>
                             </div>
 
+                            {/* Search transactions by amount (pre-filled) or name/counterparty */}
+                            <div className="flex items-center gap-2 px-3 py-2 mb-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                <input
+                                    type="text"
+                                    value={txSearch}
+                                    onChange={(e) => setTxSearch(e.target.value)}
+                                    placeholder={t('konten.drawer.txSearchPlaceholder')}
+                                    className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+                                />
+                                {txSearch && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setTxSearch('')}
+                                        className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                            </div>
+
                             {openTx.length === 0 ? (
-                                <p className="text-sm text-muted-foreground py-2">
-                                    {t('konten.drawer.noOpenTx')}
-                                </p>
+                                <p className="text-sm text-muted-foreground py-2">{t('konten.drawer.noOpenTx')}</p>
                             ) : (
                                 <div className="flex flex-col gap-2">
                                     {openTx.map((tx) => {
@@ -402,9 +459,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                                 <div
                                                     className={cn(
                                                         'w-5 h-5 rounded-md flex-shrink-0 border-2 flex items-center justify-center transition-colors',
-                                                        isSelected
-                                                            ? 'bg-primary border-primary'
-                                                            : 'border-gray-300 dark:border-gray-600'
+                                                        isSelected ? 'bg-primary border-primary' : 'border-gray-300 dark:border-gray-600'
                                                     )}
                                                 >
                                                     {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
@@ -433,7 +488,10 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                         <button
                             type="button"
                             className="px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-                            onClick={async () => { await unignoreTx.mutateAsync(bankTxId); onClose(); }}
+                            onClick={async () => {
+                                await unignoreTx.mutateAsync(bankTxId);
+                                onClose();
+                            }}
                             disabled={unignoreTx.isPending}
                         >
                             {t('konten.drawer.unignore')}

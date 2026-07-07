@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState';
-import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import Button from '@/components/ui/Button';
-import { usePageTitle } from '@/hooks/use-page-title';
 import { useBankAccounts } from '@/hooks/queries/useBankAccounts';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
 
 function formatCurrency(amount: number | undefined, currency = 'EUR'): string {
@@ -19,13 +19,7 @@ function formatCurrency(amount: number | undefined, currency = 'EUR'): string {
 
 function ColorChip({ color }: { color?: string }) {
     if (!color) return null;
-    return (
-        <span
-            className="inline-block w-4 h-4 rounded-full border border-gray-200 flex-shrink-0"
-            style={{ backgroundColor: color }}
-            aria-hidden="true"
-        />
-    );
+    return <span className="inline-block w-4 h-4 rounded-full border border-gray-200 flex-shrink-0" style={{ backgroundColor: color }} aria-hidden="true" />;
 }
 
 function BankAccountCard({ account, onClick }: { account: BankAccountResponse; onClick: () => void }) {
@@ -52,21 +46,15 @@ function BankAccountCard({ account, onClick }: { account: BankAccountResponse; o
                 </span>
             </div>
 
-            {account.iban && (
-                <p className="text-sm text-muted-foreground font-mono truncate mb-1">
-                    {account.iban}
-                </p>
-            )}
+            {account.iban && <p className="text-sm text-muted-foreground font-mono truncate mb-1">{account.iban}</p>}
 
             <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                {account.currency && (
-                    <span className="bg-gray-100 dark:bg-gray-700 rounded px-2 py-0.5">{account.currency}</span>
-                )}
-                {account.bommelName && (
-                    <span className="truncate">{account.bommelName}</span>
-                )}
+                {account.currency && <span className="bg-gray-100 dark:bg-gray-700 rounded px-2 py-0.5">{account.currency}</span>}
+                {account.bommelName && <span className="truncate">{account.bommelName}</span>}
                 {account.defaultSchemaName && (
-                    <span className="truncate">{t('bankAccounts.card.schema')}: {account.defaultSchemaName}</span>
+                    <span className="truncate">
+                        {t('bankAccounts.card.schema')}: {account.defaultSchemaName}
+                    </span>
                 )}
             </div>
         </button>
@@ -86,7 +74,9 @@ export function BankAccountsView() {
                 <p className="text-muted-foreground text-sm">{t('bankAccounts.subtitle')}</p>
                 <Button icon="Plus" onClick={() => setDrawerOpen(true)}>
                     <span className="hidden sm:inline">{t('bankAccounts.newAccount')}</span>
-                    <span className="sm:hidden"><Plus className="w-4 h-4" /></span>
+                    <span className="sm:hidden">
+                        <Plus className="w-4 h-4" />
+                    </span>
                 </Button>
             </div>
 
@@ -104,11 +94,7 @@ export function BankAccountsView() {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {accounts.map((account) => (
-                        <BankAccountCard
-                            key={account.id}
-                            account={account}
-                            onClick={() => navigate(`/bank-accounts/${account.id}`)}
-                        />
+                        <BankAccountCard key={account.id} account={account} onClick={() => navigate(`/bank-accounts/${account.id}`)} />
                     ))}
                 </div>
             )}

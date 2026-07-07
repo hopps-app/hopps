@@ -15,10 +15,23 @@ spec:
       labels:
         {{- include "hopps.greenmailSelectorLabels" . | nindent 8 }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: greenmail
           image: "{{ .Values.mailDev.greenmail.image.repository }}:{{ .Values.mailDev.greenmail.image.tag }}"
           imagePullPolicy: {{ .Values.mailDev.greenmail.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: smtp
               containerPort: 3025

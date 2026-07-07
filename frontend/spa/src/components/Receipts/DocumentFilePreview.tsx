@@ -68,11 +68,9 @@ export function DocumentFilePreview({ doc }: { doc: DocumentResponse }) {
             if (objectUrl) URL.revokeObjectURL(objectUrl);
             setUrl(null);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [doc.id, reloadKey]);
 
-    const iconBtn =
-        'w-8 h-8 flex items-center justify-center rounded-lg text-[#6B6B76] hover:text-[#1B1B1F] hover:bg-[#EDEDF0] transition-colors';
+    const iconBtn = 'w-8 h-8 flex items-center justify-center rounded-lg text-[#6B6B76] hover:text-[#1B1B1F] hover:bg-[#EDEDF0] transition-colors';
 
     return (
         <div className="flex-1 flex flex-col rounded-2xl overflow-hidden bg-white shadow-2xl border border-[#E9E9EE] pointer-events-auto">
@@ -84,7 +82,12 @@ export function DocumentFilePreview({ doc }: { doc: DocumentResponse }) {
                 </span>
                 {state === 'ready' && url && (
                     <span className="flex items-center gap-0.5 flex-shrink-0">
-                        <button type="button" onClick={() => window.open(url, '_blank', 'noopener')} title={t('receipts.preview.openNewTab')} className={iconBtn}>
+                        <button
+                            type="button"
+                            onClick={() => window.open(url, '_blank', 'noopener')}
+                            title={t('receipts.preview.openNewTab')}
+                            className={iconBtn}
+                        >
                             <ExternalLink size={15} />
                         </button>
                         <a href={url} download={doc.fileName} title={t('receipts.preview.download')} className={iconBtn}>
@@ -123,7 +126,11 @@ export function DocumentFilePreview({ doc }: { doc: DocumentResponse }) {
                         >
                             <input {...getInputProps()} />
                             <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: '#F3EAFB' }}>
-                                {reupload.isPending ? <Loader2 size={20} className="text-[#7E3FB4] animate-spin" /> : <Upload size={20} className="text-[#7E3FB4]" />}
+                                {reupload.isPending ? (
+                                    <Loader2 size={20} className="text-[#7E3FB4] animate-spin" />
+                                ) : (
+                                    <Upload size={20} className="text-[#7E3FB4]" />
+                                )}
                             </span>
                             <span className="text-[13px] font-semibold text-[#7E3FB4]">
                                 {reupload.isPending
@@ -150,11 +157,7 @@ export function DocumentFilePreview({ doc }: { doc: DocumentResponse }) {
                     <div className="h-full flex flex-col items-center justify-center gap-3 text-[#6B6B76]">
                         <FileText size={28} />
                         <span className="text-sm">{t('receipts.preview.unsupported')}</span>
-                        <a
-                            href={url}
-                            download={doc.fileName}
-                            className="flex items-center gap-1.5 text-[13px] font-semibold text-[#7E3FB4] hover:underline"
-                        >
+                        <a href={url} download={doc.fileName} className="flex items-center gap-1.5 text-[13px] font-semibold text-[#7E3FB4] hover:underline">
                             <Download size={14} />
                             {t('receipts.preview.download')}
                         </a>

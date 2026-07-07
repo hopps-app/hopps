@@ -11,6 +11,19 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
+// The most recently *selected* bommel is remembered across forms so that assigning several receipts/transactions to
+// the same bommel in a row doesn't require re-picking it every time. Forms opt in to the default via `getLastBommelId`.
+const LAST_BOMMEL_KEY = 'hopps.lastBommelId';
+
+export function getLastBommelId(): number | null {
+    try {
+        const id = Number(localStorage.getItem(LAST_BOMMEL_KEY));
+        return Number.isFinite(id) && id > 0 ? id : null;
+    } catch {
+        return null;
+    }
+}
+
 type InvoiceUploadFormBommelSelectorprops = {
     value?: number | null;
     onChange: (id: number | null | undefined) => void;
@@ -33,6 +46,14 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
 
             if (searchedBommel) {
                 onChange(searchedBommel.id);
+                // Remember this pick so the next form can pre-select the same bommel.
+                if (searchedBommel.id != null) {
+                    try {
+                        localStorage.setItem(LAST_BOMMEL_KEY, String(searchedBommel.id));
+                    } catch {
+                        // storage unavailable — just skip remembering
+                    }
+                }
             }
 
             setOpen(false);
@@ -52,11 +73,11 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                         type="button"
                         disabled={disabled}
                         className={cn(
-                            'flex items-center w-full h-10 justify-between text-sm border border-[#d1d5db] rounded-xl px-3 py-3 text-left cursor-pointer bg-primary-foreground',
+                            'flex items-center w-full h-10 justify-between text-sm border border-[#d1d5db] dark:border-gray-700 rounded-xl px-3 py-3 text-left cursor-pointer bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)]',
                             !selectedBommel && !disabled && 'hover:border-[var(--purple-500)] hover:text-[var(--purple-500)]',
                             'transition-colors focus:ring-primary focus:outline-none',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            !selectedBommel && 'text-[#666]',
+                            !selectedBommel && 'text-[#666] dark:text-gray-400',
                             selectedBommel && !disabled && 'rounded-r-none border-r-0',
                             error && 'border-red-500 focus:border-red-500'
                         )}
@@ -68,7 +89,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                             {selectedBommel?.emoji && <Emoji emoji={selectedBommel.emoji} className="text-lg" />}
                             {selectedBommel ? selectedBommel.name : t('invoiceUpload.selectBommel')}
                         </span>
-                        {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666]" aria-hidden="true" />}
+                        {!selectedBommel && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" aria-hidden="true" />}
                     </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
@@ -100,7 +121,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
                         onDeselectBommel();
                     }}
                     className={cn(
-                        'flex items-center h-10 py-3 px-3 border border-l-0 border-[#d1d5db] bg-white rounded-r-xl transition-colors',
+                        'flex items-center h-10 py-3 px-3 border border-l-0 border-[#d1d5db] dark:border-gray-700 bg-white dark:bg-[var(--purple-50)] rounded-r-xl transition-colors',
                         error && 'border-red-500'
                     )}
                     aria-label={t('common.delete')}

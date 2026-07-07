@@ -29,6 +29,8 @@ async function getInvoices(): Promise<InvoicesTableData[]> {
             undefined, // privatelyPaid
             undefined, // search
             pageSize, // size
+            undefined, // sortBy
+            undefined, // sortDir
             undefined, // startDate
             undefined // status
         );

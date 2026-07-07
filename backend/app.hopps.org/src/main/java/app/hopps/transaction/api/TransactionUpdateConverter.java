@@ -35,9 +35,10 @@ public class TransactionUpdateConverter {
             transaction.setName(request.name());
         }
 
-        if (request.total() != null) {
-            transaction.setTotal(request.total());
-        }
+        // Always apply the total, including null: clearing the amount (e.g. when the analysed value turned out to be
+        // in the wrong currency and the correct euro amount isn't known yet) must actually empty the field. The two
+        // frontend callers always send the full form state, so null unambiguously means "cleared".
+        transaction.setTotal(request.total());
 
         if (request.totalTax() != null) {
             transaction.setTotalTax(request.totalTax());

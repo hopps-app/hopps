@@ -1,6 +1,8 @@
 {
   "realm": "hopps",
   "enabled": true,
+  "loginTheme": "hopps-login-theme",
+  "resetPasswordAllowed": true,
   "internationalizationEnabled": true,
   "supportedLocales": ["de", "en"],
   "defaultLocale": "de",

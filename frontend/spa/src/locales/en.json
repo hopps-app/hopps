@@ -285,6 +285,15 @@
     },
     "buttons": {
       "addNew": "Add new"
+    },
+    "create": {
+      "title": "Create organization",
+      "description": "You're signed in but don't have an organization yet. Create one to get started.",
+      "nameLabel": "Organization name",
+      "namePlaceholder": "e.g. My Club e.V.",
+      "submit": "Create organization",
+      "error": "The organization could not be created. Please try again.",
+      "slugConflict": "An organization with this name already exists. Please choose a different name."
     }
   },
   "organizationTree": {
@@ -757,6 +766,15 @@
       "total": "Amount",
       "ascending": "Ascending",
       "descending": "Descending"
+    },
+    "bulk": {
+      "selectAll": "Select all",
+      "selectRow": "Select receipt",
+      "selectedCount": "{{n}} selected",
+      "clear": "Clear selection",
+      "delete": "Delete",
+      "confirmTitle": "Delete selected receipts?",
+      "confirmDesc": "Do you really want to delete the selected receipts ({{n}})? This cannot be undone."
     }
   },
   "bommel": {
@@ -1093,7 +1111,8 @@
       "uploadReceiptDrop": "Drop the receipt here …",
       "uploadReceiptBusy": "Uploading receipt …",
       "createTransaction": "Create transaction without receipt",
-      "createTransactionHint": "Prefilled from the bank transaction – no linked receipt"
+      "createTransactionHint": "Prefilled from the bank transaction – no linked receipt",
+      "txSearchPlaceholder": "Search by amount or name…"
     },
     "openAmount": "open: {{amount}}",
     "createTx": {

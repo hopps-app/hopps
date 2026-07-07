@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ApiException, BankAccountResponse } from '@hopps/api-client';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Resolver, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
@@ -33,10 +33,7 @@ function buildSchema(t: (k: string) => string) {
                 .refine((v) => v.length <= 34, t('bankAccounts.form.validation.ibanTooLong'))
                 .refine((v) => IBAN_FORMAT.test(v), t('bankAccounts.form.validation.ibanInvalidFormat')),
             bankName: z.string().optional(),
-            openingBalance: z.preprocess(
-                (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-                z.number().optional()
-            ),
+            openingBalance: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : Number(v)), z.number().optional()),
             openingBalanceDate: z.string().optional(),
             color: z.string().optional(),
         })
@@ -87,7 +84,9 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
         setError,
         formState: { errors },
     } = useForm<FormValues>({
-        resolver: zodResolver(schema),
+        // zod's preprocess makes the schema's input type differ from FormValues (its output); cast the resolver to the
+        // output type so useForm, handleSubmit and the field helpers all operate on the resolved FormValues.
+        resolver: zodResolver(schema) as Resolver<FormValues>,
         defaultValues: { name: '', iban: '', bankName: '', openingBalance: undefined, openingBalanceDate: '', color: ACCT_COLORS[0] },
     });
 
@@ -101,10 +100,9 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
                           bankName: account.bankName ?? '',
                           openingBalance: account.openingBalance ?? undefined,
                           openingBalanceDate: account.openingBalanceDate
-                              ? (account.openingBalanceDate instanceof Date
-                                    ? account.openingBalanceDate
-                                    : new Date(account.openingBalanceDate)
-                                ).toISOString().slice(0, 10)
+                              ? (account.openingBalanceDate instanceof Date ? account.openingBalanceDate : new Date(account.openingBalanceDate))
+                                    .toISOString()
+                                    .slice(0, 10)
                               : '',
                           color: account.color ?? ACCT_COLORS[0],
                       }
@@ -178,9 +176,7 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
                         <div className="grid gap-1.5">
                             <Label htmlFor="ba-openingBalanceDate">{t('bankAccounts.form.openingBalanceDate')}</Label>
                             <BaseInput id="ba-openingBalanceDate" type="date" {...register('openingBalanceDate')} />
-                            {errors.openingBalanceDate && (
-                                <p className="text-xs text-destructive">{errors.openingBalanceDate.message}</p>
-                            )}
+                            {errors.openingBalanceDate && <p className="text-xs text-destructive">{errors.openingBalanceDate.message}</p>}
                         </div>
                     </div>
 

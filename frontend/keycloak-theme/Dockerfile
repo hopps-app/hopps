@@ -3,9 +3,9 @@ ARG KEYCLOAK_VERSION=26.2.1
 # Build stage
 FROM node:lts-alpine AS builder
 
-# Install pnpm and Python
+# Install pnpm (pinned to the repo's pnpm version) and Maven
 RUN apk add --no-cache maven && \
-    npm install -g pnpm
+    npm install -g pnpm@10.29.3
 
 # Set the working directory
 WORKDIR /app
