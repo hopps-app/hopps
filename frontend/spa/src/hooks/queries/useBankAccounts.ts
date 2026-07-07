@@ -11,7 +11,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
-import { documentKeys } from '@/hooks/queries/useDocuments';
+import { documentKeys, showUploadError } from '@/hooks/queries/useDocuments';
 import { transactionKeys, type SortDirection } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
@@ -338,6 +338,7 @@ export function useCreateReceiptForBankTransaction() {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
         },
+        onError: showUploadError,
     });
 }
 
@@ -367,6 +368,8 @@ export function useAddBankTransactionMatch() {
         onSuccess: (_, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
+            // Matching may fill an empty transaction amount from the bank movement — refresh transactions too.
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
         },
     });
 }

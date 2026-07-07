@@ -353,7 +353,7 @@ function ReceiptUploadView() {
                     setEmptyFieldsLoading(true);
                 }
 
-                const response = await apiService.orgService.documentsPOST(isAutoRead, {
+                const response = await apiService.orgService.documentsPOST(isAutoRead, undefined, {
                     data: selected,
                     fileName: selected.name,
                 });

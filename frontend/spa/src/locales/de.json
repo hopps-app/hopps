@@ -284,6 +284,15 @@
     },
     "buttons": {
       "addNew": "Neu hinzufügen"
+    },
+    "create": {
+      "title": "Organisation erstellen",
+      "description": "Du bist angemeldet, hast aber noch keine Organisation. Erstelle jetzt eine, um loszulegen.",
+      "nameLabel": "Name der Organisation",
+      "namePlaceholder": "z. B. Mein Verein e.V.",
+      "submit": "Organisation erstellen",
+      "error": "Die Organisation konnte nicht erstellt werden. Bitte versuche es erneut.",
+      "slugConflict": "Eine Organisation mit diesem Namen existiert bereits. Bitte wähle einen anderen Namen."
     }
   },
   "organizationTree": {
@@ -683,6 +692,15 @@
       "total": "Betrag",
       "ascending": "Aufsteigend",
       "descending": "Absteigend"
+    },
+    "bulk": {
+      "selectAll": "Alle auswählen",
+      "selectRow": "Beleg auswählen",
+      "selectedCount": "{{n}} ausgewählt",
+      "clear": "Auswahl aufheben",
+      "delete": "Löschen",
+      "confirmTitle": "Ausgewählte Belege löschen?",
+      "confirmDesc": "Möchtest du die ausgewählten Belege ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
     }
   },
   "bommel": {
@@ -1092,7 +1110,8 @@
       "uploadReceiptDrop": "Beleg hier ablegen …",
       "uploadReceiptBusy": "Beleg wird hochgeladen …",
       "createTransaction": "Transaktion ohne Beleg erstellen",
-      "createTransactionHint": "Vorbelegt aus der Banktransaktion – ohne verknüpften Beleg"
+      "createTransactionHint": "Vorbelegt aus der Banktransaktion – ohne verknüpften Beleg",
+      "txSearchPlaceholder": "Nach Betrag oder Name suchen…"
     },
     "openAmount": "offen: {{amount}}",
     "createTx": {

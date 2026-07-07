@@ -93,6 +93,8 @@ export function useConfirmTransaction() {
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
+            // Confirming a transaction also confirms its linked document (Beleg) on the backend — refresh documents.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
         },
     });
 }
@@ -105,6 +107,8 @@ export function useReopenTransaction() {
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             queryClient.invalidateQueries({ queryKey: transactionKeys.detail(id) });
+            // Reopening reverts the linked document back to a reviewable state — refresh documents.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
         },
     });
 }

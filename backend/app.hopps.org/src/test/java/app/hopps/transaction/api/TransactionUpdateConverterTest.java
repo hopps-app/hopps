@@ -90,15 +90,17 @@ class TransactionUpdateConverterTest {
     }
 
     @Test
-    @DisplayName("should keep original total when null in request")
-    void shouldKeepTotalWhenNull() {
+    @DisplayName("should clear total when null in request")
+    void shouldClearTotalWhenNull() {
+        // A null total clears the amount: the frontend always sends the full form state, so null means "cleared"
+        // (e.g. the analysed value was in the wrong currency and the correct euro amount isn't known yet).
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
                 null, null, null, false, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
-        assertEquals(BigDecimal.valueOf(50), transaction.getTotal());
+        assertNull(transaction.getTotal());
     }
 
     @Test

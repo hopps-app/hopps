@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ApiException, BankAccountResponse } from '@hopps/api-client';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Resolver, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
@@ -87,7 +87,9 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
         setError,
         formState: { errors },
     } = useForm<FormValues>({
-        resolver: zodResolver(schema),
+        // zod's preprocess makes the schema's input type differ from FormValues (its output); cast the resolver to the
+        // output type so useForm, handleSubmit and the field helpers all operate on the resolved FormValues.
+        resolver: zodResolver(schema) as Resolver<FormValues>,
         defaultValues: { name: '', iban: '', bankName: '', openingBalance: undefined, openingBalanceDate: '', color: ACCT_COLORS[0] },
     });
 

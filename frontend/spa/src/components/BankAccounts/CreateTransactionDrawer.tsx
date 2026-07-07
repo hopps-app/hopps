@@ -3,7 +3,7 @@ import { X, Check, ArrowDownRight, ArrowUpRight, Plus } from 'lucide-react';
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
 import { useCategories } from '@/hooks/queries/useCategories';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
@@ -92,6 +92,15 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         setSenderName(bankTx.counterpartyName ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, bankTx?.id]);
+
+    // Default the bommel to the one last picked, so several transactions in a row can be assigned to the same bommel
+    // without re-selecting it each time. Only fills when nothing is set yet.
+    useEffect(() => {
+        if (!open || bommelId) return;
+        const last = getLastBommelId();
+        if (last) setBommelId(String(last));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
 
     function reset() {
         setDirection('expense');

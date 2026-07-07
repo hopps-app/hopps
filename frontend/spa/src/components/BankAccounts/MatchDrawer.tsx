@@ -1,6 +1,6 @@
 import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Unlink, Upload, X } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -15,10 +15,8 @@ import {
     useCreateReceiptForBankTransaction,
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
-import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { cn } from '@/lib/utils';
-import { getErrorStatus } from '@/utils/errorUtils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -100,9 +98,9 @@ interface MatchDrawerProps {
 export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { showError } = useToast();
     const [sel, setSel] = useState<Set<number>>(new Set());
     const [showCreate, setShowCreate] = useState(false);
+    const [txSearch, setTxSearch] = useState('');
     const createReceipt = useCreateReceiptForBankTransaction();
 
     // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked transaction and
@@ -115,9 +113,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                 const doc = await createReceipt.mutateAsync({ bankTxId, file });
                 onClose();
                 if (doc?.id) navigate(`/receipts?id=${doc.id}`);
-            } catch (e) {
-                // 409 = identical receipt already uploaded before.
-                showError(getErrorStatus(e) === 409 ? t('receipts.upload.duplicate') : t('receipts.upload.uploadFailed'));
+            } catch {
+                // The error toast (including the "already uploaded" 409 case) is shown by the mutation's onError;
+                // this catch only prevents an unhandled rejection.
             }
         },
         multiple: false,
@@ -127,13 +125,35 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
     const { data: bankTx } = useBankTransaction(bankTxId);
 
-    // Fetch open hopps transactions with same direction
+    // Full pool — used for the already-linked list and the amount reconciliation.
     const { data: allTx = [] } = useQuery({
         queryKey: ['transactions', 'forMatch'],
-        queryFn: () => apiService.orgService.transactionsAll(
-            undefined, undefined, undefined, undefined, undefined,
-            0, undefined, undefined, 200, undefined, undefined
-        ),
+        queryFn: () =>
+            apiService.orgService.transactionsAll(
+                undefined, undefined, undefined, undefined, undefined,
+                0, undefined, undefined, 200, undefined, undefined, undefined, undefined
+            ),
+    });
+
+    // Pre-fill the search with the bank transaction's amount (German decimal comma) so matching transactions surface
+    // immediately; the backend search matches both the amount and the name/counterparty text.
+    useEffect(() => {
+        if (bankTx) {
+            const amt = Math.abs(bankTx.amount ?? 0);
+            setTxSearch(amt ? amt.toFixed(2).replace('.', ',') : '');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [bankTx?.id]);
+
+    // Search-driven candidates for the selection list (server-side: amount or text).
+    const { data: searchResults = [] } = useQuery({
+        queryKey: ['transactions', 'forMatch', 'search', txSearch],
+        queryFn: () =>
+            apiService.orgService.transactionsAll(
+                undefined, undefined, undefined, undefined, undefined,
+                0, undefined, txSearch || undefined, 50, undefined, undefined, undefined, undefined
+            ),
+        enabled: !!bankTx,
     });
 
     const queryClient = useQueryClient();
@@ -153,8 +173,8 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const matchedIds = new Set(bankTx.matchedTransactionIds ?? []);
     const absAmount = Math.abs(bankTx.amount ?? 0);
 
-    // All unlinked Hopps transactions — sort exact-amount matches first
-    const openTx = allTx
+    // Candidates from the (amount-prefilled) search, minus already-linked, exact-amount matches first.
+    const openTx = searchResults
         .filter((t) => !matchedIds.has(t.id!))
         .sort((a, b) => {
             const aExact = Math.abs(a.total ?? 0) === absAmount ? 0 : 1;
@@ -165,11 +185,16 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     // Already linked hopps transactions
     const linkedTx = allTx.filter((t) => matchedIds.has(t.id!));
 
+    // Lookup across the pool and the current search results so a selected transaction's amount is still counted after
+    // the search term changes.
+    const txById = new Map<number, TransactionResponse>();
+    [...allTx, ...searchResults].forEach((t) => {
+        if (t.id != null) txById.set(t.id, t);
+    });
+
     // Amount reconciliation (signed: positive tx covers negative bank movement and vice versa)
     const alreadyMatchedSum = linkedTx.reduce((s, t) => s + (t.total ?? 0), 0);
-    const selectedSum = allTx
-        .filter((t) => sel.has(t.id!))
-        .reduce((s, t) => s + (t.total ?? 0), 0);
+    const selectedSum = Array.from(sel).reduce((s, id) => s + (txById.get(id)?.total ?? 0), 0);
     const remaining = (bankTx.amount ?? 0) - alreadyMatchedSum - selectedSum;
     const isFullyCovered = Math.abs(remaining) <= 0.005; // float tolerance
 
@@ -376,6 +401,27 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                     {t('konten.drawer.selectTx')}
                                 </div>
                                 <span className="text-xs text-muted-foreground">{t('konten.drawer.multiSelect')}</span>
+                            </div>
+
+                            {/* Search transactions by amount (pre-filled) or name/counterparty */}
+                            <div className="flex items-center gap-2 px-3 py-2 mb-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                <input
+                                    type="text"
+                                    value={txSearch}
+                                    onChange={(e) => setTxSearch(e.target.value)}
+                                    placeholder={t('konten.drawer.txSearchPlaceholder')}
+                                    className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+                                />
+                                {txSearch && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setTxSearch('')}
+                                        className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
                             </div>
 
                             {openTx.length === 0 ? (

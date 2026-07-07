@@ -45,6 +45,13 @@ public class BankTransactionMatchService {
             throw new NotFoundException("Transaction not found");
         }
 
+        // When the transaction has no amount yet (e.g. it was cleared because the analysed value was in the wrong
+        // currency), adopt the bank transaction's signed euro amount so the booking gets its correct value from the
+        // reconciled movement. This also makes the coverage exact (matchedAmount below equals abs(bankTx amount)).
+        if (tx.getTotal() == null || tx.getTotal().signum() == 0) {
+            tx.setTotal(bankTx.getAmount());
+        }
+
         boolean alreadyLinked = em.createQuery(
                 "SELECT COUNT(m) FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId",
                 Long.class)

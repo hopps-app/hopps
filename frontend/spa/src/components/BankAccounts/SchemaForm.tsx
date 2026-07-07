@@ -2,7 +2,7 @@ import { AmountStrategy, BankCsvSchemaResponse, BankCsvSchemaTemplateResponse, B
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { Resolver, useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
@@ -125,7 +125,9 @@ export function SchemaForm({ schema, onSuccess, onCancel }: SchemaFormProps) {
         control,
         formState: { errors },
     } = useForm<FormValues>({
-        resolver: zodResolver(zodSchema),
+        // zod's preprocess makes the schema's input type differ from FormValues (its output); cast the resolver to the
+        // output type so useForm, handleSubmit and the field helpers all operate on the resolved FormValues.
+        resolver: zodResolver(zodSchema) as Resolver<FormValues>,
         defaultValues: {
             name: '',
             delimiter: ',',

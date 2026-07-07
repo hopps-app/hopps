@@ -6,6 +6,7 @@ import {
     X,
     Trash2,
     Check,
+    Minus,
     RefreshCw,
     ChevronRight,
     ChevronDown,
@@ -29,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { LoadingState } from '@/components/common/LoadingState';
-import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -61,7 +62,7 @@ const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
 // Shared column layout for the documents table header and rows (must stay in sync).
 // Beleg | Datum | Erstellt am | Betrag | Status | Chevron
-const DOC_GRID = 'minmax(0,2.3fr) 1fr 1fr 1fr 1.1fr 40px';
+const DOC_GRID = '40px minmax(0,2.3fr) 1fr 1fr 1fr 1.1fr 40px';
 
 // Stable marker set by the backend when the AI analysis service was unreachable (mirrors
 // DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
@@ -377,11 +378,13 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         if (liveDoc.bommelId != null) setBommelId((p) => p || String(liveDoc.bommelId));
     }, [liveDoc, hasLinkedTransaction]);
 
-    // A bommel must always be selected — default to the root bommel when none is set (also once the bommels finish
-    // loading, since loading is asynchronous).
+    // A bommel must always be selected — when none is set, default to the last one the user picked (so a batch of
+    // receipts can go to the same bommel), falling back to the root bommel. Runs also once the bommels finish loading,
+    // since loading is asynchronous.
     useEffect(() => {
-        if (open && !bommelId && rootBommel?.id != null) {
-            setBommelId(String(rootBommel.id));
+        if (open && !bommelId) {
+            const fallback = getLastBommelId() ?? rootBommel?.id;
+            if (fallback != null) setBommelId(String(fallback));
         }
     }, [open, bommelId, rootBommel]);
 
@@ -451,7 +454,9 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     // mode where the remaining values and bank matches can be added right here — no detour via the transactions tab.
     async function handleCreateTransaction() {
         if (!doc?.id) return;
-        await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
+        // Attach the id onto the DocumentUpdateRequest instance (rather than spreading it into a plain object, which
+        // would drop the class shape the mutation expects).
+        await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
         await confirmMutation.mutateAsync(doc.id);
         // No onClose: liveDoc now carries the transactionId and the drawer re-renders in reconcile mode.
     }
@@ -463,7 +468,9 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         if (isReconcile && linkedTransactionId) {
             await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
         } else {
-            await updateMutation.mutateAsync({ id: doc.id, ...buildPayload() });
+            // Attach the id onto the DocumentUpdateRequest instance (rather than spreading it into a plain object,
+            // which would drop the class shape the mutation expects).
+            await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
         }
         onClose();
     }
@@ -995,10 +1002,24 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
 
 // ─── Document Row ─────────────────────────────────────────────────────────────
 
-function DocumentRow({ doc, onClick, selected }: { doc: DocumentResponse; onClick: () => void; selected: boolean }) {
+function DocumentRow({
+    doc,
+    onClick,
+    selected,
+    bulkSelected,
+    onToggleBulk,
+}: {
+    doc: DocumentResponse;
+    onClick: () => void;
+    selected: boolean;
+    bulkSelected: boolean;
+    onToggleBulk: () => void;
+}) {
+    const { t } = useTranslation();
     const status = getDocumentReviewStatus(doc);
     const amount = doc.total != null ? Number(doc.total) : null;
     const outgoing = doc.direction === 'OUTGOING';
+    const highlighted = selected || bulkSelected;
 
     return (
         <button
@@ -1007,16 +1028,41 @@ function DocumentRow({ doc, onClick, selected }: { doc: DocumentResponse; onClic
             style={{
                 gridTemplateColumns: DOC_GRID,
                 padding: '13px 20px',
-                background: selected ? '#F3EAFB' : undefined,
+                background: highlighted ? '#F3EAFB' : undefined,
                 fontFamily: FONT,
             }}
             onMouseEnter={(e) => {
-                if (!selected) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA';
+                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA';
             }}
             onMouseLeave={(e) => {
-                if (!selected) (e.currentTarget as HTMLButtonElement).style.background = '';
+                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '';
             }}
         >
+            {/* Bulk-select checkbox — stops propagation so ticking a row doesn't open the drawer */}
+            <span
+                role="checkbox"
+                aria-checked={bulkSelected}
+                aria-label={t('receipts.bulk.selectRow')}
+                tabIndex={0}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleBulk();
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onToggleBulk();
+                    }
+                }}
+                className={cn(
+                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                    bulkSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
+                )}
+            >
+                {bulkSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+            </span>
+
             {/* Document name */}
             <span className="flex items-center gap-3 min-w-0 pr-4">
                 <span className="w-9 h-9 flex items-center justify-center rounded-[10px] flex-shrink-0 text-base" style={{ background: '#F3EAFB' }}>
@@ -1272,6 +1318,9 @@ export function BelegeView() {
     const [sortBy, setSortBy] = usePersistedState<'createdAt' | 'updatedAt' | 'transactionTime' | 'total'>('hopps.belege.sortBy', 'createdAt');
     const [sortDir, setSortDir] = usePersistedState<'asc' | 'desc'>('hopps.belege.sortDir', 'desc');
     const [selectedDoc, setSelectedDoc] = useState<DocumentResponse | null>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const bulkDelete = useDeleteDocument();
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
 
@@ -1368,6 +1417,41 @@ export function BelegeView() {
     };
     const sorted = [...filtered].sort((a, b) => (sortDir === 'asc' ? sortValue(a) - sortValue(b) : sortValue(b) - sortValue(a)));
 
+    // ── Bulk selection (for multi-delete) ──
+    const pageIds = sorted.map((d) => d.id).filter((id): id is number => id != null);
+    const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+    const somePageSelected = pageIds.some((id) => selectedIds.has(id));
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    // The header checkbox toggles the whole current (filtered) list.
+    const toggleSelectAll = () => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+            else pageIds.forEach((id) => next.add(id));
+            return next;
+        });
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const handleBulkDelete = async () => {
+        const ids = Array.from(selectedIds);
+        // allSettled so one failed delete doesn't abort the rest; the list refetches via query invalidation.
+        await Promise.allSettled(ids.map((id) => bulkDelete.mutateAsync(id)));
+        if (selectedDoc?.id != null && selectedIds.has(selectedDoc.id)) setSelectedDoc(null);
+        clearSelection();
+        setBulkDeleteOpen(false);
+    };
+
     // Toggle sorting from a table column header: same column flips direction, new column starts descending.
     const handleSort = (field: typeof sortBy) => {
         if (sortBy === field) {
@@ -1441,6 +1525,36 @@ export function BelegeView() {
                 )}
             </div>
 
+            {/* Bulk selection toolbar */}
+            {selectedIds.size > 0 && (
+                <div
+                    className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5"
+                    style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}
+                >
+                    <span className="text-[13.5px] font-bold text-[#1B1B1F]">
+                        {t('receipts.bulk.selectedCount', { n: selectedIds.size })}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={clearSelection}
+                        className="text-[13px] font-semibold text-[#6B6B76] hover:text-[#1B1B1F] transition-colors"
+                    >
+                        {t('receipts.bulk.clear')}
+                    </button>
+                    <div className="flex-1" />
+                    <button
+                        type="button"
+                        onClick={() => setBulkDeleteOpen(true)}
+                        disabled={bulkDelete.isPending}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                        style={{ background: '#B12C4C' }}
+                    >
+                        <Trash2 size={14} />
+                        {t('receipts.bulk.delete')}
+                    </button>
+                </div>
+            )}
+
             {/* Document list */}
             <div className="flex-1 min-h-0 overflow-auto">
                 {isLoading ? (
@@ -1475,6 +1589,30 @@ export function BelegeView() {
                                 fontFamily: FONT,
                             }}
                         >
+                            {/* Select-all checkbox (current list) */}
+                            <span
+                                role="checkbox"
+                                aria-checked={allPageSelected ? 'true' : somePageSelected ? 'mixed' : 'false'}
+                                aria-label={t('receipts.bulk.selectAll')}
+                                tabIndex={0}
+                                onClick={toggleSelectAll}
+                                onKeyDown={(e) => {
+                                    if (e.key === ' ' || e.key === 'Enter') {
+                                        e.preventDefault();
+                                        toggleSelectAll();
+                                    }
+                                }}
+                                className={cn(
+                                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                                    allPageSelected || somePageSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
+                                )}
+                            >
+                                {allPageSelected ? (
+                                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                                ) : somePageSelected ? (
+                                    <Minus className="w-3 h-3 text-white" strokeWidth={3} />
+                                ) : null}
+                            </span>
                             <span style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                                 {t('receipts.columns.document')}
                             </span>
@@ -1503,7 +1641,14 @@ export function BelegeView() {
                         </div>
 
                         {sorted.map((doc) => (
-                            <DocumentRow key={doc.id} doc={doc} onClick={() => setSelectedDoc(doc)} selected={selectedDoc?.id === doc.id} />
+                            <DocumentRow
+                                key={doc.id}
+                                doc={doc}
+                                onClick={() => setSelectedDoc(doc)}
+                                selected={selectedDoc?.id === doc.id}
+                                bulkSelected={doc.id != null && selectedIds.has(doc.id)}
+                                onToggleBulk={() => doc.id != null && toggleSelect(doc.id)}
+                            />
                         ))}
                     </div>
                 )}
@@ -1511,6 +1656,18 @@ export function BelegeView() {
 
             {/* Review drawer */}
             <ReviewDrawer doc={selectedDoc} onClose={closeDrawer} onDeleted={closeDrawer} />
+
+            <ConfirmDialog
+                open={bulkDeleteOpen}
+                onOpenChange={setBulkDeleteOpen}
+                title={t('receipts.bulk.confirmTitle')}
+                description={t('receipts.bulk.confirmDesc', { n: selectedIds.size })}
+                confirmLabel={t('receipts.bulk.delete')}
+                cancelLabel={t('common.cancel')}
+                onConfirm={handleBulkDelete}
+                destructive
+                loading={bulkDelete.isPending}
+            />
         </div>
     );
 }

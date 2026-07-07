@@ -37,13 +37,6 @@ function formatDate(date: string | Date | undefined): string {
     return d.toLocaleDateString('de-DE');
 }
 
-function formatBytes(bytes: number | undefined): string {
-    if (!bytes) return '—';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 function ImportStatusBadge({ status }: { status?: string }) {
     const { t } = useTranslation();
     const colorMap: Record<string, string> = {

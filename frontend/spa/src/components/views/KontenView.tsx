@@ -747,7 +747,7 @@ export function KontenView() {
 
     const tabs: { id: TabId; label: string; badge?: number }[] = [
         { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen > 0 ? totalOpen : undefined },
-        ...accounts.map((a) => ({ id: String(a.id), label: a.name })),
+        ...accounts.map((a) => ({ id: String(a.id), label: a.name ?? '' })),
         { id: 'importe', label: t('konten.tabs.importe') },
     ];
 

@@ -7,7 +7,11 @@ import app.hopps.bankimport.domain.BankTransactionMatch;
 import app.hopps.bankimport.domain.BankTransactionMatchType;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.document.domain.AnalysisStatus;
+import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
+import app.hopps.document.repository.DocumentRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
@@ -34,6 +38,7 @@ import java.time.LocalDate;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.Matchers.notNullValue;
 
 @QuarkusTest
@@ -46,6 +51,9 @@ class TransactionResourceTest {
 
     @Inject
     TransactionRepository transactionRepository;
+
+    @Inject
+    DocumentRepository documentRepository;
 
     @Inject
     OrganizationRepository organizationRepository;
@@ -331,6 +339,58 @@ class TransactionResourceTest {
                 .statusCode(200)
                 .body("id", equalTo(id.intValue()))
                 .body("status", is("CONFIRMED"));
+    }
+
+    @Test
+    void shouldConfirmLinkedDocumentWhenTransactionConfirmed() {
+        Long txId = createConfirmableTransaction(BigDecimal.valueOf(30));
+        Long docId = linkDocumentToTransaction(txId);
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", txId)
+                .then()
+                .statusCode(200)
+                .body("status", is("CONFIRMED"));
+
+        // Confirming the transaction must also flip its linked receipt (document) to CONFIRMED.
+        assertEquals(DocumentStatus.CONFIRMED, documentStatusOf(docId));
+    }
+
+    @Test
+    void shouldRevertLinkedDocumentWhenTransactionReopened() {
+        Long txId = createConfirmableTransaction(BigDecimal.valueOf(30));
+        Long docId = linkDocumentToTransaction(txId);
+
+        given().contentType("application/json").when().post("/{id}/confirm", txId).then().statusCode(200);
+        assertEquals(DocumentStatus.CONFIRMED, documentStatusOf(docId));
+
+        given().contentType("application/json").when().post("/{id}/reopen", txId).then().statusCode(200);
+        // Reopening the transaction sends the document back to a reviewable state.
+        assertEquals(DocumentStatus.ANALYZED, documentStatusOf(docId));
+    }
+
+    /** Creates an ANALYZED document and links it to the given transaction (transaction owns the FK). Returns doc id. */
+    @Transactional
+    Long linkDocumentToTransaction(Long transactionId) {
+        Organization org = organizationRepository.findById(4L);
+
+        Document doc = new Document();
+        doc.setOrganization(org);
+        doc.setDocumentStatus(DocumentStatus.ANALYZED);
+        doc.setAnalysisStatus(AnalysisStatus.COMPLETED);
+        doc.setUploadedBy("alice@example.test");
+        documentRepository.persist(doc);
+
+        Transaction tx = transactionRepository.findById(transactionId);
+        tx.setDocument(doc);
+        return doc.getId();
+    }
+
+    @Transactional
+    DocumentStatus documentStatusOf(Long documentId) {
+        return documentRepository.findById(documentId).getDocumentStatus();
     }
 
     @Test

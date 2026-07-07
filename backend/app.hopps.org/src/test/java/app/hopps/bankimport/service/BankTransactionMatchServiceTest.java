@@ -101,6 +101,73 @@ class BankTransactionMatchServiceTest {
         assertDoesNotThrow(() -> matchService.updateMatchedAmountForTransaction(999_999L));
     }
 
+    /**
+     * When a transaction without an amount (e.g. it was cleared because the analysed value was in the wrong currency)
+     * is matched to a bank movement, it adopts the bank transaction's euro amount and becomes fully covered.
+     */
+    @Test
+    @TestTransaction
+    void addingMatchFillsEmptyTransactionAmountFromBankMovement() {
+        Organization org = em.createQuery("SELECT o FROM Organization o", Organization.class)
+                .setMaxResults(1)
+                .getResultList()
+                .get(0);
+        Bommel bommel = em.createQuery("SELECT b FROM Bommel b WHERE b.organization = :org", Bommel.class)
+                .setParameter("org", org)
+                .setMaxResults(1)
+                .getResultList()
+                .get(0);
+
+        BankAccount account = new BankAccount();
+        account.setOrganization(org);
+        account.setBommel(bommel);
+        account.setName("Test account");
+        account.setIban("DE89370400440532013000");
+        account.setCreatedBy("tester");
+        em.persist(account);
+
+        BankImport bankImport = new BankImport();
+        bankImport.setOrganization(org);
+        bankImport.setBankAccount(account);
+        bankImport.setFileName("test.csv");
+        bankImport.setFileSize(0);
+        bankImport.setFileSha256("testsha-autofill");
+        bankImport.setImportedBy("tester");
+        em.persist(bankImport);
+
+        BigDecimal bankAmount = new BigDecimal("-49.90");
+        BankTransaction bankTx = new BankTransaction();
+        bankTx.setOrganization(org);
+        bankTx.setBankAccount(account);
+        bankTx.setBankImport(bankImport);
+        bankTx.setBookingDate(LocalDate.of(2026, 5, 15));
+        bankTx.setAmount(bankAmount);
+        bankTx.setCurrency("EUR");
+        bankTx.setDedupeHash("testhash-autofill");
+        bankTx.setStatus(BankTransactionStatus.UNMATCHED);
+        bankTx.setMatchedAmount(BigDecimal.ZERO);
+        em.persist(bankTx);
+
+        // A transaction with no amount yet.
+        Transaction tx = new Transaction();
+        tx.setOrganization(org);
+        tx.setCreatedBy("tester");
+        tx.setStatus(TransactionStatus.DRAFT);
+        tx.setName("Adobe");
+        tx.setTotal(null);
+        em.persist(tx);
+        em.flush();
+
+        matchService.addMatch(bankTx.getId(), tx.getId(), "tester");
+
+        Transaction reloadedTx = em.find(Transaction.class, tx.getId());
+        assertEquals(0, reloadedTx.getTotal().compareTo(bankAmount),
+                "transaction amount is filled from the bank movement");
+
+        BankTransaction reloadedBankTx = em.find(BankTransaction.class, bankTx.getId());
+        assertEquals(BankTransactionStatus.FULLY_MATCHED, reloadedBankTx.getStatus());
+    }
+
     // ── Test fixture ────────────────────────────────────────────────────────────
 
     private record Fixture(BankTransaction bankTx, Transaction transaction) {

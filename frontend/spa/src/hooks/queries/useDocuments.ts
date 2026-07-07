@@ -1,7 +1,22 @@
 import { DocumentDirection, DocumentResponse } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import i18n from 'i18next';
 
+import { toast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
+import { getErrorStatus, getUserFriendlyErrorMessage } from '@/utils/errorUtils';
+
+/**
+ * Shows a toast for a failed document/receipt upload. A 409 means the identical file was already uploaded before, so we
+ * surface that precisely instead of the generic conflict message. Defining onError also suppresses the global mutation
+ * error toast (see QueryProvider), preventing a duplicate toast.
+ */
+export function showUploadError(error: unknown) {
+    toast({
+        title: getErrorStatus(error) === 409 ? i18n.t('receipts.upload.duplicate') : getUserFriendlyErrorMessage(error),
+        variant: 'error',
+    });
+}
 
 export const documentKeys = {
     all: ['documents'] as const,
@@ -54,6 +69,7 @@ export function useUploadDocument() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
         },
+        onError: showUploadError,
     });
 }
 

@@ -91,7 +91,6 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
     const selectedTemplate = isTemplateSelected ? templates.find((tpl) => `tpl:${tpl.templateId}` === schemaId) : undefined;
     const selectedName = selectedSchema?.name ?? selectedTemplate?.name ?? '';
     const detectionFailed = state === 'preview' && !isMt940 && detection?.type === 'NONE';
-    const needsManualSchema = detectionFailed && !schemaId;
 
     // Trigger preview automatically on drop
     const loadPreview = useCallback(
