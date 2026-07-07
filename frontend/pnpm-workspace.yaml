@@ -3,6 +3,9 @@ packages:
   - 'mobile'
   - 'api-client'
   - 'figma_inspo'
+overrides:
+  '@types/react': ^19.1.0
+  '@types/react-dom': ^19.1.0
 allowBuilds:
   '@pact-foundation/pact-node': set this to true or false
   '@parcel/watcher': set this to true or false

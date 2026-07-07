@@ -8,8 +8,10 @@ import app.hopps.bankimport.domain.BankTransactionMatchType;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.organization.domain.Organization;
+import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionStatus;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class BankTransactionMatchServiceTest {
@@ -30,6 +33,11 @@ class BankTransactionMatchServiceTest {
 
     @Inject
     EntityManager em;
+
+    // addMatch() looks the bank transaction up scoped to the current organization; without an authenticated request the
+    // context would resolve to null, so we stub it to the org used by the test below.
+    @InjectMock
+    OrganizationContext organizationContext;
 
     /**
      * When a bookkeeping transaction that is matched to a bank transaction is deleted, the bank transaction must no
@@ -117,6 +125,9 @@ class BankTransactionMatchServiceTest {
                 .setMaxResults(1)
                 .getResultList()
                 .get(0);
+
+        // addMatch resolves the bank transaction scoped to the current organization.
+        when(organizationContext.getCurrentOrganizationId()).thenReturn(org.getId());
 
         BankAccount account = new BankAccount();
         account.setOrganization(org);

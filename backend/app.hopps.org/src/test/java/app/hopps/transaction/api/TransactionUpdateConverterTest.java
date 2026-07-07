@@ -333,8 +333,9 @@ class TransactionUpdateConverterTest {
     @Test
     @DisplayName("should create counterparty (recipient for income) when transaction has none")
     void shouldCreateNewCounterparty() {
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 "New Sender", "Street 1", "54321", "Munich",
                 null, null);
@@ -361,8 +362,9 @@ class TransactionUpdateConverterTest {
         // income => the counterparty lives on the recipient side
         transaction.setRecipient(existing);
 
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 "Updated Sender", "New Street 5", "99999", "Hamburg",
                 null, null);
@@ -380,8 +382,9 @@ class TransactionUpdateConverterTest {
     @Test
     @DisplayName("should not touch parties when name is null")
     void shouldNotTouchPartiesWhenNameNull() {
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 null, "Street 1", "12345", "Berlin",
                 null, null);
@@ -396,8 +399,9 @@ class TransactionUpdateConverterTest {
     @Test
     @DisplayName("should not touch parties when name is blank")
     void shouldNotTouchPartiesWhenNameBlank() {
+        // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
+                null, BigDecimal.valueOf(50), null, null, null, null,
                 null, null, null, false,
                 "  ", "Street 1", "12345", "Berlin",
                 null, null);
