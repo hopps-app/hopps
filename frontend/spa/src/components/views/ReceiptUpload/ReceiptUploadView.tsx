@@ -14,12 +14,12 @@ import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
-import { getErrorStatus } from '@/utils/errorUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
+import { getErrorStatus } from '@/utils/errorUtils';
 
 const POLLING_INTERVAL_BASE = 2000; // 2 seconds base interval
 const POLLING_MAX_INTERVAL = 30000; // 30 seconds max interval

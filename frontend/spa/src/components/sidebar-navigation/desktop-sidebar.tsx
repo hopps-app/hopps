@@ -141,9 +141,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                                         <span className="text-[13px] font-semibold text-[#1B1B1F] dark:text-white truncate leading-tight">
                                             {user?.name ?? 'User'}
                                         </span>
-                                        <span className="text-[11px] text-[#9A9AA3] truncate leading-tight">
-                                            {user?.email ?? ''}
-                                        </span>
+                                        <span className="text-[11px] text-[#9A9AA3] truncate leading-tight">{user?.email ?? ''}</span>
                                     </div>
                                 )}
                             </button>
