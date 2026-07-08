@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -54,7 +54,7 @@ jobs:
 
       # Upload the SBOM to Dependency-Track
       - name: Upload BOM to Dependency-Track
-        uses: DependencyTrack/gh-upload-sbom@v3.1.0
+        uses: DependencyTrack/gh-upload-sbom@v4.1.0
         with:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           serverHostname: "dtrack.hopps.cloud"
