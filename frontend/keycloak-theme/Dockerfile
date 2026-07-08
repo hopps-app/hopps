@@ -13,8 +13,9 @@ WORKDIR /app
 # Copy package files
 COPY ./ ./
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies.
+# --ignore-scripts avoids pnpm 10's ERR_PNPM_IGNORED_BUILDS 
+RUN pnpm install --ignore-scripts
 
 # Build the application
 RUN npm run build-keycloak-theme

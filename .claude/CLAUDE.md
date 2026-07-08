@@ -254,6 +254,56 @@ HOPPS_AZURE_DOCUMENT_AI_KEY
 QUARKUS_LANGCHAIN4J_OPENAI_API_KEY
 ```
 
+### Authentik als Identity Provider lokal testen
+
+Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Keycloak brokert per OIDC zu **Authentik**. Um die "Log in with Authentik"-Schaltfläche im Custom-Theme (`frontend/keycloak-theme`) end-to-end zu testen, müssen drei Dinge zusammenpassen: das Theme-Image, die Realm-Konfiguration und die laufende Authentik-Instanz.
+
+> **Hinweis:** Die hier beschriebene Verdrahtung (`devservices.image-name`, `loginTheme` im Realm, der `authentik`-IdP-Eintrag, das Custom-`Login.tsx`) ist ggf. noch **nicht committet**. Falls diese Konfiguration im Repo fehlt, muss sie zuerst wie unten beschrieben angelegt werden.
+
+**Wie es verdrahtet ist:**
+- Keycloak wird **nicht** aus docker-compose gestartet, sondern von **Quarkus Keycloak Dev Services** (`%dev`), auf **Port 8554** (`quarkus.keycloak.devservices.port`), Realm **`quarkus`** (importiert aus `backend/app.hopps.org/src/main/resources/quarkus-realm.json`).
+- Damit das Custom-Login-Theme in Dev Services erscheint, nutzt Quarkus ein eigenes Keycloak-Image statt des Standard-Images:
+  `%dev.quarkus.keycloak.devservices.image-name=hopps-keycloak-theme:local`.
+  Dieses Image existiert **nur lokal** (kein Registry-Pull) — es muss vorher gebaut werden, sonst schlägt der Dev-Start mit Image-Pull-Fehler fehl (es gibt **kein** Fallback auf das Standard-Keycloak).
+- Das Realm braucht `"loginTheme": "hopps-login-theme"` (sonst Standard-Login) und den `identityProviders`-Eintrag mit `alias: authentik`.
+- Authentik läuft aus der eigenen Datei `infrastructure/hopps-app/docker-compose.authentik.yaml` (Services `authentik-server`/`-worker`/`-postgres`/`-redis`) auf **Port 9000**. Admin: `akadmin` / `akadmin` (`AUTHENTIK_BOOTSTRAP_PASSWORD`).
+
+**Ablauf zum Testen:**
+1. **Theme-Image bauen** (nach jeder Theme-Änderung neu):
+   ```bash
+   cd frontend/keycloak-theme
+   pnpm install --ignore-workspace --ignore-scripts   # standalone: NICHT Teil des frontend-Workspaces
+   docker build -t hopps-keycloak-theme:local .
+   ```
+2. **Dev Services auf das Theme-Image zeigen lassen** — folgende Zeile in `backend/app.hopps.org/src/main/resources/application.properties` eintragen (falls noch nicht vorhanden):
+   ```properties
+   %dev.quarkus.keycloak.devservices.image-name=hopps-keycloak-theme:local
+   ```
+   Zusätzlich im Realm `quarkus-realm.json` `"loginTheme": "hopps-login-theme"` setzen und den `authentik`-IdP-Eintrag (`identityProviders`) anlegen.
+3. **Authentik hochfahren** (eigene Compose-Datei, lässt die Haupt-`docker-compose.yaml` unberührt):
+   ```bash
+   cd infrastructure/hopps-app
+   docker compose -f docker-compose.authentik.yaml up -d
+   ```
+   Dann in Authentik (http://localhost:9000, `akadmin`/`akadmin`) einen **OIDC-Provider + Application** für Keycloak anlegen und als Redirect-URI **`http://localhost:8554/realms/quarkus/broker/authentik/endpoint`** hinterlegen. `clientId`/`clientSecret` von dort in den `authentik`-Eintrag in `quarkus-realm.json` übernehmen.
+4. **Backend im Dev-Mode starten** (zieht das lokale Theme-Image in den Dev-Services-Keycloak):
+   ```bash
+   cd backend/app.hopps.org
+   ./mvnw quarkus:dev
+   ```
+5. **Login testen:** SPA auf `http://localhost:5173/` starten und einloggen — oder direkt die Keycloak-Login-Seite über einen gültigen Client öffnen:
+   ```
+   http://localhost:8554/realms/quarkus/protocol/openid-connect/auth?client_id=quarkus-app&redirect_uri=http://localhost:5173/&response_type=code&scope=openid
+   ```
+   Der "Authentik"-Button muss erscheinen; Klick → Redirect zu Authentik → zurück über `.../broker/authentik/endpoint` → zurück zur SPA.
+
+**Wichtige Fallstricke (URL-Hosts sind bewusst unterschiedlich):**
+- `authorizationUrl` nutzt einen **browser-erreichbaren** Host (`authentik.local:9000` bzw. `localhost:9000`) — muss vom **Browser** auflösbar sein.
+- `tokenUrl`/`userInfoUrl`/`issuer` nutzen `host.docker.internal:9000` — muss aus dem **Keycloak-Container** erreichbar sein.
+- Der Authentik-`issuer` muss **exakt** (inkl. abschließendem `/`) mit dem Wert unter `.well-known/openid-configuration` übereinstimmen.
+- Der Principal wird aus dem `email`-Claim gemappt (`quarkus.oidc.token.principal-claim=email`) — Authentik muss eine (verifizierte) `email` ausliefern.
+- **Nur `%dev`:** Der `image-name`-Override und der ganze Authentik-Broker-Flow betreffen ausschließlich den Dev-Mode. In JUnit-Tests spielt das Login-Theme keine Rolle (Tests holen Tokens direkt, rendern nie die Login-Seite).
+
 ### CI/CD (GitHub Actions)
 - **Backend Workflow:** Matrix Build für 4 Services, Docker Push zu GHCR
 - **Frontend Workflow:** Lint, Test, Build, Docker Push

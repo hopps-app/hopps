@@ -148,9 +148,27 @@
     font-size: 14px;
 }
 
-#kc-locale ul a:hover {
+#kc-locale ul a:hover,
+#kc-locale ul a:focus,
+#kc-locale ul a:focus-visible,
+#kc-locale ul a:active {
     background: #f3e8ff;
     color: #7a2cbf;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Remove the default blue focus ring on the whole locale menu / its items */
+#kc-locale ul,
+#kc-locale ul li,
+#kc-locale ul a {
+    outline: none !important;
+}
+#kc-locale ul li:focus,
+#kc-locale ul li:focus-visible,
+#kc-locale ul li:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 #kc-header-wrapper {
@@ -299,6 +317,101 @@ input[type="password"] {
 #kc-login:hover,
 .pf-c-button.pf-m-primary:hover {
     background-color: #552479 !important;
+}
+
+/* Social / identity provider login ("Log in with ...") */
+.custom-social-providers {
+    margin-top: 1.5rem;
+}
+
+/* Divider with a centered label, e.g. "Or sign in with" */
+.custom-social-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    color: var(--Grey-3, #797979);
+    font-family: "Reddit Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: none;
+}
+.custom-social-divider::before,
+.custom-social-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e0cfef;
+}
+.custom-social-divider span {
+    white-space: nowrap;
+}
+
+/* Reset the default list spacing and stack the provider buttons */
+.custom-social-providers ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Provider button styled to match the hopps card look.
+   Uses !important on the layout props to override Keycloakify's default
+   kcFormSocialAccountListButtonClass, which otherwise positions the icon
+   absolutely and makes the logo overlap the label. */
+.custom-social-button {
+    position: relative !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 1rem;
+    border: 1px solid #e0cfef;
+    border-radius: 0.75rem;
+    background: #fff;
+    color: #333;
+    font-family: "Reddit Sans", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease;
+}
+.custom-social-button:hover,
+.custom-social-button:focus,
+.custom-social-button:active {
+    background: #f3e8ff;
+    border-color: #7a2cbf !important;
+    color: #552479 !important;
+    text-decoration: none;
+    outline: none;
+}
+.custom-social-button:focus-visible {
+    /* Keep a visible focus ring for keyboard users, but in hopps lila */
+    box-shadow: 0 0 0 2px rgba(122, 44, 191, 0.35);
+}
+
+/* Brand logo inside the provider button — force it into normal flow so it
+   sits before the label instead of being absolutely positioned. */
+.custom-social-button .custom-social-logo {
+    position: static !important;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+/* Neutralize the default absolute positioning / left padding that the base
+   theme applies to the label when an icon is present. */
+.custom-social-button .kc-social-icon-text {
+    position: static !important;
+    padding: 0 !important;
+    font-weight: 500;
 }
 
 /* Bottom register bar */
