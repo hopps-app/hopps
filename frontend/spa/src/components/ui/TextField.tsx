@@ -39,7 +39,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
     const hasPrependContent = props.loading || props.prependIcon;
 
     return (
-        <div className="grid w-full items-center gap-1.5">
+        <div className="grid w-full items-center gap-1">
             {props.label && (
                 <Label htmlFor={id} className={props.error ? 'text-red-500' : ''} required={props.required}>
                     {props.label}
@@ -63,7 +63,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
                     placeholder={props.placeholder || ''}
                     value={props.value}
                     maxLength={props.maxLength}
-                    className={`${hasPrependContent ? 'pl-10 ' : ''}${isPassword ? 'pr-10 ' : ''}${props.error ? 'border-red-500 focus:border-red-500 focus:ring-red-500 shadow-[0_0_0_2px_rgba(239,68,68,0.15)] text-red-500 ' : ''}${props.className || ''}`.trim()}
+                    className={`${hasPrependContent ? 'pl-10 ' : ''}${isPassword ? 'pr-12 ' : ''}${props.error ? 'border-red-500 focus:border-red-500 focus:ring-red-500 shadow-[0_0_0_2px_rgba(239,68,68,0.15)] text-red-500 ' : ''}${props.className || ''}`.trim()}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                         props.onChange?.(event);
                         props.onValueChange?.(event.target.value);
