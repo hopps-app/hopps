@@ -3,6 +3,9 @@ import Keycloak from 'keycloak-js';
 
 import { useStore } from '@/store/store';
 
+// give keycloak some margin to refresh
+const TOKEN_REFRESH_MARGIN_SECONDS = 60;
+
 export class AuthService {
     private keycloak: Keycloak;
 
@@ -15,6 +18,9 @@ export class AuthService {
 
         this.keycloak.onAuthSuccess = () => this.updateAuthState(true);
         this.keycloak.onAuthLogout = () => this.updateAuthState(false);
+        this.keycloak.onTokenExpired = () => {
+            this.refreshToken();
+        };
     }
 
     private updateAuthState(authenticated: boolean) {
@@ -68,23 +74,21 @@ export class AuthService {
         });
     }
 
-    async checkLogin() {
-        this.keycloak.updateToken(5).catch(() => {
-            console.error('Failed to refresh token or user is not authenticated');
-        });
-    }
-
     isAuthenticated(): boolean {
         return this.keycloak.authenticated === true && !this.keycloak.isTokenExpired();
     }
 
+    /**
+     * Refreshes the access token if it is close to expiry. A rejection here means
+     * Keycloak refused the refresh token, i.e. the SSO session itself has ended —
+     * so drop auth state and let AuthGuard decide where the user goes.
+     */
     async refreshToken(): Promise<boolean> {
         try {
-            const refreshed = await this.keycloak.updateToken(5);
-            return refreshed;
+            return await this.keycloak.updateToken(TOKEN_REFRESH_MARGIN_SECONDS);
         } catch (e) {
-            console.error('Failed to refresh token, logging out:', e);
-            await this.logout();
+            console.error('Token refresh rejected, session has ended:', e);
+            this.updateAuthState(false);
             return false;
         }
     }

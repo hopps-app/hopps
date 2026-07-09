@@ -16,6 +16,7 @@ type MockKeycloak = {
     onAuthSuccess: (() => void) | null;
     onAuthLogout: (() => void) | null;
     onAuthError: ((error: unknown) => void) | null;
+    onTokenExpired: (() => void) | null;
 };
 
 // Mock Keycloak class
@@ -34,6 +35,7 @@ vi.mock('keycloak-js', () => {
                 onAuthSuccess: null,
                 onAuthLogout: null,
                 onAuthError: null,
+                onTokenExpired: null,
             };
         }),
     };
@@ -166,9 +168,31 @@ describe('AuthService', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load user info', expect.any(Error));
     });
 
-    it('should attempt to refresh token', async () => {
+    it('should attempt to refresh token with a safety margin', async () => {
         const keycloak = authService['keycloak'] as unknown as MockKeycloak;
-        await authService.refreshToken();
-        expect(keycloak.updateToken).toHaveBeenCalledWith(5);
+        await expect(authService.refreshToken()).resolves.toBe(true);
+        expect(keycloak.updateToken).toHaveBeenCalledWith(60);
+    });
+
+    it('should drop auth state instead of logging out when the refresh is rejected', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        const keycloak = authService['keycloak'] as unknown as MockKeycloak;
+        vi.spyOn(keycloak, 'updateToken').mockRejectedValue(new Error('session expired'));
+
+        await expect(authService.refreshToken()).resolves.toBe(false);
+
+        expect(mockStore.setIsAuthenticated).toHaveBeenCalledWith(false);
+        expect(mockStore.setUser).toHaveBeenCalledWith(null);
+        // A rejected refresh means Keycloak already ended the session; redirecting
+        // to the end-session endpoint would be a redundant round trip.
+        expect(keycloak.logout).not.toHaveBeenCalled();
+    });
+
+    it('should register onTokenExpired so keycloak arms its refresh timer', async () => {
+        const keycloak = authService['keycloak'] as unknown as MockKeycloak;
+        expect(keycloak.onTokenExpired).toBeTypeOf('function');
+
+        keycloak.onTokenExpired!();
+        await vi.waitFor(() => expect(keycloak.updateToken).toHaveBeenCalledWith(60));
     });
 });
