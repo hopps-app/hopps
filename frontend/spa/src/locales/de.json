@@ -3,7 +3,9 @@
         "badge": "Alpha",
         "consentText": "Sie nutzen eine Alpha-Testversion von Hopps. Die Software befindet sich noch in der Entwicklung. Vollständige Datenschutz- und Compliance-Anforderungen können in dieser Phase noch nicht garantiert werden. Wir arbeiten kontinuierlich an Verbesserungen.",
         "consentLabel": "Ich habe verstanden, dass es sich um eine Alpha-Version handelt, und stimme der Nutzung zu.",
-        "consentRequired": "Bitte stimmen Sie der Nutzung der Alpha-Version zu"
+        "consentRequired": "Bitte stimmen Sie der Nutzung der Alpha-Version zu",
+        "details": "Details",
+        "hideDetails": "Details ausblenden"
     },
     "banner": {
         "text1": "Teste Hopps 14 Tage kostenlos",
@@ -70,7 +72,14 @@
         "organizationNameRequired": "Organisationsname ist erforderlich",
         "firstNameRequired": "Vorname ist erforderlich",
         "lastNameRequired": "Nachname ist erforderlich",
-        "invalidFileType": "Ungültiger Dateityp"
+        "invalidFileType": "Ungültiger Dateityp",
+        "passwordStrength": {
+            "label": "Passwortstärke",
+            "weak": "Schwach",
+            "fair": "Mittel",
+            "good": "Gut",
+            "strong": "Stark"
+        }
     },
     "header": {
         "home": "Startseite",
@@ -138,6 +147,9 @@
             "organizationAlreadyExists": "Eine Organisation mit diesem Namen existiert bereits",
             "emailAndOrganizationAlreadyExist": "Diese E-Mail-Adresse und dieser Organisationsname sind bereits vergeben",
             "header": "Organisation registrieren",
+            "subtitle": "Erstellen Sie Ihre Organisation und Ihr Konto, um loszulegen.",
+            "alreadyHaveAccount": "Sie haben bereits ein Konto?",
+            "loginInstead": "Anmelden",
             "success": "Organisation erfolgreich erstellt",
             "successHeading": "Ihre Organisation wurde erfolgreich registriert.",
             "organizationName": "Organisationsname",
