@@ -17,7 +17,7 @@ on:
 
 jobs:
   build:
-    if: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
+    if: ${{ !startsWith(github.ref, 'refs/heads/dependabot') && !startsWith(github.head_ref, 'dependabot') }}
     runs-on: ubuntu-latest
 
     strategy:
