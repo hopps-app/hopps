@@ -38,3 +38,60 @@ export type AdminOrganizationsPage = {
     /** Total across all pages, for pagination. */
     total: number;
 };
+
+/** Postal address, mirrors the backend `Address` embeddable. */
+export type OrgAddress = {
+    street: string | null;
+    number: string | null;
+    plz: string | null;
+    city: string | null;
+    additionalLine: string | null;
+};
+
+/** A member of the organization. Mirrors the backend `Member` (firstName, lastName, email). */
+export type OrgMember = {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+};
+
+/** AI providers Hopps can bill usage against. `services` on TokenUsage keys off these. */
+export type AiService = 'openai' | 'azure';
+
+/**
+ * Per-organization AI token usage. MOCK ONLY — Hopps has no per-org metering today
+ * (only OpenAI's global account quota). Structured now so a real metering backend
+ * can populate it later without changing the view.
+ */
+export type TokenUsage = {
+    total: number;
+    /** Breakdown by provider. Sums to `total`. */
+    services: Partial<Record<AiService, number>>;
+};
+
+/**
+ * Full detail projection for one organization — everything the detail page shows.
+ * Extends the list row with Stammdaten, address, and activity counts.
+ * Same caveat as the row: this is the contract for a future `GET /organization/{id}`
+ * admin endpoint, not the raw entity.
+ */
+export type OrganizationDetail = AdminOrganizationRow & {
+    // Stammdaten (registration / legal)
+    type: string | null;
+    foundingDate: string | null;
+    registrationCourt: string | null;
+    registrationNumber: string | null;
+    taxNumber: string | null;
+    country: string | null;
+    website: string | null;
+    // Kontakt
+    phoneNumber: string | null;
+    address: OrgAddress | null;
+    // Members of the organization
+    members: OrgMember[];
+    // Aktivität
+    bankImportCount: number;
+    /** MOCK — see TokenUsage. Null if never used any AI service. */
+    tokenUsage: TokenUsage | null;
+};

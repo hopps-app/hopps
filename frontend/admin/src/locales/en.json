@@ -51,7 +51,11 @@
         },
         "detail": {
             "back": "Back to organizations",
-            "notFound": "This organization does not exist."
+            "notFound": "This organization does not exist.",
+            "stammdaten": "Master data",
+            "kontakt": "Address & contact",
+            "aktivitaet": "Activity",
+            "members": "Members ({{count}})"
         },
         "delete": {
             "zoneTitle": "Delete organization",
@@ -61,6 +65,31 @@
             "prompt": "Type {{name}} to confirm.",
             "confirm": "Delete",
             "deleting": "Deleting…"
+        },
+        "fields": {
+            "type": "Type",
+            "foundingDate": "Founded",
+            "registrationCourt": "Registration court",
+            "registrationNumber": "Registration number",
+            "taxNumber": "Tax number",
+            "country": "Country",
+            "website": "Website",
+            "address": "Address",
+            "contactName": "Contact person",
+            "email": "Email",
+            "phone": "Phone",
+            "belegeCreated": "Receipts created",
+            "bankImports": "Bank imports",
+            "tokenUsage": "AI token usage",
+            "tokenNone": "Not tracked yet"
+        },
+        "impersonate": {
+            "action": "Impersonate",
+            "title": "Impersonate this organization",
+            "body": "Impersonation lets you sign in as a member of {{name}} to reproduce their view. This is not wired up yet — it needs Keycloak Admin API access and an audit trail before it can be enabled."
+        },
+        "members": {
+            "empty": "No members yet."
         }
     },
     "home": {

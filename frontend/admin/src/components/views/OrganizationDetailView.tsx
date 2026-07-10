@@ -1,14 +1,18 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, UserCog } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { deleteOrganization, fetchOrganization } from '@/features/organizations/api';
 import DeleteDialog from '@/features/organizations/DeleteDialog';
+import ImpersonateDialog from '@/features/organizations/ImpersonateDialog';
 import StatusBadge from '@/features/organizations/StatusBadge';
 import { formatDate, formatNumber, formatRelative } from '@/features/organizations/format';
 import { deriveStatus } from '@/features/organizations/status';
-import type { AdminOrganizationRow } from '@/features/organizations/types';
+import TokenUsageChart from '@/features/organizations/TokenUsageChart';
+import type { OrganizationDetail, OrgAddress, OrgMember } from '@/features/organizations/types';
+
+type Modal = 'none' | 'delete' | 'impersonate';
 
 export default function OrganizationDetailView() {
     const { t, i18n } = useTranslation();
@@ -16,9 +20,9 @@ export default function OrganizationDetailView() {
     const { id } = useParams<{ id: string }>();
     const numericId = Number(id);
 
-    const [row, setRow] = useState<AdminOrganizationRow | null>(null);
+    const [org, setOrg] = useState<OrganizationDetail | null>(null);
     const [state, setState] = useState<'loading' | 'ready' | 'notfound'>('loading');
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [modal, setModal] = useState<Modal>('none');
     const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
@@ -30,7 +34,7 @@ export default function OrganizationDetailView() {
         fetchOrganization(numericId)
             .then((r) => {
                 if (cancelled) return;
-                setRow(r);
+                setOrg(r);
                 setState(r ? 'ready' : 'notfound');
             })
             .catch(() => !cancelled && setState('notfound'));
@@ -40,10 +44,10 @@ export default function OrganizationDetailView() {
     }, [numericId]);
 
     const handleDelete = async () => {
-        if (!row) return;
+        if (!org) return;
         setDeleting(true);
         try {
-            await deleteOrganization(row.id);
+            await deleteOrganization(org.id);
             navigate('/organizations');
         } catch (e) {
             console.error('Failed to delete organization:', e);
@@ -60,7 +64,7 @@ export default function OrganizationDetailView() {
         );
     }
 
-    if (state === 'notfound' || !row) {
+    if (state === 'notfound' || !org) {
         return (
             <div className="fade-up">
                 <BackLink label={t('organizations.detail.back')} onClick={() => navigate('/organizations')} />
@@ -72,55 +76,144 @@ export default function OrganizationDetailView() {
     }
 
     const locale = i18n.language;
-    const info: Array<[string, React.ReactNode]> = [
-        [t('organizations.columns.contact'), row.contactEmail ?? '—'],
-        [t('organizations.columns.belege'), <span className="tnum">{formatNumber(row.belegeCount)}</span>],
-        [t('organizations.columns.lastActivity'), formatRelative(row.lastActivityAt, locale, Date.now()) ?? t('organizations.never')],
-        [t('organizations.columns.created'), formatDate(row.createdAt) ?? '—'],
-    ];
+    const dash = '—';
+    const val = (v: string | null | undefined) => (v && v.trim() !== '' ? v : dash);
 
     return (
-        <div className="fade-up max-w-[720px]">
+        <div className="fade-up">
             <BackLink label={t('organizations.detail.back')} onClick={() => navigate('/organizations')} />
 
-            <div className="flex items-center gap-3 mt-4 flex-wrap">
-                <h1 className="text-[27px] font-extrabold text-ink">{row.name}</h1>
-                <StatusBadge status={deriveStatus(row, Date.now())} />
-            </div>
-            <p className="text-[14px] text-ink-2 mt-1">{row.slug}</p>
-
-            <div className="card card--flat mt-6 px-[18px] py-1.5">
-                {info.map(([k, v], i) => (
-                    <div
-                        key={i}
-                        className="flex items-center justify-between py-3.5"
-                        style={{ borderBottom: i < info.length - 1 ? '1px solid var(--line)' : 'none' }}
-                    >
-                        <span className="text-[13.5px] font-semibold text-ink-2">{k}</span>
-                        <span className="text-[14px] font-bold text-ink">{v}</span>
+            {/* Header: identity + primary action */}
+            <div className="flex items-start justify-between gap-4 mt-4 flex-wrap">
+                <div className="min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <h1 className="text-[27px] font-extrabold text-ink">{org.name}</h1>
+                        <StatusBadge status={deriveStatus(org, Date.now())} />
                     </div>
-                ))}
+                    <p className="text-[14px] text-ink-2 mt-1">{org.slug}</p>
+                </div>
+                <button type="button" className="btn btn--ton" onClick={() => setModal('impersonate')}>
+                    <UserCog size={16} />
+                    {t('organizations.impersonate.action')}
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6 items-start">
+                {/* Stammdaten — includes address & phone */}
+                <Section title={t('organizations.detail.stammdaten')}>
+                    <Field label={t('organizations.fields.type')} value={val(org.type)} />
+                    <Field label={t('organizations.fields.foundingDate')} value={org.foundingDate ? formatDate(org.foundingDate) ?? dash : dash} />
+                    <Field label={t('organizations.fields.registrationCourt')} value={val(org.registrationCourt)} />
+                    <Field label={t('organizations.fields.registrationNumber')} value={val(org.registrationNumber)} />
+                    <Field label={t('organizations.fields.taxNumber')} value={val(org.taxNumber)} />
+                    <Field label={t('organizations.fields.address')} value={formatAddress(org.address, dash)} />
+                    <Field label={t('organizations.fields.country')} value={val(org.country)} />
+                    <Field label={t('organizations.fields.phone')} value={val(org.phoneNumber)} />
+                    <Field label={t('organizations.fields.website')} value={val(org.website)} last />
+                </Section>
+
+                <div className="flex flex-col gap-5">
+                    {/* Members */}
+                    <Section title={t('organizations.detail.members', { count: org.members.length })}>
+                        {org.members.length === 0 ? (
+                            <p className="py-3.5 text-[13.5px] text-ink-2">{t('organizations.members.empty')}</p>
+                        ) : (
+                            org.members.map((m, i) => (
+                                <MemberRow key={m.id} member={m} last={i === org.members.length - 1} />
+                            ))
+                        )}
+                    </Section>
+
+                    {/* Aktivität */}
+                    <Section title={t('organizations.detail.aktivitaet')}>
+                        <Field
+                            label={t('organizations.columns.lastActivity')}
+                            value={formatRelative(org.lastActivityAt, locale, Date.now()) ?? t('organizations.never')}
+                        />
+                        <Field label={t('organizations.fields.belegeCreated')} value={<span className="tnum">{formatNumber(org.belegeCount)}</span>} />
+                        <Field label={t('organizations.fields.bankImports')} value={<span className="tnum">{formatNumber(org.bankImportCount)}</span>} />
+                        {org.tokenUsage ? (
+                            <TokenUsageChart usage={org.tokenUsage} />
+                        ) : (
+                            <Field label={t('organizations.fields.tokenUsage')} value={<span className="text-ink-3">{t('organizations.fields.tokenNone')}</span>} last />
+                        )}
+                    </Section>
+                </div>
             </div>
 
             {/* Danger zone */}
             <div className="mt-8 rounded-card p-5" style={{ border: '1px solid var(--neg)', background: 'var(--neg-bg)' }}>
                 <h2 className="text-[15px] font-bold text-neg-ink">{t('organizations.delete.zoneTitle')}</h2>
                 <p className="text-[13.5px] text-ink-2 mt-1 mb-4">{t('organizations.delete.zoneText')}</p>
-                <button type="button" className="btn btn--danger" onClick={() => setDialogOpen(true)}>
+                <button type="button" className="btn btn--danger" onClick={() => setModal('delete')}>
                     {t('organizations.delete.confirm')}
                 </button>
             </div>
 
-            {dialogOpen && (
-                <DeleteDialog confirmText={row.name} busy={deleting} onConfirm={handleDelete} onClose={() => setDialogOpen(false)} />
+            {modal === 'delete' && (
+                <DeleteDialog confirmText={org.name} busy={deleting} onConfirm={handleDelete} onClose={() => setModal('none')} />
             )}
+            {modal === 'impersonate' && <ImpersonateDialog name={org.name} onClose={() => setModal('none')} />}
         </div>
     );
 }
 
+/** One grouped card of label/value rows, heading inside the card. */
+function Section({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+    return (
+        <div className={`card card--flat px-[18px] pt-4 pb-1.5 ${className ?? ''}`}>
+            <div className="eyebrow mb-1">{title}</div>
+            {children}
+        </div>
+    );
+}
+
+function Field({ label, value, last }: { label: string; value: React.ReactNode; last?: boolean }) {
+    return (
+        <div className="flex items-center justify-between gap-4 py-3.5" style={{ borderBottom: last ? 'none' : '1px solid var(--line)' }}>
+            <span className="text-[13.5px] font-semibold text-ink-2 shrink-0">{label}</span>
+            <span className="text-[14px] font-bold text-ink text-right min-w-0 truncate">{value}</span>
+        </div>
+    );
+}
+
+/** A member row: avatar initials + name + email. */
+function MemberRow({ member, last }: { member: OrgMember; last: boolean }) {
+    const initials = `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`.toUpperCase();
+    return (
+        <div className="flex items-center gap-3 py-3" style={{ borderBottom: last ? 'none' : '1px solid var(--line)' }}>
+            <span
+                className="flex-shrink-0 w-9 h-9 rounded-full grid place-items-center text-[12px] font-bold"
+                style={{ background: 'var(--pp-tint2)', color: 'var(--pp-ink)' }}
+            >
+                {initials}
+            </span>
+            <div className="min-w-0">
+                <div className="text-[14px] font-bold text-ink truncate">
+                    {member.firstName} {member.lastName}
+                </div>
+                <div className="text-[12.5px] text-ink-2 truncate">{member.email}</div>
+            </div>
+        </div>
+    );
+}
+
+
+function formatAddress(a: OrgAddress | null, dash: string): string {
+    if (!a) return dash;
+    const line1 = [a.street, a.number].filter(Boolean).join(' ');
+    const line2 = [a.plz, a.city].filter(Boolean).join(' ');
+    const full = [line1, a.additionalLine, line2].filter((s) => s && s.trim() !== '').join(', ');
+    return full || dash;
+}
+
 function BackLink({ label, onClick }: { label: string; onClick: () => void }) {
     return (
-        <button type="button" onClick={onClick} className="flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-2 hover:text-ink transition-colors">
+        <button
+            type="button"
+            onClick={onClick}
+            className="flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-2 hover:text-ink transition-colors"
+        >
             <ArrowLeft size={16} />
             {label}
         </button>
