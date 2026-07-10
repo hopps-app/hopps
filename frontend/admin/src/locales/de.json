@@ -13,7 +13,8 @@
     },
     "common": {
         "loading": "Wird geladen…",
-        "close": "Schließen"
+        "close": "Schließen",
+        "cancel": "Abbrechen"
     },
     "language": {
         "label": "Sprache",
@@ -47,6 +48,19 @@
             "dormant": "Ruhend",
             "new": "Neu",
             "never": "Nie aktiv"
+        },
+        "detail": {
+            "back": "Zurück zu den Vereinen",
+            "notFound": "Diesen Verein gibt es nicht."
+        },
+        "delete": {
+            "zoneTitle": "Verein löschen",
+            "zoneText": "Damit wird der Verein und alles, was dazugehört – Mitglieder, Bommeln, Transaktionen und Dokumente – dauerhaft entfernt. Das kann nicht rückgängig gemacht werden.",
+            "title": "Diesen Verein löschen?",
+            "warning": "Der Verein und alle seine Daten werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "prompt": "Tippe {{name}} ein, um zu bestätigen.",
+            "confirm": "Löschen",
+            "deleting": "Wird gelöscht…"
         }
     },
     "home": {

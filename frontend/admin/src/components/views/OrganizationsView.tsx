@@ -1,9 +1,9 @@
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { fetchOrganizations } from '@/features/organizations/api';
-import OrganizationDrawer from '@/features/organizations/OrganizationDrawer';
 import OrganizationsTable, { type SortDir, type SortKey } from '@/features/organizations/OrganizationsTable';
 import OrganizationsTableSkeleton from '@/features/organizations/OrganizationsTableSkeleton';
 import { formatNumber } from '@/features/organizations/format';
@@ -22,12 +22,12 @@ function compare(a: AdminOrganizationRow, b: AdminOrganizationRow, key: SortKey)
 
 export default function OrganizationsView() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [rows, setRows] = useState<AdminOrganizationRow[] | null>(null);
     const [failed, setFailed] = useState(false);
     const [query, setQuery] = useState('');
     const [sortKey, setSortKey] = useState<SortKey>('createdAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
-    const [selected, setSelected] = useState<AdminOrganizationRow | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -108,10 +108,14 @@ export default function OrganizationsView() {
                     <p className="text-[13.5px] text-ink-2">{t('organizations.emptyText')}</p>
                 </div>
             ) : (
-                <OrganizationsTable rows={visible} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} onRowClick={setSelected} />
+                <OrganizationsTable
+                    rows={visible}
+                    sortKey={sortKey}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                    onRowClick={(row) => navigate(`/organizations/${row.id}`)}
+                />
             )}
-
-            {selected && <OrganizationDrawer row={selected} onClose={() => setSelected(null)} />}
         </div>
     );
 }

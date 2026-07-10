@@ -13,7 +13,8 @@
     },
     "common": {
         "loading": "Loading…",
-        "close": "Close"
+        "close": "Close",
+        "cancel": "Cancel"
     },
     "language": {
         "label": "Language",
@@ -47,6 +48,19 @@
             "dormant": "Dormant",
             "new": "New",
             "never": "Never active"
+        },
+        "detail": {
+            "back": "Back to organizations",
+            "notFound": "This organization does not exist."
+        },
+        "delete": {
+            "zoneTitle": "Delete organization",
+            "zoneText": "This permanently removes the organization and everything belonging to it — members, units, transactions and documents. This cannot be undone.",
+            "title": "Delete this organization?",
+            "warning": "This will permanently delete the organization and all its data. This action cannot be undone.",
+            "prompt": "Type {{name}} to confirm.",
+            "confirm": "Delete",
+            "deleting": "Deleting…"
         }
     },
     "home": {

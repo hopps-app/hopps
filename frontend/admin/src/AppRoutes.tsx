@@ -6,6 +6,7 @@ import AdminGuard from '@/guards/AdminGuard';
 import AdminLayout from '@/layouts/AdminLayout';
 
 const OrganizationsView = lazy(() => import('@/components/views/OrganizationsView'));
+const OrganizationDetailView = lazy(() => import('@/components/views/OrganizationDetailView'));
 
 function LazyRoute({ children }: { children: React.ReactNode }) {
     return <Suspense fallback={null}>{children}</Suspense>;
@@ -27,6 +28,14 @@ export default function AppRoutes() {
                     element={
                         <LazyRoute>
                             <OrganizationsView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
+                    path="/organizations/:id"
+                    element={
+                        <LazyRoute>
+                            <OrganizationDetailView />
                         </LazyRoute>
                     }
                 />

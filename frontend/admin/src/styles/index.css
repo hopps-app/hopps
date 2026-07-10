@@ -364,6 +364,44 @@
             transform: none;
         }
     }
+    .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 160;
+        width: 460px;
+        max-width: 94vw;
+        background: var(--surface);
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        animation: modalIn 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    [data-theme='dark'] .modal {
+        border: 1px solid var(--line);
+    }
+    @keyframes modalIn {
+        from {
+            transform: translate(-50%, -46%) scale(0.97);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+    }
+    .btn--danger {
+        background: var(--neg);
+        color: #fff;
+    }
+    .btn--danger:hover {
+        filter: brightness(0.94);
+    }
+    .btn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
     .icbtn {
         width: 40px;
         height: 40px;
