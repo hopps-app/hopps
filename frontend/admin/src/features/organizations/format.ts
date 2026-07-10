@@ -1,5 +1,9 @@
-/** Absolute date, e.g. "14 Nov 2025". Locale comes from i18next's active language. */
-export function formatDate(iso: string | null, locale: string): string | null {
+/**
+ * Absolute date in German convention: `14.05.2026`.
+ * hopps is German-first and the Klar design language mandates `dd.mm.yyyy`, so this
+ * is fixed to de-DE regardless of the UI language toggle.
+ */
+export function formatDate(iso: string | null): string | null {
     if (!iso) {
         return null;
     }
@@ -7,7 +11,12 @@ export function formatDate(iso: string | null, locale: string): string | null {
     if (Number.isNaN(date.getTime())) {
         return null;
     }
-    return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+
+/** Integer with German grouping (`1.240`). Used for the Belege count. */
+export function formatNumber(value: number): string {
+    return new Intl.NumberFormat('de-DE').format(value);
 }
 
 const MINUTE = 60_000;
@@ -15,9 +24,9 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
 /**
- * Coarse relative time ("3 days ago"). Used for last-activity, where the exact
+ * Coarse relative time ("vor 3 Tagen"). Used for last-activity, where the exact
  * timestamp matters less than the order of magnitude — the question being answered
- * is "is this org still alive", not "when precisely".
+ * is "is this org still alive", not "when precisely". Follows the active UI language.
  */
 export function formatRelative(iso: string | null, locale: string, now: number): string | null {
     if (!iso) {

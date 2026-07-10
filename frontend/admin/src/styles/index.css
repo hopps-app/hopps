@@ -1,49 +1,398 @@
-@import url('https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700&display=swap');
+/* hopps admin — "Klar" design system, vendored from the hopps Design System project.
+   Admin is a standalone package and cannot import the design project at runtime, so the
+   tokens + base utility classes are copied here verbatim. Source of truth: hopps Design
+   System (project cf94e83f), files tokens/*.css and base.css. Keep in sync by hand. */
+
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Mirrors the token subset from spa/src/styles/index.scss that the admin shell uses.
-   Kept in sync by hand — admin is a separate package and cannot import spa's styles. */
+/* ============================ tokens ============================ */
+:root {
+    /* Surfaces / canvas */
+    --bg: #f3f4f6;
+    --surface: #ffffff;
+    --surface-2: #f8f8fa;
+    --surface-3: #f1f1f4;
+
+    /* Ink / text */
+    --ink: #1b1b1f;
+    --ink-2: #6b6b76;
+    --ink-3: #9a9aa3;
+
+    /* Lines / borders */
+    --line: #e9e9ee;
+    --line-2: #e0e0e6;
+
+    /* Purple (brand accent) */
+    --pp: #9955cc;
+    --pp-deep: #7e3fb4;
+    --pp-ink: #7e3fb4;
+    --pp-tint: #f3eafb;
+    --pp-tint2: #ece0f6;
+
+    /* Positive */
+    --pos: #2e9e6b;
+    --pos-bg: #e7f4ec;
+    --pos-ink: #1f7a50;
+
+    /* Negative */
+    --neg: #c8385a;
+    --neg-bg: #fbeaef;
+    --neg-ink: #b12c4c;
+
+    /* Warning */
+    --warn: #b47c18;
+    --warn-bg: #fbf1dd;
+
+    /* Typography */
+    --font-sans: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --tracking-tight: -0.02em;
+
+    /* Radii */
+    --r-card: 18px;
+    --r-md: 14px;
+    --r-sm: 10px;
+    --r-pill: 999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(20, 20, 40, 0.05);
+    --shadow-md: 0 1px 2px rgba(20, 20, 40, 0.05), 0 6px 22px rgba(20, 20, 40, 0.05);
+    --shadow-lg: 0 12px 40px rgba(20, 20, 40, 0.16);
+}
+
+[data-theme='dark'] {
+    --bg: #121118;
+    --surface: #1b1a22;
+    --surface-2: #211f29;
+    --surface-3: #272530;
+    --ink: #f3f2f7;
+    --ink-2: #a8a6b2;
+    --ink-3: #6f6d7a;
+    --line: #2b2a33;
+    --line-2: #34323d;
+    --pp: #b582e0;
+    --pp-deep: #c49be8;
+    --pp-ink: #c49be8;
+    --pp-tint: rgba(153, 85, 204, 0.16);
+    --pp-tint2: rgba(153, 85, 204, 0.26);
+    --pos: #4fbf8b;
+    --pos-bg: rgba(79, 191, 139, 0.15);
+    --pos-ink: #69cfa0;
+    --neg: #e8758f;
+    --neg-bg: rgba(232, 117, 143, 0.15);
+    --neg-ink: #f08ba2;
+    --warn: #d9a943;
+    --warn-bg: rgba(217, 169, 67, 0.15);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 26px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* ============================ base ============================ */
 @layer base {
-    :root {
-        --purple-100: #ece0f6;
-        --purple-200: #dac1ec;
-        --purple-300: #c7a2e3;
-        --purple-500: #9955cc;
-        --purple-700: #7131a2;
-        --purple-900: #391851;
+    body {
+        font-family: var(--font-sans);
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+    }
+    h1,
+    h2,
+    h3,
+    h4 {
+        margin: 0;
+        letter-spacing: var(--tracking-tight);
+    }
+    ::selection {
+        background: var(--pp-tint2);
+    }
+}
 
-        --grey-black: #000000;
-        --grey-900: #4e4e4e;
-        --grey-800: #5c5c5c;
-        --grey-700: #6b6b6b;
-        --grey-600: #d5d5d5;
-        --grey-500: #e5e5e5;
-        --grey-400: #f5f5f5;
-        --grey-white: #ffffff;
-
-        --radius: 0.5rem;
-
-        --primary: var(--purple-500);
-        --primary-foreground: var(--grey-white);
-        --hover-effect: var(--purple-100);
-        --separator: var(--grey-500);
-        --background: var(--grey-400);
-        --foreground: var(--grey-black);
-        --background-secondary: var(--grey-white);
-        --border: #a7a7a7;
-        --popover: var(--grey-white);
-        --popover-foreground: var(--grey-black);
-        --accent: #f1f1f1;
-        --accent-foreground: #4a4a4a;
-        --destructive: #aa0000;
-        --destructive-foreground: var(--grey-white);
+/* ============================ utilities ============================ */
+@layer components {
+    .tnum {
+        font-variant-numeric: tabular-nums;
     }
 
-    body {
-        font-family: 'Reddit Sans', sans-serif;
-        color: var(--foreground);
+    /* card */
+    .card {
+        background: var(--surface);
+        border-radius: var(--r-card);
+        box-shadow: var(--shadow-md);
+        border: 1px solid transparent;
+    }
+    [data-theme='dark'] .card {
+        border-color: var(--line);
+    }
+    .card--flat {
+        box-shadow: none;
+        border: 1px solid var(--line);
+    }
+
+    /* table */
+    .trow {
+        display: grid;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 20px;
+        cursor: pointer;
+    }
+    .trow:hover {
+        background: var(--surface-2);
+    }
+    .thead {
+        display: grid;
+        gap: 16px;
+        padding: 12px 20px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-2);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    /* badges */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .badge--pos {
+        background: var(--pos-bg);
+        color: var(--pos-ink);
+    }
+    .badge--neg {
+        background: var(--neg-bg);
+        color: var(--neg-ink);
+    }
+    .badge--purple {
+        background: var(--pp-tint);
+        color: var(--pp-ink);
+    }
+    .badge--warn {
+        background: var(--warn-bg);
+        color: var(--warn);
+    }
+    .badge--neutral {
+        background: var(--surface-3);
+        color: var(--ink-2);
+    }
+
+    /* chip */
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13.5px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line-2);
+        color: var(--ink-2);
+        cursor: pointer;
+        transition: transform 0.12s ease;
+        white-space: nowrap;
+    }
+    .chip:hover {
+        border-color: var(--ink-3);
+        color: var(--ink);
+    }
+    .chip--on {
+        background: var(--pp-tint2);
+        border-color: transparent;
+        color: var(--pp-ink);
+    }
+
+    /* segmented */
+    .seg {
+        display: inline-flex;
+        background: var(--surface-3);
+        border-radius: 12px;
+        padding: 4px;
+        gap: 2px;
+    }
+    .seg button {
+        font-size: 13.5px;
+        font-weight: 700;
+        border: none;
+        background: transparent;
+        color: var(--ink-2);
+        padding: 8px 16px;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: transform 0.12s ease;
+    }
+    .seg button:hover {
+        color: var(--ink);
+    }
+    .seg button.on {
+        background: var(--surface);
+        color: var(--ink);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* input */
+    .input {
+        font-family: inherit;
+        font-size: 14.5px;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--line-2);
+        border-radius: 12px;
+        padding: 11px 14px;
+        width: 100%;
+        transition: box-shadow 0.15s ease;
+    }
+    .input::placeholder {
+        color: var(--ink-3);
+    }
+    .input:focus {
+        outline: none;
+        border-color: var(--pp);
+        box-shadow: 0 0 0 3px var(--pp-tint);
+    }
+    .input--prefix {
+        padding-left: 38px;
+    }
+
+    /* button */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14.5px;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 11px 20px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: transform 0.12s ease;
+        white-space: nowrap;
+        user-select: none;
+    }
+    .btn:active {
+        transform: translateY(0.5px);
+    }
+    .btn--pri {
+        background: var(--pp);
+        color: #fff;
+        box-shadow: 0 1px 2px rgba(120, 60, 180, 0.25);
+    }
+    .btn--pri:hover {
+        background: var(--pp-deep);
+    }
+    .btn--ton {
+        background: var(--pp-tint2);
+        color: var(--pp-ink);
+    }
+
+    /* eyebrow */
+    .eyebrow {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--pp-ink);
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    /* skeleton */
+    .skel {
+        background: linear-gradient(90deg, var(--surface-3), var(--surface-2), var(--surface-3));
+        background-size: 200% 100%;
+        animation: shimmer 1.3s infinite;
+        border-radius: 8px;
+    }
+    @keyframes shimmer {
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    /* spinner */
+    .spinner {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        border: 2.5px solid var(--pp-tint2);
+        border-top-color: var(--pp);
+        animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* scrim / drawer */
+    .scrim {
+        position: fixed;
+        inset: 0;
+        background: rgba(18, 17, 24, 0.42);
+        z-index: 150;
+        backdrop-filter: blur(2px);
+    }
+    .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 520px;
+        max-width: 94vw;
+        background: var(--bg);
+        z-index: 160;
+        box-shadow: var(--shadow-lg);
+        animation: slideIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    @keyframes slideIn {
+        from {
+            transform: translateX(34px);
+        }
+        to {
+            transform: none;
+        }
+    }
+    .icbtn {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--ink-2);
+        cursor: pointer;
+        transition: transform 0.12s ease;
+    }
+    .icbtn:hover {
+        color: var(--ink);
+        border-color: var(--line-2);
+    }
+
+    /* entrance */
+    .fade-up {
+        animation: fadeUp 0.4s ease;
+    }
+    @keyframes fadeUp {
+        from {
+            transform: translateY(8px);
+            opacity: 0;
+        }
+        to {
+            transform: none;
+            opacity: 1;
+        }
     }
 }

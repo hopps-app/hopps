@@ -12,7 +12,8 @@
         "userFallback": "Benutzer"
     },
     "common": {
-        "loading": "Wird geladen…"
+        "loading": "Wird geladen…",
+        "close": "Schließen"
     },
     "language": {
         "label": "Sprache",
@@ -22,15 +23,30 @@
     "organizations": {
         "title": "Vereine",
         "subtitle": "Alle in Hopps registrierten Vereine.",
+        "count_one": "{{formatted}} Verein",
+        "count_other": "{{formatted}} Vereine",
+        "searchPlaceholder": "Nach Name, Kürzel oder Kontakt suchen…",
         "empty": "Keine Vereine gefunden.",
+        "emptyTitle": "Keine Treffer",
+        "emptyText": "Für deine Suche gibt es keine Vereine.",
         "never": "Nie",
         "loadError": "Vereine konnten nicht geladen werden. Bitte erneut versuchen.",
+        "drawer": {
+            "eyebrow": "Verein"
+        },
         "columns": {
             "organization": "Verein",
+            "status": "Status",
             "contact": "Kontakt",
             "belege": "Belege",
             "lastActivity": "Letzte Aktivität",
             "created": "Erstellt"
+        },
+        "status": {
+            "active": "Aktiv",
+            "dormant": "Ruhend",
+            "new": "Neu",
+            "never": "Nie aktiv"
         }
     },
     "home": {

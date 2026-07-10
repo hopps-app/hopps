@@ -1,55 +1,80 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-    darkMode: 'class',
+    darkMode: ['class', '[data-theme="dark"]'],
     content: ['./src/**/*.{js,jsx,ts,tsx}'],
+    // Badge tones are built as `badge--${tone}`, so the literal class names never
+    // appear in source for the content scanner to keep. Safelist them explicitly.
+    safelist: ['badge--pos', 'badge--neg', 'badge--warn', 'badge--neutral', 'badge--purple'],
     theme: {
         extend: {
             borderRadius: {
-                lg: 'var(--radius)',
-                md: 'calc(var(--radius) - 2px)',
-                sm: 'calc(var(--radius) - 4px)',
+                card: 'var(--r-card)',
+                md: 'var(--r-md)',
+                sm: 'var(--r-sm)',
+                pill: 'var(--r-pill)',
+            },
+            boxShadow: {
+                sm: 'var(--shadow-sm)',
+                md: 'var(--shadow-md)',
+                lg: 'var(--shadow-lg)',
             },
             colors: {
-                background: 'var(--background)',
-                foreground: 'var(--foreground)',
-                popover: {
-                    DEFAULT: 'var(--popover)',
-                    foreground: 'var(--popover-foreground)',
+                // Klar tokens — real names from the design system.
+                bg: 'var(--bg)',
+                surface: {
+                    DEFAULT: 'var(--surface)',
+                    2: 'var(--surface-2)',
+                    3: 'var(--surface-3)',
                 },
-                primary: {
-                    DEFAULT: 'var(--primary)',
-                    foreground: 'var(--primary-foreground)',
+                ink: {
+                    DEFAULT: 'var(--ink)',
+                    2: 'var(--ink-2)',
+                    3: 'var(--ink-3)',
                 },
-                accent: {
-                    DEFAULT: 'var(--accent)',
-                    foreground: 'var(--accent-foreground)',
+                line: {
+                    DEFAULT: 'var(--line)',
+                    2: 'var(--line-2)',
                 },
-                destructive: {
-                    DEFAULT: 'var(--destructive)',
-                    foreground: 'var(--destructive-foreground)',
+                pp: {
+                    DEFAULT: 'var(--pp)',
+                    deep: 'var(--pp-deep)',
+                    ink: 'var(--pp-ink)',
+                    tint: 'var(--pp-tint)',
+                    tint2: 'var(--pp-tint2)',
                 },
-                separator: 'var(--separator)',
-                border: 'var(--border)',
-                'hover-effect': 'var(--hover-effect)',
-                'background-secondary': 'var(--background-secondary)',
+                pos: { DEFAULT: 'var(--pos)', bg: 'var(--pos-bg)', ink: 'var(--pos-ink)' },
+                neg: { DEFAULT: 'var(--neg)', bg: 'var(--neg-bg)', ink: 'var(--neg-ink)' },
+                warn: { DEFAULT: 'var(--warn)', bg: 'var(--warn-bg)' },
+
+                // Back-compat aliases → Klar tokens. Older components (sidebar, badge)
+                // still use these names; they map onto the real palette so nothing
+                // renders colourless mid-migration. Remove once every class is Klar-native.
+                primary: { DEFAULT: 'var(--pp)', foreground: '#ffffff' },
+                separator: 'var(--line)',
+                'hover-effect': 'var(--surface-2)',
+                'background-secondary': 'var(--surface)',
+                destructive: 'var(--neg-ink)',
+                accent: 'var(--surface-3)',
+                popover: { DEFAULT: 'var(--surface)', foreground: 'var(--ink)' },
                 purple: {
-                    100: 'var(--purple-100)',
-                    200: 'var(--purple-200)',
-                    300: 'var(--purple-300)',
-                    500: 'var(--purple-500)',
-                    700: 'var(--purple-700)',
-                    900: 'var(--purple-900)',
+                    100: 'var(--pp-tint2)',
+                    200: 'var(--pp-tint)',
+                    300: 'var(--pp-tint2)',
+                    500: 'var(--pp)',
+                    700: 'var(--pp-ink)',
+                    900: 'var(--pp-ink)',
                 },
                 grey: {
-                    black: 'var(--grey-black)',
-                    900: 'var(--grey-900)',
-                    800: 'var(--grey-800)',
-                    700: 'var(--grey-700)',
-                    600: 'var(--grey-600)',
+                    black: 'var(--ink)',
+                    900: 'var(--ink)',
+                    800: 'var(--ink-2)',
+                    700: 'var(--ink-2)',
+                    600: 'var(--ink-3)',
+                    white: '#ffffff',
                 },
             },
             fontFamily: {
-                sans: ['Reddit Sans', 'sans-serif'],
+                sans: ['Hanken Grotesk', 'system-ui', 'sans-serif'],
             },
         },
     },

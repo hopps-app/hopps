@@ -1,25 +1,26 @@
-import type { AdminOrganizationsPage } from './types';
+import type { AdminOrganizationRow, AdminOrganizationsPage } from './types';
 
 /**
- * ⚠️ MOCK DATA — there is no list-organizations endpoint yet.
+ * ⚠️ MOCK DATA — there is no list-organizations endpoint yet, and no delete endpoint.
  *
  * The org service exposes only `/organization/{slug}`, `/organization/my` and
- * `/statistics/organizations/{orgId}`. None of them return a collection, so this
- * table currently renders fixtures.
+ * `/statistics/organizations/{orgId}`. None of them return a collection, and there
+ * is no `DELETE /organization`, so this feature runs entirely on fixtures.
  *
- * To make it real, replace the body of `fetchOrganizations` with a call to the generated
- * api-client and delete this array. Nothing else in the feature changes — that is
- * the point of `AdminOrganizationRow` being the contract rather than `Organization` from the
- * api-client.
+ * To make it real:
+ *  - `fetchOrganizations` / `fetchOrganization` → call the generated api-client.
+ *  - `deleteOrganization` → call a real `DELETE /organization/{id}` (must be
+ *    `@RolesAllowed("admin")`). Real deletion cascades to members, Bommeln,
+ *    transactions and documents — that is the whole reason the UI type-to-confirms.
  *
- * The eventual endpoint MUST be `@RolesAllowed("admin")`. Without it, any
- * authenticated member of any org could enumerate every organization in the system.
+ * The eventual list/delete endpoints MUST be `@RolesAllowed("admin")`. Without it, any
+ * authenticated member of any org could enumerate or delete organizations.
  * Note the backend authorizes on the `groups` claim, not `realm_access.roles`.
+ *
+ * `MOCK_ROWS` is mutable so a mock delete persists while navigating within the session.
  */
-const MOCK_ROWS: AdminOrganizationsPage = {
-    total: 4,
-    rows: [
-        {
+let MOCK_ROWS: AdminOrganizationRow[] = [
+    {
             id: 1,
             name: 'Raketenfreunde e.V.',
             slug: 'raketen-freunde',
@@ -54,14 +55,25 @@ const MOCK_ROWS: AdminOrganizationsPage = {
             // No member attached yet.
             contactEmail: null,
             belegeCount: 47,
-            lastActivityAt: '2026-07-10T06:40:00Z',
-            createdAt: '2023-01-20T10:00:00Z',
-        },
-    ],
-};
+        lastActivityAt: '2026-07-10T06:40:00Z',
+        createdAt: '2023-01-20T10:00:00Z',
+    },
+];
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function fetchOrganizations(): Promise<AdminOrganizationsPage> {
     // Simulates latency so loading states are exercised during development.
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return MOCK_ROWS;
+    await delay(300);
+    return { rows: [...MOCK_ROWS], total: MOCK_ROWS.length };
+}
+
+export async function fetchOrganization(id: number): Promise<AdminOrganizationRow | null> {
+    await delay(200);
+    return MOCK_ROWS.find((r) => r.id === id) ?? null;
+}
+
+export async function deleteOrganization(id: number): Promise<void> {
+    await delay(300);
+    MOCK_ROWS = MOCK_ROWS.filter((r) => r.id !== id);
 }

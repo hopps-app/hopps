@@ -4,7 +4,7 @@
     },
     "menu": {
         "empty": "No menu items yet.",
-        "organizations": "Vereine",
+        "organizations": "Organizations",
         "collapse": "Collapse",
         "expand": "Expand",
         "logout": "Log out",
@@ -12,7 +12,8 @@
         "userFallback": "User"
     },
     "common": {
-        "loading": "Loading…"
+        "loading": "Loading…",
+        "close": "Close"
     },
     "language": {
         "label": "Language",
@@ -20,17 +21,32 @@
         "de": "Deutsch"
     },
     "organizations": {
-        "title": "Vereine",
-        "subtitle": "All Vereine registered in Hopps.",
-        "empty": "No Vereine found.",
+        "title": "Organizations",
+        "subtitle": "All organizations registered in Hopps.",
+        "count_one": "{{formatted}} organization",
+        "count_other": "{{formatted}} organizations",
+        "searchPlaceholder": "Search by name, slug or contact…",
+        "empty": "No organizations found.",
+        "emptyTitle": "No matches",
+        "emptyText": "No organizations match your search.",
         "never": "Never",
-        "loadError": "Could not load Vereine. Please try again.",
+        "loadError": "Could not load organizations. Please try again.",
+        "drawer": {
+            "eyebrow": "Organization"
+        },
         "columns": {
-            "organization": "Verein",
+            "organization": "Organization",
+            "status": "Status",
             "contact": "Contact",
             "belege": "Receipts",
             "lastActivity": "Last activity",
             "created": "Created"
+        },
+        "status": {
+            "active": "Active",
+            "dormant": "Dormant",
+            "new": "New",
+            "never": "Never active"
         }
     },
     "home": {
