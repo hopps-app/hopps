@@ -772,7 +772,8 @@
         "basic",
         "profile",
         "microprofile-jwt",
-        "email"
+        "email",
+        "roles"
       ],
       "optionalClientScopes": []
     },
