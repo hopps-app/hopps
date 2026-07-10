@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ApiException, NewOrganizationInput } from '@hopps/api-client';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
+
+import { PasswordStrengthMeter } from './PasswordStrengthMeter.tsx';
 
 import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
@@ -59,12 +61,15 @@ export function OrganizationRegistrationForm(props: Props) {
         [t, alphaEnabled]
     );
 
-    const { register, handleSubmit, formState } = useForm<FormFields>({
-        mode: 'onBlur',
+    const { register, handleSubmit, watch, formState } = useForm<FormFields>({
+        mode: 'onSubmit',
+        reValidateMode: 'onChange',
         resolver: zodResolver(schema),
     });
     const errors = formState.errors;
     const submittingRef = useRef(false);
+    const [showConsentDetails, setShowConsentDetails] = useState(false);
+    const password = watch('password') ?? '';
 
     async function onSubmit(data: FormFields) {
         if (submittingRef.current) return;
@@ -118,9 +123,12 @@ export function OrganizationRegistrationForm(props: Props) {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="">
-            <h1 className="text-center">{t('organization.registration.header')}</h1>
-            <div className="mt-4 mb-2">
+        <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-4">
+                <h1 className="text-xl font-semibold text-left">{t('organization.registration.header')}</h1>
+                <p className="mt-1 text-sm text-muted text-left">{t('organization.registration.subtitle')}</p>
+            </div>
+            <div>
                 <TextField
                     label={t('organization.registration.organizationName')}
                     {...register('organizationName')}
@@ -128,7 +136,7 @@ export function OrganizationRegistrationForm(props: Props) {
                     autoComplete="organization"
                 />
             </div>
-            <div className="mt-4">
+            <div className="mt-3">
                 <div className="flex flex-row gap-2">
                     <TextField
                         label={t('organization.registration.firstName')}
@@ -144,42 +152,52 @@ export function OrganizationRegistrationForm(props: Props) {
                     />
                 </div>
             </div>
-            <div className="mt-4">
+            <div className="mt-3">
                 <TextField label={t('organization.registration.email')} {...register('email')} error={errors.email?.message} autoComplete="email" />
             </div>
-            <div className="mt-4">
-                <div className="flex flex-row gap-2">
-                    <TextField
-                        label={t('organization.registration.password')}
-                        type="password"
-                        {...register('password')}
-                        error={errors.password?.message}
-                        autoComplete="new-password"
-                    />
-                    <TextField
-                        label={t('organization.registration.confirmPassword')}
-                        type="password"
-                        {...register('passwordConfirm')}
-                        error={errors.passwordConfirm?.message}
-                        autoComplete="new-password"
-                    />
-                </div>
+            <div className="mt-3">
+                <TextField
+                    label={t('organization.registration.password')}
+                    type="password"
+                    {...register('password')}
+                    error={errors.password?.message}
+                    autoComplete="new-password"
+                />
+                <PasswordStrengthMeter password={password} />
+            </div>
+            <div className="mt-3">
+                <TextField
+                    label={t('organization.registration.confirmPassword')}
+                    type="password"
+                    {...register('passwordConfirm')}
+                    error={errors.passwordConfirm?.message}
+                    autoComplete="new-password"
+                />
             </div>
 
             {alphaEnabled && (
-                <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-900/30">
-                    <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">{t('alpha.consentText')}</p>
+                <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 dark:border-amber-700/60 dark:bg-amber-900/20">
                     <label className="flex items-start gap-2 cursor-pointer">
                         <input type="checkbox" {...register('alphaConsent')} className="mt-0.5 h-4 w-4 rounded border-amber-400 accent-primary" />
-                        <span className="text-sm text-amber-900 dark:text-amber-100">{t('alpha.consentLabel')}</span>
+                        <span className="text-xs text-amber-900 dark:text-amber-200">
+                            {t('alpha.consentLabel')}{' '}
+                            <button
+                                type="button"
+                                className="underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100"
+                                aria-expanded={showConsentDetails}
+                                onClick={() => setShowConsentDetails((prev) => !prev)}
+                            >
+                                {showConsentDetails ? t('alpha.hideDetails') : t('alpha.details')}
+                            </button>
+                        </span>
                     </label>
-                    {errors.alphaConsent && <p className="mt-1 text-xs text-red-600">{errors.alphaConsent.message}</p>}
+                    {showConsentDetails && <p className="mt-1 ml-6 text-xs text-amber-800 dark:text-amber-300">{t('alpha.consentText')}</p>}
+                    {errors.alphaConsent && <p className="mt-1 ml-6 text-xs text-destructive">{errors.alphaConsent.message}</p>}
                 </div>
             )}
 
-            <hr />
-            <div className="mt-2 text-center">
-                <Button type="submit" disabled={formState.isSubmitting}>
+            <div className="mt-6">
+                <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
                     {t('header.register')}
                 </Button>
             </div>

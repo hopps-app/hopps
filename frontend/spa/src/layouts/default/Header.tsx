@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import AlphaBadge from '@/components/ui/AlphaBadge';
 import Button from '@/components/ui/Button.tsx';
-import HeaderMobileMenuButton from '@/layouts/default/HeaderMobileMenuButton.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store';
@@ -11,7 +10,12 @@ import { useStore } from '@/store/store';
 function Header() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const { isAuthenticated } = useStore();
+
+    // On the registration page the auth buttons are redundant — the page itself is
+    // the register action, and a "log in instead" link sits below the form.
+    const isRegisterPage = location.pathname === '/register';
 
     const onClickLogin = () => {
         authService.login(`${window.location.origin}/dashboard`);
@@ -25,30 +29,26 @@ function Header() {
         <header className="mb-auto flex flex-wrap sm:justify-start sm:flex-nowrap z-50 w-full text-sm py-4">
             <nav className="w-full sm:flex sm:items-center sm:justify-between">
                 <div className="flex items-center justify-between flex-shrink-0 ">
-                    <HeaderMobileMenuButton />
-
                     <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="Hopps">
                         <img src="/logo2.svg" alt="Hopps" />
                     </Link>
                     <AlphaBadge />
                 </div>
-                <div
-                    id="hs-navbar-cover-page"
-                    className="hs-collapse overflow-hidden transition-all duration-300 basis-full grow flex justify-between flex-row"
-                    aria-labelledby="hs-navbar-cover-page-collapse"
-                >
+                <div className="basis-full grow flex justify-between flex-row">
                     <div className="flex flex-row">
                         <div className="w-10 shrink"></div>
                     </div>
                     {isAuthenticated ? (
                         <UserMenu />
                     ) : (
-                        <div className="flex flex-row gap-5 items-center mt-0 ps-5">
-                            <Button variant="link" className="px-0" onClick={onClickLogin}>
-                                {t('header.login')}
-                            </Button>
-                            <Button onClick={onClickRegister}>{t('header.register')}</Button>
-                        </div>
+                        !isRegisterPage && (
+                            <div className="flex flex-row gap-5 items-center mt-0 ps-5">
+                                <Button variant="link" className="px-0" onClick={onClickLogin}>
+                                    {t('header.login')}
+                                </Button>
+                                <Button onClick={onClickRegister}>{t('header.register')}</Button>
+                            </div>
+                        )
                     )}
                 </div>
             </nav>

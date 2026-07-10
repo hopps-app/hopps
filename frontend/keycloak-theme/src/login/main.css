@@ -40,8 +40,15 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding-top: 2rem;
+    padding: 1rem;
     box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+    .kcFormCardClass {
+        padding: 1.5rem;
+        border-radius: 1rem;
+    }
 }
 
 .card-pf {
@@ -59,16 +66,12 @@
     display: none !important;
 }
 
-/* Keep header visible for locale selector but hide its text */
+/* Remove the realm-name header (e.g. "QUARKUS") from the layout.
+   Hiding only its text still left the element as a flex sibling of the card,
+   which pushed the card off-centre and let the realm name bleed out the side. */
 #kc-header,
 .kcHeaderClass {
-    background: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    color: transparent !important;
-    font-size: 0 !important;
-    line-height: 0 !important;
+    display: none !important;
 }
 
 /* Locale selector styling */
