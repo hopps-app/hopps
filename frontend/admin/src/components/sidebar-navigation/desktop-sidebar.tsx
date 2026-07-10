@@ -21,12 +21,29 @@ type DesktopSidebarProps = {
 const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user, isAuthenticated } = useStore();
 
+    const activeLang = i18n.language?.split('-')[0];
+
     const userMenuItems = React.useMemo<DropdownMenuItem[]>(
-        () => [{ title: t('menu.logout'), onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> }],
-        [t]
+        () => [
+            { type: 'label', title: t('language.label') },
+            {
+                title: t('language.de'),
+                onClick: () => i18n.changeLanguage('de'),
+                // Spacer keeps the label aligned with the checked row when inactive.
+                icon: activeLang === 'de' ? <Icon icon="Check" /> : <span className="inline-block w-[15px]" />,
+            },
+            {
+                title: t('language.en'),
+                onClick: () => i18n.changeLanguage('en'),
+                icon: activeLang === 'en' ? <Icon icon="Check" /> : <span className="inline-block w-[15px]" />,
+            },
+            { type: 'separator' },
+            { title: t('menu.logout'), onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> },
+        ],
+        [t, i18n, activeLang]
     );
 
     const isItemActive = (path: string) => {
@@ -36,6 +53,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
 
     const renderNavItem = (item: MenuItem) => {
         const active = isItemActive(item.path);
+        const LucideIcon = item.lucideIcon;
 
         const button = (
             <button
@@ -50,7 +68,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                 `}
             >
                 <span className="flex-shrink-0">
-                    <Icon icon={item.icon} size={18} />
+                    {LucideIcon ? <LucideIcon size={18} /> : <Icon icon={item.icon} size={18} />}
                 </span>
                 {!collapsed && <span className="flex-1 text-left truncate">{t(item.label)}</span>}
             </button>
@@ -96,7 +114,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                     {!collapsed && (
                         <>
                             <span className="text-primary font-bold text-xl tracking-tight whitespace-nowrap">hopps</span>
-                            <AdminBadge className="ml-5" />
+                            <AdminBadge className="ml-12" />
                         </>
                     )}
                 </div>

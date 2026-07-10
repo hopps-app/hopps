@@ -4,14 +4,37 @@
     },
     "menu": {
         "empty": "Noch keine Menüeinträge.",
+        "organizations": "Vereine",
         "collapse": "Einklappen",
         "expand": "Ausklappen",
         "logout": "Abmelden",
         "userMenu": "Benutzermenü",
         "userFallback": "Benutzer"
     },
+    "common": {
+        "loading": "Wird geladen…"
+    },
+    "language": {
+        "label": "Sprache",
+        "en": "English",
+        "de": "Deutsch"
+    },
+    "organizations": {
+        "title": "Vereine",
+        "subtitle": "Alle in Hopps registrierten Vereine.",
+        "empty": "Keine Vereine gefunden.",
+        "never": "Nie",
+        "loadError": "Vereine konnten nicht geladen werden. Bitte erneut versuchen.",
+        "columns": {
+            "organization": "Verein",
+            "contact": "Kontakt",
+            "belege": "Belege",
+            "lastActivity": "Letzte Aktivität",
+            "created": "Erstellt"
+        }
+    },
     "home": {
-        "title": "Hopps Admin",
+        "title": "hopps admin",
         "subtitle": "Administrations- und Support-Dashboard."
     },
     "auth": {

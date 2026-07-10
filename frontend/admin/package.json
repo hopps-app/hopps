@@ -19,6 +19,7 @@
         "clsx": "^2.1.1",
         "i18next": "^23.16.0",
         "keycloak-js": "^24.0.5",
+        "lucide-react": "^0.487.0",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "react-i18next": "^15.0.3",
