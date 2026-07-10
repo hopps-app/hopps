@@ -22,8 +22,10 @@ public record TreeSearchBommel(
         return Arrays.stream(childIds)
                 // For some reason, either hibernate or postgres
                 // return a list of strings here `{"1","2"}`
-                // instead of a list of long's `{1,2}`.
-                .map(id -> id.replace("\"", ""))
+                // instead of a list of long's `{1,2}`. Newer Hibernate
+                // versions additionally wrap each element as a row, e.g.
+                // `{(1),(2)}`, so strip everything that isn't part of the id.
+                .map(id -> id.replaceAll("[^0-9-]", ""))
                 .map(Long::valueOf)
                 .toList();
     }
