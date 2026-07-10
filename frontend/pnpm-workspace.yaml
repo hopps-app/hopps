@@ -1,5 +1,6 @@
 packages:
   - 'spa'
+  - 'admin'
   - 'mobile'
   - 'api-client'
   - 'figma_inspo'

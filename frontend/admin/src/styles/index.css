@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mirrors the token subset from spa/src/styles/index.scss that the admin shell uses.
+   Kept in sync by hand — admin is a separate package and cannot import spa's styles. */
+@layer base {
+    :root {
+        --purple-100: #ece0f6;
+        --purple-200: #dac1ec;
+        --purple-300: #c7a2e3;
+        --purple-500: #9955cc;
+        --purple-700: #7131a2;
+        --purple-900: #391851;
+
+        --grey-black: #000000;
+        --grey-900: #4e4e4e;
+        --grey-800: #5c5c5c;
+        --grey-700: #6b6b6b;
+        --grey-600: #d5d5d5;
+        --grey-500: #e5e5e5;
+        --grey-400: #f5f5f5;
+        --grey-white: #ffffff;
+
+        --radius: 0.5rem;
+
+        --primary: var(--purple-500);
+        --primary-foreground: var(--grey-white);
+        --hover-effect: var(--purple-100);
+        --separator: var(--grey-500);
+        --background: var(--grey-400);
+        --foreground: var(--grey-black);
+        --background-secondary: var(--grey-white);
+        --border: #a7a7a7;
+        --popover: var(--grey-white);
+        --popover-foreground: var(--grey-black);
+        --accent: #f1f1f1;
+        --accent-foreground: #4a4a4a;
+        --destructive: #aa0000;
+        --destructive-foreground: var(--grey-white);
+    }
+
+    body {
+        font-family: 'Reddit Sans', sans-serif;
+        color: var(--foreground);
+    }
+}

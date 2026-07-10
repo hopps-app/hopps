@@ -1,0 +1,24 @@
+{
+    "brand": {
+        "admin": "Admin"
+    },
+    "menu": {
+        "empty": "Noch keine Menüeinträge.",
+        "collapse": "Einklappen",
+        "expand": "Ausklappen",
+        "logout": "Abmelden",
+        "userMenu": "Benutzermenü",
+        "userFallback": "Benutzer"
+    },
+    "home": {
+        "title": "Hopps Admin",
+        "subtitle": "Administrations- und Support-Dashboard."
+    },
+    "auth": {
+        "keycloakUnreachable": "Der Anmeldedienst ist nicht erreichbar. Bitte versuchen Sie es später erneut.",
+        "forbidden": {
+            "title": "Zugriff verweigert",
+            "description": "Ihr Konto hat keine Berechtigung für das Admin-Dashboard. Wenden Sie sich an eine Administratorin oder einen Administrator, falls dies ein Fehler ist."
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "brand": {
+        "admin": "admin"
+    },
+    "menu": {
+        "empty": "No menu items yet.",
+        "collapse": "Collapse",
+        "expand": "Expand",
+        "logout": "Log out",
+        "userMenu": "User menu",
+        "userFallback": "User"
+    },
+    "home": {
+        "title": "Hopps Admin",
+        "subtitle": "Administration and support dashboard."
+    },
+    "auth": {
+        "keycloakUnreachable": "Cannot reach the login service. Please try again later.",
+        "forbidden": {
+            "title": "Access denied",
+            "description": "Your account does not have permission to use the admin dashboard. Contact an administrator if you believe this is a mistake."
+        }
+    }
+}
