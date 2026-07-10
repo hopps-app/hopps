@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -60,7 +60,7 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/hopps-keycloak:${{ env.VERSION }}
 
       - name: Trigger deploy workflow
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         # only trigger deployment on main
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
