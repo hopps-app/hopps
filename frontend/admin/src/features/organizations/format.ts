@@ -19,6 +19,21 @@ export function formatNumber(value: number): string {
     return new Intl.NumberFormat('de-DE').format(value);
 }
 
+/**
+ * Compact integer with a k-suffix for headline chart figures (`14200` → `14,2k`).
+ * German-first: comma decimal separator, matches the mockup's `14,2k`.
+ */
+export function formatCompact(value: number): string {
+    return new Intl.NumberFormat('de-DE', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+}
+
+/** Signed percentage from a fraction (`0.23` → `+23 %`, `-0.1` → `−10 %`). de-DE grouping. */
+export function formatDeltaPct(fraction: number): string {
+    const pct = Math.round(fraction * 100);
+    const sign = pct > 0 ? '↑ ' : pct < 0 ? '↓ ' : '';
+    return `${sign}${new Intl.NumberFormat('de-DE').format(Math.abs(pct))} %`;
+}
+
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;

@@ -4,18 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { deleteOrganization, fetchOrganization } from '@/features/organizations/api';
+import BelegeChart from '@/features/organizations/BelegeChart';
 import DeleteDialog from '@/features/organizations/DeleteDialog';
 import ImpersonateDialog from '@/features/organizations/ImpersonateDialog';
+import LoginActivityChart from '@/features/organizations/LoginActivityChart';
 import StatusBadge from '@/features/organizations/StatusBadge';
-import { formatDate, formatNumber, formatRelative } from '@/features/organizations/format';
+import TokenTrendChart from '@/features/organizations/TokenTrendChart';
+import { formatDate } from '@/features/organizations/format';
 import { deriveStatus } from '@/features/organizations/status';
-import TokenUsageChart from '@/features/organizations/TokenUsageChart';
 import type { OrganizationDetail, OrgAddress, OrgMember } from '@/features/organizations/types';
 
 type Modal = 'none' | 'delete' | 'impersonate';
 
 export default function OrganizationDetailView() {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const numericId = Number(id);
@@ -75,7 +77,6 @@ export default function OrganizationDetailView() {
         );
     }
 
-    const locale = i18n.language;
     const dash = '—';
     // Tolerate non-strings: a JSON value can arrive as a number/object, and calling
     // .trim() on it would throw. Coerce to string, treat empty/nullish as the dash.
@@ -137,21 +138,11 @@ export default function OrganizationDetailView() {
                     </Section>
                 </div>
 
+                {/* Aktivität — replaced by the three usage charts (Login-Zeiten, Beleg-Verbrauch, Token-Verbrauch). */}
                 <div className="flex flex-col gap-5">
-                    {/* Aktivität */}
-                    <Section title={t('organizations.detail.aktivitaet')}>
-                        <Field
-                            label={t('organizations.columns.lastActivity')}
-                            value={formatRelative(org.lastActivityAt, locale, Date.now()) ?? t('organizations.never')}
-                        />
-                        <Field label={t('organizations.fields.belegeCreated')} value={<span className="tnum">{formatNumber(org.belegeCount)}</span>} />
-                        <Field label={t('organizations.fields.bankImports')} value={<span className="tnum">{formatNumber(org.bankImportCount)}</span>} />
-                        {org.tokenUsage ? (
-                            <TokenUsageChart usage={org.tokenUsage} />
-                        ) : (
-                            <Field label={t('organizations.fields.tokenUsage')} value={<span className="text-ink-3">{t('organizations.fields.tokenNone')}</span>} last />
-                        )}
-                    </Section>
+                    <LoginActivityChart activity={org.loginActivity} />
+                    <BelegeChart series={org.belegePerMonth} />
+                    <TokenTrendChart series={org.tokensPerMonth} />
                 </div>
             </div>
 

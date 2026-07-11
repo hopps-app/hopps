@@ -2,7 +2,16 @@ import type { AdminOrganizationDetail, AdminOrganizationRow as GenRow } from '@h
 
 import { apiClient } from '@/services/apiClient';
 
-import type { AdminOrganizationRow, AdminOrganizationsPage, OrganizationDetail, OrgAddress, OrgMember, TokenUsage } from './types';
+import type {
+    AdminOrganizationRow,
+    AdminOrganizationsPage,
+    LoginActivity,
+    MonthlySeries,
+    OrganizationDetail,
+    OrgAddress,
+    OrgMember,
+    TokenUsage,
+} from './types';
 
 /**
  * Adapter between the generated api-client and the app's own view types.
@@ -80,6 +89,56 @@ function mockTokenUsage(id: number): TokenUsage | null {
     return table[id] ?? null;
 }
 
+/**
+ * MOCK — sessions-per-hour histogram (30-day average). No login-time metering exists.
+ * A fixed office-hours curve (quiet overnight, midday + evening peaks) scaled per org so
+ * different orgs read differently but the same org is stable across renders.
+ */
+function mockLoginActivity(id: number): LoginActivity {
+    // Base shape over 24 hours — the mockup's twin-hump profile (midday + a taller evening peak).
+    const base = [
+        1, 0, 0, 0, 0, 1, 2, 4, 7, 10, 13, 16, 18, 14, 11, 9, 8, 10, 15, 22, 26, 19, 9, 4,
+    ];
+    const scale = 0.6 + ((id % 5) * 0.2); // 0.6–1.4, deterministic per org
+    return { hourly: base.map((v) => Math.round(v * scale)) };
+}
+
+/** Localised short month labels ending at `now`, oldest first. Fixed de-DE per Klar. */
+function monthLabels(count: number, now: number): string[] {
+    const fmt = new Intl.DateTimeFormat('de-DE', { month: 'short' });
+    const out: string[] = [];
+    const d = new Date(now);
+    for (let i = count - 1; i >= 0; i--) {
+        const m = new Date(d.getFullYear(), d.getMonth() - i, 1);
+        // Trim the trailing dot de-DE appends to short months ("Mai." → "Mai").
+        out.push(fmt.format(m).replace(/\.$/, ''));
+    }
+    return out;
+}
+
+/** Build a MonthlySeries from raw monthly values (oldest first) + labels. */
+function toSeries(values: number[], labels: string[]): MonthlySeries {
+    const points = values.map((value, i) => ({ label: labels[i] ?? '', value }));
+    const latest = values[values.length - 1] ?? 0;
+    const prev = values[values.length - 2];
+    const deltaPct = prev && prev > 0 ? (latest - prev) / prev : null;
+    return { points, latest, deltaPct };
+}
+
+/** MOCK — Belege per month, rolling 6 months. Deterministic per org, growth toward latest. */
+function mockBelegePerMonth(id: number, now: number): MonthlySeries {
+    const seed = (id % 4) + 1;
+    const raw = [3, 5, 4, 6, 7, 10].map((v) => v * seed * 16);
+    return toSeries(raw, monthLabels(6, now));
+}
+
+/** MOCK — AI tokens per month, rolling 6 months. Sharp recent ramp, mirrors the mockup. */
+function mockTokensPerMonth(id: number, now: number): MonthlySeries {
+    const seed = (id % 3) + 1;
+    const raw = [1800, 3200, 2600, 5400, 9200, 14200].map((v) => Math.round(v * (0.7 + seed * 0.15)));
+    return toSeries(raw, monthLabels(6, now));
+}
+
 export async function fetchOrganizations(): Promise<AdminOrganizationsPage> {
     // The admin list endpoint is paged; the UI loads all and filters client-side,
     // so request a generous first page. Revisit if org counts ever grow large.
@@ -110,6 +169,9 @@ export async function fetchOrganization(id: number): Promise<OrganizationDetail 
         members: mapMembers(d.members),
         bankImportCount: d.bankImportCount ?? 0,
         tokenUsage: mockTokenUsage(id),
+        loginActivity: mockLoginActivity(id),
+        belegePerMonth: mockBelegePerMonth(id, Date.now()),
+        tokensPerMonth: mockTokensPerMonth(id, Date.now()),
     };
 }
 

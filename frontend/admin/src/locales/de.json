@@ -57,6 +57,21 @@
             "aktivitaet": "Aktivität",
             "members": "Mitglieder ({{count}})"
         },
+        "charts": {
+            "login": {
+                "eyebrow": "Login-Zeiten",
+                "title": "Aktivität über den Tag",
+                "subtitle": "Sessions pro Stunde · 30-Tage-Schnitt"
+            },
+            "belege": {
+                "eyebrow": "Beleg-Verbrauch",
+                "title": "Belege pro Monat"
+            },
+            "tokens": {
+                "eyebrow": "Token-Verbrauch",
+                "title": "KI-Token pro Monat"
+            }
+        },
         "delete": {
             "zoneTitle": "Verein löschen",
             "zoneText": "Damit wird der Verein und alles, was dazugehört – Mitglieder, Bommeln, Transaktionen und Dokumente – dauerhaft entfernt. Das kann nicht rückgängig gemacht werden.",

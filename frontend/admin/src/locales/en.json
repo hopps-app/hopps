@@ -57,6 +57,21 @@
             "aktivitaet": "Activity",
             "members": "Members ({{count}})"
         },
+        "charts": {
+            "login": {
+                "eyebrow": "Login times",
+                "title": "Activity across the day",
+                "subtitle": "Sessions per hour · 30-day average"
+            },
+            "belege": {
+                "eyebrow": "Receipt usage",
+                "title": "Receipts per month"
+            },
+            "tokens": {
+                "eyebrow": "Token usage",
+                "title": "AI tokens per month"
+            }
+        },
         "delete": {
             "zoneTitle": "Delete organization",
             "zoneText": "This permanently removes the organization and everything belonging to it — members, units, transactions and documents. This cannot be undone.",

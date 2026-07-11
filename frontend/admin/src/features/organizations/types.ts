@@ -71,6 +71,35 @@ export type TokenUsage = {
 };
 
 /**
+ * Sessions per hour-of-day, averaged over the last 30 days. Index 0 = 00:00, index 23 = 23:00.
+ * MOCK ONLY — Hopps does not track per-session login times yet. Structured so a real
+ * activity-events backend (or Keycloak login events) can populate it later.
+ */
+export type LoginActivity = {
+    /** 24 buckets, one per hour. Each is an average session count for that hour. */
+    hourly: number[];
+};
+
+/** One month in a rolling monthly series, `label` already localised for display. */
+export type MonthlyPoint = {
+    /** Short month label, e.g. "Mai". */
+    label: string;
+    value: number;
+};
+
+/**
+ * A rolling monthly series with a month-over-month delta.
+ * MOCK ONLY — same caveat as LoginActivity: no per-org time-series metering exists yet.
+ */
+export type MonthlySeries = {
+    points: MonthlyPoint[];
+    /** value of the most recent month (points[last].value), surfaced for the headline. */
+    latest: number;
+    /** Change vs the previous month as a fraction (0.23 = +23%). Null if no prior month. */
+    deltaPct: number | null;
+};
+
+/**
  * Full detail projection for one organization — everything the detail page shows.
  * Extends the list row with Stammdaten, address, and activity counts.
  * Same caveat as the row: this is the contract for a future `GET /organization/{id}`
@@ -94,4 +123,10 @@ export type OrganizationDetail = AdminOrganizationRow & {
     bankImportCount: number;
     /** MOCK — see TokenUsage. Null if never used any AI service. */
     tokenUsage: TokenUsage | null;
+    /** MOCK — sessions-per-hour histogram (30-day average). See LoginActivity. */
+    loginActivity: LoginActivity;
+    /** MOCK — Belege created per month, rolling 6 months. */
+    belegePerMonth: MonthlySeries;
+    /** MOCK — AI tokens consumed per month, rolling 6 months. */
+    tokensPerMonth: MonthlySeries;
 };
