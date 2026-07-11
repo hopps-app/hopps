@@ -2,6 +2,7 @@ package app.hopps.organization.api;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import app.hopps.member.repository.MemberActivityRepository;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
@@ -9,6 +10,8 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasSize;
@@ -26,6 +29,9 @@ class AdminOrganizationResourceTests {
 
     @Inject
     TestdataBootstrapper testdataBootstrapper;
+
+    @Inject
+    MemberActivityRepository memberActivityRepository;
 
     @BeforeEach
     void cleanDatabase() {
@@ -91,6 +97,40 @@ class AdminOrganizationResourceTests {
                 .body("members", hasSize(9))
                 .body("contactEmail", notNullValue())
                 .body("address.city", is("Rietberg"));
+    }
+
+    @Test
+    @DisplayName("should return 7-day login activity for an organization")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturnLoginActivity() {
+        LocalDate today = LocalDate.now();
+        // buehnefrei-ev (org 4) has members 15..23. Record: today -> members 15 & 16 (2 distinct); yesterday -> 15 (1).
+        memberActivityRepository.recordActivity("00000000-0000-0000-0000-000000000015", today);
+        memberActivityRepository.recordActivity("00000000-0000-0000-0000-000000000016", today);
+        memberActivityRepository.recordActivity("00000000-0000-0000-0000-000000000015", today.minusDays(1));
+
+        given()
+                .when()
+                .get(PATH + "/4/login-activity")
+                .then()
+                .statusCode(200)
+                .body("totalMembers", is(9))
+                .body("days", hasSize(7))
+                // oldest first: index 6 = today, 5 = yesterday, 0 = six days ago
+                .body("days[6].activeUsers", is(2))
+                .body("days[5].activeUsers", is(1))
+                .body("days[0].activeUsers", is(0));
+    }
+
+    @Test
+    @DisplayName("should return 404 for login activity of an unknown organization")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturn404ForLoginActivityOfUnknownOrg() {
+        given()
+                .when()
+                .get(PATH + "/9999/login-activity")
+                .then()
+                .statusCode(404);
     }
 
     @Test
