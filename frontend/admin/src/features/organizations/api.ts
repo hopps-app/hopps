@@ -1,159 +1,118 @@
-import type { AdminOrganizationRow, AdminOrganizationsPage, OrganizationDetail } from './types';
+import type { AdminOrganizationDetail, AdminOrganizationRow as GenRow } from '@hopps/api-client';
+
+import { apiClient } from '@/services/apiClient';
+
+import type { AdminOrganizationRow, AdminOrganizationsPage, OrganizationDetail, OrgAddress, OrgMember, TokenUsage } from './types';
 
 /**
- * ⚠️ MOCK DATA — there is no list-organizations endpoint yet, and no delete endpoint.
+ * Adapter between the generated api-client and the app's own view types.
  *
- * The org service exposes only `/organization/{slug}`, `/organization/my` and
- * `/statistics/organizations/{orgId}`. None of them return a collection, and there
- * is no `DELETE /organization`, so this feature runs entirely on fixtures.
+ * The generated DTOs (`@hopps/api-client`) are the wire contract: every field is
+ * optional and dates are `Date`. This module maps them onto the app's stricter
+ * `AdminOrganizationRow` / `OrganizationDetail` (nullable, ISO strings) so the
+ * components never deal with the wire shape. All backend calls flow through here.
  *
- * To make it real:
- *  - `fetchOrganizations` / `fetchOrganization` → call the generated api-client.
- *  - `deleteOrganization` → call a real `DELETE /organization/{id}` (must be
- *    `@RolesAllowed("admin")`). Real deletion cascades to members, Bommeln,
- *    transactions and documents — that is the whole reason the UI type-to-confirms.
- *
- * The eventual list/delete endpoints MUST be `@RolesAllowed("admin")`. Without it, any
- * authenticated member of any org could enumerate or delete organizations.
- * Note the backend authorizes on the `groups` claim, not `realm_access.roles`.
- *
- * `MOCK_ROWS` is mutable so a mock delete persists while navigating within the session.
+ * `tokenUsage` has no backend yet (Hopps has no per-org AI metering), so it is still
+ * mocked here and merged into the detail. Everything else is real.
  */
-let MOCK_ROWS: AdminOrganizationRow[] = [
-    {
-            id: 1,
-            name: 'Raketenfreunde e.V.',
-            slug: 'raketen-freunde',
-            contactEmail: 'kim.rakete@example.test',
-            belegeCount: 128,
-            lastActivityAt: '2026-07-09T14:22:00Z',
-            createdAt: '2024-03-01T09:00:00Z',
-        },
-        {
-            id: 2,
-            name: 'Stadtgarten Initiative',
-            slug: 'stadtgarten-initiative',
-            contactEmail: 'vorstand@stadtgarten.test',
-            belegeCount: 12,
-            lastActivityAt: '2026-04-02T08:15:00Z',
-            createdAt: '2025-11-14T16:30:00Z',
-        },
-        {
-            id: 3,
-            name: 'Tierschutz Pfaffenhofen',
-            slug: 'tierschutz-pfaffenhofen',
-            contactEmail: 'info@tierschutz-paf.test',
-            belegeCount: 0,
-            // Never logged in — distinct from "logged in long ago".
-            lastActivityAt: null,
-            createdAt: '2026-06-28T11:05:00Z',
-        },
-        {
-            id: 4,
-            name: 'Musikverein Harmonie',
-            slug: 'musikverein-harmonie',
-            // No member attached yet.
-            contactEmail: null,
-            belegeCount: 47,
-        lastActivityAt: '2026-07-10T06:40:00Z',
-        createdAt: '2023-01-20T10:00:00Z',
-    },
-];
+
+/** Instant/Date | undefined → ISO string | null, so formatters get a stable shape. */
+function toIso(d: Date | undefined): string | null {
+    return d ? new Date(d).toISOString() : null;
+}
 
 /**
- * MOCK detail fields, keyed by org id. Kept separate from the list rows so the
- * list stays lean. A real `GET /organization/{id}` would return all of this in one shape.
+ * The backend `TYPE` enum has bodied constants (each overrides getDisplayString) and no
+ * @JsonValue, so it can serialize as an object ({ displayString, ... }) rather than a bare
+ * string. Accept either shape and return a plain string label, or null.
  */
-const MOCK_DETAILS: Record<number, Omit<OrganizationDetail, keyof AdminOrganizationRow>> = {
-    1: {
-        type: 'EINGETRAGENER_VEREIN',
-        foundingDate: '2001-05-15',
-        registrationCourt: 'Amtsgericht München',
-        registrationNumber: 'VR 12345',
-        taxNumber: '143/216/50123',
-        country: 'DE',
-        website: 'https://raketenfreunde.test',
-        phoneNumber: '+49 89 1234567',
-        members: [
-            { id: 1, firstName: 'Kim', lastName: 'Rakete', email: 'kim.rakete@example.test' },
-            { id: 2, firstName: 'Petra', lastName: 'Lang', email: 'petra.lang@example.test' },
-            { id: 3, firstName: 'Markus', lastName: 'Reuter', email: 'markus.reuter@example.test' },
-        ],
-        address: { street: 'Raketenstraße', number: '42a', plz: '80331', city: 'München', additionalLine: null },
-        bankImportCount: 9,
-        tokenUsage: { total: 184320, services: { openai: 142000, azure: 42320 } },
-    },
-    2: {
-        type: 'EINGETRAGENER_VEREIN',
-        foundingDate: '2019-09-01',
-        registrationCourt: 'Amtsgericht Ingolstadt',
-        registrationNumber: 'VR 6789',
-        taxNumber: '201/118/40987',
-        country: 'DE',
-        website: null,
-        phoneNumber: '+49 841 998877',
-        members: [
-            { id: 1, firstName: 'Sabine', lastName: 'Vorstand', email: 'vorstand@stadtgarten.test' },
-            { id: 2, firstName: 'Jens', lastName: 'Höfer', email: 'jens.hoefer@stadtgarten.test' },
-        ],
-        address: { street: 'Gartenweg', number: '7', plz: '85049', city: 'Ingolstadt', additionalLine: 'Hinterhaus' },
-        bankImportCount: 2,
-        tokenUsage: { total: 12800, services: { openai: 12800 } },
-    },
-    3: {
-        type: 'ANDERE',
-        foundingDate: '2026-06-20',
-        registrationCourt: null,
-        registrationNumber: null,
-        taxNumber: null,
-        country: 'DE',
-        website: null,
-        phoneNumber: null,
-        members: [
-            { id: 1, firstName: 'Info', lastName: 'Tierschutz', email: 'info@tierschutz-paf.test' },
-        ],
-        address: { street: 'Tiergasse', number: '3', plz: '85276', city: 'Pfaffenhofen', additionalLine: null },
-        bankImportCount: 0,
-        tokenUsage: null,
-    },
-    4: {
-        type: 'EINGETRAGENER_VEREIN',
-        foundingDate: '1998-11-30',
-        registrationCourt: 'Amtsgericht Augsburg',
-        registrationNumber: 'VR 2211',
-        taxNumber: '312/077/60543',
-        country: 'DE',
-        website: 'https://harmonie-musikverein.test',
-        phoneNumber: '+49 821 445566',
-        members: [
-            { id: 1, firstName: 'Tobias', lastName: 'Wagner', email: 'tobias.wagner@harmonie.test' },
-            { id: 2, firstName: 'Lena', lastName: 'Braun', email: 'lena.braun@harmonie.test' },
-            { id: 3, firstName: 'Frank', lastName: 'Keller', email: 'frank.keller@harmonie.test' },
-            { id: 4, firstName: 'Uwe', lastName: 'Schmidt', email: 'uwe.schmidt@harmonie.test' },
-        ],
-        address: { street: 'Notenplatz', number: '1', plz: '86150', city: 'Augsburg', additionalLine: null },
-        bankImportCount: 5,
-        tokenUsage: { total: 61440, services: { openai: 38000, azure: 23440 } },
-    },
-};
+function normalizeType(t: unknown): string | null {
+    if (t === null || t === undefined) return null;
+    if (typeof t === 'string') return t;
+    if (typeof t === 'object') {
+        const o = t as Record<string, unknown>;
+        const v = o.displayString ?? o.name ?? o.value;
+        return typeof v === 'string' ? v : null;
+    }
+    return String(t);
+}
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+function mapRow(r: GenRow): AdminOrganizationRow {
+    return {
+        id: r.id ?? 0,
+        name: r.name ?? '',
+        slug: r.slug ?? '',
+        contactEmail: r.contactEmail ?? null,
+        belegeCount: r.belegeCount ?? 0,
+        lastActivityAt: toIso(r.lastActivityAt),
+        createdAt: toIso(r.createdAt),
+    };
+}
+
+function mapAddress(a: AdminOrganizationDetail['address']): OrgAddress | null {
+    if (!a) return null;
+    return {
+        street: a.street ?? null,
+        number: a.number ?? null,
+        plz: a.plz ?? null,
+        city: a.city ?? null,
+        additionalLine: a.additionalLine ?? null,
+    };
+}
+
+function mapMembers(members: AdminOrganizationDetail['members']): OrgMember[] {
+    return (members ?? []).map((m, i) => ({
+        id: i + 1,
+        firstName: m.firstName ?? '',
+        lastName: m.lastName ?? '',
+        email: m.email ?? '',
+    }));
+}
+
+/** MOCK — no per-org AI metering backend exists. Deterministic stand-in until it does. */
+function mockTokenUsage(id: number): TokenUsage | null {
+    const table: Record<number, TokenUsage | null> = {
+        1: { total: 184320, services: { openai: 142000, azure: 42320 } },
+        2: { total: 12800, services: { openai: 12800 } },
+        3: null,
+        4: { total: 61440, services: { openai: 38000, azure: 23440 } },
+    };
+    return table[id] ?? null;
+}
 
 export async function fetchOrganizations(): Promise<AdminOrganizationsPage> {
-    // Simulates latency so loading states are exercised during development.
-    await delay(300);
-    return { rows: [...MOCK_ROWS], total: MOCK_ROWS.length };
+    // The admin list endpoint is paged; the UI loads all and filters client-side,
+    // so request a generous first page. Revisit if org counts ever grow large.
+    const rows = await apiClient.organizationsAll(0, 100);
+    const mapped = rows.map(mapRow);
+    return { rows: mapped, total: mapped.length };
 }
 
 export async function fetchOrganization(id: number): Promise<OrganizationDetail | null> {
-    await delay(200);
-    const row = MOCK_ROWS.find((r) => r.id === id);
-    const detail = MOCK_DETAILS[id];
-    if (!row || !detail) return null;
-    return { ...row, ...detail };
+    const d = await apiClient.organizationsGET(id);
+    return {
+        id: d.id ?? id,
+        name: d.name ?? '',
+        slug: d.slug ?? '',
+        contactEmail: d.contactEmail ?? null,
+        belegeCount: d.belegeCount ?? 0,
+        lastActivityAt: toIso(d.lastActivityAt),
+        createdAt: toIso(d.createdAt),
+        type: normalizeType(d.type),
+        foundingDate: toIso(d.foundingDate),
+        registrationCourt: d.registrationCourt ?? null,
+        registrationNumber: d.registrationNumber ?? null,
+        taxNumber: d.taxNumber ?? null,
+        country: d.country ?? null,
+        website: d.website ?? null,
+        phoneNumber: d.phoneNumber ?? null,
+        address: mapAddress(d.address),
+        members: mapMembers(d.members),
+        bankImportCount: d.bankImportCount ?? 0,
+        tokenUsage: mockTokenUsage(id),
+    };
 }
 
 export async function deleteOrganization(id: number): Promise<void> {
-    await delay(300);
-    MOCK_ROWS = MOCK_ROWS.filter((r) => r.id !== id);
+    await apiClient.organizationsDELETE(id);
 }

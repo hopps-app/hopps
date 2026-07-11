@@ -1,4 +1,4 @@
-import { ArrowLeft, UserCog } from 'lucide-react';
+import { ArrowLeft, Trash2, UserCog } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -57,7 +57,7 @@ export default function OrganizationDetailView() {
 
     if (state === 'loading') {
         return (
-            <div className="flex items-center gap-2.5 text-ink-2">
+            <div className="flex flex-col items-center justify-center gap-3 text-ink-2 min-h-[60vh]">
                 <span className="spinner" />
                 <span className="text-[14px]">{t('common.loading')}</span>
             </div>
@@ -77,7 +77,13 @@ export default function OrganizationDetailView() {
 
     const locale = i18n.language;
     const dash = '—';
-    const val = (v: string | null | undefined) => (v && v.trim() !== '' ? v : dash);
+    // Tolerate non-strings: a JSON value can arrive as a number/object, and calling
+    // .trim() on it would throw. Coerce to string, treat empty/nullish as the dash.
+    const val = (v: unknown) => {
+        if (v === null || v === undefined) return dash;
+        const s = String(v);
+        return s.trim() !== '' ? s : dash;
+    };
 
     return (
         <div className="fade-up">
@@ -92,28 +98,34 @@ export default function OrganizationDetailView() {
                     </div>
                     <p className="text-[14px] text-ink-2 mt-1">{org.slug}</p>
                 </div>
-                <button type="button" className="btn btn--ton" onClick={() => setModal('impersonate')}>
-                    <UserCog size={16} />
-                    {t('organizations.impersonate.action')}
-                </button>
+                <div className="flex items-center gap-2.5 flex-shrink-0">
+                    <button type="button" className="btn btn--brand" onClick={() => setModal('impersonate')}>
+                        <UserCog size={16} />
+                        {t('organizations.impersonate.action')}
+                    </button>
+                    <button type="button" className="btn btn--danger" onClick={() => setModal('delete')}>
+                        <Trash2 size={16} />
+                        {t('organizations.delete.confirm')}
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6 items-start">
-                {/* Stammdaten — includes address & phone */}
-                <Section title={t('organizations.detail.stammdaten')}>
-                    <Field label={t('organizations.fields.type')} value={val(org.type)} />
-                    <Field label={t('organizations.fields.foundingDate')} value={org.foundingDate ? formatDate(org.foundingDate) ?? dash : dash} />
-                    <Field label={t('organizations.fields.registrationCourt')} value={val(org.registrationCourt)} />
-                    <Field label={t('organizations.fields.registrationNumber')} value={val(org.registrationNumber)} />
-                    <Field label={t('organizations.fields.taxNumber')} value={val(org.taxNumber)} />
-                    <Field label={t('organizations.fields.address')} value={formatAddress(org.address, dash)} />
-                    <Field label={t('organizations.fields.country')} value={val(org.country)} />
-                    <Field label={t('organizations.fields.phone')} value={val(org.phoneNumber)} />
-                    <Field label={t('organizations.fields.website')} value={val(org.website)} last />
-                </Section>
-
                 <div className="flex flex-col gap-5">
-                    {/* Members */}
+                    {/* Stammdaten — includes address & phone */}
+                    <Section title={t('organizations.detail.stammdaten')}>
+                        <Field label={t('organizations.fields.type')} value={val(org.type)} />
+                        <Field label={t('organizations.fields.foundingDate')} value={org.foundingDate ? formatDate(org.foundingDate) ?? dash : dash} />
+                        <Field label={t('organizations.fields.registrationCourt')} value={val(org.registrationCourt)} />
+                        <Field label={t('organizations.fields.registrationNumber')} value={val(org.registrationNumber)} />
+                        <Field label={t('organizations.fields.taxNumber')} value={val(org.taxNumber)} />
+                        <Field label={t('organizations.fields.address')} value={formatAddress(org.address, dash)} />
+                        <Field label={t('organizations.fields.country')} value={val(org.country)} />
+                        <Field label={t('organizations.fields.phone')} value={val(org.phoneNumber)} />
+                        <Field label={t('organizations.fields.website')} value={val(org.website)} last />
+                    </Section>
+
+                    {/* Members — below Stammdaten */}
                     <Section title={t('organizations.detail.members', { count: org.members.length })}>
                         {org.members.length === 0 ? (
                             <p className="py-3.5 text-[13.5px] text-ink-2">{t('organizations.members.empty')}</p>
@@ -123,7 +135,9 @@ export default function OrganizationDetailView() {
                             ))
                         )}
                     </Section>
+                </div>
 
+                <div className="flex flex-col gap-5">
                     {/* Aktivität */}
                     <Section title={t('organizations.detail.aktivitaet')}>
                         <Field
@@ -141,15 +155,6 @@ export default function OrganizationDetailView() {
                 </div>
             </div>
 
-            {/* Danger zone */}
-            <div className="mt-8 rounded-card p-5" style={{ border: '1px solid var(--neg)', background: 'var(--neg-bg)' }}>
-                <h2 className="text-[15px] font-bold text-neg-ink">{t('organizations.delete.zoneTitle')}</h2>
-                <p className="text-[13.5px] text-ink-2 mt-1 mb-4">{t('organizations.delete.zoneText')}</p>
-                <button type="button" className="btn btn--danger" onClick={() => setModal('delete')}>
-                    {t('organizations.delete.confirm')}
-                </button>
-            </div>
-
             {modal === 'delete' && (
                 <DeleteDialog confirmText={org.name} busy={deleting} onConfirm={handleDelete} onClose={() => setModal('none')} />
             )}
@@ -161,7 +166,7 @@ export default function OrganizationDetailView() {
 /** One grouped card of label/value rows, heading inside the card. */
 function Section({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
     return (
-        <div className={`card card--flat px-[18px] pt-4 pb-1.5 ${className ?? ''}`}>
+        <div className={`card px-[18px] pt-4 pb-1.5 ${className ?? ''}`}>
             <div className="eyebrow mb-1">{title}</div>
             {children}
         </div>

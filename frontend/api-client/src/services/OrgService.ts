@@ -15,7 +15,174 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
+
+    /**
+     * List organizations
+     * @param page (optional) Zero-based page index
+     * @param size (optional) Page size (1-100)
+     * @return List of organizations
+     */
+    organizationsAll(page: number | undefined, size: number | undefined): Promise<AdminOrganizationRow[]> {
+        let url_ = this.baseUrl + "/admin/organizations?";
+        if (page === null)
+            throw new Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (size === null)
+            throw new Error("The parameter 'size' cannot be null.");
+        else if (size !== undefined)
+            url_ += "size=" + encodeURIComponent("" + size) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizationsAll(_response);
+        });
+    }
+
+    protected processOrganizationsAll(response: Response): Promise<AdminOrganizationRow[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminOrganizationRow.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdminOrganizationRow[]>(null as any);
+    }
+
+    /**
+     * Get organization detail
+     * @param id The organization id
+     * @return Organization detail
+     */
+    organizationsGET(id: number): Promise<AdminOrganizationDetail> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizationsGET(_response);
+        });
+    }
+
+    protected processOrganizationsGET(response: Response): Promise<AdminOrganizationDetail> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminOrganizationDetail.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdminOrganizationDetail>(null as any);
+    }
+
+    /**
+     * Soft-delete an organization
+     * @param id The organization id
+     * @return Organization soft-deleted
+     */
+    organizationsDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizationsDELETE(_response);
+        });
+    }
+
+    protected processOrganizationsDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or already soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     /**
@@ -3713,7 +3880,7 @@ export class Client {
      * @param includeDrafts (optional) Whether to include draft transactions in the statistics
      * @return Organization statistics
      */
-    organizations(orgId: number, includeDrafts: boolean | undefined): Promise<OrganizationStatistics> {
+    organizationsGET2(orgId: number, includeDrafts: boolean | undefined): Promise<OrganizationStatistics> {
         let url_ = this.baseUrl + "/statistics/organizations/{orgId}?";
         if (orgId === undefined || orgId === null)
             throw new Error("The parameter 'orgId' must be defined.");
@@ -3732,11 +3899,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processOrganizations(_response);
+            return this.processOrganizationsGET2(_response);
         });
     }
 
-    protected processOrganizations(response: Response): Promise<OrganizationStatistics> {
+    protected processOrganizationsGET2(response: Response): Promise<OrganizationStatistics> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -4338,6 +4505,317 @@ export interface IAddress {
     city?: string;
     plz?: string;
     additionalLine?: string;
+
+    [key: string]: any;
+}
+
+/** A member of an organization, as shown on the admin detail page */
+export class AdminMemberSummary implements IAdminMemberSummary {
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address */
+    email?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IAdminMemberSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.email = _data["email"];
+        }
+    }
+
+    static fromJS(data: any): AdminMemberSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminMemberSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["email"] = this.email;
+        return data;
+    }
+
+    clone(): AdminMemberSummary {
+        const json = this.toJSON();
+        let result = new AdminMemberSummary();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A member of an organization, as shown on the admin detail page */
+export interface IAdminMemberSummary {
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address */
+    email?: string;
+
+    [key: string]: any;
+}
+
+/** Full organization detail for the admin detail page */
+export class AdminOrganizationDetail implements IAdminOrganizationDetail {
+    id?: number;
+    name?: string;
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of transactions (Belege) booked for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
+    type?: TYPE;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    taxNumber?: string;
+    country?: string;
+    website?: string;
+    phoneNumber?: string;
+    address?: Address;
+    /** All members linked to this organization */
+    members?: AdminMemberSummary[];
+    /** Number of bank statement imports run for this organization */
+    bankImportCount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAdminOrganizationDetail) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.slug = _data["slug"];
+            this.contactEmail = _data["contactEmail"];
+            this.belegeCount = _data["belegeCount"];
+            this.lastActivityAt = _data["lastActivityAt"] ? new Date(_data["lastActivityAt"].toString()) : <any>undefined;
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.type = _data["type"];
+            this.foundingDate = _data["foundingDate"] ? new Date(_data["foundingDate"].toString()) : <any>undefined;
+            this.registrationCourt = _data["registrationCourt"];
+            this.registrationNumber = _data["registrationNumber"];
+            this.taxNumber = _data["taxNumber"];
+            this.country = _data["country"];
+            this.website = _data["website"];
+            this.phoneNumber = _data["phoneNumber"];
+            this.address = _data["address"] ? Address.fromJS(_data["address"]) : <any>undefined;
+            if (Array.isArray(_data["members"])) {
+                this.members = [] as any;
+                for (let item of _data["members"])
+                    this.members!.push(AdminMemberSummary.fromJS(item));
+            }
+            this.bankImportCount = _data["bankImportCount"];
+        }
+    }
+
+    static fromJS(data: any): AdminOrganizationDetail {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminOrganizationDetail();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["slug"] = this.slug;
+        data["contactEmail"] = this.contactEmail;
+        data["belegeCount"] = this.belegeCount;
+        data["lastActivityAt"] = this.lastActivityAt ? this.lastActivityAt.toISOString() : <any>undefined;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["type"] = this.type;
+        data["foundingDate"] = this.foundingDate ? formatDate(this.foundingDate) : <any>undefined;
+        data["registrationCourt"] = this.registrationCourt;
+        data["registrationNumber"] = this.registrationNumber;
+        data["taxNumber"] = this.taxNumber;
+        data["country"] = this.country;
+        data["website"] = this.website;
+        data["phoneNumber"] = this.phoneNumber;
+        data["address"] = this.address ? this.address.toJSON() : <any>undefined;
+        if (Array.isArray(this.members)) {
+            data["members"] = [];
+            for (let item of this.members)
+                data["members"].push(item ? item.toJSON() : <any>undefined);
+        }
+        data["bankImportCount"] = this.bankImportCount;
+        return data;
+    }
+
+    clone(): AdminOrganizationDetail {
+        const json = this.toJSON();
+        let result = new AdminOrganizationDetail();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Full organization detail for the admin detail page */
+export interface IAdminOrganizationDetail {
+    id?: number;
+    name?: string;
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of transactions (Belege) booked for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
+    type?: TYPE;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    taxNumber?: string;
+    country?: string;
+    website?: string;
+    phoneNumber?: string;
+    address?: Address;
+    /** All members linked to this organization */
+    members?: AdminMemberSummary[];
+    /** Number of bank statement imports run for this organization */
+    bankImportCount?: number;
+
+    [key: string]: any;
+}
+
+/** A single organization row for the admin overview table */
+export class AdminOrganizationRow implements IAdminOrganizationRow {
+    /** Organization id */
+    id?: number;
+    /** Organization name */
+    name?: string;
+    /** URL-safe unique slug */
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of transactions (Belege) booked for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IAdminOrganizationRow) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.slug = _data["slug"];
+            this.contactEmail = _data["contactEmail"];
+            this.belegeCount = _data["belegeCount"];
+            this.lastActivityAt = _data["lastActivityAt"] ? new Date(_data["lastActivityAt"].toString()) : <any>undefined;
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): AdminOrganizationRow {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminOrganizationRow();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["slug"] = this.slug;
+        data["contactEmail"] = this.contactEmail;
+        data["belegeCount"] = this.belegeCount;
+        data["lastActivityAt"] = this.lastActivityAt ? this.lastActivityAt.toISOString() : <any>undefined;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): AdminOrganizationRow {
+        const json = this.toJSON();
+        let result = new AdminOrganizationRow();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A single organization row for the admin overview table */
+export interface IAdminOrganizationRow {
+    /** Organization id */
+    id?: number;
+    /** Organization name */
+    name?: string;
+    /** URL-safe unique slug */
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of transactions (Belege) booked for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
 
     [key: string]: any;
 }
@@ -6569,6 +7047,10 @@ export class Organization implements IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** When the organization was registered */
+    createdAt?: Date;
+    /** Soft-delete marker; null while the organization is active */
+    deletedAt?: Date;
 
     [key: string]: any;
 
@@ -6608,6 +7090,8 @@ export class Organization implements IOrganization {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
+            this.deletedAt = _data["deletedAt"] ? new Date(_data["deletedAt"].toString()) : <any>undefined;
         }
     }
 
@@ -6645,6 +7129,8 @@ export class Organization implements IOrganization {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
+        data["deletedAt"] = this.deletedAt ? this.deletedAt.toISOString() : <any>undefined;
         return data;
     }
 
@@ -6676,6 +7162,10 @@ export interface IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** When the organization was registered */
+    createdAt?: Date;
+    /** Soft-delete marker; null while the organization is active */
+    deletedAt?: Date;
 
     [key: string]: any;
 }

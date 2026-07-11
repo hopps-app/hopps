@@ -113,7 +113,8 @@ export class AuthService {
         }
     }
 
-    getAuthToken() {
+    /** The current Keycloak access token (JWT), for the Authorization: Bearer header. */
+    getAccessToken() {
         return this.keycloak.token;
     }
 }

@@ -48,7 +48,7 @@ export default function DeleteDialog({ confirmText, busy, onConfirm, onClose }: 
                     <button type="button" className="btn btn--ton" disabled={busy} onClick={onClose}>
                         {t('common.cancel')}
                     </button>
-                    <button type="button" className="btn btn--danger" disabled={!matches || busy} onClick={onConfirm}>
+                    <button type="button" className="btn btn--danger-solid" disabled={!matches || busy} onClick={onConfirm}>
                         {busy ? t('organizations.delete.deleting') : t('organizations.delete.confirm')}
                     </button>
                 </div>

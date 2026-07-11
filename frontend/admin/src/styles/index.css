@@ -59,7 +59,7 @@
 
     /* Shadows */
     --shadow-sm: 0 1px 2px rgba(20, 20, 40, 0.05);
-    --shadow-md: 0 1px 2px rgba(20, 20, 40, 0.05), 0 6px 22px rgba(20, 20, 40, 0.05);
+    --shadow-md: 0 1px 2px rgba(20, 20, 40, 0.06), 0 8px 24px rgba(20, 20, 40, 0.1);
     --shadow-lg: 0 12px 40px rgba(20, 20, 40, 0.16);
 }
 
@@ -291,9 +291,26 @@
     .btn--pri:hover {
         background: var(--pp-deep);
     }
+    /* Quiet tonal fill — used for passive dismiss actions (Abbrechen, Schließen). */
     .btn--ton {
         background: var(--pp-tint2);
         color: var(--pp-ink);
+    }
+    /* Brand action, mirrors .btn--danger's structure in purple: tinted + bordered at rest,
+       commits to a solid fill with a soft shadow on hover. For the Impersonieren header action. */
+    .btn--brand {
+        background: var(--pp-tint);
+        color: var(--pp-ink);
+        border-color: color-mix(in srgb, var(--pp) 24%, transparent);
+    }
+    .btn--brand:hover {
+        background: var(--pp);
+        color: #fff;
+        border-color: var(--pp);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--pp) 30%, transparent);
+    }
+    .btn--brand:active {
+        transform: translateY(0.5px);
     }
 
     /* eyebrow */
@@ -390,12 +407,31 @@
             opacity: 1;
         }
     }
+    /* Restrained at rest (red text on a tinted surface), commits to a solid fill on hover.
+       Reads as considered rather than a flat red block, and signals "destructive, secondary". */
     .btn--danger {
-        background: var(--neg);
-        color: #fff;
+        background: var(--neg-bg);
+        color: var(--neg-ink);
+        border-color: color-mix(in srgb, var(--neg) 28%, transparent);
     }
     .btn--danger:hover {
-        filter: brightness(0.94);
+        background: var(--neg);
+        color: #fff;
+        border-color: var(--neg);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--neg) 32%, transparent);
+    }
+    .btn--danger:active {
+        transform: translateY(0.5px);
+    }
+    /* Solid variant for the final confirm inside the delete dialog — emphatic on purpose. */
+    .btn--danger-solid {
+        background: var(--neg);
+        color: #fff;
+        border-color: var(--neg);
+        box-shadow: 0 1px 2px color-mix(in srgb, var(--neg) 30%, transparent);
+    }
+    .btn--danger-solid:hover {
+        background: color-mix(in srgb, var(--neg) 88%, #000);
     }
     .btn[disabled] {
         opacity: 0.5;
