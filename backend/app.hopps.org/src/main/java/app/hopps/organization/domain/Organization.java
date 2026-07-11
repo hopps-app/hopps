@@ -4,6 +4,7 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.member.domain.Member;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
@@ -12,14 +13,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.net.URL;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Schema(name = "Organization", description = "An example of a Hopps Organization, i.e. Verein")
+// Soft-delete: a non-null deleted_at hides the organization from every normal query and relationship.
+// Admin soft-delete sets this column instead of removing the row; nothing outside a native query sees deleted orgs.
+@SQLRestriction("deleted_at is null")
 public class Organization extends PanacheEntity {
 
     @NotBlank
@@ -75,6 +82,15 @@ public class Organization extends PanacheEntity {
 
     @Schema(description = "Whether uploaded documents should be automatically analyzed by AI", examples = "true")
     private boolean autoAnalyzeDocuments = true;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Schema(description = "When the organization was registered", examples = "2024-01-15T10:30:00Z")
+    private Instant createdAt;
+
+    @Column(name = "deleted_at")
+    @Schema(description = "Soft-delete marker; null while the organization is active", examples = "null")
+    private Instant deletedAt;
 
     public Organization() {
         // no args constructor
@@ -218,6 +234,22 @@ public class Organization extends PanacheEntity {
 
     public void setAutoAnalyzeDocuments(boolean autoAnalyzeDocuments) {
         this.autoAnalyzeDocuments = autoAnalyzeDocuments;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public enum TYPE {
