@@ -1,8 +1,10 @@
 package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberActivityRepository;
 import app.hopps.organization.api.dto.AdminOrganizationDetail;
 import app.hopps.organization.api.dto.AdminOrganizationRow;
+import app.hopps.organization.api.dto.LoginActivityResponse;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.AdminOrganizationRepository;
 import jakarta.annotation.security.RolesAllowed;
@@ -25,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +88,24 @@ public class AdminOrganizationResource {
                 adminRepository.belegeCount(id),
                 adminRepository.lastActivityByOrganization(List.of(id)).get(id),
                 adminRepository.bankImportCount(id));
+    }
+
+    @GET
+    @Path("/{id}/login-activity")
+    @Transactional
+    @Operation(summary = "Organization login activity", description = "Distinct active members per day for the organization over the last 7 days (oldest first), with days of no activity reported as zero. Includes the organization's total member count for ratio display.")
+    @APIResponse(responseCode = "200", description = "Per-day login activity", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = LoginActivityResponse.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "User is not an admin")
+    @APIResponse(responseCode = "404", description = "Organization not found or soft-deleted")
+    public LoginActivityResponse loginActivity(
+            @PathParam("id") @Parameter(description = "The organization id") Long id) {
+        Organization org = findActiveOrThrow(id);
+        LocalDate today = LocalDate.now();
+        LocalDate from = today.minusDays(MemberActivityRepository.WINDOW_DAYS - 1L);
+        return new LoginActivityResponse(
+                org.getMembers().size(),
+                adminRepository.dailyActiveCountsForOrganization(id, from, today));
     }
 
     @DELETE
