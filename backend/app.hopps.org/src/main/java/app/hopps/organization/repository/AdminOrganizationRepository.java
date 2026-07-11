@@ -2,7 +2,6 @@ package app.hopps.organization.repository;
 
 import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
-import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -26,19 +25,10 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
     EntityManager entityManager;
 
     /**
-     * Returns one page of active organizations, newest first.
+     * Returns all active (non-soft-deleted) organizations, newest first.
      */
-    public List<Organization> pageByCreatedAt(int pageIndex, int pageSize) {
-        return find("", Sort.by("createdAt").descending().and("id", Sort.Direction.Descending))
-                .page(Page.of(pageIndex, pageSize))
-                .list();
-    }
-
-    /**
-     * Total number of active (non-soft-deleted) organizations.
-     */
-    public long countActive() {
-        return count();
+    public List<Organization> listByCreatedAt() {
+        return listAll(Sort.by("createdAt").descending().and("id", Sort.Direction.Descending));
     }
 
     /**

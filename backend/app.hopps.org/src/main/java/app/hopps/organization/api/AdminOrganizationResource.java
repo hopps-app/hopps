@@ -9,13 +9,11 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -41,25 +39,18 @@ import java.util.Map;
 public class AdminOrganizationResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdminOrganizationResource.class);
-    private static final int MAX_PAGE_SIZE = 100;
 
     @Inject
     AdminOrganizationRepository adminRepository;
 
     @GET
     @Transactional
-    @Operation(summary = "List organizations", description = "Returns a page of organizations for the admin overview table, newest first. Soft-deleted organizations are excluded.")
+    @Operation(summary = "List organizations", description = "Returns all organizations for the admin overview table, newest first. Soft-deleted organizations are excluded.")
     @APIResponse(responseCode = "200", description = "List of organizations", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AdminOrganizationRow[].class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "403", description = "User is not an admin")
-    public List<AdminOrganizationRow> list(
-            @QueryParam("page") @DefaultValue("0") @Parameter(description = "Zero-based page index") int page,
-            @QueryParam("size") @DefaultValue("20") @Parameter(description = "Page size (1-100)") int size) {
-
-        int pageIndex = Math.max(page, 0);
-        int pageSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-
-        List<Organization> organizations = adminRepository.pageByCreatedAt(pageIndex, pageSize);
+    public List<AdminOrganizationRow> list() {
+        List<Organization> organizations = adminRepository.listByCreatedAt();
 
         List<Long> ids = organizations.stream().map(Organization::getId).toList();
         Map<Long, Long> belegeCounts = adminRepository.belegeCountByOrganization(ids);
