@@ -5,6 +5,7 @@ import { apiClient } from '@/services/apiClient';
 import type {
     AdminOrganizationRow,
     AdminOrganizationsPage,
+    DailyActivity,
     LoginActivity,
     MonthlySeries,
     OrganizationDetail,
@@ -90,17 +91,28 @@ function mockTokenUsage(id: number): TokenUsage | null {
 }
 
 /**
- * MOCK — sessions-per-hour histogram (30-day average). No login-time metering exists.
- * A fixed office-hours curve (quiet overnight, midday + evening peaks) scaled per org so
- * different orgs read differently but the same org is stable across renders.
+ * MOCK — per-day distinct active members over the last 7 days (oldest first), mirroring
+ * GET /admin/organizations/{id}/login-activity. The real endpoint exists in the backend but
+ * is not yet in the generated api-client, so this deterministic stand-in fills the shape until
+ * the client is regenerated. Counts are clamped to a plausible per-org member total.
  */
-function mockLoginActivity(id: number): LoginActivity {
-    // Base shape over 24 hours — the mockup's twin-hump profile (midday + a taller evening peak).
-    const base = [
-        1, 0, 0, 0, 0, 1, 2, 4, 7, 10, 13, 16, 18, 14, 11, 9, 8, 10, 15, 22, 26, 19, 9, 4,
-    ];
-    const scale = 0.6 + ((id % 5) * 0.2); // 0.6–1.4, deterministic per org
-    return { hourly: base.map((v) => Math.round(v * scale)) };
+const LOGIN_WINDOW_DAYS = 7;
+function mockLoginActivity(id: number, now: number): LoginActivity {
+    const totalMembers = 4 + (id % 6); // 4–9, deterministic per org
+    // A weekly rhythm: quieter at the weekend edges, busier midweek. Deterministic per org.
+    const shape = [2, 3, 4, 5, 4, 1, 1];
+    const bias = id % 3; // shifts the curve so different orgs read differently
+    const today = new Date(now);
+    const days: DailyActivity[] = [];
+    for (let i = LOGIN_WINDOW_DAYS - 1; i >= 0; i--) {
+        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+        const raw = shape[(LOGIN_WINDOW_DAYS - 1 - i + bias) % LOGIN_WINDOW_DAYS];
+        days.push({
+            day: d.toISOString().slice(0, 10),
+            activeUsers: Math.min(totalMembers, raw),
+        });
+    }
+    return { totalMembers, days };
 }
 
 /** Localised short month labels ending at `now`, oldest first. Fixed de-DE per Klar. */
@@ -169,7 +181,7 @@ export async function fetchOrganization(id: number): Promise<OrganizationDetail 
         members: mapMembers(d.members),
         bankImportCount: d.bankImportCount ?? 0,
         tokenUsage: mockTokenUsage(id),
-        loginActivity: mockLoginActivity(id),
+        loginActivity: mockLoginActivity(id, Date.now()),
         belegePerMonth: mockBelegePerMonth(id, Date.now()),
         tokensPerMonth: mockTokensPerMonth(id, Date.now()),
     };

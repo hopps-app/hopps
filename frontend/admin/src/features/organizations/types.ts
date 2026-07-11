@@ -71,13 +71,26 @@ export type TokenUsage = {
 };
 
 /**
- * Sessions per hour-of-day, averaged over the last 30 days. Index 0 = 00:00, index 23 = 23:00.
- * MOCK ONLY — Hopps does not track per-session login times yet. Structured so a real
- * activity-events backend (or Keycloak login events) can populate it later.
+ * Activity for a single day: how many distinct members were active (made an authenticated
+ * request) on `day`. Mirrors the backend `DailyActivity` record.
+ */
+export type DailyActivity = {
+    /** ISO calendar day, e.g. "2026-07-05". */
+    day: string;
+    /** Number of distinct members active that day. */
+    activeUsers: number;
+};
+
+/**
+ * Per-day active-member counts over the retention window (last 7 days, oldest first,
+ * gap-filled with zeros), plus the org's total member count for a ratio display.
+ * Mirrors the backend `LoginActivityResponse` from GET /admin/organizations/{id}/login-activity.
  */
 export type LoginActivity = {
-    /** 24 buckets, one per hour. Each is an average session count for that hour. */
-    hourly: number[];
+    /** Total members of the organization — the denominator for "N of M active". */
+    totalMembers: number;
+    /** One entry per day, oldest first. Length is the window (7). */
+    days: DailyActivity[];
 };
 
 /** One month in a rolling monthly series, `label` already localised for display. */

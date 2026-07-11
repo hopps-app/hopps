@@ -87,7 +87,7 @@ export default function OrganizationDetailView() {
     };
 
     return (
-        <div className="fade-up">
+        <div className="fade-up pb-10">
             <BackLink label={t('organizations.detail.back')} onClick={() => navigate('/organizations')} />
 
             {/* Header: identity + primary action */}

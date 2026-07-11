@@ -59,9 +59,10 @@
         },
         "charts": {
             "login": {
-                "eyebrow": "Login-Zeiten",
-                "title": "Aktivität über den Tag",
-                "subtitle": "Sessions pro Stunde · 30-Tage-Schnitt"
+                "eyebrow": "Login-Aktivität",
+                "title": "Anmeldungen pro Tag",
+                "subtitle": "Aktive Mitglieder · letzte 7 Tage",
+                "tooltip": "{{count}} von {{total}} aktiv"
             },
             "belege": {
                 "eyebrow": "Beleg-Verbrauch",

@@ -59,9 +59,10 @@
         },
         "charts": {
             "login": {
-                "eyebrow": "Login times",
-                "title": "Activity across the day",
-                "subtitle": "Sessions per hour · 30-day average"
+                "eyebrow": "Login activity",
+                "title": "Logins per day",
+                "subtitle": "Active members · last 7 days",
+                "tooltip": "{{count}} of {{total}} active"
             },
             "belege": {
                 "eyebrow": "Receipt usage",

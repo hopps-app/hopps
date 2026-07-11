@@ -2,42 +2,59 @@ import { useTranslation } from 'react-i18next';
 
 import type { LoginActivity } from './types';
 
+/** Short localised weekday label ("Mo", "Di", …) for an ISO date. de-DE, Klar-consistent. */
+function weekday(iso: string): string {
+    const d = new Date(`${iso}T00:00:00`);
+    return new Intl.DateTimeFormat('de-DE', { weekday: 'short' }).format(d).replace(/\.$/, '');
+}
+
 /**
- * Sessions-per-hour histogram (24 bars, 00:00–24:00) — the "Login-Zeiten" card.
- * Purely presentational; data is a 30-day average from LoginActivity (currently mocked).
- * Bars use the brand purple; the tallest is fully opaque, the rest scale their height
- * relative to the peak so the daily rhythm reads at a glance.
+ * Active-members-per-day bar chart over the last 7 days — the "Login-Zeiten" card.
+ * Each bar is the number of distinct members who were active that day; the most recent
+ * day is the anchor (solid purple), earlier days a tint. Bars scale against the org's
+ * total member count so full-team days reach the top. Headline shows today's ratio.
  */
 export default function LoginActivityChart({ activity }: { activity: LoginActivity }) {
     const { t } = useTranslation();
-    const { hourly } = activity;
-    const peak = Math.max(1, ...hourly);
+    const { totalMembers, days } = activity;
+    // Scale against the member total (the natural ceiling), never below the observed peak.
+    const observedPeak = Math.max(...days.map((d) => d.activeUsers), 0);
+    const peak = Math.max(1, totalMembers, observedPeak);
+    const lastIndex = days.length - 1;
+    const latest = days[lastIndex]?.activeUsers ?? 0;
 
     return (
         <ChartCard
             eyebrow={t('organizations.charts.login.eyebrow')}
             title={t('organizations.charts.login.title')}
             subtitle={t('organizations.charts.login.subtitle')}
+            headline={
+                <span>
+                    {latest}
+                    <span className="text-[13px] font-bold text-ink-3"> / {totalMembers}</span>
+                </span>
+            }
         >
-            <div className="flex items-end gap-[3px] h-[112px]" role="img" aria-label={t('organizations.charts.login.title')}>
-                {hourly.map((v, hour) => (
-                    <div
-                        key={hour}
-                        className="flex-1 rounded-t-[3px]"
-                        style={{
-                            height: `${Math.max(3, (v / peak) * 100)}%`,
-                            background: 'var(--pp)',
-                            // Fade quieter hours so the peaks stand out without a second colour.
-                            opacity: 0.35 + 0.65 * (v / peak),
-                        }}
-                        title={`${String(hour).padStart(2, '0')}:00 · ${v}`}
-                    />
-                ))}
-            </div>
-            {/* Hour axis: 0 / 6 / 12 / 18 / 24, matching the mockup. */}
-            <div className="flex justify-between mt-1.5 text-[11px] text-ink-3 tnum">
-                {[0, 6, 12, 18, 24].map((h) => (
-                    <span key={h}>{h}</span>
+            <div className="flex items-end gap-2 h-[112px]" role="img" aria-label={t('organizations.charts.login.title')}>
+                {days.map((d, i) => (
+                    <div key={d.day} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+                        <div className="w-full flex items-end justify-center h-full">
+                            <div
+                                className="w-full max-w-[28px] rounded-t-[4px]"
+                                style={{
+                                    height: `${Math.max(4, (d.activeUsers / peak) * 100)}%`,
+                                    background: i === lastIndex ? 'var(--pp)' : 'var(--pp-tint2)',
+                                }}
+                                title={`${weekday(d.day)}: ${t('organizations.charts.login.tooltip', { count: d.activeUsers, total: totalMembers })}`}
+                            />
+                        </div>
+                        <span
+                            className={`text-[11px] ${i === lastIndex ? 'font-bold' : 'text-ink-3'}`}
+                            style={i === lastIndex ? { color: 'var(--pp-ink)' } : undefined}
+                        >
+                            {weekday(d.day)}
+                        </span>
+                    </div>
                 ))}
             </div>
         </ChartCard>
