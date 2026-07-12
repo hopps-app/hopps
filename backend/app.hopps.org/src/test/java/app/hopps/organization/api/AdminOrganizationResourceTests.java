@@ -73,7 +73,8 @@ class AdminOrganizationResourceTests {
                 .body("$", hasSize(3))
                 // every row exposes a non-null createdAt and a contact email (owner falls back to any member)
                 .body("createdAt", notNullValue())
-                .body("find { it.slug == 'buehnefrei-ev' }.belegeCount", is(15))
+                // belegeCount is the number of uploaded documents (Belege): org 4 has 28 seeded, org 2 has none
+                .body("find { it.slug == 'buehnefrei-ev' }.belegeCount", is(28))
                 .body("find { it.slug == 'buehnefrei-ev' }.contactEmail", notNullValue())
                 .body("find { it.slug == 'gruenes-herz-ev' }.belegeCount", is(0))
                 // no member has ever been "seen" in the test data
@@ -92,7 +93,7 @@ class AdminOrganizationResourceTests {
                 .body("id", is(4))
                 .body("name", is("Theatervereine Bühnefrei e.V."))
                 .body("slug", is("buehnefrei-ev"))
-                .body("belegeCount", is(15))
+                .body("belegeCount", is(28))
                 .body("bankImportCount", is(0))
                 .body("members", hasSize(9))
                 .body("contactEmail", notNullValue())
@@ -129,6 +130,52 @@ class AdminOrganizationResourceTests {
         given()
                 .when()
                 .get(PATH + "/9999/login-activity")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    @DisplayName("should return 6-month document-upload activity for an organization")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturnDocumentActivity() {
+        // buehnefrei-ev (org 4) seeds documents across the full 6-month window.
+        // Per month (monthsAgo): 5m=2, 4m=3, 3m=5, 2m=4, 1m=6, 0m=8.
+        given()
+                .when()
+                .get(PATH + "/4/document-activity")
+                .then()
+                .statusCode(200)
+                .body("months", hasSize(6))
+                // oldest first: index 0 = five months ago, index 5 = current month
+                .body("months[0].count", is(2))
+                .body("months[1].count", is(3))
+                .body("months[2].count", is(5))
+                .body("months[3].count", is(4))
+                .body("months[4].count", is(6))
+                .body("months[5].count", is(8));
+    }
+
+    @Test
+    @DisplayName("should return an all-zero document-upload window for an organization without documents")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturnEmptyDocumentActivity() {
+        // gruenes-herz-ev (org 2) has no seeded documents: every month is reported as zero.
+        given()
+                .when()
+                .get(PATH + "/2/document-activity")
+                .then()
+                .statusCode(200)
+                .body("months", hasSize(6))
+                .body("months.count.sum()", is(0));
+    }
+
+    @Test
+    @DisplayName("should return 404 for document activity of an unknown organization")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturn404ForDocumentActivityOfUnknownOrg() {
+        given()
+                .when()
+                .get(PATH + "/9999/document-activity")
                 .then()
                 .statusCode(404);
     }
