@@ -558,9 +558,165 @@ transactions:
     createdBy: "alice@example.test"
     senderName: "Catering Solutions Ltd"
 
+# Documents (Belege) = uploaded receipts/invoices. Back the admin belegeCount and the document-upload activity chart.
+# monthsAgo is whole months before the current month (0 = current); the loader pins createdat to mid-month relative to
+# now, so counts are stable regardless of run date.
+documents:
+  # buehnefrei-ev (organization id=4): spread across the full 6-month chart window (monthsAgo 0..5)
+  # so every bar is non-zero and varied. Counts per month: 5m=2, 4m=3, 3m=5, 2m=4, 1m=6, 0m=8 -> belegeCount = 28
+  # 5 months ago (2)
+  - id: 1
+    organizationId: 4
+    name: "Beleg 001 - Project Funding"
+    monthsAgo: 5
+  - id: 2
+    organizationId: 4
+    name: "Beleg 002 - Insurance Premium"
+    monthsAgo: 5
+  # 4 months ago (3)
+  - id: 3
+    organizationId: 4
+    name: "Beleg 003 - Venue Booking"
+    monthsAgo: 4
+  - id: 4
+    organizationId: 4
+    name: "Beleg 004 - Catering Service"
+    monthsAgo: 4
+  - id: 5
+    organizationId: 4
+    name: "Beleg 005 - Marketing Materials"
+    monthsAgo: 4
+  # 3 months ago (5)
+  - id: 6
+    organizationId: 4
+    name: "Beleg 006 - Sound System"
+    monthsAgo: 3
+  - id: 7
+    organizationId: 4
+    name: "Beleg 007 - Lighting Equipment"
+    monthsAgo: 3
+  - id: 8
+    organizationId: 4
+    name: "Beleg 008 - Stage Props"
+    monthsAgo: 3
+  - id: 9
+    organizationId: 4
+    name: "Beleg 009 - Costumes Purchase"
+    monthsAgo: 3
+  - id: 10
+    organizationId: 4
+    name: "Beleg 010 - Utilities Bill"
+    monthsAgo: 3
+  # 2 months ago (4)
+  - id: 11
+    organizationId: 4
+    name: "Beleg 011 - Workshop Materials"
+    monthsAgo: 2
+  - id: 12
+    organizationId: 4
+    name: "Beleg 012 - Training Session"
+    monthsAgo: 2
+  - id: 13
+    organizationId: 4
+    name: "Beleg 013 - Rent Payment"
+    monthsAgo: 2
+  - id: 14
+    organizationId: 4
+    name: "Beleg 014 - Printing Costs"
+    monthsAgo: 2
+  # 1 month ago (6)
+  - id: 15
+    organizationId: 4
+    name: "Beleg 015 - Office Supplies"
+    monthsAgo: 1
+  - id: 16
+    organizationId: 4
+    name: "Beleg 016 - Coffee Machine"
+    monthsAgo: 1
+  - id: 17
+    organizationId: 4
+    name: "Beleg 017 - Cleaning Service"
+    monthsAgo: 1
+  - id: 18
+    organizationId: 4
+    name: "Beleg 018 - Props Warehouse"
+    monthsAgo: 1
+  - id: 19
+    organizationId: 4
+    name: "Beleg 019 - Audio Equipment"
+    monthsAgo: 1
+  - id: 20
+    organizationId: 4
+    name: "Beleg 020 - Ticket Printing"
+    monthsAgo: 1
+  # current month (8)
+  - id: 21
+    organizationId: 4
+    name: "Beleg 021 - Office Supplies"
+    monthsAgo: 0
+  - id: 22
+    organizationId: 4
+    name: "Beleg 022 - Coffee Machine"
+    monthsAgo: 0
+  - id: 23
+    organizationId: 4
+    name: "Beleg 023 - Rent Payment"
+    monthsAgo: 0
+  - id: 24
+    organizationId: 4
+    name: "Beleg 024 - Stage Decoration"
+    monthsAgo: 0
+  - id: 25
+    organizationId: 4
+    name: "Beleg 025 - Program Booklets"
+    monthsAgo: 0
+  - id: 26
+    organizationId: 4
+    name: "Beleg 026 - Refreshments"
+    monthsAgo: 0
+  - id: 27
+    organizationId: 4
+    name: "Beleg 027 - Microphones"
+    monthsAgo: 0
+  - id: 28
+    organizationId: 4
+    name: "Beleg 028 - Set Construction"
+    monthsAgo: 0
+
+  # kaeltekrieger (organization id=3): smaller spread across 4 months. 3m=1, 2m=2, 1m=1, 0m=3 -> belegeCount = 7
+  - id: 29
+    organizationId: 3
+    name: "Beleg 029 - Ice Resurfacer Service"
+    monthsAgo: 3
+  - id: 30
+    organizationId: 3
+    name: "Beleg 030 - Kiosk Supplies"
+    monthsAgo: 2
+  - id: 31
+    organizationId: 3
+    name: "Beleg 031 - Team Jerseys"
+    monthsAgo: 2
+  - id: 32
+    organizationId: 3
+    name: "Beleg 032 - Referee Fees"
+    monthsAgo: 1
+  - id: 33
+    organizationId: 3
+    name: "Beleg 033 - Ice Maintenance"
+    monthsAgo: 0
+  - id: 34
+    organizationId: 3
+    name: "Beleg 034 - Zamboni Fuel"
+    monthsAgo: 0
+  - id: 35
+    organizationId: 3
+    name: "Beleg 035 - Shop Merchandise"
+    monthsAgo: 0
+
 # Sequence configuration for ID generators
 sequences:
   Bommel_SEQ: 30
   Organization_SEQ: 4
   Member_SEQ: 23
   Transaction_SEQ: 15
+  Document_SEQ: 35

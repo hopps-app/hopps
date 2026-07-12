@@ -12,6 +12,7 @@ public class TestdataConfig {
     private List<MemberData> members;
     private List<BommelData> bommels;
     private List<TransactionData> transactions;
+    private List<DocumentData> documents;
     private Map<String, Long> sequences;
 
     public List<OrganizationData> getOrganizations() {
@@ -44,6 +45,14 @@ public class TestdataConfig {
 
     public void setTransactions(List<TransactionData> transactions) {
         this.transactions = transactions;
+    }
+
+    public List<DocumentData> getDocuments() {
+        return documents;
+    }
+
+    public void setDocuments(List<DocumentData> documents) {
+        this.documents = documents;
     }
 
     public Map<String, Long> getSequences() {
@@ -372,6 +381,48 @@ public class TestdataConfig {
 
         public void setSenderName(String senderName) {
             this.senderName = senderName;
+        }
+    }
+
+    public static class DocumentData {
+        private Long id;
+        private Long organizationId;
+        private String name;
+        // Number of whole months before the current month this document was uploaded (0 = current month). The loader
+        // pins the createdat to mid-month relative to now, so the upload activity buckets are deterministic on any run
+        // date.
+        private int monthsAgo;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Long getOrganizationId() {
+            return organizationId;
+        }
+
+        public void setOrganizationId(Long organizationId) {
+            this.organizationId = organizationId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getMonthsAgo() {
+            return monthsAgo;
+        }
+
+        public void setMonthsAgo(int monthsAgo) {
+            this.monthsAgo = monthsAgo;
         }
     }
 }
