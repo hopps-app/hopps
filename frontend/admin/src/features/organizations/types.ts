@@ -71,6 +71,24 @@ export type TokenUsage = {
 };
 
 /**
+ * How a document's data was extracted. Mirrors the backend `ExtractionSource` enum:
+ * ZUGFERD (embedded ZUGFeRD/XRechnung XML), AI (Azure Document Intelligence), MANUAL.
+ */
+export type ExtractionSource = 'ZUGFERD' | 'AI' | 'MANUAL';
+
+/**
+ * Count of documents per extraction method for one org, over its whole history (not windowed).
+ * MOCK ONLY — no admin endpoint aggregates `Document.extractionSource` yet. Structured to the
+ * eventual wire shape so the view needs no change once a real endpoint lands.
+ */
+export type ExtractionBreakdown = {
+    /** Total documents counted — the sum of all `counts` values. */
+    total: number;
+    /** Documents per extraction source. Absent keys are treated as 0. */
+    counts: Partial<Record<ExtractionSource, number>>;
+};
+
+/**
  * Activity for a single day: how many distinct members were active (made an authenticated
  * request) on `day`. Mirrors the backend `DailyActivity` record.
  */
@@ -142,4 +160,6 @@ export type OrganizationDetail = AdminOrganizationRow & {
     belegePerMonth: MonthlySeries;
     /** MOCK — AI tokens consumed per month, rolling 6 months. */
     tokensPerMonth: MonthlySeries;
+    /** MOCK — how the org's documents were extracted (ZUGFeRD / AI / manual), all-time. */
+    extractionBreakdown: ExtractionBreakdown;
 };

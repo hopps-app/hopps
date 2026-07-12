@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -6687,11 +6687,11 @@ export interface ICsvPreviewResponse {
     [key: string]: any;
 }
 
-/** Distinct active members for a single day */
+/** Total login/activity events for a single day */
 export class DailyActivity implements IDailyActivity {
     /** The calendar day */
     day?: Date;
-    /** Number of distinct members active that day */
+    /** Total login/activity events that day (summed across members) */
     activeUsers?: number;
 
     [key: string]: any;
@@ -6742,11 +6742,11 @@ export class DailyActivity implements IDailyActivity {
     }
 }
 
-/** Distinct active members for a single day */
+/** Total login/activity events for a single day */
 export interface IDailyActivity {
     /** The calendar day */
     day?: Date;
-    /** Number of distinct members active that day */
+    /** Total login/activity events that day (summed across members) */
     activeUsers?: number;
 
     [key: string]: any;

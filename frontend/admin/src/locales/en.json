@@ -72,6 +72,15 @@
                 "tooltip_one": "{{count}} receipt",
                 "tooltip_other": "{{count}} receipts"
             },
+            "extraction": {
+                "eyebrow": "Receipt extraction",
+                "title": "Capture methods",
+                "source": {
+                    "zugferd": "ZUGFeRD",
+                    "ai": "Azure Document Intelligence",
+                    "manual": "Manually entered"
+                }
+            },
             "tokens": {
                 "eyebrow": "Token usage",
                 "title": "AI tokens per month"

@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { deleteOrganization, fetchOrganization } from '@/features/organizations/api';
 import BelegeChart from '@/features/organizations/BelegeChart';
 import DeleteDialog from '@/features/organizations/DeleteDialog';
+import ExtractionChart from '@/features/organizations/ExtractionChart';
 import ImpersonateDialog from '@/features/organizations/ImpersonateDialog';
 import LoginActivityChart from '@/features/organizations/LoginActivityChart';
 import StatusBadge from '@/features/organizations/StatusBadge';
@@ -138,10 +139,14 @@ export default function OrganizationDetailView() {
                     </Section>
                 </div>
 
-                {/* Aktivität — replaced by the three usage charts (Login-Zeiten, Beleg-Verbrauch, Token-Verbrauch). */}
+                {/* Aktivität — usage charts. Beleg-Verbrauch and Beleg-Auslese share a row
+                    (side by side) between Login-Aktivität above and Token-Verbrauch below. */}
                 <div className="flex flex-col gap-5">
                     <LoginActivityChart activity={org.loginActivity} />
-                    <BelegeChart series={org.belegePerMonth} total={org.belegeCount} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+                        <BelegeChart series={org.belegePerMonth} total={org.belegeCount} />
+                        <ExtractionChart breakdown={org.extractionBreakdown} />
+                    </div>
                     <TokenTrendChart series={org.tokensPerMonth} />
                 </div>
             </div>

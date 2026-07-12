@@ -6,6 +6,7 @@ import type {
     AdminOrganizationRow,
     AdminOrganizationsPage,
     DailyActivity,
+    ExtractionBreakdown,
     LoginActivity,
     MonthlySeries,
     OrganizationDetail,
@@ -77,6 +78,25 @@ function mapMembers(members: AdminOrganizationDetail['members']): OrgMember[] {
         lastName: m.lastName ?? '',
         email: m.email ?? '',
     }));
+}
+
+/**
+ * MOCK — no admin endpoint aggregates Document.extractionSource yet. Deterministic per-org
+ * stand-in: splits the org's document total across the three extraction methods with a
+ * plausible ZUGFeRD-heavy distribution (structured/electronic invoices dominate). `total`
+ * is passed in so the split matches the Belege count shown elsewhere on the page.
+ */
+function mockExtractionBreakdown(id: number, total: number): ExtractionBreakdown {
+    if (total <= 0) {
+        return { total: 0, counts: {} };
+    }
+    // Weights vary a little per org but stay ZUGFeRD > AI > manual. Sum ~= 1.
+    const zugferdShare = 0.5 + ((id % 3) * 0.05); // 0.50–0.60
+    const manualShare = 0.06 + ((id % 4) * 0.02); // 0.06–0.12
+    const zugferd = Math.round(total * zugferdShare);
+    const manual = Math.round(total * manualShare);
+    const ai = Math.max(0, total - zugferd - manual); // remainder, so the three sum to `total`
+    return { total, counts: { ZUGFERD: zugferd, AI: ai, MANUAL: manual } };
 }
 
 /** MOCK — no per-org AI metering backend exists. Deterministic stand-in until it does. */
@@ -194,12 +214,13 @@ export async function fetchOrganization(id: number): Promise<OrganizationDetail 
     // Detail and the per-month document activity come from separate endpoints; fetch both
     // in parallel so the detail page has a fully-populated model in one round-trip.
     const [d, belegePerMonth] = await Promise.all([apiClient.organizationsGET(id), fetchDocumentActivity(id)]);
+    const belegeCount = d.belegeCount ?? 0;
     return {
         id: d.id ?? id,
         name: d.name ?? '',
         slug: d.slug ?? '',
         contactEmail: d.contactEmail ?? null,
-        belegeCount: d.belegeCount ?? 0,
+        belegeCount,
         lastActivityAt: toIso(d.lastActivityAt),
         createdAt: toIso(d.createdAt),
         type: normalizeType(d.type),
@@ -217,6 +238,7 @@ export async function fetchOrganization(id: number): Promise<OrganizationDetail 
         loginActivity: mockLoginActivity(id, Date.now()),
         belegePerMonth,
         tokensPerMonth: mockTokensPerMonth(id, Date.now()),
+        extractionBreakdown: mockExtractionBreakdown(id, belegeCount),
     };
 }
 

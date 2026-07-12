@@ -72,6 +72,15 @@
                 "tooltip_one": "{{count}} Beleg",
                 "tooltip_other": "{{count}} Belege"
             },
+            "extraction": {
+                "eyebrow": "Beleg-Auslese",
+                "title": "Erfassungswege",
+                "source": {
+                    "zugferd": "ZUGFeRD",
+                    "ai": "Azure Document Intelligence",
+                    "manual": "Manuell erfasst"
+                }
+            },
             "tokens": {
                 "eyebrow": "Token-Verbrauch",
                 "title": "KI-Token pro Monat"
