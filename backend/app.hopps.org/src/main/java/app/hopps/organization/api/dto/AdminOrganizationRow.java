@@ -15,7 +15,7 @@ public record AdminOrganizationRow(
         @Schema(description = "Organization name", examples = "Raketenfreunde e.V.") String name,
         @Schema(description = "URL-safe unique slug", examples = "raketen-freunde") String slug,
         @Schema(description = "Owner's email, or any member's email, or null", examples = "kim@raketenfreunde.tld") String contactEmail,
-        @Schema(description = "Number of transactions (Belege) booked for this organization", examples = "128") long belegeCount,
+        @Schema(description = "Number of uploaded documents (Belege) for this organization", examples = "128") long belegeCount,
         @Schema(description = "Most recent activity across all members, or null if never seen", examples = "2024-06-01T09:15:00Z") Instant lastActivityAt,
         @Schema(description = "When the organization was registered", examples = "2024-01-15T10:30:00Z") Instant createdAt) {
 }

@@ -20,7 +20,7 @@ public record AdminOrganizationDetail(
         String name,
         String slug,
         @Schema(description = "Owner's email, or any member's email, or null") String contactEmail,
-        @Schema(description = "Number of transactions (Belege) booked for this organization") long belegeCount,
+        @Schema(description = "Number of uploaded documents (Belege) for this organization") long belegeCount,
         @Schema(description = "Most recent activity across all members, or null if never seen") Instant lastActivityAt,
         @Schema(description = "When the organization was registered") Instant createdAt,
         Organization.TYPE type,

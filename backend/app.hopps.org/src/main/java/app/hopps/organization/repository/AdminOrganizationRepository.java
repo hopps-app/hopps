@@ -1,6 +1,7 @@
 package app.hopps.organization.repository;
 
 import app.hopps.organization.api.dto.DailyActivity;
+import app.hopps.organization.api.dto.MonthlyCount;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Sort;
@@ -23,6 +24,9 @@ import java.util.Map;
 @ApplicationScoped
 public class AdminOrganizationRepository implements PanacheRepository<Organization> {
 
+    /** Reporting window for the document-upload activity chart, in months (inclusive of the current month). */
+    public static final int WINDOW_MONTHS = 6;
+
     @Inject
     EntityManager entityManager;
 
@@ -34,16 +38,16 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
     }
 
     /**
-     * Transaction (Beleg) counts grouped by organization id, for the given organization ids. Organizations with no
-     * transactions are simply absent from the map (callers should default to 0).
+     * Uploaded document (Beleg) counts grouped by organization id, for the given organization ids. Organizations with
+     * no documents are simply absent from the map (callers should default to 0).
      */
     public Map<Long, Long> belegeCountByOrganization(Collection<Long> organizationIds) {
         if (organizationIds.isEmpty()) {
             return Map.of();
         }
         List<Object[]> rows = entityManager.createQuery(
-                "select t.organization.id, count(t) from Transaction t "
-                        + "where t.organization.id in :ids group by t.organization.id",
+                "select d.organization.id, count(d) from Document d "
+                        + "where d.organization.id in :ids group by d.organization.id",
                 Object[].class)
                 .setParameter("ids", organizationIds)
                 .getResultList();
@@ -74,11 +78,11 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
     }
 
     /**
-     * Number of transactions (Belege) for a single organization.
+     * Number of uploaded documents (Belege) for a single organization.
      */
-    public long belegeCount(Long organizationId) {
+    public long documentCount(Long organizationId) {
         return entityManager.createQuery(
-                "select count(t) from Transaction t where t.organization.id = :id", Long.class)
+                "select count(d) from Document d where d.organization.id = :id", Long.class)
                 .setParameter("id", organizationId)
                 .getSingleResult();
     }
@@ -113,6 +117,31 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
 
         return rows.stream()
                 .map(row -> new DailyActivity((LocalDate) row[0], ((Number) row[1]).longValue()))
+                .toList();
+    }
+
+    /**
+     * Number of uploaded documents (Belege) per month for one organization over the inclusive {@code [from, to]} range,
+     * where {@code from}/{@code to} are month-start dates. Every month in the range is returned (months with no uploads
+     * as 0) via {@code generate_series}, so the result is gap-free and chart-ready. Uploads are bucketed by the month
+     * of {@code document.createdat}.
+     */
+    @SuppressWarnings("unchecked")
+    public List<MonthlyCount> monthlyUploadCountsForOrganization(long organizationId, LocalDate from, LocalDate to) {
+        List<Object[]> rows = entityManager.createNativeQuery(
+                "select m::date as month, count(d.id) as upload_count "
+                        + "from generate_series(:from, :to, interval '1 month') m "
+                        + "left join document d "
+                        + "  on date_trunc('month', d.createdat)::date = m::date "
+                        + " and d.organization_id = :orgId "
+                        + "group by m order by m")
+                .setParameter("from", from)
+                .setParameter("to", to)
+                .setParameter("orgId", organizationId)
+                .getResultList();
+
+        return rows.stream()
+                .map(row -> new MonthlyCount((LocalDate) row[0], ((Number) row[1]).longValue()))
                 .toList();
     }
 

@@ -5,6 +5,7 @@ import app.hopps.member.repository.MemberActivityRepository;
 import app.hopps.organization.api.dto.AdminOrganizationDetail;
 import app.hopps.organization.api.dto.AdminOrganizationRow;
 import app.hopps.organization.api.dto.LoginActivityResponse;
+import app.hopps.organization.api.dto.MonthlyUploadResponse;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.AdminOrganizationRepository;
 import jakarta.annotation.security.RolesAllowed;
@@ -85,7 +86,7 @@ public class AdminOrganizationResource {
         return AdminOrganizationDetail.from(
                 org,
                 resolveContactEmail(org),
-                adminRepository.belegeCount(id),
+                adminRepository.documentCount(id),
                 adminRepository.lastActivityByOrganization(List.of(id)).get(id),
                 adminRepository.bankImportCount(id));
     }
@@ -106,6 +107,23 @@ public class AdminOrganizationResource {
         return new LoginActivityResponse(
                 org.getMembers().size(),
                 adminRepository.dailyActiveCountsForOrganization(id, from, today));
+    }
+
+    @GET
+    @Path("/{id}/document-activity")
+    @Transactional
+    @Operation(summary = "Organization document-upload activity", description = "Number of uploaded documents (Belege) per month for the organization over the last 6 months (oldest first), with months of no uploads reported as zero.")
+    @APIResponse(responseCode = "200", description = "Per-month document-upload activity", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MonthlyUploadResponse.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "User is not an admin")
+    @APIResponse(responseCode = "404", description = "Organization not found or soft-deleted")
+    public MonthlyUploadResponse documentActivity(
+            @PathParam("id") @Parameter(description = "The organization id") Long id) {
+        findActiveOrThrow(id);
+        LocalDate thisMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate from = thisMonth.minusMonths(AdminOrganizationRepository.WINDOW_MONTHS - 1L);
+        return new MonthlyUploadResponse(
+                adminRepository.monthlyUploadCountsForOrganization(id, from, thisMonth));
     }
 
     @DELETE
