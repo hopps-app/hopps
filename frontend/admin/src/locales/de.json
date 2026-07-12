@@ -60,11 +60,11 @@
         "charts": {
             "empty": "Keine Daten",
             "login": {
-                "eyebrow": "Login-Aktivität",
-                "title": "Anmeldungen pro Tag",
+                "eyebrow": "Aktivität",
+                "title": "Aktive Mitglieder pro Tag",
                 "subtitle": "letzte 7 Tage",
-                "tooltip_one": "{{count}} Anmeldung",
-                "tooltip_other": "{{count}} Anmeldungen"
+                "tooltip_one": "{{count}} aktives Mitglied",
+                "tooltip_other": "{{count}} aktive Mitglieder"
             },
             "belege": {
                 "eyebrow": "Beleg-Verbrauch",

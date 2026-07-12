@@ -6687,12 +6687,12 @@ export interface ICsvPreviewResponse {
     [key: string]: any;
 }
 
-/** Total login/activity events for a single day */
+/** Total activity events for a single day */
 export class DailyActivity implements IDailyActivity {
     /** The calendar day */
     day?: Date;
-    /** Total login/activity events that day (summed across members) */
-    activeUsers?: number;
+    /** Total activity events that day (summed across members) */
+    activityCount?: number;
 
     [key: string]: any;
 
@@ -6712,7 +6712,7 @@ export class DailyActivity implements IDailyActivity {
                     this[property] = _data[property];
             }
             this.day = _data["day"] ? new Date(_data["day"].toString()) : <any>undefined;
-            this.activeUsers = _data["activeUsers"];
+            this.activityCount = _data["activityCount"];
         }
     }
 
@@ -6730,7 +6730,7 @@ export class DailyActivity implements IDailyActivity {
                 data[property] = this[property];
         }
         data["day"] = this.day ? formatDate(this.day) : <any>undefined;
-        data["activeUsers"] = this.activeUsers;
+        data["activityCount"] = this.activityCount;
         return data;
     }
 
@@ -6742,12 +6742,12 @@ export class DailyActivity implements IDailyActivity {
     }
 }
 
-/** Total login/activity events for a single day */
+/** Total activity events for a single day */
 export interface IDailyActivity {
     /** The calendar day */
     day?: Date;
-    /** Total login/activity events that day (summed across members) */
-    activeUsers?: number;
+    /** Total activity events that day (summed across members) */
+    activityCount?: number;
 
     [key: string]: any;
 }

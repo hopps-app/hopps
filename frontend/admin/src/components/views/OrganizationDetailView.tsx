@@ -98,7 +98,6 @@ export default function OrganizationDetailView() {
                         <h1 className="text-[27px] font-extrabold text-ink">{org.name}</h1>
                         <StatusBadge status={deriveStatus(org, Date.now())} />
                     </div>
-                    <p className="text-[14px] text-ink-2 mt-1">{org.slug}</p>
                 </div>
                 <div className="flex items-center gap-2.5 flex-shrink-0">
                     <button type="button" className="btn btn--brand" onClick={() => setModal('impersonate')}>

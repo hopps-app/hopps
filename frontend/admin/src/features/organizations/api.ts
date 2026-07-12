@@ -110,29 +110,27 @@ function mockTokenUsage(id: number): TokenUsage | null {
     return table[id] ?? null;
 }
 
+const EMPTY_LOGIN_ACTIVITY: LoginActivity = { totalMembers: 0, days: [] };
+
 /**
- * MOCK — per-day distinct active members over the last 7 days (oldest first), mirroring
- * GET /admin/organizations/{id}/login-activity. The real endpoint exists in the backend but
- * is not yet in the generated api-client, so this deterministic stand-in fills the shape until
- * the client is regenerated. Counts are clamped to a plausible per-org member total.
+ * Real per-day active-member counts for one org, from GET /admin/organizations/{id}/login-activity.
+ * The backend counts distinct members who made an authenticated request that day (once per member
+ * per day), gap-filled over the last 7 days, oldest first. Degrades to an empty window on failure
+ * so a chart-endpoint blip can't fail the whole detail page.
  */
-const LOGIN_WINDOW_DAYS = 7;
-function mockLoginActivity(id: number, now: number): LoginActivity {
-    const totalMembers = 4 + (id % 6); // 4–9, deterministic per org
-    // A weekly rhythm: quieter at the weekend edges, busier midweek. Deterministic per org.
-    const shape = [2, 3, 4, 5, 4, 1, 1];
-    const bias = id % 3; // shifts the curve so different orgs read differently
-    const today = new Date(now);
-    const days: DailyActivity[] = [];
-    for (let i = LOGIN_WINDOW_DAYS - 1; i >= 0; i--) {
-        const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
-        const raw = shape[(LOGIN_WINDOW_DAYS - 1 - i + bias) % LOGIN_WINDOW_DAYS];
-        days.push({
-            day: d.toISOString().slice(0, 10),
-            activeUsers: Math.min(totalMembers, raw),
-        });
+async function fetchLoginActivity(id: number): Promise<LoginActivity> {
+    try {
+        const res = await apiClient.loginActivity(id);
+        const days: DailyActivity[] = (res.days ?? []).map((d) => ({
+            // The generated client parses `day` to a Date; keep only the calendar date (ISO).
+            day: d.day ? new Date(d.day).toISOString().slice(0, 10) : '',
+            activeUsers: d.activeUsers ?? 0,
+        }));
+        return { totalMembers: res.totalMembers ?? 0, days };
+    } catch (e) {
+        console.error('Failed to load login activity:', e);
+        return EMPTY_LOGIN_ACTIVITY;
     }
-    return { totalMembers, days };
 }
 
 /** Localised short month labels ending at `now`, oldest first. Fixed de-DE per Klar. */
@@ -211,9 +209,13 @@ export async function fetchOrganizations(): Promise<AdminOrganizationsPage> {
 }
 
 export async function fetchOrganization(id: number): Promise<OrganizationDetail | null> {
-    // Detail and the per-month document activity come from separate endpoints; fetch both
-    // in parallel so the detail page has a fully-populated model in one round-trip.
-    const [d, belegePerMonth] = await Promise.all([apiClient.organizationsGET(id), fetchDocumentActivity(id)]);
+    // Detail, per-month document activity, and per-day login activity come from separate
+    // endpoints; fetch them in parallel so the detail page is fully populated in one round-trip.
+    const [d, belegePerMonth, loginActivity] = await Promise.all([
+        apiClient.organizationsGET(id),
+        fetchDocumentActivity(id),
+        fetchLoginActivity(id),
+    ]);
     const belegeCount = d.belegeCount ?? 0;
     return {
         id: d.id ?? id,
@@ -235,7 +237,7 @@ export async function fetchOrganization(id: number): Promise<OrganizationDetail 
         members: mapMembers(d.members),
         bankImportCount: d.bankImportCount ?? 0,
         tokenUsage: mockTokenUsage(id),
-        loginActivity: mockLoginActivity(id, Date.now()),
+        loginActivity,
         belegePerMonth,
         tokensPerMonth: mockTokensPerMonth(id, Date.now()),
         extractionBreakdown: mockExtractionBreakdown(id, belegeCount),

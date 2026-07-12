@@ -60,11 +60,11 @@
         "charts": {
             "empty": "No data",
             "login": {
-                "eyebrow": "Login activity",
-                "title": "Logins per day",
+                "eyebrow": "Activity",
+                "title": "Active members per day",
                 "subtitle": "last 7 days",
-                "tooltip_one": "{{count}} login",
-                "tooltip_other": "{{count}} logins"
+                "tooltip_one": "{{count}} active member",
+                "tooltip_other": "{{count}} active members"
             },
             "belege": {
                 "eyebrow": "Receipt usage",

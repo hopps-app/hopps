@@ -17,11 +17,12 @@ function weekdayLong(iso: string): string {
 }
 
 /**
- * Logins-per-day bar chart over the last 7 days — the "Login-Aktivität" card.
- * Each bar is the number of members who logged in that day (the backend counts a member
- * once per day, so this is distinct active members, not raw sign-in events). The most
- * recent day is the anchor (solid purple), earlier days a tint. Bars scale against the
- * busiest day in the window; headline shows the latest day's count.
+ * Active-members-per-day bar chart over the last 7 days — the "Aktivität" card.
+ * Each bar is the number of distinct members who made an authenticated request that day
+ * (the backend counts a member once per day, so this measures reach — how many members
+ * were active — not raw sign-in or request events). The most recent day is the anchor
+ * (solid purple), earlier days a tint. Bars scale against the busiest day; headline shows
+ * the latest day's count.
  */
 export default function LoginActivityChart({ activity }: { activity: LoginActivity }) {
     const { t } = useTranslation();
