@@ -58,15 +58,19 @@
             "members": "Mitglieder ({{count}})"
         },
         "charts": {
+            "empty": "Keine Daten",
             "login": {
                 "eyebrow": "Login-Aktivität",
                 "title": "Anmeldungen pro Tag",
-                "subtitle": "Aktive Mitglieder · letzte 7 Tage",
-                "tooltip": "{{count}} von {{total}} aktiv"
+                "subtitle": "letzte 7 Tage",
+                "tooltip_one": "{{count}} Anmeldung",
+                "tooltip_other": "{{count}} Anmeldungen"
             },
             "belege": {
                 "eyebrow": "Beleg-Verbrauch",
-                "title": "Belege pro Monat"
+                "title": "Belege pro Monat",
+                "tooltip_one": "{{count}} Beleg",
+                "tooltip_other": "{{count}} Belege"
             },
             "tokens": {
                 "eyebrow": "Token-Verbrauch",

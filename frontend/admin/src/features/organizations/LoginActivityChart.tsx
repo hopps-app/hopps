@@ -8,18 +8,26 @@ function weekday(iso: string): string {
     return new Intl.DateTimeFormat('de-DE', { weekday: 'short' }).format(d).replace(/\.$/, '');
 }
 
+/** Fuller label for the tooltip heading ("Mo, 12.07."): weekday + day.month. de-DE. */
+function weekdayLong(iso: string): string {
+    const d = new Date(`${iso}T00:00:00`);
+    const wd = new Intl.DateTimeFormat('de-DE', { weekday: 'short' }).format(d).replace(/\.$/, '');
+    const date = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' }).format(d);
+    return `${wd}, ${date}`;
+}
+
 /**
- * Active-members-per-day bar chart over the last 7 days — the "Login-Zeiten" card.
- * Each bar is the number of distinct members who were active that day; the most recent
- * day is the anchor (solid purple), earlier days a tint. Bars scale against the org's
- * total member count so full-team days reach the top. Headline shows today's ratio.
+ * Logins-per-day bar chart over the last 7 days — the "Login-Aktivität" card.
+ * Each bar is the number of members who logged in that day (the backend counts a member
+ * once per day, so this is distinct active members, not raw sign-in events). The most
+ * recent day is the anchor (solid purple), earlier days a tint. Bars scale against the
+ * busiest day in the window; headline shows the latest day's count.
  */
 export default function LoginActivityChart({ activity }: { activity: LoginActivity }) {
     const { t } = useTranslation();
-    const { totalMembers, days } = activity;
-    // Scale against the member total (the natural ceiling), never below the observed peak.
-    const observedPeak = Math.max(...days.map((d) => d.activeUsers), 0);
-    const peak = Math.max(1, totalMembers, observedPeak);
+    const { days } = activity;
+    // Scale against the busiest day in the window so the tallest bar fills the chart.
+    const peak = Math.max(1, ...days.map((d) => d.activeUsers));
     const lastIndex = days.length - 1;
     const latest = days[lastIndex]?.activeUsers ?? 0;
 
@@ -28,24 +36,22 @@ export default function LoginActivityChart({ activity }: { activity: LoginActivi
             eyebrow={t('organizations.charts.login.eyebrow')}
             title={t('organizations.charts.login.title')}
             subtitle={t('organizations.charts.login.subtitle')}
-            headline={
-                <span>
-                    {latest}
-                    <span className="text-[13px] font-bold text-ink-3"> / {totalMembers}</span>
-                </span>
-            }
+            headline={<span>{latest}</span>}
         >
             <div className="flex items-end gap-2 h-[112px]" role="img" aria-label={t('organizations.charts.login.title')}>
                 {days.map((d, i) => (
-                    <div key={d.day} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
-                        <div className="w-full flex items-end justify-center h-full">
+                    <div key={d.day} className="group relative flex-1 h-full flex flex-col items-center gap-1.5 min-w-0">
+                        <ChartTooltip
+                            label={weekdayLong(d.day)}
+                            value={t('organizations.charts.login.tooltip', { count: d.activeUsers })}
+                        />
+                        <div className="w-full flex-1 min-h-0 flex items-end justify-center">
                             <div
-                                className="w-full max-w-[28px] rounded-t-[4px]"
+                                className="w-full max-w-[28px] rounded-t-[4px] transition-opacity group-hover:opacity-80"
                                 style={{
                                     height: `${Math.max(4, (d.activeUsers / peak) * 100)}%`,
                                     background: i === lastIndex ? 'var(--pp)' : 'var(--pp-tint2)',
                                 }}
-                                title={`${weekday(d.day)}: ${t('organizations.charts.login.tooltip', { count: d.activeUsers, total: totalMembers })}`}
                             />
                         </div>
                         <span
@@ -87,12 +93,37 @@ export function ChartCard({
                 </div>
                 {(headline || delta) && (
                     <div className="text-right shrink-0">
-                        {headline && <div className="tnum text-[19px] font-extrabold text-ink leading-none">{headline}</div>}
+                        {headline && <div className="tnum text-[26px] font-extrabold text-ink leading-none">{headline}</div>}
                         {delta && <div className="mt-1">{delta}</div>}
                     </div>
                 )}
             </div>
             {children}
+        </div>
+    );
+}
+
+/**
+ * Hover tooltip for a bar. Hidden until the enclosing `.group` is hovered, then floats
+ * above the bar. Pointer-events are off so it never blocks the hover it depends on.
+ * Shared chrome — sits with ChartCard so both bar charts reuse the same look without a
+ * circular import.
+ */
+export function ChartTooltip({ label, value }: { label: string; value: string }) {
+    return (
+        <div
+            className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full z-10
+                       whitespace-nowrap rounded-lg px-2.5 py-1.5 text-center shadow-lg
+                       opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ background: 'var(--ink)' }}
+            role="tooltip"
+        >
+            <div className="text-[11px] font-semibold" style={{ color: 'var(--surface)' }}>
+                {label}
+            </div>
+            <div className="tnum text-[12px] font-bold" style={{ color: 'var(--surface)' }}>
+                {value}
+            </div>
         </div>
     );
 }

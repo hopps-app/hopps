@@ -141,7 +141,7 @@ export default function OrganizationDetailView() {
                 {/* Aktivität — replaced by the three usage charts (Login-Zeiten, Beleg-Verbrauch, Token-Verbrauch). */}
                 <div className="flex flex-col gap-5">
                     <LoginActivityChart activity={org.loginActivity} />
-                    <BelegeChart series={org.belegePerMonth} />
+                    <BelegeChart series={org.belegePerMonth} total={org.belegeCount} />
                     <TokenTrendChart series={org.tokensPerMonth} />
                 </div>
             </div>

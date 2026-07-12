@@ -58,15 +58,19 @@
             "members": "Members ({{count}})"
         },
         "charts": {
+            "empty": "No data",
             "login": {
                 "eyebrow": "Login activity",
                 "title": "Logins per day",
-                "subtitle": "Active members · last 7 days",
-                "tooltip": "{{count}} of {{total}} active"
+                "subtitle": "last 7 days",
+                "tooltip_one": "{{count}} login",
+                "tooltip_other": "{{count}} logins"
             },
             "belege": {
                 "eyebrow": "Receipt usage",
-                "title": "Receipts per month"
+                "title": "Receipts per month",
+                "tooltip_one": "{{count}} receipt",
+                "tooltip_other": "{{count}} receipts"
             },
             "tokens": {
                 "eyebrow": "Token usage",

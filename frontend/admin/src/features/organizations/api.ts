@@ -1,4 +1,4 @@
-import type { AdminOrganizationDetail, AdminOrganizationRow as GenRow } from '@hopps/api-client';
+import type { AdminOrganizationDetail, AdminOrganizationRow as GenRow, MonthlyCount } from '@hopps/api-client';
 
 import { apiClient } from '@/services/apiClient';
 
@@ -137,11 +137,42 @@ function toSeries(values: number[], labels: string[]): MonthlySeries {
     return { points, latest, deltaPct };
 }
 
-/** MOCK — Belege per month, rolling 6 months. Deterministic per org, growth toward latest. */
-function mockBelegePerMonth(id: number, now: number): MonthlySeries {
-    const seed = (id % 4) + 1;
-    const raw = [3, 5, 4, 6, 7, 10].map((v) => v * seed * 16);
-    return toSeries(raw, monthLabels(6, now));
+/** Short de-DE month label for one date ("Mai"), dot trimmed. Klar-consistent. */
+function monthLabel(d: Date): string {
+    return new Intl.DateTimeFormat('de-DE', { month: 'short' }).format(d).replace(/\.$/, '');
+}
+
+/**
+ * Map the backend document-activity payload (MonthlyCount[], oldest first, gap-filled)
+ * onto the chart's MonthlySeries. Labels come from each entry's own month, so the axis
+ * stays correct regardless of the backend's window size or the current date.
+ */
+function toMonthlySeries(months: MonthlyCount[]): MonthlySeries {
+    const points = months.map((m) => ({
+        label: m.month ? monthLabel(new Date(m.month)) : '',
+        value: m.count ?? 0,
+    }));
+    const latest = points[points.length - 1]?.value ?? 0;
+    const prev = points[points.length - 2]?.value;
+    const deltaPct = prev && prev > 0 ? (latest - prev) / prev : null;
+    return { points, latest, deltaPct };
+}
+
+const EMPTY_SERIES: MonthlySeries = { points: [], latest: 0, deltaPct: null };
+
+/**
+ * Real per-month uploaded-document (Beleg) counts for one org. Degrades to an empty series
+ * on failure rather than rejecting — a chart-endpoint blip must not fail the whole detail page
+ * (the org detail comes from a different endpoint), it just renders an empty Beleg chart.
+ */
+async function fetchDocumentActivity(id: number): Promise<MonthlySeries> {
+    try {
+        const res = await apiClient.documentActivity(id);
+        return toMonthlySeries(res.months ?? []);
+    } catch (e) {
+        console.error('Failed to load document activity:', e);
+        return EMPTY_SERIES;
+    }
 }
 
 /** MOCK — AI tokens per month, rolling 6 months. Sharp recent ramp, mirrors the mockup. */
@@ -152,15 +183,17 @@ function mockTokensPerMonth(id: number, now: number): MonthlySeries {
 }
 
 export async function fetchOrganizations(): Promise<AdminOrganizationsPage> {
-    // The admin list endpoint is paged; the UI loads all and filters client-side,
-    // so request a generous first page. Revisit if org counts ever grow large.
-    const rows = await apiClient.organizationsAll(0, 100);
+    // The admin list endpoint returns all organizations; the UI filters client-side.
+    // Revisit if org counts ever grow large enough to need server-side paging.
+    const rows = await apiClient.organizationsAll();
     const mapped = rows.map(mapRow);
     return { rows: mapped, total: mapped.length };
 }
 
 export async function fetchOrganization(id: number): Promise<OrganizationDetail | null> {
-    const d = await apiClient.organizationsGET(id);
+    // Detail and the per-month document activity come from separate endpoints; fetch both
+    // in parallel so the detail page has a fully-populated model in one round-trip.
+    const [d, belegePerMonth] = await Promise.all([apiClient.organizationsGET(id), fetchDocumentActivity(id)]);
     return {
         id: d.id ?? id,
         name: d.name ?? '',
@@ -182,7 +215,7 @@ export async function fetchOrganization(id: number): Promise<OrganizationDetail 
         bankImportCount: d.bankImportCount ?? 0,
         tokenUsage: mockTokenUsage(id),
         loginActivity: mockLoginActivity(id, Date.now()),
-        belegePerMonth: mockBelegePerMonth(id, Date.now()),
+        belegePerMonth,
         tokensPerMonth: mockTokensPerMonth(id, Date.now()),
     };
 }

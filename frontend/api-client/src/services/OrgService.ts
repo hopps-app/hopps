@@ -20,20 +20,10 @@ export class Client {
 
     /**
      * List organizations
-     * @param page (optional) Zero-based page index
-     * @param size (optional) Page size (1-100)
      * @return List of organizations
      */
-    organizationsAll(page: number | undefined, size: number | undefined): Promise<AdminOrganizationRow[]> {
-        let url_ = this.baseUrl + "/admin/organizations?";
-        if (page === null)
-            throw new Error("The parameter 'page' cannot be null.");
-        else if (page !== undefined)
-            url_ += "page=" + encodeURIComponent("" + page) + "&";
-        if (size === null)
-            throw new Error("The parameter 'size' cannot be null.");
-        else if (size !== undefined)
-            url_ += "size=" + encodeURIComponent("" + size) + "&";
+    organizationsAll(): Promise<AdminOrganizationRow[]> {
+        let url_ = this.baseUrl + "/admin/organizations";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -183,6 +173,114 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Organization document-upload activity
+     * @param id The organization id
+     * @return Per-month document-upload activity
+     */
+    documentActivity(id: number): Promise<MonthlyUploadResponse> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/document-activity";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentActivity(_response);
+        });
+    }
+
+    protected processDocumentActivity(response: Response): Promise<MonthlyUploadResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MonthlyUploadResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MonthlyUploadResponse>(null as any);
+    }
+
+    /**
+     * Organization login activity
+     * @param id The organization id
+     * @return Per-day login activity
+     */
+    loginActivity(id: number): Promise<LoginActivityResponse> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/login-activity";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLoginActivity(_response);
+        });
+    }
+
+    protected processLoginActivity(response: Response): Promise<LoginActivityResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = LoginActivityResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<LoginActivityResponse>(null as any);
     }
 
     /**
@@ -4587,7 +4685,7 @@ export class AdminOrganizationDetail implements IAdminOrganizationDetail {
     slug?: string;
     /** Owner's email, or any member's email, or null */
     contactEmail?: string;
-    /** Number of transactions (Belege) booked for this organization */
+    /** Number of uploaded documents (Belege) for this organization */
     belegeCount?: number;
     /** Most recent activity across all members, or null if never seen */
     lastActivityAt?: Date;
@@ -4702,7 +4800,7 @@ export interface IAdminOrganizationDetail {
     slug?: string;
     /** Owner's email, or any member's email, or null */
     contactEmail?: string;
-    /** Number of transactions (Belege) booked for this organization */
+    /** Number of uploaded documents (Belege) for this organization */
     belegeCount?: number;
     /** Most recent activity across all members, or null if never seen */
     lastActivityAt?: Date;
@@ -4735,7 +4833,7 @@ export class AdminOrganizationRow implements IAdminOrganizationRow {
     slug?: string;
     /** Owner's email, or any member's email, or null */
     contactEmail?: string;
-    /** Number of transactions (Belege) booked for this organization */
+    /** Number of uploaded documents (Belege) for this organization */
     belegeCount?: number;
     /** Most recent activity across all members, or null if never seen */
     lastActivityAt?: Date;
@@ -4810,7 +4908,7 @@ export interface IAdminOrganizationRow {
     slug?: string;
     /** Owner's email, or any member's email, or null */
     contactEmail?: string;
-    /** Number of transactions (Belege) booked for this organization */
+    /** Number of uploaded documents (Belege) for this organization */
     belegeCount?: number;
     /** Most recent activity across all members, or null if never seen */
     lastActivityAt?: Date;
@@ -6589,6 +6687,71 @@ export interface ICsvPreviewResponse {
     [key: string]: any;
 }
 
+/** Distinct active members for a single day */
+export class DailyActivity implements IDailyActivity {
+    /** The calendar day */
+    day?: Date;
+    /** Number of distinct members active that day */
+    activeUsers?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IDailyActivity) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.day = _data["day"] ? new Date(_data["day"].toString()) : <any>undefined;
+            this.activeUsers = _data["activeUsers"];
+        }
+    }
+
+    static fromJS(data: any): DailyActivity {
+        data = typeof data === 'object' ? data : {};
+        let result = new DailyActivity();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["day"] = this.day ? formatDate(this.day) : <any>undefined;
+        data["activeUsers"] = this.activeUsers;
+        return data;
+    }
+
+    clone(): DailyActivity {
+        const json = this.toJSON();
+        let result = new DailyActivity();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Distinct active members for a single day */
+export interface IDailyActivity {
+    /** The calendar day */
+    day?: Date;
+    /** Number of distinct members active that day */
+    activeUsers?: number;
+
+    [key: string]: any;
+}
+
 export type DetectionType = "ORG" | "TEMPLATE" | "NONE";
 
 export type DocumentDirection = "INCOMING" | "OUTGOING";
@@ -6875,6 +7038,79 @@ export interface IDocumentUpdateRequest {
 
 export type ExtractionSource = "ZUGFERD" | "AI" | "MANUAL";
 
+/** Per-day login activity for an organization over the retention window */
+export class LoginActivityResponse implements ILoginActivityResponse {
+    /** Total members of the organization */
+    totalMembers?: number;
+    /** One entry per day, oldest first, gaps filled with zero */
+    days?: DailyActivity[];
+
+    [key: string]: any;
+
+    constructor(data?: ILoginActivityResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.totalMembers = _data["totalMembers"];
+            if (Array.isArray(_data["days"])) {
+                this.days = [] as any;
+                for (let item of _data["days"])
+                    this.days!.push(DailyActivity.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): LoginActivityResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new LoginActivityResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["totalMembers"] = this.totalMembers;
+        if (Array.isArray(this.days)) {
+            data["days"] = [];
+            for (let item of this.days)
+                data["days"].push(item ? item.toJSON() : <any>undefined);
+        }
+        return data;
+    }
+
+    clone(): LoginActivityResponse {
+        const json = this.toJSON();
+        let result = new LoginActivityResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Per-day login activity for an organization over the retention window */
+export interface ILoginActivityResponse {
+    /** Total members of the organization */
+    totalMembers?: number;
+    /** One entry per day, oldest first, gaps filled with zero */
+    days?: DailyActivity[];
+
+    [key: string]: any;
+}
+
 /** An example of a Hopps Member */
 export class Member implements IMember {
     id?: number;
@@ -6956,6 +7192,138 @@ export interface IMember {
     lastName: string;
     email: string;
     organizations?: Organization[];
+
+    [key: string]: any;
+}
+
+/** Uploaded documents for a single month */
+export class MonthlyCount implements IMonthlyCount {
+    /** First day of the month */
+    month?: Date;
+    /** Number of documents uploaded that month */
+    count?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IMonthlyCount) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.month = _data["month"] ? new Date(_data["month"].toString()) : <any>undefined;
+            this.count = _data["count"];
+        }
+    }
+
+    static fromJS(data: any): MonthlyCount {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlyCount();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["month"] = this.month ? formatDate(this.month) : <any>undefined;
+        data["count"] = this.count;
+        return data;
+    }
+
+    clone(): MonthlyCount {
+        const json = this.toJSON();
+        let result = new MonthlyCount();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Uploaded documents for a single month */
+export interface IMonthlyCount {
+    /** First day of the month */
+    month?: Date;
+    /** Number of documents uploaded that month */
+    count?: number;
+
+    [key: string]: any;
+}
+
+/** Per-month document-upload activity for an organization over the reporting window */
+export class MonthlyUploadResponse implements IMonthlyUploadResponse {
+    /** One entry per month, oldest first, gaps filled with zero */
+    months?: MonthlyCount[];
+
+    [key: string]: any;
+
+    constructor(data?: IMonthlyUploadResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["months"])) {
+                this.months = [] as any;
+                for (let item of _data["months"])
+                    this.months!.push(MonthlyCount.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): MonthlyUploadResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlyUploadResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.months)) {
+            data["months"] = [];
+            for (let item of this.months)
+                data["months"].push(item ? item.toJSON() : <any>undefined);
+        }
+        return data;
+    }
+
+    clone(): MonthlyUploadResponse {
+        const json = this.toJSON();
+        let result = new MonthlyUploadResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Per-month document-upload activity for an organization over the reporting window */
+export interface IMonthlyUploadResponse {
+    /** One entry per month, oldest first, gaps filled with zero */
+    months?: MonthlyCount[];
 
     [key: string]: any;
 }
