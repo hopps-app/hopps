@@ -98,14 +98,14 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
     }
 
     /**
-     * Distinct active member count per day for one organization over the inclusive {@code [from, to]} range. Every day
-     * in the range is returned (days with no activity as 0) via {@code generate_series}, so the result is gap-free and
-     * chart-ready.
+     * Total activity events per day for one organization over the inclusive {@code [from, to]} range, summed across the
+     * organization's members (each member's per-day {@code activity_count}). Every day in the range is returned (days
+     * with no activity as 0) via {@code generate_series}, so the result is gap-free and chart-ready.
      */
     @SuppressWarnings("unchecked")
-    public List<DailyActivity> dailyActiveCountsForOrganization(long organizationId, LocalDate from, LocalDate to) {
+    public List<DailyActivity> dailyActivityCountsForOrganization(long organizationId, LocalDate from, LocalDate to) {
         List<Object[]> rows = entityManager.createNativeQuery(
-                "select d::date as day, count(distinct a.member_id) as active_users "
+                "select d::date as day, coalesce(sum(a.activity_count), 0) as activity_count "
                         + "from generate_series(:from, :to, interval '1 day') d "
                         + "left join member_activity_day a on a.activity_date = d::date "
                         + "and a.member_id in (select member_id from member_verein where organizations_id = :orgId) "
