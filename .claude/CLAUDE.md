@@ -14,7 +14,6 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
   /spa            - React Web-Anwendung
   /mobile         - React Native Mobile App
   /api-client     - Shared TypeScript API Client
-  /figma_inspo    - UI/UX Design Inspiration und Referenzimplementierungen
   /keycloak-theme - Custom Keycloak Theme
 /infrastructure   - Docker Compose & Deployment
 /charts           - Helm Charts für Kubernetes
@@ -70,19 +69,6 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
 - **Multi-Database:** Separate DBs für org, keycloak
 - **Schema Version:** V1.0.2
-
-### Bekannte Architektur-Issues
-Es gibt 8 identifizierte Inkonsistenzen im Backend:
-1. Inkonsistente REST Package-Benennung (`rest/` vs `endpoint/`)
-2. Unterschiedliche Entity-Organisation (`jpa/` vs `jpa/entities/`)
-3. Code-Duplikate (KogitoEndpointFilter, getUserOrganization)
-4. Gemischte DTO-Patterns (records vs classes)
-5. Naming Collisions (Bommel Entity vs Bommel DTO)
-6. Business Logic Layer Benennung (`delegates/` vs `bpmn/`)
-7. Falsch platzierter Infrastructure Code
-8. Unvollständige Resources (MemberResource)
-
-**Geplante Verbesserung:** Migration zu Vertical Slice Architecture (siehe `backend-vertical-slice-plan.md`)
 
 ## Frontend
 
