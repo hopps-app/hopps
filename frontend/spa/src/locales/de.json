@@ -449,6 +449,8 @@
             "area": "Sphäre",
             "privatelyPaid": "Privat vorgestreckt",
             "privatelyPaidHint": "Ich habe den Betrag zunächst aus eigener Tasche bezahlt",
+            "privatelyReceived": "Privat entgegengenommen",
+            "privatelyReceivedHint": "Jemand hat den Betrag zunächst privat entgegengenommen",
             "tags": "Tags",
             "tagsPlaceholder": "Tag eingeben und Enter drücken",
             "save": "Speichern",

@@ -387,10 +387,14 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                 )}
                             </span>
                             <div className="min-w-0">
+                                {/* Wording depends on direction: an expense was privately advanced/paid, an income was
+                                    privately received first (someone collected the money before it reached the org). */}
                                 <p className="text-[14px] font-bold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
-                                    {t('transactions.create.privatelyPaid')}
+                                    {direction === 'income' ? t('transactions.create.privatelyReceived') : t('transactions.create.privatelyPaid')}
                                 </p>
-                                <p className="text-[12px] text-[#6B6B76] leading-snug">{t('transactions.create.privatelyPaidHint')}</p>
+                                <p className="text-[12px] text-[#6B6B76] leading-snug">
+                                    {direction === 'income' ? t('transactions.create.privatelyReceivedHint') : t('transactions.create.privatelyPaidHint')}
+                                </p>
                             </div>
                         </button>
                     </div>

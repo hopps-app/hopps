@@ -37,14 +37,17 @@ function fmtDate(date: string | Date | undefined): string {
 
 function BookingMini({ tx }: { tx: BankTransactionResponse }) {
     return (
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-start gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl flex-shrink-0 bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center">
                 <Landmark className="w-5 h-5" />
             </div>
             <div className="min-w-0">
                 <div className="text-sm font-bold truncate">{tx.counterpartyName || '—'}</div>
-                <div className="text-xs text-muted-foreground truncate">
-                    {fmtDate(tx.bookingDate)} · {tx.purpose}
+                {/* Show the full purpose ("Verwendungszweck") — wrap over as many lines as needed instead of truncating,
+                    so a long reference (e.g. customer/invoice numbers) stays fully readable in the summary. */}
+                <div className="text-xs text-muted-foreground break-words">
+                    {fmtDate(tx.bookingDate)}
+                    {tx.purpose ? ` · ${tx.purpose}` : ''}
                 </div>
             </div>
         </div>

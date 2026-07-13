@@ -450,6 +450,8 @@
             "area": "Sphere",
             "privatelyPaid": "Privately paid",
             "privatelyPaidHint": "I paid this amount out of my own pocket first",
+            "privatelyReceived": "Privately received",
+            "privatelyReceivedHint": "Someone received this amount privately first",
             "tags": "Tags",
             "tagsPlaceholder": "Type a tag and press Enter",
             "save": "Save",

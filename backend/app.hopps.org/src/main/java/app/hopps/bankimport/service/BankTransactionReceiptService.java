@@ -126,9 +126,6 @@ public class BankTransactionReceiptService {
         if (bankTx.getBookingDate() != null) {
             transaction.setTransactionTime(bankTx.getBookingDate().atStartOfDay(ZoneOffset.UTC).toInstant());
         }
-        if (bankTx.getBankAccount() != null) {
-            transaction.setBommel(bankTx.getBankAccount().getBommel());
-        }
         // Vertragspartner = counterparty of the bank movement. The entity places it on the side matching the
         // direction and records the organization on the other side.
         if (bankTx.getCounterpartyName() != null && !bankTx.getCounterpartyName().isBlank()) {

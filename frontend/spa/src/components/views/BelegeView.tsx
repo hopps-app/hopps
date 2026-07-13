@@ -360,6 +360,9 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
             setAmount(linkedTx.total != null ? String(Math.abs(Number(linkedTx.total))) : '');
             setDate(linkedTx.transactionTime ? new Date(linkedTx.transactionTime).toISOString().slice(0, 10) : '');
             setSenderName(linkedTx.senderName ?? '');
+            // Use the transaction's own bommel once it has one (e.g. a value already saved on the draft); a freshly
+            // created draft carries no bommel (the backend no longer seeds the bank account's root bommel), so this
+            // falls back to the shared "last used" bommel cache — the same one the transaction forms use.
             setBommelId(initialBommelId(linkedTx.bommelId));
             setPrivatelyPaid(linkedTx.privatelyPaid ?? false);
             setDirection(Number(linkedTx.total ?? 0) < 0 ? 'INCOMING' : 'OUTGOING');
