@@ -48,6 +48,10 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
     /**
      * Cross-account listing scoped to the current organization, with optional filters. {@code accountIds=null} means
      * all accounts; empty list means no result.
+     * <p>
+     * When {@code search} is a numeric amount, exact amount matches (full or still-open) are ordered first so the
+     * intended reconciliation candidate surfaces at the top and cannot be pushed off the page by the many
+     * same-/similar-amount or textually matching transactions that a large account accumulates.
      */
     public List<BankTransaction> findFiltered(
             List<Long> accountIds,
@@ -55,66 +59,49 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             LocalDate toDate,
             List<BankTransactionStatus> statuses,
             String search,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
             String sortBy,
             boolean ascending,
             Page page) {
-        Long orgId = organizationContext.getCurrentOrganizationId();
-        StringBuilder query = new StringBuilder("organization.id = :orgId");
+        if (accountIds != null && accountIds.isEmpty()) {
+            return List.of();
+        }
         Map<String, Object> params = new HashMap<>();
-        params.put("orgId", orgId);
+        String where = buildAggregateWhere(accountIds, fromDate, toDate, statuses, search, minAmount, maxAmount,
+                params);
+        String orderBy = buildOrderBy(sortBy, ascending, params.containsKey("searchAmount"));
 
-        if (accountIds != null) {
-            if (accountIds.isEmpty()) {
-                return List.of();
-            }
-            query.append(" and bankAccount.id in :accountIds");
-            params.put("accountIds", accountIds);
-        }
-        if (fromDate != null) {
-            query.append(" and bookingDate >= :fromDate");
-            params.put("fromDate", fromDate);
-        }
-        if (toDate != null) {
-            query.append(" and bookingDate <= :toDate");
-            params.put("toDate", toDate);
-        }
-        if (statuses != null && !statuses.isEmpty()) {
-            query.append(" and status in :statuses");
-            params.put("statuses", statuses);
-        }
-        if (search != null && !search.isBlank()) {
-            query.append(" and (lower(purpose) like :search or lower(counterpartyName) like :search");
-            params.put("search", "%" + search.toLowerCase() + "%");
-            BigDecimal amount = parseSearchAmount(search);
-            if (amount != null) {
-                // A numeric search term additionally matches the amount, on the absolute value so the sign
-                // convention (outgoing = negative) is irrelevant to the user. Both the full amount and the
-                // still-open amount (full minus already matched) are matched, so a receipt can be found by the
-                // remaining amount shown in the picker.
-                query.append(" or abs(amount) = :searchAmount or abs(amount) - matchedAmount = :searchAmount");
-                params.put("searchAmount", amount.abs());
-            }
-            query.append(")");
-        }
-
-        return find(query.toString(), buildSort(sortBy, ascending), params)
-                .page(page)
-                .list();
+        var query = getEntityManager().createQuery(
+                "SELECT t FROM BankTransaction t WHERE " + where + " ORDER BY " + orderBy, BankTransaction.class);
+        params.forEach(query::setParameter);
+        query.setFirstResult(page.index * page.size);
+        query.setMaxResults(page.size);
+        return query.getResultList();
     }
 
     /**
-     * Builds a whitelisted {@link Sort} for the transaction listing. Only a fixed set of columns may be sorted on (to
-     * prevent injecting arbitrary JPQL paths); anything else falls back to {@code bookingDate}. A descending {@code id}
-     * is always appended as a stable tie-breaker.
+     * Builds a whitelisted ORDER BY clause for the transaction listing. Only a fixed set of columns may be sorted on
+     * (to prevent injecting arbitrary JPQL paths); anything else falls back to {@code bookingDate}. When a numeric
+     * amount was searched for ({@code searchAmount} bound), exact amount matches are ranked first. A descending
+     * {@code id} is always appended as a stable tie-breaker.
      */
-    private static Sort buildSort(String sortBy, boolean ascending) {
+    private static String buildOrderBy(String sortBy, boolean ascending, boolean hasSearchAmount) {
         String column = switch (sortBy == null ? "" : sortBy) {
             case "amount" -> "amount";
             case "counterpartyName" -> "counterpartyName";
             default -> "bookingDate";
         };
-        Sort.Direction direction = ascending ? Sort.Direction.Ascending : Sort.Direction.Descending;
-        return Sort.by(column, direction).and("id", Sort.Direction.Descending);
+        String direction = ascending ? "ASC" : "DESC";
+        StringBuilder orderBy = new StringBuilder();
+        if (hasSearchAmount) {
+            // Exact amount matches (full amount or the still-open remainder) come first — same predicate as the
+            // amount clause built in buildAggregateWhere, reusing its :searchAmount parameter.
+            orderBy.append(
+                    "CASE WHEN abs(t.amount) = :searchAmount OR abs(t.amount) - t.matchedAmount = :searchAmount THEN 0 ELSE 1 END ASC, ");
+        }
+        orderBy.append("t.").append(column).append(' ').append(direction).append(", t.id DESC");
+        return orderBy.toString();
     }
 
     /** Returns [sumIncoming, sumOutgoing] for the same filter set. Net = sumIncoming + sumOutgoing (signed). */
@@ -123,12 +110,15 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             LocalDate fromDate,
             LocalDate toDate,
             List<BankTransactionStatus> statuses,
-            String search) {
+            String search,
+            BigDecimal minAmount,
+            BigDecimal maxAmount) {
         if (accountIds != null && accountIds.isEmpty()) {
             return new BigDecimal[] { BigDecimal.ZERO, BigDecimal.ZERO };
         }
         Map<String, Object> params = new HashMap<>();
-        String where = buildAggregateWhere(accountIds, fromDate, toDate, statuses, search, params);
+        String where = buildAggregateWhere(accountIds, fromDate, toDate, statuses, search, minAmount, maxAmount,
+                params);
 
         String jpql = "SELECT " +
                 "COALESCE(SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END), 0), " +
@@ -153,12 +143,15 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             LocalDate fromDate,
             LocalDate toDate,
             List<BankTransactionStatus> statuses,
-            String search) {
+            String search,
+            BigDecimal minAmount,
+            BigDecimal maxAmount) {
         if (accountIds != null && accountIds.isEmpty()) {
             return 0L;
         }
         Map<String, Object> params = new HashMap<>();
-        String where = buildAggregateWhere(accountIds, fromDate, toDate, statuses, search, params);
+        String where = buildAggregateWhere(accountIds, fromDate, toDate, statuses, search, minAmount, maxAmount,
+                params);
 
         var query = getEntityManager().createQuery("SELECT COUNT(t) FROM BankTransaction t WHERE " + where, Long.class);
         params.forEach(query::setParameter);
@@ -175,6 +168,8 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             LocalDate toDate,
             List<BankTransactionStatus> statuses,
             String search,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
             Map<String, Object> params) {
         Long orgId = organizationContext.getCurrentOrganizationId();
         StringBuilder where = new StringBuilder("t.organization.id = :orgId");
@@ -195,6 +190,16 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
         if (statuses != null && !statuses.isEmpty()) {
             where.append(" AND t.status IN :statuses");
             params.put("statuses", statuses);
+        }
+        // Amount range filters on the *magnitude* (abs), mirroring how the free-text search matches an amount and how
+        // the user reads the signed Amount column: e.g. "50–100" matches both a +75 income and a -75 expense.
+        if (minAmount != null) {
+            where.append(" AND abs(t.amount) >= :minAmount");
+            params.put("minAmount", minAmount.abs());
+        }
+        if (maxAmount != null) {
+            where.append(" AND abs(t.amount) <= :maxAmount");
+            params.put("maxAmount", maxAmount.abs());
         }
         if (search != null && !search.isBlank()) {
             where.append(" AND (lower(t.purpose) LIKE :search OR lower(t.counterpartyName) LIKE :search");
@@ -238,7 +243,8 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
     }
 
     public List<BankTransaction> findForAccount(Long bankAccountId, Page page) {
-        return findFiltered(new ArrayList<>(List.of(bankAccountId)), null, null, null, null, null, false, page);
+        return findFiltered(new ArrayList<>(List.of(bankAccountId)), null, null, null, null, null, null, null, false,
+                page);
     }
 
     /**

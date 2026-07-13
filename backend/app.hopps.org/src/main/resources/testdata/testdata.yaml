@@ -558,9 +558,251 @@ transactions:
     createdBy: "alice@example.test"
     senderName: "Catering Solutions Ltd"
 
+# Test receipts (Belege / Documents), linked to existing transactions so the receipts view is populated and the
+# bank-transaction reconciliation drawer is reachable from the receipt side too. These have no file in S3 — the file
+# endpoint returns 404 for them (no preview), which the UI handles gracefully.
+documents:
+  - id: 1
+    organizationId: 4
+    bommelId: 23
+    transactionId: 1
+    name: "Rechnung Office Depot"
+    total: 125.50
+    currencyCode: "EUR"
+    transactionTime: "2026-02-01T10:00:00Z"
+    fileName: "beleg-office-depot.pdf"
+    direction: "INCOMING"
+
+  - id: 2
+    organizationId: 4
+    bommelId: 24
+    transactionId: 2
+    name: "Rechnung Kaffeemaschine"
+    total: 450.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-02T11:30:00Z"
+    fileName: "beleg-kaffeemaschine.pdf"
+    direction: "INCOMING"
+
+  - id: 3
+    organizationId: 4
+    bommelId: 25
+    transactionId: 3
+    name: "Mietbeleg Februar"
+    total: 1500.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-03T09:00:00Z"
+    fileName: "beleg-miete-februar.pdf"
+    direction: "INCOMING"
+
+  - id: 4
+    organizationId: 4
+    bommelId: 26
+    transactionId: 4
+    name: "Beleg Workshop-Material"
+    total: 275.30
+    currencyCode: "EUR"
+    transactionTime: "2026-02-04T14:15:00Z"
+    fileName: "beleg-workshop-material.pdf"
+    direction: "INCOMING"
+
+  - id: 5
+    organizationId: 4
+    bommelId: 27
+    transactionId: 5
+    name: "Förderbescheid Stadt"
+    total: 5000.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-05T16:00:00Z"
+    fileName: "beleg-foerderbescheid.pdf"
+    direction: "OUTGOING"
+
+# Test bank account (Bühnefrei e.V., organization id=4). A seed BankImport is created automatically for it.
+bankAccounts:
+  - id: 1
+    organizationId: 4
+    bommelId: 23
+    name: "Testkonto Bühnefrei"
+    iban: "DE02120300000000202051"
+    bic: "BYLADEM1001"
+    bankName: "Testbank"
+    accountHolder: "Theatervereine Bühnefrei e.V."
+    currency: "EUR"
+    openingBalance: 10000.00
+    openingBalanceDate: "2025-12-31"
+    description: "Girokonto für Testzwecke"
+    color: "#7E3FB4"
+    createdBy: "alice@example.test"
+
+# Test bank transactions on account 1 (negative = outgoing/expense, positive = incoming/income).
+# ids 1-14: one exact-amount match for (almost) every existing transaction, so linking is testable everywhere.
+# ids 15-20: the amount-priority demo for transaction 2 (total 450,00) — see the note further down.
+# id 21: a partially matched transaction whose still-open amount (340,00) matches transaction 11.
+# Additionally the loader generates 25 "450,00"-in-purpose noise rows (ids 101-125) so the "450,00" search
+# exceeds the picker's 25-row page.
+bankTransactions:
+  - id: 1
+    bankAccountId: 1
+    bookingDate: "2026-01-05"
+    amount: -125.50
+    counterpartyName: "Office Depot GmbH"
+    purpose: "Bürobedarf Rechnung"
+
+  - id: 2
+    bankAccountId: 1
+    bookingDate: "2026-01-06"
+    amount: -1500.00
+    counterpartyName: "Property Management Ltd"
+    purpose: "Miete Februar"
+
+  - id: 3
+    bankAccountId: 1
+    bookingDate: "2026-01-07"
+    amount: -275.30
+    counterpartyName: "Craft Supplies Inc"
+    purpose: "Workshop Material"
+
+  - id: 4
+    bankAccountId: 1
+    bookingDate: "2026-01-08"
+    amount: 5000.00
+    counterpartyName: "City Council"
+    purpose: "Projektförderung"
+
+  - id: 5
+    bankAccountId: 1
+    bookingDate: "2026-01-09"
+    amount: -890.00
+    counterpartyName: "Theater Supplies GmbH"
+    purpose: "Kostüme"
+
+  - id: 6
+    bankAccountId: 1
+    bookingDate: "2026-01-10"
+    amount: -320.50
+    counterpartyName: "Props Warehouse"
+    purpose: "Bühnenrequisiten"
+
+  - id: 7
+    bankAccountId: 1
+    bookingDate: "2026-01-11"
+    amount: -1200.00
+    counterpartyName: "Stage Tech Solutions"
+    purpose: "Lichttechnik"
+
+  - id: 8
+    bankAccountId: 1
+    bookingDate: "2026-01-12"
+    amount: -2500.00
+    counterpartyName: "Audio Pro GmbH"
+    purpose: "Soundsystem"
+
+  - id: 9
+    bankAccountId: 1
+    bookingDate: "2026-01-13"
+    amount: -450.75
+    counterpartyName: "Print Shop Ltd"
+    purpose: "Marketingmaterial"
+
+  - id: 10
+    bankAccountId: 1
+    bookingDate: "2026-01-14"
+    amount: -340.00
+    counterpartyName: "City Utilities"
+    purpose: "Nebenkosten"
+
+  - id: 11
+    bankAccountId: 1
+    bookingDate: "2026-01-15"
+    amount: -600.00
+    counterpartyName: "Professional Trainers AG"
+    purpose: "Schulung"
+
+  - id: 12
+    bankAccountId: 1
+    bookingDate: "2026-01-16"
+    amount: -1800.00
+    counterpartyName: "Insurance Company"
+    purpose: "Versicherungsprämie"
+
+  - id: 13
+    bankAccountId: 1
+    bookingDate: "2026-01-17"
+    amount: -750.00
+    counterpartyName: "Event Spaces GmbH"
+    purpose: "Raumbuchung"
+
+  - id: 14
+    bankAccountId: 1
+    bookingDate: "2026-01-18"
+    amount: -420.00
+    counterpartyName: "Catering Solutions Ltd"
+    purpose: "Catering"
+
+  # --- Amount-priority demo for transaction 2 (total 450,00) ---
+  # id 15 is the ONLY exact 450,00 match and is booked earliest (2026-01-02). ids 16-20 (and the generated noise)
+  # merely contain "450,00" in their purpose but have a different amount, and are booked later. Sorted by booking
+  # date (the old behaviour) the exact match lands last and falls off the 25-row page; with the amount-priority
+  # fix it is ranked first and shows at the top of the picker.
+  - id: 15
+    bankAccountId: 1
+    bookingDate: "2026-01-02"
+    amount: -450.00
+    counterpartyName: "Tech Store AG"
+    purpose: "Kaffeemaschine"
+
+  - id: 16
+    bankAccountId: 1
+    bookingDate: "2026-03-10"
+    amount: -150.00
+    counterpartyName: "Ratenkauf AG"
+    purpose: "Rate 1/3 zu 450,00 EUR"
+
+  - id: 17
+    bankAccountId: 1
+    bookingDate: "2026-03-12"
+    amount: -150.00
+    counterpartyName: "Ratenkauf AG"
+    purpose: "Rate 2/3 zu 450,00 EUR"
+
+  - id: 18
+    bankAccountId: 1
+    bookingDate: "2026-03-14"
+    amount: -150.00
+    counterpartyName: "Ratenkauf AG"
+    purpose: "Rate 3/3 zu 450,00 EUR"
+
+  - id: 19
+    bankAccountId: 1
+    bookingDate: "2026-03-16"
+    amount: -1450.00
+    counterpartyName: "Möbel Meyer"
+    purpose: "Sideboard 1450,00"
+
+  - id: 20
+    bankAccountId: 1
+    bookingDate: "2026-03-18"
+    amount: -2450.00
+    counterpartyName: "Bühnenbau GmbH"
+    purpose: "Podest 2450,00"
+
+  # --- Partial-match demo: still-open amount 340,00 matches transaction 11 ---
+  - id: 21
+    bankAccountId: 1
+    bookingDate: "2026-02-20"
+    amount: -540.00
+    counterpartyName: "Sammelrechnung GmbH"
+    purpose: "Teilzahlung, offen 340,00"
+    status: "PARTIALLY_MATCHED"
+    matchedAmount: 200.00
+
 # Sequence configuration for ID generators
 sequences:
   Bommel_SEQ: 30
   Organization_SEQ: 4
   Member_SEQ: 23
   Transaction_SEQ: 15
+  Document_SEQ: 5
+  BankAccount_SEQ: 1
+  BankImport_SEQ: 1
+  BankTransaction_SEQ: 200

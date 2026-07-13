@@ -1,5 +1,5 @@
 import { TransactionResponse } from '@hopps/api-client';
-import { Link2, Unlink, ExternalLink, Landmark, Loader2, Search, X } from 'lucide-react';
+import { Link2, Unlink, ExternalLink, FileText, Landmark, Loader2, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,7 @@ import {
     useAddBankTransactionMatch,
     useRemoveBankTransactionMatch,
 } from '@/hooks/queries/useBankAccounts';
+import { cn } from '@/lib/utils';
 
 function fmtCurrency(amount: number | undefined): string {
     if (amount === undefined || amount === null) return '—';
@@ -59,6 +60,20 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const [search, setSearch] = useState('');
     const { data: results, isFetching } = useBankTransactionSearch(search, pickerOpen);
+
+    // The purpose ("Verwendungszweck") is often long, so it is hidden by default; the user can reveal it per candidate
+    // to check the assignment (e.g. that the reference contains the invoice number). Tracks which rows are expanded.
+    const [purposeShown, setPurposeShown] = useState<Set<number>>(new Set());
+    const togglePurpose = (id: number) =>
+        setPurposeShown((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
 
     const linkedIds = new Set((linked ?? []).map((b) => b.id));
 
@@ -182,25 +197,63 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                         ) : candidates.length === 0 ? (
                             <p className="px-3 py-4 text-[13px] text-[#9A9AA3] text-center">{t('transactions.detail.bankNoResults')}</p>
                         ) : (
-                            candidates.map((b) => (
-                                <button
-                                    key={b.id}
-                                    onClick={() => link(b.id!)}
-                                    disabled={addMatch.isPending}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-[#F1F1F4] last:border-b-0 hover:bg-[#F3EAFB] transition-colors disabled:opacity-50"
-                                >
-                                    <span className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F1F1F4' }}>
-                                        <Landmark size={15} className="text-[#6B6B76]" />
-                                    </span>
-                                    <span className="flex flex-col min-w-0 flex-1">
-                                        <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
-                                        <span className="text-[12px] text-[#6B6B76]">
-                                            {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
-                                        </span>
-                                    </span>
-                                    <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
-                                </button>
-                            ))
+                            candidates.map((b) => {
+                                const showPurpose = b.id != null && purposeShown.has(b.id);
+                                return (
+                                    <div key={b.id} className="border-b border-[#F1F1F4] last:border-b-0">
+                                        <div className="w-full flex items-center gap-2 pl-3 pr-2 hover:bg-[#F3EAFB] transition-colors">
+                                            <button
+                                                onClick={() => link(b.id!)}
+                                                disabled={addMatch.isPending}
+                                                className="flex items-center gap-3 min-w-0 flex-1 py-2.5 text-left disabled:opacity-50"
+                                            >
+                                                <span
+                                                    className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
+                                                    style={{ background: '#F1F1F4' }}
+                                                >
+                                                    <Landmark size={15} className="text-[#6B6B76]" />
+                                                </span>
+                                                <span className="flex flex-col min-w-0 flex-1">
+                                                    <span className="text-[13px] font-bold text-[#1B1B1F] truncate">
+                                                        {b.counterpartyName || b.purpose || '—'}
+                                                    </span>
+                                                    <span className="text-[12px] text-[#6B6B76]">
+                                                        {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
+                                                    </span>
+                                                </span>
+                                                <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
+                                            </button>
+                                            {b.purpose && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => togglePurpose(b.id!)}
+                                                    aria-expanded={showPurpose}
+                                                    title={showPurpose ? t('transactions.detail.hidePurpose') : t('transactions.detail.showPurpose')}
+                                                    className={cn(
+                                                        'w-7 h-7 flex items-center justify-center rounded-full border transition-colors flex-shrink-0',
+                                                        showPurpose
+                                                            ? 'border-[#C7A2E3] text-[#7E3FB4] bg-[#F3EAFB]'
+                                                            : 'border-[#E9E9EE] text-[#9A9AA3] hover:text-[#7E3FB4] hover:border-[#C7A2E3]'
+                                                    )}
+                                                >
+                                                    <FileText size={13} />
+                                                </button>
+                                            )}
+                                        </div>
+                                        {showPurpose && b.purpose && (
+                                            <div className="px-3 pb-2.5">
+                                                <p
+                                                    className="text-[12px] text-[#4B4B55] whitespace-pre-wrap break-words rounded-[8px] px-2.5 py-2"
+                                                    style={{ background: '#F8F8FA' }}
+                                                >
+                                                    <span className="font-semibold text-[#6B6B76]">{t('transactions.detail.purpose')}: </span>
+                                                    {b.purpose}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })
                         )}
                     </div>
                 </div>

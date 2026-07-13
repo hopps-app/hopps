@@ -192,6 +192,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                   date: date || null,
                   counterparty: senderName || null,
                   name: name || null,
+                  bommelId: bommelId ? Number(bommelId) : null,
               },
               [{ amount: bankTx?.amount }]
           )

@@ -198,16 +198,17 @@ public class BankTransactionMatchService {
     }
 
     /**
-     * Returns the total magnitude of bank movement linked to the given bookkeeping transaction — the sum of the
-     * absolute amounts of all bank transactions matched to it. Used to check whether a transaction's amount is fully
-     * covered by bank transactions before it may be confirmed. Bank amount and transaction total share the same sign
-     * convention, so absolute values are compared.
+     * Returns the magnitude of net bank movement linked to the given bookkeeping transaction — the absolute value of
+     * the (signed) sum of all matched bank transactions' amounts. Used to check whether a transaction's amount is fully
+     * covered before it may be confirmed. Summing signed (not absolute) amounts lets opposite movements net out, e.g.
+     * -5, +5, -5 covers a 5 expense; summing absolute values would over-count them to 15 and block confirmation.
      */
     public BigDecimal getCoveredAmountForTransaction(Long transactionId) {
-        return (BigDecimal) em.createQuery(
-                "SELECT COALESCE(SUM(ABS(m.bankTransaction.amount)), 0) FROM BankTransactionMatch m WHERE m.transaction.id = :txId")
+        BigDecimal netAmount = (BigDecimal) em.createQuery(
+                "SELECT COALESCE(SUM(m.bankTransaction.amount), 0) FROM BankTransactionMatch m WHERE m.transaction.id = :txId")
                 .setParameter("txId", transactionId)
                 .getSingleResult();
+        return netAmount.abs();
     }
 
     public List<Long> getMatchedTransactionIds(Long bankTxId) {

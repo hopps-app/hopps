@@ -224,7 +224,7 @@ public class TransactionResource {
     @POST
     @Path("/{id}/confirm")
     @Transactional
-    @Operation(summary = "Confirm a transaction", description = "Marks a transaction as confirmed. Only permitted when the mandatory fields (amount, date, counterparty, name) are set and the amount is exactly covered by linked bank transactions.")
+    @Operation(summary = "Confirm a transaction", description = "Marks a transaction as confirmed. Only permitted when the mandatory fields (amount, date, counterparty, name, bommel) are set and the amount is exactly covered by linked bank transactions.")
     @APIResponse(responseCode = "200", description = "Transaction confirmed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse.class)))
     @APIResponse(responseCode = "400", description = "Transaction is not ready to be confirmed (missing fields or amount not covered by bank transactions)")
     @APIResponse(responseCode = "404", description = "Transaction not found")
@@ -261,8 +261,8 @@ public class TransactionResource {
 
     /**
      * Collects the reasons a transaction cannot yet be confirmed. Empty list means it is ready. The mandatory fields
-     * mirror the frontend gate: amount, date, counterparty and name must be set, and the amount must be exactly covered
-     * by the linked bank transactions (sum of their absolute amounts equals the transaction amount).
+     * mirror the frontend gate: amount, date, counterparty, name and bommel must be set, and the amount must be exactly
+     * covered by the linked bank transactions (sum of their absolute amounts equals the transaction amount).
      */
     private List<String> collectConfirmBlockers(Transaction transaction) {
         List<String> missing = new ArrayList<>();
@@ -281,6 +281,11 @@ public class TransactionResource {
         }
         if (transaction.getName() == null || transaction.getName().isBlank()) {
             missing.add("name");
+        }
+        // A Bommel is not required to save a draft, but it must be assigned before the transaction can be confirmed:
+        // the confirmation is what books the amount against an organizational unit.
+        if (transaction.getBommel() == null) {
+            missing.add("bommel");
         }
 
         if (hasAmount) {

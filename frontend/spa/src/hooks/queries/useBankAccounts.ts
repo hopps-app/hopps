@@ -41,15 +41,36 @@ export const bankImportKeys = {
 
 export type BankTransactionSortField = 'bookingDate' | 'amount' | 'counterpartyName';
 
+/**
+ * Free-text + column filters shared by the bank-transaction list feeds. All fields are strings (as typed into the
+ * filter inputs); empty/undefined means "no filter". {@code minAmount}/{@code maxAmount} filter on the amount
+ * magnitude and accept a comma or dot decimal separator (parsed backend-side).
+ */
+export interface BankTxFilter {
+    search?: string;
+    minAmount?: string;
+    maxAmount?: string;
+    dateFrom?: string;
+    dateTo?: string;
+}
+
 export const bankTransactionKeys = {
     all: ['bankTransactions'] as const,
-    byAccount: (accountId: number, page?: number, size?: number, status?: string, sort?: BankTransactionSortField, direction?: SortDirection) =>
-        [...bankTransactionKeys.all, 'account', accountId, { page, size, status, sort, direction }] as const,
+    byAccount: (
+        accountId: number,
+        page?: number,
+        size?: number,
+        status?: string,
+        sort?: BankTransactionSortField,
+        direction?: SortDirection,
+        filter?: BankTxFilter
+    ) => [...bankTransactionKeys.all, 'account', accountId, { page, size, status, sort, direction, ...filter }] as const,
     // Cross-account listing (all accounts when accountIds is omitted).
-    list: (status?: string, page?: number, size?: number, sort?: BankTransactionSortField, direction?: SortDirection) =>
-        [...bankTransactionKeys.all, 'list', { status, page, size, sort, direction }] as const,
+    list: (status?: string, page?: number, size?: number, sort?: BankTransactionSortField, direction?: SortDirection, filter?: BankTxFilter) =>
+        [...bankTransactionKeys.all, 'list', { status, page, size, sort, direction, ...filter }] as const,
     // Aggregate totals + true (uncapped) count for a filter set.
-    aggregate: (accountIds?: string, status?: string) => [...bankTransactionKeys.all, 'aggregate', { accountIds, status }] as const,
+    aggregate: (accountIds?: string, status?: string, filter?: BankTxFilter) =>
+        [...bankTransactionKeys.all, 'aggregate', { accountIds, status, ...filter }] as const,
 };
 
 // ─── Bank Accounts ───────────────────────────────────────────────────────────
@@ -394,18 +415,21 @@ export function useBankTransactionsByAccount(
     size = 50,
     status?: string,
     sort: BankTransactionSortField = 'bookingDate',
-    direction: SortDirection = 'desc'
+    direction: SortDirection = 'desc',
+    filter: BankTxFilter = {}
 ) {
     return useQuery({
-        queryKey: bankTransactionKeys.byAccount(accountId, page, size, status, sort, direction),
+        queryKey: bankTransactionKeys.byAccount(accountId, page, size, status, sort, direction, filter),
         queryFn: () =>
             apiService.orgService.byAccount(
                 accountId,
-                undefined, // dateFrom
-                undefined, // dateTo
+                filter.dateFrom || undefined,
+                filter.dateTo || undefined,
                 direction,
+                filter.maxAmount || undefined,
+                filter.minAmount || undefined,
                 page,
-                undefined, // search
+                filter.search || undefined,
                 size,
                 sort,
                 status
@@ -423,18 +447,21 @@ export function useAllBankTransactions(
     page = 0,
     size = 25,
     sort: BankTransactionSortField = 'bookingDate',
-    direction: SortDirection = 'desc'
+    direction: SortDirection = 'desc',
+    filter: BankTxFilter = {}
 ) {
     return useQuery({
-        queryKey: bankTransactionKeys.list(status, page, size, sort, direction),
+        queryKey: bankTransactionKeys.list(status, page, size, sort, direction, filter),
         queryFn: () =>
             apiService.orgService.bankTransactionsAll(
                 undefined, // accountIds → all accounts
-                undefined, // dateFrom
-                undefined, // dateTo
+                filter.dateFrom || undefined,
+                filter.dateTo || undefined,
                 direction,
+                filter.maxAmount || undefined,
+                filter.minAmount || undefined,
                 page,
-                undefined, // search
+                filter.search || undefined,
                 size,
                 sort,
                 status
@@ -446,10 +473,19 @@ export function useAllBankTransactions(
  * Aggregate totals and the true (uncapped) transaction count for a filter set. Pass a single account id via
  * {@code accountIds} for per-account figures, or omit it for the whole organization.
  */
-export function useBankTransactionAggregate(accountIds?: string, status?: string, enabled = true) {
+export function useBankTransactionAggregate(accountIds?: string, status?: string, enabled = true, filter: BankTxFilter = {}) {
     return useQuery({
-        queryKey: bankTransactionKeys.aggregate(accountIds, status),
-        queryFn: () => apiService.orgService.aggregate(accountIds, undefined, undefined, undefined, status),
+        queryKey: bankTransactionKeys.aggregate(accountIds, status, filter),
+        queryFn: () =>
+            apiService.orgService.aggregate(
+                accountIds,
+                filter.dateFrom || undefined,
+                filter.dateTo || undefined,
+                filter.maxAmount || undefined,
+                filter.minAmount || undefined,
+                filter.search || undefined,
+                status
+            ),
         enabled,
     });
 }
@@ -476,6 +512,8 @@ export function useBankTransactionSearch(search: string, enabled: boolean) {
                 undefined, // dateFrom
                 undefined, // dateTo
                 undefined, // direction
+                undefined, // maxAmount
+                undefined, // minAmount
                 0, // page
                 search || undefined,
                 25, // size

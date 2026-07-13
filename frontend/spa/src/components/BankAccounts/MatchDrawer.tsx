@@ -1,4 +1,4 @@
-import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
+import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -91,9 +91,12 @@ function SignedAmount({ amount, currency = 'EUR', size = 'base' }: { amount: num
 interface MatchDrawerProps {
     bankTxId: number;
     onClose: () => void;
+    // Called after a receipt was uploaded onto the bank transaction. The parent (Konten page) opens the receipt-review
+    // drawer in place so the user completes + confirms the transaction without leaving the bank transactions page.
+    onReceiptUploaded?: (doc: DocumentResponse) => void;
 }
 
-export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
+export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawerProps) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [sel, setSel] = useState<Set<number>>(new Set());
@@ -101,8 +104,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const [txSearch, setTxSearch] = useState('');
     const createReceipt = useCreateReceiptForBankTransaction();
 
-    // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked transaction and
-    // opens the receipt for review.
+    // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked (DRAFT)
+    // transaction; the parent then opens the receipt-review drawer in place so the user completes + confirms it and
+    // continues with the next bank transaction — all without leaving the Konten page.
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop: async (acceptedFiles) => {
             const file = acceptedFiles[0];
@@ -110,7 +114,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
             try {
                 const doc = await createReceipt.mutateAsync({ bankTxId, file });
                 onClose();
-                if (doc?.id) navigate(`/receipts?id=${doc.id}`);
+                if (doc) onReceiptUploaded?.(doc);
             } catch {
                 // The error toast (including the "already uploaded" 409 case) is shown by the mutation's onError;
                 // this catch only prevents an unhandled rejection.
@@ -532,10 +536,11 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                 open={showCreate}
                 onClose={() => setShowCreate(false)}
                 bankTx={bankTx}
-                onCreated={(id) => {
+                onCreated={() => {
+                    // Stay on the Konten page after creating the linked transaction so the user can move straight on to
+                    // the next bank movement; the list refreshes via query invalidation.
                     setShowCreate(false);
                     onClose();
-                    if (id) navigate(`/transactions?id=${id}`);
                 }}
             />
         </>

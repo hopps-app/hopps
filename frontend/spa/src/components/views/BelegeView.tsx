@@ -28,7 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { LoadingState } from '@/components/common/LoadingState';
-import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import InvoiceUploadFormBommelSelector, { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -95,6 +95,15 @@ function fileIcon(contentType: string | undefined): string {
     if (contentType.includes('pdf')) return '📄';
     if (contentType.includes('image')) return '🖼️';
     return '📎';
+}
+
+// The bommel field's initial value: the entity's own bommel if it has one, otherwise the cached last choice. When the
+// cache is empty (explicitly cleared) or unset, the field starts empty — there is deliberately no root fallback. The
+// cache thus takes priority over the empty default while still letting the user clear the field afterwards.
+function initialBommelId(entityBommelId?: number | null): string {
+    if (entityBommelId != null) return String(entityBommelId);
+    const cached = getCachedBommelId();
+    return typeof cached === 'number' ? String(cached) : '';
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -272,7 +281,11 @@ function ReceiptDataRow({
 
 // ─── Review Drawer ────────────────────────────────────────────────────────────
 
-function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+// Exported so the Konten (bank accounts) page can reuse the exact same receipt-review / transaction-reconcile flow:
+// after uploading a receipt onto a bank transaction there, the user stays on the Konten page and completes + confirms
+// the transaction in this drawer instead of being navigated to the receipts page. The component is self-contained
+// (driven only by the `doc` prop and the callbacks), so reusing it needs no view-level state from BelegeView.
+export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -282,7 +295,6 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const reanalyzeMutation = useReanalyzeDocument();
     const updateTransaction = useUpdateTransaction();
     const confirmTransaction = useConfirmTransaction();
-    const rootBommel = useBommelsStore((s) => s.rootBommel);
 
     // Live document — polls every 2s while the AI analysis is still running so results appear automatically
     const { data: liveDoc } = useDocument(docProp?.id);
@@ -348,7 +360,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
             setAmount(linkedTx.total != null ? String(Math.abs(Number(linkedTx.total))) : '');
             setDate(linkedTx.transactionTime ? new Date(linkedTx.transactionTime).toISOString().slice(0, 10) : '');
             setSenderName(linkedTx.senderName ?? '');
-            setBommelId(linkedTx.bommelId != null ? String(linkedTx.bommelId) : '');
+            setBommelId(initialBommelId(linkedTx.bommelId));
             setPrivatelyPaid(linkedTx.privatelyPaid ?? false);
             setDirection(Number(linkedTx.total ?? 0) < 0 ? 'INCOMING' : 'OUTGOING');
             return;
@@ -359,7 +371,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         setAmount(docProp.total != null ? String(Math.abs(Number(docProp.total))) : '');
         setDate(docProp.transactionTime ? new Date(docProp.transactionTime).toISOString().slice(0, 10) : '');
         setSenderName(docProp.senderName ?? '');
-        setBommelId(docProp.bommelId != null ? String(docProp.bommelId) : '');
+        setBommelId(initialBommelId(docProp.bommelId));
         setPrivatelyPaid(docProp.privatelyPaid ?? false);
         setDirection(docProp.direction ?? 'INCOMING');
     }, [docProp, hasLinkedTransaction, linkedTx]);
@@ -376,16 +388,6 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         if (liveDoc.senderName) setSenderName((p) => p || liveDoc.senderName!);
         if (liveDoc.bommelId != null) setBommelId((p) => p || String(liveDoc.bommelId));
     }, [liveDoc, hasLinkedTransaction]);
-
-    // A bommel must always be selected — when none is set, default to the last one the user picked (so a batch of
-    // receipts can go to the same bommel), falling back to the root bommel. Runs also once the bommels finish loading,
-    // since loading is asynchronous.
-    useEffect(() => {
-        if (open && !bommelId) {
-            const fallback = getLastBommelId() ?? rootBommel?.id;
-            if (fallback != null) setBommelId(String(fallback));
-        }
-    }, [open, bommelId, rootBommel]);
 
     // Refresh the list once analysis finishes so the row's status/amount update too.
     const prevAnalyzingRef = useRef(false);
@@ -428,7 +430,9 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
             total: !isNaN(rawAmount) ? rawAmount : undefined,
             transactionDate: date || undefined,
             senderName: senderName || undefined,
-            bommelId: bommelId ? Number(bommelId) : undefined,
+            // Send 0 (not undefined) when the field is empty so a removed bommel is actually cleared server-side —
+            // undefined would be treated as "unchanged" and keep the previous bommel.
+            bommelId: bommelId ? Number(bommelId) : 0,
             privatelyPaid,
             direction,
         });
@@ -443,7 +447,9 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
             total: signed,
             transactionDate: date || undefined,
             senderName: senderName || undefined,
-            bommelId: bommelId ? Number(bommelId) : undefined,
+            // Send 0 (not undefined) when the field is empty so a removed bommel is actually cleared server-side —
+            // undefined would be treated as "unchanged" and keep the previous bommel.
+            bommelId: bommelId ? Number(bommelId) : 0,
             privatelyPaid,
         });
     }
@@ -498,7 +504,13 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     // counterparty and description set AND the amount exactly covered by the linked bank transactions.
     const parsedAmount = parseFloat(amount.replace(',', '.'));
     const confirmState = getTransactionConfirmState(
-        { amount: isNaN(parsedAmount) ? null : parsedAmount, date: date || null, counterparty: senderName || null, name: name || null },
+        {
+            amount: isNaN(parsedAmount) ? null : parsedAmount,
+            date: date || null,
+            counterparty: senderName || null,
+            name: name || null,
+            bommelId: bommelId ? Number(bommelId) : null,
+        },
         linkedBankTxns
     );
 
@@ -1125,6 +1137,11 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         });
     }
 
+    const expand = useCallback(() => {
+        setCollapsed(false);
+        localStorage.setItem('receipts.uploadCollapsed', 'false');
+    }, []);
+
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
             if (acceptedFiles.length === 0) return;
@@ -1181,37 +1198,81 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         multiple: true,
     });
 
+    // A second drop target wrapping the collapsed bar so files can be dropped without expanding first. Dropping here
+    // opens the panel and then hands the files to the same uploader — as if they had been dropped into the expanded
+    // dropzone. Click is disabled (noClick) so clicking the bar still toggles collapse instead of opening a file dialog.
+    const collapsedDropzone = useDropzone({
+        onDrop: (accepted) => {
+            expand();
+            onDrop(accepted);
+        },
+        onDropRejected: (rejections) => {
+            expand();
+            onDropRejected(rejections);
+        },
+        accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
+        maxSize: MAX_UPLOAD_BYTES,
+        multiple: true,
+        noClick: true,
+        noKeyboard: true,
+    });
+
     const isUploading = items.some((it) => it.status === 'uploading');
     const doneCount = items.filter((it) => it.status === 'done').length;
+    // A file is being dragged over the collapsed bar (its own drop target). Drives the highlight + subtitle hint.
+    const dragOverCollapsed = collapsed && collapsedDropzone.isDragActive;
+
+    const header = (
+        <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? t('receipts.upload.expand') : t('receipts.upload.collapse')}
+            className="w-full flex items-center gap-3"
+        >
+            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
+                {isUploading ? <Loader2 size={18} className="text-[#7E3FB4] animate-spin" /> : <Upload size={18} className="text-[#7E3FB4]" />}
+            </span>
+            <span className="flex flex-col min-w-0 flex-1 text-left">
+                <span className="text-[14px] font-bold text-[#1B1B1F]" style={{ fontFamily: FONT }}>
+                    {t('receipts.upload.sectionTitle')}
+                </span>
+                {collapsed && (
+                    <span className="text-[12px] text-[#9A9AA3] truncate" style={{ fontFamily: FONT }}>
+                        {dragOverCollapsed
+                            ? t('receipts.upload.dropzoneActive')
+                            : isUploading
+                              ? t('receipts.upload.progress', { done: doneCount, total: items.length })
+                              : t('receipts.upload.hint')}
+                    </span>
+                )}
+            </span>
+            <ChevronDown size={18} className={cn('text-[#9A9AA3] transition-transform flex-shrink-0', collapsed ? '' : 'rotate-180')} />
+        </button>
+    );
 
     return (
         <div
             className="rounded-[18px] border border-[#E9E9EE] px-5 py-4"
             style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
         >
-            {/* Collapsible header — click to fold the whole upload area away so the receipt list has more room. */}
-            <button
-                type="button"
-                onClick={toggleCollapsed}
-                aria-expanded={!collapsed}
-                aria-label={collapsed ? t('receipts.upload.expand') : t('receipts.upload.collapse')}
-                className="w-full flex items-center gap-3"
-            >
-                <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
-                    {isUploading ? <Loader2 size={18} className="text-[#7E3FB4] animate-spin" /> : <Upload size={18} className="text-[#7E3FB4]" />}
-                </span>
-                <span className="flex flex-col min-w-0 flex-1 text-left">
-                    <span className="text-[14px] font-bold text-[#1B1B1F]" style={{ fontFamily: FONT }}>
-                        {t('receipts.upload.sectionTitle')}
-                    </span>
-                    {collapsed && (
-                        <span className="text-[12px] text-[#9A9AA3] truncate" style={{ fontFamily: FONT }}>
-                            {isUploading ? t('receipts.upload.progress', { done: doneCount, total: items.length }) : t('receipts.upload.hint')}
-                        </span>
+            {/* Collapsible header — click to fold the upload area away. While collapsed the whole bar is also a drop
+                target: dropping files here expands the panel and uploads them, exactly like the open dropzone. Click is
+                disabled on this drop target (noClick), so a plain click still toggles collapse. */}
+            {collapsed ? (
+                <div
+                    {...collapsedDropzone.getRootProps()}
+                    className={cn(
+                        '-mx-2 -my-1 px-2 py-1 rounded-[12px] transition-colors',
+                        dragOverCollapsed && 'bg-[#F3EAFB] ring-2 ring-inset ring-[#9955CC]'
                     )}
-                </span>
-                <ChevronDown size={18} className={cn('text-[#9A9AA3] transition-transform flex-shrink-0', collapsed ? '' : 'rotate-180')} />
-            </button>
+                >
+                    <input {...collapsedDropzone.getInputProps()} />
+                    {header}
+                </div>
+            ) : (
+                header
+            )}
 
             {!collapsed && (
                 <div className="mt-4">

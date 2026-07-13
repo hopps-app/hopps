@@ -11,16 +11,41 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
-// The most recently *selected* bommel is remembered across forms so that assigning several receipts/transactions to
-// the same bommel in a row doesn't require re-picking it every time. Forms opt in to the default via `getLastBommelId`.
+// The most recent bommel *choice* is remembered across forms so that assigning several receipts/transactions in a row
+// doesn't require re-picking (or re-clearing) the bommel every time. The choice is cached including the explicit
+// "no bommel" state, so clearing the field is remembered too. Forms opt in to pre-selecting it via `getCachedBommelId`.
 const LAST_BOMMEL_KEY = 'hopps.lastBommelId';
 
-export function getLastBommelId(): number | null {
+/**
+ * The cached bommel choice, distinguishing three states:
+ * - a positive number → the last picked bommel id,
+ * - `null` → the user explicitly cleared the field (an empty choice was cached),
+ * - `undefined` → nothing cached yet.
+ */
+export function getCachedBommelId(): number | null | undefined {
     try {
-        const id = Number(localStorage.getItem(LAST_BOMMEL_KEY));
-        return Number.isFinite(id) && id > 0 ? id : null;
+        const raw = localStorage.getItem(LAST_BOMMEL_KEY);
+        if (raw === null) return undefined;
+        if (raw === '') return null;
+        const id = Number(raw);
+        return Number.isFinite(id) && id > 0 ? id : undefined;
     } catch {
-        return null;
+        return undefined;
+    }
+}
+
+/** Backward-compatible accessor: the cached bommel id, or `null` when the cache is empty or unset. */
+export function getLastBommelId(): number | null {
+    const cached = getCachedBommelId();
+    return typeof cached === 'number' ? cached : null;
+}
+
+/** Persists the bommel choice — a positive id, or an empty string to remember an explicitly cleared field. */
+function cacheBommelChoice(id: number | null | undefined): void {
+    try {
+        localStorage.setItem(LAST_BOMMEL_KEY, id != null && id > 0 ? String(id) : '');
+    } catch {
+        // storage unavailable — just skip remembering
     }
 }
 
@@ -47,13 +72,7 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
             if (searchedBommel) {
                 onChange(searchedBommel.id);
                 // Remember this pick so the next form can pre-select the same bommel.
-                if (searchedBommel.id != null) {
-                    try {
-                        localStorage.setItem(LAST_BOMMEL_KEY, String(searchedBommel.id));
-                    } catch {
-                        // storage unavailable — just skip remembering
-                    }
-                }
+                cacheBommelChoice(searchedBommel.id);
             }
 
             setOpen(false);
@@ -63,6 +82,8 @@ const InvoiceUploadFormBommelSelector: FC<InvoiceUploadFormBommelSelectorprops> 
 
     const onDeselectBommel = useCallback(() => {
         onChange(null);
+        // Remember the cleared state too, so the next form starts empty instead of re-applying the old pick.
+        cacheBommelChoice(null);
     }, [onChange]);
 
     return (

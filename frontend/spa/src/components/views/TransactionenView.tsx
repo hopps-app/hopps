@@ -291,12 +291,19 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const parsedEditAmount = parseFloat(amountStr.replace(',', '.'));
     const confirmState = getTransactionConfirmState(
         editMode
-            ? { amount: isNaN(parsedEditAmount) ? null : parsedEditAmount, date: date || null, counterparty: senderName || null, name: name || null }
+            ? {
+                  amount: isNaN(parsedEditAmount) ? null : parsedEditAmount,
+                  date: date || null,
+                  counterparty: senderName || null,
+                  name: name || null,
+                  bommelId: bommelId ? Number(bommelId) : null,
+              }
             : {
                   amount: tx?.total != null ? Math.abs(Number(tx.total)) : null,
                   date: tx?.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : null,
                   counterparty: tx?.senderName || null,
                   name: tx?.name || null,
+                  bommelId: tx?.bommelId ?? null,
               },
         linkedBankTxns
     );

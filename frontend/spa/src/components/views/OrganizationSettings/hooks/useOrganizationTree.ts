@@ -6,6 +6,7 @@ import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTre
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import organizationTreeService from '@/services/OrganisationTreeService';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
 const RANDOM_EMOJIS = [
@@ -129,6 +130,16 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
         setTree(nodesWithStats);
     }, [store.organization?.id, rootBommel, options?.bommelStats]);
 
+    // The bommel selectors across the app (receipts, transactions, bank matching) read from the shared bommels store,
+    // which is loaded once and cached. After a structure change here that store would otherwise stay stale — so refresh
+    // it whenever a bommel is created, renamed, moved or deleted, so the new/updated bommel is immediately selectable.
+    const syncBommelStore = useCallback(() => {
+        const organizationId = store.organization?.id;
+        if (organizationId) {
+            void useBommelsStore.getState().loadBommels(organizationId);
+        }
+    }, [store.organization?.id]);
+
     const actionRef = useRef(false);
 
     const createTreeNode = useCallback(async () => {
@@ -146,6 +157,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 })
             );
 
+            syncBommelStore();
             showSuccess(t('organization.structure.toast.createSuccess'));
             return organizationTreeService.bommelsToTreeNodes([node], rootBommel.id)[0];
         } catch (e) {
@@ -154,7 +166,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
         } finally {
             actionRef.current = false;
         }
-    }, [rootBommel, showError, showSuccess, t]);
+    }, [rootBommel, showError, showSuccess, syncBommelStore, t]);
 
     const createChildBommel = useCallback(
         async (parentId: number) => {
@@ -171,6 +183,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                     })
                 );
                 await loadTree();
+                syncBommelStore();
                 showSuccess(t('organization.structure.toast.createChildSuccess'));
                 return created.id ?? true;
             } catch (e) {
@@ -182,7 +195,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
             }
             return false;
         },
-        [loadTree, showError, showSuccess, t]
+        [loadTree, showError, showSuccess, syncBommelStore, t]
     );
 
     const updateTreeNode = useCallback(
@@ -202,6 +215,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 isSuccess = true;
                 // Update local tree state directly to preserve ordering
                 setTree((prev) => prev.map((n) => (n.id === node.id ? node : n)));
+                syncBommelStore();
                 showSuccess(t('organization.structure.toast.updateSuccess'));
             } catch (e) {
                 console.error(e);
@@ -212,7 +226,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
 
             return isSuccess;
         },
-        [showError, showSuccess, t]
+        [showError, showSuccess, syncBommelStore, t]
     );
 
     const moveTreeNode = useCallback(
@@ -223,6 +237,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 const parent = node.parent ? node.parent : rootBommel!.id;
                 await apiService.orgService.to(node.id as number, parent as number);
                 await loadTree();
+                syncBommelStore();
                 isSuccess = true;
                 showSuccess(t('organization.structure.toast.moveSuccess'));
             } catch (e) {
@@ -234,7 +249,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
 
             return isSuccess;
         },
-        [loadTree, rootBommel, showError, showSuccess, t]
+        [loadTree, rootBommel, showError, showSuccess, syncBommelStore, t]
     );
 
     const deleteTreeNode = useCallback(
@@ -247,6 +262,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 const hasChildren = tree.some((node) => node.parent === id);
                 await apiService.orgService.bommelDELETE(id as number, hasChildren);
                 await loadTree();
+                syncBommelStore();
                 showSuccess(t('organization.structure.toast.deleteSuccess'));
                 return true;
             } catch (e) {
@@ -258,7 +274,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
             }
             return false;
         },
-        [loadTree, showError, showSuccess, t, tree]
+        [loadTree, showError, showSuccess, syncBommelStore, t, tree]
     );
 
     // Initialize and load tree when organization changes

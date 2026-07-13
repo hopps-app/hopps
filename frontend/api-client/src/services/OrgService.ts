@@ -472,6 +472,8 @@ export class Client {
      * @param dateFrom (optional) Booking date inclusive (ISO-8601)
      * @param dateTo (optional) Booking date inclusive (ISO-8601)
      * @param direction (optional) Sort direction: asc or desc
+     * @param maxAmount (optional) Maximum transaction amount by magnitude (absolute value, inclusive)
+     * @param minAmount (optional) Minimum transaction amount by magnitude (absolute value, inclusive)
      * @param page (optional) Page index (0-based)
      * @param search (optional) Substring match on purpose / counterparty name
      * @param size (optional) Page size
@@ -479,7 +481,7 @@ export class Client {
      * @param status (optional) Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)
      * @return List of transactions
      */
-    bankTransactionsAll(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
+    bankTransactionsAll(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, maxAmount: string | undefined, minAmount: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
         let url_ = this.baseUrl + "/bank-transactions?";
         if (accountIds === null)
             throw new Error("The parameter 'accountIds' cannot be null.");
@@ -497,6 +499,14 @@ export class Client {
             throw new Error("The parameter 'direction' cannot be null.");
         else if (direction !== undefined)
             url_ += "direction=" + encodeURIComponent("" + direction) + "&";
+        if (maxAmount === null)
+            throw new Error("The parameter 'maxAmount' cannot be null.");
+        else if (maxAmount !== undefined)
+            url_ += "maxAmount=" + encodeURIComponent("" + maxAmount) + "&";
+        if (minAmount === null)
+            throw new Error("The parameter 'minAmount' cannot be null.");
+        else if (minAmount !== undefined)
+            url_ += "minAmount=" + encodeURIComponent("" + minAmount) + "&";
         if (page === null)
             throw new Error("The parameter 'page' cannot be null.");
         else if (page !== undefined)
@@ -569,11 +579,13 @@ export class Client {
      * @param accountIds (optional) 
      * @param dateFrom (optional) 
      * @param dateTo (optional) 
+     * @param maxAmount (optional) Maximum transaction amount by magnitude (absolute value, inclusive)
+     * @param minAmount (optional) Minimum transaction amount by magnitude (absolute value, inclusive)
      * @param search (optional) 
      * @param status (optional) 
      * @return Aggregated totals
      */
-    aggregate(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, search: string | undefined, status: string | undefined): Promise<BankTransactionAggregateResponse> {
+    aggregate(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, maxAmount: string | undefined, minAmount: string | undefined, search: string | undefined, status: string | undefined): Promise<BankTransactionAggregateResponse> {
         let url_ = this.baseUrl + "/bank-transactions/aggregate?";
         if (accountIds === null)
             throw new Error("The parameter 'accountIds' cannot be null.");
@@ -587,6 +599,14 @@ export class Client {
             throw new Error("The parameter 'dateTo' cannot be null.");
         else if (dateTo !== undefined)
             url_ += "dateTo=" + encodeURIComponent("" + dateTo) + "&";
+        if (maxAmount === null)
+            throw new Error("The parameter 'maxAmount' cannot be null.");
+        else if (maxAmount !== undefined)
+            url_ += "maxAmount=" + encodeURIComponent("" + maxAmount) + "&";
+        if (minAmount === null)
+            throw new Error("The parameter 'minAmount' cannot be null.");
+        else if (minAmount !== undefined)
+            url_ += "minAmount=" + encodeURIComponent("" + minAmount) + "&";
         if (search === null)
             throw new Error("The parameter 'search' cannot be null.");
         else if (search !== undefined)
@@ -641,6 +661,8 @@ export class Client {
      * @param dateFrom (optional) 
      * @param dateTo (optional) 
      * @param direction (optional) Sort direction: asc or desc
+     * @param maxAmount (optional) Maximum transaction amount by magnitude (absolute value, inclusive)
+     * @param minAmount (optional) Minimum transaction amount by magnitude (absolute value, inclusive)
      * @param page (optional) 
      * @param search (optional) 
      * @param size (optional) 
@@ -648,7 +670,7 @@ export class Client {
      * @param status (optional) 
      * @return List of transactions
      */
-    byAccount(accountId: number, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
+    byAccount(accountId: number, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, maxAmount: string | undefined, minAmount: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
         let url_ = this.baseUrl + "/bank-transactions/by-account/{accountId}?";
         if (accountId === undefined || accountId === null)
             throw new Error("The parameter 'accountId' must be defined.");
@@ -665,6 +687,14 @@ export class Client {
             throw new Error("The parameter 'direction' cannot be null.");
         else if (direction !== undefined)
             url_ += "direction=" + encodeURIComponent("" + direction) + "&";
+        if (maxAmount === null)
+            throw new Error("The parameter 'maxAmount' cannot be null.");
+        else if (maxAmount !== undefined)
+            url_ += "maxAmount=" + encodeURIComponent("" + maxAmount) + "&";
+        if (minAmount === null)
+            throw new Error("The parameter 'minAmount' cannot be null.");
+        else if (minAmount !== undefined)
+            url_ += "minAmount=" + encodeURIComponent("" + minAmount) + "&";
         if (page === null)
             throw new Error("The parameter 'page' cannot be null.");
         else if (page !== undefined)

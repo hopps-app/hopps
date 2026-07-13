@@ -1,15 +1,33 @@
-import { BankAccountResponse } from '@hopps/api-client';
-import { useQueries } from '@tanstack/react-query';
-import { ArrowLeftRight, ArrowRight, Check, ChevronLeft, ChevronRight, Clock, Edit, Landmark, Link2, Plus, Sheet, Unlink, Upload } from 'lucide-react';
+import { BankAccountResponse, DocumentResponse } from '@hopps/api-client';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
+import {
+    ArrowLeftRight,
+    ArrowRight,
+    Check,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Edit,
+    Landmark,
+    Link2,
+    Plus,
+    Search,
+    Sheet,
+    Unlink,
+    Upload,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
+import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { SortHeader } from '@/components/ui/SortHeader';
+import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
     useBankAccounts,
     useBankTransactionsByAccount,
@@ -21,9 +39,12 @@ import {
 } from '@/hooks/queries/useBankAccounts';
 import type { SortDirection } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { useBankTxFilters } from '@/hooks/useBankTxFilters';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -208,6 +229,31 @@ function AddAccountCard({ onClick }: { onClick: () => void }) {
     );
 }
 
+// Compact one-line representation of a bank account, shown when the account section is collapsed. Clicking it jumps to
+// that account's tab, just like the full card.
+function AccountPill({ account, openCount, onClick }: { account: BankAccountResponse; openCount: number; onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:shadow-sm transition-all"
+        >
+            <span className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-white" style={{ background: account.color || '#9955CC' }}>
+                <Landmark className="w-3.5 h-3.5" />
+            </span>
+            <span className="text-sm font-semibold truncate max-w-[10rem]">{account.name}</span>
+            <span className="text-sm font-bold tabular-nums text-muted-foreground">
+                {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
+            </span>
+            {openCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                    {openCount}
+                </span>
+            )}
+        </button>
+    );
+}
+
 // ─── Abgleich Tab ─────────────────────────────────────────────────────────────
 
 const ABGLEICH_PAGE_SIZE = 25;
@@ -217,6 +263,13 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.abgleich.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.abgleich.sortDir', 'desc');
+    const filters = useBankTxFilters('hopps.konten.abgleich');
+
+    // Server-side filtering narrows the feed across all pages, so reset to the first page when a filter value changes.
+    const { search, minAmount, maxAmount, dateFrom, dateTo } = filters;
+    useEffect(() => {
+        setPage(0);
+    }, [search, minAmount, maxAmount, dateFrom, dateTo]);
 
     // Toggle direction on the active column, otherwise switch column (default descending). Sorting is server-side and
     // spans all pages, so reset to the first page.
@@ -231,10 +284,11 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
     };
 
     // Open = not yet fully covered: unmatched or partially matched. Counts come from the aggregate endpoint so they
-    // reflect the true totals (not a single capped page), while the feed itself is paged server-side.
-    const openAgg = useBankTransactionAggregate(undefined, 'UNMATCHED,PARTIALLY_MATCHED');
-    const matchedAgg = useBankTransactionAggregate(undefined, 'FULLY_MATCHED');
-    const feed = useAllBankTransactions('UNMATCHED,PARTIALLY_MATCHED', page, ABGLEICH_PAGE_SIZE, sortBy, sortDir);
+    // reflect the true totals (not a single capped page), while the feed itself is paged server-side. The active
+    // search/column filters are applied to both, so the badges and pagination stay consistent with the filtered feed.
+    const openAgg = useBankTransactionAggregate(undefined, 'UNMATCHED,PARTIALLY_MATCHED', true, filters.filter);
+    const matchedAgg = useBankTransactionAggregate(undefined, 'FULLY_MATCHED', true, filters.filter);
+    const feed = useAllBankTransactions('UNMATCHED,PARTIALLY_MATCHED', page, ABGLEICH_PAGE_SIZE, sortBy, sortDir, filters.filter);
 
     const openCount = openAgg.data?.count ?? 0;
     const matchedCount = matchedAgg.data?.count ?? 0;
@@ -250,48 +304,54 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
         return <LoadingState className="py-12" />;
     }
 
-    const allReconciled = openCount === 0 && matchedCount > 0;
-    const noData = openCount === 0 && matchedCount === 0;
+    const allReconciled = openCount === 0 && matchedCount > 0 && !filters.hasAnyFilter;
+    const noData = openCount === 0 && matchedCount === 0 && !filters.hasAnyFilter;
+    const noFilterMatch = openCount === 0 && filters.hasAnyFilter;
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Status banner */}
-            <div
-                className={cn(
-                    'flex items-center gap-4 rounded-2xl p-4',
-                    allReconciled ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-purple-50 dark:bg-purple-900/20'
-                )}
-            >
+            {!noData && <BankTxFilterBar filters={filters} />}
+
+            {/* Status banner — hidden while filtering, since the celebratory/onboarding copy describes the overall
+                reconciliation state, not the filtered subset. */}
+            {!filters.hasAnyFilter && (
                 <div
                     className={cn(
-                        'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-white',
-                        allReconciled ? 'bg-emerald-500' : 'bg-primary'
+                        'flex items-center gap-4 rounded-2xl p-4',
+                        allReconciled ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-purple-50 dark:bg-purple-900/20'
                     )}
                 >
-                    {allReconciled ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <ArrowLeftRight className="w-5 h-5" />}
+                    <div
+                        className={cn(
+                            'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-white',
+                            allReconciled ? 'bg-emerald-500' : 'bg-primary'
+                        )}
+                    >
+                        {allReconciled ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <ArrowLeftRight className="w-5 h-5" />}
+                    </div>
+                    <div className="flex-1">
+                        {allReconciled ? (
+                            <>
+                                <div className="font-bold text-base text-emerald-700">{t('konten.abgleich.allClear')}</div>
+                                <div className="text-sm text-muted-foreground mt-0.5">{t('konten.abgleich.allClearDesc')}</div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="font-bold text-base">
+                                    {openCount} {openCount === 1 ? t('konten.abgleich.openSingular') : t('konten.abgleich.openPlural')}
+                                    {matchedCount > 0 && (
+                                        <span className="text-muted-foreground font-semibold">
+                                            {' '}
+                                            · {matchedCount} {t('konten.abgleich.matched')}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-0.5">{t('konten.abgleich.openDesc')}</div>
+                            </>
+                        )}
+                    </div>
                 </div>
-                <div className="flex-1">
-                    {allReconciled ? (
-                        <>
-                            <div className="font-bold text-base text-emerald-700">{t('konten.abgleich.allClear')}</div>
-                            <div className="text-sm text-muted-foreground mt-0.5">{t('konten.abgleich.allClearDesc')}</div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="font-bold text-base">
-                                {openCount} {openCount === 1 ? t('konten.abgleich.openSingular') : t('konten.abgleich.openPlural')}
-                                {matchedCount > 0 && (
-                                    <span className="text-muted-foreground font-semibold">
-                                        {' '}
-                                        · {matchedCount} {t('konten.abgleich.matched')}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="text-sm text-muted-foreground mt-0.5">{t('konten.abgleich.openDesc')}</div>
-                        </>
-                    )}
-                </div>
-            </div>
+            )}
 
             {/* Open bookings (paged) */}
             {openCount > 0 && (
@@ -384,6 +444,19 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                 </div>
             )}
 
+            {/* No open booking matches the active search/filter */}
+            {noFilterMatch && (
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <Search className="w-7 h-7 text-muted-foreground" />
+                    </div>
+                    <p className="font-semibold text-base">{t('konten.filter.noResults')}</p>
+                    <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
+                        {t('konten.filter.clearAll')}
+                    </button>
+                </div>
+            )}
+
             {/* Empty state when there are no bank transactions at all */}
             {noData && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3">
@@ -410,10 +483,18 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
+    const filters = useBankTxFilters('hopps.konten.account');
+
+    // Server-side filtering reorders/narrows the whole result set, so jump back to the first page whenever a filter
+    // value changes (same reasoning as the sort/status resets below).
+    const { search, minAmount, maxAmount, dateFrom, dateTo } = filters;
+    useEffect(() => {
+        setPage(0);
+    }, [search, minAmount, maxAmount, dateFrom, dateTo]);
 
     // "Offen" covers everything not yet fully matched (unmatched + partially matched).
     const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter === 'UNMATCHED' ? 'UNMATCHED,PARTIALLY_MATCHED' : statusFilter;
-    const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus, sortBy, sortDir);
+    const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus, sortBy, sortDir, filters.filter);
 
     // Toggle direction when re-clicking the active column, otherwise switch column and default to descending.
     // Reset to the first page since server-side sorting reorders the whole result set.
@@ -468,12 +549,21 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                 </div>
             </div>
 
+            <div className="mb-4">
+                <BankTxFilterBar filters={filters} />
+            </div>
+
             {isLoading ? (
                 <LoadingState className="py-8" />
             ) : filtered.length === 0 ? (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2">
                     <Landmark className="w-8 h-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">{t('konten.noTransactions')}</p>
+                    <p className="text-sm text-muted-foreground">{filters.hasAnyFilter ? t('konten.filter.noResults') : t('konten.noTransactions')}</p>
+                    {filters.hasAnyFilter && (
+                        <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
+                            {t('konten.filter.clearAll')}
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -712,6 +802,31 @@ export function KontenView() {
     const [drawerAccount, setDrawerAccount] = useState<BankAccountResponse | 'new' | null>(null);
     const [importAccountId, setImportAccountId] = useState<number | null>(null);
     const [matchDrawerBankTxId, setMatchDrawerBankTxId] = useState<number | null>(null);
+    // The account cards take up a lot of room; keep them collapsed to compact pills by default and only show the full
+    // cards when the user actively expands the section. Cached like the other Konten preferences.
+    const [accountsExpanded, setAccountsExpanded] = usePersistedState<boolean>('hopps.konten.accountsExpanded', false);
+    // After a receipt is uploaded onto a bank transaction, its document opens in the shared receipt-review drawer right
+    // here on the Konten page, so the user completes + confirms the transaction and moves on to the next bank movement.
+    const [reviewDoc, setReviewDoc] = useState<DocumentResponse | null>(null);
+
+    const queryClient = useQueryClient();
+    const organization = useStore((s) => s.organization);
+    const allBommels = useBommelsStore((s) => s.allBommels);
+    const loadBommels = useBommelsStore((s) => s.loadBommels);
+
+    // The bommel store is populated on-demand per view; the Konten page doesn't otherwise load it, so ensure it is
+    // fetched when the review drawer opens (its bommel selector would be empty otherwise).
+    useEffect(() => {
+        if (reviewDoc && organization?.id && allBommels.length === 0) {
+            loadBommels(organization.id);
+        }
+    }, [reviewDoc, organization?.id, allBommels.length, loadBommels]);
+
+    const closeReviewDrawer = () => {
+        setReviewDoc(null);
+        // A confirmed transaction can flip its bank transaction to (fully) matched, so refresh the feeds/badges.
+        queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+    };
 
     // Open a specific bank transaction's detail drawer when navigated to with ?bankTx= (e.g. from a linked transaction).
     const [searchParams, setSearchParams] = useSearchParams();
@@ -733,7 +848,7 @@ export function KontenView() {
     const openCountResults = useQueries({
         queries: accounts.map((a) => ({
             queryKey: bankTransactionKeys.aggregate(String(a.id), 'UNMATCHED,PARTIALLY_MATCHED'),
-            queryFn: () => apiService.orgService.aggregate(String(a.id), undefined, undefined, undefined, 'UNMATCHED,PARTIALLY_MATCHED'),
+            queryFn: () => apiService.orgService.aggregate(String(a.id), undefined, undefined, undefined, undefined, undefined, 'UNMATCHED,PARTIALLY_MATCHED'),
         })),
     });
     const openCountByAccount = Object.fromEntries(accounts.map((a, i) => [String(a.id), openCountResults[i]?.data?.count ?? 0]));
@@ -756,25 +871,74 @@ export function KontenView() {
             {/* Page header */}
             <p className="text-muted-foreground text-sm">{t('konten.subtitle')}</p>
 
-            {/* Account cards row */}
-            <div className="flex flex-wrap gap-4">
-                {accounts.map((a) => (
-                    <AccountCard
-                        key={a.id}
-                        account={a}
-                        openCount={openCountByAccount[String(a.id)] ?? 0}
-                        onClick={() => setTab(String(a.id))}
-                        onEdit={(e) => {
-                            e.stopPropagation();
-                            setDrawerAccount(a);
-                        }}
-                        onImport={(e) => {
-                            e.stopPropagation();
-                            setImportAccountId(a.id!);
-                        }}
-                    />
-                ))}
-                <AddAccountCard onClick={() => setDrawerAccount('new')} />
+            {/* Bank accounts — collapsed to compact pills by default, expandable to the full cards. The header mirrors
+                the collapsible upload panel on the Belege page: icon box + title on the left, chevron on the right.
+                When there are no accounts yet the section is forced open so the "add account" card is shown right away. */}
+            <div className="flex flex-col gap-3">
+                {/* Header + collapse toggle — only meaningful once at least one account exists. */}
+                {accounts.length > 0 && (
+                    <button
+                        type="button"
+                        onClick={() => setAccountsExpanded((v) => !v)}
+                        aria-expanded={accountsExpanded}
+                        className="w-full flex items-center gap-3 text-left"
+                    >
+                        <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
+                            <Landmark className="w-[18px] h-[18px]" />
+                        </span>
+                        <span className="flex flex-col min-w-0 flex-1">
+                            <span className="text-sm font-bold text-foreground">
+                                {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                                {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
+                            </span>
+                        </span>
+                        <ChevronDown
+                            className={cn('w-[18px] h-[18px] text-muted-foreground transition-transform flex-shrink-0', accountsExpanded ? 'rotate-180' : '')}
+                        />
+                    </button>
+                )}
+
+                {/* Collapsed: compact pills only (the add button lives in the expanded cards view) */}
+                {accounts.length > 0 && !accountsExpanded && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {accounts.map((a) => (
+                            <AccountPill
+                                key={a.id}
+                                account={a}
+                                openCount={openCountByAccount[String(a.id)] ?? 0}
+                                onClick={() => {
+                                    setTab(String(a.id));
+                                    setAccountsExpanded(true);
+                                }}
+                            />
+                        ))}
+                    </div>
+                )}
+
+                {/* Expanded: full account cards (always shown while there are no accounts, so the add card is visible) */}
+                {(accountsExpanded || accounts.length === 0) && (
+                    <div className="flex flex-wrap gap-4">
+                        {accounts.map((a) => (
+                            <AccountCard
+                                key={a.id}
+                                account={a}
+                                openCount={openCountByAccount[String(a.id)] ?? 0}
+                                onClick={() => setTab(String(a.id))}
+                                onEdit={(e) => {
+                                    e.stopPropagation();
+                                    setDrawerAccount(a);
+                                }}
+                                onImport={(e) => {
+                                    e.stopPropagation();
+                                    setImportAccountId(a.id!);
+                                }}
+                            />
+                        ))}
+                        <AddAccountCard onClick={() => setDrawerAccount('new')} />
+                    </div>
+                )}
             </div>
 
             {/* Segmented tab bar */}
@@ -804,27 +968,14 @@ export function KontenView() {
             {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={setMatchDrawerBankTxId} />}
             {tab === 'importe' && <ImporteTab accounts={accounts} onImport={setImportAccountId} />}
 
-            {/* Empty state when no accounts at all */}
-            {accounts.length === 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-12 flex flex-col items-center text-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <Landmark className="w-7 h-7 text-muted-foreground" />
-                    </div>
-                    <p className="font-semibold text-base">{t('konten.empty.title')}</p>
-                    <p className="text-sm text-muted-foreground max-w-sm">{t('konten.empty.desc')}</p>
-                    <button
-                        type="button"
-                        className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                        onClick={() => setDrawerAccount('new')}
-                    >
-                        <Plus className="w-4 h-4" />
-                        {t('konten.addAccount')}
-                    </button>
-                </div>
+            {/* Match drawer */}
+            {matchDrawerBankTxId !== null && (
+                <MatchDrawer bankTxId={matchDrawerBankTxId} onClose={closeMatchDrawer} onReceiptUploaded={(doc) => setReviewDoc(doc)} />
             )}
 
-            {/* Match drawer */}
-            {matchDrawerBankTxId !== null && <MatchDrawer bankTxId={matchDrawerBankTxId} onClose={closeMatchDrawer} />}
+            {/* Receipt-review drawer (shared with the Belege page): opened in place after a receipt upload so the user
+                completes + confirms the transaction and continues with the next bank movement without navigating away. */}
+            <ReviewDrawer doc={reviewDoc} onClose={closeReviewDrawer} onDeleted={closeReviewDrawer} />
 
             {/* Create / Edit drawer */}
             <BankAccountDrawer

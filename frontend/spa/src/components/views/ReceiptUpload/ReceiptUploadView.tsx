@@ -9,6 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
 
+import { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
@@ -41,7 +42,7 @@ function ReceiptUploadView() {
     const { id } = useParams<{ id: string }>();
     // Page title set after isReadOnly state is defined below
     const { showError, showSuccess, showWarning } = useToast();
-    const { loadBommels, rootBommel } = useBommelsStore();
+    const { loadBommels } = useBommelsStore();
     const store = useStore();
     const queryClient = useQueryClient();
 
@@ -246,12 +247,17 @@ function ReceiptUploadView() {
         loadBommels(store.organization.id).catch(() => {});
     }, [store.organization, loadBommels]);
 
-    // Set root bommel as default for new receipts
+    // For a new receipt the Bommel starts empty, but the last choice is pre-selected once: the cached bommel takes
+    // priority over the empty default (so a batch of receipts can go to the same bommel). A cached "cleared" state or no
+    // cache leaves it empty, and there is no root fallback. This runs exactly once so the field can still be cleared
+    // afterwards without being re-filled.
+    const bommelPrefilledRef = useRef(false);
     useEffect(() => {
-        if (!isEditMode && rootBommel?.id && !bommelId) {
-            setBommelId(rootBommel.id);
-        }
-    }, [isEditMode, rootBommel, bommelId, setBommelId]);
+        if (isEditMode || bommelPrefilledRef.current) return;
+        bommelPrefilledRef.current = true;
+        const cached = getCachedBommelId();
+        if (typeof cached === 'number') setBommelId(cached);
+    }, [isEditMode, setBommelId]);
 
     // Track if transaction has been loaded to prevent re-loading
     const transactionLoadedRef = useRef<string | null>(null);

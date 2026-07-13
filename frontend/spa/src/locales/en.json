@@ -419,6 +419,9 @@
             "bankLoading": "Loading bank transactions …",
             "bankSearchPlaceholder": "Search bank transaction …",
             "bankNoResults": "No matching bank transactions found",
+            "purpose": "Reference",
+            "showPurpose": "Show reference",
+            "hidePurpose": "Hide reference",
             "linkBankTransaction": "Link bank transaction",
             "unlink": "Remove link",
             "openBankAccounts": "Manage in bank accounts",
@@ -468,6 +471,7 @@
             "date": "Date",
             "counterparty": "Recipient/Issuer",
             "name": "Description",
+            "bommel": "Area (Bommel)",
             "coverage": "Coverage by bank transactions"
         },
         "bulk": {
@@ -1039,6 +1043,9 @@
         "open": "open",
         "allMatched": "reconciled",
         "addAccount": "Add bank account",
+        "accounts": "Accounts",
+        "accountsExpand": "Show details",
+        "accountsCollapse": "Hide details",
         "importAction": "Import transactions",
         "import": "Import",
         "assign": "Assign",
@@ -1058,7 +1065,16 @@
             "all": "All",
             "open": "Open",
             "matched": "Matched",
-            "ignored": "Ignored"
+            "ignored": "Ignored",
+            "searchPlaceholder": "Search (counterparty, purpose, amount) …",
+            "clearSearch": "Clear search",
+            "filters": "Filters",
+            "dateFrom": "Date from",
+            "dateTo": "Date to",
+            "minAmount": "Min amount",
+            "maxAmount": "Max amount",
+            "clearAll": "Clear filters",
+            "noResults": "No transactions match the current search/filter"
         },
         "abgleich": {
             "allClear": "All reconciled",

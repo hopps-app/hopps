@@ -418,6 +418,9 @@
             "bankLoading": "Bankumsätze werden geladen …",
             "bankSearchPlaceholder": "Bankumsatz suchen …",
             "bankNoResults": "Keine passenden Bankumsätze gefunden",
+            "purpose": "Verwendungszweck",
+            "showPurpose": "Verwendungszweck anzeigen",
+            "hidePurpose": "Verwendungszweck ausblenden",
             "linkBankTransaction": "Bankumsatz verknüpfen",
             "unlink": "Verknüpfung lösen",
             "openBankAccounts": "In Bankkonten verwalten",
@@ -467,6 +470,7 @@
             "date": "Datum",
             "counterparty": "Empfänger/Aussteller",
             "name": "Bezeichnung",
+            "bommel": "Bereich (Bommel)",
             "coverage": "Deckung durch Banktransaktionen"
         },
         "bulk": {
@@ -1038,6 +1042,9 @@
         "open": "offen",
         "allMatched": "abgeglichen",
         "addAccount": "Bankkonto hinzufügen",
+        "accounts": "Konten",
+        "accountsExpand": "Details anzeigen",
+        "accountsCollapse": "Details ausblenden",
         "importAction": "Umsätze importieren",
         "import": "Importieren",
         "assign": "Zuordnen",
@@ -1057,7 +1064,16 @@
             "all": "Alle",
             "open": "Offen",
             "matched": "Zugeordnet",
-            "ignored": "Ignoriert"
+            "ignored": "Ignoriert",
+            "searchPlaceholder": "Suchen (Gegenpartei, Verwendungszweck, Betrag) …",
+            "clearSearch": "Suche löschen",
+            "filters": "Filter",
+            "dateFrom": "Datum von",
+            "dateTo": "Datum bis",
+            "minAmount": "Betrag min.",
+            "maxAmount": "Betrag max.",
+            "clearAll": "Filter zurücksetzen",
+            "noResults": "Keine Transaktionen für die aktuelle Suche/Filter"
         },
         "abgleich": {
             "allClear": "Alles abgeglichen",
