@@ -26,12 +26,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategories } from '@/hooks/queries/useCategories';
+import { useDocument } from '@/hooks/queries/useDocuments';
 import {
     useTransactions,
     useTransaction,
@@ -158,6 +160,9 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { data: tx, isLoading } = useTransaction(txId ?? 0);
+    // The receipt linked to this transaction (if any) — shown as a large preview to the left of the drawer,
+    // mirroring the receipt detail view. Fetching is gated on documentId (the hook no-ops when it's undefined).
+    const { data: linkedDoc } = useDocument(tx?.documentId ?? undefined);
     const deleteMutation = useDeleteTransaction();
     const updateMutation = useUpdateTransaction();
     const confirmMutation = useConfirmTransaction();
@@ -326,6 +331,17 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                 onClick={onClose}
             />
 
+            {/* Large file preview to the left of the detail drawer (desktop only), shown when a receipt is linked. */}
+            <div
+                className={cn(
+                    'hidden lg:flex fixed top-0 bottom-0 left-0 z-50 p-4 pointer-events-none transition-transform duration-300 ease-out',
+                    open && linkedDoc ? 'translate-x-0' : '-translate-x-full'
+                )}
+                style={{ right: 420, fontFamily: FONT }}
+            >
+                {linkedDoc && <DocumentFilePreview doc={linkedDoc} />}
+            </div>
+
             {/* Drawer */}
             <div
                 className={cn(
@@ -398,7 +414,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 >
                                     <Badge variant="neutral">PDF</Badge>
                                     <span className="flex-1 text-[13px] text-[#1B1B1F] truncate">
-                                        {t('transactions.detail.receipt')} #{tx.documentId}
+                                        {linkedDoc?.fileName ?? `${t('transactions.detail.receipt')} #${tx.documentId}`}
                                     </span>
                                     <span className="inline-flex items-center gap-1 text-[12.5px] font-bold text-[#7E3FB4] flex-shrink-0">
                                         {t('transactions.detail.openReceipt')}

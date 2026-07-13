@@ -1,4 +1,5 @@
 import type { BankTxFilter } from '@/hooks/queries/useBankAccounts';
+import { useDebounce } from '@/hooks/use-debounce';
 import { usePersistedState } from '@/hooks/usePersistedState';
 
 export interface BankTxFilterState {
@@ -32,10 +33,18 @@ export function useBankTxFilters(keyPrefix: string): BankTxFilterState {
     const [dateFrom, setDateFrom] = usePersistedState<string>(`${keyPrefix}.dateFrom`, '');
     const [dateTo, setDateTo] = usePersistedState<string>(`${keyPrefix}.dateTo`, '');
 
+    // The free-text inputs (search + amount range) drive the server query only after a short pause: debouncing the
+    // query-facing value keeps typing from firing a request on every keystroke and from thrashing the query key — which
+    // would otherwise remount the transaction list and steal focus back out of the search box after each letter. The
+    // inputs themselves stay bound to the immediate state above, so typing still feels instant.
+    const debouncedSearch = useDebounce(search.trim(), 350);
+    const debouncedMinAmount = useDebounce(minAmount.trim(), 350);
+    const debouncedMaxAmount = useDebounce(maxAmount.trim(), 350);
+
     const filter: BankTxFilter = {
-        search: search.trim() || undefined,
-        minAmount: minAmount.trim() || undefined,
-        maxAmount: maxAmount.trim() || undefined,
+        search: debouncedSearch || undefined,
+        minAmount: debouncedMinAmount || undefined,
+        maxAmount: debouncedMaxAmount || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
     };

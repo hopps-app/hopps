@@ -1,5 +1,5 @@
 import { DocumentResponse } from '@hopps/api-client';
-import { AlertCircle, Download, ExternalLink, FileText, Loader2, Upload } from 'lucide-react';
+import { AlertCircle, Download, ExternalLink, FileText, Loader2, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,7 @@ import apiService from '@/services/ApiService';
  * the authenticated API client and shown via an object URL — PDFs use the browser's native viewer (scroll / zoom /
  * pages), images can be toggled between fit-to-view and actual size.
  */
-export function DocumentFilePreview({ doc }: { doc: DocumentResponse }) {
+export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; onClose?: () => void }) {
     const { t } = useTranslation();
     const [url, setUrl] = useState<string | null>(null);
     const [state, setState] = useState<'loading' | 'ready' | 'error' | 'missing'>('loading');
@@ -80,21 +80,28 @@ export function DocumentFilePreview({ doc }: { doc: DocumentResponse }) {
                     <FileText size={16} className="text-[#7E3FB4] flex-shrink-0" />
                     <span className="text-[13px] font-semibold text-[#1B1B1F] truncate">{doc.fileName}</span>
                 </span>
-                {state === 'ready' && url && (
-                    <span className="flex items-center gap-0.5 flex-shrink-0">
-                        <button
-                            type="button"
-                            onClick={() => window.open(url, '_blank', 'noopener')}
-                            title={t('receipts.preview.openNewTab')}
-                            className={iconBtn}
-                        >
-                            <ExternalLink size={15} />
+                <span className="flex items-center gap-0.5 flex-shrink-0">
+                    {state === 'ready' && url && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => window.open(url, '_blank', 'noopener')}
+                                title={t('receipts.preview.openNewTab')}
+                                className={iconBtn}
+                            >
+                                <ExternalLink size={15} />
+                            </button>
+                            <a href={url} download={doc.fileName} title={t('receipts.preview.download')} className={iconBtn}>
+                                <Download size={15} />
+                            </a>
+                        </>
+                    )}
+                    {onClose && (
+                        <button type="button" onClick={onClose} title={t('common.close')} aria-label={t('common.close')} className={iconBtn}>
+                            <X size={15} />
                         </button>
-                        <a href={url} download={doc.fileName} title={t('receipts.preview.download')} className={iconBtn}>
-                            <Download size={15} />
-                        </a>
-                    </span>
-                )}
+                    )}
+                </span>
             </div>
 
             {/* Viewer */}

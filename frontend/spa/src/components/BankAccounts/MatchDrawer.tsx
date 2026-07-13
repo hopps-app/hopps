@@ -1,12 +1,13 @@
 import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, FileText, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
+import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import {
     useBankTransaction,
     useAddBankTransactionMatch,
@@ -15,6 +16,7 @@ import {
     useCreateReceiptForBankTransaction,
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
+import { useDocument } from '@/hooks/queries/useDocuments';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 
@@ -102,6 +104,10 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
     const [sel, setSel] = useState<Set<number>>(new Set());
     const [showCreate, setShowCreate] = useState(false);
     const [txSearch, setTxSearch] = useState('');
+    // The receipt (document) currently previewed to the left of the drawer, chosen via the small receipt button on a
+    // candidate row. Only transactions that actually have a linked document can set this.
+    const [previewDocId, setPreviewDocId] = useState<number | null>(null);
+    const { data: previewDoc } = useDocument(previewDocId ?? undefined);
     const createReceipt = useCreateReceiptForBankTransaction();
 
     // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked (DRAFT)
@@ -255,6 +261,19 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         <>
             {/* Scrim */}
             <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
+
+            {/* Linked-receipt preview to the left of the drawer (desktop only), toggled per candidate via its receipt
+                button. The wrapper ignores pointer events so clicks in the gap still fall through to the scrim; the
+                preview card itself re-enables them. `right` matches the drawer width (max-w-md = 28rem). */}
+            <div
+                className={cn(
+                    'hidden lg:flex fixed top-0 bottom-0 left-0 z-50 p-4 pointer-events-none transition-transform duration-300 ease-out',
+                    previewDoc ? 'translate-x-0' : '-translate-x-full'
+                )}
+                style={{ right: '28rem' }}
+            >
+                {previewDoc && <DocumentFilePreview doc={previewDoc} onClose={() => setPreviewDocId(null)} />}
+            </div>
 
             {/* Drawer */}
             <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-50 flex flex-col shadow-2xl">
@@ -477,6 +496,27 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                                     </span>
                                                 )}
                                                 <SignedAmount amount={tx.total} currency={tx.currencyCode ?? 'EUR'} size="sm" />
+                                                {/* Toggle the transaction's linked receipt in the left-hand preview. Only shown when a
+                                                    document is actually linked; stops propagation so it does not toggle the row selection. */}
+                                                {tx.documentId != null && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setPreviewDocId((prev) => (prev === tx.documentId ? null : tx.documentId!));
+                                                        }}
+                                                        aria-pressed={previewDocId === tx.documentId}
+                                                        title={previewDocId === tx.documentId ? t('konten.drawer.hideReceipt') : t('konten.drawer.showReceipt')}
+                                                        className={cn(
+                                                            'w-7 h-7 flex items-center justify-center rounded-full border transition-colors flex-shrink-0',
+                                                            previewDocId === tx.documentId
+                                                                ? 'border-primary/40 text-primary bg-primary/10'
+                                                                : 'border-gray-200 dark:border-gray-600 text-muted-foreground hover:text-primary hover:border-primary/40'
+                                                        )}
+                                                    >
+                                                        <FileText className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
                                             </div>
                                         );
                                     })}

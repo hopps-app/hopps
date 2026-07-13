@@ -1140,7 +1140,9 @@
             "uploadReceiptBusy": "Uploading receipt …",
             "createTransaction": "Create transaction without receipt",
             "createTransactionHint": "Prefilled from the bank transaction – no linked receipt",
-            "txSearchPlaceholder": "Search by amount or name…"
+            "txSearchPlaceholder": "Search by amount or name…",
+            "showReceipt": "Show receipt",
+            "hideReceipt": "Hide receipt"
         },
         "openAmount": "open: {{amount}}",
         "createTx": {

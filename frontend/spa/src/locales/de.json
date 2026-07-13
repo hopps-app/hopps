@@ -1139,7 +1139,9 @@
             "uploadReceiptBusy": "Beleg wird hochgeladen …",
             "createTransaction": "Transaktion ohne Beleg erstellen",
             "createTransactionHint": "Vorbelegt aus der Banktransaktion – ohne verknüpften Beleg",
-            "txSearchPlaceholder": "Nach Betrag oder Name suchen…"
+            "txSearchPlaceholder": "Nach Betrag oder Name suchen…",
+            "showReceipt": "Beleg anzeigen",
+            "hideReceipt": "Beleg ausblenden"
         },
         "openAmount": "offen: {{amount}}",
         "createTx": {

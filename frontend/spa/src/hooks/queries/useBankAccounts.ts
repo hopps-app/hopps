@@ -8,7 +8,7 @@ import {
     AmountStrategy,
     BankFieldType,
 } from '@hopps/api-client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { documentKeys, showUploadError } from '@/hooks/queries/useDocuments';
@@ -435,6 +435,9 @@ export function useBankTransactionsByAccount(
                 status
             ),
         enabled: !!accountId,
+        // Keep the current rows on screen while a changed filter/page/sort refetches, so the list (and the search box
+        // above it) never blanks out into the loading state between keystrokes.
+        placeholderData: keepPreviousData,
     });
 }
 
@@ -466,6 +469,9 @@ export function useAllBankTransactions(
                 sort,
                 status
             ),
+        // Keep the previous page/filter results visible while the changed query refetches (see byAccount above), so the
+        // reconciliation feed and its filter bar don't collapse into the full-page loading state on every keystroke.
+        placeholderData: keepPreviousData,
     });
 }
 
@@ -487,6 +493,9 @@ export function useBankTransactionAggregate(accountIds?: string, status?: string
                 status
             ),
         enabled,
+        // Keep the previous counts/totals during a filter change so the badges don't reset the surrounding view into
+        // its loading state (which would unmount the search box) while typing.
+        placeholderData: keepPreviousData,
     });
 }
 
