@@ -17,21 +17,21 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
   /keycloak-theme - Custom Keycloak Theme
 /infrastructure   - Docker Compose & Deployment
 /charts           - Helm Charts für Kubernetes
-/bpmn             - Business Process Models
-/pacts            - Contract Testing Files
 /architecture     - Architekturdokumentation
+/formatter        - Java Code-Formatter-Konfiguration
 ```
 
 ## Backend
 
 ### Tech Stack
-- **Framework:** Quarkus 3.19.2
+- **Framework:** Quarkus 3.37.2
 - **Sprache:** Java 21
 - **Build:** Maven
-- **Datenbank:** PostgreSQL mit Flyway Migrations
+- **Datenbank:** PostgreSQL 16 mit Flyway Migrations
 - **ORM:** Hibernate mit Panache
-- **Auth:** Keycloak (OAuth2/OIDC)
-- **Storage:** AWS S3 (MinIO lokal)
+- **Auth:** Keycloak (OAuth2/OIDC), Quarkus OIDC + Keycloak Admin Client
+- **Storage:** AWS S3 (LocalStack lokal)
+- **Realtime:** Quarkus WebSockets Next (Live-Benachrichtigungen bei Dokumentänderungen)
 - **AI/ML:** LangChain4j mit OpenAI, Azure Document AI
 
 ### Microservices
@@ -39,26 +39,35 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 #### app.hopps.org (Port 8101)
 **Haupt-Service für Organisation und Member Management**
 
-**Domain Models:**
-- `Organization` - Hauptentität für Vereine (Name, Slug, Typ, Adresse, Website)
+**Domain Models** (Feature-Slices unter `app/hopps/{feature}/domain`):
+- `Organization` + `Address` - Hauptentität für Vereine (Name, Slug, Typ, Adresse, Website)
 - `Member` - Benutzer mit Verknüpfung zu mehreren Organisationen
 - `Bommel` - Hierarchische Baumstruktur für Organisationseinheiten (Abteilungen/Teams)
 - `Category` - Kategorisierungssystem für Transaktionen
-- `TransactionRecord` - Finanztransaktionen mit Dokumentreferenzen
+- `Transaction` - Finanztransaktionen mit Dokumentreferenzen
+- `Document` + `TradeParty`, `DocumentTag` - hochgeladene Belege inkl. Analyse-/Extraktionsstatus
+- `BankAccount`, `BankImport`, `BankTransaction`, `BankCsvSchema`, `BankCsvColumnMapping`, `BankTransactionMatch` - Bank-CSV-Import und Abgleich mit Transaktionen (`bankimport`-Slice)
+- `Tag` (shared)
 
-**API Endpoints:**
-- `/organization` - Organisation CRUD + Registrierungsworkflow
+**API Endpoints** (class-level `@Path`):
+- `/organization`, `/organizations` - Organisation CRUD, Registrierungsworkflow, Bommel-Zuordnung
 - `/bommel` - Baumstruktur-Management mit rekursiven Operationen
 - `/member` - Member-Verwaltung
 - `/category` - Kategorie-Verwaltung
-- `/transaction` - Transaktionsdatensätze
-- `/document` - Dokumenten-Upload und Abruf
+- `/transactions` - Transaktionsdatensätze
+- `/documents` - Dokumenten-Upload und Abruf
+- `/statistics` - Auswertungen/Kennzahlen
+- `/bankaccounts`, `/imports`, `/bank-transactions`, `/bank-schemas` - Bank-Import-Feature
+- `/health` - Health-Check
+- `/ws/documents` - WebSocket für Live-Updates zu Dokumentanalysen
 
 **Features:**
 - Keycloak User Provisioning
 - S3 Dokumentenspeicherung
+- Bank-CSV-Import mit konfigurierbaren Schemata und Transaktions-Matching
+- WebSocket-Live-Benachrichtigungen
 
-#### app.hopps.az-document-ai (Port 8100)
+#### app.hopps.az-document-ai (Port 8100, root-path `/api/az-document-ai`)
 Dokumentenanalyse mit Azure Document Intelligence (OCR, Datenextraktion)
 
 #### app.hopps.zugferd (Port 8103)
@@ -68,24 +77,25 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
 - **Multi-Database:** Separate DBs für org, keycloak
-- **Schema Version:** V1.0.2
+- **Schema Version:** aktuell V1.0.19 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann V1.0.13–V1.0.19)
 
 ## Frontend
 
 ### SPA (Single Page Application)
 
 **Tech Stack:**
-- **Framework:** React 18.3.1
-- **Build:** Vite 6.0.6
-- **Sprache:** TypeScript 5.5.3
-- **Routing:** React Router v7.5.2
-- **State:** Zustand 5.0.0
-- **API:** @tanstack/react-query 5.80.6
-- **UI:** Radix UI + TailwindCSS 3.4.14
-- **Forms:** React Hook Form 7.66.0 + Zod
-- **Grid:** AG Grid 32.3.3
-- **i18n:** i18next 23.16.0
-- **Auth:** Keycloak-js 24.0.5
+- **Framework:** React 19.1
+- **Build:** Vite 7
+- **Sprache:** TypeScript 5.5
+- **Routing:** React Router v7.5
+- **State:** Zustand 5.0
+- **API:** @tanstack/react-query 5.90
+- **UI:** Radix UI + TailwindCSS 3.4
+- **Forms:** React Hook Form 7.66 + Zod 4
+- **Grid:** AG Grid 32.3
+- **Charts:** Recharts 2.15
+- **i18n:** i18next 23.16 + react-i18next 15
+- **Auth:** Keycloak-js 24.0
 
 **Features:**
 - Drag-and-drop File Upload (react-dropzone)
@@ -96,41 +106,46 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 **Struktur:**
 ```
 src/
+├── AppRoutes.tsx              - Zentrale Routen-Definition (von App.tsx eingebunden)
+├── i18n.ts                    - i18next-Konfiguration
 ├── components/
 │   ├── ui/                    - Wiederverwendbare UI-Komponenten (shadcn/ui-inspiriert)
 │   ├── views/                 - Seiten-Level Komponenten
 │   ├── BommelTreeView/        - Organisations-Baumvisualisierung
 │   ├── Categories/            - Kategorie-Management
-│   └── Forms/                 - Formular-Komponenten
-├── services/
-│   ├── auth/                  - Keycloak Authentication
-│   ├── ApiService.ts
-│   └── OrganisationTreeService.ts
+│   ├── Forms/                 - Formular-Komponenten
+│   ├── BankAccounts/, Receipts/, Transactions/, InvoicesTable/, SettingsPage/, ...
+│   └── AgGrid/, common/, sidebar-navigation/
+├── services/                  - ApiService, OrganisationTreeService, Theme/Language/Connectivity/Emoji, auth/
 ├── store/                     - Zustand Stores
 ├── hooks/                     - Custom React Hooks
+├── context/, providers/       - React Context & Provider
 ├── guards/                    - Route Guards (AuthGuard)
 ├── layouts/                   - Layout-Komponenten
-└── locales/                   - i18n Übersetzungen
+├── lib/, utils/, @types/, assets/, styles/, test/
+└── locales/                   - i18n Übersetzungen (de.json, en.json, uk.json)
 ```
 
-**Hauptrouten:**
+**Hauptrouten** (siehe `src/AppRoutes.tsx`):
 - `/` - Landing Page
-- `/demo` - Demo-Ansicht
 - `/register` - Organisationsregistrierung
 - `/dashboard/*` - Haupt-Dashboard (protected)
-- `/structure/*` - Organisationsstruktur-Management (protected)
-- `/receipts/new` - Beleg-Upload (protected)
-- `/admin/categories` - Kategorie-Management (protected)
+- `/structure` - Organisationsstruktur-Management (protected)
+- `/receipts`, `/receipts/new`, `/receipts/:id` - Belege (protected)
+- `/transactions` - Transaktionsübersicht (protected)
+- `/bank-accounts`, `/bank-accounts/:id`, `/bank-accounts/:id/import`, `/bank-schemas` - Bank-Import (protected)
+- `/admin/categories`, `/admin/ngo-details` - Admin (protected)
+- `/settings/*` - Einstellungen (protected)
 - `/profile` - Benutzereinstellungen (protected)
 
 ### Mobile App
 
 **Tech Stack:**
-- **Framework:** React Native 0.76.3 via Expo 52.0.11
-- **Router:** Expo Router 4.0.9
-- **UI:** NativeWind 4.1.23 (TailwindCSS für React Native)
+- **Framework:** React Native 0.81.5 via Expo 54, React 19.1
+- **Router:** Expo Router 6
+- **UI:** NativeWind 4.1 (TailwindCSS für React Native)
 - **Icons:** Lucide React Native
-- **HTTP:** Axios mit Auth Refresh
+- **HTTP:** Axios mit Auth Refresh (axios-auth-refresh)
 
 **Plattformen:** iOS, Android, Web (via Expo)
 
@@ -216,9 +231,6 @@ frontend/api-client/
 └── org-service-local.nswag    # NSwag Config (Lokal)
 ```
 
-### figma_inspo Ordner
-Der `frontend/figma_inspo` Ordner dient als **Inspiration für UI/UX Design und Komponenten**. Dieser Ordner enthält Referenzimplementierungen und Designvorlagen, die als Grundlage für die Entwicklung neuer Features verwendet werden können.
-
 ## Build & Deployment
 
 ### Build Tools
@@ -226,12 +238,14 @@ Der `frontend/figma_inspo` Ordner dient als **Inspiration für UI/UX Design und 
 - **Frontend:** pnpm Workspace, Vite (SPA), Expo CLI (Mobile)
 
 ### Docker (Lokale Entwicklung)
-**Services (docker-compose.yaml):**
-- `org` - Organization Service (8080)
+**Services (`infrastructure/hopps-app/docker-compose.yaml`):**
+- `org` - Organization Service (Host **8101** → 8080, Image `ghcr.io/hopps-app/hopps/org`)
 - `az-document-ai` - Document Analysis (8100)
-- `postgres` - PostgreSQL 16
-- `keycloak` - Bitnami Keycloak 26 (8092)
-- `localstack` - AWS S3 Mock
+- `postgres` - PostgreSQL 16 (`postgres:16-alpine`, 5432)
+- `keycloak` - offizielles Keycloak (`quay.io/keycloak/keycloak:26.4.7`, 8092)
+- `localstack` - AWS S3 Mock (4566)
+
+Hinweis: Der `zugferd`-Service ist nicht Teil dieses Compose-Files. Weitere Compose-Setups: `docker-compose-infra-only.yaml`, `docker-compose.authentik.yaml`.
 
 **Benötigte Umgebungsvariablen:**
 ```bash
@@ -291,14 +305,15 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - **Nur `%dev`:** Der `image-name`-Override und der ganze Authentik-Broker-Flow betreffen ausschließlich den Dev-Mode. In JUnit-Tests spielt das Login-Theme keine Rolle (Tests holen Tokens direkt, rendern nie die Login-Seite).
 
 ### CI/CD (GitHub Actions)
-- **Backend Workflow:** Matrix Build für 4 Services, Docker Push zu GHCR
-- **Frontend Workflow:** Lint, Test, Build, Docker Push
+- **Backend Workflow (`backend.yml`):** Matrix Build für 3 Services (org, az-document-ai, zugferd), Docker Push zu GHCR
+- **Frontend Workflow (`frontend.yml`):** Lint, Test, Build, Docker Push; separater `api-client.yml` und `keycloak.yml`
 - **Auto-Deployment:** zu dev environment bei main branch
 - **Container Registry:** ghcr.io/hopps-app/hopps
+- **Weitere Workflows:** SonarQube-, Dependency-Track-Analyse, `helm-release.yaml`, `claude-code-review.yml`
 
 ### Kubernetes/Helm
-**Chart:** `/charts/hopps` (Version 0.1.15)
-**Dependencies:** KeycloakX, PostgreSQL
+**Chart:** `/charts/hopps` (Version 0.2.7)
+**Dependencies:** KeycloakX (codecentric, v7.0.1), PostgreSQL (bitnami, v16.4.5)
 
 ## Testing
 
@@ -311,28 +326,32 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - **Struktur:** Unit Tests + Integration Tests (IT suffix)
 
 ### Frontend
-- **SPA:** Vitest 2.1.3, React Testing Library
+- **SPA:** Vitest 3.2, React Testing Library
 - **Mobile:** Jest mit jest-expo
 - **Contract Testing:** Pact Foundation
 - **Command:** `pnpm run validate` (lint + test)
 
 ### Pact Contract Testing
-- Consumer: SPA generiert Pacts
-- Provider: Backend verifiziert Pacts
-- Storage: `/pacts` Verzeichnis
-- Stub Server für lokale Entwicklung
+- Consumer-Tests: `frontend/api-client/src/pact/` (z.B. `InvoicesService.pact.test.ts`); Backend nutzt zusätzlich `au.com.dius.pact.consumer` (pact-jvm)
+- Generierte Pacts landen in einem `pacts/`-Verzeichnis (nicht im Repo eingecheckt)
+- Stub Server für lokale Entwicklung: `pnpm run stubs` in `frontend/spa` (pact-stub-server auf Port 8090)
 
 ## Wichtige Konventionen
 
-### Backend Code-Organisation (Geplant nach Vertical Slice)
+### Backend Code-Organisation (Vertical Slice — umgesetzt)
+Der org-Service ist nach Feature-Slices organisiert (`organization`, `member`, `bommel`, `category`,
+`transaction`, `document`, `bankimport`, `statistics`) plus ein `shared`-Paket. Typische Slice-Struktur:
 ```
 src/main/java/app/hopps/{feature}/
-├── api/           - REST Endpoints
+├── api/           - REST Endpoints (@Path); DTOs liegen unter api/dto/
 ├── domain/        - Entities, Domain Models
 ├── repository/    - Panache Repositories
-├── service/       - Business Logic
-└── dto/           - Data Transfer Objects
+├── service/       - Business Logic (nicht in jedem Slice vorhanden)
+└── model/         - Input-/Value-Typen (z.B. BommelInput, OrganizationInput)
 ```
+Hinweise: DTOs liegen unter `api/dto/` (nicht als Top-Level-`dto/`). `service/` existiert nur in
+größeren Slices (organization, document, bankimport, statistics). `shared/` enthält u.a.
+`bootstrap`, `infrastructure/storage`, `security`, `validation`.
 
 ### API-Entwicklung
 - OpenAPI/Swagger verfügbar unter `/q/swagger-ui`
@@ -347,25 +366,16 @@ src/main/java/app/hopps/{feature}/
 - i18n für alle User-facing Strings
 - Route Guards für geschützte Routen
 
-## BPMN Prozesse
-3 Business Prozesse modelliert:
-1. `NewOrganization.bpmn` - Organisationserstellungs-Workflow (aktiv)
-2. `Auslagen_Workflow_Prozess.bpmn` - Auslagenerstattung
-3. `Einladen_Von_Neuen_Mitgliedern.bpmn` - Mitgliedereinladung
-
 ## Dokumentation
 - **Main README:** Projekt-Übersicht, Setup
 - **Service READMEs:** Spezifische Setup-Anleitungen
 - **Architektur:** `/architecture/architecture.drawio`
-- **Analyse-Docs:**
-  - `backend-structure-analysis.md` - Aktuelle Backend-Issues
-  - `backend-vertical-slice-plan.md` - Migrations-Plan
-  - `backend-test-structure-migration.md` - Test-Organisation
+- **Frontend:** `frontend/FRONTEND_REFACTORING_PLAN.md`
 
 ## Wichtige Hinweise für AI-Assistenten
 
 ### Bei Backend-Änderungen:
-1. Folge dem geplanten Vertical Slice Architecture Pattern
+1. Folge dem etablierten Vertical Slice Architecture Pattern (siehe "Backend Code-Organisation")
 2. Verwende konsistente Package-Benennung (`api/` statt `endpoint/`)
 3. Vermeide Code-Duplikation - extrahiere zu common package
 4. DTOs als Records (nicht Classes)
@@ -386,12 +396,13 @@ src/main/java/app/hopps/{feature}/
 **Strikte Regeln:**
 1. **Keine Hart-kodierten Texte:** NIEMALS direkte Texte im Code hinterlegen, die vom Benutzer gesehen werden können
 2. **Immer i18next verwenden:** Alle User-facing Strings MÜSSEN über `t('translation.key')` geladen werden
-3. **Mindestens zwei Sprachen:** Jeder neue Text benötigt SOWOHL deutsche ALS AUCH englische Übersetzung
+3. **Mindestens zwei Sprachen:** Jeder neue Text benötigt SOWOHL deutsche ALS AUCH englische Übersetzung (Ukrainisch/`uk.json` nach Möglichkeit ebenfalls pflegen)
 4. **Konsistente Keys:** Verwende aussagekräftige, hierarchische Translation Keys (z.B. `organization.settings.structure`)
 
-**Übersetzungs-Dateien:**
-- Deutsch: `/frontend/spa/src/locales/de/translation.json`
-- Englisch: `/frontend/spa/src/locales/en/translation.json`
+**Übersetzungs-Dateien** (flache JSON-Dateien, konfiguriert in `src/i18n.ts`, Default `en`):
+- Deutsch: `/frontend/spa/src/locales/de.json`
+- Englisch: `/frontend/spa/src/locales/en.json`
+- Ukrainisch: `/frontend/spa/src/locales/uk.json`
 
 **Beispiel - FALSCH:**
 ```tsx
