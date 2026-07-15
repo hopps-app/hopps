@@ -21,8 +21,12 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.ws.rs.BadRequestException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
@@ -179,9 +183,177 @@ class BankTransactionMatchServiceTest {
         assertEquals(BankTransactionStatus.FULLY_MATCHED, reloadedBankTx.getStatus());
     }
 
+    /**
+     * Linking with an explicit partial amount records that amount as the allocation, marks it as manual and leaves the
+     * bank transaction only partially matched — the core of splitting a collective transfer across transactions.
+     */
+    @Test
+    @TestTransaction
+    void addingMatchWithExplicitAmountStoresPartialAllocation() {
+        Fixture f = createUnmatchedFixture("-100.00", "-100.00", "partial-add");
+
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", new BigDecimal("40.00"));
+
+        BankTransactionMatch match = singleMatch(f.transaction.getId());
+        assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("40.00")));
+        assertTrue(match.isAmountManual(), "an explicit amount is stored as a manual allocation");
+
+        BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
+        assertEquals(BankTransactionStatus.PARTIALLY_MATCHED, reloaded.getStatus());
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("40.00")));
+    }
+
+    /**
+     * A hand-set partial allocation must survive a later change to the transaction amount — unlike the default
+     * full-amount snapshot, which is re-synced.
+     */
+    @Test
+    @TestTransaction
+    void manualAllocationIsNotOverwrittenWhenTransactionAmountChanges() {
+        Fixture f = createUnmatchedFixture("-100.00", "-100.00", "partial-keep");
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", new BigDecimal("40.00"));
+
+        f.transaction.setTotal(new BigDecimal("-60.00"));
+        em.flush();
+        matchService.updateMatchedAmountForTransaction(f.transaction.getId());
+
+        BankTransactionMatch match = singleMatch(f.transaction.getId());
+        assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("40.00")),
+                "the manual allocation stays put");
+    }
+
+    /**
+     * Updating the allocation of an existing (default, full) match reduces the covered amount and flips the bank
+     * transaction to PARTIALLY_MATCHED.
+     */
+    @Test
+    @TestTransaction
+    void updateMatchAmountReducesCoverage() {
+        Fixture f = createUnmatchedFixture("-100.00", "-100.00", "partial-update");
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester");
+
+        // Precondition: default link fully covers the movement.
+        assertEquals(BankTransactionStatus.FULLY_MATCHED,
+                em.find(BankTransaction.class, f.bankTx.getId()).getStatus());
+
+        matchService.updateMatchAmount(f.bankTx.getId(), f.transaction.getId(), new BigDecimal("30.00"));
+
+        BankTransactionMatch match = singleMatch(f.transaction.getId());
+        assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("30.00")));
+        assertTrue(match.isAmountManual());
+
+        BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
+        assertEquals(BankTransactionStatus.PARTIALLY_MATCHED, reloaded.getStatus());
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("30.00")));
+    }
+
+    /**
+     * An allocation is capped at the transaction's own amount — you cannot attribute more to a transaction than it is
+     * worth. Here 150 exceeds the transaction (100) even though it is well within the bank movement (200).
+     */
+    @Test
+    @TestTransaction
+    void allocationExceedingTransactionAmountIsRejected() {
+        Fixture f = createUnmatchedFixture("-200.00", "-100.00", "partial-txcap");
+        assertThrows(BadRequestException.class,
+                () -> matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester",
+                        new BigDecimal("150.00")));
+    }
+
+    /**
+     * An allocation larger than the bank movement but within the transaction is allowed, so that over-assignment across
+     * transactions stays representable and visible rather than being silently capped at the movement.
+     */
+    @Test
+    @TestTransaction
+    void allocationExceedingBankAmountButWithinTransactionIsAllowed() {
+        Fixture f = createUnmatchedFixture("-50.00", "-100.00", "partial-over-movement");
+
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", new BigDecimal("80.00"));
+
+        BankTransactionMatch match = singleMatch(f.transaction.getId());
+        assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("80.00")));
+
+        BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
+        assertEquals(BankTransactionStatus.FULLY_MATCHED, reloaded.getStatus());
+    }
+
+    @Test
+    @TestTransaction
+    void nonPositiveAllocationIsRejected() {
+        Fixture f = createUnmatchedFixture("-100.00", "-100.00", "partial-zero");
+        assertThrows(BadRequestException.class,
+                () -> matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", BigDecimal.ZERO));
+    }
+
     // ── Test fixture ────────────────────────────────────────────────────────────
 
     private record Fixture(BankTransaction bankTx, Transaction transaction) {
+    }
+
+    private BankTransactionMatch singleMatch(Long transactionId) {
+        return em.createQuery(
+                "SELECT m FROM BankTransactionMatch m WHERE m.transaction.id = :txId", BankTransactionMatch.class)
+                .setParameter("txId", transactionId)
+                .getSingleResult();
+    }
+
+    /**
+     * Creates an unmatched bank transaction and a separate (not yet linked) bookkeeping transaction so a test can drive
+     * {@link BankTransactionMatchService#addMatch} itself. {@code tag} keeps the dedupe/import hashes unique per test.
+     */
+    private Fixture createUnmatchedFixture(String bankAmount, String txTotal, String tag) {
+        Organization org = em.createQuery("SELECT o FROM Organization o", Organization.class)
+                .setMaxResults(1)
+                .getResultList()
+                .get(0);
+        Bommel bommel = em.createQuery("SELECT b FROM Bommel b WHERE b.organization = :org", Bommel.class)
+                .setParameter("org", org)
+                .setMaxResults(1)
+                .getResultList()
+                .get(0);
+
+        when(organizationContext.getCurrentOrganizationId()).thenReturn(org.getId());
+
+        BankAccount account = new BankAccount();
+        account.setOrganization(org);
+        account.setBommel(bommel);
+        account.setName("Test account");
+        account.setIban("DE89370400440532013000");
+        account.setCreatedBy("tester");
+        em.persist(account);
+
+        BankImport bankImport = new BankImport();
+        bankImport.setOrganization(org);
+        bankImport.setBankAccount(account);
+        bankImport.setFileName("test.csv");
+        bankImport.setFileSize(0);
+        bankImport.setFileSha256("testsha-" + tag);
+        bankImport.setImportedBy("tester");
+        em.persist(bankImport);
+
+        BankTransaction bankTx = new BankTransaction();
+        bankTx.setOrganization(org);
+        bankTx.setBankAccount(account);
+        bankTx.setBankImport(bankImport);
+        bankTx.setBookingDate(LocalDate.of(2026, 5, 15));
+        bankTx.setAmount(new BigDecimal(bankAmount));
+        bankTx.setCurrency("EUR");
+        bankTx.setDedupeHash("testhash-" + tag);
+        bankTx.setStatus(BankTransactionStatus.UNMATCHED);
+        bankTx.setMatchedAmount(BigDecimal.ZERO);
+        em.persist(bankTx);
+
+        Transaction transaction = new Transaction();
+        transaction.setOrganization(org);
+        transaction.setCreatedBy("tester");
+        transaction.setStatus(TransactionStatus.DRAFT);
+        transaction.setName("Bürobedarf");
+        transaction.setTotal(new BigDecimal(txTotal));
+        em.persist(transaction);
+        em.flush();
+
+        return new Fixture(bankTx, transaction);
     }
 
     private Fixture createFullyMatchedFixture() {

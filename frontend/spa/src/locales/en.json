@@ -428,6 +428,14 @@
             "deleteConfirmTitle": "Delete transaction?",
             "deleteConfirmText": "This transaction will be permanently deleted. This action cannot be undone.",
             "openAmount": "open: {{amount}}",
+            "usedAmount": "used: {{amount}}",
+            "editUsedAmount": "Edit used amount",
+            "partialAmountLabel": "Partial amount (optional)",
+            "partialAmountPlaceholder": "full amount",
+            "reconcileTotal": "Amount",
+            "reconcileAssigned": "Assigned",
+            "reconcileRemaining": "Difference",
+            "reconcileFull": "Fully assigned",
             "saveDraft": "Save as draft"
         },
         "create": {
@@ -1133,6 +1141,7 @@
             "covered": "Covered",
             "remaining": "Difference",
             "fullyCovered": "Fully covered",
+            "usedAmountHint": "Amount used (default: full amount)",
             "ignore": "Ignore",
             "unignore": "Unignore",
             "assign": "Assign",

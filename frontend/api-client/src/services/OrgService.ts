@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -974,11 +974,68 @@ export class Client {
     }
 
     /**
+     * List the matches of a bank transaction
+     * @param id Bank transaction ID
+     * @return List of allocations
+     */
+    matchesAll(id: number): Promise<MatchAllocationResponse[]> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}/matches";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMatchesAll(_response);
+        });
+    }
+
+    protected processMatchesAll(response: Response): Promise<MatchAllocationResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(MatchAllocationResponse.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MatchAllocationResponse[]>(null as any);
+    }
+
+    /**
      * Link a bank transaction to a hopps transaction
      * @param id Bank transaction ID
      * @return Match created
      */
-    matchesPOST(id: number, body: number): Promise<void> {
+    matchesPOST(id: number, body: MatchRequest): Promise<void> {
         let url_ = this.baseUrl + "/bank-transactions/{id}/matches";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -1009,7 +1066,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Cannot match an ignored bank transaction", status, _responseText, _headers);
+            return throwException("Missing transaction id, invalid allocation amount, or ignored bank transaction", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -1018,6 +1075,68 @@ export class Client {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Bank transaction or transaction not found", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Update the used amount of a match
+     * @param id Bank transaction ID
+     * @param transactionId Hopps transaction ID
+     * @return Allocation updated
+     */
+    matchesPATCH(id: number, transactionId: number, body: MatchAmountRequest): Promise<void> {
+        let url_ = this.baseUrl + "/bank-transactions/{id}/matches/{transactionId}";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (transactionId === undefined || transactionId === null)
+            throw new Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMatchesPATCH(_response);
+        });
+    }
+
+    protected processMatchesPATCH(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid allocation amount", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank transaction or match not found", status, _responseText, _headers);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -5524,6 +5643,7 @@ export class BankTransactionResponse implements IBankTransactionResponse {
     status?: BankTransactionStatus;
     matchedAmount?: number;
     matchedTransactionIds?: number[];
+    allocatedAmount?: number;
 
     [key: string]: any;
 
@@ -5568,6 +5688,7 @@ export class BankTransactionResponse implements IBankTransactionResponse {
                 for (let item of _data["matchedTransactionIds"])
                     this.matchedTransactionIds!.push(item);
             }
+            this.allocatedAmount = _data["allocatedAmount"];
         }
     }
 
@@ -5610,6 +5731,7 @@ export class BankTransactionResponse implements IBankTransactionResponse {
             for (let item of this.matchedTransactionIds)
                 data["matchedTransactionIds"].push(item);
         }
+        data["allocatedAmount"] = this.allocatedAmount;
         return data;
     }
 
@@ -5644,6 +5766,7 @@ export interface IBankTransactionResponse {
     status?: BankTransactionStatus;
     matchedAmount?: number;
     matchedTransactionIds?: number[];
+    allocatedAmount?: number;
 
     [key: string]: any;
 }
@@ -6426,6 +6549,185 @@ export interface IDocumentUpdateRequest {
 }
 
 export type ExtractionSource = "ZUGFERD" | "AI" | "MANUAL";
+
+export class MatchAllocationResponse implements IMatchAllocationResponse {
+    transactionId?: number;
+    amount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IMatchAllocationResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.transactionId = _data["transactionId"];
+            this.amount = _data["amount"];
+        }
+    }
+
+    static fromJS(data: any): MatchAllocationResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new MatchAllocationResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["transactionId"] = this.transactionId;
+        data["amount"] = this.amount;
+        return data;
+    }
+
+    clone(): MatchAllocationResponse {
+        const json = this.toJSON();
+        let result = new MatchAllocationResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMatchAllocationResponse {
+    transactionId?: number;
+    amount?: number;
+
+    [key: string]: any;
+}
+
+export class MatchAmountRequest implements IMatchAmountRequest {
+    /** New portion of the bank movement used for this transaction. Must be positive and at most the bank movement's magnitude. */
+    amount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IMatchAmountRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.amount = _data["amount"];
+        }
+    }
+
+    static fromJS(data: any): MatchAmountRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new MatchAmountRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["amount"] = this.amount;
+        return data;
+    }
+
+    clone(): MatchAmountRequest {
+        const json = this.toJSON();
+        let result = new MatchAmountRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMatchAmountRequest {
+    /** New portion of the bank movement used for this transaction. Must be positive and at most the bank movement's magnitude. */
+    amount: number;
+
+    [key: string]: any;
+}
+
+export class MatchRequest implements IMatchRequest {
+    /** ID of the bookkeeping transaction to link */
+    transactionId!: number;
+    /** Portion of the bank movement used for this transaction (the allocation). Omit or null to use the full amount; set an explicit value to split a collective transfer across several transactions. Must be positive and at most the bank movement's magnitude. */
+    amount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IMatchRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.transactionId = _data["transactionId"];
+            this.amount = _data["amount"];
+        }
+    }
+
+    static fromJS(data: any): MatchRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new MatchRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["transactionId"] = this.transactionId;
+        data["amount"] = this.amount;
+        return data;
+    }
+
+    clone(): MatchRequest {
+        const json = this.toJSON();
+        let result = new MatchRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMatchRequest {
+    /** ID of the bookkeeping transaction to link */
+    transactionId: number;
+    /** Portion of the bank movement used for this transaction (the allocation). Omit or null to use the full amount; set an explicit value to split a collective transfer across several transactions. Must be positive and at most the bank movement's magnitude. */
+    amount?: number;
+
+    [key: string]: any;
+}
 
 /** An example of a Hopps Member */
 export class Member implements IMember {

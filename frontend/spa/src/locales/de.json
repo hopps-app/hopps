@@ -427,6 +427,14 @@
             "deleteConfirmTitle": "Transaktion löschen?",
             "deleteConfirmText": "Diese Transaktion wird dauerhaft gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
             "openAmount": "offen: {{amount}}",
+            "usedAmount": "verwendet: {{amount}}",
+            "editUsedAmount": "Verwendeten Betrag bearbeiten",
+            "partialAmountLabel": "Teilbetrag (optional)",
+            "partialAmountPlaceholder": "voller Betrag",
+            "reconcileTotal": "Betrag",
+            "reconcileAssigned": "Zugeordnet",
+            "reconcileRemaining": "Differenz",
+            "reconcileFull": "Vollständig zugeordnet",
             "saveDraft": "Als Entwurf speichern"
         },
         "create": {
@@ -1132,6 +1140,7 @@
             "covered": "Gedeckt",
             "remaining": "Differenz",
             "fullyCovered": "Vollständig gedeckt",
+            "usedAmountHint": "Verwendeter Betrag (Standard: voller Betrag)",
             "ignore": "Ignorieren",
             "unignore": "Nicht ignorieren",
             "assign": "Zuordnen",
