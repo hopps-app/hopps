@@ -1526,8 +1526,8 @@
   "adminEventsDetailsEnabled": false,
   "identityProviders": [
     {
-      "alias": "authentik",
-      "displayName": "Authentik",
+      "alias": "kollicloud",
+      "displayName": "Kollicloud",
       "providerId": "oidc",
       "enabled": true,
       "updateProfileFirstLoginMode": "on",

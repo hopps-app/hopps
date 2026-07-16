@@ -68,10 +68,10 @@ export const WithSocialProviders: Story = {
                     displayInfo: true,
                     providers: [
                         {
-                            loginUrl: "authentik",
-                            alias: "authentik",
+                            loginUrl: "kollicloud",
+                            alias: "kollicloud",
                             providerId: "oidc",
-                            displayName: "Authentik"
+                            displayName: "Kollicloud"
                         },
                         {
                             loginUrl: "google",

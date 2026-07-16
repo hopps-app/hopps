@@ -8,7 +8,7 @@ import { getKcClsx, type KcClsx } from "keycloakify/login/lib/kcClsx";
 import type { KcContext } from "./KcContext";
 import type { I18n } from "./i18n";
 
-import authentikLogo from "../assets/authentik.svg";
+import kollicloudLogo from "../assets/kollicloud.svg";
 
 /**
  * Per-provider brand logos, keyed by the identity provider `alias` configured
@@ -16,7 +16,7 @@ import authentikLogo from "../assets/authentik.svg";
  * `iconClasses` that Keycloak reports for the provider (or no icon at all).
  */
 const providerLogos: Record<string, string> = {
-    authentik: authentikLogo
+    kollicloud: kollicloudLogo
 };
 
 export default function Login(props: PageProps<Extract<KcContext, { pageId: "login.ftl" }>, I18n>) {
