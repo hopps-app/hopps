@@ -80,19 +80,21 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                                                 href={p.loginUrl}
                                             >
                                                 {brandLogo ? (
-                                                    <img src={brandLogo} alt="" aria-hidden="true" className="custom-social-logo" />
+                                                    // The brand SVG already contains the provider wordmark, so we
+                                                    // render it as the full button label and drop the redundant
+                                                    // text. `alt` carries the accessible name in place of the span.
+                                                    <img src={brandLogo} alt={p.displayName} className="custom-social-logo" />
                                                 ) : (
-                                                    p.iconClasses && (
-                                                        <i className={clsx(kcClsx("kcCommonLogoIdP"), p.iconClasses)} aria-hidden="true"></i>
-                                                    )
+                                                    <>
+                                                        {p.iconClasses && (
+                                                            <i className={clsx(kcClsx("kcCommonLogoIdP"), p.iconClasses)} aria-hidden="true"></i>
+                                                        )}
+                                                        <span
+                                                            className={clsx(kcClsx("kcFormSocialAccountNameClass"), p.iconClasses && "kc-social-icon-text")}
+                                                            dangerouslySetInnerHTML={{ __html: kcSanitize(p.displayName) }}
+                                                        ></span>
+                                                    </>
                                                 )}
-                                                <span
-                                                    className={clsx(
-                                                        kcClsx("kcFormSocialAccountNameClass"),
-                                                        (brandLogo || p.iconClasses) && "kc-social-icon-text"
-                                                    )}
-                                                    dangerouslySetInnerHTML={{ __html: kcSanitize(p.displayName) }}
-                                                ></span>
                                             </a>
                                         </li>
                                     );
