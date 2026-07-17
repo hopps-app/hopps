@@ -78,8 +78,8 @@ export type ExtractionSource = 'ZUGFERD' | 'AI' | 'MANUAL';
 
 /**
  * Count of documents per extraction method for one org, over its whole history (not windowed).
- * MOCK ONLY — no admin endpoint aggregates `Document.extractionSource` yet. Structured to the
- * eventual wire shape so the view needs no change once a real endpoint lands.
+ * Backed by GET /admin/organizations/{id}/extraction-breakdown, which folds never-analyzed
+ * documents into MANUAL so the counts sum to `total`.
  */
 export type ExtractionBreakdown = {
     /** Total documents counted — the sum of all `counts` values. */
@@ -160,6 +160,6 @@ export type OrganizationDetail = AdminOrganizationRow & {
     belegePerMonth: MonthlySeries;
     /** MOCK — AI tokens consumed per month, rolling 6 months. */
     tokensPerMonth: MonthlySeries;
-    /** MOCK — how the org's documents were extracted (ZUGFeRD / AI / manual), all-time. */
+    /** How the org's documents were extracted (ZUGFeRD / AI / manual), all-time. Real backend data. */
     extractionBreakdown: ExtractionBreakdown;
 };

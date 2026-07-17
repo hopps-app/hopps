@@ -7,6 +7,7 @@ import type {
     AdminOrganizationsPage,
     DailyActivity,
     ExtractionBreakdown,
+    ExtractionSource,
     LoginActivity,
     MonthlySeries,
     OrganizationDetail,
@@ -80,25 +81,6 @@ function mapMembers(members: AdminOrganizationDetail['members']): OrgMember[] {
     }));
 }
 
-/**
- * MOCK — no admin endpoint aggregates Document.extractionSource yet. Deterministic per-org
- * stand-in: splits the org's document total across the three extraction methods with a
- * plausible ZUGFeRD-heavy distribution (structured/electronic invoices dominate). `total`
- * is passed in so the split matches the Belege count shown elsewhere on the page.
- */
-function mockExtractionBreakdown(id: number, total: number): ExtractionBreakdown {
-    if (total <= 0) {
-        return { total: 0, counts: {} };
-    }
-    // Weights vary a little per org but stay ZUGFeRD > AI > manual. Sum ~= 1.
-    const zugferdShare = 0.5 + ((id % 3) * 0.05); // 0.50–0.60
-    const manualShare = 0.06 + ((id % 4) * 0.02); // 0.06–0.12
-    const zugferd = Math.round(total * zugferdShare);
-    const manual = Math.round(total * manualShare);
-    const ai = Math.max(0, total - zugferd - manual); // remainder, so the three sum to `total`
-    return { total, counts: { ZUGFERD: zugferd, AI: ai, MANUAL: manual } };
-}
-
 /** MOCK — no per-org AI metering backend exists. Deterministic stand-in until it does. */
 function mockTokenUsage(id: number): TokenUsage | null {
     const table: Record<number, TokenUsage | null> = {
@@ -130,6 +112,35 @@ async function fetchLoginActivity(id: number): Promise<LoginActivity> {
     } catch (e) {
         console.error('Failed to load login activity:', e);
         return EMPTY_LOGIN_ACTIVITY;
+    }
+}
+
+const EMPTY_EXTRACTION_BREAKDOWN: ExtractionBreakdown = { total: 0, counts: {} };
+
+/** The extraction sources the chart knows how to render. Any other wire key is ignored. */
+const EXTRACTION_SOURCES: ExtractionSource[] = ['ZUGFERD', 'AI', 'MANUAL'];
+
+/**
+ * Real all-time per-source document counts for one org, from
+ * GET /admin/organizations/{id}/extraction-breakdown. The backend groups the org's documents by
+ * how their data was extracted (ZUGFeRD / Azure AI / manual), folding never-analyzed documents
+ * into MANUAL so the counts sum to `total`. The wire `counts` is a string-keyed map; keep only the
+ * sources the chart renders. Degrades to an empty breakdown on failure so a chart-endpoint blip
+ * can't fail the whole detail page.
+ */
+async function fetchExtractionBreakdown(id: number): Promise<ExtractionBreakdown> {
+    try {
+        const res = await apiClient.extractionBreakdown(id);
+        const wire = res.counts ?? {};
+        const counts: Partial<Record<ExtractionSource, number>> = {};
+        for (const source of EXTRACTION_SOURCES) {
+            const value = wire[source];
+            if (value) counts[source] = value;
+        }
+        return { total: res.total ?? 0, counts };
+    } catch (e) {
+        console.error('Failed to load extraction breakdown:', e);
+        return EMPTY_EXTRACTION_BREAKDOWN;
     }
 }
 
@@ -209,12 +220,14 @@ export async function fetchOrganizations(): Promise<AdminOrganizationsPage> {
 }
 
 export async function fetchOrganization(id: number): Promise<OrganizationDetail | null> {
-    // Detail, per-month document activity, and per-day login activity come from separate
-    // endpoints; fetch them in parallel so the detail page is fully populated in one round-trip.
-    const [d, belegePerMonth, loginActivity] = await Promise.all([
+    // Detail, per-month document activity, per-day login activity, and the extraction-source
+    // breakdown come from separate endpoints; fetch them in parallel so the detail page is fully
+    // populated in one round-trip.
+    const [d, belegePerMonth, loginActivity, extractionBreakdown] = await Promise.all([
         apiClient.organizationsGET(id),
         fetchDocumentActivity(id),
         fetchLoginActivity(id),
+        fetchExtractionBreakdown(id),
     ]);
     const belegeCount = d.belegeCount ?? 0;
     return {
@@ -240,7 +253,7 @@ export async function fetchOrganization(id: number): Promise<OrganizationDetail 
         loginActivity,
         belegePerMonth,
         tokensPerMonth: mockTokensPerMonth(id, Date.now()),
-        extractionBreakdown: mockExtractionBreakdown(id, belegeCount),
+        extractionBreakdown,
     };
 }
 

@@ -230,6 +230,60 @@ export class Client {
     }
 
     /**
+     * Organization Beleg extraction breakdown
+     * @param id The organization id
+     * @return Per-source document counts
+     */
+    extractionBreakdown(id: number): Promise<ExtractionBreakdownResponse> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/extraction-breakdown";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExtractionBreakdown(_response);
+        });
+    }
+
+    protected processExtractionBreakdown(response: Response): Promise<ExtractionBreakdownResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ExtractionBreakdownResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ExtractionBreakdownResponse>(null as any);
+    }
+
+    /**
      * Organization login activity
      * @param id The organization id
      * @return Per-day login activity
@@ -7032,6 +7086,83 @@ export interface IDocumentUpdateRequest {
     privatelyPaid?: boolean;
     direction?: DocumentDirection;
     tags?: string[];
+
+    [key: string]: any;
+}
+
+/** All-time breakdown of an organization's documents by extraction method */
+export class ExtractionBreakdownResponse implements IExtractionBreakdownResponse {
+    /** Total documents counted — the sum of all per-source counts */
+    total?: number;
+    /** Document count per extraction source; absent sources are zero, null sources are folded into MANUAL */
+    counts?: { [key: string]: number; };
+
+    [key: string]: any;
+
+    constructor(data?: IExtractionBreakdownResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.total = _data["total"];
+            if (_data["counts"]) {
+                this.counts = {} as any;
+                for (let key in _data["counts"]) {
+                    if (_data["counts"].hasOwnProperty(key))
+                        (<any>this.counts)![key] = _data["counts"][key];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): ExtractionBreakdownResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExtractionBreakdownResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["total"] = this.total;
+        if (this.counts) {
+            data["counts"] = {};
+            for (let key in this.counts) {
+                if (this.counts.hasOwnProperty(key))
+                    (<any>data["counts"])[key] = (<any>this.counts)[key];
+            }
+        }
+        return data;
+    }
+
+    clone(): ExtractionBreakdownResponse {
+        const json = this.toJSON();
+        let result = new ExtractionBreakdownResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** All-time breakdown of an organization's documents by extraction method */
+export interface IExtractionBreakdownResponse {
+    /** Total documents counted — the sum of all per-source counts */
+    total?: number;
+    /** Document count per extraction source; absent sources are zero, null sources are folded into MANUAL */
+    counts?: { [key: string]: number; };
 
     [key: string]: any;
 }
