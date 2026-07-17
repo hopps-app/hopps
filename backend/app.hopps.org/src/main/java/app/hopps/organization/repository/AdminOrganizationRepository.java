@@ -1,5 +1,6 @@
 package app.hopps.organization.repository;
 
+import app.hopps.document.domain.ExtractionSource;
 import app.hopps.organization.api.dto.DailyActivity;
 import app.hopps.organization.api.dto.MonthlyCount;
 import app.hopps.organization.domain.Organization;
@@ -12,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +145,27 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
         return rows.stream()
                 .map(row -> new MonthlyCount((LocalDate) row[0], ((Number) row[1]).longValue()))
                 .toList();
+    }
+
+    /**
+     * All-time count of one organization's documents (Belege) grouped by {@link ExtractionSource}. Not windowed. A
+     * document whose {@code extractionSource} is {@code null} (never analyzed and never edited) is folded into
+     * {@link ExtractionSource#MANUAL} and merged with any explicitly-manual documents, so every document is attributed
+     * to exactly one source. Sources with no documents are simply absent from the map (callers should treat them as 0).
+     */
+    public Map<ExtractionSource, Long> extractionBreakdownForOrganization(long organizationId) {
+        List<Object[]> rows = entityManager.createQuery(
+                "select d.extractionSource, count(d) from Document d "
+                        + "where d.organization.id = :id group by d.extractionSource",
+                Object[].class)
+                .setParameter("id", organizationId)
+                .getResultList();
+        Map<ExtractionSource, Long> result = new EnumMap<>(ExtractionSource.class);
+        for (Object[] row : rows) {
+            ExtractionSource source = row[0] != null ? (ExtractionSource) row[0] : ExtractionSource.MANUAL;
+            result.merge(source, (Long) row[1], Long::sum);
+        }
+        return result;
     }
 
     private static Map<Long, Long> toLongMap(List<Object[]> rows) {

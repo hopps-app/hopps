@@ -1,10 +1,12 @@
 package app.hopps.organization.api;
 
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import app.hopps.member.repository.MemberActivityRepository;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.MediaType;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,9 @@ class AdminOrganizationResourceTests {
 
     @Inject
     MemberActivityRepository memberActivityRepository;
+
+    @Inject
+    EntityManager entityManager;
 
     @BeforeEach
     void cleanDatabase() {
@@ -179,6 +184,60 @@ class AdminOrganizationResourceTests {
         given()
                 .when()
                 .get(PATH + "/9999/document-activity")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    @DisplayName("should return the all-time extraction-source breakdown for an organization")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturnExtractionBreakdown() {
+        // buehnefrei-ev (org 4) seeds 28 documents, all with a null extractionsource. Set an explicit mix on ten of
+        // them: 5 ZUGFERD, 3 AI, 2 MANUAL. The remaining 18 stay null and must fold into MANUAL, so MANUAL = 2 + 18 =
+        // 20
+        // and the three source counts sum to the 28 total.
+        QuarkusTransaction.requiringNew()
+                .run(() -> entityManager.createNativeQuery(
+                        "update document set extractionsource = case "
+                                + "when id in (1, 2, 3, 4, 5) then 'ZUGFERD' "
+                                + "when id in (6, 7, 8) then 'AI' "
+                                + "when id in (9, 10) then 'MANUAL' end "
+                                + "where id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)")
+                        .executeUpdate());
+
+        given()
+                .when()
+                .get(PATH + "/4/extraction-breakdown")
+                .then()
+                .statusCode(200)
+                .body("total", is(28))
+                .body("counts.ZUGFERD", is(5))
+                .body("counts.AI", is(3))
+                // 2 explicitly MANUAL + 18 null documents folded into MANUAL
+                .body("counts.MANUAL", is(20));
+    }
+
+    @Test
+    @DisplayName("should return an empty extraction breakdown for an organization without documents")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturnEmptyExtractionBreakdown() {
+        // gruenes-herz-ev (org 2) has no seeded documents: total is zero and no source is present.
+        given()
+                .when()
+                .get(PATH + "/2/extraction-breakdown")
+                .then()
+                .statusCode(200)
+                .body("total", is(0))
+                .body("counts.size()", is(0));
+    }
+
+    @Test
+    @DisplayName("should return 404 for extraction breakdown of an unknown organization")
+    @TestSecurity(user = "admin@example.test", roles = { "admin" })
+    void shouldReturn404ForExtractionBreakdownOfUnknownOrg() {
+        given()
+                .when()
+                .get(PATH + "/9999/extraction-breakdown")
                 .then()
                 .statusCode(404);
     }

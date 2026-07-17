@@ -1,9 +1,11 @@
 package app.hopps.organization.api;
 
+import app.hopps.document.domain.ExtractionSource;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberActivityRepository;
 import app.hopps.organization.api.dto.AdminOrganizationDetail;
 import app.hopps.organization.api.dto.AdminOrganizationRow;
+import app.hopps.organization.api.dto.ExtractionBreakdownResponse;
 import app.hopps.organization.api.dto.LoginActivityResponse;
 import app.hopps.organization.api.dto.MonthlyUploadResponse;
 import app.hopps.organization.domain.Organization;
@@ -124,6 +126,22 @@ public class AdminOrganizationResource {
         LocalDate from = thisMonth.minusMonths(AdminOrganizationRepository.WINDOW_MONTHS - 1L);
         return new MonthlyUploadResponse(
                 adminRepository.monthlyUploadCountsForOrganization(id, from, thisMonth));
+    }
+
+    @GET
+    @Path("/{id}/extraction-breakdown")
+    @Transactional
+    @Operation(summary = "Organization Beleg extraction breakdown", description = "All-time count of the organization's documents (Belege) grouped by how their data was extracted: ZUGFeRD (embedded XML), Azure Document AI, or manual entry. Not windowed. Documents with no recorded source (never analyzed, never edited) are counted as MANUAL, so the per-source counts sum to the total.")
+    @APIResponse(responseCode = "200", description = "Per-source document counts", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExtractionBreakdownResponse.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "User is not an admin")
+    @APIResponse(responseCode = "404", description = "Organization not found or soft-deleted")
+    public ExtractionBreakdownResponse extractionBreakdown(
+            @PathParam("id") @Parameter(description = "The organization id") Long id) {
+        findActiveOrThrow(id);
+        Map<ExtractionSource, Long> counts = adminRepository.extractionBreakdownForOrganization(id);
+        long total = counts.values().stream().mapToLong(Long::longValue).sum();
+        return new ExtractionBreakdownResponse(total, counts);
     }
 
     @DELETE
