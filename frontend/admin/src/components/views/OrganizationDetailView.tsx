@@ -10,7 +10,8 @@ import ExtractionChart from '@/features/organizations/ExtractionChart';
 import ImpersonateDialog from '@/features/organizations/ImpersonateDialog';
 import LoginActivityChart from '@/features/organizations/LoginActivityChart';
 import StatusBadge from '@/features/organizations/StatusBadge';
-import TokenTrendChart from '@/features/organizations/TokenTrendChart';
+// Hidden for now — restore alongside the <TokenTrendChart /> usage below:
+// import TokenTrendChart from '@/features/organizations/TokenTrendChart';
 import { formatDate } from '@/features/organizations/format';
 import { deriveStatus } from '@/features/organizations/status';
 import type { OrganizationDetail, OrgAddress, OrgMember } from '@/features/organizations/types';
@@ -138,15 +139,15 @@ export default function OrganizationDetailView() {
                     </Section>
                 </div>
 
-                {/* Aktivität — usage charts. Beleg-Verbrauch and Beleg-Auslese share a row
-                    (side by side) between Login-Aktivität above and Token-Verbrauch below. */}
+                {/* Aktivität — usage charts, three vertically stacked: Login-Aktivität, then
+                    Beleg-Verbrauch (count), then Beleg-Auslese (extraction) beneath it.
+                    Token-Verbrauch is hidden for now (see commented TokenTrendChart below). */}
                 <div className="flex flex-col gap-5">
                     <LoginActivityChart activity={org.loginActivity} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-                        <BelegeChart series={org.belegePerMonth} total={org.belegeCount} />
-                        <ExtractionChart breakdown={org.extractionBreakdown} />
-                    </div>
-                    <TokenTrendChart series={org.tokensPerMonth} />
+                    <BelegeChart series={org.belegePerMonth} total={org.belegeCount} />
+                    <ExtractionChart breakdown={org.extractionBreakdown} />
+                    {/* Hidden for now — restore to bring back the Token-Verbrauch chart:
+                    <TokenTrendChart series={org.tokensPerMonth} /> */}
                 </div>
             </div>
 
