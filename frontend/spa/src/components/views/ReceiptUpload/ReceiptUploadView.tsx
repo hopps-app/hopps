@@ -69,10 +69,6 @@ function ReceiptUploadView() {
         setContractPartner,
         bommelId,
         setBommelId,
-        category,
-        setCategory,
-        area,
-        setArea,
         tags,
         setTags,
         grossAmount,
@@ -424,11 +420,9 @@ function ReceiptUploadView() {
             bommelId: bommelId ?? 0,
             senderName: contractPartner || undefined,
             privatelyPaid: isUnpaid,
-            area: area || undefined,
-            categoryId: category ? parseInt(category, 10) : undefined,
             tags: tags.length > 0 ? tags : undefined,
         };
-    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, category, area, tags, grossAmount, taxAmount]);
+    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, tags, grossAmount, taxAmount]);
 
     // Field change handlers that clear validation errors
     const handleReceiptDateChange = useCallback(
@@ -490,14 +484,6 @@ function ReceiptUploadView() {
             clearFieldError('receiptNumber');
         },
         [setReceiptNumber, setFieldLoading, isAnalyzing, clearFieldError]
-    );
-
-    const handleAreaChange = useCallback(
-        (value: string) => {
-            setArea(value);
-            clearFieldError('area');
-        },
-        [setArea, clearFieldError]
     );
 
     // Submit handler - validates and scrolls to first error if invalid
@@ -848,10 +834,6 @@ function ReceiptUploadView() {
                             onContractPartnerChange={handleContractPartnerChange}
                             bommelId={bommelId}
                             onBommelIdChange={handleBommelIdChange}
-                            category={category}
-                            onCategoryChange={setCategory}
-                            area={area}
-                            onAreaChange={handleAreaChange}
                             tags={tags}
                             onTagsChange={setTags}
                             grossAmount={grossAmount}

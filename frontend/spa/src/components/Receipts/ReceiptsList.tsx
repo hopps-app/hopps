@@ -11,7 +11,7 @@ import ReceiptsEmptyState from '@/components/Receipts/ReceiptsEmptyState';
 import ReceiptsTableHeader from '@/components/Receipts/ReceiptsTableHeader';
 import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
-import { TransactionFilters, transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
+import { transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
@@ -43,8 +43,6 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             startDate: filters.startDate || undefined,
             endDate: filters.endDate || undefined,
             bommelId: filters.project ? parseInt(filters.project, 10) : undefined,
-            categoryId: filters.category ? parseInt(filters.category, 10) : undefined,
-            area: (filters.area as TransactionFilters['area']) || undefined,
             status,
             detached,
             page,
@@ -100,7 +98,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     // Reset page when filters change
     useEffect(() => {
         setPage(0);
-    }, [filters.search, filters.startDate, filters.endDate, filters.project, filters.category, filters.area, filters.status]);
+    }, [filters.search, filters.startDate, filters.endDate, filters.project, filters.status]);
 
     const toggleExpand = useCallback((id: string) => {
         setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));

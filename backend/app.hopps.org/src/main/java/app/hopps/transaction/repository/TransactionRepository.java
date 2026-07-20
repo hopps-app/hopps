@@ -2,7 +2,6 @@ package app.hopps.transaction.repository;
 
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
@@ -102,11 +101,9 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Instant startDate,
             Instant endDate,
             Long bommelId,
-            Long categoryId,
             TransactionStatus status,
             Boolean privatelyPaid,
             Boolean detached,
-            TransactionArea area,
             Sort sort,
             Page page) {
 
@@ -120,8 +117,12 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         // Search filter: name and counterparty (sender/recipient) by text, plus the amount when the term is numeric —
         // so a bank amount can be pasted to find the matching transaction (mirrors the bank-transaction search).
         if (search != null && !search.isBlank()) {
-            query.append(
-                    " and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search OR LOWER(recipient.name) LIKE :search");
+            // Match the counterparty name via an id-subquery on TradeParty instead of a path expression
+            // (sender.name / recipient.name), which would force INNER joins and drop every transaction that has only
+            // one side set (the other counterparty is always null) — making the whole search return nothing.
+            query.append(" and (LOWER(name) LIKE :search"
+                    + " OR sender.id IN (SELECT tp.id FROM TradeParty tp WHERE LOWER(tp.name) LIKE :search)"
+                    + " OR recipient.id IN (SELECT tp.id FROM TradeParty tp WHERE LOWER(tp.name) LIKE :search)");
             params.put("search", "%" + search.toLowerCase() + "%");
             BigDecimal searchAmount = parseSearchAmount(search);
             if (searchAmount != null) {
@@ -149,12 +150,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             params.put("bommelId", bommelId);
         }
 
-        // Category filter
-        if (categoryId != null) {
-            query.append(" and category.id = :categoryId");
-            params.put("categoryId", categoryId);
-        }
-
         // Status filter
         if (status != null) {
             query.append(" and status = :status");
@@ -165,12 +160,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         if (privatelyPaid != null) {
             query.append(" and privatelyPaid = :privatelyPaid");
             params.put("privatelyPaid", privatelyPaid);
-        }
-
-        // Area filter
-        if (area != null) {
-            query.append(" and area = :area");
-            params.put("area", area);
         }
 
         return find(query.toString(), sort != null ? sort : Sort.descending("createdAt"), params)
@@ -199,7 +188,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Instant startDate,
             Instant endDate,
             Long bommelId,
-            Long categoryId,
             TransactionStatus status,
             Boolean privatelyPaid,
             Boolean detached) {
@@ -212,8 +200,12 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         params.put("orgId", orgId);
 
         if (search != null && !search.isBlank()) {
-            query.append(
-                    " and (LOWER(name) LIKE :search OR LOWER(sender.name) LIKE :search OR LOWER(recipient.name) LIKE :search");
+            // Match the counterparty name via an id-subquery on TradeParty instead of a path expression
+            // (sender.name / recipient.name), which would force INNER joins and drop every transaction that has only
+            // one side set (the other counterparty is always null) — making the whole search return nothing.
+            query.append(" and (LOWER(name) LIKE :search"
+                    + " OR sender.id IN (SELECT tp.id FROM TradeParty tp WHERE LOWER(tp.name) LIKE :search)"
+                    + " OR recipient.id IN (SELECT tp.id FROM TradeParty tp WHERE LOWER(tp.name) LIKE :search)");
             params.put("search", "%" + search.toLowerCase() + "%");
             BigDecimal searchAmount = parseSearchAmount(search);
             if (searchAmount != null) {
@@ -237,11 +229,6 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         } else if (bommelId != null) {
             query.append(" and bommel.id = :bommelId");
             params.put("bommelId", bommelId);
-        }
-
-        if (categoryId != null) {
-            query.append(" and category.id = :categoryId");
-            params.put("categoryId", categoryId);
         }
 
         if (status != null) {

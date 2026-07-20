@@ -387,6 +387,9 @@
             "advancedFilters": "Weitere Filter"
         },
         "unassigned": "Nicht zugeordnet",
+        "openToCover": "offen: {{amount}}",
+        "overCovered": "überdeckt: {{amount}}",
+        "fullyCovered": "✓ gedeckt",
         "income": "Einnahme",
         "expense": "Ausgabe",
         "noResults": "Keine Transaktionen gefunden",
@@ -435,6 +438,9 @@
             "reconcileAssigned": "Zugeordnet",
             "reconcileRemaining": "Differenz",
             "reconcileFull": "Vollständig zugeordnet",
+            "fullyCovered": "Vollständig gedeckt",
+            "stillToCover": "Noch zu decken: {{amount}}",
+            "overCovered": "Überdeckt: {{amount}}",
             "saveDraft": "Als Entwurf speichern"
         },
         "create": {
@@ -1136,6 +1142,7 @@
             "exactMatch": "passt genau",
             "unlink": "Zuordnung entfernen",
             "openTransaction": "Zur Transaktion wechseln",
+            "openTransactionNewTab": "Transaktion in neuem Tab öffnen",
             "bankAmount": "Betrag",
             "covered": "Gedeckt",
             "remaining": "Differenz",

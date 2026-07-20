@@ -12,7 +12,8 @@ function fmtCurrency(amount: number, currency = 'EUR'): string {
 interface Props {
     /** Current allocated (used) amount — a positive magnitude. */
     amount: number;
-    /** Maximum allowed value: the transaction's own amount. Caps the input and styles full vs. partial. */
+    /** Maximum allowed value: the bank movement's own amount — a match can never use more of a movement than it holds.
+     *  Also styles full vs. partial. */
     max: number;
     currency?: string;
     pending?: boolean;
@@ -45,8 +46,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
 
     function save() {
         const value = parseAllocationAmount(text);
-        // Positive and at most the transaction's own amount — you cannot use more of a movement for a transaction than
-        // the transaction is worth.
+        // Positive and at most the bank movement's own amount — a match can never use more of a movement than it holds.
         if (value == null || value <= 0 || value > max + 0.005) {
             setError(true);
             return;

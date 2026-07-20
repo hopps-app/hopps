@@ -31,9 +31,10 @@ function fmtDate(date: Date | string | undefined): string {
 function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmount?: number }) {
     const { t } = useTranslation();
     const total = amount ?? 0;
+    // matchedAmount is the SIGNED net coverage; the still-open amount is |total − matched|.
     const matched = matchedAmount ?? 0;
-    const partiallyMatched = matched > 0 && matched < Math.abs(total);
-    const open = Math.abs(total) - matched;
+    const open = Math.abs(total - matched);
+    const partiallyMatched = matched !== 0 && open > 0.005;
 
     return (
         <span className="flex flex-col items-end flex-shrink-0 leading-tight">
@@ -53,7 +54,7 @@ function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmoun
  * Reconciliation section for linking bank transactions to a transaction record. Shared between the transaction
  * detail drawer and the receipt review drawer so bank transactions can be assigned in either place.
  */
-export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
+export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse; currentTotal?: number | null }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { data: linked, isLoading } = useBankTransactionsForTransaction(tx.id);
@@ -87,7 +88,9 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
     // Amount reconciliation from the transaction's side — the mirror of the bank-transaction drawer: how much of this
     // transaction's total is already covered by linked bank movements, and how much still needs to be assigned. Signed
     // like the bank side (expense negative on both sides), so remaining = transaction total − sum of linked amounts.
-    const txTotal = tx.total != null ? Number(tx.total) : 0;
+    // In the edit form the amount/direction can change before saving; currentTotal (when provided) feeds the live
+    // signed value so the reconciliation flips immediately when income↔expense is toggled. Falls back to the saved total.
+    const txTotal = currentTotal !== undefined ? (currentTotal ?? 0) : tx.total != null ? Number(tx.total) : 0;
     // Count the portion actually used for this transaction (the allocation), signed by the bank movement's direction —
     // not the movements' full amounts — so a partially used collective transfer reconciles correctly.
     const assignedSum = (linked ?? []).reduce((s, b) => {
@@ -98,11 +101,11 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
     const remaining = txTotal - assignedSum;
     const isFullyAssigned = Math.abs(remaining) <= 0.005; // float tolerance
 
-    // The transaction total is the amount still to be reconciled — pre-fill it as the search term so the matching
-    // bank transactions surface immediately. German decimal comma matches what the user sees; the backend also
-    // accepts a dot. Bank transactions are found by their full or still-open amount.
-    const openAmount = tx.total != null ? Math.abs(Number(tx.total)) : 0;
-    const openAmountStr = openAmount ? openAmount.toFixed(2).replace('.', ',') : '';
+    // Pre-fill the search with the amount that is still open (not the full total), so the matching bank movements for
+    // the remaining portion surface immediately. German decimal comma matches what the user sees; the backend also
+    // accepts a dot. Empty once the transaction is fully covered.
+    const openForSearch = Math.abs(remaining);
+    const openAmountStr = openForSearch > 0.005 ? openForSearch.toFixed(2).replace('.', ',') : '';
 
     // Order the picker so the bank transaction whose booking date is the closest ON/AFTER the receipt (transaction)
     // date is at the top — that is the most likely match (the money usually leaves the account on or shortly after the
@@ -123,12 +126,12 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
         setPickerOpen(true);
     }
 
-    async function link(bankTxId: number) {
+    async function link(bankTxId: number, bankAmount: number) {
         if (!tx.id) return;
-        // Apply the optional partial amount only when it is positive and at most the transaction's own amount;
-        // otherwise link the full amount.
+        // Apply the optional amount only when it is positive and at most this movement's own amount (a match can't use
+        // more of a movement than it holds); otherwise link the default amount.
         const parsed = parseAllocationAmount(linkAmount);
-        const cap = Math.abs(txTotal);
+        const cap = Math.abs(bankAmount);
         const amount = parsed != null && parsed > 0 && parsed <= cap + 0.005 ? parsed : undefined;
         await addMatch.mutateAsync({ bankTxId, transactionId: tx.id, amount });
         setPickerOpen(false);
@@ -153,6 +156,30 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                 <span className="text-[14px] font-bold text-[#1B1B1F]">{t('transactions.detail.payment')}</span>
             </div>
 
+            {/* Always-visible coverage indicator: how much of this transaction still needs to be covered by bank
+                movements — shown even before anything is linked, so the open amount is never hidden (regardless of
+                confirm status, mirroring the transactions table). */}
+            {txTotal !== 0 &&
+                (() => {
+                    // Three states: fully covered (green), still open (amber), or over-covered when the linked
+                    // movements exceed the transaction amount (red).
+                    const overCovered = !isFullyAssigned && Math.abs(assignedSum) > Math.abs(txTotal);
+                    const bg = isFullyAssigned ? '#E7F4EC' : overCovered ? '#FBEAEF' : '#FBF3E4';
+                    const color = isFullyAssigned ? '#1F7A50' : overCovered ? '#B12C4C' : '#B47C18';
+                    return (
+                        <div className="flex items-center justify-between gap-2 mb-3 px-3 py-2 rounded-[10px]" style={{ background: bg }}>
+                            <span className="text-[12px] font-semibold" style={{ color }}>
+                                {isFullyAssigned
+                                    ? t('transactions.detail.fullyCovered')
+                                    : overCovered
+                                      ? t('transactions.detail.overCovered', { amount: fmtCurrency(Math.abs(remaining)) })
+                                      : t('transactions.detail.stillToCover', { amount: fmtCurrency(Math.abs(remaining)) })}
+                            </span>
+                            {isFullyAssigned && <span className="text-[13px] font-bold text-[#1F7A50]">✓</span>}
+                        </div>
+                    );
+                })()}
+
             {isLoading ? (
                 <div className="flex items-center gap-2 p-3 text-[13px] text-[#6B6B76]">
                     <Loader2 size={14} className="animate-spin" />
@@ -165,7 +192,7 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                             <div key={b.id} className="flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
                                 <button
                                     type="button"
-                                    onClick={() => navigate(`/bank-accounts?bankTx=${b.id}`)}
+                                    onClick={() => window.open(`/bank-accounts?bankTx=${b.id}`, '_blank', 'noopener,noreferrer')}
                                     title={t('transactions.detail.openBankTransaction')}
                                     className="flex items-center gap-3 min-w-0 flex-1 text-left group"
                                 >
@@ -188,7 +215,7 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                                 </button>
                                 <MatchAllocationControl
                                     amount={b.allocatedAmount ?? Math.abs(b.amount ?? 0)}
-                                    max={Math.abs(txTotal)}
+                                    max={Math.abs(b.amount ?? 0)}
                                     pending={updateMatchAmount.isPending}
                                     onSave={(v) => updateAmount(b.id!, v)}
                                 />
@@ -281,7 +308,7 @@ export function BankMatchSection({ tx }: { tx: TransactionResponse }) {
                                     <div key={b.id} className="border-b border-[#F1F1F4] last:border-b-0">
                                         <div className="w-full flex items-center gap-2 pl-3 pr-2 hover:bg-[#F3EAFB] transition-colors">
                                             <button
-                                                onClick={() => link(b.id!)}
+                                                onClick={() => link(b.id!, b.amount ?? 0)}
                                                 disabled={addMatch.isPending}
                                                 className="flex items-center gap-3 min-w-0 flex-1 py-2.5 text-left disabled:opacity-50"
                                             >

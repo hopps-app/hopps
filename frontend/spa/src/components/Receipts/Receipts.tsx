@@ -33,8 +33,6 @@ const Receipts = () => {
         if (filters.startDate) count++;
         if (filters.endDate) count++;
         if (filters.project) count++;
-        if (filters.category) count++;
-        if (filters.area) count++;
         if (filters.status.draft) count++;
         if (filters.status.unassigned) count++;
         if (filters.displayAll) count++;

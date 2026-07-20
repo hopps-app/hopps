@@ -388,6 +388,9 @@
             "advancedFilters": "More filters"
         },
         "unassigned": "Unassigned",
+        "openToCover": "open: {{amount}}",
+        "overCovered": "over-covered: {{amount}}",
+        "fullyCovered": "✓ covered",
         "income": "Income",
         "expense": "Expense",
         "noResults": "No transactions found",
@@ -436,6 +439,9 @@
             "reconcileAssigned": "Assigned",
             "reconcileRemaining": "Difference",
             "reconcileFull": "Fully assigned",
+            "fullyCovered": "Fully covered",
+            "stillToCover": "Still to cover: {{amount}}",
+            "overCovered": "Over-covered: {{amount}}",
             "saveDraft": "Save as draft"
         },
         "create": {
@@ -1137,6 +1143,7 @@
             "exactMatch": "exact match",
             "unlink": "Remove link",
             "openTransaction": "Go to transaction",
+            "openTransactionNewTab": "Open transaction in new tab",
             "bankAmount": "Amount",
             "covered": "Covered",
             "remaining": "Difference",

@@ -74,9 +74,7 @@ function HoppsTxMini({ tx }: { tx: TransactionResponse }) {
             </div>
             <div className="min-w-0">
                 <div className="text-sm font-bold truncate">{tx.name || '—'}</div>
-                <div className="text-xs text-muted-foreground">
-                    {tx.categoryName} · {fmtDate(tx.transactionTime)}
-                </div>
+                <div className="text-xs text-muted-foreground">{fmtDate(tx.transactionTime)}</div>
             </div>
         </div>
     );
@@ -148,19 +146,17 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         queryKey: ['transactions', 'forMatch'],
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                0,
-                undefined,
-                undefined,
-                200,
-                undefined,
-                undefined,
-                undefined,
-                undefined
+                undefined, // bommelId
+                undefined, // detached
+                undefined, // endDate
+                0, // page
+                undefined, // privatelyPaid
+                undefined, // search
+                200, // size
+                undefined, // sortBy
+                undefined, // sortDir
+                undefined, // startDate
+                undefined // status
             ),
     });
 
@@ -179,19 +175,17 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         queryKey: ['transactions', 'forMatch', 'search', txSearch],
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                0,
-                undefined,
-                txSearch || undefined,
-                50,
-                undefined,
-                undefined,
-                undefined,
-                undefined
+                undefined, // bommelId
+                undefined, // detached
+                undefined, // endDate
+                0, // page
+                undefined, // privatelyPaid
+                txSearch || undefined, // search
+                50, // size
+                undefined, // sortBy
+                undefined, // sortDir
+                undefined, // startDate
+                undefined // status
             ),
         enabled: !!bankTx,
     });
@@ -242,15 +236,16 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
 
     // Default allocation for a candidate: the transaction's full amount — not capped at the movement, so assigning more
     // than the movement holds shows up as visible over-coverage rather than being hidden.
-    const defaultAlloc = (t: TransactionResponse) => Math.abs(t.total ?? 0);
-    // A user's per-row override, if it is a valid positive amount within the transaction's own magnitude; otherwise
-    // null (fall back to the default). Not capped at the movement, so over-assignment across transactions stays visible.
+    // Default allocation of this movement to a transaction: as much as the transaction needs, capped at the movement's
+    // own amount (a match can't use more of the movement than it holds).
+    const movementMagnitude = Math.abs(bankTx.amount ?? 0);
+    const defaultAlloc = (t: TransactionResponse) => Math.min(Math.abs(t.total ?? 0), movementMagnitude);
+    // A user's per-row override, if it is a valid positive amount within the movement's own amount; otherwise null
+    // (fall back to the default). Capping at the movement still lets several movements over-cover a transaction.
     const overrideAlloc = (id: number): number | null => {
         if (!amounts.has(id)) return null;
-        const t = txById.get(id);
-        const cap = t ? Math.abs(t.total ?? 0) : Infinity;
         const v = parseAllocationAmount(amounts.get(id) ?? '');
-        if (v == null || v <= 0 || v > cap + 0.005) return null;
+        if (v == null || v <= 0 || v > movementMagnitude + 0.005) return null;
         return v;
     };
 
@@ -452,8 +447,8 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                                 <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                                             </button>
                                             <MatchAllocationControl
-                                                amount={allocByTx.get(tx.id!) ?? Math.abs(tx.total ?? 0)}
-                                                max={Math.abs(tx.total ?? 0)}
+                                                amount={allocByTx.get(tx.id!) ?? defaultAlloc(tx)}
+                                                max={movementMagnitude}
                                                 currency={bankTx.currency ?? 'EUR'}
                                                 pending={updateMatchAmount.isPending}
                                                 onSave={(v) => handleUpdateAlloc(tx.id!, v)}
@@ -538,9 +533,9 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                     {openTx.map((tx) => {
                                         const isSelected = sel.has(tx.id!);
                                         const exactMatch = Math.abs(tx.total ?? 0) === Math.abs(bankTx.amount ?? 0);
-                                        // The entered "amount used" may not exceed the transaction's own amount.
+                                        // The entered "amount used" may not exceed this movement's own amount.
                                         const rowParsed = parseAllocationAmount(amounts.get(tx.id!) ?? '');
-                                        const rowOverCap = rowParsed != null && rowParsed > Math.abs(tx.total ?? 0) + 0.005;
+                                        const rowOverCap = rowParsed != null && rowParsed > movementMagnitude + 0.005;
                                         return (
                                             <div
                                                 key={tx.id}
@@ -609,6 +604,19 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                                         <FileText className="w-3.5 h-3.5" />
                                                     </button>
                                                 )}
+                                                {/* Open the bookkeeping transaction's detail view in a new tab, so the
+                                                    current assignment context (this bank movement) stays open. */}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer');
+                                                    }}
+                                                    title={t('konten.drawer.openTransactionNewTab')}
+                                                    className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors flex-shrink-0"
+                                                >
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
                                         );
                                     })}

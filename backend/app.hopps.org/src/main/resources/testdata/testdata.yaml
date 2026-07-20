@@ -793,8 +793,9 @@ bankTransactions:
     amount: -540.00
     counterpartyName: "Sammelrechnung GmbH"
     purpose: "Teilzahlung, offen 340,00"
+    # Signed net coverage (expense movement → negative); still-open magnitude = |amount − matchedAmount| = 340,00
     status: "PARTIALLY_MATCHED"
-    matchedAmount: 200.00
+    matchedAmount: -200.00
 
 # Sequence configuration for ID generators
 sequences:

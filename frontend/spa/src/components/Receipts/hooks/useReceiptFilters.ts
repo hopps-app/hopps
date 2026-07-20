@@ -10,8 +10,6 @@ const defaultFilters: ReceiptFiltersState = {
     startDate: null,
     endDate: null,
     project: null,
-    category: null,
-    area: null,
     status: { draft: false, unassigned: false },
     displayAll: false,
 };

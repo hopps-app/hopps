@@ -98,12 +98,14 @@ class BankTransactionMatchServiceTest {
         // Assert: the bank transaction is only partially matched now, with the reduced amount everywhere.
         BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
         assertEquals(BankTransactionStatus.PARTIALLY_MATCHED, reloaded.getStatus());
-        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("20.00")));
+        // Signed net coverage of an expense movement is negative.
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("-20.00")));
 
         BankTransactionMatch match = em.createQuery(
                 "SELECT m FROM BankTransactionMatch m WHERE m.transaction.id = :txId", BankTransactionMatch.class)
                 .setParameter("txId", f.transaction.getId())
                 .getSingleResult();
+        // The per-match allocation stays a positive magnitude.
         assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("20.00")));
     }
 
@@ -200,7 +202,8 @@ class BankTransactionMatchServiceTest {
 
         BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
         assertEquals(BankTransactionStatus.PARTIALLY_MATCHED, reloaded.getStatus());
-        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("40.00")));
+        // Signed net coverage of the expense movement is negative.
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("-40.00")));
     }
 
     /**
@@ -244,38 +247,38 @@ class BankTransactionMatchServiceTest {
 
         BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
         assertEquals(BankTransactionStatus.PARTIALLY_MATCHED, reloaded.getStatus());
-        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("30.00")));
+        // Signed net coverage of the expense movement is negative.
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("-30.00")));
     }
 
     /**
-     * An allocation is capped at the transaction's own amount — you cannot attribute more to a transaction than it is
-     * worth. Here 150 exceeds the transaction (100) even though it is well within the bank movement (200).
+     * An allocation may exceed the transaction's own amount as long as it stays within the bank movement — several
+     * movements can over-cover a transaction in total. Here 150 exceeds the transaction (100) but is within the
+     * movement (200), so it is accepted.
      */
     @Test
     @TestTransaction
-    void allocationExceedingTransactionAmountIsRejected() {
+    void allocationExceedingTransactionAmountButWithinMovementIsAllowed() {
         Fixture f = createUnmatchedFixture("-200.00", "-100.00", "partial-txcap");
-        assertThrows(BadRequestException.class,
-                () -> matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester",
-                        new BigDecimal("150.00")));
-    }
 
-    /**
-     * An allocation larger than the bank movement but within the transaction is allowed, so that over-assignment across
-     * transactions stays representable and visible rather than being silently capped at the movement.
-     */
-    @Test
-    @TestTransaction
-    void allocationExceedingBankAmountButWithinTransactionIsAllowed() {
-        Fixture f = createUnmatchedFixture("-50.00", "-100.00", "partial-over-movement");
-
-        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", new BigDecimal("80.00"));
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", new BigDecimal("150.00"));
 
         BankTransactionMatch match = singleMatch(f.transaction.getId());
-        assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("80.00")));
+        assertEquals(0, match.getMatchedAmount().compareTo(new BigDecimal("150.00")));
+        assertTrue(match.isAmountManual());
+    }
 
-        BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
-        assertEquals(BankTransactionStatus.FULLY_MATCHED, reloaded.getStatus());
+    /**
+     * An allocation may NOT exceed the bank movement's own amount — a single match can never use more of a movement
+     * than it holds. Here 80 exceeds the movement (50), so it is rejected.
+     */
+    @Test
+    @TestTransaction
+    void allocationExceedingBankAmountIsRejected() {
+        Fixture f = createUnmatchedFixture("-50.00", "-100.00", "partial-over-movement");
+        assertThrows(BadRequestException.class,
+                () -> matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester",
+                        new BigDecimal("80.00")));
     }
 
     @Test
@@ -416,7 +419,9 @@ class BankTransactionMatchServiceTest {
         em.persist(match);
 
         bankTx.setStatus(BankTransactionStatus.FULLY_MATCHED);
-        bankTx.setMatchedAmount(amount.abs());
+        // Denormalized bank-tx coverage is the SIGNED net (same sign as the movement); the per-match allocation above
+        // stays a positive magnitude.
+        bankTx.setMatchedAmount(amount);
         em.flush();
 
         return new Fixture(bankTx, transaction);

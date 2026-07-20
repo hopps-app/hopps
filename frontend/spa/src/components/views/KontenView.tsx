@@ -108,10 +108,11 @@ function SignedAmount({
 }) {
     const { t } = useTranslation();
     const total = amount ?? 0;
+    // matchedAmount is the SIGNED net coverage (income + / expense −); the still-open amount is |total − matched|, so
+    // an income transaction assigned to an expense movement does not reduce it.
     const matched = matchedAmount ?? 0;
-    // Show the actual transaction amount as the headline; if partially covered, add the still-open amount below.
-    const partiallyMatched = matched > 0 && matched < Math.abs(total);
-    const open = Math.abs(total) - matched;
+    const open = Math.abs(total - matched);
+    const partiallyMatched = matched !== 0 && open > 0.005;
     const pos = total >= 0;
     const sizeClass = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-sm' : 'text-base';
     return (
@@ -835,8 +836,16 @@ export function KontenView() {
         if (param) setMatchDrawerBankTxId(Number(param));
     }, [searchParams]);
 
+    // Open/close the match drawer, forcing the bank-transaction feeds to refetch each time so the list's coverage /
+    // still-open amounts are never stale relative to what the drawer shows (which computes live from the matches).
+    const openMatchDrawer = (id: number) => {
+        queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+        setMatchDrawerBankTxId(id);
+    };
+
     const closeMatchDrawer = () => {
         setMatchDrawerBankTxId(null);
+        queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
         if (searchParams.has('bankTx')) {
             searchParams.delete('bankTx');
             setSearchParams(searchParams, { replace: true });
@@ -964,8 +973,8 @@ export function KontenView() {
             </div>
 
             {/* Tab content */}
-            {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={setMatchDrawerBankTxId} />}
-            {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={setMatchDrawerBankTxId} />}
+            {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
+            {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} />}
             {tab === 'importe' && <ImporteTab accounts={accounts} onImport={setImportAccountId} />}
 
             {/* Match drawer */}

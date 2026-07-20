@@ -14,8 +14,6 @@ public record TransactionUpdateRequest(
         String transactionDate,
         String dueDate,
         Long bommelId,
-        Long categoryId,
-        String area,
         boolean privatelyPaid,
         String senderName,
         String senderStreet,

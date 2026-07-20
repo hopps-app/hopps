@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -3973,9 +3973,7 @@ export class Client {
 
     /**
      * List all transactions
-     * @param area (optional) Filter by transaction area (IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)
      * @param bommelId (optional) Filter by bommel ID
-     * @param categoryId (optional) Filter by category ID
      * @param detached (optional) Filter unassigned transactions (no bommel)
      * @param endDate (optional) Filter transactions until this date (ISO format: YYYY-MM-DD)
      * @param page (optional) Page index (0-based)
@@ -3988,20 +3986,12 @@ export class Client {
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return List of transactions
      */
-    transactionsAll(area: TransactionArea | undefined, bommelId: number | undefined, categoryId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, sortBy: string | undefined, sortDir: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
+    transactionsAll(bommelId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, sortBy: string | undefined, sortDir: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
         let url_ = this.baseUrl + "/transactions?";
-        if (area === null)
-            throw new Error("The parameter 'area' cannot be null.");
-        else if (area !== undefined)
-            url_ += "area=" + encodeURIComponent("" + area) + "&";
         if (bommelId === null)
             throw new Error("The parameter 'bommelId' cannot be null.");
         else if (bommelId !== undefined)
             url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
-        if (categoryId === null)
-            throw new Error("The parameter 'categoryId' cannot be null.");
-        else if (categoryId !== undefined)
-            url_ += "categoryId=" + encodeURIComponent("" + categoryId) + "&";
         if (detached === null)
             throw new Error("The parameter 'detached' cannot be null.");
         else if (detached !== undefined)
@@ -7336,8 +7326,6 @@ export interface ISchemaDetectionResult {
 
 export type TYPE = "EINGETRAGENER_VEREIN" | "ANDERE";
 
-export type TransactionArea = "IDEELL" | "ZWECKBETRIEB" | "VERMOEGENSVERWALTUNG" | "WIRTSCHAFTLICH" | "UNKNOWN";
-
 export class TransactionCreateRequest implements ITransactionCreateRequest {
     name?: string;
     total!: number;
@@ -7346,8 +7334,6 @@ export class TransactionCreateRequest implements ITransactionCreateRequest {
     transactionDate?: string;
     dueDate?: string;
     bommelId?: number;
-    categoryId?: number;
-    area?: string;
     privatelyPaid?: boolean;
     senderName?: string;
     senderStreet?: string;
@@ -7379,8 +7365,6 @@ export class TransactionCreateRequest implements ITransactionCreateRequest {
             this.transactionDate = _data["transactionDate"];
             this.dueDate = _data["dueDate"];
             this.bommelId = _data["bommelId"];
-            this.categoryId = _data["categoryId"];
-            this.area = _data["area"];
             this.privatelyPaid = _data["privatelyPaid"];
             this.senderName = _data["senderName"];
             this.senderStreet = _data["senderStreet"];
@@ -7414,8 +7398,6 @@ export class TransactionCreateRequest implements ITransactionCreateRequest {
         data["transactionDate"] = this.transactionDate;
         data["dueDate"] = this.dueDate;
         data["bommelId"] = this.bommelId;
-        data["categoryId"] = this.categoryId;
-        data["area"] = this.area;
         data["privatelyPaid"] = this.privatelyPaid;
         data["senderName"] = this.senderName;
         data["senderStreet"] = this.senderStreet;
@@ -7445,8 +7427,6 @@ export interface ITransactionCreateRequest {
     transactionDate?: string;
     dueDate?: string;
     bommelId?: number;
-    categoryId?: number;
-    area?: string;
     privatelyPaid?: boolean;
     senderName?: string;
     senderStreet?: string;
@@ -7462,10 +7442,7 @@ export class TransactionResponse implements ITransactionResponse {
     documentId?: number;
     bommelId?: number;
     bommelName?: string;
-    categoryId?: number;
-    categoryName?: string;
     status?: TransactionStatus;
-    area?: TransactionArea;
     name?: string;
     total?: number;
     totalTax?: number;
@@ -7484,6 +7461,7 @@ export class TransactionResponse implements ITransactionResponse {
     createdAt?: Date;
     updatedAt?: Date;
     createdBy?: string;
+    coveredAmount?: number;
 
     [key: string]: any;
 
@@ -7506,10 +7484,7 @@ export class TransactionResponse implements ITransactionResponse {
             this.documentId = _data["documentId"];
             this.bommelId = _data["bommelId"];
             this.bommelName = _data["bommelName"];
-            this.categoryId = _data["categoryId"];
-            this.categoryName = _data["categoryName"];
             this.status = _data["status"];
-            this.area = _data["area"];
             this.name = _data["name"];
             this.total = _data["total"];
             this.totalTax = _data["totalTax"];
@@ -7532,6 +7507,7 @@ export class TransactionResponse implements ITransactionResponse {
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : <any>undefined;
             this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : <any>undefined;
             this.createdBy = _data["createdBy"];
+            this.coveredAmount = _data["coveredAmount"];
         }
     }
 
@@ -7552,10 +7528,7 @@ export class TransactionResponse implements ITransactionResponse {
         data["documentId"] = this.documentId;
         data["bommelId"] = this.bommelId;
         data["bommelName"] = this.bommelName;
-        data["categoryId"] = this.categoryId;
-        data["categoryName"] = this.categoryName;
         data["status"] = this.status;
-        data["area"] = this.area;
         data["name"] = this.name;
         data["total"] = this.total;
         data["totalTax"] = this.totalTax;
@@ -7578,6 +7551,7 @@ export class TransactionResponse implements ITransactionResponse {
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : <any>undefined;
         data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : <any>undefined;
         data["createdBy"] = this.createdBy;
+        data["coveredAmount"] = this.coveredAmount;
         return data;
     }
 
@@ -7594,10 +7568,7 @@ export interface ITransactionResponse {
     documentId?: number;
     bommelId?: number;
     bommelName?: string;
-    categoryId?: number;
-    categoryName?: string;
     status?: TransactionStatus;
-    area?: TransactionArea;
     name?: string;
     total?: number;
     totalTax?: number;
@@ -7616,6 +7587,7 @@ export interface ITransactionResponse {
     createdAt?: Date;
     updatedAt?: Date;
     createdBy?: string;
+    coveredAmount?: number;
 
     [key: string]: any;
 }
@@ -7630,8 +7602,6 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
     transactionDate?: string;
     dueDate?: string;
     bommelId?: number;
-    categoryId?: number;
-    area?: string;
     privatelyPaid?: boolean;
     senderName?: string;
     senderStreet?: string;
@@ -7664,8 +7634,6 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
             this.transactionDate = _data["transactionDate"];
             this.dueDate = _data["dueDate"];
             this.bommelId = _data["bommelId"];
-            this.categoryId = _data["categoryId"];
-            this.area = _data["area"];
             this.privatelyPaid = _data["privatelyPaid"];
             this.senderName = _data["senderName"];
             this.senderStreet = _data["senderStreet"];
@@ -7700,8 +7668,6 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
         data["transactionDate"] = this.transactionDate;
         data["dueDate"] = this.dueDate;
         data["bommelId"] = this.bommelId;
-        data["categoryId"] = this.categoryId;
-        data["area"] = this.area;
         data["privatelyPaid"] = this.privatelyPaid;
         data["senderName"] = this.senderName;
         data["senderStreet"] = this.senderStreet;
@@ -7732,8 +7698,6 @@ export interface ITransactionUpdateRequest {
     transactionDate?: string;
     dueDate?: string;
     bommelId?: number;
-    categoryId?: number;
-    area?: string;
     privatelyPaid?: boolean;
     senderName?: string;
     senderStreet?: string;
