@@ -16,7 +16,10 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class BankTransactionMatchService {
@@ -32,6 +35,17 @@ public class BankTransactionMatchService {
 
     @Transactional
     public void addMatch(Long bankTxId, Long transactionId, String username) {
+        addMatch(bankTxId, transactionId, username, null);
+    }
+
+    /**
+     * Links a bank transaction to a bookkeeping transaction. {@code requestedAmount} is the portion of the bank
+     * movement that is used for this transaction (the allocation): pass {@code null} for the default full amount, or an
+     * explicit value to split e.g. one collective transfer across several transactions. An explicit amount is stored as
+     * a manual allocation and is not overwritten by later transaction-amount changes.
+     */
+    @Transactional
+    public void addMatch(Long bankTxId, Long transactionId, String username, BigDecimal requestedAmount) {
         BankTransaction bankTx = bankTransactionRepository.findByIdScoped(bankTxId);
         if (bankTx == null) {
             throw new NotFoundException("Bank transaction not found");
@@ -45,10 +59,13 @@ public class BankTransactionMatchService {
             throw new NotFoundException("Transaction not found");
         }
 
+        boolean manual = requestedAmount != null;
+
         // When the transaction has no amount yet (e.g. it was cleared because the analysed value was in the wrong
         // currency), adopt the bank transaction's signed euro amount so the booking gets its correct value from the
-        // reconciled movement. This also makes the coverage exact (matchedAmount below equals abs(bankTx amount)).
-        if (tx.getTotal() == null || tx.getTotal().signum() == 0) {
+        // reconciled movement. Only for the default (full) link — an explicit partial allocation means the user is
+        // splitting the movement and the transaction is expected to already carry its own total.
+        if (!manual && (tx.getTotal() == null || tx.getTotal().signum() == 0)) {
             tx.setTotal(bankTx.getAmount());
         }
 
@@ -63,17 +80,78 @@ public class BankTransactionMatchService {
             return;
         }
 
+        // matchedAmount is the covered magnitude (always positive). Both bank amount and transaction total share the
+        // same sign (expense = negative, income = positive), so we compare absolute values in recomputeStatus.
+        BigDecimal allocation = manual
+                ? validateAllocation(requestedAmount, bankTx.getAmount())
+                : defaultAllocation(tx.getTotal(), bankTx.getAmount());
+
         BankTransactionMatch match = new BankTransactionMatch();
         match.setBankTransaction(bankTx);
         match.setTransaction(tx);
-        // matchedAmount is the covered magnitude. Both bank amount and transaction total share the same sign
-        // (expense = negative, income = positive), so we compare absolute values in recomputeStatus.
-        match.setMatchedAmount(tx.getTotal() != null ? tx.getTotal().abs() : BigDecimal.ZERO);
+        match.setMatchedAmount(allocation);
+        match.setAmountManual(manual);
         match.setMatchType(BankTransactionMatchType.MANUAL);
         match.setMatchedBy(username);
         em.persist(match);
 
         recomputeStatus(bankTx);
+    }
+
+    /**
+     * Updates the allocation (used amount) of an existing match and marks it as manual, then recomputes the bank
+     * transaction status. Used to disentangle a collective transfer after the fact.
+     */
+    @Transactional
+    public void updateMatchAmount(Long bankTxId, Long transactionId, BigDecimal amount) {
+        BankTransaction bankTx = bankTransactionRepository.findByIdScoped(bankTxId);
+        if (bankTx == null) {
+            throw new NotFoundException("Bank transaction not found");
+        }
+
+        BankTransactionMatch match = em.createQuery(
+                "SELECT m FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId",
+                BankTransactionMatch.class)
+                .setParameter("bankTxId", bankTxId)
+                .setParameter("txId", transactionId)
+                .getResultStream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Match not found"));
+
+        match.setMatchedAmount(validateAllocation(amount, bankTx.getAmount()));
+        match.setAmountManual(true);
+
+        recomputeStatus(bankTx);
+    }
+
+    /**
+     * The default allocation for a new match: as much of the bank movement as the transaction needs, i.e. the smaller
+     * of the transaction's amount and the movement's magnitude. Capping at the movement means a movement smaller than
+     * the transaction leaves the remainder open (a 217 € movement does not fully cover a 320.50 € expense) instead of
+     * appearing to pull more than it holds. Over-coverage from assigning *several* transactions to one movement still
+     * surfaces (their allocations sum past the movement). For an amountless transaction the movement magnitude is used.
+     */
+    private static BigDecimal defaultAllocation(BigDecimal txTotal, BigDecimal bankAmount) {
+        BigDecimal bankMagnitude = bankAmount.abs();
+        if (txTotal == null || txTotal.signum() == 0) {
+            return bankMagnitude;
+        }
+        return txTotal.abs().min(bankMagnitude);
+    }
+
+    /**
+     * Validates a user-supplied allocation: it must be positive and cannot exceed the bank movement's own amount — a
+     * single match can never use more of a movement than it holds. The transaction may still be over-covered in total,
+     * because several movements (each within its own amount) can sum past the transaction's amount.
+     */
+    private static BigDecimal validateAllocation(BigDecimal amount, BigDecimal bankAmount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new BadRequestException("Allocation amount must be positive");
+        }
+        if (amount.compareTo(bankAmount.abs()) > 0) {
+            throw new BadRequestException("Allocation amount cannot exceed the bank transaction amount");
+        }
+        return amount;
     }
 
     @Transactional
@@ -143,12 +221,19 @@ public class BankTransactionMatchService {
         }
 
         Transaction tx = em.find(Transaction.class, transactionId);
-        BigDecimal newMatchedAmount = tx != null && tx.getTotal() != null
-                ? tx.getTotal().abs()
-                : BigDecimal.ZERO;
+        BigDecimal txTotal = tx != null ? tx.getTotal() : null;
+        boolean noTotal = txTotal == null || txTotal.signum() == 0;
 
         for (BankTransactionMatch match : matches) {
-            match.setMatchedAmount(newMatchedAmount);
+            // Never clobber a hand-set partial allocation — the user split this movement deliberately.
+            if (match.isAmountManual()) {
+                continue;
+            }
+            // Re-snapshot the default allocation to the transaction's current total, capped at this match's bank
+            // movement (mirroring addMatch); a transaction that lost its amount drops back to no coverage.
+            match.setMatchedAmount(noTotal
+                    ? BigDecimal.ZERO
+                    : txTotal.abs().min(match.getBankTransaction().getAmount().abs()));
         }
 
         // A transaction can be linked to several bank transactions; recompute each affected one exactly once.
@@ -198,17 +283,76 @@ public class BankTransactionMatchService {
     }
 
     /**
-     * Returns the magnitude of net bank movement linked to the given bookkeeping transaction — the absolute value of
-     * the (signed) sum of all matched bank transactions' amounts. Used to check whether a transaction's amount is fully
-     * covered before it may be confirmed. Summing signed (not absolute) amounts lets opposite movements net out, e.g.
-     * -5, +5, -5 covers a 5 expense; summing absolute values would over-count them to 15 and block confirmation.
+     * Returns the <strong>signed</strong> net bank movement linked to the given bookkeeping transaction — the sum of
+     * all matched allocations, signed by the direction of the movement they come from. A transaction is fully covered
+     * when this equals its (signed) total, so an expense movement linked to an income transaction (opposite signs) does
+     * NOT count as coverage. Summing signed amounts also lets opposite movements net out, e.g. -5, +5, -5 nets to -5
+     * and covers a 5 expense. The still-open amount is {@code total - coverage}.
      */
     public BigDecimal getCoveredAmountForTransaction(Long transactionId) {
-        BigDecimal netAmount = (BigDecimal) em.createQuery(
-                "SELECT COALESCE(SUM(m.bankTransaction.amount), 0) FROM BankTransactionMatch m WHERE m.transaction.id = :txId")
+        // Sum the per-match allocations (matchedAmount, always positive), signed by the direction of the bank movement
+        // they come from. This respects partial allocations — a collective transfer only counts the portion actually
+        // used for this transaction, not its whole amount.
+        return (BigDecimal) em.createQuery(
+                "SELECT COALESCE(SUM(CASE WHEN m.bankTransaction.amount < 0 THEN -m.matchedAmount ELSE m.matchedAmount END), 0) "
+                        + "FROM BankTransactionMatch m WHERE m.transaction.id = :txId")
                 .setParameter("txId", transactionId)
                 .getSingleResult();
-        return netAmount.abs();
+    }
+
+    /**
+     * Returns the allocation (used amount) per matched transaction for a bank transaction — {@code transactionId ->
+     * matchedAmount}. Powers the editable "amount used" on the bank-transaction side.
+     */
+    public Map<Long, BigDecimal> getAllocationsByTransactionForBankTransaction(Long bankTxId) {
+        return toAllocationMap(em.createQuery(
+                "SELECT m.transaction.id, m.matchedAmount FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId",
+                Object[].class)
+                .setParameter("bankTxId", bankTxId)
+                .getResultList());
+    }
+
+    /**
+     * Returns the allocation (used amount) per matched bank transaction for a bookkeeping transaction — {@code
+     * bankTransactionId -> matchedAmount}. Powers the editable "amount used" on the transaction side.
+     */
+    public Map<Long, BigDecimal> getAllocationsByBankTransactionForTransaction(Long transactionId) {
+        return toAllocationMap(em.createQuery(
+                "SELECT m.bankTransaction.id, m.matchedAmount FROM BankTransactionMatch m WHERE m.transaction.id = :txId",
+                Object[].class)
+                .setParameter("txId", transactionId)
+                .getResultList());
+    }
+
+    private static Map<Long, BigDecimal> toAllocationMap(List<Object[]> rows) {
+        Map<Long, BigDecimal> map = new HashMap<>();
+        for (Object[] row : rows) {
+            map.put((Long) row[0], (BigDecimal) row[1]);
+        }
+        return map;
+    }
+
+    /**
+     * Batch variant of {@link #getCoveredAmountForTransaction(Long)} for a set of transactions — one grouped query
+     * instead of N. Returns a map of transaction id to <strong>signed</strong> net coverage; transactions with no
+     * matches are absent from the map (treat as zero).
+     */
+    public Map<Long, BigDecimal> getCoveredAmountsForTransactions(Collection<Long> transactionIds) {
+        if (transactionIds == null || transactionIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Object[]> rows = em.createQuery(
+                "SELECT m.transaction.id, "
+                        + "COALESCE(SUM(CASE WHEN m.bankTransaction.amount < 0 THEN -m.matchedAmount ELSE m.matchedAmount END), 0) "
+                        + "FROM BankTransactionMatch m WHERE m.transaction.id IN :ids GROUP BY m.transaction.id",
+                Object[].class)
+                .setParameter("ids", transactionIds)
+                .getResultList();
+        Map<Long, BigDecimal> covered = new HashMap<>();
+        for (Object[] row : rows) {
+            covered.put((Long) row[0], (BigDecimal) row[1]);
+        }
+        return covered;
     }
 
     public List<Long> getMatchedTransactionIds(Long bankTxId) {
@@ -220,17 +364,22 @@ public class BankTransactionMatchService {
     }
 
     private void recomputeStatus(BankTransaction bankTx) {
-        BigDecimal matchedAmount = (BigDecimal) em.createQuery(
-                "SELECT COALESCE(SUM(m.matchedAmount), 0) FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId")
+        // Signed net coverage: each allocation counts in the direction of the linked transaction (income +, expense −),
+        // so a movement is only covered by transactions pointing the same way — an income transaction does NOT cover an
+        // expense movement. This mirrors the transaction-side coverage; the still-open amount is |amount − coverage|.
+        BigDecimal coverage = (BigDecimal) em.createQuery(
+                "SELECT COALESCE(SUM(CASE WHEN m.transaction.total < 0 THEN -m.matchedAmount ELSE m.matchedAmount END), 0) "
+                        + "FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId")
                 .setParameter("bankTxId", bankTx.getId())
                 .getSingleResult();
 
-        bankTx.setMatchedAmount(matchedAmount);
+        bankTx.setMatchedAmount(coverage);
 
-        BigDecimal absAmount = bankTx.getAmount().abs();
-        if (matchedAmount.compareTo(BigDecimal.ZERO) == 0) {
+        BigDecimal amount = bankTx.getAmount();
+        if (coverage.signum() == 0) {
             bankTx.setStatus(BankTransactionStatus.UNMATCHED);
-        } else if (matchedAmount.compareTo(absAmount) >= 0) {
+        } else if (coverage.signum() == amount.signum() && coverage.abs().compareTo(amount.abs()) >= 0) {
+            // Covered (or over-covered) in the movement's own direction.
             bankTx.setStatus(BankTransactionStatus.FULLY_MATCHED);
         } else {
             bankTx.setStatus(BankTransactionStatus.PARTIALLY_MATCHED);

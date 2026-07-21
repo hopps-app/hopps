@@ -2,12 +2,9 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.category.domain.Category;
-import app.hopps.category.repository.CategoryRepository;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -21,9 +18,6 @@ public class TransactionUpdateConverter {
 
     @Inject
     BommelRepository bommelRepository;
-
-    @Inject
-    CategoryRepository categoryRepository;
 
     public void applyUpdateRequestToTransaction(Transaction transaction, TransactionUpdateRequest request) {
         // Capture the counterparty and direction before total (and thus the direction) may change below, so
@@ -67,19 +61,6 @@ public class TransactionUpdateConverter {
             } else {
                 transaction.setBommel(null);
             }
-        }
-
-        if (request.categoryId() != null) {
-            if (request.categoryId() > 0) {
-                Category category = categoryRepository.findById(request.categoryId());
-                transaction.setCategory(category);
-            } else {
-                transaction.setCategory(null);
-            }
-        }
-
-        if (request.area() != null && !request.area().isBlank()) {
-            transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
         }
 
         // Re-place the counterparty (senderName* fields) on the side matching the current direction and keep

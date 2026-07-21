@@ -32,7 +32,6 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
-import { useCategories } from '@/hooks/queries/useCategories';
 import { useDocument } from '@/hooks/queries/useDocuments';
 import {
     useTransactions,
@@ -52,13 +51,6 @@ import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
-const AREAS = [
-    { value: 'IDEELL', label: 'Ideell' },
-    { value: 'ZWECKBETRIEB', label: 'Zweckbetrieb' },
-    { value: 'WIRTSCHAFTLICH', label: 'Wirtschaftlicher Geschäftsbetrieb' },
-    { value: 'VERMOEGENSVERWALTUNG', label: 'Vermögensverwaltung' },
-];
-
 // ─── Design tokens (from prototype) ──────────────────────────────────────────
 // bg: #F3F4F6 · surface: #FFFFFF · surface-2: #F8F8FA · surface-3: #F1F1F4
 // ink: #1B1B1F · ink-2: #6B6B76 · ink-3: #9A9AA3
@@ -73,8 +65,8 @@ const AREAS = [
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
 // Shared column layout for the transactions table header and rows (must stay in sync).
-// Transaktion | Kategorie | Bommel | Datum | Erstellt am | Status | Betrag
-const TX_GRID = '40px minmax(0,2fr) 1.1fr 1fr 0.95fr 1fr 0.85fr 1fr';
+// Transaktion | Bommel | Datum | Erstellt am | Status | Betrag
+const TX_GRID = '40px minmax(0,2fr) 1fr 0.95fr 1fr 0.85fr 1fr';
 
 function fmtCurrency(amount: number | undefined): string {
     if (amount === undefined || amount === null) return '—';
@@ -169,7 +161,6 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const reopenMutation = useReopenTransaction();
     // The bank transaction(s) matched to this transaction — used to gate the confirm action on full coverage.
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
-    const { data: categoriesData } = useCategories();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
@@ -190,9 +181,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const [amountStr, setAmountStr] = useState('');
     const [date, setDate] = useState('');
     const [senderName, setSenderName] = useState('');
-    const [categoryId, setCategoryId] = useState('');
     const [bommelId, setBommelId] = useState('');
-    const [area, setArea] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
@@ -227,11 +216,9 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
         setAmountStr(tx.total != null ? String(Math.abs(total)) : '');
         setDate(tx.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : '');
         setSenderName(tx.senderName ?? '');
-        setCategoryId(tx.categoryId != null ? String(tx.categoryId) : '');
         // Keep the transaction's own bommel; if it has none, default to the last picked one (batch assignment).
         const lastBommel = getLastBommelId();
         setBommelId(tx.bommelId != null ? String(tx.bommelId) : lastBommel ? String(lastBommel) : '');
-        setArea(tx.area ?? '');
         setPrivatelyPaid(tx.privatelyPaid ?? false);
         setEditMode(true);
     }
@@ -249,9 +236,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
             total: signed,
             transactionDate: date || undefined,
             senderName: senderName || undefined,
-            categoryId: categoryId ? Number(categoryId) : 0,
             bommelId: bommelId ? Number(bommelId) : 0,
-            area: area || undefined,
             privatelyPaid,
         });
         await updateMutation.mutateAsync({ id: tx.id, data });
@@ -386,9 +371,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                         <div className="px-6 py-5 border-b border-[#E9E9EE]">
                             <dl style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 12, columnGap: 16 }}>
                                 {[
-                                    [t('transactions.detail.category'), tx.categoryName ?? '—'],
                                     [t('transactions.detail.bommel'), tx.bommelName ?? '—'],
-                                    [t('transactions.detail.area'), tx.area ?? '—'],
                                     [t('transactions.detail.date'), fmtDate(tx.transactionTime)],
                                     [t('transactions.detail.privatelyPaid'), tx.privatelyPaid ? t('transactions.detail.yes') : t('transactions.detail.no')],
                                 ].map(([label, value]) => (
@@ -505,39 +488,13 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputCls} />
                             </div>
 
-                            {/* Category + Bommel */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className={labelCls}>{t('transactions.detail.category')}</label>
-                                    <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
-                                        <option value="">—</option>
-                                        {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
-                                            <option key={c.id} value={c.id}>
-                                                {c.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transactions.detail.bommel')}</label>
-                                    <InvoiceUploadFormBommelSelector
-                                        value={bommelId ? Number(bommelId) : null}
-                                        onChange={(id) => setBommelId(id ? String(id) : '')}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Area */}
+                            {/* Bommel */}
                             <div>
-                                <label className={labelCls}>{t('transactions.detail.area')}</label>
-                                <select value={area} onChange={(e) => setArea(e.target.value)} className={inputCls}>
-                                    <option value="">—</option>
-                                    {AREAS.map((a) => (
-                                        <option key={a.value} value={a.value}>
-                                            {a.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                <label className={labelCls}>{t('transactions.detail.bommel')}</label>
+                                <InvoiceUploadFormBommelSelector
+                                    value={bommelId ? Number(bommelId) : null}
+                                    onChange={(id) => setBommelId(id ? String(id) : '')}
+                                />
                             </div>
 
                             {/* Privately paid */}
@@ -563,9 +520,18 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                             </button>
                         </div>
 
-                        {/* Zahlung & Abgleich – Banktransaktionen direkt beim Bearbeiten verknüpfen */}
+                        {/* Zahlung & Abgleich – Banktransaktionen direkt beim Bearbeiten verknüpfen. currentTotal feeds
+                            the live edited amount+direction so the reconciliation difference updates immediately when
+                            income↔expense is flipped (the sign reverses), before the change is saved. */}
                         <div className="border-t border-[#E9E9EE]">
-                            <BankMatchSection tx={tx} />
+                            <BankMatchSection
+                                tx={tx}
+                                currentTotal={(() => {
+                                    const raw = parseFloat(amountStr.trim().replace(',', '.'));
+                                    if (amountStr.trim() === '' || isNaN(raw)) return null;
+                                    return kind === 'expense' ? -Math.abs(raw) : Math.abs(raw);
+                                })()}
+                            />
                         </div>
                     </div>
                 )}
@@ -750,9 +716,6 @@ function TransactionRow({
                 </span>
             </span>
 
-            {/* Category */}
-            <span className="text-[13.5px] text-[#6B6B76] truncate pr-3">{tx.categoryName ?? '—'}</span>
-
             {/* Bommel */}
             <span className="pr-3">
                 {tx.bommelName ? (
@@ -773,9 +736,38 @@ function TransactionRow({
                 <StatusBadge status={tx.status} />
             </span>
 
-            {/* Amount */}
-            <span className="text-right font-bold tabular-nums whitespace-nowrap" style={{ fontSize: 14.5, color: incoming ? '#1F7A50' : '#B12C4C' }}>
-                {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
+            {/* Amount — plus the reconciliation delta vs. linked bank movements, shown under the amount like the
+                bank-transaction table. The open delta is SIGNED (remaining = total − covered): a positive value (green)
+                still needs income, a negative value (red) still needs expense — so a positive and a negative shortfall
+                never look alike. Hidden once it matches (delta ≈ 0), regardless of confirm status. */}
+            <span className="flex flex-col items-end leading-tight">
+                <span className="font-bold tabular-nums whitespace-nowrap" style={{ fontSize: 14.5, color: incoming ? '#1F7A50' : '#B12C4C' }}>
+                    {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
+                </span>
+                {(() => {
+                    // coveredAmount is the SIGNED net of linked bank movements (same as the detail's "Zugeordnet").
+                    const total = tx.total != null ? Number(tx.total) : 0;
+                    const covered = tx.coveredAmount != null ? Number(tx.coveredAmount) : 0;
+                    if (Math.abs(total) < 0.005) return null;
+                    const remaining = total - covered; // signed
+                    const open = Math.abs(remaining);
+                    if (open > 0.005) {
+                        const positive = remaining > 0;
+                        const over = Math.abs(covered) > Math.abs(total) + 0.005;
+                        const label = over ? 'transactions.overCovered' : 'transactions.openToCover';
+                        return (
+                            <span className="text-[11px] font-semibold tabular-nums whitespace-nowrap" style={{ color: positive ? '#1F7A50' : '#B12C4C' }}>
+                                {t(label, { amount: `${positive ? '+' : '–'} ${fmtCurrency(open)}` })}
+                            </span>
+                        );
+                    }
+                    // Fully covered: surface a positive status on drafts (still being reconciled); confirmed rows are
+                    // done, so they stay clean.
+                    if (tx.status === 'DRAFT') {
+                        return <span className="text-[11px] font-semibold text-[#1F7A50] whitespace-nowrap">{t('transactions.fullyCovered')}</span>;
+                    }
+                    return null;
+                })()}
             </span>
         </button>
     );
@@ -790,9 +782,7 @@ export function TransactionenView() {
     const [search, setSearch] = usePersistedState<string>('hopps.transactions.search', '');
     const [statusFilter, setStatusFilter] = usePersistedState<'ALL' | 'CONFIRMED' | 'DRAFT'>('hopps.transactions.statusFilter', 'ALL');
     const [advancedOpen, setAdvancedOpen] = useState(false);
-    const [categoryId, setCategoryId] = usePersistedState<number | undefined>('hopps.transactions.categoryId', undefined);
     const [bommelId, setBommelId] = usePersistedState<number | undefined>('hopps.transactions.bommelId', undefined);
-    const [area, setArea] = usePersistedState<string | undefined>('hopps.transactions.area', undefined);
     const [startDate, setStartDate] = usePersistedState<string>('hopps.transactions.startDate', '');
     const [endDate, setEndDate] = usePersistedState<string>('hopps.transactions.endDate', '');
     const [privatelyPaid, setPrivatelyPaid] = usePersistedState<boolean>('hopps.transactions.privatelyPaid', false);
@@ -836,7 +826,6 @@ export function TransactionenView() {
     const filters: TransactionFilters = {
         search: search || undefined,
         status: statusFilter === 'ALL' ? undefined : (statusFilter as TransactionStatus),
-        categoryId,
         bommelId,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
@@ -849,7 +838,6 @@ export function TransactionenView() {
     };
 
     const { data: txData, isLoading } = useTransactions(filters);
-    const { data: categoriesData } = useCategories();
     const allBommels = useBommelsStore((s) => s.allBommels);
 
     const transactions: TransactionResponse[] = useMemo(() => {
@@ -906,15 +894,10 @@ export function TransactionenView() {
 
     const activeFilters: { key: string; label: string; clear: () => void }[] = [];
     if (search) activeFilters.push({ key: 'search', label: `"${search}"`, clear: () => setSearch('') });
-    if (categoryId) {
-        const cat = (categoriesData as { id?: number; name?: string }[] | undefined)?.find((c) => c.id === categoryId);
-        activeFilters.push({ key: 'cat', label: cat?.name ?? String(categoryId), clear: () => setCategoryId(undefined) });
-    }
     if (bommelId) {
         const b = allBommels.find((b) => b.id === bommelId);
         activeFilters.push({ key: 'bommel', label: (b as { name?: string } | undefined)?.name ?? String(bommelId), clear: () => setBommelId(undefined) });
     }
-    if (area) activeFilters.push({ key: 'area', label: area, clear: () => setArea(undefined) });
     if (startDate) activeFilters.push({ key: 'from', label: `${t('transactions.filters.from')}: ${startDate}`, clear: () => setStartDate('') });
     if (endDate) activeFilters.push({ key: 'to', label: `${t('transactions.filters.to')}: ${endDate}`, clear: () => setEndDate('') });
     if (privatelyPaid) activeFilters.push({ key: 'priv', label: t('transactions.filters.privatelyPaid'), clear: () => setPrivatelyPaid(false) });
@@ -923,9 +906,7 @@ export function TransactionenView() {
     function resetAll() {
         setSearch('');
         setStatusFilter('ALL');
-        setCategoryId(undefined);
         setBommelId(undefined);
-        setArea(undefined);
         setStartDate('');
         setEndDate('');
         setPrivatelyPaid(false);
@@ -1049,24 +1030,6 @@ export function TransactionenView() {
                 {advancedOpen && (
                     <div className="pt-3 border-t border-[#E9E9EE] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.category')}</label>
-                            <select
-                                value={categoryId ?? ''}
-                                onChange={(e) => {
-                                    setCategoryId(e.target.value ? Number(e.target.value) : undefined);
-                                    setPage(0);
-                                }}
-                                className={inputCls}
-                            >
-                                <option value="">{t('transactions.filters.allCategories')}</option>
-                                {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.bommel')}</label>
                             <select
                                 value={bommelId ?? ''}
@@ -1082,23 +1045,6 @@ export function TransactionenView() {
                                         {(b as { name?: string }).name}
                                     </option>
                                 ))}
-                            </select>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.area')}</label>
-                            <select
-                                value={area ?? ''}
-                                onChange={(e) => {
-                                    setArea(e.target.value || undefined);
-                                    setPage(0);
-                                }}
-                                className={inputCls}
-                            >
-                                <option value="">{t('transactions.filters.allAreas')}</option>
-                                <option value="IDEAL">Ideell</option>
-                                <option value="ZWECKBETRIEB">Zweckbetrieb</option>
-                                <option value="WIRTSCHAFTLICHER_GESCHAEFTSBETRIEB">Wirtsch. Geschäftsbetrieb</option>
-                                <option value="VERMOEGENSVERWALTUNG">Vermögensverwaltung</option>
                             </select>
                         </div>
                         <div className="flex flex-col gap-1.5">
@@ -1262,7 +1208,7 @@ export function TransactionenView() {
                                     <Minus className="w-3 h-3 text-white" strokeWidth={3} />
                                 ) : null}
                             </span>
-                            {[t('transactions.columns.transaction'), t('transactions.columns.category'), t('transactions.columns.bommel')].map((col) => (
+                            {[t('transactions.columns.transaction'), t('transactions.columns.bommel')].map((col) => (
                                 <span
                                     key={col}
                                     style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}

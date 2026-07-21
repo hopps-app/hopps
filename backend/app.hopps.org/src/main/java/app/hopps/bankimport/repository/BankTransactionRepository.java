@@ -98,7 +98,7 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             // Exact amount matches (full amount or the still-open remainder) come first — same predicate as the
             // amount clause built in buildAggregateWhere, reusing its :searchAmount parameter.
             orderBy.append(
-                    "CASE WHEN abs(t.amount) = :searchAmount OR abs(t.amount) - t.matchedAmount = :searchAmount THEN 0 ELSE 1 END ASC, ");
+                    "CASE WHEN abs(t.amount) = :searchAmount OR abs(t.amount - t.matchedAmount) = :searchAmount THEN 0 ELSE 1 END ASC, ");
         }
         orderBy.append("t.").append(column).append(' ').append(direction).append(", t.id DESC");
         return orderBy.toString();
@@ -206,7 +206,7 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
             params.put("search", "%" + search.toLowerCase() + "%");
             BigDecimal amount = parseSearchAmount(search);
             if (amount != null) {
-                where.append(" OR abs(t.amount) = :searchAmount OR abs(t.amount) - t.matchedAmount = :searchAmount");
+                where.append(" OR abs(t.amount) = :searchAmount OR abs(t.amount - t.matchedAmount) = :searchAmount");
                 params.put("searchAmount", amount.abs());
             }
             where.append(")");

@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
-import { useCategories } from '@/hooks/queries/useCategories';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
@@ -25,14 +24,6 @@ function toDateInputValue(value: Date | string | undefined): string {
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
 
-const AREAS = [
-    { value: '', labelKey: 'transactions.filters.allAreas' },
-    { value: 'IDEELL', label: 'Ideell' },
-    { value: 'ZWECKBETRIEB', label: 'Zweckbetrieb' },
-    { value: 'WIRTSCHAFTLICH', label: 'Wirtschaftlicher Geschäftsbetrieb' },
-    { value: 'VERMOEGENSVERWALTUNG', label: 'Vermögensverwaltung' },
-];
-
 interface Props {
     open: boolean;
     onClose: () => void;
@@ -50,7 +41,6 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const createMutation = useCreateTransaction();
     const addMatch = useAddBankTransactionMatch();
     const confirmMutation = useConfirmTransaction();
-    const { data: categoriesData } = useCategories();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
@@ -70,9 +60,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
     const [senderName, setSenderName] = useState('');
-    const [categoryId, setCategoryId] = useState('');
     const [bommelId, setBommelId] = useState('');
-    const [area, setArea] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
@@ -108,9 +96,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         setAmount('');
         setDate(new Date().toISOString().slice(0, 10));
         setSenderName('');
-        setCategoryId('');
         setBommelId('');
-        setArea('');
         setPrivatelyPaid(false);
         setTags([]);
         setTagInput('');
@@ -153,9 +139,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
             total: signedAmount,
             transactionDate: date || undefined,
             senderName: senderName || undefined,
-            categoryId: categoryId ? Number(categoryId) : undefined,
             bommelId: bommelId ? Number(bommelId) : undefined,
-            area: area || undefined,
             privatelyPaid,
             tags: tags.length ? tags : undefined,
         });
@@ -334,35 +318,10 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                         />
                     </div>
 
-                    {/* Category + Bommel */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className={labelCls}>{t('transactions.create.category')}</label>
-                            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
-                                <option value="">—</option>
-                                {(categoriesData as { id?: number; name?: string }[] | undefined)?.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className={labelCls}>{t('transactions.create.bommel')}</label>
-                            <InvoiceUploadFormBommelSelector value={bommelId ? Number(bommelId) : null} onChange={(id) => setBommelId(id ? String(id) : '')} />
-                        </div>
-                    </div>
-
-                    {/* Area */}
+                    {/* Bommel */}
                     <div>
-                        <label className={labelCls}>{t('transactions.create.area')}</label>
-                        <select value={area} onChange={(e) => setArea(e.target.value)} className={inputCls}>
-                            {AREAS.map((a) => (
-                                <option key={a.value} value={a.value}>
-                                    {a.label ?? t(a.labelKey!)}
-                                </option>
-                            ))}
-                        </select>
+                        <label className={labelCls}>{t('transactions.create.bommel')}</label>
+                        <InvoiceUploadFormBommelSelector value={bommelId ? Number(bommelId) : null} onChange={(id) => setBommelId(id ? String(id) : '')} />
                     </div>
 
                     {/* Privately paid */}

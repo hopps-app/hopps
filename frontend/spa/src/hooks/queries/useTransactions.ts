@@ -1,4 +1,4 @@
-import type { TransactionArea, TransactionStatus } from '@hopps/api-client';
+import type { TransactionStatus } from '@hopps/api-client';
 import { TransactionCreateRequest, TransactionResponse, TransactionUpdateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -13,11 +13,9 @@ export interface TransactionFilters {
     startDate?: string;
     endDate?: string;
     bommelId?: number;
-    categoryId?: number;
     status?: TransactionStatus;
     privatelyPaid?: boolean;
     detached?: boolean;
-    area?: TransactionArea;
     sortBy?: TransactionSortBy;
     sortDir?: SortDirection;
     page?: number;
@@ -37,9 +35,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
         queryKey: transactionKeys.list(filters),
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                filters.area,
                 filters.bommelId,
-                filters.categoryId,
                 filters.detached,
                 filters.endDate,
                 filters.page ?? 0,
@@ -135,12 +131,10 @@ export function transactionToReceipt(
     issuer: string;
     date: string;
     amount: number;
-    category: string;
     status: 'draft' | 'saved';
     privatelyPaid: boolean;
     project: string;
     bommelEmoji: string;
-    area: string;
     purpose: string;
     dueDate: string;
     tags: string[];
@@ -168,12 +162,10 @@ export function transactionToReceipt(
         issuer: tx.senderName ?? tx.name ?? '',
         date: formatDate(tx.transactionTime),
         amount,
-        category: tx.categoryName ?? '',
         status,
         privatelyPaid: tx.privatelyPaid ?? false,
         project: tx.bommelName ?? '',
         bommelEmoji,
-        area: tx.area ?? '',
         purpose: tx.name ?? '',
         dueDate: formatDate(tx.dueDate),
         tags: tx.tags ?? [],

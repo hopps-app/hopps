@@ -14,7 +14,7 @@
         "test:dev": "vitest",
         "test:coverage": "vitest run --coverage",
         "stubs": "docker run --name pact-stubs -t -p 8090:8090 -v \"$(pwd)/../../pacts/:/app/pacts\" pactfoundation/pact-stub-server -p 8090 -d pacts -o",
-        "sbom": "cdxgen -o bom.json"
+        "sbom": "cdxgen -o bom.json --spec-version 1.6"
     },
     "dependencies": {
         "@emoji-mart/data": "^1.2.1",

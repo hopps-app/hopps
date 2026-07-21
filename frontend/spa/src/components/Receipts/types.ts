@@ -3,12 +3,10 @@ export interface Receipt {
     issuer: string;
     date: string;
     amount: number;
-    category: string;
     status: 'draft' | 'saved';
     privatelyPaid: boolean;
     project: string;
     bommelEmoji: string;
-    area: string;
     purpose: string;
     dueDate: string;
     tags: string[];
@@ -23,8 +21,6 @@ export interface ReceiptFiltersState {
     startDate: string | null;
     endDate: string | null;
     project: string | null;
-    category: string | null;
-    area: string | null;
     status: {
         draft: boolean;
         unassigned: boolean;

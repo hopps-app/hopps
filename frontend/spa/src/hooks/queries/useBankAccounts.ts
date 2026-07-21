@@ -7,6 +7,8 @@ import {
     BankCsvColumnMappingDto,
     AmountStrategy,
     BankFieldType,
+    MatchRequest,
+    MatchAmountRequest,
 } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -378,13 +380,40 @@ export function useBankTransaction(id: number | null) {
 export function useAddBankTransactionMatch() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) => apiService.orgService.matchesPOST(bankTxId, transactionId),
+        // `amount` is the portion of the bank movement used for this transaction (the allocation). Omit it for the full
+        // amount; pass a value to split a collective transfer across several transactions.
+        mutationFn: ({ bankTxId, transactionId, amount }: { bankTxId: number; transactionId: number; amount?: number }) =>
+            apiService.orgService.matchesPOST(bankTxId, new MatchRequest({ transactionId, amount })),
         onSuccess: (_, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
             // Matching may fill an empty transaction amount from the bank movement — refresh transactions too.
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
         },
+    });
+}
+
+// Updates how much of a bank movement is used for one linked transaction (the allocation). Used to disentangle a
+// collective transfer after the fact.
+export function useUpdateBankTransactionMatchAmount() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ bankTxId, transactionId, amount }: { bankTxId: number; transactionId: number; amount: number }) =>
+            apiService.orgService.matchesPATCH(bankTxId, transactionId, new MatchAmountRequest({ amount })),
+        onSuccess: (_, vars) => {
+            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+        },
+    });
+}
+
+// The per-transaction allocations of a bank transaction — how much of the movement each linked transaction consumed.
+export function useBankTransactionMatches(bankTxId: number | null) {
+    return useQuery({
+        queryKey: [...bankTransactionKeys.all, 'matches', bankTxId],
+        queryFn: () => apiService.orgService.matchesAll(bankTxId!),
+        enabled: bankTxId !== null && bankTxId > 0,
     });
 }
 

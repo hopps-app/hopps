@@ -10,7 +10,6 @@ import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionChangedEvent;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -40,6 +39,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST API for transaction management.
@@ -84,11 +84,9 @@ public class TransactionResource {
             @QueryParam("startDate") @Parameter(description = "Filter transactions from this date (ISO format: YYYY-MM-DD)") String startDate,
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
             @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId,
-            @QueryParam("categoryId") @Parameter(description = "Filter by category ID") Long categoryId,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
-            @QueryParam("area") @Parameter(description = "Filter by transaction area (IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)") TransactionArea area,
             @QueryParam("sortBy") @DefaultValue("createdAt") @Parameter(description = "Field to sort by: createdAt, updatedAt, transactionTime or total") String sortBy,
             @QueryParam("sortDir") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String sortDir,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
@@ -113,16 +111,18 @@ public class TransactionResource {
                 startInstant,
                 endInstant,
                 bommelId,
-                categoryId,
                 status,
                 privatelyPaid,
                 detached,
-                area,
                 sort,
                 page);
 
+        // Batch the bank coverage for the whole page in a single grouped query (avoids N+1) so each row can show how
+        // much of its amount still needs to be reconciled with bank movements.
+        List<Long> ids = transactions.stream().map(Transaction::getId).toList();
+        Map<Long, BigDecimal> covered = bankTransactionMatchService.getCoveredAmountsForTransactions(ids);
         return transactions.stream()
-                .map(TransactionResponse::from)
+                .map(tx -> TransactionResponse.from(tx, covered.getOrDefault(tx.getId(), BigDecimal.ZERO)))
                 .toList();
     }
 
@@ -152,7 +152,8 @@ public class TransactionResource {
         if (transaction == null) {
             throw new NotFoundException("Transaction not found");
         }
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     @POST
@@ -179,7 +180,8 @@ public class TransactionResource {
         LOG.info("Transaction created: id={}", transaction.getId());
 
         return Response.status(Response.Status.CREATED)
-                .entity(TransactionResponse.from(transaction))
+                .entity(TransactionResponse.from(transaction,
+                        bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId())))
                 .build();
     }
 
@@ -207,7 +209,8 @@ public class TransactionResource {
         }
 
         LOG.info("Transaction updated: id={}", transaction.getId());
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     /**
@@ -256,7 +259,8 @@ public class TransactionResource {
 
         LOG.info("Transaction confirmed: id={}", transaction.getId());
 
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     /**
@@ -289,8 +293,10 @@ public class TransactionResource {
         }
 
         if (hasAmount) {
+            // Coverage is signed: the linked movements must net to exactly the transaction's signed total (an expense
+            // movement does not cover an income transaction, and vice versa).
             BigDecimal covered = bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId());
-            if (covered.compareTo(total.abs()) != 0) {
+            if (covered.compareTo(total) != 0) {
                 missing.add("bankCoverage");
             }
         }
@@ -322,7 +328,8 @@ public class TransactionResource {
 
         LOG.info("Transaction reopened: id={}", transaction.getId());
 
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     @DELETE
