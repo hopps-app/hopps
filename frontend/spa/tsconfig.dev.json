@@ -12,7 +12,6 @@
     }
   ],
   "compilerOptions": {
-    "baseUrl": "./",
     "paths": {
       "@hopps/api-client": ["../api-client/src"],
       "@/*": [

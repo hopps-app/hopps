@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, RenderOptions } from '@testing-library/react';
+import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import { ReactElement, ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
@@ -37,7 +37,7 @@ function AllProviders({ children }: WrapperProps) {
     );
 }
 
-export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
+export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>): RenderResult {
     return render(ui, { wrapper: AllProviders, ...options });
 }
 

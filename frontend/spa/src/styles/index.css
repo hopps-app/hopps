@@ -2,9 +2,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+/* Tailwind v4 loads the existing v3 config (theme colors, content globs, darkMode: 'class', tailwindcss-animate). */
+@config '../../tailwind.config.js';
 
 @layer base {
     h1 {
@@ -23,7 +23,6 @@
         @apply border-t border-separator my-4;
     }
 }
-
 
 @layer base {
     :root {
