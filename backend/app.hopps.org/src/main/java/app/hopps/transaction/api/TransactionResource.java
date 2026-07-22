@@ -266,14 +266,27 @@ public class TransactionResource {
     /**
      * Collects the reasons a transaction cannot yet be confirmed. Empty list means it is ready. The mandatory fields
      * mirror the frontend gate: amount, date, counterparty, name and bommel must be set, and the amount must be exactly
-     * covered by the linked bank transactions (sum of their absolute amounts equals the transaction amount).
+     * covered (signed net) by the linked bank transactions. A zero amount is only accepted as a "pass-through"
+     * (durchlaufender Posten) when it is backed by at least two bank movements that net to zero.
      */
     private List<String> collectConfirmBlockers(Transaction transaction) {
         List<String> missing = new ArrayList<>();
 
         BigDecimal total = transaction.getTotal();
-        boolean hasAmount = total != null && total.compareTo(BigDecimal.ZERO) != 0;
-        if (!hasAmount) {
+        BigDecimal effectiveTotal = total == null ? BigDecimal.ZERO : total;
+        boolean isZero = effectiveTotal.compareTo(BigDecimal.ZERO) == 0;
+
+        // Coverage is signed (see getCoveredAmountForTransaction): opposite movements net out.
+        BigDecimal covered = bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId());
+        int linkedBankTxCount = bankTransactionMatchService
+                .getAllocationsByBankTransactionForTransaction(transaction.getId())
+                .size();
+
+        // A zero-amount transaction ("durchlaufender Posten") may only be confirmed when it is backed by at least two
+        // bank movements that net to exactly zero; otherwise a zero amount counts as "no amount entered".
+        boolean isZeroPassThrough = isZero && linkedBankTxCount >= 2 && covered.signum() == 0;
+
+        if (isZero && !isZeroPassThrough) {
             missing.add("amount");
         }
         if (transaction.getTransactionTime() == null) {
@@ -292,13 +305,10 @@ public class TransactionResource {
             missing.add("bommel");
         }
 
-        if (hasAmount) {
-            // Coverage is signed: the linked movements must net to exactly the transaction's signed total (an expense
-            // movement does not cover an income transaction, and vice versa).
-            BigDecimal covered = bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId());
-            if (covered.compareTo(total) != 0) {
-                missing.add("bankCoverage");
-            }
+        // The linked movements must net to exactly the transaction's signed total, so an expense movement does not
+        // cover an income transaction (and vice versa). A valid zero pass-through already nets to zero and is exempt.
+        if (!isZeroPassThrough && covered.compareTo(effectiveTotal) != 0) {
+            missing.add("bankCoverage");
         }
 
         return missing;

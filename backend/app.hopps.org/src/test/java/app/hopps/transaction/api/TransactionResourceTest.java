@@ -392,6 +392,37 @@ class TransactionResourceTest {
                 .body("status", is("CONFIRMED"));
     }
 
+    @Test
+    void shouldConfirmZeroPassThroughWithOffsettingBankMovements() {
+        // A "durchlaufender Posten": a transaction with a total of 0 (no real income/expense) backed by two bank
+        // movements that cancel out (+13.68 and -13.68). It nets to zero and must be confirmable.
+        Long id = createConfirmableTransactionWithBankAmounts(BigDecimal.ZERO,
+                List.of(new BigDecimal("13.68"), new BigDecimal("-13.68")));
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", id)
+                .then()
+                .statusCode(200)
+                .body("status", is("CONFIRMED"));
+    }
+
+    @Test
+    void shouldRejectZeroTransactionWithSingleBankMovement() {
+        // A zero total backed by a single movement is not a valid pass-through (needs at least two offsetting
+        // movements), so it must stay unconfirmable.
+        Long id = createConfirmableTransactionWithBankAmounts(BigDecimal.ZERO,
+                List.of(new BigDecimal("13.68")));
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", id)
+                .then()
+                .statusCode(400);
+    }
+
     /**
      * Like {@link #createConfirmableTransaction} but links the transaction to several bank transactions with the given
      * (signed) amounts, so the net-vs-absolute coverage behaviour can be exercised. All other confirm preconditions

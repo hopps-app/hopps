@@ -289,6 +289,24 @@ class BankTransactionMatchServiceTest {
                 () -> matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", BigDecimal.ZERO));
     }
 
+    /**
+     * A zero-amount transaction ("durchlaufender Posten") has no direction, so an allocation to it must be signed by
+     * the bank movement it is applied to. A −13.68 movement fully allocated to a zero transaction is therefore fully
+     * matched with nothing left open — not counted as +13.68 (which would leave |−13.68 − 13.68| = 27.36 open).
+     */
+    @Test
+    @TestTransaction
+    void zeroAmountTransactionFullyMatchesOppositeDirectionMovement() {
+        Fixture f = createUnmatchedFixture("-13.68", "0.00", "passthrough-expense");
+
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester", new BigDecimal("13.68"));
+
+        BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
+        assertEquals(BankTransactionStatus.FULLY_MATCHED, reloaded.getStatus());
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("-13.68")),
+                "coverage of a zero-amount transaction is signed by the movement, so a −13.68 movement nets to −13.68");
+    }
+
     // ── Test fixture ────────────────────────────────────────────────────────────
 
     private record Fixture(BankTransaction bankTx, Transaction transaction) {

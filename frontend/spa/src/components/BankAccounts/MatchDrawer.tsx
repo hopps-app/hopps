@@ -250,15 +250,19 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
     };
 
     // Amount reconciliation (signed: positive tx covers negative bank movement and vice versa), counting the portion
-    // actually used for each transaction (its allocation), not the transactions' full totals.
+    // actually used for each transaction (its allocation), not the transactions' full totals. A zero-amount transaction
+    // ("durchlaufender Posten") has no direction of its own, so its allocation is signed by this movement instead —
+    // that lets a single pass-through cover the movement (and its opposite twin) rather than contributing nothing.
+    const movementSign = Math.sign(bankTx.amount ?? 0);
+    const directionSign = (t: TransactionResponse) => Math.sign(t.total ?? 0) || movementSign;
     const alreadyMatchedSum = linkedTx.reduce((s, t) => {
         const alloc = allocByTx.get(t.id!) ?? Math.abs(t.total ?? 0);
-        return s + Math.sign(t.total ?? 0) * alloc;
+        return s + directionSign(t) * alloc;
     }, 0);
     const selectedSum = Array.from(sel).reduce((s, id) => {
         const t = txById.get(id);
         if (!t) return s;
-        return s + Math.sign(t.total ?? 0) * (overrideAlloc(id) ?? defaultAlloc(t));
+        return s + directionSign(t) * (overrideAlloc(id) ?? defaultAlloc(t));
     }, 0);
     const remaining = (bankTx.amount ?? 0) - alreadyMatchedSum - selectedSum;
     const isFullyCovered = Math.abs(remaining) <= 0.005; // float tolerance

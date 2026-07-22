@@ -45,18 +45,27 @@ export function getTransactionConfirmState(fields: TransactionConfirmFields, lin
     const missing: ConfirmBlocker[] = [];
 
     const amountCents = fields.amount != null && !Number.isNaN(fields.amount) ? Math.abs(toCents(fields.amount)) : 0;
-    if (amountCents === 0) missing.push('amount');
+
+    // Exact coverage: the linked bank movements must sum to exactly the transaction amount. The *signed* amounts are
+    // summed and only then taken in magnitude, so opposite movements net out correctly (e.g. -5, +5, -5 covers a 5
+    // expense). Summing absolute values instead would wrongly over-count them (to 15) and grey out the confirm button.
+    const coveredCents = Math.abs(linkedBankTxns.reduce((sum, b) => sum + toCents(Number(b.amount ?? 0)), 0));
+
+    // A zero-amount transaction is a valid "pass-through" (durchlaufender Posten) — e.g. money received and immediately
+    // paid back out — only when it is backed by at least two bank movements that net to exactly zero. Without that, a
+    // zero amount just means "no amount entered" and must not be confirmable.
+    const isZeroPassThrough = amountCents === 0 && linkedBankTxns.length >= 2 && coveredCents === 0;
+
+    if (amountCents === 0 && !isZeroPassThrough) missing.push('amount');
     if (!fields.date) missing.push('date');
     if (!fields.counterparty || !fields.counterparty.trim()) missing.push('counterparty');
     if (!fields.name || !fields.name.trim()) missing.push('name');
     // A Bommel may be deferred while the transaction is a draft, but it must be assigned before it can be confirmed.
     if (!fields.bommelId) missing.push('bommel');
 
-    // Exact coverage: the linked bank movements must sum to exactly the transaction amount. The *signed* amounts are
-    // summed and only then taken in magnitude, so opposite movements net out correctly (e.g. -5, +5, -5 covers a 5
-    // expense). Summing absolute values instead would wrongly over-count them (to 15) and grey out the confirm button.
-    const coveredCents = Math.abs(linkedBankTxns.reduce((sum, b) => sum + toCents(Number(b.amount ?? 0)), 0));
-    if (amountCents === 0 || coveredCents !== amountCents) missing.push('coverage');
+    // A valid zero pass-through already nets to zero (its requirement of >= 2 offsetting movements is checked above), so
+    // it is exempt from the coverage blocker; every other transaction must be exactly covered.
+    if (!isZeroPassThrough && coveredCents !== amountCents) missing.push('coverage');
 
     return { canConfirm: missing.length === 0, missing };
 }

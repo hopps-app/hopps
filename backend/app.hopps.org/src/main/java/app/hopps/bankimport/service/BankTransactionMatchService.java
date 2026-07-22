@@ -366,9 +366,16 @@ public class BankTransactionMatchService {
     private void recomputeStatus(BankTransaction bankTx) {
         // Signed net coverage: each allocation counts in the direction of the linked transaction (income +, expense −),
         // so a movement is only covered by transactions pointing the same way — an income transaction does NOT cover an
-        // expense movement. This mirrors the transaction-side coverage; the still-open amount is |amount − coverage|.
+        // expense movement. A zero-amount transaction ("durchlaufender Posten") has no direction, so its allocation is
+        // instead signed by the movement it is applied to — that lets a single pass-through cover two opposite
+        // movements (e.g. +13.68 and −13.68), each measured against itself. This mirrors the transaction-side coverage;
+        // the still-open amount is |amount − coverage|.
         BigDecimal coverage = (BigDecimal) em.createQuery(
-                "SELECT COALESCE(SUM(CASE WHEN m.transaction.total < 0 THEN -m.matchedAmount ELSE m.matchedAmount END), 0) "
+                "SELECT COALESCE(SUM(CASE "
+                        + "WHEN m.transaction.total < 0 THEN -m.matchedAmount "
+                        + "WHEN m.transaction.total > 0 THEN m.matchedAmount "
+                        + "WHEN m.bankTransaction.amount < 0 THEN -m.matchedAmount "
+                        + "ELSE m.matchedAmount END), 0) "
                         + "FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId")
                 .setParameter("bankTxId", bankTx.getId())
                 .getSingleResult();
