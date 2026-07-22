@@ -21,9 +21,11 @@ export class AuthenticatedHttpClient {
 
   async fetch(url: string, init: RequestInit): Promise<Response> {
     // Attach the current token
+    // getAccessToken is optional on IConfig, so guard the call rather than invoking it unconditionally.
+    const token = this.config.getAccessToken?.();
     init.headers = {
       ...init.headers,
-      ...(this.config.getAccessToken() && { Authorization: `Bearer ${this.config.getAccessToken()}` }),
+      ...(token && { Authorization: `Bearer ${token}` }),
     };
 
     let response = await fetch(url, init);
@@ -32,9 +34,10 @@ export class AuthenticatedHttpClient {
       const refreshed = await this.config.refreshToken();
       if (refreshed) {
         // Retry the request with the new token
+        const newToken = this.config.getAccessToken?.();
         init.headers = {
           ...init.headers,
-          Authorization: `Bearer ${this.config.getAccessToken()}`,
+          ...(newToken && { Authorization: `Bearer ${newToken}` }),
         };
         response = await fetch(url, init);
       }

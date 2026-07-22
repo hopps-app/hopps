@@ -450,17 +450,17 @@ export function useReceiptForm() {
     const isDirty = useMemo(() => {
         return Boolean(
             receiptNumber ||
-                receiptDate ||
-                dueDate ||
-                transactionKind ||
-                contractPartner ||
-                bommelId ||
-                category ||
-                area ||
-                tags.length > 0 ||
-                grossAmount ||
-                taxAmount ||
-                file
+            receiptDate ||
+            dueDate ||
+            transactionKind ||
+            contractPartner ||
+            bommelId ||
+            category ||
+            area ||
+            tags.length > 0 ||
+            grossAmount ||
+            taxAmount ||
+            file
         );
     }, [receiptNumber, receiptDate, dueDate, transactionKind, contractPartner, bommelId, category, area, tags, grossAmount, taxAmount, file]);
 

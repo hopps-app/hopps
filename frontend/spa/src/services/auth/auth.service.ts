@@ -48,7 +48,9 @@ export class AuthService {
     async loadUserInfo() {
         try {
             const userData = await this.keycloak.loadUserInfo();
-            useStore.getState().setUser(userData as User);
+            // keycloak-js now types loadUserInfo() as KeycloakUserInfo, which doesn't structurally
+            // overlap with our User; cast through unknown (runtime shape is unchanged).
+            useStore.getState().setUser(userData as unknown as User);
         } catch (e) {
             console.error('Failed to load user info', e);
         }
