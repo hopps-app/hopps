@@ -6,6 +6,7 @@ import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.transaction.api.dto.TransactionAggregateResponse;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
@@ -124,6 +125,35 @@ public class TransactionResource {
         return transactions.stream()
                 .map(tx -> TransactionResponse.from(tx, covered.getOrDefault(tx.getId(), BigDecimal.ZERO)))
                 .toList();
+    }
+
+    @GET
+    @Path("/aggregate")
+    @Operation(summary = "Aggregate transaction totals", description = "Returns the total count and income/expense sums for the same filter set as GET /transactions. Drives paging (count) and the overview totals across all pages, not just the current one.")
+    @APIResponse(responseCode = "200", description = "Aggregated totals", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionAggregateResponse.class)))
+    public TransactionAggregateResponse aggregateTransactions(
+            @QueryParam("search") @Parameter(description = "Search in name and counterparty; a numeric term also matches the amount") String search,
+            @QueryParam("startDate") @Parameter(description = "Filter transactions from this date (ISO format: YYYY-MM-DD)") String startDate,
+            @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
+            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId,
+            @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
+            @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
+            @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached) {
+
+        Instant startInstant = null;
+        Instant endInstant = null;
+        if (startDate != null && !startDate.isBlank()) {
+            startInstant = LocalDate.parse(startDate).atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+        if (endDate != null && !endDate.isBlank()) {
+            endInstant = LocalDate.parse(endDate).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+
+        BigDecimal[] sums = transactionRepository.aggregate(search, startInstant, endInstant, bommelId, status,
+                privatelyPaid, detached);
+        long count = transactionRepository.countFiltered(search, startInstant, endInstant, bommelId, status,
+                privatelyPaid, detached);
+        return new TransactionAggregateResponse(sums[0], sums[1], count);
     }
 
     /**

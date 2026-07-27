@@ -243,4 +243,71 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
 
         return count(query.toString(), params);
     }
+
+    /**
+     * Sums income (positive totals) and expenses (magnitude of negative totals) for the same filter set as
+     * {@link #findFiltered}. Returns {@code [income, expense]} — both non-negative; null totals (drafts without an
+     * amount) contribute to neither. Combine with {@link #countFiltered} to build the paged overview totals.
+     */
+    public BigDecimal[] aggregate(
+            String search,
+            Instant startDate,
+            Instant endDate,
+            Long bommelId,
+            TransactionStatus status,
+            Boolean privatelyPaid,
+            Boolean detached) {
+
+        Long orgId = organizationContext.getCurrentOrganizationId();
+
+        // Same filters as findFiltered/countFiltered, but with the "t." alias so it can drive an aggregate SELECT.
+        StringBuilder where = new StringBuilder("t.organization.id = :orgId");
+        Map<String, Object> params = new HashMap<>();
+        params.put("orgId", orgId);
+
+        if (search != null && !search.isBlank()) {
+            where.append(" and (LOWER(t.name) LIKE :search"
+                    + " OR t.sender.id IN (SELECT tp.id FROM TradeParty tp WHERE LOWER(tp.name) LIKE :search)"
+                    + " OR t.recipient.id IN (SELECT tp.id FROM TradeParty tp WHERE LOWER(tp.name) LIKE :search)");
+            params.put("search", "%" + search.toLowerCase() + "%");
+            BigDecimal searchAmount = parseSearchAmount(search);
+            if (searchAmount != null) {
+                where.append(" OR abs(t.total) = :searchAmount");
+                params.put("searchAmount", searchAmount.abs());
+            }
+            where.append(")");
+        }
+
+        if (startDate != null) {
+            where.append(" and t.transactionTime >= :startDate");
+            params.put("startDate", startDate);
+        }
+        if (endDate != null) {
+            where.append(" and t.transactionTime <= :endDate");
+            params.put("endDate", endDate);
+        }
+        if (detached != null && detached) {
+            where.append(" and t.bommel is null");
+        } else if (bommelId != null) {
+            where.append(" and t.bommel.id = :bommelId");
+            params.put("bommelId", bommelId);
+        }
+        if (status != null) {
+            where.append(" and t.status = :status");
+            params.put("status", status);
+        }
+        if (privatelyPaid != null) {
+            where.append(" and t.privatelyPaid = :privatelyPaid");
+            params.put("privatelyPaid", privatelyPaid);
+        }
+
+        var query = getEntityManager().createQuery(
+                "SELECT COALESCE(SUM(CASE WHEN t.total > 0 THEN t.total ELSE 0 END), 0), "
+                        + "COALESCE(SUM(CASE WHEN t.total < 0 THEN -t.total ELSE 0 END), 0) "
+                        + "FROM Transaction t WHERE " + where,
+                Object[].class);
+        params.forEach(query::setParameter);
+        Object[] row = query.getSingleResult();
+        return new BigDecimal[] { (BigDecimal) row[0], (BigDecimal) row[1] };
+    }
 }

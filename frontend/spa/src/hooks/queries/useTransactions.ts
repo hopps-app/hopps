@@ -28,6 +28,21 @@ export const transactionKeys = {
     list: (filters: TransactionFilters) => [...transactionKeys.lists(), filters] as const,
     details: () => [...transactionKeys.all, 'detail'] as const,
     detail: (id: number) => [...transactionKeys.details(), id] as const,
+    // Aggregate depends only on the filter set, not on paging/sorting — so paging does not refetch it.
+    aggregate: (filters: TransactionFilters) =>
+        [
+            ...transactionKeys.all,
+            'aggregate',
+            {
+                search: filters.search,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                bommelId: filters.bommelId,
+                status: filters.status,
+                privatelyPaid: filters.privatelyPaid,
+                detached: filters.detached,
+            },
+        ] as const,
 };
 
 export function useTransactions(filters: TransactionFilters = {}) {
@@ -44,6 +59,26 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.size ?? 50,
                 filters.sortBy,
                 filters.sortDir,
+                filters.startDate,
+                filters.status
+            ),
+    });
+}
+
+/**
+ * Total count and income/expense sums across the whole filtered result set (all pages) — used to drive pagination and
+ * the overview totals, which a single page of results cannot provide.
+ */
+export function useTransactionAggregate(filters: TransactionFilters = {}) {
+    return useQuery({
+        queryKey: transactionKeys.aggregate(filters),
+        queryFn: () =>
+            apiService.orgService.aggregate2(
+                filters.bommelId,
+                filters.detached,
+                filters.endDate,
+                filters.privatelyPaid,
+                filters.search,
                 filters.startDate,
                 filters.status
             ),

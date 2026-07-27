@@ -668,6 +668,33 @@ class TransactionResourceTest {
                 .body("size()", is(2));
     }
 
+    @Test
+    void aggregateReturnsCountAndIncomeExpenseSums() {
+        // Two transactions matching a unique search term: one income (+100), one expense (-40).
+        given().contentType("application/json")
+                .body("{\"name\":\"ZzAggUnique income\",\"total\":100.00,\"privatelyPaid\":false}")
+                .when()
+                .post()
+                .then()
+                .statusCode(201);
+        given().contentType("application/json")
+                .body("{\"name\":\"ZzAggUnique expense\",\"total\":-40.00,\"privatelyPaid\":false}")
+                .when()
+                .post()
+                .then()
+                .statusCode(201);
+
+        given()
+                .queryParam("search", "ZzAggUnique")
+                .when()
+                .get("/aggregate")
+                .then()
+                .statusCode(200)
+                .body("count", is(2))
+                .body("sumIncome", is(100.0f))
+                .body("sumExpense", is(40.0f));
+    }
+
     protected String getAccessToken(String userName) {
         return keycloakClient.getAccessToken(userName);
     }

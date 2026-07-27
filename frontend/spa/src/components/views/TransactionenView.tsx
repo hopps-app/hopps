@@ -35,6 +35,7 @@ import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccoun
 import { useDocument } from '@/hooks/queries/useDocuments';
 import {
     useTransactions,
+    useTransactionAggregate,
     useTransaction,
     useDeleteTransaction,
     useUpdateTransaction,
@@ -838,6 +839,9 @@ export function TransactionenView() {
     };
 
     const { data: txData, isLoading } = useTransactions(filters);
+    // Count and income/expense sums across all pages (a single page cannot provide them). Refetches on filter change,
+    // not on paging.
+    const { data: aggregate } = useTransactionAggregate(filters);
     const allBommels = useBommelsStore((s) => s.allBommels);
 
     const transactions: TransactionResponse[] = useMemo(() => {
@@ -847,15 +851,10 @@ export function TransactionenView() {
         return r.content ?? r.data ?? [];
     }, [txData]);
 
-    const totalCount = useMemo(() => {
-        if (!txData) return 0;
-        if (Array.isArray(txData)) return (txData as TransactionResponse[]).length;
-        const r = txData as unknown as { totalElements?: number; total?: number };
-        return r.totalElements ?? r.total ?? transactions.length;
-    }, [txData, transactions]);
-
-    const totalIncome = transactions.filter((tx) => Number(tx.total ?? 0) >= 0).reduce((s, tx) => s + Number(tx.total ?? 0), 0);
-    const totalExpense = transactions.filter((tx) => Number(tx.total ?? 0) < 0).reduce((s, tx) => s + Math.abs(Number(tx.total ?? 0)), 0);
+    // Real totals come from the aggregate endpoint (whole filtered set); while it loads, fall back to the current page.
+    const totalCount = aggregate?.count ?? transactions.length;
+    const totalIncome = Number(aggregate?.sumIncome ?? 0);
+    const totalExpense = Number(aggregate?.sumExpense ?? 0);
 
     // ── Bulk selection (for multi-delete) ──
     const pageIds = transactions.map((tx) => tx.id).filter((id): id is number => id != null);
