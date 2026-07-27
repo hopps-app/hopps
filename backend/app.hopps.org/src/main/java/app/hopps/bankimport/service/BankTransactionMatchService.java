@@ -366,29 +366,25 @@ public class BankTransactionMatchService {
     }
 
     private void recomputeStatus(BankTransaction bankTx) {
-        // Signed net coverage: each allocation counts in the direction of the linked transaction (income +, expense −),
-        // so a movement is only covered by transactions pointing the same way — an income transaction does NOT cover an
-        // expense movement. A zero-amount transaction ("durchlaufender Posten") has no direction, so its allocation is
-        // instead signed by the movement it is applied to — that lets a single pass-through cover two opposite
-        // movements (e.g. +13.68 and −13.68), each measured against itself. This mirrors the transaction-side coverage;
-        // the still-open amount is |amount − coverage|.
+        // How much of THIS movement is allocated, signed in the movement's OWN direction (income +, expense −). Every
+        // allocation is a portion of this one movement, so it counts in the movement's direction regardless of the
+        // linked transaction's income/expense direction. Signing by the transaction's direction instead gives the wrong
+        // sign — and a doubled still-open amount, |amount − coverage| — whenever the two directions differ (e.g. an
+        // income refund allocated to an expense transaction). The transaction-side coverage check (which enforces that
+        // an expense is only covered by expense movements) lives separately in getCoveredAmountForTransaction.
         BigDecimal coverage = (BigDecimal) em.createQuery(
-                "SELECT COALESCE(SUM(CASE "
-                        + "WHEN m.transaction.total < 0 THEN -m.matchedAmount "
-                        + "WHEN m.transaction.total > 0 THEN m.matchedAmount "
-                        + "WHEN m.bankTransaction.amount < 0 THEN -m.matchedAmount "
-                        + "ELSE m.matchedAmount END), 0) "
+                "SELECT COALESCE(SUM(CASE WHEN m.bankTransaction.amount < 0 THEN -m.matchedAmount ELSE m.matchedAmount END), 0) "
                         + "FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId")
                 .setParameter("bankTxId", bankTx.getId())
                 .getSingleResult();
 
         bankTx.setMatchedAmount(coverage);
 
+        // coverage now always carries the movement's own sign (or is zero), so a magnitude comparison suffices.
         BigDecimal amount = bankTx.getAmount();
         if (coverage.signum() == 0) {
             bankTx.setStatus(BankTransactionStatus.UNMATCHED);
-        } else if (coverage.signum() == amount.signum() && coverage.abs().compareTo(amount.abs()) >= 0) {
-            // Covered (or over-covered) in the movement's own direction.
+        } else if (coverage.abs().compareTo(amount.abs()) >= 0) {
             bankTx.setStatus(BankTransactionStatus.FULLY_MATCHED);
         } else {
             bankTx.setStatus(BankTransactionStatus.PARTIALLY_MATCHED);

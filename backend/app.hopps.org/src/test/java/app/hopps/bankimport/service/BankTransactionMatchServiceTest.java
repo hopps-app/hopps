@@ -324,6 +324,22 @@ class BankTransactionMatchServiceTest {
                 "coverage of a zero-amount transaction is signed by the movement, so a −13.68 movement nets to −13.68");
     }
 
+    @Test
+    @TestTransaction
+    void incomeMovementFullyMatchedByOppositeSignedTransactionHasMovementSignedCoverage() {
+        // An income refund (+791.07) allocated in full to a transaction whose total is negative (e.g. the original
+        // expense). The movement is fully covered; its coverage must carry the movement's own (positive) sign so the
+        // still-open amount is |791.07 - 791.07| = 0, not the doubled |791.07 - (-791.07)| = 1582.14.
+        Fixture f = createUnmatchedFixture("791.07", "-805.07", "income-opposite-tx");
+
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester");
+
+        BankTransaction reloaded = em.find(BankTransaction.class, f.bankTx.getId());
+        assertEquals(BankTransactionStatus.FULLY_MATCHED, reloaded.getStatus());
+        assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("791.07")),
+                "coverage is signed by the movement (positive for income), not the transaction");
+    }
+
     // ── Test fixture ────────────────────────────────────────────────────────────
 
     private record Fixture(BankTransaction bankTx, Transaction transaction) {
