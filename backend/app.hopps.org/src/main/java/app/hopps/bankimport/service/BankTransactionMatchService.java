@@ -64,8 +64,10 @@ public class BankTransactionMatchService {
         // When the transaction has no amount yet (e.g. it was cleared because the analysed value was in the wrong
         // currency), adopt the bank transaction's signed euro amount so the booking gets its correct value from the
         // reconciled movement. Only for the default (full) link — an explicit partial allocation means the user is
-        // splitting the movement and the transaction is expected to already carry its own total.
-        if (!manual && (tx.getTotal() == null || tx.getTotal().signum() == 0)) {
+        // splitting the movement and the transaction is expected to already carry its own total. A deliberate total of
+        // zero (a "durchlaufender Posten" that nets out across two opposite movements) is left untouched — overwriting
+        // it with the first movement's amount would break the pass-through and leave a phantom difference.
+        if (!manual && tx.getTotal() == null) {
             tx.setTotal(bankTx.getAmount());
         }
 

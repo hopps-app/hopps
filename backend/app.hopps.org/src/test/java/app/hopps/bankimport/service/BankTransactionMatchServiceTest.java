@@ -186,6 +186,23 @@ class BankTransactionMatchServiceTest {
     }
 
     /**
+     * A deliberate total of zero (a "durchlaufender Posten") must survive linking a bank movement. Unlike a null total
+     * (no amount yet), zero is an intentional value, so it must NOT be overwritten with the movement's amount — doing
+     * so would break the pass-through and leave a phantom difference that blocks confirmation.
+     */
+    @Test
+    @TestTransaction
+    void linkingMovementKeepsDeliberateZeroTotal() {
+        Fixture f = createUnmatchedFixture("13.68", "0.00", "passthrough-keep-zero");
+
+        matchService.addMatch(f.bankTx.getId(), f.transaction.getId(), "tester");
+
+        Transaction reloadedTx = em.find(Transaction.class, f.transaction.getId());
+        assertEquals(0, reloadedTx.getTotal().compareTo(BigDecimal.ZERO),
+                "a deliberate zero total is preserved, not replaced by the movement's amount");
+    }
+
+    /**
      * Linking with an explicit partial amount records that amount as the allocation, marks it as manual and leaves the
      * bank transaction only partially matched — the core of splitting a collective transfer across transactions.
      */

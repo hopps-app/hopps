@@ -160,12 +160,14 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
             ),
     });
 
-    // Pre-fill the search with the bank transaction's amount (German decimal comma) so matching transactions surface
-    // immediately; the backend search matches both the amount and the name/counterparty text.
+    // Pre-fill the search with the bank transaction's still-open amount — its amount minus what is already allocated to
+    // other transactions (matchedAmount) — in German decimal comma, so matching transactions for the remaining
+    // difference surface immediately. When nothing is allocated yet (matchedAmount = 0) this is just the full amount.
+    // The backend search matches both the amount and the name/counterparty text.
     useEffect(() => {
         if (bankTx) {
-            const amt = Math.abs(bankTx.amount ?? 0);
-            setTxSearch(amt ? amt.toFixed(2).replace('.', ',') : '');
+            const open = Math.abs((bankTx.amount ?? 0) - (bankTx.matchedAmount ?? 0));
+            setTxSearch(open ? open.toFixed(2).replace('.', ',') : '');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [bankTx?.id]);
