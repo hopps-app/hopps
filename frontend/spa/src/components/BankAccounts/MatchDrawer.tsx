@@ -236,12 +236,29 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         if (m.transactionId != null) allocByTx.set(m.transactionId, m.amount ?? 0);
     });
 
-    // Default allocation for a candidate: the transaction's full amount — not capped at the movement, so assigning more
-    // than the movement holds shows up as visible over-coverage rather than being hidden.
-    // Default allocation of this movement to a transaction: as much as the transaction needs, capped at the movement's
-    // own amount (a match can't use more of the movement than it holds).
     const movementMagnitude = Math.abs(bankTx.amount ?? 0);
-    const defaultAlloc = (t: TransactionResponse) => Math.min(Math.abs(t.total ?? 0), movementMagnitude);
+
+    // Amount reconciliation. Every allocation in this drawer is a portion of THIS one bank movement, so it always
+    // counts in the movement's own direction (income +, expense −) — independent of the linked transaction's
+    // income/expense direction. Signing by the transaction's direction instead would double the difference (add instead
+    // of subtract) whenever the two directions differ, e.g. an income transaction linked to an income movement whose
+    // total happens to carry the opposite sign.
+    const movementSign = Math.sign(bankTx.amount ?? 0);
+    // Portion of the movement already allocated to OTHER (already-linked) transactions, signed to its direction.
+    const alreadyMatchedSum = linkedTx.reduce((s, t) => {
+        const alloc = allocByTx.get(t.id!) ?? Math.abs(t.total ?? 0);
+        return s + movementSign * alloc;
+    }, 0);
+    // Still-open magnitude of the movement — its amount minus what other transactions already use. A newly assigned
+    // transaction should fill only this open difference, not the movement's full amount.
+    const openMagnitude = Math.abs((bankTx.amount ?? 0) - alreadyMatchedSum);
+    // Whether part of the movement is already used up by other transactions.
+    const movementPartlyUsed = Math.abs(alreadyMatchedSum) > 0.005;
+
+    // Default allocation for a candidate: as much as the transaction needs, capped at the movement's STILL-OPEN amount
+    // (openMagnitude), so a partially pre-allocated movement pre-fills only the remaining difference. For a fully open
+    // movement openMagnitude equals its full magnitude, so this is unchanged there.
+    const defaultAlloc = (t: TransactionResponse) => Math.min(Math.abs(t.total ?? 0), openMagnitude);
     // A user's per-row override, if it is a valid positive amount within the movement's own amount; otherwise null
     // (fall back to the default). Capping at the movement still lets several movements over-cover a transaction.
     const overrideAlloc = (id: number): number | null => {
@@ -251,20 +268,10 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         return v;
     };
 
-    // Amount reconciliation (signed: positive tx covers negative bank movement and vice versa), counting the portion
-    // actually used for each transaction (its allocation), not the transactions' full totals. A zero-amount transaction
-    // ("durchlaufender Posten") has no direction of its own, so its allocation is signed by this movement instead —
-    // that lets a single pass-through cover the movement (and its opposite twin) rather than contributing nothing.
-    const movementSign = Math.sign(bankTx.amount ?? 0);
-    const directionSign = (t: TransactionResponse) => Math.sign(t.total ?? 0) || movementSign;
-    const alreadyMatchedSum = linkedTx.reduce((s, t) => {
-        const alloc = allocByTx.get(t.id!) ?? Math.abs(t.total ?? 0);
-        return s + directionSign(t) * alloc;
-    }, 0);
     const selectedSum = Array.from(sel).reduce((s, id) => {
         const t = txById.get(id);
         if (!t) return s;
-        return s + directionSign(t) * (overrideAlloc(id) ?? defaultAlloc(t));
+        return s + movementSign * (overrideAlloc(id) ?? defaultAlloc(t));
     }, 0);
     const remaining = (bankTx.amount ?? 0) - alreadyMatchedSum - selectedSum;
     const isFullyCovered = Math.abs(remaining) <= 0.005; // float tolerance
@@ -302,7 +309,11 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
 
     const handleAssign = async () => {
         for (const txId of sel) {
-            await addMatch.mutateAsync({ bankTxId, transactionId: txId, amount: overrideAlloc(txId) ?? undefined });
+            const tx = txById.get(txId);
+            // Without an explicit amount the backend allocates the movement's full amount. When the movement is already
+            // partly used, send the open-remainder allocation instead so the new match fills only the open difference.
+            const amount = overrideAlloc(txId) ?? (movementPartlyUsed && tx ? defaultAlloc(tx) : undefined);
+            await addMatch.mutateAsync({ bankTxId, transactionId: txId, amount: amount ?? undefined });
         }
         setSel(new Set());
         setAmounts(new Map());
