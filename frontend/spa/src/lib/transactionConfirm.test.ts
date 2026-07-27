@@ -17,6 +17,19 @@ describe('getTransactionConfirmState', () => {
         expect(state.missing).toEqual([]);
     });
 
+    it('confirms when a split (partially allocated) movement exactly covers the total', () => {
+        // A collective transfer of -649.92 is only allocated with 324.96 to this transaction. Together with the two
+        // full movements it covers -1790.48 exactly — even though the full amounts would sum to -2115.44 and wrongly
+        // block confirmation.
+        const state = getTransactionConfirmState({ ...completeFields, amount: 1790.48 }, [
+            { amount: -1436.86 },
+            { amount: -649.92, allocatedAmount: 324.96 },
+            { amount: -28.66 },
+        ]);
+        expect(state.canConfirm).toBe(true);
+        expect(state.missing).toEqual([]);
+    });
+
     it('blocks a normal transaction that is not covered', () => {
         const state = getTransactionConfirmState({ ...completeFields, amount: 13.68 }, [{ amount: 5 }]);
         expect(state.canConfirm).toBe(false);

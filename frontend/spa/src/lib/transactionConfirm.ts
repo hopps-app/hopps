@@ -22,7 +22,11 @@ export interface TransactionConfirmFields {
 }
 
 export interface BankTxAmount {
+    // Signed amount of the whole bank movement (income +, expense −).
     amount?: number | null;
+    // Portion of the movement actually allocated to this transaction (a collective transfer can be split across
+    // several transactions). Defaults to the full magnitude when absent.
+    allocatedAmount?: number | null;
 }
 
 export interface TransactionConfirmState {
@@ -46,10 +50,17 @@ export function getTransactionConfirmState(fields: TransactionConfirmFields, lin
 
     const amountCents = fields.amount != null && !Number.isNaN(fields.amount) ? Math.abs(toCents(fields.amount)) : 0;
 
-    // Exact coverage: the linked bank movements must sum to exactly the transaction amount. The *signed* amounts are
-    // summed and only then taken in magnitude, so opposite movements net out correctly (e.g. -5, +5, -5 covers a 5
-    // expense). Summing absolute values instead would wrongly over-count them (to 15) and grey out the confirm button.
-    const coveredCents = Math.abs(linkedBankTxns.reduce((sum, b) => sum + toCents(Number(b.amount ?? 0)), 0));
+    // Exact coverage: the linked bank movements must sum to exactly the transaction amount. Each movement counts only
+    // the portion actually allocated to this transaction (allocatedAmount) — not its full amount — so a collective
+    // transfer split across several transactions is not over-counted. The allocation is signed by the movement's own
+    // direction and only then taken in magnitude, so opposite movements net out (e.g. -5, +5, -5 covers a 5 expense).
+    const coveredCents = Math.abs(
+        linkedBankTxns.reduce((sum, b) => {
+            const amt = Number(b.amount ?? 0);
+            const alloc = b.allocatedAmount != null ? Math.abs(Number(b.allocatedAmount)) : Math.abs(amt);
+            return sum + Math.sign(amt) * toCents(alloc);
+        }, 0)
+    );
 
     // A zero-amount transaction is a valid "pass-through" (durchlaufender Posten) — e.g. money received and immediately
     // paid back out — only when it is backed by at least two bank movements that net to exactly zero. Without that, a
