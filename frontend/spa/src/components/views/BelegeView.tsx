@@ -21,6 +21,7 @@ import {
     Link2,
     Landmark,
     PencilLine,
+    Search,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
@@ -1383,6 +1384,7 @@ export function BelegeView() {
     const [selectedDoc, setSelectedDoc] = useState<DocumentResponse | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const [search, setSearch] = useState('');
     const bulkDelete = useDeleteDocument();
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
@@ -1460,9 +1462,27 @@ export function BelegeView() {
         }
     };
 
+    // Free-text search across the fields shown in the list (name, file name, sender) plus the amount. A purely numeric
+    // term is additionally matched against the absolute total so a receipt can be found by pasting its amount.
+    const searchTerm = search.trim().toLowerCase();
+    const searchAmount = (() => {
+        const normalized = search.trim().replace(/\s/g, '').replace(',', '.');
+        if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
+        const n = Number(normalized);
+        return Number.isFinite(n) ? Math.abs(n) : null;
+    })();
+
     const filtered = docs.filter((doc) => {
-        if (filter === 'unreviewed') return doc.documentStatus !== 'CONFIRMED';
-        if (filter === 'confirmed') return doc.documentStatus === 'CONFIRMED';
+        if (filter === 'unreviewed' && doc.documentStatus === 'CONFIRMED') return false;
+        if (filter === 'confirmed' && doc.documentStatus !== 'CONFIRMED') return false;
+        if (searchTerm) {
+            const matchesText =
+                (doc.name ?? '').toLowerCase().includes(searchTerm) ||
+                (doc.fileName ?? '').toLowerCase().includes(searchTerm) ||
+                (doc.senderName ?? '').toLowerCase().includes(searchTerm);
+            const matchesAmount = searchAmount != null && doc.total != null && Math.abs(Number(doc.total)) === searchAmount;
+            if (!matchesText && !matchesAmount) return false;
+        }
         return true;
     });
 
@@ -1572,20 +1592,45 @@ export function BelegeView() {
                     ))}
                 </div>
 
-                {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
-                {reanalyzable.length > 0 && (
-                    <button
-                        onClick={handleReanalyzeAll}
-                        disabled={reanalyzeDocuments.isPending}
-                        className="ml-auto inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] bg-white hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors disabled:opacity-50"
-                    >
-                        <RefreshCw size={14} className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
-                        {t('receipts.reanalyzeAll')}
-                        <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: '#F3EAFB', color: '#7E3FB4' }}>
-                            {reanalyzable.length}
-                        </span>
-                    </button>
-                )}
+                {/* Right side: re-analyze action + search, pushed to the far right, aligned with the tabs. */}
+                <div className="ml-auto flex items-center gap-2">
+                    {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
+                    {reanalyzable.length > 0 && (
+                        <button
+                            onClick={handleReanalyzeAll}
+                            disabled={reanalyzeDocuments.isPending}
+                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] bg-white hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors disabled:opacity-50"
+                        >
+                            <RefreshCw size={14} className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
+                            {t('receipts.reanalyzeAll')}
+                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: '#F3EAFB', color: '#7E3FB4' }}>
+                                {reanalyzable.length}
+                            </span>
+                        </button>
+                    )}
+
+                    {/* Search — same height as the tabs, far right */}
+                    <div className="relative w-64 max-w-full">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9AA5] pointer-events-none" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder={t('receipts.searchPlaceholder')}
+                            className="w-full rounded-full border border-[#E9E9EE] bg-white py-1.5 pl-9 pr-9 text-[13.5px] text-[#1B1B1F] placeholder:text-[#9A9AA5] outline-none transition-colors focus:border-[#C7A2E3]"
+                        />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => setSearch('')}
+                                aria-label={t('receipts.searchClear')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9A9AA5] transition-colors hover:text-[#1B1B1F]"
+                            >
+                                <X size={15} />
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Bulk selection toolbar */}
@@ -1622,11 +1667,17 @@ export function BelegeView() {
                             <FileText size={26} className="text-[#9955CC]" />
                         </div>
                         <p className="font-bold text-[#1B1B1F]" style={{ fontSize: 16 }}>
-                            {filter === 'unreviewed' ? t('receipts.noUnreviewed') : t('transactions.noResults')}
+                            {searchTerm
+                                ? t('receipts.noSearchResults', { search })
+                                : filter === 'unreviewed'
+                                  ? t('receipts.noUnreviewed')
+                                  : t('transactions.noResults')}
                         </p>
-                        <p className="mt-1 text-[13.5px] text-[#6B6B76]">
-                            {filter === 'unreviewed' ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
-                        </p>
+                        {!searchTerm && (
+                            <p className="mt-1 text-[13.5px] text-[#6B6B76]">
+                                {filter === 'unreviewed' ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
+                            </p>
+                        )}
                     </div>
                 ) : (
                     <div

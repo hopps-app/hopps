@@ -582,6 +582,9 @@
         "noDocument": "No document",
         "dueDate": "Due on",
         "empty": "No receipts found",
+        "searchPlaceholder": "Search (name, sender, amount) …",
+        "searchClear": "Clear search",
+        "noSearchResults": "No receipts found for \"{{search}}\"",
         "newReceipt": "New receipt",
         "statusBadge": {
             "draft": "Draft",
@@ -909,6 +912,7 @@
             "noFormatDetected": "Format could not be detected automatically. Please select a schema below.",
             "formatDetected": "Format detected: {{schema}} · Account {{account}} · {{lines}} rows read",
             "schemaRequired": "Select an import schema",
+            "schemaLabelChange": "Schema (auto-detected – change if needed)",
             "importBtn": "Import {{count}} transactions",
             "duplicateRow": "Duplicate",
             "duplicateHint_one": "{{count}} existing transaction will be skipped",

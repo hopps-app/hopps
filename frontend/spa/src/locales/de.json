@@ -508,6 +508,9 @@
         "noDocument": "Kein Dokument",
         "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
+        "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
+        "searchClear": "Suche löschen",
+        "noSearchResults": "Keine Belege für „{{search}}\" gefunden",
         "newReceipt": "Neuer Beleg",
         "statusBadge": {
             "draft": "Entwurf",
@@ -919,6 +922,7 @@
             "noFormatDetected": "Format konnte nicht automatisch erkannt werden. Bitte wähle unten ein Schema aus.",
             "formatDetected": "Format erkannt: {{schema}} · Konto {{account}} · {{lines}} Zeilen gelesen",
             "schemaRequired": "Import-Schema auswählen",
+            "schemaLabelChange": "Schema (automatisch erkannt – bei Bedarf ändern)",
             "importBtn": "{{count}} Umsätze importieren",
             "duplicateRow": "Duplikat",
             "duplicateHint_one": "{{count}} bereits vorhandener Umsatz wird übersprungen",
