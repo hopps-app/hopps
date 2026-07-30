@@ -3,9 +3,13 @@ import { X, Check, ArrowDownRight, ArrowUpRight, Plus } from 'lucide-react';
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
+import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
+import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { useToast } from '@/hooks/use-toast';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -41,6 +45,8 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const createMutation = useCreateTransaction();
     const addMatch = useAddBankTransactionMatch();
     const confirmMutation = useConfirmTransaction();
+    const { showError } = useToast();
+    const { data: categoryGroups = [] } = useCategoryGroups();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
@@ -64,6 +70,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState('');
+    const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [amountError, setAmountError] = useState(false);
 
     const tagInputRef = useRef<HTMLInputElement>(null);
@@ -100,6 +107,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         setPrivatelyPaid(false);
         setTags([]);
         setTagInput('');
+        setCategoryValues({});
         setAmountError(false);
     }
 
@@ -142,12 +150,23 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
             bommelId: bommelId ? Number(bommelId) : undefined,
             privatelyPaid,
             tags: tags.length ? tags : undefined,
+            categoryValues: Object.keys(categoryValues).length ? categoryValues : undefined,
         });
     }
 
     // Creates the transaction. In bank-linked mode it is additionally matched to the bank transaction and — when
     // `confirm` is true and the criteria are met — confirmed in the same flow.
     async function submit(confirm: boolean) {
+        // Required category groups are only enforced when confirming — a draft may be saved incomplete, like the other fields.
+        if (confirm) {
+            const bommelIdNum = bommelId ? Number(bommelId) : null;
+            const missing = missingRequiredGroups(categoryGroups, bommelIdNum, buildBommelIndex(allBommels), categoryValues);
+            if (missing.length > 0) {
+                showError(t('categoryGroups.fields.missing', { groups: missing.map((g) => g.name).join(', ') }));
+                return;
+            }
+        }
+
         const payload = buildPayload();
         if (!payload) return;
 
@@ -172,7 +191,9 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const confirmState = bankMode
         ? getTransactionConfirmState(
               {
-                  amount: parsedAmount != null && !Number.isNaN(parsedAmount) ? parsedAmount : null,
+                  // Signed by the chosen direction so a mismatch with the linked bank movement's direction blocks confirm.
+                  amount:
+                      parsedAmount != null && !Number.isNaN(parsedAmount) ? (direction === 'expense' ? -Math.abs(parsedAmount) : Math.abs(parsedAmount)) : null,
                   date: date || null,
                   counterparty: senderName || null,
                   name: name || null,
@@ -323,6 +344,23 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                         <label className={labelCls}>{t('transactions.create.bommel')}</label>
                         <InvoiceUploadFormBommelSelector value={bommelId ? Number(bommelId) : null} onChange={(id) => setBommelId(id ? String(id) : '')} />
                     </div>
+
+                    {/* Category groups (applicable to the selected bommel) */}
+                    <CategoryGroupFields
+                        bommelId={bommelId ? Number(bommelId) : null}
+                        values={categoryValues}
+                        onChange={(groupId, value) =>
+                            setCategoryValues((prev) => {
+                                const next = { ...prev };
+                                if (value == null || value === '') {
+                                    delete next[groupId];
+                                } else {
+                                    next[groupId] = value;
+                                }
+                                return next;
+                            })
+                        }
+                    />
 
                     {/* Privately paid */}
                     <div>

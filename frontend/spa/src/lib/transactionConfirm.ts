@@ -9,7 +9,9 @@
 export type ConfirmBlocker = 'amount' | 'date' | 'counterparty' | 'name' | 'bommel' | 'coverage';
 
 export interface TransactionConfirmFields {
-    // Unsigned amount as entered in the form (absolute value is used); null/NaN when empty.
+    // Signed amount as entered in the form (income +, expense −); null/NaN when empty. The sign matters: an income may
+    // only be confirmed when covered by income bank movements and an expense by expense movements — a directional
+    // mismatch leaves an (unsigned-equal but signed-different) coverage gap and must block confirmation.
     amount: number | null;
     // ISO date string (YYYY-MM-DD) or empty.
     date: string | null;
@@ -48,19 +50,19 @@ function toCents(value: number): number {
 export function getTransactionConfirmState(fields: TransactionConfirmFields, linkedBankTxns: BankTxAmount[]): TransactionConfirmState {
     const missing: ConfirmBlocker[] = [];
 
-    const amountCents = fields.amount != null && !Number.isNaN(fields.amount) ? Math.abs(toCents(fields.amount)) : 0;
+    const amountCents = fields.amount != null && !Number.isNaN(fields.amount) ? toCents(fields.amount) : 0;
 
-    // Exact coverage: the linked bank movements must sum to exactly the transaction amount. Each movement counts only
-    // the portion actually allocated to this transaction (allocatedAmount) — not its full amount — so a collective
-    // transfer split across several transactions is not over-counted. The allocation is signed by the movement's own
-    // direction and only then taken in magnitude, so opposite movements net out (e.g. -5, +5, -5 covers a 5 expense).
-    const coveredCents = Math.abs(
-        linkedBankTxns.reduce((sum, b) => {
-            const amt = Number(b.amount ?? 0);
-            const alloc = b.allocatedAmount != null ? Math.abs(Number(b.allocatedAmount)) : Math.abs(amt);
-            return sum + Math.sign(amt) * toCents(alloc);
-        }, 0)
-    );
+    // Exact, direction-aware coverage: the linked bank movements must sum to exactly the transaction's *signed* amount,
+    // so an expense (−) is only covered by expense movements and an income (+) by income movements — a +125.50 income
+    // linked to a −125.50 expense has matching magnitudes but a signed gap of 251 and must not confirm. Each movement
+    // counts only the portion actually allocated (allocatedAmount) — not its full amount — so a collective transfer
+    // split across several transactions is not over-counted. Opposite movements net out (e.g. −5, +5, −5 covers a −5
+    // expense), which is why the sum is kept signed rather than taken in magnitude.
+    const coveredCents = linkedBankTxns.reduce((sum, b) => {
+        const amt = Number(b.amount ?? 0);
+        const alloc = b.allocatedAmount != null ? Math.abs(Number(b.allocatedAmount)) : Math.abs(amt);
+        return sum + Math.sign(amt) * toCents(alloc);
+    }, 0);
 
     // A zero-amount transaction is a valid "pass-through" (durchlaufender Posten) — e.g. money received and immediately
     // paid back out — only when it is backed by at least two bank movements that net to exactly zero. Without that, a

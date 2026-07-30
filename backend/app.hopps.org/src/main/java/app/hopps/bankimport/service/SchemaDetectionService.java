@@ -32,7 +32,9 @@ public class SchemaDetectionService {
 
     static final double MIN_CONFIDENCE = 0.6;
 
-    /** Tolerance for treating two detection scores as tied (they are exact fractions, so this only needs to be tiny). */
+    /**
+     * Tolerance for treating two detection scores as tied (they are exact fractions, so this only needs to be tiny).
+     */
     private static final double SCORE_EPSILON = 1e-9;
 
     /** Known header-column signatures for each built-in template (lower-cased, trimmed). */
@@ -173,7 +175,9 @@ public class SchemaDetectionService {
         return (double) matchedSignatureTerms(templateId, normalisedHeaders) / signature.size();
     }
 
-    /** Number of a template's signature terms present in the header columns. Drives the tie-break toward specificity. */
+    /**
+     * Number of a template's signature terms present in the header columns. Drives the tie-break toward specificity.
+     */
     private int matchedSignatureTerms(String templateId, Set<String> normalisedHeaders) {
         Set<String> signature = TEMPLATE_SIGNATURES.get(templateId);
         if (signature == null || signature.isEmpty()) {

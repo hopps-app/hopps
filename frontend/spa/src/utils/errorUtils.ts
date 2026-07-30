@@ -43,6 +43,31 @@ export function getErrorStatus(error: unknown): number | null {
 }
 
 /**
+ * For a duplicate-document upload rejection (HTTP 409), returns the id of the already-existing document carried in the
+ * response body ({@code { existingDocumentId } }), or undefined for any other error. Lets the caller link straight to
+ * the receipt that was already booked.
+ */
+export function getDuplicateDocumentId(error: unknown): number | undefined {
+    if (!error || typeof error !== 'object') return undefined;
+
+    // Depending on how the api-client is generated, a documented 409 body is thrown as the typed object directly — so
+    // the id can sit right on the error.
+    const direct = (error as { existingDocumentId?: unknown }).existingDocumentId;
+    if (typeof direct === 'number') return direct;
+
+    // Otherwise it is an ApiException whose `.response` holds the raw JSON body of the 409.
+    if (getErrorStatus(error) !== 409) return undefined;
+    const raw = (error as { response?: unknown }).response;
+    if (typeof raw !== 'string') return undefined;
+    try {
+        const body = JSON.parse(raw) as { existingDocumentId?: unknown };
+        return typeof body?.existingDocumentId === 'number' ? body.existingDocumentId : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
  * Extracts a user-friendly error message from an API error.
  * Uses i18n translation keys for proper localization.
  */

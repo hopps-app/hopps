@@ -13,8 +13,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for header-based schema detection. The key case is that a Sparkasse CAMT file must not be mistaken for the
- * MT940 template: the MT940 header signature is a strict subset of the CAMT one, so both score 1.0 and the tie has to be
- * broken toward the more specific (CAMT) template — otherwise the amount is read from the wrong column and every row
+ * MT940 template: the MT940 header signature is a strict subset of the CAMT one, so both score 1.0 and the tie has to
+ * be broken toward the more specific (CAMT) template — otherwise the amount is read from the wrong column and every row
  * fails to import.
  */
 class SchemaDetectionServiceTest {

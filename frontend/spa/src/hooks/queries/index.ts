@@ -1,4 +1,4 @@
 export * from './useBommels';
-export * from './useCategories';
+export * from './useCategoryGroups';
 export * from './useTransactions';
 export * from './useBankAccounts';

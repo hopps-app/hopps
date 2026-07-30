@@ -1,7 +1,6 @@
 package app.hopps.transaction.domain;
 
 import app.hopps.bommel.domain.Bommel;
-import app.hopps.category.domain.Category;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
@@ -37,9 +36,8 @@ public class Transaction extends PanacheEntity {
     @JoinColumn(name = "document_id")
     private Document document;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<TransactionCategoryValue> categoryValues = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private TransactionArea area;
@@ -138,12 +136,44 @@ public class Transaction extends PanacheEntity {
         this.document = document;
     }
 
-    public Category getCategory() {
-        return category;
+    public Set<TransactionCategoryValue> getCategoryValues() {
+        return categoryValues;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setCategoryValues(Set<TransactionCategoryValue> categoryValues) {
+        this.categoryValues = categoryValues;
+    }
+
+    /**
+     * Reconciles this transaction's category-group values with the given (groupId → value) entries: existing rows are
+     * updated in place, rows no longer present are removed (orphanRemoval deletes them), and new groups are added. The
+     * in-place update matters — a naive clear()+re-add makes Hibernate insert a row with the same
+     * {@code (transaction_id, category_group_id)} before the orphan delete runs, violating the unique constraint. The
+     * caller is responsible for having validated that each value is allowed for its group.
+     */
+    public void replaceCategoryValues(java.util.Map<Long, String> groupIdToValue) {
+        java.util.Map<Long, String> desired = new java.util.HashMap<>();
+        if (groupIdToValue != null) {
+            groupIdToValue.forEach((groupId, value) -> {
+                if (groupId != null && value != null && !value.isBlank()) {
+                    desired.put(groupId, value);
+                }
+            });
+        }
+
+        // Drop rows whose group is no longer desired (orphanRemoval deletes them).
+        categoryValues.removeIf(existing -> !desired.containsKey(existing.getCategoryGroupId()));
+
+        // Update the remaining rows in place and remove their group id from the "to add" set.
+        for (TransactionCategoryValue existing : categoryValues) {
+            String value = desired.remove(existing.getCategoryGroupId());
+            if (value != null) {
+                existing.setValue(value);
+            }
+        }
+
+        // Whatever is left is genuinely new — insert it.
+        desired.forEach((groupId, value) -> categoryValues.add(new TransactionCategoryValue(this, groupId, value)));
     }
 
     public TransactionArea getArea() {

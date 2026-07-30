@@ -1,6 +1,7 @@
 package app.hopps.transaction.api;
 
 import app.hopps.bankimport.service.BankTransactionMatchService;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
@@ -77,6 +78,9 @@ public class TransactionResource {
     @Inject
     BankTransactionMatchService bankTransactionMatchService;
 
+    @Inject
+    CategoryGroupService categoryGroupService;
+
     @GET
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
     @APIResponse(responseCode = "200", description = "List of transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse[].class)))
@@ -84,10 +88,11 @@ public class TransactionResource {
             @QueryParam("search") @Parameter(description = "Search in name and sender name") String search,
             @QueryParam("startDate") @Parameter(description = "Filter transactions from this date (ISO format: YYYY-MM-DD)") String startDate,
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
-            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId,
+            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
+            @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues,
             @QueryParam("sortBy") @DefaultValue("createdAt") @Parameter(description = "Field to sort by: createdAt, updatedAt, transactionTime or total") String sortBy,
             @QueryParam("sortDir") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String sortDir,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
@@ -111,10 +116,11 @@ public class TransactionResource {
                 search,
                 startInstant,
                 endInstant,
-                bommelId,
+                bommelIds,
                 status,
                 privatelyPaid,
                 detached,
+                categoryValues,
                 sort,
                 page);
 
@@ -135,10 +141,11 @@ public class TransactionResource {
             @QueryParam("search") @Parameter(description = "Search in name and counterparty; a numeric term also matches the amount") String search,
             @QueryParam("startDate") @Parameter(description = "Filter transactions from this date (ISO format: YYYY-MM-DD)") String startDate,
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
-            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId,
+            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
-            @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached) {
+            @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
+            @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues) {
 
         Instant startInstant = null;
         Instant endInstant = null;
@@ -149,10 +156,10 @@ public class TransactionResource {
             endInstant = LocalDate.parse(endDate).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
         }
 
-        BigDecimal[] sums = transactionRepository.aggregate(search, startInstant, endInstant, bommelId, status,
-                privatelyPaid, detached);
-        long count = transactionRepository.countFiltered(search, startInstant, endInstant, bommelId, status,
-                privatelyPaid, detached);
+        BigDecimal[] sums = transactionRepository.aggregate(search, startInstant, endInstant, bommelIds, status,
+                privatelyPaid, detached, categoryValues);
+        long count = transactionRepository.countFiltered(search, startInstant, endInstant, bommelIds, status,
+                privatelyPaid, detached, categoryValues);
         return new TransactionAggregateResponse(sums[0], sums[1], count);
     }
 
@@ -339,6 +346,11 @@ public class TransactionResource {
         // cover an income transaction (and vice versa). A valid zero pass-through already nets to zero and is exempt.
         if (!isZeroPassThrough && covered.compareTo(effectiveTotal) != 0) {
             missing.add("bankCoverage");
+        }
+
+        // Every mandatory category group applicable to this transaction's bommel must have a value before confirming.
+        for (String groupName : categoryGroupService.missingRequiredGroups(transaction)) {
+            missing.add("categoryGroup:" + groupName);
         }
 
         return missing;

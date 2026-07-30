@@ -1,4 +1,64 @@
 {
+    "categoryGroups": {
+        "title": "Kategorien",
+        "subtitle": "Kategoriegruppen ordnen Transaktionen ein – kontextabhängig vom gewählten Bommel.",
+        "addButton": "Neue Gruppe",
+        "hint": "Eine Gruppe gilt für einen Bommel, wenn sie ihm oder einem übergeordneten Bommel zugeordnet ist. Ohne Zuordnung gilt sie für keinen Bommel – für alle Bommel den Root-Bommel auswählen.",
+        "required": "Pflicht",
+        "optional": "optional",
+        "emptyState": {
+            "title": "Noch keine Kategoriegruppen",
+            "description": "Lege eine Gruppe an, um Transaktionen nach eigenen Achsen einzuordnen."
+        },
+        "card": {
+            "appliesTo": "Gilt für",
+            "allBommel": "Alle Bommel",
+            "noBommel": "Keine Bommel",
+            "valueCount": "{{count}} Werte"
+        },
+        "delete": {
+            "title": "Kategoriegruppe löschen",
+            "description": "„{{group}}“ wird gelöscht.",
+            "descriptionLinked": "„{{group}}“ wird gelöscht. Bei {{count}} verknüpften Transaktionen (Entwürfe und bestätigte) wird der Wert dieser Gruppe vollständig entfernt.",
+            "confirm": "Löschen",
+            "loading": "Verknüpfungen werden geprüft …"
+        },
+        "modal": {
+            "createTitle": "Neue Kategoriegruppe",
+            "editTitle": "Kategoriegruppe bearbeiten",
+            "subtitle": "Name, Pflicht, zugeordnete Bommel und mögliche Werte festlegen.",
+            "name": "Name der Gruppe",
+            "namePlaceholder": "z. B. Kostenstelle",
+            "required": "Pflichtfeld",
+            "requiredHint": "Muss bei passenden Bommeln ausgefüllt werden, bevor bestätigt werden kann.",
+            "bommel": "Gilt für Bommel",
+            "bommelHint": "Keine Auswahl = gilt für keinen Bommel. Für alle Bommel den Root-Bommel wählen.",
+            "bommelPlaceholder": "Bommel auswählen …",
+            "bommelSelected": "{{count}} Bommel ausgewählt",
+            "values": "Mögliche Werte",
+            "valuePlaceholder": "Wert hinzufügen …",
+            "addValue": "Hinzufügen",
+            "noValues": "Noch keine Werte angelegt."
+        },
+        "toast": {
+            "created": "Kategoriegruppe angelegt",
+            "updated": "Kategoriegruppe gespeichert",
+            "deleted": "Kategoriegruppe gelöscht",
+            "error": "Aktion fehlgeschlagen"
+        },
+        "reopen": {
+            "title": "Bestätigte Transaktionen betroffen",
+            "description": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
+            "keep": "Nein, nur Gruppe speichern",
+            "confirm": "Ja, auf Entwurf zurücksetzen"
+        },
+        "fields": {
+            "eyebrow": "Kategoriegruppen",
+            "valuePlaceholder": "— bitte wählen —",
+            "noValues": "Keine Werte gefunden",
+            "missing": "Bitte ausfüllen: {{groups}}"
+        }
+    },
     "alpha": {
         "badge": "Alpha",
         "consentText": "Sie nutzen eine Alpha-Testversion von Hopps. Die Software befindet sich noch in der Entwicklung. Vollständige Datenschutz- und Compliance-Anforderungen können in dieser Phase noch nicht garantiert werden. Wir arbeiten kontinuierlich an Verbesserungen.",
@@ -197,6 +257,7 @@
                 "transactions": "Transaktionen",
                 "subBommels": "Subbommel",
                 "toReceipts": "Zu Belege",
+                "toTransactions": "Zu Transaktionen",
                 "hideDetails": "Details ausblenden",
                 "showDetails": "Details einblenden",
                 "bommelNotFound": "Bommel nicht gefunden",
@@ -335,6 +396,36 @@
     "settingsPage": {
         "menu": "Menü"
     },
+    "reports": {
+        "title": "Berichte",
+        "subtitle": "Werten Sie Transaktionen nach Kategoriegruppenwerten für einen Zeitraum aus.",
+        "group": "Kategoriegruppe",
+        "selectGroup": "Kategoriegruppe wählen …",
+        "from": "Von (Transaktionsdatum)",
+        "to": "Bis (Transaktionsdatum)",
+        "bommel": "Bommel",
+        "export": "CSV exportieren",
+        "total": "Gesamt",
+        "table": {
+            "value": "Wert",
+            "count": "Anzahl",
+            "income": "Einnahmen",
+            "expense": "Ausgaben",
+            "net": "Saldo"
+        },
+        "emptyNoGroup": {
+            "title": "Kategoriegruppe wählen",
+            "description": "Wählen Sie oben eine Kategoriegruppe, um die Auswertung anzuzeigen."
+        },
+        "emptyNoData": {
+            "title": "Keine Daten",
+            "description": "Für diese Kategoriegruppe und den gewählten Zeitraum gibt es keine Transaktionen."
+        },
+        "error": {
+            "title": "Bericht konnte nicht geladen werden",
+            "description": "Bitte versuchen Sie es später erneut."
+        }
+    },
     "menu": {
         "dashboard": "Dashboard",
         "receipts": "Belege",
@@ -345,6 +436,7 @@
         "structure": "Bommel Struktur",
         "bankAccounts": "Konten",
         "transactions": "Transaktionen",
+        "reports": "Berichte",
         "admin": "Admin",
         "ngo-details": "Organisation",
         "categories": "Kategorien",
@@ -384,7 +476,10 @@
             "allCategories": "Alle Kategorien",
             "allBommels": "Alle Bommels",
             "allAreas": "Alle Sphären",
-            "advancedFilters": "Weitere Filter"
+            "advancedFilters": "Weitere Filter",
+            "categoryGroups": "Kategoriegruppen",
+            "addCategoryGroup": "Kategoriegruppe",
+            "removeCategoryGroup": "Entfernen"
         },
         "unassigned": "Nicht zugeordnet",
         "openToCover": "offen: {{amount}}",
@@ -589,6 +684,8 @@
             "itemUploading": "Wird hochgeladen …",
             "itemDone": "Hochgeladen",
             "itemError": "Fehlgeschlagen",
+            "itemErrorDuplicate": "Doppelt – bereits verbucht",
+            "viewExisting": "Beleg anzeigen",
             "analysis": {
                 "aiWarning": "Die per KI erkannten Daten können Fehler enthalten. Bitte prüfe alle Felder vor dem Speichern.",
                 "pending": "Analyse startet gleich …",

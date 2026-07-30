@@ -24,6 +24,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
+import BommelMultiSelector from '@/components/CategoryGroups/BommelMultiSelector';
+import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
+import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
+import TransactionCategoryFilter from '@/components/CategoryGroups/TransactionCategoryFilter';
 import { LoadingState } from '@/components/common/LoadingState';
 import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
@@ -32,6 +36,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
+import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDocument } from '@/hooks/queries/useDocuments';
 import {
     useTransactions,
@@ -46,6 +51,7 @@ import {
     SortDirection,
 } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { useToast } from '@/hooks/use-toast';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
@@ -184,7 +190,10 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const [senderName, setSenderName] = useState('');
     const [bommelId, setBommelId] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
+    const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const { data: categoryGroups = [] } = useCategoryGroups();
+    const { showError } = useToast();
 
     // Tracks the transaction id we have already auto-opened in edit mode, so cancelling/saving
     // a draft does not immediately re-enter edit mode.
@@ -221,7 +230,24 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
         const lastBommel = getLastBommelId();
         setBommelId(tx.bommelId != null ? String(tx.bommelId) : lastBommel ? String(lastBommel) : '');
         setPrivatelyPaid(tx.privatelyPaid ?? false);
+        const cv: Record<number, string> = {};
+        (tx.categoryValues ?? []).forEach((c) => {
+            if (c.groupId != null && c.value != null) {
+                cv[c.groupId] = c.value;
+            }
+        });
+        setCategoryValues(cv);
         setEditMode(true);
+    }
+
+    /** Returns false and shows a toast when a required, applicable category group has no value yet. */
+    function categoriesComplete(): boolean {
+        const missing = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(allBommels), categoryValues);
+        if (missing.length > 0) {
+            showError(t('categoryGroups.fields.missing', { groups: missing.map((g) => g.name).join(', ') }));
+            return false;
+        }
+        return true;
     }
 
     // Writes the current edit-form values onto the transaction (kept as-is; a draft can always be saved incomplete).
@@ -239,19 +265,24 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
             senderName: senderName || undefined,
             bommelId: bommelId ? Number(bommelId) : 0,
             privatelyPaid,
+            categoryValues,
         });
         await updateMutation.mutateAsync({ id: tx.id, data });
     }
 
     async function handleSave() {
+        // Draft save: required category groups are not enforced here (only at confirm), like the other fields.
         await persistEdits();
         setEditMode(false);
+        // Return to the transactions table instead of the read-only detail view — collapse the drawer.
+        onClose();
     }
 
     // Save the edits and immediately confirm — the confirm button is only enabled when confirmState.canConfirm, so
     // the backend guard passes.
     async function handleSaveAndConfirm() {
         if (!tx?.id) return;
+        if (!categoriesComplete()) return;
         await persistEdits();
         await confirmMutation.mutateAsync(tx.id);
         setEditMode(false);
@@ -283,14 +314,15 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const confirmState = getTransactionConfirmState(
         editMode
             ? {
-                  amount: isNaN(parsedEditAmount) ? null : parsedEditAmount,
+                  // Signed by the edit-form direction so a directional mismatch with the linked bank movement blocks confirm.
+                  amount: isNaN(parsedEditAmount) ? null : kind === 'expense' ? -Math.abs(parsedEditAmount) : Math.abs(parsedEditAmount),
                   date: date || null,
                   counterparty: senderName || null,
                   name: name || null,
                   bommelId: bommelId ? Number(bommelId) : null,
               }
             : {
-                  amount: tx?.total != null ? Math.abs(Number(tx.total)) : null,
+                  amount: tx?.total != null ? Number(tx.total) : null,
                   date: tx?.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : null,
                   counterparty: tx?.senderName || null,
                   name: tx?.name || null,
@@ -375,6 +407,12 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     [t('transactions.detail.bommel'), tx.bommelName ?? '—'],
                                     [t('transactions.detail.date'), fmtDate(tx.transactionTime)],
                                     [t('transactions.detail.privatelyPaid'), tx.privatelyPaid ? t('transactions.detail.yes') : t('transactions.detail.no')],
+                                    ...(tx.categoryValues ?? [])
+                                        .filter((c) => c.value)
+                                        .map((c) => [
+                                            categoryGroups.find((g) => g.id === c.groupId)?.name ?? t('categoryGroups.fields.eyebrow'),
+                                            c.value ?? '—',
+                                        ]),
                                 ].map(([label, value]) => (
                                     <>
                                         <dt className="text-[13.5px] text-[#6B6B76]">{label}</dt>
@@ -497,6 +535,23 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     onChange={(id) => setBommelId(id ? String(id) : '')}
                                 />
                             </div>
+
+                            {/* Category groups (applicable to the selected bommel) */}
+                            <CategoryGroupFields
+                                bommelId={bommelId ? Number(bommelId) : null}
+                                values={categoryValues}
+                                onChange={(groupId, value) =>
+                                    setCategoryValues((prev) => {
+                                        const next = { ...prev };
+                                        if (value == null || value === '') {
+                                            delete next[groupId];
+                                        } else {
+                                            next[groupId] = value;
+                                        }
+                                        return next;
+                                    })
+                                }
+                            />
 
                             {/* Privately paid */}
                             <button
@@ -783,11 +838,15 @@ export function TransactionenView() {
     const [search, setSearch] = usePersistedState<string>('hopps.transactions.search', '');
     const [statusFilter, setStatusFilter] = usePersistedState<'ALL' | 'CONFIRMED' | 'DRAFT'>('hopps.transactions.statusFilter', 'ALL');
     const [advancedOpen, setAdvancedOpen] = useState(false);
-    const [bommelId, setBommelId] = usePersistedState<number | undefined>('hopps.transactions.bommelId', undefined);
+    const [bommelIds, setBommelIds] = usePersistedState<number[]>('hopps.transactions.bommelIds', []);
     const [startDate, setStartDate] = usePersistedState<string>('hopps.transactions.startDate', '');
     const [endDate, setEndDate] = usePersistedState<string>('hopps.transactions.endDate', '');
     const [privatelyPaid, setPrivatelyPaid] = usePersistedState<boolean>('hopps.transactions.privatelyPaid', false);
     const [detached, setDetached] = usePersistedState<boolean>('hopps.transactions.detached', false);
+    // Category-group filters: which groups the user chose to surface as filters, and the value picked per group.
+    const [categoryFilterGroupIds, setCategoryFilterGroupIds] = usePersistedState<number[]>('hopps.transactions.categoryFilterGroups', []);
+    const [categoryFilters, setCategoryFilters] = usePersistedState<Record<number, string>>('hopps.transactions.categoryFilters', {});
+    const { data: categoryFilterGroups = [] } = useCategoryGroups();
     const [sortBy, setSortBy] = usePersistedState<TransactionSortBy>('hopps.transactions.sortBy', 'createdAt');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.transactions.sortDir', 'desc');
     const [page, setPage] = useState(0);
@@ -803,6 +862,20 @@ export function TransactionenView() {
     useEffect(() => {
         const idParam = searchParams.get('id');
         if (idParam) setSelectedTxId(Number(idParam));
+    }, [searchParams]);
+
+    // Pre-filter by a bommel when navigated to with ?bommelId= (e.g. from the org structure "Zu Transaktionen" button).
+    // The param is consumed once and cleared from the URL so it doesn't override the user's later filter changes.
+    useEffect(() => {
+        const bommelParam = searchParams.get('bommelId');
+        if (bommelParam) {
+            setBommelIds([Number(bommelParam)]);
+            setPage(0);
+            setAdvancedOpen(true);
+            searchParams.delete('bommelId');
+            setSearchParams(searchParams, { replace: true });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     const closeDrawer = () => {
@@ -827,11 +900,12 @@ export function TransactionenView() {
     const filters: TransactionFilters = {
         search: search || undefined,
         status: statusFilter === 'ALL' ? undefined : (statusFilter as TransactionStatus),
-        bommelId,
+        bommelIds: bommelIds.length > 0 ? bommelIds : undefined,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
         privatelyPaid: privatelyPaid || undefined,
         detached: detached || undefined,
+        categoryValues: categoryFilters,
         sortBy,
         sortDir,
         page,
@@ -891,25 +965,67 @@ export function TransactionenView() {
         setBulkDeleteOpen(false);
     };
 
+    // ── Category-group filter handlers ──
+    const addCategoryFilterGroup = (groupId: number) => {
+        setCategoryFilterGroupIds((prev) => (prev.includes(groupId) ? prev : [...prev, groupId]));
+    };
+    const removeCategoryFilterGroup = (groupId: number) => {
+        setCategoryFilterGroupIds((prev) => prev.filter((id) => id !== groupId));
+        setCategoryFilters((prev) => {
+            const next = { ...prev };
+            delete next[groupId];
+            return next;
+        });
+        setPage(0);
+    };
+    const setCategoryFilterValue = (groupId: number, value: string | undefined) => {
+        setCategoryFilters((prev) => {
+            const next = { ...prev };
+            if (value == null || value === '') {
+                delete next[groupId];
+            } else {
+                next[groupId] = value;
+            }
+            return next;
+        });
+        setPage(0);
+    };
+
     const activeFilters: { key: string; label: string; clear: () => void }[] = [];
     if (search) activeFilters.push({ key: 'search', label: `"${search}"`, clear: () => setSearch('') });
-    if (bommelId) {
-        const b = allBommels.find((b) => b.id === bommelId);
-        activeFilters.push({ key: 'bommel', label: (b as { name?: string } | undefined)?.name ?? String(bommelId), clear: () => setBommelId(undefined) });
-    }
+    bommelIds.forEach((id) => {
+        const b = allBommels.find((b) => b.id === id);
+        activeFilters.push({
+            key: `bommel-${id}`,
+            label: (b as { name?: string } | undefined)?.name ?? String(id),
+            clear: () => setBommelIds(bommelIds.filter((x) => x !== id)),
+        });
+    });
     if (startDate) activeFilters.push({ key: 'from', label: `${t('transactions.filters.from')}: ${startDate}`, clear: () => setStartDate('') });
     if (endDate) activeFilters.push({ key: 'to', label: `${t('transactions.filters.to')}: ${endDate}`, clear: () => setEndDate('') });
     if (privatelyPaid) activeFilters.push({ key: 'priv', label: t('transactions.filters.privatelyPaid'), clear: () => setPrivatelyPaid(false) });
     if (detached) activeFilters.push({ key: 'det', label: t('transactions.filters.detached'), clear: () => setDetached(false) });
+    // One chip per category group that actually has a value set (a shown-but-empty group is not an active filter).
+    Object.entries(categoryFilters).forEach(([gid, val]) => {
+        if (!val) return;
+        const group = categoryFilterGroups.find((g) => g.id === Number(gid));
+        activeFilters.push({
+            key: `cat-${gid}`,
+            label: `${group?.name ?? gid}: ${val}`,
+            clear: () => setCategoryFilterValue(Number(gid), undefined),
+        });
+    });
 
     function resetAll() {
         setSearch('');
         setStatusFilter('ALL');
-        setBommelId(undefined);
+        setBommelIds([]);
         setStartDate('');
         setEndDate('');
         setPrivatelyPaid(false);
         setDetached(false);
+        setCategoryFilterGroupIds([]);
+        setCategoryFilters({});
         setPage(0);
     }
 
@@ -1028,23 +1144,15 @@ export function TransactionenView() {
                 {/* Advanced filter panel */}
                 {advancedOpen && (
                     <div className="pt-3 border-t border-[#E9E9EE] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-col gap-1.5 sm:col-span-2">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.bommel')}</label>
-                            <select
-                                value={bommelId ?? ''}
-                                onChange={(e) => {
-                                    setBommelId(e.target.value ? Number(e.target.value) : undefined);
+                            <BommelMultiSelector
+                                value={bommelIds}
+                                onChange={(ids) => {
+                                    setBommelIds(ids);
                                     setPage(0);
                                 }}
-                                className={inputCls}
-                            >
-                                <option value="">{t('transactions.filters.allBommels')}</option>
-                                {allBommels.map((b) => (
-                                    <option key={b.id} value={b.id ?? ''}>
-                                        {(b as { name?: string }).name}
-                                    </option>
-                                ))}
-                            </select>
+                            />
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.from')}</label>
@@ -1113,6 +1221,18 @@ export function TransactionenView() {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Category-group filters — the user chooses which groups to filter by; each gets a value picker. */}
+                        {categoryFilterGroups.length > 0 && (
+                            <TransactionCategoryFilter
+                                groups={categoryFilterGroups}
+                                shownGroupIds={categoryFilterGroupIds}
+                                values={categoryFilters}
+                                onAddGroup={addCategoryFilterGroup}
+                                onRemoveGroup={removeCategoryFilterGroup}
+                                onChangeValue={setCategoryFilterValue}
+                            />
+                        )}
                     </div>
                 )}
 

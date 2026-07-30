@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Request DTO for creating a manual Transaction without a document.
@@ -21,5 +22,7 @@ public record TransactionCreateRequest(
         String senderStreet,
         String senderZipCode,
         String senderCity,
-        List<String> tags) {
+        List<String> tags,
+        // Category-group values keyed by group id. Values for groups not applicable to the bommel are discarded.
+        Map<Long, String> categoryValues) {
 }

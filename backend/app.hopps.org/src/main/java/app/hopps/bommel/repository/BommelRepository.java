@@ -10,12 +10,39 @@ import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @ApplicationScoped
 public class BommelRepository implements PanacheRepository<Bommel> {
+
+    /**
+     * The ids of the given bommels together with all of their descendants (recursively). Used to find every transaction
+     * that sits "under" a set of bommels — e.g. those affected when a category group becomes mandatory for them.
+     */
+    public Set<Long> getSelfAndDescendantIds(Collection<Long> bommelIds) {
+        Set<Long> result = new HashSet<>();
+        if (bommelIds == null) {
+            return result;
+        }
+        for (Long id : bommelIds) {
+            if (id == null) {
+                continue;
+            }
+            result.add(id);
+            Bommel base = findById(id);
+            if (base != null) {
+                for (TreeSearchBommel descendant : getChildrenRecursive(base)) {
+                    result.add(descendant.bommel().id);
+                }
+            }
+        }
+        return result;
+    }
 
     /**
      * Fetches the lineage of this bommel, so the path all the way to the root bommel. Does not include the base element

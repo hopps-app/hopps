@@ -12,14 +12,26 @@ export interface TransactionFilters {
     search?: string;
     startDate?: string;
     endDate?: string;
-    bommelId?: number;
+    // Filter by one or more bommels (OR). Empty/undefined = no bommel restriction.
+    bommelIds?: number[];
     status?: TransactionStatus;
     privatelyPaid?: boolean;
     detached?: boolean;
+    // Active category-group value filters: groupId → the value a transaction must carry for that group. Multiple
+    // entries combine with AND (a transaction must match every selected group). Encoded on the wire as repeatable
+    // `categoryValue=<groupId>:<value>` query params.
+    categoryValues?: Record<number, string>;
     sortBy?: TransactionSortBy;
     sortDir?: SortDirection;
     page?: number;
     size?: number;
+}
+
+/** Encodes the category-value filter map to the repeatable `groupId:value` wire format, or undefined when empty. */
+function encodeCategoryValues(categoryValues: Record<number, string> | undefined): string[] | undefined {
+    if (!categoryValues) return undefined;
+    const entries = Object.entries(categoryValues).filter(([, v]) => v != null && v !== '');
+    return entries.length > 0 ? entries.map(([groupId, value]) => `${groupId}:${value}`) : undefined;
 }
 
 export const transactionKeys = {
@@ -37,10 +49,11 @@ export const transactionKeys = {
                 search: filters.search,
                 startDate: filters.startDate,
                 endDate: filters.endDate,
-                bommelId: filters.bommelId,
+                bommelIds: filters.bommelIds,
                 status: filters.status,
                 privatelyPaid: filters.privatelyPaid,
                 detached: filters.detached,
+                categoryValues: filters.categoryValues,
             },
         ] as const,
 };
@@ -50,7 +63,8 @@ export function useTransactions(filters: TransactionFilters = {}) {
         queryKey: transactionKeys.list(filters),
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                filters.bommelId,
+                filters.bommelIds,
+                encodeCategoryValues(filters.categoryValues),
                 filters.detached,
                 filters.endDate,
                 filters.page ?? 0,
@@ -74,7 +88,8 @@ export function useTransactionAggregate(filters: TransactionFilters = {}) {
         queryKey: transactionKeys.aggregate(filters),
         queryFn: () =>
             apiService.orgService.aggregate2(
-                filters.bommelId,
+                filters.bommelIds,
+                encodeCategoryValues(filters.categoryValues),
                 filters.detached,
                 filters.endDate,
                 filters.privatelyPaid,

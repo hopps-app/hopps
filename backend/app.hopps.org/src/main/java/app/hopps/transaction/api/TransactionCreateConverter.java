@@ -2,6 +2,7 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
@@ -18,6 +19,9 @@ public class TransactionCreateConverter {
 
     @Inject
     BommelRepository bommelRepository;
+
+    @Inject
+    CategoryGroupService categoryGroupService;
 
     public void applyRequestToTransaction(Transaction transaction, TransactionCreateRequest request,
             Organization organization) {
@@ -63,5 +67,8 @@ public class TransactionCreateConverter {
         if (request.tags() != null && !request.tags().isEmpty()) {
             transaction.setTags(new HashSet<>(request.tags()));
         }
+
+        // Validate and store the category-group values (bommel is already resolved above and drives applicability).
+        categoryGroupService.validateAndApply(transaction, request.categoryValues());
     }
 }
