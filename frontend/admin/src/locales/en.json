@@ -92,6 +92,7 @@
             "warning": "This will permanently delete the organization and all its data. This action cannot be undone.",
             "prompt": "Type {{name}} to confirm.",
             "confirm": "Delete",
+            "hint": "All data · cannot be undone",
             "deleting": "Deleting…"
         },
         "fields": {
@@ -118,7 +119,9 @@
             "count_other": "{{count}} users",
             "actions": "Actions for {{name}}",
             "impersonate": "Impersonate",
-            "delete": "Delete"
+            "impersonateHint": "Open this user's view",
+            "delete": "Delete",
+            "deleteHint": "Remove access · cannot be undone"
         }
     },
     "home": {

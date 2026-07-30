@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, MoreHorizontal, Trash2, UserCog } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LayoutGrid, MoreHorizontal, Trash2, UserCog } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -51,7 +51,13 @@ export default function OrganizationDetailView() {
     // Organization-level actions, behind the header's "Aktionen" menu. Only deletion exists today;
     // the menu is the place further org actions land rather than growing the header a button at a time.
     const orgActions: DropdownMenuItem[] = [
-        { title: t('organizations.delete.confirm'), icon: <Trash2 size={15} />, onClick: () => setModal('delete') },
+        {
+            title: t('organizations.delete.confirm'),
+            description: t('organizations.delete.hint'),
+            tone: 'danger',
+            icon: <Trash2 size={17} />,
+            onClick: () => setModal('delete'),
+        },
     ];
 
     const handleDelete = async () => {
@@ -108,8 +114,9 @@ export default function OrganizationDetailView() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2.5 flex-shrink-0">
-                    <DropdownMenu items={orgActions} className="w-52">
-                        <button type="button" className="btn btn--brand">
+                    <DropdownMenu items={orgActions} className="w-72 p-1.5">
+                        <button type="button" className="btn btn--neutral">
+                            <LayoutGrid size={16} />
                             {t('organizations.detail.actions')}
                             <ChevronDown size={16} />
                         </button>
@@ -261,8 +268,19 @@ function MemberRow({ member }: { member: OrgMember }) {
     // an audit log before it can be switched on (see ImpersonateDialog), and there is no endpoint for
     // removing a member from an organization yet.
     const actions: DropdownMenuItem[] = [
-        { title: t('organizations.members.impersonate'), icon: <UserCog size={15} />, onClick: () => {} },
-        { title: t('organizations.members.delete'), icon: <Trash2 size={15} />, onClick: () => {} },
+        {
+            title: t('organizations.members.impersonate'),
+            description: t('organizations.members.impersonateHint'),
+            icon: <UserCog size={17} />,
+            onClick: () => {},
+        },
+        {
+            title: t('organizations.members.delete'),
+            description: t('organizations.members.deleteHint'),
+            tone: 'danger',
+            icon: <Trash2 size={17} />,
+            onClick: () => {},
+        },
     ];
 
     return (
@@ -277,7 +295,7 @@ function MemberRow({ member }: { member: OrgMember }) {
                 <div className="text-[14px] font-bold text-ink truncate">{fullName}</div>
                 <div className="text-[12.5px] text-ink-2 truncate">{member.email}</div>
             </div>
-            <DropdownMenu items={actions} className="w-48">
+            <DropdownMenu items={actions} className="w-72 p-1.5">
                 {/* Deliberately not `.icbtn` — that is a white bordered circle, which reads as a primary
                     control sitting on top of the row rather than a quiet affordance inside it. */}
                 <button

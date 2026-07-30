@@ -296,8 +296,20 @@
         background: var(--pp-tint2);
         color: var(--pp-ink);
     }
+    /* Neutral action — a quiet surface fill with a hairline border. For menu triggers that open a
+       choice rather than performing one, so the button itself carries no urgency and leaves the
+       colour to the actions inside the menu. */
+    .btn--neutral {
+        background: var(--surface-2);
+        color: var(--ink);
+        border-color: var(--line);
+    }
+    .btn--neutral:hover {
+        background: var(--surface-3);
+        border-color: var(--line-2);
+    }
     /* Brand action, mirrors .btn--danger's structure in purple: tinted + bordered at rest,
-       commits to a solid fill with a soft shadow on hover. For the "Aktionen" header menu trigger. */
+       commits to a solid fill with a soft shadow on hover. */
     .btn--brand {
         background: var(--pp-tint);
         color: var(--pp-ink);

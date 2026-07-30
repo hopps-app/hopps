@@ -15,6 +15,13 @@ export type DropdownMenuItem =
     | {
           type?: 'label' | 'item';
           title: string;
+          /**
+           * Second line under the title. Its presence switches the item to the richer layout — icon in a
+           * tinted rounded box, title above description — so plain items elsewhere are unaffected.
+           */
+          description?: string;
+          /** `danger` tints the icon box and title red, marking the action as destructive. */
+          tone?: 'default' | 'danger';
           onClick?: () => void;
           icon?: React.ReactNode;
       }
@@ -40,8 +47,35 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ items, label, children, cla
             return <DropdownMenuLabel key={index}>{item.title}</DropdownMenuLabel>;
         }
 
+        const danger = item.tone === 'danger';
+        const titleStyle = danger ? { color: 'var(--neg-ink)' } : undefined;
+
+        if (item.description) {
+            return (
+                <BaseDropdownMenuItem key={index} onClick={item.onClick} className="gap-3 rounded-lg px-3 py-2.5">
+                    {item.icon ? (
+                        <span
+                            className="shrink-0 w-9 h-9 rounded-[10px] grid place-items-center"
+                            style={{
+                                background: danger ? 'var(--neg-bg)' : 'var(--pp-tint2)',
+                                color: danger ? 'var(--neg-ink)' : 'var(--pp-ink)',
+                            }}
+                        >
+                            {item.icon}
+                        </span>
+                    ) : null}
+                    <span className="min-w-0">
+                        <span className="block text-[14px] font-bold leading-tight" style={titleStyle}>
+                            {item.title}
+                        </span>
+                        <span className="block text-[12.5px] text-ink-2 leading-tight mt-0.5">{item.description}</span>
+                    </span>
+                </BaseDropdownMenuItem>
+            );
+        }
+
         return (
-            <BaseDropdownMenuItem key={index} onClick={item.onClick}>
+            <BaseDropdownMenuItem key={index} onClick={item.onClick} style={titleStyle}>
                 {item.icon ? <span className="shrink-0">{item.icon}</span> : null}
                 <span>{item.title}</span>
             </BaseDropdownMenuItem>

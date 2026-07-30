@@ -92,6 +92,7 @@
             "warning": "Der Verein und alle seine Daten werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
             "prompt": "Tippe {{name}} ein, um zu bestätigen.",
             "confirm": "Löschen",
+            "hint": "Alle Daten · nicht umkehrbar",
             "deleting": "Wird gelöscht…"
         },
         "fields": {
@@ -118,7 +119,9 @@
             "count_other": "{{count}} Nutzer",
             "actions": "Aktionen für {{name}}",
             "impersonate": "Impersonieren",
-            "delete": "Löschen"
+            "impersonateHint": "Ansicht dieses Nutzers öffnen",
+            "delete": "Löschen",
+            "deleteHint": "Zugang entfernen · nicht umkehrbar"
         }
     },
     "home": {
