@@ -1,9 +1,15 @@
-import { Building2 } from 'lucide-react';
+import { Building2, LayoutDashboard } from 'lucide-react';
 
 import type { MenuItem } from './types';
 
 export const menuConfig: MenuItem[] = [
-    // 'Home' is reserved for the future dashboard.
+    {
+        id: 'overview',
+        label: 'menu.overview',
+        icon: 'Dashboard',
+        lucideIcon: LayoutDashboard,
+        path: '/overview',
+    },
     {
         id: 'organizations',
         label: 'menu.organizations',

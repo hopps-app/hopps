@@ -23,6 +23,7 @@ export default function AppRoutes() {
                 }
             >
                 <Route path="/" element={<Navigate to="/organizations" replace />} />
+                <Route path="/overview" element={<HomeView />} />
                 <Route
                     path="/organizations"
                     element={
