@@ -26,7 +26,7 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/schitcrafter"><img src="https://avatars.githubusercontent.com/u/58911293?v=4?s=100" width="100px;" alt="Emilia Jaser"/><br /><sub><b>Emilia Jaser</b></sub></a><br /><a href="#tool-schitcrafter" title="Tools">🔧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/byte-sized-emi"><img src="https://avatars.githubusercontent.com/u/58911293?v=4?s=100" width="100px;" alt="Emilia Jaser"/><br /><sub><b>Emilia Jaser</b></sub></a><br /><a href="#tool-byte-sized-emi" title="Tools">🔧</a> <a href="#code-byte-sized-emi" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://explore.de"><img src="https://avatars.githubusercontent.com/u/545499?v=4?s=100" width="100px;" alt="Markus Herhoffer"/><br /><sub><b>Markus Herhoffer</b></sub></a><br /><a href="#code-d135-1r43" title="Code">💻</a> <a href="#business-d135-1r43" title="Business development">💼</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.hummli.de"><img src="https://avatars.githubusercontent.com/u/25209702?v=4?s=100" width="100px;" alt="Manuel hummler"/><br /><sub><b>Manuel hummler</b></sub></a><br /><a href="#code-manuelhummler" title="Code">💻</a> <a href="#business-manuelhummler" title="Business development">💼</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/RabeaBonten"><img src="https://avatars.githubusercontent.com/u/176834893?v=4?s=100" width="100px;" alt="Rabea Bonten"/><br /><sub><b>Rabea Bonten</b></sub></a><br /><a href="#design-RabeaBonten" title="Design">🎨</a></td>
@@ -40,6 +40,7 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/3thr3n"><img src="https://avatars.githubusercontent.com/u/33932819?v=4?s=100" width="100px;" alt="3thr3n"/><br /><sub><b>3thr3n</b></sub></a><br /><a href="#code-3thr3n" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/98jan"><img src="https://avatars.githubusercontent.com/u/46779261?v=4?s=100" width="100px;" alt="Jan"/><br /><sub><b>Jan</b></sub></a><br /><a href="#code-98jan" title="Code">💻</a> <a href="#infra-98jan" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pweimann"><img src="https://avatars.githubusercontent.com/u/49559453?v=4?s=100" width="100px;" alt="Paul Weimann"/><br /><sub><b>Paul Weimann</b></sub></a><br /><a href="#code-pweimann" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/s0582346"><img src="https://avatars.githubusercontent.com/u/95862918?v=4?s=100" width="100px;" alt="Paolo"/><br /><sub><b>Paolo</b></sub></a><br /><a href="#code-s0582346" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
