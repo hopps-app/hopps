@@ -1,10 +1,12 @@
 package app.hopps.organization.api;
 
 import app.hopps.document.domain.ExtractionSource;
+import app.hopps.member.domain.ImpersonationAudit;
 import app.hopps.member.domain.Member;
 import app.hopps.organization.api.dto.AdminOrganizationDetail;
 import app.hopps.organization.api.dto.AdminOrganizationRow;
 import app.hopps.organization.api.dto.ExtractionBreakdownResponse;
+import app.hopps.organization.api.dto.ImpersonationTicket;
 import app.hopps.organization.api.dto.LoginActivityResponse;
 import app.hopps.organization.api.dto.MonthlyUploadResponse;
 import app.hopps.organization.domain.Organization;
@@ -12,14 +14,18 @@ import app.hopps.organization.repository.AdminOrganizationRepository;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.jwt.Claims;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -47,6 +53,9 @@ public class AdminOrganizationResource {
 
     @Inject
     AdminOrganizationRepository adminRepository;
+
+    @Inject
+    JsonWebToken jwt;
 
     @GET
     @Transactional
@@ -141,6 +150,40 @@ public class AdminOrganizationResource {
         Map<ExtractionSource, Long> counts = adminRepository.extractionBreakdownForOrganization(id);
         long total = counts.values().stream().mapToLong(Long::longValue).sum();
         return new ExtractionBreakdownResponse(total, counts);
+    }
+
+    @POST
+    @Path("/{id}/members/{memberId}/impersonate")
+    @Transactional
+    @Operation(summary = "Authorise impersonation of a member", description = "Checks that the caller may impersonate the given member of the given organization, records the action in the impersonation audit log, and returns the member's Keycloak user id. It does not perform the impersonation: Keycloak's impersonation endpoint responds by setting SSO cookies on whoever calls it, so it must be called by the administrator's browser rather than by this service. Note that impersonating replaces the administrator's own Keycloak session in that browser.")
+    @APIResponse(responseCode = "200", description = "Impersonation authorised and recorded", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ImpersonationTicket.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "User is not an admin")
+    @APIResponse(responseCode = "404", description = "Organization or member not found, or the member does not belong to that organization")
+    @APIResponse(responseCode = "409", description = "The member has no Keycloak account and so cannot be impersonated")
+    public ImpersonationTicket impersonate(
+            @PathParam("id") @Parameter(description = "The organization id") Long id,
+            @PathParam("memberId") @Parameter(description = "The member id") Long memberId) {
+        Organization org = findActiveOrThrow(id);
+
+        // re-check membership
+        Member target = org.getMembers()
+                .stream()
+                .filter(m -> memberId.equals(m.id))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Member not found in this organization"));
+
+        if (target.getKeycloakId() == null) {
+            throw new ClientErrorException("Member has no Keycloak account", Response.Status.CONFLICT);
+        }
+
+        // record impersonation
+        ImpersonationAudit.of(jwt.getSubject(), jwt.getClaim(Claims.email), target, org.getId(), Instant.now())
+                .persist();
+        LOG.info("Admin {} is impersonating member {} of organization {}", jwt.getSubject(), target.id, org.getId());
+
+        String displayName = (target.getFirstName() + " " + target.getLastName()).trim();
+        return new ImpersonationTicket(target.getKeycloakId(), displayName, target.getEmail());
     }
 
     @DELETE
