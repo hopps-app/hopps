@@ -8,6 +8,8 @@ interface ImportMetaEnv {
     readonly VITE_ADMIN_REALM_ROLE?: string;
     /** Base URL of the org service backend. */
     readonly VITE_API_ORG_URL: string;
+    /** Base URL of the member-facing SPA, opened after impersonating a member. */
+    readonly VITE_SPA_URL?: string;
 }
 
 interface ImportMeta {
