@@ -26,11 +26,11 @@ export default function BelegeChart({ series, total }: { series: MonthlySeries; 
             delta={deltaPct !== null ? <DeltaBadge fraction={deltaPct} /> : undefined}
         >
             {isEmpty ? (
-                <div className="h-[140px] grid place-items-center text-[13px] text-ink-3">
+                <div className="h-[180px] grid place-items-center text-[13px] text-ink-3">
                     {t('organizations.charts.empty')}
                 </div>
             ) : (
-            <div className="flex items-end gap-2 h-[140px]" role="img" aria-label={t('organizations.charts.belege.title')}>
+            <div className="flex items-end gap-2 h-[180px]" role="img" aria-label={t('organizations.charts.belege.title')}>
                 {points.map((p, i) => (
                     <div key={i} className="group relative flex-1 h-full flex flex-col items-center gap-1.5 min-w-0">
                         <ChartTooltip label={p.label} value={t('organizations.charts.belege.tooltip', { count: p.value })} />

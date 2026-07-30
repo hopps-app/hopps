@@ -54,9 +54,9 @@
             "back": "Zurück zu den Vereinen",
             "notFound": "Diesen Verein gibt es nicht.",
             "stammdaten": "Stammdaten",
-            "kontakt": "Adresse & Kontakt",
             "aktivitaet": "Aktivität",
-            "members": "Mitglieder ({{count}})"
+            "vorstand": "Vorstand & Zugänge",
+            "actions": "Aktionen"
         },
         "charts": {
             "empty": "Keine Daten",
@@ -96,16 +96,12 @@
         },
         "fields": {
             "type": "Typ",
-            "foundingDate": "Gegründet",
-            "registrationCourt": "Registergericht",
-            "registrationNumber": "Registernummer",
-            "taxNumber": "Steuernummer",
-            "country": "Land",
             "website": "Website",
             "address": "Adresse",
             "contactName": "Kontaktperson",
             "email": "E-Mail",
             "phone": "Telefon",
+            "customerSince": "Kunde seit",
             "belegeCreated": "Belege erstellt",
             "bankImports": "Bank-Importe",
             "tokenUsage": "KI-Token-Verbrauch",
@@ -117,7 +113,12 @@
             "body": "Beim Impersonieren meldest du dich als Mitglied von {{name}} an, um dessen Ansicht nachzuvollziehen. Das ist noch nicht angebunden – es braucht Zugriff auf die Keycloak-Admin-API und ein Audit-Log, bevor es aktiviert werden kann."
         },
         "members": {
-            "empty": "Noch keine Mitglieder."
+            "empty": "Noch keine Nutzer.",
+            "count_one": "{{count}} Nutzer",
+            "count_other": "{{count}} Nutzer",
+            "actions": "Aktionen für {{name}}",
+            "impersonate": "Impersonieren",
+            "delete": "Löschen"
         }
     },
     "home": {

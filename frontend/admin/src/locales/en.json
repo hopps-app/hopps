@@ -54,9 +54,9 @@
             "back": "Back to organizations",
             "notFound": "This organization does not exist.",
             "stammdaten": "Master data",
-            "kontakt": "Address & contact",
             "aktivitaet": "Activity",
-            "members": "Members ({{count}})"
+            "vorstand": "Board & access",
+            "actions": "Actions"
         },
         "charts": {
             "empty": "No data",
@@ -96,16 +96,12 @@
         },
         "fields": {
             "type": "Type",
-            "foundingDate": "Founded",
-            "registrationCourt": "Registration court",
-            "registrationNumber": "Registration number",
-            "taxNumber": "Tax number",
-            "country": "Country",
             "website": "Website",
             "address": "Address",
             "contactName": "Contact person",
             "email": "Email",
             "phone": "Phone",
+            "customerSince": "Customer since",
             "belegeCreated": "Receipts created",
             "bankImports": "Bank imports",
             "tokenUsage": "AI token usage",
@@ -117,7 +113,12 @@
             "body": "Impersonation lets you sign in as a member of {{name}} to reproduce their view. This is not wired up yet — it needs Keycloak Admin API access and an audit trail before it can be enabled."
         },
         "members": {
-            "empty": "No members yet."
+            "empty": "No users yet.",
+            "count_one": "{{count}} user",
+            "count_other": "{{count}} users",
+            "actions": "Actions for {{name}}",
+            "impersonate": "Impersonate",
+            "delete": "Delete"
         }
     },
     "home": {

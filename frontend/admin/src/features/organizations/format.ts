@@ -14,6 +14,21 @@ export function formatDate(iso: string | null): string | null {
     return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 }
 
+/**
+ * Month and year only (`2024-03-14` → `03.2024`). Used where the exact day adds nothing —
+ * "Kunde seit" is a question about months, not dates. Fixed to de-DE like `formatDate`.
+ */
+export function formatMonthYear(iso: string | null): string | null {
+    if (!iso) {
+        return null;
+    }
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+    return new Intl.DateTimeFormat('de-DE', { month: '2-digit', year: 'numeric' }).format(date);
+}
+
 /** Integer with German grouping (`1.240`). Used for the Belege count. */
 export function formatNumber(value: number): string {
     return new Intl.NumberFormat('de-DE').format(value);

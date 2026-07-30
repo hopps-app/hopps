@@ -41,7 +41,7 @@ export default function LoginActivityChart({ activity }: { activity: LoginActivi
             subtitle={t('organizations.charts.login.subtitle')}
             headline={<span>{formatDuration(latest)}</span>}
         >
-            <div className="flex items-end gap-2 h-[112px]" role="img" aria-label={t('organizations.charts.login.title')}>
+            <div className="flex items-end gap-2 h-[180px]" role="img" aria-label={t('organizations.charts.login.title')}>
                 {days.map((d, i) => (
                     <div key={d.day} className="group relative flex-1 h-full flex flex-col items-center gap-1.5 min-w-0">
                         <ChartTooltip label={weekdayLong(d.day)} value={formatDuration(d.activeSeconds)} />

@@ -56,7 +56,8 @@ export default function ExtractionChart({ breakdown }: { breakdown: ExtractionBr
                         ))}
                     </div>
 
-                    {/* Legend: dot + name (no subtitle) · percent (bold) · count (muted). */}
+                    {/* Legend: dot + name (no subtitle), then share over count, stacked and right-aligned
+                        so the percentage leads and the absolute figure reads as its supporting detail. */}
                     <div className="mt-4">
                         {parts.map((p, i) => (
                             <div
@@ -68,11 +69,13 @@ export default function ExtractionChart({ breakdown }: { breakdown: ExtractionBr
                                 <span className="text-[14px] font-semibold text-ink min-w-0 truncate flex-1">
                                     {t(SOURCE[p.src].labelKey)}
                                 </span>
-                                <span className="tnum text-[14px] font-bold text-ink shrink-0">
-                                    {Math.round((p.value / total) * 100)} %
-                                </span>
-                                <span className="tnum text-[13px] text-ink-3 shrink-0 w-10 text-right">
-                                    {formatNumber(p.value)}
+                                <span className="shrink-0 text-right">
+                                    <span className="tnum block text-[14px] font-bold text-ink leading-tight">
+                                        {Math.round((p.value / total) * 100)} %
+                                    </span>
+                                    <span className="tnum block text-[13px] text-ink-3 leading-tight">
+                                        {formatNumber(p.value)}
+                                    </span>
                                 </span>
                             </div>
                         ))}

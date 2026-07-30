@@ -297,7 +297,7 @@
         color: var(--pp-ink);
     }
     /* Brand action, mirrors .btn--danger's structure in purple: tinted + bordered at rest,
-       commits to a solid fill with a soft shadow on hover. For the Impersonieren header action. */
+       commits to a solid fill with a soft shadow on hover. For the "Aktionen" header menu trigger. */
     .btn--brand {
         background: var(--pp-tint);
         color: var(--pp-ink);
