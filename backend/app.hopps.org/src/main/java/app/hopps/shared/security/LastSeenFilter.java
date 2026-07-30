@@ -15,24 +15,37 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Stamps {@code last_seen_at} on the currently authenticated {@link app.hopps.member.domain.Member} on each request,
- * feeding the admin API's per-organization {@code lastActivityAt}.
+ * Turns every authenticated request into two independent activity signals for the current
+ * {@link app.hopps.member.domain.Member}: it accumulates time spent in the application, and it stamps
+ * {@code last_seen_at}.
  * <p>
- * The write is throttled to at most once per {@link #THROTTLE} window (a single conditional bulk UPDATE), so a busy
- * client does not cause a database write on every request. It is dispatched fire-and-forget onto a Vert.x worker thread
- * so it never blocks the request nor runs blocking JDBC on the event loop. Anonymous requests (no bearer token, hence
- * no {@code sub}) are ignored, and any failure is swallowed — activity tracking must never affect the actual request.
+ * The two are deliberately separate, because they answer different questions on very different timescales.
+ * {@code last_seen_at} only feeds the admin org list's {@code lastActivityAt} and the 90-day active/dormant split, so
+ * its resolution is irrelevant and it is throttled to {@link #LAST_SEEN_THROTTLE} purely to avoid a write per request.
+ * Time-in-app needs real resolution, so it goes through {@code MemberActivityRepository.accumulate}, which does its own
+ * (much tighter) throttling and delta-capping inside a single statement.
  * <p>
- * When (and only when) the throttled update actually refreshes {@code last_seen_at}, today's per-day activity row is
- * also recorded for the LoginActivityChart. Gating on the throttle keeps this to roughly one idempotent upsert per
- * member per throttle window rather than one per request, while still capturing the first request of each day (whose
- * {@code last_seen_at} is always stale from the prior day).
+ * Both are dispatched fire-and-forget onto a Vert.x worker thread so they never block the request nor run blocking JDBC
+ * on the event loop. Anonymous requests (no bearer token, hence no {@code sub}) are ignored, and any failure is
+ * swallowed — activity tracking must never affect the actual request.
+ * <p>
+ * <strong>Caution:</strong> the time metric assumes that requests only happen when a human is doing something. It
+ * therefore breaks silently if the frontend ever polls in the background — setting {@code refetchInterval} on a React
+ * Query, adding a websocket keepalive over REST, or similar would make every open tab accrue time indefinitely, and
+ * nothing here would warn you. The SPA heartbeat is the deliberate exception: it only fires while the tab is visible
+ * and the member has recently interacted.
  */
 @ApplicationScoped
 public class LastSeenFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(LastSeenFilter.class);
-    private static final Duration THROTTLE = Duration.ofMinutes(10);
+
+    /**
+     * How stale {@code last_seen_at} must be before it is rewritten. Generous on purpose: it is only read to decide
+     * whether an organization has been active in the last 90 days, so an hour of imprecision is meaningless, and the
+     * looser it is the fewer writes ordinary traffic causes.
+     */
+    private static final Duration LAST_SEEN_THROTTLE = Duration.ofHours(1);
 
     @Inject
     MemberRepository memberRepository;
@@ -47,21 +60,20 @@ public class LastSeenFilter {
     Vertx vertx;
 
     @ServerRequestFilter
-    public void recordLastSeen() {
+    public void recordActivity() {
         String keycloakId = currentKeycloakId();
         if (keycloakId == null) {
             return;
         }
         Instant now = Instant.now();
-        Instant staleBefore = now.minus(THROTTLE);
         LocalDate today = LocalDate.now();
-        // Fire-and-forget on a worker thread: the throttled UPDATE runs in its own transaction (touchLastSeen is
-        // @Transactional) and must not delay or fail the request it belongs to.
+        // Fire-and-forget on a worker thread: each statement runs in its own transaction (both repository methods are
+        // @Transactional) and must not delay or fail the request it belongs to. Both calls are unconditional here —
+        // they throttle themselves in SQL, so there is no reason to gate one on the other.
         vertx.executeBlocking(() -> {
             try {
-                if (memberRepository.touchLastSeen(keycloakId, now, staleBefore) > 0) {
-                    activityRepository.recordActivity(keycloakId, today);
-                }
+                activityRepository.accumulate(keycloakId, today, now);
+                memberRepository.touchLastSeen(keycloakId, now, now.minus(LAST_SEEN_THROTTLE));
             } catch (RuntimeException e) {
                 LOG.debug("Failed to record activity for member {}", keycloakId, e);
             }
