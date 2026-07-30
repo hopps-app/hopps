@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 import static io.restassured.RestAssured.given;
@@ -106,17 +107,21 @@ class AdminOrganizationResourceTests {
     }
 
     @Test
-    @DisplayName("should return 7-day login activity for an organization")
+    @DisplayName("should return 7 days of in-app time for an organization, summed across its members")
     @TestSecurity(user = "admin@example.test", roles = { "admin" })
     void shouldReturnLoginActivity() {
         LocalDate today = LocalDate.now();
-        // buehnefrei-ev (org 4) has members 15..23. activityCount is the total activity events (summed activity_count),
-        // not distinct members. Today: member 15 twice (-> count 2) + member 16 once (-> count 1) = 3. Yesterday:
-        // member 15 once = 1.
-        memberActivityRepository.recordActivity("00000000-0000-0000-0000-000000000015", today);
-        memberActivityRepository.recordActivity("00000000-0000-0000-0000-000000000015", today);
-        memberActivityRepository.recordActivity("00000000-0000-0000-0000-000000000016", today);
-        memberActivityRepository.recordActivity("00000000-0000-0000-0000-000000000015", today.minusDays(1));
+        Instant base = Instant.parse("2026-07-30T09:00:00Z");
+        // buehnefrei-ev (org 4) has members 15..23. Each member's first signal only starts their clock; the seconds
+        // come from the gaps that follow. Today: member 15 accrues 60s, member 16 accrues 30s, so the organization
+        // total is 90s. Yesterday: member 15 alone accrues 120s.
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base);
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base.plusSeconds(60));
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base);
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base.plusSeconds(30));
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today.minusDays(1), base);
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today.minusDays(1),
+                base.plusSeconds(120));
 
         given()
                 .when()
@@ -126,9 +131,9 @@ class AdminOrganizationResourceTests {
                 .body("totalMembers", is(9))
                 .body("days", hasSize(7))
                 // oldest first: index 6 = today, 5 = yesterday, 0 = six days ago
-                .body("days[6].activityCount", is(3))
-                .body("days[5].activityCount", is(1))
-                .body("days[0].activityCount", is(0));
+                .body("days[6].activeSeconds", is(90))
+                .body("days[5].activeSeconds", is(120))
+                .body("days[0].activeSeconds", is(0));
     }
 
     @Test
