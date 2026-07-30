@@ -522,6 +522,11 @@
             "hidePurpose": "Hide reference",
             "linkBankTransaction": "Link bank transaction",
             "unlink": "Remove link",
+            "unlinkReopen": {
+                "title": "Unlink and set back to draft?",
+                "description": "This transaction is confirmed and fully covered. Removing this bank link will leave it no longer fully covered, so it will be set back to draft.",
+                "confirm": "Unlink & set to draft"
+            },
             "openBankAccounts": "Manage in bank accounts",
             "deleteConfirmTitle": "Delete transaction?",
             "deleteConfirmText": "This transaction will be permanently deleted. This action cannot be undone.",

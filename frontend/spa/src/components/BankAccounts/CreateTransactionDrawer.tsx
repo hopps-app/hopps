@@ -203,6 +203,10 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
           )
         : null;
 
+    // Required category groups applicable to the selected bommel that still have no value also block confirming.
+    const missingConfirmGroups = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(allBommels), categoryValues);
+    const canConfirm = !!confirmState?.canConfirm && missingConfirmGroups.length === 0;
+
     const isBusy = createMutation.isPending || addMatch.isPending || confirmMutation.isPending;
 
     // Shared input style
@@ -458,8 +462,8 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             <button
                                 type="button"
                                 onClick={() => submit(true)}
-                                disabled={isBusy || !confirmState?.canConfirm}
-                                title={!confirmState?.canConfirm ? t('konten.createTx.confirmBlocked') : undefined}
+                                disabled={isBusy || !canConfirm}
+                                title={!canConfirm ? t('konten.createTx.confirmBlocked') : undefined}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                 style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
                             >

@@ -285,7 +285,9 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
         if (!categoriesComplete()) return;
         await persistEdits();
         await confirmMutation.mutateAsync(tx.id);
+        // Close the drawer and go back to the transactions list instead of showing the read-only detail view.
         setEditMode(false);
+        onClose();
     }
 
     async function handleDelete() {
@@ -299,6 +301,8 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     async function handleConfirm() {
         if (!tx?.id) return;
         await confirmMutation.mutateAsync(tx.id);
+        // Back to the list after confirming, rather than staying in the (now read-only) detail view.
+        onClose();
     }
 
     async function handleReopen() {
@@ -330,10 +334,25 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
               },
         linkedBankTxns
     );
-    const confirmBlockers = confirmState.canConfirm ? null : (
+    // Required category groups that apply to the (selected) bommel but have no value yet also block confirming — mirrors
+    // the backend confirm guard. Uses the live edit-form bommel/values in edit mode, the saved ones otherwise.
+    const missingConfirmGroups = useMemo(() => {
+        const bId = editMode ? (bommelId ? Number(bommelId) : null) : (tx?.bommelId ?? null);
+        const values = editMode
+            ? categoryValues
+            : Object.fromEntries(
+                  (tx?.categoryValues ?? []).filter((c) => c.groupId != null && c.value != null).map((c) => [c.groupId as number, c.value as string])
+              );
+        return missingRequiredGroups(categoryGroups, bId, buildBommelIndex(allBommels), values);
+    }, [editMode, bommelId, tx, categoryValues, categoryGroups, allBommels]);
+
+    const canConfirm = confirmState.canConfirm && missingConfirmGroups.length === 0;
+    const confirmBlockers = canConfirm ? null : (
         <>
             <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
-            <span className="block mt-0.5">{confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)).join(', ')}</span>
+            <span className="block mt-0.5">
+                {[...confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)), ...missingConfirmGroups.map((g) => g.name)].join(', ')}
+            </span>
         </>
     );
 
@@ -627,7 +646,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     <HintTooltip content={confirmBlockers}>
                                         <button
                                             onClick={handleSaveAndConfirm}
-                                            disabled={updateMutation.isPending || confirmMutation.isPending || !confirmState.canConfirm}
+                                            disabled={updateMutation.isPending || confirmMutation.isPending || !canConfirm}
                                             className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                             style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
                                         >
@@ -659,7 +678,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     <HintTooltip content={confirmBlockers}>
                                         <button
                                             onClick={handleConfirm}
-                                            disabled={confirmMutation.isPending || !confirmState.canConfirm}
+                                            disabled={confirmMutation.isPending || !canConfirm}
                                             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                             style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
                                         >
