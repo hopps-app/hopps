@@ -4,12 +4,17 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import SidebarNavigation from '@/components/sidebar-navigation';
 import { PageTitleProvider } from '@/hooks/PageTitleProvider';
+import { useActivityHeartbeat } from '@/hooks/use-activity-heartbeat';
 
 const STORAGE_KEY = 'hopps-sidebar-collapsed';
 
 export default function AuthLayout() {
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(() => localStorage.getItem(STORAGE_KEY) === 'true');
+
+    // Mounted here rather than per-route: this layout wraps every authenticated page, so presence is
+    // reported for the whole session and survives navigation.
+    useActivityHeartbeat();
 
     const handleToggle = () => {
         setCollapsed((prev) => {
