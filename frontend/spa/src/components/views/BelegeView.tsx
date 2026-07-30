@@ -28,6 +28,8 @@ import { useDropzone, FileRejection } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
+import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import { LoadingState } from '@/components/common/LoadingState';
 import InvoiceUploadFormBommelSelector, { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
@@ -36,6 +38,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
+import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import {
     useDocuments,
     useDocument,
@@ -57,6 +60,7 @@ import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
+import { getDuplicateDocumentId } from '@/utils/errorUtils';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
@@ -323,7 +327,11 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     const [senderName, setSenderName] = useState('');
     const [bommelId, setBommelId] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
+    const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [direction, setDirection] = useState<DocumentDirection>('INCOMING');
+    const { data: categoryGroups = [] } = useCategoryGroups();
+    const reviewAllBommels = useBommelsStore((s) => s.allBommels);
+    const { showError: showCategoryError } = useToast();
     // In bank-reconcile mode the detail view is split into the transaction data (primary) and the analysed receipt data.
     const [detailTab, setDetailTab] = useState<'transaction' | 'receipt'>('transaction');
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -367,6 +375,13 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
             setBommelId(initialBommelId(linkedTx.bommelId));
             setPrivatelyPaid(linkedTx.privatelyPaid ?? false);
             setDirection(Number(linkedTx.total ?? 0) < 0 ? 'INCOMING' : 'OUTGOING');
+            const cv: Record<number, string> = {};
+            (linkedTx.categoryValues ?? []).forEach((c) => {
+                if (c.groupId != null && c.value != null) {
+                    cv[c.groupId] = c.value;
+                }
+            });
+            setCategoryValues(cv);
             return;
         }
 
@@ -455,6 +470,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
             // undefined would be treated as "unchanged" and keep the previous bommel.
             bommelId: bommelId ? Number(bommelId) : 0,
             privatelyPaid,
+            categoryValues,
         });
     }
 
@@ -488,6 +504,11 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // when confirmState.canConfirm, so the backend confirm guard always passes.
     async function handleFinalize() {
         if (!doc?.id || !linkedTransactionId) return;
+        const missing = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(reviewAllBommels), categoryValues);
+        if (missing.length > 0) {
+            showCategoryError(t('categoryGroups.fields.missing', { groups: missing.map((g) => g.name).join(', ') }));
+            return;
+        }
         await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
         await confirmTransaction.mutateAsync(linkedTransactionId);
         onClose();
@@ -509,7 +530,9 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     const parsedAmount = parseFloat(amount.replace(',', '.'));
     const confirmState = getTransactionConfirmState(
         {
-            amount: isNaN(parsedAmount) ? null : parsedAmount,
+            // Signed by direction (INCOMING invoice = expense −, OUTGOING = income +) so a directional mismatch with the
+            // linked bank movement blocks confirm.
+            amount: isNaN(parsedAmount) ? null : direction === 'INCOMING' ? -Math.abs(parsedAmount) : Math.abs(parsedAmount),
             date: date || null,
             counterparty: senderName || null,
             name: name || null,
@@ -796,6 +819,23 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             disabled={fieldsDisabled}
                                         />
                                     </div>
+                                    {!fieldsDisabled && (
+                                        <CategoryGroupFields
+                                            bommelId={bommelId ? Number(bommelId) : null}
+                                            values={categoryValues}
+                                            onChange={(groupId, value) =>
+                                                setCategoryValues((prev) => {
+                                                    const next = { ...prev };
+                                                    if (value == null || value === '') {
+                                                        delete next[groupId];
+                                                    } else {
+                                                        next[groupId] = value;
+                                                    }
+                                                    return next;
+                                                })
+                                            }
+                                        />
+                                    )}
                                     <button
                                         type="button"
                                         onClick={() => setPrivatelyPaid((v) => !v)}
@@ -1121,11 +1161,19 @@ function DocumentRow({
 const MAX_UPLOAD_MB = 10;
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
-type UploadItem = { key: string; name: string; status: 'uploading' | 'done' | 'error' };
+type UploadItem = {
+    key: string;
+    name: string;
+    status: 'uploading' | 'done' | 'error';
+    // When the upload failed because the file was already uploaded (409 duplicate), the id of the existing document so
+    // the row can link straight to it.
+    duplicateOfId?: number;
+};
 
 function UploadZone({ onUploaded }: { onUploaded: () => void }) {
     const { t } = useTranslation();
     const { showWarning } = useToast();
+    const navigate = useNavigate();
     const uploadMutation = useUploadDocument();
     const [analyze, setAnalyze] = useState(true);
     const [items, setItems] = useState<UploadItem[]>([]);
@@ -1166,8 +1214,10 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                         setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'done' } : it)));
                         onUploaded();
                     })
-                    .catch(() => {
-                        setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'error' } : it)));
+                    .catch((error) => {
+                        // A 409 duplicate carries the existing document's id — keep it so the row can link to it.
+                        const duplicateOfId = getDuplicateDocumentId(error);
+                        setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'error', duplicateOfId } : it)));
                     });
             });
         },
@@ -1316,7 +1366,15 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                                 </p>
                             )}
                             {items.map((it) => {
-                                const label = it.status === 'uploading' ? 'itemUploading' : it.status === 'done' ? 'itemDone' : 'itemError';
+                                const isDuplicate = it.status === 'error' && it.duplicateOfId != null;
+                                const label =
+                                    it.status === 'uploading'
+                                        ? 'itemUploading'
+                                        : it.status === 'done'
+                                          ? 'itemDone'
+                                          : isDuplicate
+                                            ? 'itemErrorDuplicate'
+                                            : 'itemError';
                                 const color = it.status === 'error' ? '#B12C4C' : it.status === 'done' ? '#1F7A50' : '#9A9AA3';
                                 return (
                                     <div
@@ -1337,9 +1395,25 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                                             {it.status === 'error' && <AlertCircle size={16} className="text-[#B12C4C]" />}
                                         </span>
                                         <span className="flex-1 min-w-0 truncate text-[13px] text-[#1B1B1F]">{it.name}</span>
-                                        <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
-                                            {t(`receipts.upload.${label}`)}
-                                        </span>
+                                        {isDuplicate ? (
+                                            <span className="flex-shrink-0 flex items-center gap-2">
+                                                <span className="text-[12px] font-semibold" style={{ color }}>
+                                                    {t('receipts.upload.itemErrorDuplicate')}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate(`/receipts?id=${it.duplicateOfId}`)}
+                                                    className="inline-flex items-center gap-1 text-[12px] font-bold text-[#7E3FB4] hover:underline"
+                                                >
+                                                    <ExternalLink size={12} />
+                                                    {t('receipts.upload.viewExisting')}
+                                                </button>
+                                            </span>
+                                        ) : (
+                                            <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
+                                                {t(`receipts.upload.${label}`)}
+                                            </span>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -1445,14 +1519,17 @@ export function BelegeView() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allDocs]);
 
-    // Open a specific document when navigated to with ?id= (e.g. from a linked transaction)
+    // Open a specific document when navigated to with ?id= (e.g. from a linked transaction, or the duplicate-upload
+    // link). The document may not be in the currently loaded/filtered list, so fall back to fetching it directly — that
+    // way the deep link always opens its drawer.
     const [searchParams, setSearchParams] = useSearchParams();
+    const idParam = searchParams.get('id');
+    const { data: deepLinkedDoc } = useDocument(idParam ? Number(idParam) : undefined);
     useEffect(() => {
-        const idParam = searchParams.get('id');
         if (!idParam) return;
-        const found = (allDocs as DocumentResponse[] | undefined)?.find((d) => d.id === Number(idParam));
+        const found = (allDocs as DocumentResponse[] | undefined)?.find((d) => d.id === Number(idParam)) ?? deepLinkedDoc;
         if (found) setSelectedDoc(found);
-    }, [searchParams, allDocs]);
+    }, [idParam, allDocs, deepLinkedDoc]);
 
     const closeDrawer = () => {
         setSelectedDoc(null);

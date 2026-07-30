@@ -9,10 +9,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
 
+import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
+import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +45,8 @@ function ReceiptUploadView() {
     // Page title set after isReadOnly state is defined below
     const { showError, showSuccess, showWarning } = useToast();
     const { loadBommels } = useBommelsStore();
+    const allBommels = useBommelsStore((s) => s.allBommels);
+    const { data: categoryGroups = [] } = useCategoryGroups();
     const store = useStore();
     const queryClient = useQueryClient();
 
@@ -69,6 +73,8 @@ function ReceiptUploadView() {
         setContractPartner,
         bommelId,
         setBommelId,
+        categoryValues,
+        setCategoryValues,
         tags,
         setTags,
         grossAmount,
@@ -421,8 +427,9 @@ function ReceiptUploadView() {
             senderName: contractPartner || undefined,
             privatelyPaid: isUnpaid,
             tags: tags.length > 0 ? tags : undefined,
+            categoryValues: Object.keys(categoryValues).length > 0 ? categoryValues : undefined,
         };
-    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, tags, grossAmount, taxAmount]);
+    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, categoryValues, tags, grossAmount, taxAmount]);
 
     // Field change handlers that clear validation errors
     const handleReceiptDateChange = useCallback(
@@ -502,6 +509,12 @@ function ReceiptUploadView() {
             return;
         }
 
+        const missingGroups = missingRequiredGroups(categoryGroups, bommelId, buildBommelIndex(allBommels), categoryValues);
+        if (missingGroups.length > 0) {
+            showError(t('categoryGroups.fields.missing', { groups: missingGroups.map((g) => g.name).join(', ') }));
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             const payload = buildTransactionPayload();
@@ -521,7 +534,22 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [validate, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate, queryClient]);
+    }, [
+        validate,
+        transactionId,
+        showError,
+        showSuccess,
+        resetForm,
+        setIsSubmitting,
+        t,
+        buildTransactionPayload,
+        navigate,
+        queryClient,
+        categoryGroups,
+        bommelId,
+        allBommels,
+        categoryValues,
+    ]);
 
     // Save as draft - saves current form data to transaction without confirming
     const handleSaveDraft = useCallback(async () => {
@@ -834,6 +862,18 @@ function ReceiptUploadView() {
                             onContractPartnerChange={handleContractPartnerChange}
                             bommelId={bommelId}
                             onBommelIdChange={handleBommelIdChange}
+                            categoryValues={categoryValues}
+                            onCategoryValueChange={(groupId, value) =>
+                                setCategoryValues((prev) => {
+                                    const next = { ...prev };
+                                    if (value == null || value === '') {
+                                        delete next[groupId];
+                                    } else {
+                                        next[groupId] = value;
+                                    }
+                                    return next;
+                                })
+                            }
                             tags={tags}
                             onTagsChange={setTags}
                             grossAmount={grossAmount}

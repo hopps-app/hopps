@@ -119,6 +119,15 @@ function OrganizationSettingsView() {
         }
     }, [navigate, selectedBommel, isDemoMode]);
 
+    const handleNavigateToTransactions = useCallback(() => {
+        if (isDemoMode) return;
+        if (selectedBommel?.id) {
+            navigate(`/transactions?bommelId=${selectedBommel.id}`);
+        } else {
+            navigate('/transactions');
+        }
+    }, [navigate, selectedBommel, isDemoMode]);
+
     const handleTreeNodeClick = useCallback(
         (nodeData: { attributes?: { id?: number } }) => {
             const node = tree.find((n) => n.id === nodeData.attributes?.id);
@@ -339,6 +348,7 @@ function OrganizationSettingsView() {
                                     selectedBommel={selectedBommel}
                                     subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
                                     onNavigateToReceipts={isDemoMode ? undefined : handleNavigateToReceipts}
+                                    onNavigateToTransactions={isDemoMode ? undefined : handleNavigateToTransactions}
                                 />
                             )}
                         </div>

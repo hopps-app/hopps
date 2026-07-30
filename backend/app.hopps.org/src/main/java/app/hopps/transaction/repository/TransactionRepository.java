@@ -93,17 +93,18 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
     }
 
     /**
-     * Find transactions with dynamic filtering. Supports search, date range, bommel, category, document type, status,
-     * and privatelyPaid filters.
+     * Find transactions with dynamic filtering. Supports search, date range, bommel, document type, status, and
+     * privatelyPaid filters.
      */
     public List<Transaction> findFiltered(
             String search,
             Instant startDate,
             Instant endDate,
-            Long bommelId,
+            List<Long> bommelIds,
             TransactionStatus status,
             Boolean privatelyPaid,
             Boolean detached,
+            List<String> categoryValues,
             Sort sort,
             Page page) {
 
@@ -145,9 +146,9 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         // Bommel filter
         if (detached != null && detached) {
             query.append(" and bommel is null");
-        } else if (bommelId != null) {
-            query.append(" and bommel.id = :bommelId");
-            params.put("bommelId", bommelId);
+        } else if (bommelIds != null && !bommelIds.isEmpty()) {
+            query.append(" and bommel.id in :bommelIds");
+            params.put("bommelIds", bommelIds);
         }
 
         // Status filter
@@ -161,6 +162,9 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             query.append(" and privatelyPaid = :privatelyPaid");
             params.put("privatelyPaid", privatelyPaid);
         }
+
+        // Category-group value filters (AND across groups)
+        appendCategoryFilters(query, params, categoryValues, "");
 
         return find(query.toString(), sort != null ? sort : Sort.descending("createdAt"), params)
                 .page(page)
@@ -181,16 +185,66 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
     }
 
     /**
+     * Appends one AND clause per requested category-group value filter. Each entry is a {@code "groupId:value"} pair;
+     * only the first colon separates the (always numeric) group id from the value, so a value may itself contain
+     * colons. Multiple entries AND together — a transaction must carry the given value for <em>every</em> selected
+     * group. Each clause is an id-subquery against {@link app.hopps.transaction.domain.TransactionCategoryValue}
+     * (matched on its soft-FK {@code categoryGroupId} and the snapshot {@code value} text) rather than a join, so it
+     * neither multiplies nor drops rows. Malformed entries are skipped.
+     *
+     * @param prefix
+     *            {@code ""} for Panache find/count (implicit entity) or {@code "t."} for the aliased aggregate JPQL
+     */
+    private static void appendCategoryFilters(StringBuilder query, Map<String, Object> params,
+            List<String> categoryValues, String prefix) {
+        if (categoryValues == null) {
+            return;
+        }
+        int i = 0;
+        for (String entry : categoryValues) {
+            if (entry == null) {
+                continue;
+            }
+            int sep = entry.indexOf(':');
+            // need a non-empty id and a non-empty value
+            if (sep <= 0 || sep == entry.length() - 1) {
+                continue;
+            }
+            Long groupId;
+            try {
+                groupId = Long.parseLong(entry.substring(0, sep).trim());
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            String value = entry.substring(sep + 1);
+            String gp = "cgId" + i;
+            String vp = "cgVal" + i;
+            query.append(" and ")
+                    .append(prefix)
+                    .append("id IN (SELECT cv.transaction.id FROM TransactionCategoryValue cv"
+                            + " WHERE cv.categoryGroupId = :")
+                    .append(gp)
+                    .append(" AND cv.value = :")
+                    .append(vp)
+                    .append(")");
+            params.put(gp, groupId);
+            params.put(vp, value);
+            i++;
+        }
+    }
+
+    /**
      * Count transactions with dynamic filtering.
      */
     public long countFiltered(
             String search,
             Instant startDate,
             Instant endDate,
-            Long bommelId,
+            List<Long> bommelIds,
             TransactionStatus status,
             Boolean privatelyPaid,
-            Boolean detached) {
+            Boolean detached,
+            List<String> categoryValues) {
 
         Long orgId = organizationContext.getCurrentOrganizationId();
 
@@ -226,9 +280,9 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
 
         if (detached != null && detached) {
             query.append(" and bommel is null");
-        } else if (bommelId != null) {
-            query.append(" and bommel.id = :bommelId");
-            params.put("bommelId", bommelId);
+        } else if (bommelIds != null && !bommelIds.isEmpty()) {
+            query.append(" and bommel.id in :bommelIds");
+            params.put("bommelIds", bommelIds);
         }
 
         if (status != null) {
@@ -240,6 +294,8 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             query.append(" and privatelyPaid = :privatelyPaid");
             params.put("privatelyPaid", privatelyPaid);
         }
+
+        appendCategoryFilters(query, params, categoryValues, "");
 
         return count(query.toString(), params);
     }
@@ -253,10 +309,11 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             String search,
             Instant startDate,
             Instant endDate,
-            Long bommelId,
+            List<Long> bommelIds,
             TransactionStatus status,
             Boolean privatelyPaid,
-            Boolean detached) {
+            Boolean detached,
+            List<String> categoryValues) {
 
         Long orgId = organizationContext.getCurrentOrganizationId();
 
@@ -288,9 +345,9 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         }
         if (detached != null && detached) {
             where.append(" and t.bommel is null");
-        } else if (bommelId != null) {
-            where.append(" and t.bommel.id = :bommelId");
-            params.put("bommelId", bommelId);
+        } else if (bommelIds != null && !bommelIds.isEmpty()) {
+            where.append(" and t.bommel.id in :bommelIds");
+            params.put("bommelIds", bommelIds);
         }
         if (status != null) {
             where.append(" and t.status = :status");
@@ -300,6 +357,8 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             where.append(" and t.privatelyPaid = :privatelyPaid");
             params.put("privatelyPaid", privatelyPaid);
         }
+
+        appendCategoryFilters(where, params, categoryValues, "t.");
 
         var query = getEntityManager().createQuery(
                 "SELECT COALESCE(SUM(CASE WHEN t.total > 0 THEN t.total ELSE 0 END), 0), "

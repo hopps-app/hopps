@@ -20,6 +20,12 @@ export const menuConfig: MenuItem[] = [
         path: '/transactions',
     },
     {
+        id: 'reports',
+        label: 'menu.reports',
+        icon: 'BarChart',
+        path: '/reports',
+    },
+    {
         id: 'structure',
         label: 'menu.structure',
         icon: 'Commit',

@@ -1,4 +1,64 @@
 {
+    "categoryGroups": {
+        "title": "Categories",
+        "subtitle": "Category groups classify transactions — depending on the selected bommel.",
+        "addButton": "New group",
+        "hint": "A group applies to a bommel when it is assigned to that bommel or one of its parents. With no assignment it applies to no bommel — assign the root bommel to apply to all.",
+        "required": "Required",
+        "optional": "optional",
+        "emptyState": {
+            "title": "No category groups yet",
+            "description": "Create a group to classify transactions along your own axes."
+        },
+        "card": {
+            "appliesTo": "Applies to",
+            "allBommel": "All bommels",
+            "noBommel": "No bommel",
+            "valueCount": "{{count}} values"
+        },
+        "delete": {
+            "title": "Delete category group",
+            "description": "\"{{group}}\" will be deleted.",
+            "descriptionLinked": "\"{{group}}\" will be deleted. Its value will be completely removed from {{count}} linked transactions (drafts and confirmed).",
+            "confirm": "Delete",
+            "loading": "Checking links …"
+        },
+        "modal": {
+            "createTitle": "New category group",
+            "editTitle": "Edit category group",
+            "subtitle": "Set the name, required flag, assigned bommels and possible values.",
+            "name": "Group name",
+            "namePlaceholder": "e.g. Cost center",
+            "required": "Required",
+            "requiredHint": "Must be filled for matching bommels before a transaction can be confirmed.",
+            "bommel": "Applies to bommels",
+            "bommelHint": "No selection = applies to no bommel. Assign the root bommel to apply to all.",
+            "bommelPlaceholder": "Select bommels …",
+            "bommelSelected": "{{count}} bommels selected",
+            "values": "Possible values",
+            "valuePlaceholder": "Add a value …",
+            "addValue": "Add",
+            "noValues": "No values yet."
+        },
+        "toast": {
+            "created": "Category group created",
+            "updated": "Category group saved",
+            "deleted": "Category group deleted",
+            "error": "Action failed"
+        },
+        "reopen": {
+            "title": "Confirmed transactions affected",
+            "description": "{{count}} already-confirmed transactions under these bommels have no value for the required group \"{{group}}\" yet. Reset them to draft so the category can be added?",
+            "keep": "No, just save the group",
+            "confirm": "Yes, reset to draft"
+        },
+        "fields": {
+            "eyebrow": "Category groups",
+            "valuePlaceholder": "— please select —",
+            "noValues": "No values found",
+            "missing": "Please fill in: {{groups}}"
+        }
+    },
     "alpha": {
         "badge": "Alpha",
         "consentText": "You are using an alpha test version of Hopps. The software is still under development. Full data protection and compliance requirements cannot be guaranteed at this stage. We are continuously working on improvements.",
@@ -198,6 +258,7 @@
                 "transactions": "Transactions",
                 "subBommels": "Sub-Bommels",
                 "toReceipts": "To Receipts",
+                "toTransactions": "To Transactions",
                 "hideDetails": "Hide details",
                 "showDetails": "Show details",
                 "bommelNotFound": "Bommel not found",
@@ -336,6 +397,36 @@
     "settingsPage": {
         "menu": "Menu"
     },
+    "reports": {
+        "title": "Reports",
+        "subtitle": "Analyse transactions by category-group value over a date range.",
+        "group": "Category group",
+        "selectGroup": "Select a category group …",
+        "from": "From (transaction date)",
+        "to": "To (transaction date)",
+        "bommel": "Bommel",
+        "export": "Export CSV",
+        "total": "Total",
+        "table": {
+            "value": "Value",
+            "count": "Count",
+            "income": "Income",
+            "expense": "Expenses",
+            "net": "Net"
+        },
+        "emptyNoGroup": {
+            "title": "Choose a category group",
+            "description": "Select a category group above to see the report."
+        },
+        "emptyNoData": {
+            "title": "No data",
+            "description": "There are no transactions for this category group and date range."
+        },
+        "error": {
+            "title": "Report could not be loaded",
+            "description": "Please try again later."
+        }
+    },
     "menu": {
         "dashboard": "Dashboard",
         "receipts": "Receipts",
@@ -346,6 +437,7 @@
         "structure": "Bommel structure",
         "bankAccounts": "Accounts",
         "transactions": "Transactions",
+        "reports": "Reports",
         "admin": "Admin",
         "ngo-details": "Ngo Details",
         "categories": "Categories",
@@ -385,7 +477,10 @@
             "allCategories": "All categories",
             "allBommels": "All bommels",
             "allAreas": "All areas",
-            "advancedFilters": "More filters"
+            "advancedFilters": "More filters",
+            "categoryGroups": "Category groups",
+            "addCategoryGroup": "Category group",
+            "removeCategoryGroup": "Remove"
         },
         "unassigned": "Unassigned",
         "openToCover": "open: {{amount}}",
@@ -663,6 +758,8 @@
             "itemUploading": "Uploading …",
             "itemDone": "Uploaded",
             "itemError": "Failed",
+            "itemErrorDuplicate": "Duplicate – already booked",
+            "viewExisting": "View receipt",
             "analysis": {
                 "aiWarning": "The data recognized by the AI may contain errors. Please check all fields before saving.",
                 "pending": "Analysis is about to start …",

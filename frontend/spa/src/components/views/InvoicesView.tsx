@@ -21,6 +21,7 @@ async function getInvoices(): Promise<InvoicesTableData[]> {
     while (true) {
         const data = await apiService.orgService.transactionsAll(
             undefined, // bommelId
+            undefined, // categoryValue
             undefined, // detached
             undefined, // endDate
             page, // page

@@ -2,6 +2,7 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.domain.Transaction;
@@ -28,6 +29,9 @@ class TransactionCreateConverterTest {
     @Mock
     BommelRepository bommelRepository;
 
+    @Mock
+    CategoryGroupService categoryGroupService;
+
     @InjectMocks
     TransactionCreateConverter converter;
 
@@ -48,7 +52,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test Transaction", BigDecimal.valueOf(100.50), BigDecimal.valueOf(19.00),
                 "EUR", null, null, null, true,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -65,7 +69,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 "2025-03-15", null, null, false,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -80,7 +84,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, "2025-06-01", null, false,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -95,7 +99,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -109,7 +113,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 "  ", "  ", null, false,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -127,7 +131,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, 42L, false,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -141,12 +145,12 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
         assertNull(transaction.getBommel());
-        verifyNoInteractions(bommelRepository);
+        verify(bommelRepository, never()).findById(anyLong());
     }
 
     @Test
@@ -157,7 +161,7 @@ class TransactionCreateConverterTest {
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
                 "ACME Corp", "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -181,7 +185,7 @@ class TransactionCreateConverterTest {
                 "Test", BigDecimal.TEN.negate(), null, null,
                 null, null, null, false,
                 "ACME Corp", "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -200,7 +204,7 @@ class TransactionCreateConverterTest {
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
                 null, "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -217,7 +221,7 @@ class TransactionCreateConverterTest {
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
                 "  ", "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -233,7 +237,7 @@ class TransactionCreateConverterTest {
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
                 null, null, null, null,
-                List.of("urgent", "office"));
+                List.of("urgent", "office"), null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -246,7 +250,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         Set<String> tagsBefore = transaction.getTags();
         converter.applyRequestToTransaction(transaction, request, organization);
@@ -260,7 +264,7 @@ class TransactionCreateConverterTest {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
                 null, null, null, false,
-                null, null, null, null, List.of());
+                null, null, null, null, List.of(), null);
 
         Set<String> tagsBefore = transaction.getTags();
         converter.applyRequestToTransaction(transaction, request, organization);

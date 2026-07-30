@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -2320,11 +2320,16 @@ export class Client {
     }
 
     /**
-     * Get all categories for user's organization
-     * @return Categories retrieved successfully
+     * List category groups
+     * @param bommelId (optional) Return only groups applicable to this bommel (self or ancestor assignment)
+     * @return Category groups
      */
-    categoryAll(): Promise<Category[]> {
-        let url_ = this.baseUrl + "/category";
+    categoryGroupsAll(bommelId: number | undefined): Promise<CategoryGroupResponse[]> {
+        let url_ = this.baseUrl + "/category-groups?";
+        if (bommelId === null)
+            throw new globalThis.Error("The parameter 'bommelId' cannot be null.");
+        else if (bommelId !== undefined)
+            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -2335,11 +2340,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCategoryAll(_response);
+            return this.processCategoryGroupsAll(_response);
         });
     }
 
-    protected processCategoryAll(response: Response): Promise<Category[]> {
+    protected processCategoryGroupsAll(response: Response): Promise<CategoryGroupResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2349,7 +2354,7 @@ export class Client {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(Category.fromJS(item));
+                    result200!.push(CategoryGroupResponse.fromJS(item));
             }
             else {
                 result200 = null as any;
@@ -2364,24 +2369,20 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Not Allowed", status, _responseText, _headers);
             });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("User or organization not found", status, _responseText, _headers);
-            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Category[]>(null as any);
+        return Promise.resolve<CategoryGroupResponse[]>(null as any);
     }
 
     /**
-     * Create a new category
-     * @return Category created successfully
+     * Create a category group
+     * @return Group created
      */
-    categoryPOST(body: CategoryInput): Promise<Category> {
-        let url_ = this.baseUrl + "/category";
+    categoryGroupsPOST(body: CategoryGroupCreateRequest): Promise<CategoryGroupResponse> {
+        let url_ = this.baseUrl + "/category-groups";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -2396,23 +2397,23 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCategoryPOST(_response);
+            return this.processCategoryGroupsPOST(_response);
         });
     }
 
-    protected processCategoryPOST(response: Response): Promise<Category> {
+    protected processCategoryGroupsPOST(response: Response): Promise<CategoryGroupResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
             return response.text().then((_responseText) => {
             let result201: any = null;
             let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = Category.fromJS(resultData201);
+            result201 = CategoryGroupResponse.fromJS(resultData201);
             return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Invalid category data", status, _responseText, _headers);
+            return throwException("Invalid input", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -2422,28 +2423,74 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Not Allowed", status, _responseText, _headers);
             });
-        } else if (status === 404) {
+        } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
-            return throwException("User or organization not found", status, _responseText, _headers);
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
-        } else if (status === 409) {
+        }
+        return Promise.resolve<CategoryGroupResponse>(null as any);
+    }
+
+    /**
+     * Preview the re-draft impact
+     * @return Impact preview
+     */
+    reopenImpact(body: ReopenImpactRequest): Promise<ReopenImpactResponse> {
+        let url_ = this.baseUrl + "/category-groups/reopen-impact";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReopenImpact(_response);
+        });
+    }
+
+    protected processReopenImpact(response: Response): Promise<ReopenImpactResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
             return response.text().then((_responseText) => {
-            return throwException("A category with this name already exists", status, _responseText, _headers);
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ReopenImpactResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Category>(null as any);
+        return Promise.resolve<ReopenImpactResponse>(null as any);
     }
 
     /**
-     * Update a category
-     * @return Category updated successfully
+     * Update a category group
+     * @return Group updated
      */
-    categoryPUT(id: number, body: CategoryInput): Promise<Category> {
-        let url_ = this.baseUrl + "/category/{id}";
+    categoryGroupsPUT(id: number, body: CategoryGroupUpdateRequest): Promise<CategoryGroupResponse> {
+        let url_ = this.baseUrl + "/category-groups/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -2461,23 +2508,23 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCategoryPUT(_response);
+            return this.processCategoryGroupsPUT(_response);
         });
     }
 
-    protected processCategoryPUT(response: Response): Promise<Category> {
+    protected processCategoryGroupsPUT(response: Response): Promise<CategoryGroupResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = Category.fromJS(resultData200);
+            result200 = CategoryGroupResponse.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Invalid category data", status, _responseText, _headers);
+            return throwException("Bad Request", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -2489,79 +2536,22 @@ export class Client {
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
-            return throwException("Category not found or not accessible", status, _responseText, _headers);
-            });
-        } else if (status === 409) {
-            return response.text().then((_responseText) => {
-            return throwException("A category with this name already exists", status, _responseText, _headers);
+            return throwException("Group not found", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Category>(null as any);
+        return Promise.resolve<CategoryGroupResponse>(null as any);
     }
 
     /**
-     * Get category by ID
-     * @return Category retrieved successfully
+     * Delete a category group
+     * @return Group deleted
      */
-    categoryGET(id: number): Promise<Category> {
-        let url_ = this.baseUrl + "/category/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCategoryGET(_response);
-        });
-    }
-
-    protected processCategoryGET(response: Response): Promise<Category> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = Category.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 401) {
-            return response.text().then((_responseText) => {
-            return throwException("Not Authorized", status, _responseText, _headers);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("Category not found or not accessible", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<Category>(null as any);
-    }
-
-    /**
-     * Delete a category
-     * @return Category deleted successfully
-     */
-    categoryDELETE(id: number): Promise<void> {
-        let url_ = this.baseUrl + "/category/{id}";
+    categoryGroupsDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/category-groups/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
@@ -2574,11 +2564,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCategoryDELETE(_response);
+            return this.processCategoryGroupsDELETE(_response);
         });
     }
 
-    protected processCategoryDELETE(response: Response): Promise<void> {
+    protected processCategoryGroupsDELETE(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 204) {
@@ -2595,7 +2585,309 @@ export class Client {
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
-            return throwException("Category not found or not accessible", status, _responseText, _headers);
+            return throwException("Group not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Category-group report
+     * @param bommelId (optional) Restrict to these bommel ID(s); repeatable and combined with OR
+     * @param endDate (optional) Filter transactions until this date, inclusive (ISO format: YYYY-MM-DD)
+     * @param startDate (optional) Filter transactions from this date (ISO format: YYYY-MM-DD)
+     * @return Aggregated report
+     */
+    report(id: number, bommelId: number[] | undefined, endDate: string | undefined, startDate: string | undefined): Promise<CategoryGroupReportResponse> {
+        let url_ = this.baseUrl + "/category-groups/{id}/report?";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (bommelId === null)
+            throw new globalThis.Error("The parameter 'bommelId' cannot be null.");
+        else if (bommelId !== undefined)
+            bommelId && bommelId.forEach(item => { url_ += "bommelId=" + encodeURIComponent("" + item) + "&"; });
+        if (endDate === null)
+            throw new globalThis.Error("The parameter 'endDate' cannot be null.");
+        else if (endDate !== undefined)
+            url_ += "endDate=" + encodeURIComponent("" + endDate) + "&";
+        if (startDate === null)
+            throw new globalThis.Error("The parameter 'startDate' cannot be null.");
+        else if (startDate !== undefined)
+            url_ += "startDate=" + encodeURIComponent("" + startDate) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReport(_response);
+        });
+    }
+
+    protected processReport(response: Response): Promise<CategoryGroupReportResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupReportResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Group not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupReportResponse>(null as any);
+    }
+
+    /**
+     * Group usage
+     * @return Usage count
+     */
+    usage(id: number): Promise<CategoryGroupUsageResponse> {
+        let url_ = this.baseUrl + "/category-groups/{id}/usage";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUsage(_response);
+        });
+    }
+
+    protected processUsage(response: Response): Promise<CategoryGroupUsageResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupUsageResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Group not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupUsageResponse>(null as any);
+    }
+
+    /**
+     * Search a group's values
+     * @param page (optional) 
+     * @param query (optional) 
+     * @param size (optional) 
+     * @return A page of values
+     */
+    valuesGET(id: number, page: number | undefined, query: string | undefined, size: number | undefined): Promise<PagedValuesResponse> {
+        let url_ = this.baseUrl + "/category-groups/{id}/values?";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (query === null)
+            throw new globalThis.Error("The parameter 'query' cannot be null.");
+        else if (query !== undefined)
+            url_ += "query=" + encodeURIComponent("" + query) + "&";
+        if (size === null)
+            throw new globalThis.Error("The parameter 'size' cannot be null.");
+        else if (size !== undefined)
+            url_ += "size=" + encodeURIComponent("" + size) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processValuesGET(_response);
+        });
+    }
+
+    protected processValuesGET(response: Response): Promise<PagedValuesResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PagedValuesResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Group not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PagedValuesResponse>(null as any);
+    }
+
+    /**
+     * Add values to a group
+     * @return Values added
+     */
+    valuesPOST(id: number, body: CategoryGroupValueCreateRequest): Promise<CategoryGroupResponse> {
+        let url_ = this.baseUrl + "/category-groups/{id}/values";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processValuesPOST(_response);
+        });
+    }
+
+    protected processValuesPOST(response: Response): Promise<CategoryGroupResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Group not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupResponse>(null as any);
+    }
+
+    /**
+     * Remove a value from a group
+     * @return Value removed
+     */
+    valuesDELETE(id: number, valueId: number): Promise<void> {
+        let url_ = this.baseUrl + "/category-groups/{id}/values/{valueId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (valueId === undefined || valueId === null)
+            throw new globalThis.Error("The parameter 'valueId' must be defined.");
+        url_ = url_.replace("{valueId}", encodeURIComponent("" + valueId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processValuesDELETE(_response);
+        });
+    }
+
+    protected processValuesDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Group or value not found", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -2667,7 +2959,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("A document with identical file content already exists in the organization", status, _responseText, _headers);
+            return throwException("A document with identical file content already exists in the organization; the body is a DuplicateDocumentResponse carrying the existing document\'s id", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -3972,7 +4264,8 @@ export class Client {
 
     /**
      * List all transactions
-     * @param bommelId (optional) Filter by bommel ID
+     * @param bommelId (optional) Filter by bommel ID(s); repeatable and combined with OR
+     * @param categoryValue (optional) Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND
      * @param detached (optional) Filter unassigned transactions (no bommel)
      * @param endDate (optional) Filter transactions until this date (ISO format: YYYY-MM-DD)
      * @param page (optional) Page index (0-based)
@@ -3985,12 +4278,16 @@ export class Client {
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return List of transactions
      */
-    transactionsAll(bommelId: number | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, sortBy: string | undefined, sortDir: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
+    transactionsAll(bommelId: number[] | undefined, categoryValue: string[] | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, sortBy: string | undefined, sortDir: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
         let url_ = this.baseUrl + "/transactions?";
         if (bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' cannot be null.");
         else if (bommelId !== undefined)
-            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+            bommelId && bommelId.forEach(item => { url_ += "bommelId=" + encodeURIComponent("" + item) + "&"; });
+        if (categoryValue === null)
+            throw new globalThis.Error("The parameter 'categoryValue' cannot be null.");
+        else if (categoryValue !== undefined)
+            categoryValue && categoryValue.forEach(item => { url_ += "categoryValue=" + encodeURIComponent("" + item) + "&"; });
         if (detached === null)
             throw new globalThis.Error("The parameter 'detached' cannot be null.");
         else if (detached !== undefined)
@@ -4134,7 +4431,8 @@ export class Client {
 
     /**
      * Aggregate transaction totals
-     * @param bommelId (optional) Filter by bommel ID
+     * @param bommelId (optional) Filter by bommel ID(s); repeatable and combined with OR
+     * @param categoryValue (optional) Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND
      * @param detached (optional) Filter unassigned transactions (no bommel)
      * @param endDate (optional) Filter transactions until this date (ISO format: YYYY-MM-DD)
      * @param privatelyPaid (optional) Filter by privately paid flag
@@ -4143,12 +4441,16 @@ export class Client {
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return Aggregated totals
      */
-    aggregate2(bommelId: number | undefined, detached: boolean | undefined, endDate: string | undefined, privatelyPaid: boolean | undefined, search: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionAggregateResponse> {
+    aggregate2(bommelId: number[] | undefined, categoryValue: string[] | undefined, detached: boolean | undefined, endDate: string | undefined, privatelyPaid: boolean | undefined, search: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionAggregateResponse> {
         let url_ = this.baseUrl + "/transactions/aggregate?";
         if (bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' cannot be null.");
         else if (bommelId !== undefined)
-            url_ += "bommelId=" + encodeURIComponent("" + bommelId) + "&";
+            bommelId && bommelId.forEach(item => { url_ += "bommelId=" + encodeURIComponent("" + item) + "&"; });
+        if (categoryValue === null)
+            throw new globalThis.Error("The parameter 'categoryValue' cannot be null.");
+        else if (categoryValue !== undefined)
+            categoryValue && categoryValue.forEach(item => { url_ += "categoryValue=" + encodeURIComponent("" + item) + "&"; });
         if (detached === null)
             throw new globalThis.Error("The parameter 'detached' cannot be null.");
         else if (detached !== undefined)
@@ -6084,25 +6386,20 @@ export interface IBommelStatisticsMap {
     [key: string]: any;
 }
 
-/** A category for organizing content or entities */
-export class Category implements ICategory {
+/** A categorisation axis whose applicability depends on the bommel */
+export class CategoryGroup implements ICategoryGroup {
     id?: number;
     name!: string;
-    description?: string;
-    /** The organization this category belongs to */
-    organization!: Organization;
+    required?: boolean;
 
     [key: string]: any;
 
-    constructor(data?: ICategory) {
+    constructor(data?: ICategoryGroup) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
                     (this as any)[property] = (data as any)[property];
             }
-        }
-        if (!data) {
-            this.organization = new Organization();
         }
     }
 
@@ -6114,14 +6411,13 @@ export class Category implements ICategory {
             }
             this.id = _data["id"];
             this.name = _data["name"];
-            this.description = _data["description"];
-            this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : new Organization();
+            this.required = _data["required"];
         }
     }
 
-    static fromJS(data: any): Category {
+    static fromJS(data: any): CategoryGroup {
         data = typeof data === 'object' ? data : {};
-        let result = new Category();
+        let result = new CategoryGroup();
         result.init(data);
         return result;
     }
@@ -6134,40 +6430,43 @@ export class Category implements ICategory {
         }
         data["id"] = this.id;
         data["name"] = this.name;
-        data["description"] = this.description;
-        data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
+        data["required"] = this.required;
         return data;
     }
 
-    clone(): Category {
+    clone(): CategoryGroup {
         const json = this.toJSON();
-        let result = new Category();
+        let result = new CategoryGroup();
         result.init(json);
         return result;
     }
 }
 
-/** A category for organizing content or entities */
-export interface ICategory {
+/** A categorisation axis whose applicability depends on the bommel */
+export interface ICategoryGroup {
     id?: number;
     name: string;
-    description?: string;
-    /** The organization this category belongs to */
-    organization: Organization;
+    required?: boolean;
 
     [key: string]: any;
 }
 
-/** Input for creating a new category */
-export class CategoryInput implements ICategoryInput {
-    /** Name of the category */
+/** Input for creating a category group */
+export class CategoryGroupCreateRequest implements ICategoryGroupCreateRequest {
+    /** Name of the group */
     name!: string;
-    /** Description of the category */
-    description?: string;
+    /** Whether a value is mandatory before an applicable transaction can be confirmed */
+    required?: boolean;
+    /** Bommels this group is assigned to. Empty = no bommel; assign the root bommel to apply to all. */
+    bommelIds?: number[];
+    /** Initial allowed values (order preserved) */
+    values?: string[];
+    /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
+    reopenAffectedTransactions?: boolean;
 
     [key: string]: any;
 
-    constructor(data?: ICategoryInput) {
+    constructor(data?: ICategoryGroupCreateRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -6183,13 +6482,24 @@ export class CategoryInput implements ICategoryInput {
                     this[property] = _data[property];
             }
             this.name = _data["name"];
-            this.description = _data["description"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["bommelIds"])) {
+                this.bommelIds = [] as any;
+                for (let item of _data["bommelIds"])
+                    this.bommelIds!.push(item);
+            }
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(item);
+            }
+            this.reopenAffectedTransactions = _data["reopenAffectedTransactions"];
         }
     }
 
-    static fromJS(data: any): CategoryInput {
+    static fromJS(data: any): CategoryGroupCreateRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new CategoryInput();
+        let result = new CategoryGroupCreateRequest();
         result.init(data);
         return result;
     }
@@ -6201,24 +6511,619 @@ export class CategoryInput implements ICategoryInput {
                 data[property] = this[property];
         }
         data["name"] = this.name;
-        data["description"] = this.description;
+        data["required"] = this.required;
+        if (Array.isArray(this.bommelIds)) {
+            data["bommelIds"] = [];
+            for (let item of this.bommelIds)
+                data["bommelIds"].push(item);
+        }
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item);
+        }
+        data["reopenAffectedTransactions"] = this.reopenAffectedTransactions;
         return data;
     }
 
-    clone(): CategoryInput {
+    clone(): CategoryGroupCreateRequest {
         const json = this.toJSON();
-        let result = new CategoryInput();
+        let result = new CategoryGroupCreateRequest();
         result.init(json);
         return result;
     }
 }
 
-/** Input for creating a new category */
-export interface ICategoryInput {
-    /** Name of the category */
+/** Input for creating a category group */
+export interface ICategoryGroupCreateRequest {
+    /** Name of the group */
     name: string;
-    /** Description of the category */
-    description?: string;
+    /** Whether a value is mandatory before an applicable transaction can be confirmed */
+    required?: boolean;
+    /** Bommels this group is assigned to. Empty = no bommel; assign the root bommel to apply to all. */
+    bommelIds?: number[];
+    /** Initial allowed values (order preserved) */
+    values?: string[];
+    /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
+    reopenAffectedTransactions?: boolean;
+
+    [key: string]: any;
+}
+
+export class CategoryGroupReportResponse implements ICategoryGroupReportResponse {
+    groupId?: number;
+    groupName?: string;
+    startDate?: string;
+    endDate?: string;
+    rows?: CategoryGroupReportRow[];
+    totalIncome?: number;
+    totalExpense?: number;
+    totalCount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupReportResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.groupId = _data["groupId"];
+            this.groupName = _data["groupName"];
+            this.startDate = _data["startDate"];
+            this.endDate = _data["endDate"];
+            if (Array.isArray(_data["rows"])) {
+                this.rows = [] as any;
+                for (let item of _data["rows"])
+                    this.rows!.push(CategoryGroupReportRow.fromJS(item));
+            }
+            this.totalIncome = _data["totalIncome"];
+            this.totalExpense = _data["totalExpense"];
+            this.totalCount = _data["totalCount"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupReportResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupReportResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["groupId"] = this.groupId;
+        data["groupName"] = this.groupName;
+        data["startDate"] = this.startDate;
+        data["endDate"] = this.endDate;
+        if (Array.isArray(this.rows)) {
+            data["rows"] = [];
+            for (let item of this.rows)
+                data["rows"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["totalIncome"] = this.totalIncome;
+        data["totalExpense"] = this.totalExpense;
+        data["totalCount"] = this.totalCount;
+        return data;
+    }
+
+    clone(): CategoryGroupReportResponse {
+        const json = this.toJSON();
+        let result = new CategoryGroupReportResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICategoryGroupReportResponse {
+    groupId?: number;
+    groupName?: string;
+    startDate?: string;
+    endDate?: string;
+    rows?: CategoryGroupReportRow[];
+    totalIncome?: number;
+    totalExpense?: number;
+    totalCount?: number;
+
+    [key: string]: any;
+}
+
+export class CategoryGroupReportRow implements ICategoryGroupReportRow {
+    value?: string;
+    count?: number;
+    income?: number;
+    expense?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupReportRow) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.value = _data["value"];
+            this.count = _data["count"];
+            this.income = _data["income"];
+            this.expense = _data["expense"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupReportRow {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupReportRow();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["value"] = this.value;
+        data["count"] = this.count;
+        data["income"] = this.income;
+        data["expense"] = this.expense;
+        return data;
+    }
+
+    clone(): CategoryGroupReportRow {
+        const json = this.toJSON();
+        let result = new CategoryGroupReportRow();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ICategoryGroupReportRow {
+    value?: string;
+    count?: number;
+    income?: number;
+    expense?: number;
+
+    [key: string]: any;
+}
+
+/** A category group without its value list */
+export class CategoryGroupResponse implements ICategoryGroupResponse {
+    id?: number;
+    name?: string;
+    required?: boolean;
+    bommelIds?: number[];
+    valueCount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["bommelIds"])) {
+                this.bommelIds = [] as any;
+                for (let item of _data["bommelIds"])
+                    this.bommelIds!.push(item);
+            }
+            this.valueCount = _data["valueCount"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["required"] = this.required;
+        if (Array.isArray(this.bommelIds)) {
+            data["bommelIds"] = [];
+            for (let item of this.bommelIds)
+                data["bommelIds"].push(item);
+        }
+        data["valueCount"] = this.valueCount;
+        return data;
+    }
+
+    clone(): CategoryGroupResponse {
+        const json = this.toJSON();
+        let result = new CategoryGroupResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category group without its value list */
+export interface ICategoryGroupResponse {
+    id?: number;
+    name?: string;
+    required?: boolean;
+    bommelIds?: number[];
+    valueCount?: number;
+
+    [key: string]: any;
+}
+
+/** Input for updating a category group's metadata */
+export class CategoryGroupUpdateRequest implements ICategoryGroupUpdateRequest {
+    /** Name of the group */
+    name!: string;
+    /** Whether a value is mandatory before an applicable transaction can be confirmed */
+    required?: boolean;
+    /** Bommels this group is assigned to. Empty = no bommel; assign the root bommel to apply to all. */
+    bommelIds?: number[];
+    /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
+    reopenAffectedTransactions?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupUpdateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["bommelIds"])) {
+                this.bommelIds = [] as any;
+                for (let item of _data["bommelIds"])
+                    this.bommelIds!.push(item);
+            }
+            this.reopenAffectedTransactions = _data["reopenAffectedTransactions"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupUpdateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupUpdateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["required"] = this.required;
+        if (Array.isArray(this.bommelIds)) {
+            data["bommelIds"] = [];
+            for (let item of this.bommelIds)
+                data["bommelIds"].push(item);
+        }
+        data["reopenAffectedTransactions"] = this.reopenAffectedTransactions;
+        return data;
+    }
+
+    clone(): CategoryGroupUpdateRequest {
+        const json = this.toJSON();
+        let result = new CategoryGroupUpdateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Input for updating a category group's metadata */
+export interface ICategoryGroupUpdateRequest {
+    /** Name of the group */
+    name: string;
+    /** Whether a value is mandatory before an applicable transaction can be confirmed */
+    required?: boolean;
+    /** Bommels this group is assigned to. Empty = no bommel; assign the root bommel to apply to all. */
+    bommelIds?: number[];
+    /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
+    reopenAffectedTransactions?: boolean;
+
+    [key: string]: any;
+}
+
+/** Usage count of a category group */
+export class CategoryGroupUsageResponse implements ICategoryGroupUsageResponse {
+    transactionCount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupUsageResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.transactionCount = _data["transactionCount"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupUsageResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupUsageResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["transactionCount"] = this.transactionCount;
+        return data;
+    }
+
+    clone(): CategoryGroupUsageResponse {
+        const json = this.toJSON();
+        let result = new CategoryGroupUsageResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Usage count of a category group */
+export interface ICategoryGroupUsageResponse {
+    transactionCount?: number;
+
+    [key: string]: any;
+}
+
+/** An allowed value within a category group */
+export class CategoryGroupValue implements ICategoryGroupValue {
+    id?: number;
+    value!: string;
+    sortIndex?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupValue) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.value = _data["value"];
+            this.sortIndex = _data["sortIndex"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupValue {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupValue();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["value"] = this.value;
+        data["sortIndex"] = this.sortIndex;
+        return data;
+    }
+
+    clone(): CategoryGroupValue {
+        const json = this.toJSON();
+        let result = new CategoryGroupValue();
+        result.init(json);
+        return result;
+    }
+}
+
+/** An allowed value within a category group */
+export interface ICategoryGroupValue {
+    id?: number;
+    value: string;
+    sortIndex?: number;
+
+    [key: string]: any;
+}
+
+/** Values to add to a category group */
+export class CategoryGroupValueCreateRequest implements ICategoryGroupValueCreateRequest {
+    /** Values to add; duplicates within the group are ignored */
+    values?: string[];
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupValueCreateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupValueCreateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupValueCreateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item);
+        }
+        return data;
+    }
+
+    clone(): CategoryGroupValueCreateRequest {
+        const json = this.toJSON();
+        let result = new CategoryGroupValueCreateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Values to add to a category group */
+export interface ICategoryGroupValueCreateRequest {
+    /** Values to add; duplicates within the group are ignored */
+    values?: string[];
+
+    [key: string]: any;
+}
+
+/** One allowed value of a category group */
+export class CategoryGroupValueResponse implements ICategoryGroupValueResponse {
+    id?: number;
+    value?: string;
+    sortIndex?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupValueResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.value = _data["value"];
+            this.sortIndex = _data["sortIndex"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupValueResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupValueResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["value"] = this.value;
+        data["sortIndex"] = this.sortIndex;
+        return data;
+    }
+
+    clone(): CategoryGroupValueResponse {
+        const json = this.toJSON();
+        let result = new CategoryGroupValueResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** One allowed value of a category group */
+export interface ICategoryGroupValueResponse {
+    id?: number;
+    value?: string;
+    sortIndex?: number;
 
     [key: string]: any;
 }
@@ -7323,6 +8228,223 @@ export interface IOwnerInput {
     [key: string]: any;
 }
 
+/** A page of category-group values with the total match count */
+export class PagedValuesResponse implements IPagedValuesResponse {
+    items?: CategoryGroupValueResponse[];
+    total?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPagedValuesResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(CategoryGroupValueResponse.fromJS(item));
+            }
+            this.total = _data["total"];
+        }
+    }
+
+    static fromJS(data: any): PagedValuesResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new PagedValuesResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["total"] = this.total;
+        return data;
+    }
+
+    clone(): PagedValuesResponse {
+        const json = this.toJSON();
+        let result = new PagedValuesResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A page of category-group values with the total match count */
+export interface IPagedValuesResponse {
+    items?: CategoryGroupValueResponse[];
+    total?: number;
+
+    [key: string]: any;
+}
+
+/** Pending group state to preview the re-draft impact */
+export class ReopenImpactRequest implements IReopenImpactRequest {
+    /** Existing group id, or null when previewing a group that is being created */
+    id?: number;
+    /** Whether the group would be mandatory */
+    required?: boolean;
+    /** Bommels the group would be assigned to */
+    bommelIds?: number[];
+
+    [key: string]: any;
+
+    constructor(data?: IReopenImpactRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["bommelIds"])) {
+                this.bommelIds = [] as any;
+                for (let item of _data["bommelIds"])
+                    this.bommelIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ReopenImpactRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReopenImpactRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["required"] = this.required;
+        if (Array.isArray(this.bommelIds)) {
+            data["bommelIds"] = [];
+            for (let item of this.bommelIds)
+                data["bommelIds"].push(item);
+        }
+        return data;
+    }
+
+    clone(): ReopenImpactRequest {
+        const json = this.toJSON();
+        let result = new ReopenImpactRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Pending group state to preview the re-draft impact */
+export interface IReopenImpactRequest {
+    /** Existing group id, or null when previewing a group that is being created */
+    id?: number;
+    /** Whether the group would be mandatory */
+    required?: boolean;
+    /** Bommels the group would be assigned to */
+    bommelIds?: number[];
+
+    [key: string]: any;
+}
+
+/** Confirmed transactions that would be reset to draft */
+export class ReopenImpactResponse implements IReopenImpactResponse {
+    affectedCount?: number;
+    transactionIds?: number[];
+
+    [key: string]: any;
+
+    constructor(data?: IReopenImpactResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.affectedCount = _data["affectedCount"];
+            if (Array.isArray(_data["transactionIds"])) {
+                this.transactionIds = [] as any;
+                for (let item of _data["transactionIds"])
+                    this.transactionIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ReopenImpactResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReopenImpactResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["affectedCount"] = this.affectedCount;
+        if (Array.isArray(this.transactionIds)) {
+            data["transactionIds"] = [];
+            for (let item of this.transactionIds)
+                data["transactionIds"].push(item);
+        }
+        return data;
+    }
+
+    clone(): ReopenImpactResponse {
+        const json = this.toJSON();
+        let result = new ReopenImpactResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Confirmed transactions that would be reset to draft */
+export interface IReopenImpactResponse {
+    affectedCount?: number;
+    transactionIds?: number[];
+
+    [key: string]: any;
+}
+
 export class SchemaDetectionResult implements ISchemaDetectionResult {
     /** Type of match found */
     type?: DetectionType;
@@ -7469,6 +8591,67 @@ export interface ITransactionAggregateResponse {
     [key: string]: any;
 }
 
+/** A category-group value stored on a transaction */
+export class TransactionCategoryValueResponse implements ITransactionCategoryValueResponse {
+    groupId?: number;
+    value?: string;
+
+    [key: string]: any;
+
+    constructor(data?: ITransactionCategoryValueResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.groupId = _data["groupId"];
+            this.value = _data["value"];
+        }
+    }
+
+    static fromJS(data: any): TransactionCategoryValueResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionCategoryValueResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["groupId"] = this.groupId;
+        data["value"] = this.value;
+        return data;
+    }
+
+    clone(): TransactionCategoryValueResponse {
+        const json = this.toJSON();
+        let result = new TransactionCategoryValueResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category-group value stored on a transaction */
+export interface ITransactionCategoryValueResponse {
+    groupId?: number;
+    value?: string;
+
+    [key: string]: any;
+}
+
 export class TransactionCreateRequest implements ITransactionCreateRequest {
     name?: string;
     total!: number;
@@ -7483,6 +8666,7 @@ export class TransactionCreateRequest implements ITransactionCreateRequest {
     senderZipCode?: string;
     senderCity?: string;
     tags?: string[];
+    categoryValues?: { [key: string]: string; };
 
     [key: string]: any;
 
@@ -7518,6 +8702,13 @@ export class TransactionCreateRequest implements ITransactionCreateRequest {
                 for (let item of _data["tags"])
                     this.tags!.push(item);
             }
+            if (_data["categoryValues"]) {
+                this.categoryValues = {} as any;
+                for (let key in _data["categoryValues"]) {
+                    if (_data["categoryValues"].hasOwnProperty(key))
+                        (this.categoryValues as any)![key] = _data["categoryValues"][key];
+                }
+            }
         }
     }
 
@@ -7551,6 +8742,13 @@ export class TransactionCreateRequest implements ITransactionCreateRequest {
             for (let item of this.tags)
                 data["tags"].push(item);
         }
+        if (this.categoryValues) {
+            data["categoryValues"] = {};
+            for (let key in this.categoryValues) {
+                if (this.categoryValues.hasOwnProperty(key))
+                    (data["categoryValues"] as any)[key] = (this.categoryValues as any)[key];
+            }
+        }
         return data;
     }
 
@@ -7576,6 +8774,7 @@ export interface ITransactionCreateRequest {
     senderZipCode?: string;
     senderCity?: string;
     tags?: string[];
+    categoryValues?: { [key: string]: string; };
 
     [key: string]: any;
 }
@@ -7598,6 +8797,7 @@ export class TransactionResponse implements ITransactionResponse {
     senderZipCode?: string;
     senderCity?: string;
     tags?: string[];
+    categoryValues?: TransactionCategoryValueResponse[];
     analysisStatus?: AnalysisStatus;
     extractionSource?: ExtractionSource;
     analysisError?: string;
@@ -7644,6 +8844,11 @@ export class TransactionResponse implements ITransactionResponse {
                 for (let item of _data["tags"])
                     this.tags!.push(item);
             }
+            if (Array.isArray(_data["categoryValues"])) {
+                this.categoryValues = [] as any;
+                for (let item of _data["categoryValues"])
+                    this.categoryValues!.push(TransactionCategoryValueResponse.fromJS(item));
+            }
             this.analysisStatus = _data["analysisStatus"];
             this.extractionSource = _data["extractionSource"];
             this.analysisError = _data["analysisError"];
@@ -7688,6 +8893,11 @@ export class TransactionResponse implements ITransactionResponse {
             for (let item of this.tags)
                 data["tags"].push(item);
         }
+        if (Array.isArray(this.categoryValues)) {
+            data["categoryValues"] = [];
+            for (let item of this.categoryValues)
+                data["categoryValues"].push(item ? item.toJSON() : undefined as any);
+        }
         data["analysisStatus"] = this.analysisStatus;
         data["extractionSource"] = this.extractionSource;
         data["analysisError"] = this.analysisError;
@@ -7724,6 +8934,7 @@ export interface ITransactionResponse {
     senderZipCode?: string;
     senderCity?: string;
     tags?: string[];
+    categoryValues?: TransactionCategoryValueResponse[];
     analysisStatus?: AnalysisStatus;
     extractionSource?: ExtractionSource;
     analysisError?: string;
@@ -7752,6 +8963,7 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
     senderCity?: string;
     tags?: string[];
     status?: string;
+    categoryValues?: { [key: string]: string; };
 
     [key: string]: any;
 
@@ -7788,6 +9000,13 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
                     this.tags!.push(item);
             }
             this.status = _data["status"];
+            if (_data["categoryValues"]) {
+                this.categoryValues = {} as any;
+                for (let key in _data["categoryValues"]) {
+                    if (_data["categoryValues"].hasOwnProperty(key))
+                        (this.categoryValues as any)![key] = _data["categoryValues"][key];
+                }
+            }
         }
     }
 
@@ -7822,6 +9041,13 @@ export class TransactionUpdateRequest implements ITransactionUpdateRequest {
                 data["tags"].push(item);
         }
         data["status"] = this.status;
+        if (this.categoryValues) {
+            data["categoryValues"] = {};
+            for (let key in this.categoryValues) {
+                if (this.categoryValues.hasOwnProperty(key))
+                    (data["categoryValues"] as any)[key] = (this.categoryValues as any)[key];
+            }
+        }
         return data;
     }
 
@@ -7848,6 +9074,7 @@ export interface ITransactionUpdateRequest {
     senderCity?: string;
     tags?: string[];
     status?: string;
+    categoryValues?: { [key: string]: string; };
 
     [key: string]: any;
 }

@@ -72,8 +72,8 @@ function HoppsTxMini({ tx }: { tx: TransactionResponse }) {
             >
                 {isIncoming ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
             </div>
-            <div className="min-w-0">
-                <div className="text-sm font-bold truncate">{tx.name || '—'}</div>
+            <div className="min-w-0 flex-1">
+                <div className="text-sm font-bold break-words">{tx.name || '—'}</div>
                 <div className="text-xs text-muted-foreground">{fmtDate(tx.transactionTime)}</div>
             </div>
         </div>
@@ -147,6 +147,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         queryFn: () =>
             apiService.orgService.transactionsAll(
                 undefined, // bommelId
+                undefined, // categoryValue
                 undefined, // detached
                 undefined, // endDate
                 0, // page
@@ -178,6 +179,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         queryFn: () =>
             apiService.orgService.transactionsAll(
                 undefined, // bommelId
+                undefined, // categoryValue
                 undefined, // detached
                 undefined, // endDate
                 0, // page

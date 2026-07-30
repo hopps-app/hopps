@@ -31,6 +31,8 @@ public record TransactionResponse(
         String senderZipCode,
         String senderCity,
         List<String> tags,
+        // Category-group values chosen for this transaction (groupId null = the group was deleted)
+        List<TransactionCategoryValueResponse> categoryValues,
         // Analysis data (from linked document)
         AnalysisStatus analysisStatus,
         ExtractionSource extractionSource,
@@ -56,6 +58,10 @@ public record TransactionResponse(
     public static TransactionResponse from(Transaction tx, BigDecimal coveredAmount) {
         List<String> tagList = tx.getTags() != null
                 ? new ArrayList<>(tx.getTags())
+                : List.of();
+
+        List<TransactionCategoryValueResponse> categoryValues = tx.getCategoryValues() != null
+                ? tx.getCategoryValues().stream().map(TransactionCategoryValueResponse::from).toList()
                 : List.of();
 
         // Get analysis info from linked document if available
@@ -86,6 +92,7 @@ public record TransactionResponse(
                 tx.getSenderZipCode(),
                 tx.getSenderCity(),
                 tagList,
+                categoryValues,
                 analysisStatus,
                 extractionSource,
                 analysisError,

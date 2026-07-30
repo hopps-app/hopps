@@ -9,9 +9,10 @@ interface BommelDetailsPanelProps {
     selectedBommel: OrganizationTreeNodeModel | null;
     subBommelsCount: number;
     onNavigateToReceipts?: () => void;
+    onNavigateToTransactions?: () => void;
 }
 
-export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigateToReceipts }: BommelDetailsPanelProps) {
+export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigateToReceipts, onNavigateToTransactions }: BommelDetailsPanelProps) {
     const { t } = useTranslation();
 
     if (!selectedBommel) {
@@ -66,10 +67,19 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                     </div>
                 </div>
 
-                {onNavigateToReceipts && (
-                    <Button onClick={onNavigateToReceipts} className="w-full" variant="default">
-                        {t('organization.structure.details.toReceipts')}
-                    </Button>
+                {(onNavigateToReceipts || onNavigateToTransactions) && (
+                    <div className="flex flex-col gap-2">
+                        {onNavigateToReceipts && (
+                            <Button onClick={onNavigateToReceipts} className="w-full" variant="default">
+                                {t('organization.structure.details.toReceipts')}
+                            </Button>
+                        )}
+                        {onNavigateToTransactions && (
+                            <Button onClick={onNavigateToTransactions} className="w-full" variant="secondary">
+                                {t('organization.structure.details.toTransactions')}
+                            </Button>
+                        )}
+                    </div>
                 )}
             </CardContent>
         </Card>

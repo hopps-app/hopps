@@ -83,7 +83,11 @@ public class DocumentResource {
     @APIResponse(responseCode = "201", description = "Document created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
     @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "Not authenticated")
-    @APIResponse(responseCode = "409", description = "A document with identical file content already exists in the organization")
+    // NOTE: intentionally no `content`/`@Schema` here. Documenting a typed error body makes NSwag throw that typed
+    // object directly instead of an ApiException, which would strip the `.status`/`.response` the frontend error
+    // handling relies on. The 409 body is still a DuplicateDocumentResponse JSON ({ existingDocumentId, message }); the
+    // client reads it from ApiException.response.
+    @APIResponse(responseCode = "409", description = "A document with identical file content already exists in the organization; the body is a DuplicateDocumentResponse carrying the existing document's id")
     public Response uploadDocument(
             @RestForm("file") FileUpload file,
             @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze,

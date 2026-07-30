@@ -200,7 +200,7 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                         <Landmark size={16} className="text-[#1F7A50]" />
                                     </span>
                                     <span className="flex flex-col min-w-0 flex-1">
-                                        <span className="text-[13px] font-bold text-[#1B1B1F] truncate">{b.counterpartyName || b.purpose || '—'}</span>
+                                        <span className="text-[13px] font-bold text-[#1B1B1F] break-words">{b.counterpartyName || b.purpose || '—'}</span>
                                         <span className="text-[12px] text-[#6B6B76]">
                                             {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                         </span>

@@ -2,6 +2,7 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
@@ -18,6 +19,9 @@ public class TransactionUpdateConverter {
 
     @Inject
     BommelRepository bommelRepository;
+
+    @Inject
+    CategoryGroupService categoryGroupService;
 
     public void applyUpdateRequestToTransaction(Transaction transaction, TransactionUpdateRequest request) {
         // Capture the counterparty and direction before total (and thus the direction) may change below, so
@@ -84,6 +88,11 @@ public class TransactionUpdateConverter {
 
         if (request.status() != null && !request.status().isBlank()) {
             transaction.setStatus(TransactionStatus.valueOf(request.status().toUpperCase()));
+        }
+
+        // null = leave category values unchanged; a present map (possibly empty) replaces them.
+        if (request.categoryValues() != null) {
+            categoryGroupService.validateAndApply(transaction, request.categoryValues());
         }
     }
 }

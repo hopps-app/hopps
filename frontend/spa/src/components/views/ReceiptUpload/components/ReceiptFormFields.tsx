@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { FormErrors, LoadingStates } from '../hooks/useReceiptForm';
 
+import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { Label } from '@/components/ui/Label';
 import Radio from '@/components/ui/Radio';
@@ -25,6 +26,8 @@ interface ReceiptFormFieldsProps {
     onContractPartnerChange: (value: string) => void;
     bommelId: number | null;
     onBommelIdChange: (id: number | null) => void;
+    categoryValues: Record<number, string>;
+    onCategoryValueChange: (groupId: number, value: string | undefined) => void;
     tags: string[];
     onTagsChange: (tags: string[]) => void;
     grossAmount: string;
@@ -51,6 +54,8 @@ export function ReceiptFormFields({
     onContractPartnerChange,
     bommelId,
     onBommelIdChange,
+    categoryValues,
+    onCategoryValueChange,
     tags,
     onTagsChange,
     grossAmount,
@@ -152,6 +157,13 @@ export function ReceiptFormFields({
                 loading={loadingStates.dueDate}
                 disabled={readOnly}
             />
+
+            {/* Category groups applicable to the selected bommel (full width) */}
+            {!readOnly && (
+                <div className="sm:col-span-2">
+                    <CategoryGroupFields bommelId={bommelId} values={categoryValues} onChange={onCategoryValueChange} />
+                </div>
+            )}
 
             {/* Row 6: Tags (full width) */}
             <div className="sm:col-span-2">

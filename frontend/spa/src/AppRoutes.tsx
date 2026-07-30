@@ -19,12 +19,13 @@ const SettingsView = lazy(() => import('@/components/views/SettingsView'));
 const OrganizationSettingsView = lazy(() => import('./components/views/OrganizationSettings').then((module) => ({ default: module.OrganizationSettingsView })));
 const ReceiptUploadView = lazy(() => import('./components/views/ReceiptUpload').then((module) => ({ default: module.ReceiptUploadView })));
 const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
-const CategoriesSettingsView = lazy(() => import('./components/views/CategoriesSettingsView'));
+const CategoryGroupsView = lazy(() => import('./components/views/CategoryGroupsView'));
 const OrganizationDetailsSettingsView = lazy(() => import('./components/views/OrganizationDetailsSettingsView'));
 const ReceiptView = lazy(() => import('@/components/views/ReceiptView'));
 const DebugErrorView = lazy(() => import('@/components/views/DebugErrorView'));
 const KontenView = lazy(() => import('@/components/views/KontenView').then((m) => ({ default: m.KontenView })));
 const TransactionenView = lazy(() => import('@/components/views/TransactionenView').then((m) => ({ default: m.TransactionenView })));
+const ReportsView = lazy(() => import('@/components/views/ReportsView').then((m) => ({ default: m.ReportsView })));
 const BankAccountDetailView = lazy(() => import('@/components/views/BankAccountDetailView').then((m) => ({ default: m.BankAccountDetailView })));
 const BankImportView = lazy(() => import('@/components/views/BankImportView').then((m) => ({ default: m.BankImportView })));
 const BankSchemasView = lazy(() => import('@/components/views/BankSchemasView').then((m) => ({ default: m.BankSchemasView })));
@@ -118,6 +119,16 @@ export default function AppRoutes() {
                     }
                 />
 
+                {/* reports */}
+                <Route
+                    path="/reports"
+                    element={
+                        <LazyRoute>
+                            <ReportsView />
+                        </LazyRoute>
+                    }
+                />
+
                 {/* bank accounts */}
                 <Route
                     path="/bank-accounts"
@@ -165,7 +176,7 @@ export default function AppRoutes() {
                     path="/admin/categories"
                     element={
                         <LazyRoute>
-                            <CategoriesSettingsView />
+                            <CategoryGroupsView />
                         </LazyRoute>
                     }
                 />
