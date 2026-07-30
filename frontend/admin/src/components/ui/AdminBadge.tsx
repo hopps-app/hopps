@@ -8,10 +8,10 @@ type AdminBadgeProps = {
 
 /**
  * Marks the app as the admin surface, alongside the `hopps` wordmark.
- * Uses the Klar `.badge--purple` pill so it matches badges across the app.
+ * Uses the Klar `.badge--neutral` pill so it matches badges across the app.
  */
 export default function AdminBadge({ className }: AdminBadgeProps) {
     const { t } = useTranslation();
 
-    return <span className={cn('badge badge--purple', className)}>{t('brand.admin')}</span>;
+    return <span className={cn('badge badge--neutral', className)}>{t('brand.admin')}</span>;
 }
