@@ -110,8 +110,11 @@
         },
         "impersonate": {
             "action": "Impersonate",
-            "title": "Impersonate this organization",
-            "body": "Impersonation lets you sign in as a member of {{name}} to reproduce their view. This is not wired up yet — it needs Keycloak Admin API access and an audit trail before it can be enabled."
+            "starting": "Starting…",
+            "title": "Sign in as this member",
+            "body": "You will be signed in as {{name}} to reproduce their view. The application opens in a new tab. This action is recorded in the audit log.",
+            "warning": "Careful: this replaces your own sign-in in this browser. You will be logged out of your admin account and have to sign in again afterwards.",
+            "failed": "Impersonation failed. Please try again."
         },
         "members": {
             "empty": "No users yet.",

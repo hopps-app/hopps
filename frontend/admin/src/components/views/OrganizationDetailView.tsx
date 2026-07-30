@@ -8,6 +8,8 @@ import { deleteOrganization, fetchOrganization } from '@/features/organizations/
 import BelegeChart from '@/features/organizations/BelegeChart';
 import DeleteDialog from '@/features/organizations/DeleteDialog';
 import ExtractionChart from '@/features/organizations/ExtractionChart';
+import ImpersonateDialog from '@/features/organizations/ImpersonateDialog';
+import { authoriseImpersonation, impersonate } from '@/features/organizations/impersonation';
 import LoginActivityChart from '@/features/organizations/LoginActivityChart';
 import StatusBadge from '@/features/organizations/StatusBadge';
 // Hidden for now — restore alongside the <TokenTrendChart /> usage below:
@@ -17,7 +19,7 @@ import { deriveStatus } from '@/features/organizations/status';
 import type { OrganizationDetail, OrgAddress, OrgMember } from '@/features/organizations/types';
 import { cn } from '@/lib/utils';
 
-type Modal = 'none' | 'delete';
+type Modal = 'none' | 'delete' | 'impersonate';
 
 export default function OrganizationDetailView() {
     const { t } = useTranslation();
@@ -29,6 +31,9 @@ export default function OrganizationDetailView() {
     const [state, setState] = useState<'loading' | 'ready' | 'notfound'>('loading');
     const [modal, setModal] = useState<Modal>('none');
     const [deleting, setDeleting] = useState(false);
+    const [impersonating, setImpersonating] = useState<OrgMember | null>(null);
+    const [impersonationBusy, setImpersonationBusy] = useState(false);
+    const [impersonationError, setImpersonationError] = useState<string | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -59,6 +64,25 @@ export default function OrganizationDetailView() {
             onClick: () => setModal('delete'),
         },
     ];
+
+    const handleImpersonate = async () => {
+        if (!org || !impersonating) return;
+        setImpersonationBusy(true);
+        setImpersonationError(null);
+        try {
+            // Two steps on purpose: the backend authorises and records, the browser then performs the
+            // Keycloak call itself because that is the only place the resulting session cookies are useful.
+            const target = await authoriseImpersonation(org.id, impersonating.id);
+            await impersonate(target);
+            setModal('none');
+            setImpersonating(null);
+        } catch (e) {
+            console.error('Impersonation failed:', e);
+            setImpersonationError(t('organizations.impersonate.failed'));
+        } finally {
+            setImpersonationBusy(false);
+        }
+    };
 
     const handleDelete = async () => {
         if (!org) return;
@@ -153,7 +177,15 @@ export default function OrganizationDetailView() {
                         ) : (
                             <div className="flex flex-col gap-2 mt-3">
                                 {org.members.map((m) => (
-                                    <MemberRow key={m.id} member={m} />
+                                    <MemberRow
+                                        key={m.id}
+                                        member={m}
+                                        onImpersonate={() => {
+                                            setImpersonating(m);
+                                            setImpersonationError(null);
+                                            setModal('impersonate');
+                                        }}
+                                    />
                                 ))}
                             </div>
                         )}
@@ -174,6 +206,18 @@ export default function OrganizationDetailView() {
 
             {modal === 'delete' && (
                 <DeleteDialog confirmText={org.name} busy={deleting} onConfirm={handleDelete} onClose={() => setModal('none')} />
+            )}
+            {modal === 'impersonate' && impersonating && (
+                <ImpersonateDialog
+                    name={`${impersonating.firstName} ${impersonating.lastName}`.trim()}
+                    busy={impersonationBusy}
+                    error={impersonationError}
+                    onConfirm={handleImpersonate}
+                    onClose={() => {
+                        setModal('none');
+                        setImpersonating(null);
+                    }}
+                />
             )}
         </div>
     );
@@ -259,29 +303,32 @@ function websiteLabel(website: string): string {
  * The subtitle is the e-mail rather than a board role ("Kassenwart", "1. Vorsitzende"): the backend
  * `Member` has only firstName/lastName/email/keycloakId, so there is no role to show yet.
  */
-function MemberRow({ member }: { member: OrgMember }) {
+function MemberRow({ member, onImpersonate }: { member: OrgMember; onImpersonate: () => void }) {
     const { t } = useTranslation();
     const initials = `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`.toUpperCase();
     const fullName = `${member.firstName} ${member.lastName}`.trim();
 
-    // Both actions are intentionally inert for now. Impersonation needs Keycloak admin-API access and
-    // an audit log before it can be switched on (see ImpersonateDialog), and there is no endpoint for
-    // removing a member from an organization yet.
-    const actions: DropdownMenuItem[] = [
-        {
+    const actions: DropdownMenuItem[] = [];
+
+    // Members that were never provisioned in Keycloak have no identity to assume, so the action is left out
+    // rather than offered and then refused by the backend.
+    if (member.hasAccount) {
+        actions.push({
             title: t('organizations.members.impersonate'),
             description: t('organizations.members.impersonateHint'),
             icon: <UserCog size={17} />,
-            onClick: () => {},
-        },
-        {
-            title: t('organizations.members.delete'),
-            description: t('organizations.members.deleteHint'),
-            tone: 'danger',
-            icon: <Trash2 size={17} />,
-            onClick: () => {},
-        },
-    ];
+            onClick: onImpersonate,
+        });
+    }
+
+    // Still inert: there is no endpoint for removing a member from an organization yet.
+    actions.push({
+        title: t('organizations.members.delete'),
+        description: t('organizations.members.deleteHint'),
+        tone: 'danger',
+        icon: <Trash2 size={17} />,
+        onClick: () => {},
+    });
 
     return (
         <div className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: 'var(--surface-2)' }}>

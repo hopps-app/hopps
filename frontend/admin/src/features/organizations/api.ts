@@ -73,11 +73,12 @@ function mapAddress(a: AdminOrganizationDetail['address']): OrgAddress | null {
 }
 
 function mapMembers(members: AdminOrganizationDetail['members']): OrgMember[] {
-    return (members ?? []).map((m, i) => ({
-        id: i + 1,
+    return (members ?? []).map((m) => ({
+        id: m.id ?? 0,
         firstName: m.firstName ?? '',
         lastName: m.lastName ?? '',
         email: m.email ?? '',
+        hasAccount: m.hasAccount ?? false,
     }));
 }
 

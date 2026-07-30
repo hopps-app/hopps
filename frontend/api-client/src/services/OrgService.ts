@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -335,6 +335,68 @@ export class Client {
             });
         }
         return Promise.resolve<LoginActivityResponse>(null as any);
+    }
+
+    /**
+     * Authorise impersonation of a member
+     * @param id The organization id
+     * @param memberId The member id
+     * @return Impersonation authorised and recorded
+     */
+    impersonate(id: number, memberId: number): Promise<ImpersonationTicket> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/members/{memberId}/impersonate";
+        if (id === undefined || id === null)
+            throw new Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (memberId === undefined || memberId === null)
+            throw new Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImpersonate(_response);
+        });
+    }
+
+    protected processImpersonate(response: Response): Promise<ImpersonationTicket> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ImpersonationTicket.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization or member not found, or the member does not belong to that organization", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The member has no Keycloak account and so cannot be impersonated", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ImpersonationTicket>(null as any);
     }
 
     /**
@@ -4705,12 +4767,16 @@ export interface IAddress {
 
 /** A member of an organization, as shown on the admin detail page */
 export class AdminMemberSummary implements IAdminMemberSummary {
+    /** Member id, needed to address this member in admin actions */
+    id?: number;
     /** First name */
     firstName?: string;
     /** Last name */
     lastName?: string;
     /** Email address */
     email?: string;
+    /** Whether this member has a Keycloak account and can therefore be impersonated */
+    hasAccount?: boolean;
 
     [key: string]: any;
 
@@ -4729,9 +4795,11 @@ export class AdminMemberSummary implements IAdminMemberSummary {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
+            this.id = _data["id"];
             this.firstName = _data["firstName"];
             this.lastName = _data["lastName"];
             this.email = _data["email"];
+            this.hasAccount = _data["hasAccount"];
         }
     }
 
@@ -4748,9 +4816,11 @@ export class AdminMemberSummary implements IAdminMemberSummary {
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
+        data["id"] = this.id;
         data["firstName"] = this.firstName;
         data["lastName"] = this.lastName;
         data["email"] = this.email;
+        data["hasAccount"] = this.hasAccount;
         return data;
     }
 
@@ -4764,12 +4834,16 @@ export class AdminMemberSummary implements IAdminMemberSummary {
 
 /** A member of an organization, as shown on the admin detail page */
 export interface IAdminMemberSummary {
+    /** Member id, needed to address this member in admin actions */
+    id?: number;
     /** First name */
     firstName?: string;
     /** Last name */
     lastName?: string;
     /** Email address */
     email?: string;
+    /** Whether this member has a Keycloak account and can therefore be impersonated */
+    hasAccount?: boolean;
 
     [key: string]: any;
 }
@@ -7210,6 +7284,77 @@ export interface IExtractionBreakdownResponse {
 }
 
 export type ExtractionSource = "ZUGFERD" | "AI" | "MANUAL";
+
+/** Authorisation to impersonate a member, plus the Keycloak user id to do it with */
+export class ImpersonationTicket implements IImpersonationTicket {
+    /** Keycloak user id (sub) of the member to impersonate */
+    keycloakId?: string;
+    /** Display name of the member, for confirmation UI */
+    displayName?: string;
+    /** Email address of the member */
+    email?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IImpersonationTicket) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.keycloakId = _data["keycloakId"];
+            this.displayName = _data["displayName"];
+            this.email = _data["email"];
+        }
+    }
+
+    static fromJS(data: any): ImpersonationTicket {
+        data = typeof data === 'object' ? data : {};
+        let result = new ImpersonationTicket();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["keycloakId"] = this.keycloakId;
+        data["displayName"] = this.displayName;
+        data["email"] = this.email;
+        return data;
+    }
+
+    clone(): ImpersonationTicket {
+        const json = this.toJSON();
+        let result = new ImpersonationTicket();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Authorisation to impersonate a member, plus the Keycloak user id to do it with */
+export interface IImpersonationTicket {
+    /** Keycloak user id (sub) of the member to impersonate */
+    keycloakId?: string;
+    /** Display name of the member, for confirmation UI */
+    displayName?: string;
+    /** Email address of the member */
+    email?: string;
+
+    [key: string]: any;
+}
 
 /** Per-day time spent in the application by an organization, over the chart window */
 export class LoginActivityResponse implements ILoginActivityResponse {

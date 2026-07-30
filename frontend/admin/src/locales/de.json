@@ -110,8 +110,11 @@
         },
         "impersonate": {
             "action": "Impersonieren",
-            "title": "Diesen Verein impersonieren",
-            "body": "Beim Impersonieren meldest du dich als Mitglied von {{name}} an, um dessen Ansicht nachzuvollziehen. Das ist noch nicht angebunden – es braucht Zugriff auf die Keycloak-Admin-API und ein Audit-Log, bevor es aktiviert werden kann."
+            "starting": "Wird gestartet…",
+            "title": "Als dieses Mitglied anmelden",
+            "body": "Du meldest dich als {{name}} an, um dessen Ansicht nachzuvollziehen. Die Anwendung öffnet sich in einem neuen Tab. Der Vorgang wird protokolliert.",
+            "warning": "Achtung: Damit wird deine eigene Anmeldung in diesem Browser ersetzt. Du wirst aus deinem Admin-Konto abgemeldet und musst dich danach neu anmelden.",
+            "failed": "Das Impersonieren ist fehlgeschlagen. Bitte erneut versuchen."
         },
         "members": {
             "empty": "Noch keine Nutzer.",

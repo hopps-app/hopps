@@ -48,12 +48,15 @@ export type OrgAddress = {
     additionalLine: string | null;
 };
 
-/** A member of the organization. Mirrors the backend `Member` (firstName, lastName, email). */
+/** A member of the organization. Mirrors the backend `AdminMemberSummary`. */
 export type OrgMember = {
+    /** Real backend member id — admin actions address the member by this. */
     id: number;
     firstName: string;
     lastName: string;
     email: string;
+    /** False when the member was never provisioned in Keycloak, so cannot be impersonated. */
+    hasAccount: boolean;
 };
 
 /** AI providers Hopps can bill usage against. `services` on TokenUsage keys off these. */
