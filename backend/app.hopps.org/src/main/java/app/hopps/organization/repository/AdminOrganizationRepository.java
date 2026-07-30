@@ -29,6 +29,13 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
     /** Reporting window for the document-upload activity chart, in months (inclusive of the current month). */
     public static final int WINDOW_MONTHS = 6;
 
+    /**
+     * Reporting window for the per-day activity chart, in days (inclusive of today). Independent of how long the
+     * underlying rows are retained ({@code MemberActivityRepository.RETENTION_DAYS}) — this is just how much of that
+     * history the organization detail page shows.
+     */
+    public static final int ACTIVITY_WINDOW_DAYS = 7;
+
     @Inject
     EntityManager entityManager;
 
@@ -100,14 +107,16 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
     }
 
     /**
-     * Total activity events per day for one organization over the inclusive {@code [from, to]} range, summed across the
-     * organization's members (each member's per-day {@code activity_count}). Every day in the range is returned (days
+     * Time spent in the application per day for one organization over the inclusive {@code [from, to]} range, in
+     * seconds, summed across the organization's members (each member's per-day {@code active_seconds}). Because it sums
+     * across members, an organization with several concurrently active members can exceed 24 hours in a day — this is
+     * combined member time, not wall-clock time the organization was "open". Every day in the range is returned (days
      * with no activity as 0) via {@code generate_series}, so the result is gap-free and chart-ready.
      */
     @SuppressWarnings("unchecked")
-    public List<DailyActivity> dailyActivityCountsForOrganization(long organizationId, LocalDate from, LocalDate to) {
+    public List<DailyActivity> dailyActiveSecondsForOrganization(long organizationId, LocalDate from, LocalDate to) {
         List<Object[]> rows = entityManager.createNativeQuery(
-                "select d::date as day, coalesce(sum(a.activity_count), 0) as activity_count "
+                "select d::date as day, coalesce(sum(a.active_seconds), 0) as active_seconds "
                         + "from generate_series(:from, :to, interval '1 day') d "
                         + "left join member_activity_day a on a.activity_date = d::date "
                         + "and a.member_id in (select member_id from member_verein where organizations_id = :orgId) "

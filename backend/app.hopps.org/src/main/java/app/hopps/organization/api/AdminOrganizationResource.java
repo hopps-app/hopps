@@ -2,7 +2,6 @@ package app.hopps.organization.api;
 
 import app.hopps.document.domain.ExtractionSource;
 import app.hopps.member.domain.Member;
-import app.hopps.member.repository.MemberActivityRepository;
 import app.hopps.organization.api.dto.AdminOrganizationDetail;
 import app.hopps.organization.api.dto.AdminOrganizationRow;
 import app.hopps.organization.api.dto.ExtractionBreakdownResponse;
@@ -96,8 +95,8 @@ public class AdminOrganizationResource {
     @GET
     @Path("/{id}/login-activity")
     @Transactional
-    @Operation(summary = "Organization login activity", description = "Total login/activity events per day for the organization over the last 7 days (oldest first), summed across members, with days of no activity reported as zero. Includes the organization's total member count for ratio display.")
-    @APIResponse(responseCode = "200", description = "Per-day login activity", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = LoginActivityResponse.class)))
+    @Operation(summary = "Organization activity, as time spent in the application", description = "Seconds spent in the application per day by the organization over the last 7 days (oldest first), summed across its members, with days of no activity reported as zero. Because member time is summed, a day can exceed 24 hours when several members were active at once. Includes the organization's total member count so the figure can be related to how many people it is spread across.")
+    @APIResponse(responseCode = "200", description = "Per-day time spent in the application", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = LoginActivityResponse.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "403", description = "User is not an admin")
     @APIResponse(responseCode = "404", description = "Organization not found or soft-deleted")
@@ -105,10 +104,10 @@ public class AdminOrganizationResource {
             @PathParam("id") @Parameter(description = "The organization id") Long id) {
         Organization org = findActiveOrThrow(id);
         LocalDate today = LocalDate.now();
-        LocalDate from = today.minusDays(MemberActivityRepository.WINDOW_DAYS - 1L);
+        LocalDate from = today.minusDays(AdminOrganizationRepository.ACTIVITY_WINDOW_DAYS - 1L);
         return new LoginActivityResponse(
                 org.getMembers().size(),
-                adminRepository.dailyActivityCountsForOrganization(id, from, today));
+                adminRepository.dailyActiveSecondsForOrganization(id, from, today));
     }
 
     @GET
