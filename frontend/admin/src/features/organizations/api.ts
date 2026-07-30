@@ -95,10 +95,11 @@ function mockTokenUsage(id: number): TokenUsage | null {
 const EMPTY_LOGIN_ACTIVITY: LoginActivity = { totalMembers: 0, days: [] };
 
 /**
- * Real per-day active-member counts for one org, from GET /admin/organizations/{id}/login-activity.
- * The backend counts distinct members who made an authenticated request that day (once per member
- * per day), gap-filled over the last 7 days, oldest first. Degrades to an empty window on failure
- * so a chart-endpoint blip can't fail the whole detail page.
+ * Real per-day time-in-app for one org, from GET /admin/organizations/{id}/login-activity.
+ * The backend accumulates each member's elapsed time (gaps longer than a few minutes count as the
+ * member having left) and sums it across the org's members, gap-filled over the last 7 days, oldest
+ * first. Degrades to an empty window on failure so a chart-endpoint blip can't fail the whole
+ * detail page.
  */
 async function fetchLoginActivity(id: number): Promise<LoginActivity> {
     try {
@@ -106,7 +107,7 @@ async function fetchLoginActivity(id: number): Promise<LoginActivity> {
         const days: DailyActivity[] = (res.days ?? []).map((d) => ({
             // The generated client parses `day` to a Date; keep only the calendar date (ISO).
             day: d.day ? new Date(d.day).toISOString().slice(0, 10) : '',
-            activeUsers: d.activeUsers ?? 0,
+            activeSeconds: d.activeSeconds ?? 0,
         }));
         return { totalMembers: res.totalMembers ?? 0, days };
     } catch (e) {

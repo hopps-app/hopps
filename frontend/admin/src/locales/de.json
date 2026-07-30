@@ -4,6 +4,7 @@
     },
     "menu": {
         "empty": "Noch keine Menüeinträge.",
+        "overview": "Übersicht",
         "organizations": "Vereine",
         "collapse": "Einklappen",
         "expand": "Ausklappen",
@@ -61,10 +62,8 @@
             "empty": "Keine Daten",
             "login": {
                 "eyebrow": "Aktivität",
-                "title": "Aktive Mitglieder pro Tag",
-                "subtitle": "letzte 7 Tage",
-                "tooltip_one": "{{count}} aktives Mitglied",
-                "tooltip_other": "{{count}} aktive Mitglieder"
+                "title": "Zeit in der Anwendung",
+                "subtitle": "pro Tag, letzte 7 Tage"
             },
             "belege": {
                 "eyebrow": "Beleg-Verbrauch",

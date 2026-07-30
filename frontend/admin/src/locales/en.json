@@ -4,6 +4,7 @@
     },
     "menu": {
         "empty": "No menu items yet.",
+        "overview": "Overview",
         "organizations": "Organizations",
         "collapse": "Collapse",
         "expand": "Expand",
@@ -61,10 +62,8 @@
             "empty": "No data",
             "login": {
                 "eyebrow": "Activity",
-                "title": "Active members per day",
-                "subtitle": "last 7 days",
-                "tooltip_one": "{{count}} active member",
-                "tooltip_other": "{{count}} active members"
+                "title": "Time in the application",
+                "subtitle": "per day, last 7 days"
             },
             "belege": {
                 "eyebrow": "Receipt usage",

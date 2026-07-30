@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { formatDuration } from './format';
 import type { LoginActivity } from './types';
 
 /** Short localised weekday label ("Mo", "Di", …) for an ISO date. de-DE, Klar-consistent. */
@@ -17,40 +18,38 @@ function weekdayLong(iso: string): string {
 }
 
 /**
- * Active-members-per-day bar chart over the last 7 days — the "Aktivität" card.
- * Each bar is the number of distinct members who made an authenticated request that day
- * (the backend counts a member once per day, so this measures reach — how many members
- * were active — not raw sign-in or request events). The most recent day is the anchor
- * (solid purple), earlier days a tint. Bars scale against the busiest day; headline shows
- * the latest day's count.
+ * Time-in-app per day over the last 7 days — the "Aktivität" card.
+ * Each bar is how long the org's members spent in the application that day, summed across them, so
+ * a day can exceed 24 hours when several members were active at once. The backend accumulates real
+ * elapsed time and discards gaps longer than a few minutes as the member having left, which means
+ * this measures presence rather than output — read it next to the Beleg counts, not instead of them.
+ * The most recent day is the anchor (solid purple), earlier days a tint. Bars scale against the
+ * busiest day; headline shows the latest day.
  */
 export default function LoginActivityChart({ activity }: { activity: LoginActivity }) {
     const { t } = useTranslation();
     const { days } = activity;
     // Scale against the busiest day in the window so the tallest bar fills the chart.
-    const peak = Math.max(1, ...days.map((d) => d.activeUsers));
+    const peak = Math.max(1, ...days.map((d) => d.activeSeconds));
     const lastIndex = days.length - 1;
-    const latest = days[lastIndex]?.activeUsers ?? 0;
+    const latest = days[lastIndex]?.activeSeconds ?? 0;
 
     return (
         <ChartCard
             eyebrow={t('organizations.charts.login.eyebrow')}
             title={t('organizations.charts.login.title')}
             subtitle={t('organizations.charts.login.subtitle')}
-            headline={<span>{latest}</span>}
+            headline={<span>{formatDuration(latest)}</span>}
         >
             <div className="flex items-end gap-2 h-[112px]" role="img" aria-label={t('organizations.charts.login.title')}>
                 {days.map((d, i) => (
                     <div key={d.day} className="group relative flex-1 h-full flex flex-col items-center gap-1.5 min-w-0">
-                        <ChartTooltip
-                            label={weekdayLong(d.day)}
-                            value={t('organizations.charts.login.tooltip', { count: d.activeUsers })}
-                        />
+                        <ChartTooltip label={weekdayLong(d.day)} value={formatDuration(d.activeSeconds)} />
                         <div className="w-full flex-1 min-h-0 flex items-end justify-center">
                             <div
                                 className="w-full max-w-[28px] rounded-t-[4px] transition-opacity group-hover:opacity-80"
                                 style={{
-                                    height: `${Math.max(4, (d.activeUsers / peak) * 100)}%`,
+                                    height: `${Math.max(4, (d.activeSeconds / peak) * 100)}%`,
                                     background: i === lastIndex ? 'var(--pp)' : 'var(--pp-tint2)',
                                 }}
                             />

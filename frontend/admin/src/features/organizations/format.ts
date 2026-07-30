@@ -34,6 +34,24 @@ export function formatDeltaPct(fraction: number): string {
     return `${sign}${new Intl.NumberFormat('de-DE').format(Math.abs(pct))} %`;
 }
 
+/**
+ * A duration in seconds as a compact hours figure (`12240` → `3,4 Std.`). Below an hour it
+ * degrades to whole minutes (`900` → `15 Min.`) and below a minute to a plain dash, since
+ * "0,01 Std." reads as noise rather than information. German-first, like the other formatters.
+ *
+ * Units are baked in rather than translated: the admin surface is German-first, and these are
+ * the same fixed-locale conventions `formatDate` and `formatNumber` already follow.
+ */
+export function formatDuration(seconds: number): string {
+    if (seconds < 60) {
+        return '–';
+    }
+    if (seconds < 3600) {
+        return `${Math.round(seconds / 60)} Min.`;
+    }
+    return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(seconds / 3600)} Std.`;
+}
+
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;

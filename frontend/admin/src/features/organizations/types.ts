@@ -89,23 +89,30 @@ export type ExtractionBreakdown = {
 };
 
 /**
- * Activity for a single day: how many distinct members were active (made an authenticated
- * request) on `day`. Mirrors the backend `DailyActivity` record.
+ * Time the org spent in the application on `day`, in seconds, summed across its members.
+ * Mirrors the backend `DailyActivity` record.
+ *
+ * Because member time is summed, a day can exceed 24 hours when several members were active
+ * at once — this is combined member time, not wall-clock time the org was "open". It measures
+ * presence, not output: an hour spent struggling with a form scores higher than a Beleg filed
+ * in two minutes, which is what makes it worth reading next to `belegeCount` rather than
+ * instead of it.
  */
 export type DailyActivity = {
     /** ISO calendar day, e.g. "2026-07-05". */
     day: string;
-    /** Number of distinct members active that day. */
-    activeUsers: number;
+    /** Seconds spent in the application that day, summed across the org's members. */
+    activeSeconds: number;
 };
 
 /**
- * Per-day active-member counts over the retention window (last 7 days, oldest first,
- * gap-filled with zeros), plus the org's total member count for a ratio display.
+ * Per-day time in the application over the chart window (last 7 days, oldest first,
+ * gap-filled with zeros), plus the org's total member count so the total can be related to
+ * how many people it is spread across.
  * Mirrors the backend `LoginActivityResponse` from GET /admin/organizations/{id}/login-activity.
  */
 export type LoginActivity = {
-    /** Total members of the organization — the denominator for "N of M active". */
+    /** Total members of the organization — context for how many people the time is spread across. */
     totalMembers: number;
     /** One entry per day, oldest first. Length is the window (7). */
     days: DailyActivity[];
