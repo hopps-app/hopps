@@ -66,7 +66,14 @@
       {
         "id": "f11fe8bd-040b-4265-95cb-9868c51f59bc",
         "name": "admin",
-        "composite": false,
+        "composite": true,
+        "composites": {
+          "client": {
+            "realm-management": [
+              "impersonation"
+            ]
+          }
+        },
         "clientRole": false,
         "containerId": "248d65ab-5cec-458a-b141-05b6d7469be9",
         "attributes": {}
