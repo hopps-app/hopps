@@ -11,7 +11,7 @@ import java.time.LocalDate;
 
 /**
  * Keeps {@code member_activity_day} bounded to the retention window by deleting older rows once a day. Without this the
- * table would accumulate a row for every member on every day they were ever active.
+ * table would accumulate a row for every member on every day they were ever active, forever.
  */
 @ApplicationScoped
 public class MemberActivityPruneJob {
@@ -23,8 +23,10 @@ public class MemberActivityPruneJob {
 
     @Scheduled(cron = "0 15 3 * * ?")
     void prune() {
-        // Keep today plus the previous WINDOW_DAYS-1 days; delete anything strictly older.
-        LocalDate cutoff = LocalDate.now().minusDays(MemberActivityRepository.WINDOW_DAYS - 1L);
+        // Keep today plus the previous RETENTION_DAYS-1 days; delete anything strictly older. Retention is deliberately
+        // far longer than the admin chart's window: the rows are narrow, and keeping them is what makes long-range
+        // "hours per month" trends possible at all.
+        LocalDate cutoff = LocalDate.now().minusDays(MemberActivityRepository.RETENTION_DAYS - 1L);
         int deleted = activityRepository.pruneOlderThan(cutoff);
         if (deleted > 0) {
             LOG.info("Pruned {} member activity rows older than {}", deleted, cutoff);
