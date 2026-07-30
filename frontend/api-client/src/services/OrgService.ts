@@ -15,7 +15,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -284,9 +284,9 @@ export class Client {
     }
 
     /**
-     * Organization login activity
+     * Organization activity, as time spent in the application
      * @param id The organization id
-     * @return Per-day login activity
+     * @return Per-day time spent in the application
      */
     loginActivity(id: number): Promise<LoginActivityResponse> {
         let url_ = this.baseUrl + "/admin/organizations/{id}/login-activity";
@@ -3458,6 +3458,48 @@ export class Client {
             });
         }
         return Promise.resolve<BankImportResponse>(null as any);
+    }
+
+    /**
+     * Report that the member is currently using the application
+     * @return Presence recorded
+     */
+    heartbeat(): Promise<void> {
+        let url_ = this.baseUrl + "/member/activity/heartbeat";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processHeartbeat(_response);
+        });
+    }
+
+    protected processHeartbeat(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     /**
@@ -6741,12 +6783,12 @@ export interface ICsvPreviewResponse {
     [key: string]: any;
 }
 
-/** Total activity events for a single day */
+/** Time spent in the application on a single day, summed across members */
 export class DailyActivity implements IDailyActivity {
     /** The calendar day */
     day?: Date;
-    /** Total activity events that day (summed across members) */
-    activityCount?: number;
+    /** Seconds spent in the application that day, summed across the organization's members */
+    activeSeconds?: number;
 
     [key: string]: any;
 
@@ -6766,7 +6808,7 @@ export class DailyActivity implements IDailyActivity {
                     this[property] = _data[property];
             }
             this.day = _data["day"] ? new Date(_data["day"].toString()) : <any>undefined;
-            this.activityCount = _data["activityCount"];
+            this.activeSeconds = _data["activeSeconds"];
         }
     }
 
@@ -6784,7 +6826,7 @@ export class DailyActivity implements IDailyActivity {
                 data[property] = this[property];
         }
         data["day"] = this.day ? formatDate(this.day) : <any>undefined;
-        data["activityCount"] = this.activityCount;
+        data["activeSeconds"] = this.activeSeconds;
         return data;
     }
 
@@ -6796,12 +6838,12 @@ export class DailyActivity implements IDailyActivity {
     }
 }
 
-/** Total activity events for a single day */
+/** Time spent in the application on a single day, summed across members */
 export interface IDailyActivity {
     /** The calendar day */
     day?: Date;
-    /** Total activity events that day (summed across members) */
-    activityCount?: number;
+    /** Seconds spent in the application that day, summed across the organization's members */
+    activeSeconds?: number;
 
     [key: string]: any;
 }
@@ -7169,7 +7211,7 @@ export interface IExtractionBreakdownResponse {
 
 export type ExtractionSource = "ZUGFERD" | "AI" | "MANUAL";
 
-/** Per-day login activity for an organization over the retention window */
+/** Per-day time spent in the application by an organization, over the chart window */
 export class LoginActivityResponse implements ILoginActivityResponse {
     /** Total members of the organization */
     totalMembers?: number;
@@ -7232,7 +7274,7 @@ export class LoginActivityResponse implements ILoginActivityResponse {
     }
 }
 
-/** Per-day login activity for an organization over the retention window */
+/** Per-day time spent in the application by an organization, over the chart window */
 export interface ILoginActivityResponse {
     /** Total members of the organization */
     totalMembers?: number;
