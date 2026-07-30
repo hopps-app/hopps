@@ -1,10 +1,11 @@
-import { TransactionResponse } from '@hopps/api-client';
+import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
 import { Link2, Unlink, ExternalLink, FileText, Landmark, Loader2, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
     useBankTransactionsForTransaction,
     useBankTransactionSearch,
@@ -12,6 +13,7 @@ import {
     useRemoveBankTransactionMatch,
     useUpdateBankTransactionMatchAmount,
 } from '@/hooks/queries/useBankAccounts';
+import { useReopenTransaction } from '@/hooks/queries/useTransactions';
 import { cn } from '@/lib/utils';
 import { parseAllocationAmount } from '@/utils/parseAmount';
 
@@ -61,7 +63,11 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
     const addMatch = useAddBankTransactionMatch();
     const removeMatch = useRemoveBankTransactionMatch();
     const updateMatchAmount = useUpdateBankTransactionMatchAmount();
+    const reopenMutation = useReopenTransaction();
 
+    // A bank match whose removal would leave a *confirmed* transaction no longer fully covered — pending user
+    // confirmation, because unlinking it also reopens the transaction (back to draft).
+    const [unlinkPending, setUnlinkPending] = useState<BankTransactionResponse | null>(null);
     const [pickerOpen, setPickerOpen] = useState(false);
     const [search, setSearch] = useState('');
     // Optional partial "amount used" applied to the next linked bank transaction (rarely needed — splitting a
@@ -91,12 +97,19 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
     // In the edit form the amount/direction can change before saving; currentTotal (when provided) feeds the live
     // signed value so the reconciliation flips immediately when income↔expense is toggled. Falls back to the saved total.
     const txTotal = currentTotal !== undefined ? (currentTotal ?? 0) : tx.total != null ? Number(tx.total) : 0;
-    // Count the portion actually used for this transaction (the allocation), signed by the bank movement's direction —
-    // not the movements' full amounts — so a partially used collective transfer reconciles correctly.
+    // Direction of THIS transaction (income +, expense −). Allocations are signed to it — not to the bank movement's
+    // direction — because this is the transaction's side of the reconciliation ("how much of this transaction is
+    // covered"). A used amount always covers the transaction in the transaction's own direction, even when the linked
+    // bank movement carries the opposite sign (e.g. an income receipt matched against an expense/collective transfer,
+    // as with a Mollie payout that bundles income and fees). Signing by the movement's direction there would flip the
+    // contribution and double the difference. Fall back to + so an unsaved 0-total still shows the allocation magnitude.
+    const txSign = Math.sign(txTotal) || 1;
+    // Count the portion actually used for this transaction (the allocation) — not the movements' full amounts — so a
+    // partially used collective transfer reconciles correctly.
     const assignedSum = (linked ?? []).reduce((s, b) => {
         const amt = b.amount ?? 0;
         const alloc = b.allocatedAmount ?? Math.abs(amt);
-        return s + Math.sign(amt) * alloc;
+        return s + txSign * alloc;
     }, 0);
     const remaining = txTotal - assignedSum;
     const isFullyAssigned = Math.abs(remaining) <= 0.005; // float tolerance
@@ -149,6 +162,31 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
         await removeMatch.mutateAsync({ bankTxId, transactionId: tx.id });
     }
 
+    // The signed portion of the transaction total that this bank movement currently covers. Signed to the transaction's
+    // direction (txSign), matching assignedSum above, so removing it subtracts exactly its contribution.
+    const contributionOf = (b: BankTransactionResponse) => txSign * (b.allocatedAmount ?? Math.abs(b.amount ?? 0));
+    // Whether removing this bank movement would leave the transaction no longer fully covered.
+    const wouldUncover = (b: BankTransactionResponse) => Math.abs(txTotal - (assignedSum - contributionOf(b))) > 0.005;
+
+    // Entry point for the unlink button: only a *confirmed* transaction that would lose its full coverage needs the
+    // confirmation-and-reopen flow; anything else (drafts, or removals that keep it covered) unlinks straight away.
+    function requestUnlink(b: BankTransactionResponse) {
+        if (tx.status === 'CONFIRMED' && wouldUncover(b)) {
+            setUnlinkPending(b);
+        } else if (b.id != null) {
+            unlink(b.id);
+        }
+    }
+
+    async function confirmUnlinkAndReopen() {
+        const b = unlinkPending;
+        if (!b || b.id == null || !tx.id) return;
+        await removeMatch.mutateAsync({ bankTxId: b.id, transactionId: tx.id });
+        // No longer fully covered, so move the confirmed transaction back to draft.
+        await reopenMutation.mutateAsync(tx.id);
+        setUnlinkPending(null);
+    }
+
     return (
         <div className="px-6 py-5">
             <div className="flex items-center gap-2 mb-3">
@@ -189,44 +227,51 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                 <>
                     <div className="space-y-2">
                         {linked.map((b) => (
-                            <div key={b.id} className="flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+                            <div key={b.id} className="flex flex-col gap-2 p-3 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+                                {/* Row 1: icon + counterparty/date span the full width so long names wrap cleanly instead
+                                    of being squeezed into a tiny column by the amount/controls. */}
                                 <button
                                     type="button"
                                     onClick={() => window.open(`/bank-accounts?bankTx=${b.id}`, '_blank', 'noopener,noreferrer')}
                                     title={t('transactions.detail.openBankTransaction')}
-                                    className="flex items-center gap-3 min-w-0 flex-1 text-left group"
+                                    className="flex items-start gap-3 min-w-0 text-left group"
                                 >
                                     <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#E7F4EC' }}>
                                         <Landmark size={16} className="text-[#1F7A50]" />
                                     </span>
                                     <span className="flex flex-col min-w-0 flex-1">
-                                        <span className="text-[13px] font-bold text-[#1B1B1F] break-words">{b.counterpartyName || b.purpose || '—'}</span>
-                                        <span className="text-[12px] text-[#6B6B76]">
+                                        {/* overflow-wrap:anywhere forces a break inside very long tokens (e.g. "Siemens-Betriebskrankenkasse") */}
+                                        <span className="text-[13px] font-bold text-[#1B1B1F] break-words [overflow-wrap:anywhere]">
+                                            {b.counterpartyName || b.purpose || '—'}
+                                        </span>
+                                        <span className="text-[12px] text-[#6B6B76] break-words">
                                             {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                         </span>
                                     </span>
-                                    <span
-                                        className="text-[13px] font-bold tabular-nums flex-shrink-0"
-                                        style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}
-                                    >
+                                    <ExternalLink size={15} className="text-[#9A9AA3] group-hover:text-[#7E3FB4] transition-colors flex-shrink-0 mt-0.5" />
+                                </button>
+                                {/* Row 2: amount + allocation ("verwendet") + unlink, aligned under the title. */}
+                                <div className="flex items-center justify-between gap-2 pl-12">
+                                    <span className="text-[13px] font-bold tabular-nums" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
                                         {fmtCurrency(b.amount)}
                                     </span>
-                                    <ExternalLink size={15} className="text-[#9A9AA3] group-hover:text-[#7E3FB4] transition-colors flex-shrink-0" />
-                                </button>
-                                <MatchAllocationControl
-                                    amount={b.allocatedAmount ?? Math.abs(b.amount ?? 0)}
-                                    max={Math.abs(b.amount ?? 0)}
-                                    pending={updateMatchAmount.isPending}
-                                    onSave={(v) => updateAmount(b.id!, v)}
-                                />
-                                <button
-                                    onClick={() => unlink(b.id!)}
-                                    disabled={removeMatch.isPending}
-                                    title={t('transactions.detail.unlink')}
-                                    className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#B12C4C] hover:border-[#E8A0B2] transition-colors flex-shrink-0 disabled:opacity-50"
-                                >
-                                    <Unlink size={14} />
-                                </button>
+                                    <div className="flex items-center gap-2">
+                                        <MatchAllocationControl
+                                            amount={b.allocatedAmount ?? Math.abs(b.amount ?? 0)}
+                                            max={Math.abs(b.amount ?? 0)}
+                                            pending={updateMatchAmount.isPending}
+                                            onSave={(v) => updateAmount(b.id!, v)}
+                                        />
+                                        <button
+                                            onClick={() => requestUnlink(b)}
+                                            disabled={removeMatch.isPending}
+                                            title={t('transactions.detail.unlink')}
+                                            className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#B12C4C] hover:border-[#E8A0B2] transition-colors flex-shrink-0 disabled:opacity-50"
+                                        >
+                                            <Unlink size={14} />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -381,6 +426,18 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                     {t('transactions.detail.openBankAccounts')}
                 </button>
             )}
+
+            {/* Unlinking a bank match from a confirmed transaction that this would leave uncovered: confirm, then reopen. */}
+            <ConfirmDialog
+                open={unlinkPending != null}
+                onOpenChange={(o) => !o && setUnlinkPending(null)}
+                title={t('transactions.detail.unlinkReopen.title')}
+                description={t('transactions.detail.unlinkReopen.description')}
+                confirmLabel={t('transactions.detail.unlinkReopen.confirm')}
+                onConfirm={confirmUnlinkAndReopen}
+                destructive
+                loading={removeMatch.isPending || reopenMutation.isPending}
+            />
         </div>
     );
 }

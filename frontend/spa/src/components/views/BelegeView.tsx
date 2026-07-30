@@ -541,6 +541,10 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
         linkedBankTxns
     );
 
+    // Required category groups applicable to the selected bommel that still have no value also block confirming here.
+    const missingConfirmGroups = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(reviewAllBommels), categoryValues);
+    const canConfirm = confirmState.canConfirm && missingConfirmGroups.length === 0;
+
     return (
         <>
             <div
@@ -958,11 +962,14 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     <HintTooltip
                                         className="w-full"
                                         content={
-                                            confirmState.canConfirm ? null : (
+                                            canConfirm ? null : (
                                                 <>
                                                     <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
                                                     <span className="block mt-0.5">
-                                                        {confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)).join(', ')}
+                                                        {[
+                                                            ...confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)),
+                                                            ...missingConfirmGroups.map((g) => g.name),
+                                                        ].join(', ')}
                                                     </span>
                                                 </>
                                             )
@@ -970,7 +977,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     >
                                         <button
                                             onClick={handleFinalize}
-                                            disabled={busy || !confirmState.canConfirm}
+                                            disabled={busy || !canConfirm}
                                             className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[14.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                             style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)', boxShadow: '0 4px 16px rgba(120,60,200,.22)' }}
                                         >

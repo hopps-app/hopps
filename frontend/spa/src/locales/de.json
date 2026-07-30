@@ -521,6 +521,11 @@
             "hidePurpose": "Verwendungszweck ausblenden",
             "linkBankTransaction": "Bankumsatz verknüpfen",
             "unlink": "Verknüpfung lösen",
+            "unlinkReopen": {
+                "title": "Verknüpfung lösen und auf Entwurf setzen?",
+                "description": "Diese Transaktion ist bestätigt und vollständig gedeckt. Wenn du diese Bankverknüpfung entfernst, ist sie nicht mehr vollständig gedeckt und wird wieder auf Entwurf gesetzt.",
+                "confirm": "Lösen & auf Entwurf"
+            },
             "openBankAccounts": "In Bankkonten verwalten",
             "deleteConfirmTitle": "Transaktion löschen?",
             "deleteConfirmText": "Diese Transaktion wird dauerhaft gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
