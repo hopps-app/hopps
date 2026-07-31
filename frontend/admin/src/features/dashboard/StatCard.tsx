@@ -40,17 +40,13 @@ export default function StatCard({
     // circle, which the stretched viewBox would squash into an ellipse.
     const endY = (yFor(last, peak) / VIEW) * 100;
 
-    const changeColor =
-        changeTone === 'positive' ? 'var(--pos-ink)' : changeTone === 'negative' ? 'var(--neg-ink)' : 'var(--ink-3)';
+    const changeColor = changeTone === 'positive' ? 'var(--pos-ink)' : changeTone === 'negative' ? 'var(--neg-ink)' : 'var(--ink-3)';
 
     return (
         <div className="card px-[18px] py-4 h-full flex flex-col">
             <div className="flex items-start justify-between gap-3">
                 <span className="text-[13.5px] font-semibold text-ink-2 min-w-0 truncate">{label}</span>
-                <span
-                    className="shrink-0 w-8 h-8 rounded-[10px] grid place-items-center"
-                    style={{ background: 'var(--pp-tint2)', color: 'var(--pp-ink)' }}
-                >
+                <span className="shrink-0 w-8 h-8 rounded-[10px] grid place-items-center" style={{ background: 'var(--pp-tint2)', color: 'var(--pp-ink)' }}>
                     <Icon size={16} />
                 </span>
             </div>
@@ -68,12 +64,7 @@ export default function StatCard({
             <div className="relative flex-1 min-h-[24px] mt-2">
                 {hasShape && (
                     <>
-                        <svg
-                            viewBox={`0 0 ${VIEW} ${VIEW}`}
-                            preserveAspectRatio="none"
-                            className="absolute inset-0 w-full h-full"
-                            aria-hidden="true"
-                        >
+                        <svg viewBox={`0 0 ${VIEW} ${VIEW}`} preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden="true">
                             <polygon points={buildAreaPoints(series, peak)} fill={color} fillOpacity={0.14} />
                             <polyline
                                 points={buildPoints(series, peak)}

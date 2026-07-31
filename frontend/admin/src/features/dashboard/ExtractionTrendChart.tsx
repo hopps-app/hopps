@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
+import { buildAreaPoints, buildPoints, PLOT_HEIGHT, VIEW } from './line';
+import type { MonthlyExtraction } from './types';
+
 import { formatNumber } from '@/features/organizations/format';
 import { ChartCard, ChartTooltip } from '@/features/organizations/LoginActivityChart';
 import type { ExtractionSource } from '@/features/organizations/types';
-
-import { buildAreaPoints, buildPoints, PLOT_HEIGHT, VIEW } from './line';
-import type { MonthlyExtraction } from './types';
 
 /**
  * Same identity → colour mapping as the organization detail's all-time breakdown, so a source keeps
@@ -101,13 +101,8 @@ export default function ExtractionTrendChart({ months }: { months: MonthlyExtrac
                                                 {ORDER.map((s) => (
                                                     <span key={s} className="flex items-center justify-between gap-4">
                                                         <span className="flex items-center gap-1.5">
-                                                            <span
-                                                                className="w-2 h-2 rounded-full shrink-0"
-                                                                style={{ background: SOURCE[s].color }}
-                                                            />
-                                                            <span className="text-[11.5px] font-semibold text-ink-2">
-                                                                {t(SOURCE[s].labelKey)}
-                                                            </span>
+                                                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: SOURCE[s].color }} />
+                                                            <span className="text-[11.5px] font-semibold text-ink-2">{t(SOURCE[s].labelKey)}</span>
                                                         </span>
                                                         <span className="tnum">{formatNumber(m.counts[s] ?? 0)}</span>
                                                     </span>
@@ -124,9 +119,7 @@ export default function ExtractionTrendChart({ months }: { months: MonthlyExtrac
                         {months.map((m, i) => (
                             <span
                                 key={i}
-                                className={`flex-1 min-w-0 text-center text-[10.5px] tnum truncate ${
-                                    i === months.length - 1 ? 'font-bold' : 'text-ink-3'
-                                }`}
+                                className={`flex-1 min-w-0 text-center text-[10.5px] tnum truncate ${i === months.length - 1 ? 'font-bold' : 'text-ink-3'}`}
                                 style={i === months.length - 1 ? { color: 'var(--pp-ink)' } : undefined}
                             >
                                 {m.label}

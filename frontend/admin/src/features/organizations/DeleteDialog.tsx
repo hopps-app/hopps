@@ -31,9 +31,7 @@ export default function DeleteDialog({ confirmText, busy, onConfirm, onClose }: 
                 <h2 className="text-[19px] font-extrabold text-ink">{t('organizations.delete.title')}</h2>
                 <p className="text-[14px] text-ink-2 mt-2 leading-relaxed">{t('organizations.delete.warning')}</p>
 
-                <label className="block text-[13px] font-semibold text-ink mt-5 mb-2">
-                    {t('organizations.delete.prompt', { name: confirmText })}
-                </label>
+                <label className="block text-[13px] font-semibold text-ink mt-5 mb-2">{t('organizations.delete.prompt', { name: confirmText })}</label>
                 <input
                     className="input"
                     value={typed}

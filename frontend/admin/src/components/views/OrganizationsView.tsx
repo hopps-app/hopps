@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { fetchOrganizations } from '@/features/organizations/api';
+import { formatNumber } from '@/features/organizations/format';
 import OrganizationsTable, { type SortDir, type SortKey } from '@/features/organizations/OrganizationsTable';
 import OrganizationsTableSkeleton from '@/features/organizations/OrganizationsTableSkeleton';
-import { formatNumber } from '@/features/organizations/format';
 import type { AdminOrganizationRow } from '@/features/organizations/types';
 
 /** Compares one sort key, nulls always last regardless of direction. */
@@ -56,21 +56,14 @@ export default function OrganizationsView() {
         if (!rows) return null;
         const q = query.trim().toLowerCase();
         const filtered = q
-            ? rows.filter(
-                  (r) =>
-                      r.name.toLowerCase().includes(q) ||
-                      r.slug.toLowerCase().includes(q) ||
-                      (r.contactEmail?.toLowerCase().includes(q) ?? false)
-              )
+            ? rows.filter((r) => r.name.toLowerCase().includes(q) || r.slug.toLowerCase().includes(q) || (r.contactEmail?.toLowerCase().includes(q) ?? false))
             : rows;
         const sorted = [...filtered].sort((a, b) => compare(a, b, sortKey));
         return sortDir === 'asc' ? sorted : sorted.reverse();
     }, [rows, query, sortKey, sortDir]);
 
     const subtitle =
-        visible === null
-            ? t('organizations.subtitle')
-            : t('organizations.count', { count: visible.length, formatted: formatNumber(visible.length) });
+        visible === null ? t('organizations.subtitle') : t('organizations.count', { count: visible.length, formatted: formatNumber(visible.length) });
 
     return (
         <div className="fade-up">

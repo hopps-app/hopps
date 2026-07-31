@@ -16,9 +16,7 @@ export default function TokenUsageChart({ usage }: { usage: TokenUsage }) {
 
     // Fixed order so a service keeps its colour and position regardless of size.
     const order: AiService[] = ['openai', 'azure'];
-    const parts = order
-        .map((svc) => ({ svc, value: usage.services[svc] ?? 0 }))
-        .filter((p) => p.value > 0);
+    const parts = order.map((svc) => ({ svc, value: usage.services[svc] ?? 0 })).filter((p) => p.value > 0);
 
     const total = usage.total || parts.reduce((a, p) => a + p.value, 0) || 1;
 

@@ -1,9 +1,9 @@
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import StatusBadge from './StatusBadge';
 import { formatDate, formatNumber, formatRelative } from './format';
 import { deriveStatus } from './status';
+import StatusBadge from './StatusBadge';
 import type { AdminOrganizationRow } from './types';
 
 /** Shared grid template so header and rows stay column-aligned.
@@ -74,32 +74,30 @@ export default function OrganizationsTable({ rows, sortKey, sortDir, onSort, onR
             </div>
 
             {rows.map((row, i) => {
-                    const lastActivity = formatRelative(row.lastActivityAt, locale, now);
-                    const created = formatDate(row.createdAt);
+                const lastActivity = formatRelative(row.lastActivityAt, locale, now);
+                const created = formatDate(row.createdAt);
 
-                    return (
-                        <div
-                            key={row.id}
-                            className="trow"
-                            style={{ gridTemplateColumns: GRID, gap: 24, borderBottom: i < rows.length - 1 ? '1px solid var(--line)' : 'none' }}
-                            onClick={() => onRowClick(row)}
-                        >
-                            <div className="min-w-0">
-                                <div className="text-[14px] font-bold text-ink truncate">{row.name}</div>
-                                <div className="text-[12px] text-ink-2 truncate">{row.slug}</div>
-                            </div>
-                            <span className="text-[13.5px] text-ink-2 truncate">{row.contactEmail ?? <Empty />}</span>
-                            <span className="tnum text-[13.5px] text-ink-2">{formatNumber(row.belegeCount)}</span>
-                            <span className="text-[13.5px] text-ink-2">
-                                {lastActivity ?? <span className="text-ink-3">{t('organizations.never')}</span>}
-                            </span>
-                            <span className="tnum text-[13.5px] text-ink-2">{created ?? <Empty />}</span>
-                            <span>
-                                <StatusBadge status={deriveStatus(row, now)} />
-                            </span>
+                return (
+                    <div
+                        key={row.id}
+                        className="trow"
+                        style={{ gridTemplateColumns: GRID, gap: 24, borderBottom: i < rows.length - 1 ? '1px solid var(--line)' : 'none' }}
+                        onClick={() => onRowClick(row)}
+                    >
+                        <div className="min-w-0">
+                            <div className="text-[14px] font-bold text-ink truncate">{row.name}</div>
+                            <div className="text-[12px] text-ink-2 truncate">{row.slug}</div>
                         </div>
-                    );
-                })}
+                        <span className="text-[13.5px] text-ink-2 truncate">{row.contactEmail ?? <Empty />}</span>
+                        <span className="tnum text-[13.5px] text-ink-2">{formatNumber(row.belegeCount)}</span>
+                        <span className="text-[13.5px] text-ink-2">{lastActivity ?? <span className="text-ink-3">{t('organizations.never')}</span>}</span>
+                        <span className="tnum text-[13.5px] text-ink-2">{created ?? <Empty />}</span>
+                        <span>
+                            <StatusBadge status={deriveStatus(row, now)} />
+                        </span>
+                    </div>
+                );
+            })}
         </div>
     );
 }

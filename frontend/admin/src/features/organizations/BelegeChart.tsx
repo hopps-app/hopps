@@ -26,32 +26,30 @@ export default function BelegeChart({ series, total }: { series: MonthlySeries; 
             delta={deltaPct !== null ? <DeltaBadge fraction={deltaPct} /> : undefined}
         >
             {isEmpty ? (
-                <div className="h-[180px] grid place-items-center text-[13px] text-ink-3">
-                    {t('organizations.charts.empty')}
-                </div>
+                <div className="h-[180px] grid place-items-center text-[13px] text-ink-3">{t('organizations.charts.empty')}</div>
             ) : (
-            <div className="flex items-end gap-2 h-[180px]" role="img" aria-label={t('organizations.charts.belege.title')}>
-                {points.map((p, i) => (
-                    <div key={i} className="group relative flex-1 h-full flex flex-col items-center gap-1.5 min-w-0">
-                        <ChartTooltip label={p.label} value={t('organizations.charts.belege.tooltip', { count: p.value })} />
-                        <div className="w-full flex-1 min-h-0 flex items-end justify-center">
-                            <div
-                                className="w-full max-w-[26px] rounded-t-[4px] transition-opacity group-hover:opacity-80"
-                                style={{
-                                    height: `${Math.max(4, (p.value / peak) * 100)}%`,
-                                    background: i === lastIndex ? 'var(--pp)' : 'var(--pp-tint2)',
-                                }}
-                            />
+                <div className="flex items-end gap-2 h-[180px]" role="img" aria-label={t('organizations.charts.belege.title')}>
+                    {points.map((p, i) => (
+                        <div key={i} className="group relative flex-1 h-full flex flex-col items-center gap-1.5 min-w-0">
+                            <ChartTooltip label={p.label} value={t('organizations.charts.belege.tooltip', { count: p.value })} />
+                            <div className="w-full flex-1 min-h-0 flex items-end justify-center">
+                                <div
+                                    className="w-full max-w-[26px] rounded-t-[4px] transition-opacity group-hover:opacity-80"
+                                    style={{
+                                        height: `${Math.max(4, (p.value / peak) * 100)}%`,
+                                        background: i === lastIndex ? 'var(--pp)' : 'var(--pp-tint2)',
+                                    }}
+                                />
+                            </div>
+                            <span
+                                className={`text-[11px] tnum ${i === lastIndex ? 'font-bold' : 'text-ink-3'}`}
+                                style={i === lastIndex ? { color: 'var(--pp-ink)' } : undefined}
+                            >
+                                {p.label}
+                            </span>
                         </div>
-                        <span
-                            className={`text-[11px] tnum ${i === lastIndex ? 'font-bold' : 'text-ink-3'}`}
-                            style={i === lastIndex ? { color: 'var(--pp-ink)' } : undefined}
-                        >
-                            {p.label}
-                        </span>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
             )}
         </ChartCard>
     );
@@ -61,10 +59,7 @@ export default function BelegeChart({ series, total }: { series: MonthlySeries; 
 export function DeltaBadge({ fraction }: { fraction: number }) {
     const up = fraction >= 0;
     return (
-        <span
-            className="tnum text-[13.5px] font-bold"
-            style={{ color: up ? 'var(--pos-ink)' : 'var(--neg-ink)' }}
-        >
+        <span className="tnum text-[13.5px] font-bold" style={{ color: up ? 'var(--pos-ink)' : 'var(--neg-ink)' }}>
             {formatDeltaPct(fraction)}
         </span>
     );

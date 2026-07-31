@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
+import { buildAreaPoints, buildPoints, isLabelled, PLOT_HEIGHT, VIEW } from './line';
+
 import { formatNumber } from '@/features/organizations/format';
 import { ChartCard, ChartTooltip } from '@/features/organizations/LoginActivityChart';
 import type { MonthlyPoint } from '@/features/organizations/types';
-
-import { buildAreaPoints, buildPoints, isLabelled, PLOT_HEIGHT, VIEW } from './line';
 
 /**
  * "Vereine gesamt" tile — how the estate grew, as a running total per month.
@@ -85,9 +85,7 @@ export default function SignupsChart({ total, months }: { total: number; months:
                         {months.map((m, i) => (
                             <span
                                 key={i}
-                                className={`flex-1 min-w-0 text-center text-[10.5px] tnum truncate ${
-                                    i === months.length - 1 ? 'font-bold' : 'text-ink-3'
-                                }`}
+                                className={`flex-1 min-w-0 text-center text-[10.5px] tnum truncate ${i === months.length - 1 ? 'font-bold' : 'text-ink-3'}`}
                                 style={i === months.length - 1 ? { color: 'var(--pp-ink)' } : undefined}
                             >
                                 {isLabelled(i, months.length) ? m.label : ' '}

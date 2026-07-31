@@ -1,8 +1,8 @@
-import type { DailyActivity, ExtractionSource, MonthlyPoint } from '@/features/organizations/types';
-import { apiClient } from '@/services/apiClient';
-
 import { mockDashboard } from './mock';
 import type { DashboardOverview, MonthlyExtraction } from './types';
+
+import type { DailyActivity, ExtractionSource, MonthlyPoint } from '@/features/organizations/types';
+import { apiClient } from '@/services/apiClient';
 
 /**
  * Adapter between the generated api-client and the Übersicht's view types, mirroring

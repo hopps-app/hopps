@@ -8,14 +8,14 @@ import { deleteOrganization, fetchOrganization } from '@/features/organizations/
 import BelegeChart from '@/features/organizations/BelegeChart';
 import DeleteDialog from '@/features/organizations/DeleteDialog';
 import ExtractionChart from '@/features/organizations/ExtractionChart';
+import { formatMonthYear } from '@/features/organizations/format';
 import ImpersonateDialog from '@/features/organizations/ImpersonateDialog';
 import { authoriseImpersonation, impersonate } from '@/features/organizations/impersonation';
 import LoginActivityChart from '@/features/organizations/LoginActivityChart';
+import { deriveStatus } from '@/features/organizations/status';
 import StatusBadge from '@/features/organizations/StatusBadge';
 // Hidden for now — restore alongside the <TokenTrendChart /> usage below:
 // import TokenTrendChart from '@/features/organizations/TokenTrendChart';
-import { formatMonthYear } from '@/features/organizations/format';
-import { deriveStatus } from '@/features/organizations/status';
 import type { OrganizationDetail, OrgAddress, OrgMember } from '@/features/organizations/types';
 import { cn } from '@/lib/utils';
 
@@ -204,9 +204,7 @@ export default function OrganizationDetailView() {
                 </div>
             </div>
 
-            {modal === 'delete' && (
-                <DeleteDialog confirmText={org.name} busy={deleting} onConfirm={handleDelete} onClose={() => setModal('none')} />
-            )}
+            {modal === 'delete' && <DeleteDialog confirmText={org.name} busy={deleting} onConfirm={handleDelete} onClose={() => setModal('none')} />}
             {modal === 'impersonate' && impersonating && (
                 <ImpersonateDialog
                     name={`${impersonating.firstName} ${impersonating.lastName}`.trim()}
@@ -224,17 +222,7 @@ export default function OrganizationDetailView() {
 }
 
 /** One grouped card of label/value rows, heading inside the card, with an optional right-hand slot. */
-function Section({
-    title,
-    action,
-    children,
-    className,
-}: {
-    title: string;
-    action?: React.ReactNode;
-    children: React.ReactNode;
-    className?: string;
-}) {
+function Section({ title, action, children, className }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
     return (
         <div className={cn('card px-[18px] pt-4 pb-1.5', className)}>
             <div className="flex items-center justify-between gap-3 mb-1">
@@ -276,12 +264,7 @@ function AddressValue({ address, dash }: { address: OrgAddress | null; dash: str
 function LinkValue({ href, text }: { href: string; text: string }) {
     const external = href.startsWith('http');
     return (
-        <a
-            href={href}
-            {...(external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
-            className="hover:underline"
-            style={{ color: 'var(--pp-ink)' }}
-        >
+        <a href={href} {...(external ? { target: '_blank', rel: 'noreferrer noopener' } : {})} className="hover:underline" style={{ color: 'var(--pp-ink)' }}>
             {text}
         </a>
     );
@@ -357,7 +340,6 @@ function MemberRow({ member, onImpersonate }: { member: OrgMember; onImpersonate
     );
 }
 
-
 /** Address split into display lines: street + number, any additional line, then postcode + city. */
 function addressLines(a: OrgAddress | null): string[] {
     if (!a) return [];
@@ -368,11 +350,7 @@ function addressLines(a: OrgAddress | null): string[] {
 
 function BackLink({ label, onClick }: { label: string; onClick: () => void }) {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-2 hover:text-ink transition-colors"
-        >
+        <button type="button" onClick={onClick} className="flex items-center gap-1.5 text-[13.5px] font-semibold text-ink-2 hover:text-ink transition-colors">
             <ArrowLeft size={16} />
             {label}
         </button>

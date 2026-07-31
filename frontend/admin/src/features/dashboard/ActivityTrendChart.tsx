@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
+import { buildAreaPoints, buildPoints, isLabelled, PLOT_HEIGHT, VIEW } from './line';
+
 import { formatDuration } from '@/features/organizations/format';
 import { ChartCard, ChartTooltip } from '@/features/organizations/LoginActivityChart';
 import type { DailyActivity } from '@/features/organizations/types';
-
-import { buildAreaPoints, buildPoints, isLabelled, PLOT_HEIGHT, VIEW } from './line';
 
 /** Short axis label for a day: `05.07`. de-DE, like the other formatters. */
 function dayLabel(iso: string): string {
@@ -81,9 +81,7 @@ export default function ActivityTrendChart({ days }: { days: DailyActivity[] }) 
                         {days.map((d, i) => (
                             <span
                                 key={d.day}
-                                className={`flex-1 min-w-0 text-center text-[10.5px] tnum truncate ${
-                                    i === days.length - 1 ? 'font-bold' : 'text-ink-3'
-                                }`}
+                                className={`flex-1 min-w-0 text-center text-[10.5px] tnum truncate ${i === days.length - 1 ? 'font-bold' : 'text-ink-3'}`}
                                 style={i === days.length - 1 ? { color: 'var(--pp-ink)' } : undefined}
                             >
                                 {isLabelled(i, days.length) ? dayLabel(d.day) : ' '}

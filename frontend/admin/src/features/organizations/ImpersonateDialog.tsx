@@ -37,10 +37,7 @@ export default function ImpersonateDialog({
                 <h2 className="text-[19px] font-extrabold text-ink">{t('organizations.impersonate.title')}</h2>
                 <p className="text-[14px] text-ink-2 mt-2 leading-relaxed">{t('organizations.impersonate.body', { name })}</p>
 
-                <div
-                    className="flex items-start gap-2.5 mt-4 rounded-xl p-3"
-                    style={{ background: 'var(--warn-bg)', color: 'var(--warn)' }}
-                >
+                <div className="flex items-start gap-2.5 mt-4 rounded-xl p-3" style={{ background: 'var(--warn-bg)', color: 'var(--warn)' }}>
                     <AlertTriangle size={17} className="shrink-0 mt-0.5" />
                     <p className="text-[13px] font-semibold leading-relaxed">{t('organizations.impersonate.warning')}</p>
                 </div>

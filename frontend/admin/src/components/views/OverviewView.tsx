@@ -4,15 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import ActivityTrendChart from '@/features/dashboard/ActivityTrendChart';
 import { fetchDashboard } from '@/features/dashboard/api';
-import {
-    aiCounts,
-    aiSharePercent,
-    belegeTotals,
-    cumulativeTotals,
-    latest,
-    monthOverMonth,
-    previous,
-} from '@/features/dashboard/derive';
+import { aiCounts, aiSharePercent, belegeTotals, cumulativeTotals, latest, monthOverMonth, previous } from '@/features/dashboard/derive';
 import ExtractionTrendChart from '@/features/dashboard/ExtractionTrendChart';
 import { CARD_HEIGHT, PLOT_HEIGHT } from '@/features/dashboard/line';
 // Hidden for now — restore alongside the <SignupsChart /> usage below:
@@ -70,8 +62,7 @@ function Overview({ data, t }: { data: DashboardOverview; t: (key: string, optio
     const totals = cumulativeTotals(data.totalOrganizations, data.signupsPerMonth);
     const signupsThisMonth = latest(data.signupsPerMonth.map((m) => m.value));
 
-    const activeShare =
-        data.totalOrganizations > 0 ? Math.round((data.activeOrganizationsInWindow / data.totalOrganizations) * 100) : 0;
+    const activeShare = data.totalOrganizations > 0 ? Math.round((data.activeOrganizationsInWindow / data.totalOrganizations) * 100) : 0;
 
     const belege = belegeTotals(data.extractionPerMonth);
     const belegeDelta = monthOverMonth(belege);

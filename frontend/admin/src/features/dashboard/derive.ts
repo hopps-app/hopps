@@ -1,6 +1,6 @@
-import type { MonthlyPoint } from '@/features/organizations/types';
-
 import type { MonthlyExtraction } from './types';
+
+import type { MonthlyPoint } from '@/features/organizations/types';
 
 /**
  * Figures the Kennzahlen cards show that are not sent as such — they fall out of the series the

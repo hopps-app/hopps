@@ -35,9 +35,7 @@ export default function ExtractionChart({ breakdown }: { breakdown: ExtractionBr
     return (
         <ChartCard eyebrow={t('organizations.charts.extraction.eyebrow')} title={t('organizations.charts.extraction.title')}>
             {isEmpty ? (
-                <div className="h-[92px] grid place-items-center text-[13px] text-ink-3">
-                    {t('organizations.charts.empty')}
-                </div>
+                <div className="h-[92px] grid place-items-center text-[13px] text-ink-3">{t('organizations.charts.empty')}</div>
             ) : (
                 <>
                     {/* Stacked bar. 2px surface gap between segments per mark spec. */}
@@ -66,16 +64,10 @@ export default function ExtractionChart({ breakdown }: { breakdown: ExtractionBr
                                 style={{ borderBottom: i === parts.length - 1 ? 'none' : '1px solid var(--line)' }}
                             >
                                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: SOURCE[p.src].color }} />
-                                <span className="text-[14px] font-semibold text-ink min-w-0 truncate flex-1">
-                                    {t(SOURCE[p.src].labelKey)}
-                                </span>
+                                <span className="text-[14px] font-semibold text-ink min-w-0 truncate flex-1">{t(SOURCE[p.src].labelKey)}</span>
                                 <span className="shrink-0 text-right">
-                                    <span className="tnum block text-[14px] font-bold text-ink leading-tight">
-                                        {Math.round((p.value / total) * 100)} %
-                                    </span>
-                                    <span className="tnum block text-[13px] text-ink-3 leading-tight">
-                                        {formatNumber(p.value)}
-                                    </span>
+                                    <span className="tnum block text-[14px] font-bold text-ink leading-tight">{Math.round((p.value / total) * 100)} %</span>
+                                    <span className="tnum block text-[13px] text-ink-3 leading-tight">{formatNumber(p.value)}</span>
                                 </span>
                             </div>
                         ))}

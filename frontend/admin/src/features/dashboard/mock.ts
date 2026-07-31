@@ -1,6 +1,6 @@
-import type { MonthlyPoint } from '@/features/organizations/types';
-
 import type { DashboardOverview, MonthlyExtraction } from './types';
+
+import type { MonthlyPoint } from '@/features/organizations/types';
 
 /**
  * A populated fixture for looking at the Übersicht before real usage exists.
@@ -46,9 +46,7 @@ function monthLabel(d: Date): string {
 
 /** Labels for the last `count` months ending at `now`, oldest first. */
 function monthLabels(count: number, now: Date): string[] {
-    return Array.from({ length: count }, (_, i) =>
-        monthLabel(new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1))
-    );
+    return Array.from({ length: count }, (_, i) => monthLabel(new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1)));
 }
 
 /** ISO calendar days for the last `count` days ending today, oldest first. */

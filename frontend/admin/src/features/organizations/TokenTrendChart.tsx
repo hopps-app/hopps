@@ -1,8 +1,8 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { formatCompact } from './format';
 import { DeltaBadge } from './BelegeChart';
+import { formatCompact } from './format';
 import { ChartCard } from './LoginActivityChart';
 import type { MonthlySeries } from './types';
 
@@ -41,14 +41,7 @@ export default function TokenTrendChart({ series }: { series: MonthlySeries }) {
             headline={<span style={{ color: 'var(--warn)' }}>{formatCompact(latest)}</span>}
             delta={deltaPct !== null ? <DeltaBadge fraction={deltaPct} /> : undefined}
         >
-            <svg
-                viewBox={`0 0 ${W} ${H}`}
-                width="100%"
-                height={H}
-                preserveAspectRatio="none"
-                role="img"
-                aria-label={t('organizations.charts.tokens.title')}
-            >
+            <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" role="img" aria-label={t('organizations.charts.tokens.title')}>
                 <defs>
                     <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="var(--warn)" stopOpacity="0.28" />
@@ -56,7 +49,15 @@ export default function TokenTrendChart({ series }: { series: MonthlySeries }) {
                     </linearGradient>
                 </defs>
                 <path d={area} fill={`url(#${gradId})`} />
-                <path d={line} fill="none" stroke="var(--warn)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                <path
+                    d={line}
+                    fill="none"
+                    stroke="var(--warn)"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                />
                 {/* Endpoint dot marks the current month. */}
                 <circle cx={lastPoint.x} cy={lastPoint.y} r="3.5" fill="var(--warn)" stroke="var(--surface)" strokeWidth="2" />
             </svg>

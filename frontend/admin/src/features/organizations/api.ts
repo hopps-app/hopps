@@ -1,7 +1,5 @@
 import type { AdminOrganizationDetail, AdminOrganizationRow as GenRow, MonthlyCount } from '@hopps/api-client';
 
-import { apiClient } from '@/services/apiClient';
-
 import type {
     AdminOrganizationRow,
     AdminOrganizationsPage,
@@ -15,6 +13,8 @@ import type {
     OrgMember,
     TokenUsage,
 } from './types';
+
+import { apiClient } from '@/services/apiClient';
 
 /**
  * Adapter between the generated api-client and the app's own view types.
