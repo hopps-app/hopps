@@ -22,6 +22,38 @@
         "en": "English",
         "de": "Deutsch"
     },
+    "dashboard": {
+        "title": "Übersicht",
+        "subtitle": "Alle Vereine in Hopps auf einen Blick.",
+        "loadError": "Die Übersicht konnte nicht geladen werden. Bitte erneut versuchen.",
+        "cards": {
+            "totalOrganizations": "Vereine gesamt",
+            "sinceLastMonth": "seit letztem Monat",
+            "activeOrganizations": "Aktive Vereine",
+            "lastDays_one": "am letzten Tag",
+            "lastDays_other": "in den letzten {{count}} Tagen",
+            "belegeThisMonth": "Belege diesen Monat",
+            "vsPreviousMonth": "ggü. Vormonat",
+            "aiShare": "KI-Auslese-Anteil",
+            "pp": "{{value}} pp",
+            "ofBelege": "{{ai}} von {{total}} Belegen"
+        },
+        "signups": {
+            "eyebrow": "Wachstum",
+            "title": "Vereine gesamt",
+            "subtitle": "Gesamtzahl pro Monat, letzte 12 Monate",
+            "tooltip_one": "{{count}} neu in diesem Monat",
+            "tooltip_other": "{{count}} neu in diesem Monat"
+        },
+        "activity": {
+            "eyebrow": "Nutzung",
+            "title": "Zeit in der Anwendung",
+            "subtitle": "alle Vereine zusammen, letzte {{count}} Tage"
+        },
+        "extraction": {
+            "subtitle": "Belege pro Monat, letzte 12 Monate"
+        }
+    },
     "organizations": {
         "title": "Vereine",
         "subtitle": "Alle in Hopps registrierten Vereine.",
@@ -76,7 +108,7 @@
                 "title": "Erfassungswege",
                 "source": {
                     "zugferd": "ZUGFeRD",
-                    "ai": "Azure Document Intelligence",
+                    "ai": "Azure",
                     "manual": "Manuell erfasst"
                 }
             },

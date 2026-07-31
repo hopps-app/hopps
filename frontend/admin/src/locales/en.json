@@ -22,6 +22,38 @@
         "en": "English",
         "de": "Deutsch"
     },
+    "dashboard": {
+        "title": "Overview",
+        "subtitle": "Every organization in Hopps at a glance.",
+        "loadError": "The overview could not be loaded. Please try again.",
+        "cards": {
+            "totalOrganizations": "Organizations",
+            "sinceLastMonth": "since last month",
+            "activeOrganizations": "Active organizations",
+            "lastDays_one": "on the last day",
+            "lastDays_other": "in the last {{count}} days",
+            "belegeThisMonth": "Receipts this month",
+            "vsPreviousMonth": "vs. previous month",
+            "aiShare": "AI extraction share",
+            "pp": "{{value}} pp",
+            "ofBelege": "{{ai}} of {{total}} receipts"
+        },
+        "signups": {
+            "eyebrow": "Growth",
+            "title": "Organizations",
+            "subtitle": "running total per month, last 12 months",
+            "tooltip_one": "{{count}} new this month",
+            "tooltip_other": "{{count}} new this month"
+        },
+        "activity": {
+            "eyebrow": "Usage",
+            "title": "Time in the application",
+            "subtitle": "all organizations combined, last {{count}} days"
+        },
+        "extraction": {
+            "subtitle": "receipts per month, last 12 months"
+        }
+    },
     "organizations": {
         "title": "Organizations",
         "subtitle": "All organizations registered in Hopps.",
@@ -76,7 +108,7 @@
                 "title": "Capture methods",
                 "source": {
                     "zugferd": "ZUGFeRD",
-                    "ai": "Azure Document Intelligence",
+                    "ai": "Azure",
                     "manual": "Manually entered"
                 }
             },

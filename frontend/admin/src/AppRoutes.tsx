@@ -5,6 +5,7 @@ import HomeView from '@/components/views/HomeView';
 import AdminGuard from '@/guards/AdminGuard';
 import AdminLayout from '@/layouts/AdminLayout';
 
+const OverviewView = lazy(() => import('@/components/views/OverviewView'));
 const OrganizationsView = lazy(() => import('@/components/views/OrganizationsView'));
 const OrganizationDetailView = lazy(() => import('@/components/views/OrganizationDetailView'));
 
@@ -23,7 +24,14 @@ export default function AppRoutes() {
                 }
             >
                 <Route path="/" element={<Navigate to="/organizations" replace />} />
-                <Route path="/overview" element={<HomeView />} />
+                <Route
+                    path="/overview"
+                    element={
+                        <LazyRoute>
+                            <OverviewView />
+                        </LazyRoute>
+                    }
+                />
                 <Route
                     path="/organizations"
                     element={
