@@ -29,9 +29,11 @@ const INPUT_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll']
  * not change the totals, and it is safe to call more often than needed.
  */
 export function useActivityHeartbeat() {
-    const lastInputAt = useRef(Date.now());
+    const lastInputAt = useRef(0);
 
     useEffect(() => {
+        lastInputAt.current = Date.now();
+
         const markInput = () => {
             lastInputAt.current = Date.now();
         };
