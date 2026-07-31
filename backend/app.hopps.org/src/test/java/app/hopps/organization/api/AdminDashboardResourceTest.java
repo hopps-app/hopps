@@ -178,16 +178,17 @@ class AdminDashboardResourceTest {
     @DisplayName("should report total Belege with a per-month extraction trend that sums to the total")
     @TestSecurity(user = "admin@example.test", roles = { "admin" })
     void shouldReportBelegeAndExtraction() {
-        // The estate holds 35 documents (Bühnefrei 28, Kältekrieger 7, Grünes Herz none), all seeded with a null
-        // extractionsource. Give ten an explicit mix: 5 ZUGFERD, 3 AI, 2 MANUAL. The other 25 stay null and must fold
-        // into MANUAL -> 27, so the three sources still account for every document.
+        // The estate holds 40 documents (Bühnefrei 33, Kältekrieger 7, Grünes Herz none), all loaded as MANUAL. Give
+        // twelve of Bühnefrei's an explicit mix: 5 ZUGFERD, 3 AI, 2 MANUAL and 2 back to null (the CASE has no branch
+        // for them) to stand for never-analyzed documents. The nulls fold into MANUAL alongside the 30 untouched
+        // documents -> 32, so the three sources still account for every document.
         QuarkusTransaction.requiringNew()
                 .run(() -> entityManager.createNativeQuery(
                         "update document set extractionsource = case "
-                                + "when id in (1, 2, 3, 4, 5) then 'ZUGFERD' "
-                                + "when id in (6, 7, 8) then 'AI' "
-                                + "when id in (9, 10) then 'MANUAL' end "
-                                + "where id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)")
+                                + "when id in (101, 102, 103, 104, 105) then 'ZUGFERD' "
+                                + "when id in (106, 107, 108) then 'AI' "
+                                + "when id in (109, 110) then 'MANUAL' end "
+                                + "where id in (101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112)")
                         .executeUpdate());
 
         given()
@@ -204,6 +205,6 @@ class AdminDashboardResourceTest {
                 // The seeded documents all fall inside the 12-month window, so the series still account for every one.
                 .body("extractionPerMonth.counts.ZUGFERD.sum()", is(5))
                 .body("extractionPerMonth.counts.AI.sum()", is(3))
-                .body("extractionPerMonth.counts.MANUAL.sum()", is(27));
+                .body("extractionPerMonth.counts.MANUAL.sum()", is(32));
     }
 }

@@ -101,7 +101,7 @@ class AdminOrganizationResourceTests {
                 .body("name", is("Theatervereine Bühnefrei e.V."))
                 .body("slug", is("buehnefrei-ev"))
                 .body("belegeCount", is(33))
-                .body("bankImportCount", is(0))
+                .body("bankImportCount", is(1))
                 .body("members", hasSize(9))
                 .body("contactEmail", notNullValue())
                 .body("address.city", is("Rietberg"));
@@ -199,17 +199,17 @@ class AdminOrganizationResourceTests {
     @DisplayName("should return the all-time extraction-source breakdown for an organization")
     @TestSecurity(user = "admin@example.test", roles = { "admin" })
     void shouldReturnExtractionBreakdown() {
-        // buehnefrei-ev (org 4) seeds 28 documents, all with a null extractionsource. Set an explicit mix on ten of
-        // them: 5 ZUGFERD, 3 AI, 2 MANUAL. The remaining 18 stay null and must fold into MANUAL, so MANUAL = 2 + 18 =
-        // 20
-        // and the three source counts sum to the 28 total.
+        // buehnefrei-ev (org 4) seeds 33 documents (ids 1-5 receipts, 101-128 activity docs), all loaded as MANUAL.
+        // Set an explicit mix on twelve of the activity docs: 5 ZUGFERD, 3 AI, 2 MANUAL and 2 back to null (the CASE
+        // has no branch for them) to stand for never-analyzed documents. Those two must fold into MANUAL alongside the
+        // 21 untouched ones, so MANUAL = 2 + 2 + 21 = 25 and the three source counts sum to the 33 total.
         QuarkusTransaction.requiringNew()
                 .run(() -> entityManager.createNativeQuery(
                         "update document set extractionsource = case "
-                                + "when id in (1, 2, 3, 4, 5) then 'ZUGFERD' "
-                                + "when id in (6, 7, 8) then 'AI' "
-                                + "when id in (9, 10) then 'MANUAL' end "
-                                + "where id in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)")
+                                + "when id in (101, 102, 103, 104, 105) then 'ZUGFERD' "
+                                + "when id in (106, 107, 108) then 'AI' "
+                                + "when id in (109, 110) then 'MANUAL' end "
+                                + "where id in (101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112)")
                         .executeUpdate());
 
         given()
@@ -217,11 +217,11 @@ class AdminOrganizationResourceTests {
                 .get(PATH + "/4/extraction-breakdown")
                 .then()
                 .statusCode(200)
-                .body("total", is(28))
+                .body("total", is(33))
                 .body("counts.ZUGFERD", is(5))
                 .body("counts.AI", is(3))
-                // 2 explicitly MANUAL + 18 null documents folded into MANUAL
-                .body("counts.MANUAL", is(20));
+                // 2 explicitly MANUAL + 2 nulled documents folded into MANUAL + 21 untouched
+                .body("counts.MANUAL", is(25));
     }
 
     @Test
