@@ -5,10 +5,21 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 
 /**
+ * Loads Document (receipt / "Beleg") entities from testdata configuration. Runs after transactions (order=45) so a
+ * document can be linked to an existing transaction via {@code transaction.document_id}.
+ * <p>
+ * These test documents have no file stored in S3; the {@code /documents/{id}/file} endpoint returns 404 for them, which
+ * the UI handles gracefully (no preview). They exist so the receipts view is populated and the bank-transaction
+ * reconciliation can be exercised from the receipt-review drawer as well as the transaction detail drawer.
+ * <p>
+ * {@code createdat} is computed relative to now from {@code monthsAgo} so the admin dashboard's upload-activity month
+ * buckets are stable on any run date: the 15th of the target month (current month minus monthsAgo), avoiding
+ * month-length drift near boundaries. Entries without {@code monthsAgo} default to the current month.
  */
 @ApplicationScoped
 public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.DocumentData> {
 
+    private static final int ORDER = 45;
 
     @Override
     public int getOrder() {
@@ -35,9 +46,8 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
                                       analysisstatus, direction, extractionsource, uploadedby, createdat, updatedat)
                 VALUES (:id, :organizationId, :bommelId, :name, CAST(:total AS numeric), :currencyCode,
                         CAST(:transactionTime AS timestamp), false, :fileName, :fileContentType, :fileSize,
-                        :documentStatus, :analysisStatus, :direction, :extractionSource, :uploadedBy, NOW(), NOW())
-                INSERT INTO document (id, organization_id, name, documentstatus, uploadedby, createdat)
-                VALUES (:id, :organizationId, :name, 'UPLOADED', 'testdata@hopps.app',
+                        :documentStatus, :analysisStatus, :direction, :extractionSource, :uploadedBy,
+                        date_trunc('month', NOW()) + INTERVAL '14 days' - (INTERVAL '1 month' * :monthsAgo),
                         date_trunc('month', NOW()) + INTERVAL '14 days' - (INTERVAL '1 month' * :monthsAgo))
                 """;
 
@@ -65,7 +75,7 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
                             document.getExtractionSource() != null ? document.getExtractionSource() : "MANUAL")
                     .setParameter("uploadedBy",
                             document.getUploadedBy() != null ? document.getUploadedBy() : "testdata@hopps.app")
-                    .setParameter("monthsAgo", document.getMonthsAgo())
+                    .setParameter("monthsAgo", document.getMonthsAgo() != null ? document.getMonthsAgo() : 0L)
                     .executeUpdate();
 
             // Link the document to an existing transaction (transaction owns the FK) so it shows up as that

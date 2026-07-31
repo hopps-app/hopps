@@ -617,6 +617,160 @@ documents:
     fileName: "beleg-foerderbescheid.pdf"
     direction: "OUTGOING"
 
+  # --- Admin-dashboard chart documents (ids 101+): spread over the 6-month window via monthsAgo ---
+  # buehnefrei-ev (organization id=4): spread across the full 6-month chart window (monthsAgo 0..5)
+  # so every bar is non-zero and varied. Counts per month: 5m=2, 4m=3, 3m=5, 2m=4, 1m=6, 0m=8 -> belegeCount = 28
+  # 5 months ago (2)
+  - id: 101
+    organizationId: 4
+    name: "Beleg 001 - Project Funding"
+    monthsAgo: 5
+  - id: 102
+    organizationId: 4
+    name: "Beleg 002 - Insurance Premium"
+    monthsAgo: 5
+  # 4 months ago (3)
+  - id: 103
+    organizationId: 4
+    name: "Beleg 003 - Venue Booking"
+    monthsAgo: 4
+  - id: 104
+    organizationId: 4
+    name: "Beleg 004 - Catering Service"
+    monthsAgo: 4
+  - id: 105
+    organizationId: 4
+    name: "Beleg 005 - Marketing Materials"
+    monthsAgo: 4
+  # 3 months ago (5)
+  - id: 106
+    organizationId: 4
+    name: "Beleg 006 - Sound System"
+    monthsAgo: 3
+  - id: 107
+    organizationId: 4
+    name: "Beleg 007 - Lighting Equipment"
+    monthsAgo: 3
+  - id: 108
+    organizationId: 4
+    name: "Beleg 008 - Stage Props"
+    monthsAgo: 3
+  - id: 109
+    organizationId: 4
+    name: "Beleg 009 - Costumes Purchase"
+    monthsAgo: 3
+  - id: 110
+    organizationId: 4
+    name: "Beleg 010 - Utilities Bill"
+    monthsAgo: 3
+  # 2 months ago (4)
+  - id: 111
+    organizationId: 4
+    name: "Beleg 011 - Workshop Materials"
+    monthsAgo: 2
+  - id: 112
+    organizationId: 4
+    name: "Beleg 012 - Training Session"
+    monthsAgo: 2
+  - id: 113
+    organizationId: 4
+    name: "Beleg 013 - Rent Payment"
+    monthsAgo: 2
+  - id: 114
+    organizationId: 4
+    name: "Beleg 014 - Printing Costs"
+    monthsAgo: 2
+  # 1 month ago (6)
+  - id: 115
+    organizationId: 4
+    name: "Beleg 015 - Office Supplies"
+    monthsAgo: 1
+  - id: 116
+    organizationId: 4
+    name: "Beleg 016 - Coffee Machine"
+    monthsAgo: 1
+  - id: 117
+    organizationId: 4
+    name: "Beleg 017 - Cleaning Service"
+    monthsAgo: 1
+  - id: 118
+    organizationId: 4
+    name: "Beleg 018 - Props Warehouse"
+    monthsAgo: 1
+  - id: 119
+    organizationId: 4
+    name: "Beleg 019 - Audio Equipment"
+    monthsAgo: 1
+  - id: 120
+    organizationId: 4
+    name: "Beleg 020 - Ticket Printing"
+    monthsAgo: 1
+  # current month (8)
+  - id: 121
+    organizationId: 4
+    name: "Beleg 021 - Office Supplies"
+    monthsAgo: 0
+  - id: 122
+    organizationId: 4
+    name: "Beleg 022 - Coffee Machine"
+    monthsAgo: 0
+  - id: 123
+    organizationId: 4
+    name: "Beleg 023 - Rent Payment"
+    monthsAgo: 0
+  - id: 124
+    organizationId: 4
+    name: "Beleg 024 - Stage Decoration"
+    monthsAgo: 0
+  - id: 125
+    organizationId: 4
+    name: "Beleg 025 - Program Booklets"
+    monthsAgo: 0
+  - id: 126
+    organizationId: 4
+    name: "Beleg 026 - Refreshments"
+    monthsAgo: 0
+  - id: 127
+    organizationId: 4
+    name: "Beleg 027 - Microphones"
+    monthsAgo: 0
+  - id: 128
+    organizationId: 4
+    name: "Beleg 028 - Set Construction"
+    monthsAgo: 0
+
+  # kaeltekrieger (organization id=3): smaller spread across 4 months. 3m=1, 2m=2, 1m=1, 0m=3 -> belegeCount = 7
+  - id: 129
+    organizationId: 3
+    name: "Beleg 029 - Ice Resurfacer Service"
+    monthsAgo: 3
+  - id: 130
+    organizationId: 3
+    name: "Beleg 030 - Kiosk Supplies"
+    monthsAgo: 2
+  - id: 131
+    organizationId: 3
+    name: "Beleg 031 - Team Jerseys"
+    monthsAgo: 2
+  - id: 132
+    organizationId: 3
+    name: "Beleg 032 - Referee Fees"
+    monthsAgo: 1
+  - id: 133
+    organizationId: 3
+    name: "Beleg 033 - Ice Maintenance"
+    monthsAgo: 0
+  - id: 134
+    organizationId: 3
+    name: "Beleg 034 - Zamboni Fuel"
+    monthsAgo: 0
+  - id: 135
+    organizationId: 3
+    name: "Beleg 035 - Shop Merchandise"
+    monthsAgo: 0
+
+# Sequence configuration for ID generators
+
 # Test bank account (Bühnefrei e.V., organization id=4). A seed BankImport is created automatically for it.
 bankAccounts:
   - id: 1
@@ -803,7 +957,7 @@ sequences:
   Organization_SEQ: 4
   Member_SEQ: 23
   Transaction_SEQ: 15
-  Document_SEQ: 5
+  Document_SEQ: 140
   BankAccount_SEQ: 1
   BankImport_SEQ: 1
   BankTransaction_SEQ: 200
