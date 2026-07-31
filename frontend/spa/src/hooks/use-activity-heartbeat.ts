@@ -29,9 +29,12 @@ const INPUT_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll']
  * not change the totals, and it is safe to call more often than needed.
  */
 export function useActivityHeartbeat() {
+    // Seeded in the effect below rather than here — calling Date.now() during render is impure
+    // (react-hooks/purity). 0 is never read before the mount effect overwrites it.
     const lastInputAt = useRef(0);
 
     useEffect(() => {
+        // Mark the visit as active on mount so the first beat() is not mistaken for idle.
         lastInputAt.current = Date.now();
 
         const markInput = () => {
