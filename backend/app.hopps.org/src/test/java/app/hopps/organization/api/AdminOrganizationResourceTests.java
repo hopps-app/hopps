@@ -79,8 +79,9 @@ class AdminOrganizationResourceTests {
                 .body("$", hasSize(3))
                 // every row exposes a non-null createdAt and a contact email (owner falls back to any member)
                 .body("createdAt", notNullValue())
-                // belegeCount is the number of uploaded documents (Belege): org 4 has 28 seeded, org 2 has none
-                .body("find { it.slug == 'buehnefrei-ev' }.belegeCount", is(28))
+                // belegeCount is the number of uploaded documents (Belege): org 4 has 33 seeded (28 activity docs +
+                // 5 receipts merged from main), org 2 has none
+                .body("find { it.slug == 'buehnefrei-ev' }.belegeCount", is(33))
                 .body("find { it.slug == 'buehnefrei-ev' }.contactEmail", notNullValue())
                 .body("find { it.slug == 'gruenes-herz-ev' }.belegeCount", is(0))
                 // no member has ever been "seen" in the test data
@@ -99,7 +100,7 @@ class AdminOrganizationResourceTests {
                 .body("id", is(4))
                 .body("name", is("Theatervereine Bühnefrei e.V."))
                 .body("slug", is("buehnefrei-ev"))
-                .body("belegeCount", is(28))
+                .body("belegeCount", is(33))
                 .body("bankImportCount", is(0))
                 .body("members", hasSize(9))
                 .body("contactEmail", notNullValue())
@@ -152,7 +153,8 @@ class AdminOrganizationResourceTests {
     @TestSecurity(user = "admin@example.test", roles = { "admin" })
     void shouldReturnDocumentActivity() {
         // buehnefrei-ev (org 4) seeds documents across the full 6-month window.
-        // Per month (monthsAgo): 5m=2, 4m=3, 3m=5, 2m=4, 1m=6, 0m=8.
+        // Per month (monthsAgo): 5m=2, 4m=3, 3m=5, 2m=4, 1m=6, 0m=8 activity docs; the 5 receipts merged from main
+        // are created now and fall in the current month, so 0m = 8 + 5 = 13.
         given()
                 .when()
                 .get(PATH + "/4/document-activity")
@@ -165,7 +167,7 @@ class AdminOrganizationResourceTests {
                 .body("months[2].count", is(5))
                 .body("months[3].count", is(4))
                 .body("months[4].count", is(6))
-                .body("months[5].count", is(8));
+                .body("months[5].count", is(13));
     }
 
     @Test
