@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { formatDuration } from './format';
@@ -104,24 +105,30 @@ export function ChartCard({
 }
 
 /**
- * Hover tooltip for a bar. Hidden until the enclosing `.group` is hovered, then floats
- * above the bar. Pointer-events are off so it never blocks the hover it depends on.
- * Shared chrome — sits with ChartCard so both bar charts reuse the same look without a
- * circular import.
+ * Hover tooltip for a bar or a point. Hidden until the enclosing `.group` is hovered, then floats
+ * above it. Pointer-events are off so it never blocks the hover it depends on. Shared chrome — sits
+ * with ChartCard so every chart reuses the same look without a circular import.
+ *
+ * A surface-coloured card rather than an inverted dark one: it reads as part of the page, and it
+ * keeps working when a tooltip carries several coloured rows, where a dark fill would fight the
+ * series colours.
+ *
+ * `value` is a node, not a string, so a tooltip can stack several readings for the same point
+ * instead of cramming them onto one line.
  */
-export function ChartTooltip({ label, value }: { label: string; value: string }) {
+export function ChartTooltip({ label, value }: { label: string; value: ReactNode }) {
     return (
         <div
             className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full z-10
-                       whitespace-nowrap rounded-lg px-2.5 py-1.5 text-center shadow-lg
+                       whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-center shadow-lg
                        opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ background: 'var(--ink)' }}
+            style={{ background: 'var(--surface)', borderColor: 'var(--line-2)' }}
             role="tooltip"
         >
-            <div className="text-[11px] font-semibold" style={{ color: 'var(--surface)' }}>
+            <div className="text-[11px] font-semibold" style={{ color: 'var(--ink-2)' }}>
                 {label}
             </div>
-            <div className="tnum text-[12px] font-bold" style={{ color: 'var(--surface)' }}>
+            <div className="tnum text-[12px] font-bold" style={{ color: 'var(--ink)' }}>
                 {value}
             </div>
         </div>
