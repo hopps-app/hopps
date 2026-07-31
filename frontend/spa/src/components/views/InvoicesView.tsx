@@ -20,9 +20,8 @@ async function getInvoices(): Promise<InvoicesTableData[]> {
 
     while (true) {
         const data = await apiService.orgService.transactionsAll(
-            undefined, // area
             undefined, // bommelId
-            undefined, // categoryId
+            undefined, // categoryValue
             undefined, // detached
             undefined, // endDate
             page, // page

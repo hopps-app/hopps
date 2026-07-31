@@ -32,6 +32,11 @@ public class SchemaDetectionService {
 
     static final double MIN_CONFIDENCE = 0.6;
 
+    /**
+     * Tolerance for treating two detection scores as tied (they are exact fractions, so this only needs to be tiny).
+     */
+    private static final double SCORE_EPSILON = 1e-9;
+
     /** Known header-column signatures for each built-in template (lower-cased, trimmed). */
     private static final Map<String, Set<String>> TEMPLATE_SIGNATURES = Map.of(
             "sparkasse-mt940", Set.of(
@@ -94,20 +99,31 @@ public class SchemaDetectionService {
         }
 
         // 2. System templates --------------------------------------------------
+        // On a score tie the MORE SPECIFIC template wins (more matched signature terms). The MT940 signature is a
+        // strict subset of the CAMT one, so a 17-column CAMT file matches MT940 perfectly too (7/7 = 1.0). Without
+        // this tie-break the first-registered template (MT940) would win and the file would be imported with the
+        // wrong column mapping — the amount is read from the wrong column and every row fails.
         List<BankCsvSchemaTemplateResponse> templates = templateService.list();
+        int bestTemplateMatched = -1;
         for (BankCsvSchemaTemplateResponse tpl : templates) {
             // Prefer v8 over v2 when both score identically
             if (CAMT_OTHER.equals(tpl.templateId())) {
                 continue; // handled via CAMT_PREFERRED below
             }
             double score = scoreTemplate(tpl.templateId(), normalised);
-            if (score > best.confidence()) {
+            int matched = matchedSignatureTerms(tpl.templateId(), normalised);
+            boolean strictlyBetter = score > best.confidence() + SCORE_EPSILON;
+            boolean tieButMoreSpecific = Math.abs(score - best.confidence()) <= SCORE_EPSILON
+                    && best.type() == SchemaDetectionResult.DetectionType.TEMPLATE
+                    && matched > bestTemplateMatched;
+            if (strictlyBetter || tieButMoreSpecific) {
                 best = new SchemaDetectionResult(
                         SchemaDetectionResult.DetectionType.TEMPLATE,
                         null,
                         tpl.templateId(),
                         tpl.name(),
                         score);
+                bestTemplateMatched = matched;
             }
         }
 
@@ -156,9 +172,19 @@ public class SchemaDetectionService {
         if (signature == null || signature.isEmpty()) {
             return 0.0;
         }
-        long matched = signature.stream()
+        return (double) matchedSignatureTerms(templateId, normalisedHeaders) / signature.size();
+    }
+
+    /**
+     * Number of a template's signature terms present in the header columns. Drives the tie-break toward specificity.
+     */
+    private int matchedSignatureTerms(String templateId, Set<String> normalisedHeaders) {
+        Set<String> signature = TEMPLATE_SIGNATURES.get(templateId);
+        if (signature == null || signature.isEmpty()) {
+            return 0;
+        }
+        return (int) signature.stream()
                 .filter(sig -> normalisedHeaders.stream().anyMatch(h -> h.contains(sig)))
                 .count();
-        return (double) matched / signature.size();
     }
 }

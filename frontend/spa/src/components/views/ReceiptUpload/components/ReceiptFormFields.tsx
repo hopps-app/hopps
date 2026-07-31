@@ -1,18 +1,15 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FormErrors, LoadingStates } from '../hooks/useReceiptForm';
 
+import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import InvoiceUploadFormBommelSelector from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { Label } from '@/components/ui/Label';
 import Radio from '@/components/ui/Radio';
-import SearchSelect, { SearchSelectItem } from '@/components/ui/SearchSelect';
-import Select, { SelectItem } from '@/components/ui/Select';
 import { DatePicker } from '@/components/ui/shadecn/DatePicker';
 import Switch from '@/components/ui/Switch';
 import Tags from '@/components/ui/Tags';
 import TextField from '@/components/ui/TextField';
-import { useCategories } from '@/hooks/queries';
 
 interface ReceiptFormFieldsProps {
     receiptNumber: string;
@@ -29,10 +26,8 @@ interface ReceiptFormFieldsProps {
     onContractPartnerChange: (value: string) => void;
     bommelId: number | null;
     onBommelIdChange: (id: number | null) => void;
-    category: string;
-    onCategoryChange: (value: string) => void;
-    area: string;
-    onAreaChange: (value: string) => void;
+    categoryValues: Record<number, string>;
+    onCategoryValueChange: (groupId: number, value: string | undefined) => void;
     tags: string[];
     onTagsChange: (tags: string[]) => void;
     grossAmount: string;
@@ -59,10 +54,8 @@ export function ReceiptFormFields({
     onContractPartnerChange,
     bommelId,
     onBommelIdChange,
-    category,
-    onCategoryChange,
-    area,
-    onAreaChange,
+    categoryValues,
+    onCategoryValueChange,
     tags,
     onTagsChange,
     grossAmount,
@@ -74,24 +67,6 @@ export function ReceiptFormFields({
     readOnly = false,
 }: ReceiptFormFieldsProps) {
     const { t } = useTranslation();
-    const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-
-    const areaItems: SelectItem[] = [
-        { value: 'IDEELL', label: t('receipts.areas.ideell') },
-        { value: 'ZWECKBETRIEB', label: t('receipts.areas.zweckbetrieb') },
-        { value: 'VERMOEGENSVERWALTUNG', label: t('receipts.areas.vermoegensverwaltung') },
-        { value: 'WIRTSCHAFTLICH', label: t('receipts.areas.wirtschaftlich') },
-        { value: 'UNKNOWN', label: t('receipts.areas.unknown') },
-    ];
-
-    const categoryItems: SearchSelectItem[] = useMemo(
-        () =>
-            categories.map((cat) => ({
-                value: String(cat.id),
-                label: cat.name ?? '',
-            })),
-        [categories]
-    );
 
     const radioItems = [
         { value: 'intake', label: t('receipts.types.income') },
@@ -173,25 +148,6 @@ export function ReceiptFormFields({
                 )}
             </div>
 
-            {/* Row 4: Area + Category */}
-            <Select
-                label={t('receipts.upload.area')}
-                value={area}
-                onValueChanged={onAreaChange}
-                items={areaItems}
-                error={errors.area}
-                required
-                disabled={readOnly}
-            />
-            <SearchSelect
-                label={t('receipts.upload.category')}
-                value={category}
-                onValueChange={onCategoryChange}
-                items={categoryItems}
-                placeholder={categoriesLoading ? t('common.loading') : t('receipts.upload.selectCategory')}
-                disabled={readOnly}
-            />
-
             {/* Row 5: Due date (optional) */}
             <DatePicker
                 label={t('receipts.upload.dueDate')}
@@ -201,6 +157,13 @@ export function ReceiptFormFields({
                 loading={loadingStates.dueDate}
                 disabled={readOnly}
             />
+
+            {/* Category groups applicable to the selected bommel (full width) */}
+            {!readOnly && (
+                <div className="sm:col-span-2">
+                    <CategoryGroupFields bommelId={bommelId} values={categoryValues} onChange={onCategoryValueChange} />
+                </div>
+            )}
 
             {/* Row 6: Tags (full width) */}
             <div className="sm:col-span-2">

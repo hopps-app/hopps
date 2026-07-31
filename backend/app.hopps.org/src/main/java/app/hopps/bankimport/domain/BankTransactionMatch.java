@@ -33,6 +33,15 @@ public class BankTransactionMatch extends PanacheEntity {
     @Column(name = "matchedamount", nullable = false, precision = 38, scale = 2)
     private BigDecimal matchedAmount;
 
+    /**
+     * Whether {@link #matchedAmount} was set explicitly by the user (a partial allocation, e.g. when one collective
+     * bank transfer is split across several bookkeeping transactions). Manual allocations are preserved: unlike the
+     * default full-amount snapshot they are not overwritten when the transaction total later changes (see
+     * {@code BankTransactionMatchService#updateMatchedAmountForTransaction}).
+     */
+    @Column(name = "amountmanual", nullable = false)
+    private boolean amountManual = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "matchtype", nullable = false)
     private BankTransactionMatchType matchType = BankTransactionMatchType.MANUAL;
@@ -76,6 +85,14 @@ public class BankTransactionMatch extends PanacheEntity {
 
     public void setMatchedAmount(BigDecimal matchedAmount) {
         this.matchedAmount = matchedAmount;
+    }
+
+    public boolean isAmountManual() {
+        return amountManual;
+    }
+
+    public void setAmountManual(boolean amountManual) {
+        this.amountManual = amountManual;
     }
 
     public BankTransactionMatchType getMatchType() {

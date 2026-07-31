@@ -1,4 +1,4 @@
-import type { TransactionArea, TransactionStatus } from '@hopps/api-client';
+import type { TransactionStatus } from '@hopps/api-client';
 import { TransactionCreateRequest, TransactionResponse, TransactionUpdateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -12,16 +12,26 @@ export interface TransactionFilters {
     search?: string;
     startDate?: string;
     endDate?: string;
-    bommelId?: number;
-    categoryId?: number;
+    // Filter by one or more bommels (OR). Empty/undefined = no bommel restriction.
+    bommelIds?: number[];
     status?: TransactionStatus;
     privatelyPaid?: boolean;
     detached?: boolean;
-    area?: TransactionArea;
+    // Active category-group value filters: groupId → the value a transaction must carry for that group. Multiple
+    // entries combine with AND (a transaction must match every selected group). Encoded on the wire as repeatable
+    // `categoryValue=<groupId>:<value>` query params.
+    categoryValues?: Record<number, string>;
     sortBy?: TransactionSortBy;
     sortDir?: SortDirection;
     page?: number;
     size?: number;
+}
+
+/** Encodes the category-value filter map to the repeatable `groupId:value` wire format, or undefined when empty. */
+function encodeCategoryValues(categoryValues: Record<number, string> | undefined): string[] | undefined {
+    if (!categoryValues) return undefined;
+    const entries = Object.entries(categoryValues).filter(([, v]) => v != null && v !== '');
+    return entries.length > 0 ? entries.map(([groupId, value]) => `${groupId}:${value}`) : undefined;
 }
 
 export const transactionKeys = {
@@ -30,6 +40,22 @@ export const transactionKeys = {
     list: (filters: TransactionFilters) => [...transactionKeys.lists(), filters] as const,
     details: () => [...transactionKeys.all, 'detail'] as const,
     detail: (id: number) => [...transactionKeys.details(), id] as const,
+    // Aggregate depends only on the filter set, not on paging/sorting — so paging does not refetch it.
+    aggregate: (filters: TransactionFilters) =>
+        [
+            ...transactionKeys.all,
+            'aggregate',
+            {
+                search: filters.search,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                bommelIds: filters.bommelIds,
+                status: filters.status,
+                privatelyPaid: filters.privatelyPaid,
+                detached: filters.detached,
+                categoryValues: filters.categoryValues,
+            },
+        ] as const,
 };
 
 export function useTransactions(filters: TransactionFilters = {}) {
@@ -37,9 +63,8 @@ export function useTransactions(filters: TransactionFilters = {}) {
         queryKey: transactionKeys.list(filters),
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                filters.area,
-                filters.bommelId,
-                filters.categoryId,
+                filters.bommelIds,
+                encodeCategoryValues(filters.categoryValues),
                 filters.detached,
                 filters.endDate,
                 filters.page ?? 0,
@@ -48,6 +73,27 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.size ?? 50,
                 filters.sortBy,
                 filters.sortDir,
+                filters.startDate,
+                filters.status
+            ),
+    });
+}
+
+/**
+ * Total count and income/expense sums across the whole filtered result set (all pages) — used to drive pagination and
+ * the overview totals, which a single page of results cannot provide.
+ */
+export function useTransactionAggregate(filters: TransactionFilters = {}) {
+    return useQuery({
+        queryKey: transactionKeys.aggregate(filters),
+        queryFn: () =>
+            apiService.orgService.aggregate2(
+                filters.bommelIds,
+                encodeCategoryValues(filters.categoryValues),
+                filters.detached,
+                filters.endDate,
+                filters.privatelyPaid,
+                filters.search,
                 filters.startDate,
                 filters.status
             ),
@@ -135,12 +181,10 @@ export function transactionToReceipt(
     issuer: string;
     date: string;
     amount: number;
-    category: string;
     status: 'draft' | 'saved';
     privatelyPaid: boolean;
     project: string;
     bommelEmoji: string;
-    area: string;
     purpose: string;
     dueDate: string;
     tags: string[];
@@ -168,12 +212,10 @@ export function transactionToReceipt(
         issuer: tx.senderName ?? tx.name ?? '',
         date: formatDate(tx.transactionTime),
         amount,
-        category: tx.categoryName ?? '',
         status,
         privatelyPaid: tx.privatelyPaid ?? false,
         project: tx.bommelName ?? '',
         bommelEmoji,
-        area: tx.area ?? '',
         purpose: tx.name ?? '',
         dueDate: formatDate(tx.dueDate),
         tags: tx.tags ?? [],

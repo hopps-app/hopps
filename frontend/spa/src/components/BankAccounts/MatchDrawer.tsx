@@ -1,22 +1,28 @@
-import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
+import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, FileText, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
+import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
+import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import {
     useBankTransaction,
     useAddBankTransactionMatch,
     useRemoveBankTransactionMatch,
+    useUpdateBankTransactionMatchAmount,
+    useBankTransactionMatches,
     useIgnoreBankTransaction,
     useCreateReceiptForBankTransaction,
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
+import { useDocument } from '@/hooks/queries/useDocuments';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
+import { parseAllocationAmount } from '@/utils/parseAmount';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -35,14 +41,17 @@ function fmtDate(date: string | Date | undefined): string {
 
 function BookingMini({ tx }: { tx: BankTransactionResponse }) {
     return (
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-start gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl flex-shrink-0 bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center">
                 <Landmark className="w-5 h-5" />
             </div>
             <div className="min-w-0">
                 <div className="text-sm font-bold truncate">{tx.counterpartyName || '—'}</div>
-                <div className="text-xs text-muted-foreground truncate">
-                    {fmtDate(tx.bookingDate)} · {tx.purpose}
+                {/* Show the full purpose ("Verwendungszweck") — wrap over as many lines as needed instead of truncating,
+                    so a long reference (e.g. customer/invoice numbers) stays fully readable in the summary. */}
+                <div className="text-xs text-muted-foreground break-words">
+                    {fmtDate(tx.bookingDate)}
+                    {tx.purpose ? ` · ${tx.purpose}` : ''}
                 </div>
             </div>
         </div>
@@ -63,11 +72,9 @@ function HoppsTxMini({ tx }: { tx: TransactionResponse }) {
             >
                 {isIncoming ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
             </div>
-            <div className="min-w-0">
-                <div className="text-sm font-bold truncate">{tx.name || '—'}</div>
-                <div className="text-xs text-muted-foreground">
-                    {tx.categoryName} · {fmtDate(tx.transactionTime)}
-                </div>
+            <div className="min-w-0 flex-1">
+                <div className="text-sm font-bold break-words">{tx.name || '—'}</div>
+                <div className="text-xs text-muted-foreground">{fmtDate(tx.transactionTime)}</div>
             </div>
         </div>
     );
@@ -91,18 +98,29 @@ function SignedAmount({ amount, currency = 'EUR', size = 'base' }: { amount: num
 interface MatchDrawerProps {
     bankTxId: number;
     onClose: () => void;
+    // Called after a receipt was uploaded onto the bank transaction. The parent (Konten page) opens the receipt-review
+    // drawer in place so the user completes + confirms the transaction without leaving the bank transactions page.
+    onReceiptUploaded?: (doc: DocumentResponse) => void;
 }
 
-export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
+export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawerProps) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [sel, setSel] = useState<Set<number>>(new Set());
+    // Optional per-transaction "amount used" typed at link time (raw input). Only present for rows the user edited;
+    // an absent entry means the full/default amount. Lets one collective transfer be split across several transactions.
+    const [amounts, setAmounts] = useState<Map<number, string>>(new Map());
     const [showCreate, setShowCreate] = useState(false);
     const [txSearch, setTxSearch] = useState('');
+    // The receipt (document) currently previewed to the left of the drawer, chosen via the small receipt button on a
+    // candidate row. Only transactions that actually have a linked document can set this.
+    const [previewDocId, setPreviewDocId] = useState<number | null>(null);
+    const { data: previewDoc } = useDocument(previewDocId ?? undefined);
     const createReceipt = useCreateReceiptForBankTransaction();
 
-    // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked transaction and
-    // opens the receipt for review.
+    // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked (DRAFT)
+    // transaction; the parent then opens the receipt-review drawer in place so the user completes + confirms it and
+    // continues with the next bank transaction — all without leaving the Konten page.
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop: async (acceptedFiles) => {
             const file = acceptedFiles[0];
@@ -110,7 +128,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
             try {
                 const doc = await createReceipt.mutateAsync({ bankTxId, file });
                 onClose();
-                if (doc?.id) navigate(`/receipts?id=${doc.id}`);
+                if (doc) onReceiptUploaded?.(doc);
             } catch {
                 // The error toast (including the "already uploaded" 409 case) is shown by the mutation's onError;
                 // this catch only prevents an unhandled rejection.
@@ -128,28 +146,29 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         queryKey: ['transactions', 'forMatch'],
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                0,
-                undefined,
-                undefined,
-                200,
-                undefined,
-                undefined,
-                undefined,
-                undefined
+                undefined, // bommelId
+                undefined, // categoryValue
+                undefined, // detached
+                undefined, // endDate
+                0, // page
+                undefined, // privatelyPaid
+                undefined, // search
+                200, // size
+                undefined, // sortBy
+                undefined, // sortDir
+                undefined, // startDate
+                undefined // status
             ),
     });
 
-    // Pre-fill the search with the bank transaction's amount (German decimal comma) so matching transactions surface
-    // immediately; the backend search matches both the amount and the name/counterparty text.
+    // Pre-fill the search with the bank transaction's still-open amount — its amount minus what is already allocated to
+    // other transactions (matchedAmount) — in German decimal comma, so matching transactions for the remaining
+    // difference surface immediately. When nothing is allocated yet (matchedAmount = 0) this is just the full amount.
+    // The backend search matches both the amount and the name/counterparty text.
     useEffect(() => {
         if (bankTx) {
-            const amt = Math.abs(bankTx.amount ?? 0);
-            setTxSearch(amt ? amt.toFixed(2).replace('.', ',') : '');
+            const open = Math.abs((bankTx.amount ?? 0) - (bankTx.matchedAmount ?? 0));
+            setTxSearch(open ? open.toFixed(2).replace('.', ',') : '');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [bankTx?.id]);
@@ -159,19 +178,18 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         queryKey: ['transactions', 'forMatch', 'search', txSearch],
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                0,
-                undefined,
-                txSearch || undefined,
-                50,
-                undefined,
-                undefined,
-                undefined,
-                undefined
+                undefined, // bommelId
+                undefined, // categoryValue
+                undefined, // detached
+                undefined, // endDate
+                0, // page
+                undefined, // privatelyPaid
+                txSearch || undefined, // search
+                50, // size
+                undefined, // sortBy
+                undefined, // sortDir
+                undefined, // startDate
+                undefined // status
             ),
         enabled: !!bankTx,
     });
@@ -179,6 +197,8 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const queryClient = useQueryClient();
     const addMatch = useAddBankTransactionMatch();
     const removeMatch = useRemoveBankTransactionMatch();
+    const updateMatchAmount = useUpdateBankTransactionMatchAmount();
+    const { data: matchAllocs } = useBankTransactionMatches(bankTxId);
     const ignoreTx = useIgnoreBankTransaction();
     const unignoreTx = useMutation({
         mutationFn: (id: number) => apiService.orgService.ignoreDELETE(id),
@@ -212,9 +232,49 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         if (t.id != null) txById.set(t.id, t);
     });
 
-    // Amount reconciliation (signed: positive tx covers negative bank movement and vice versa)
-    const alreadyMatchedSum = linkedTx.reduce((s, t) => s + (t.total ?? 0), 0);
-    const selectedSum = Array.from(sel).reduce((s, id) => s + (txById.get(id)?.total ?? 0), 0);
+    // Allocation (used amount) of each already-linked transaction for THIS bank movement.
+    const allocByTx = new Map<number, number>();
+    (matchAllocs ?? []).forEach((m) => {
+        if (m.transactionId != null) allocByTx.set(m.transactionId, m.amount ?? 0);
+    });
+
+    const movementMagnitude = Math.abs(bankTx.amount ?? 0);
+
+    // Amount reconciliation. Every allocation in this drawer is a portion of THIS one bank movement, so it always
+    // counts in the movement's own direction (income +, expense −) — independent of the linked transaction's
+    // income/expense direction. Signing by the transaction's direction instead would double the difference (add instead
+    // of subtract) whenever the two directions differ, e.g. an income transaction linked to an income movement whose
+    // total happens to carry the opposite sign.
+    const movementSign = Math.sign(bankTx.amount ?? 0);
+    // Portion of the movement already allocated to OTHER (already-linked) transactions, signed to its direction.
+    const alreadyMatchedSum = linkedTx.reduce((s, t) => {
+        const alloc = allocByTx.get(t.id!) ?? Math.abs(t.total ?? 0);
+        return s + movementSign * alloc;
+    }, 0);
+    // Still-open magnitude of the movement — its amount minus what other transactions already use. A newly assigned
+    // transaction should fill only this open difference, not the movement's full amount.
+    const openMagnitude = Math.abs((bankTx.amount ?? 0) - alreadyMatchedSum);
+    // Whether part of the movement is already used up by other transactions.
+    const movementPartlyUsed = Math.abs(alreadyMatchedSum) > 0.005;
+
+    // Default allocation for a candidate: as much as the transaction needs, capped at the movement's STILL-OPEN amount
+    // (openMagnitude), so a partially pre-allocated movement pre-fills only the remaining difference. For a fully open
+    // movement openMagnitude equals its full magnitude, so this is unchanged there.
+    const defaultAlloc = (t: TransactionResponse) => Math.min(Math.abs(t.total ?? 0), openMagnitude);
+    // A user's per-row override, if it is a valid positive amount within the movement's own amount; otherwise null
+    // (fall back to the default). Capping at the movement still lets several movements over-cover a transaction.
+    const overrideAlloc = (id: number): number | null => {
+        if (!amounts.has(id)) return null;
+        const v = parseAllocationAmount(amounts.get(id) ?? '');
+        if (v == null || v <= 0 || v > movementMagnitude + 0.005) return null;
+        return v;
+    };
+
+    const selectedSum = Array.from(sel).reduce((s, id) => {
+        const t = txById.get(id);
+        if (!t) return s;
+        return s + movementSign * (overrideAlloc(id) ?? defaultAlloc(t));
+    }, 0);
     const remaining = (bankTx.amount ?? 0) - alreadyMatchedSum - selectedSum;
     const isFullyCovered = Math.abs(remaining) <= 0.005; // float tolerance
 
@@ -228,18 +288,46 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
             }
             return next;
         });
+        // Drop any typed partial amount when a row is toggled (deselecting discards it; reselecting starts fresh).
+        setAmounts((prev) => {
+            if (!prev.has(id)) return prev;
+            const next = new Map(prev);
+            next.delete(id);
+            return next;
+        });
+    };
+
+    const setRowAmount = (id: number, value: string) => {
+        setAmounts((prev) => {
+            const next = new Map(prev);
+            if (value === '') {
+                next.delete(id);
+            } else {
+                next.set(id, value);
+            }
+            return next;
+        });
     };
 
     const handleAssign = async () => {
         for (const txId of sel) {
-            await addMatch.mutateAsync({ bankTxId, transactionId: txId });
+            const tx = txById.get(txId);
+            // Without an explicit amount the backend allocates the movement's full amount. When the movement is already
+            // partly used, send the open-remainder allocation instead so the new match fills only the open difference.
+            const amount = overrideAlloc(txId) ?? (movementPartlyUsed && tx ? defaultAlloc(tx) : undefined);
+            await addMatch.mutateAsync({ bankTxId, transactionId: txId, amount: amount ?? undefined });
         }
         setSel(new Set());
+        setAmounts(new Map());
         onClose();
     };
 
     const handleUnlink = async (txId: number) => {
         await removeMatch.mutateAsync({ bankTxId, transactionId: txId });
+    };
+
+    const handleUpdateAlloc = async (txId: number, amount: number) => {
+        await updateMatchAmount.mutateAsync({ bankTxId, transactionId: txId, amount });
     };
 
     const handleIgnore = async () => {
@@ -251,6 +339,19 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         <>
             {/* Scrim */}
             <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
+
+            {/* Linked-receipt preview to the left of the drawer (desktop only), toggled per candidate via its receipt
+                button. The wrapper ignores pointer events so clicks in the gap still fall through to the scrim; the
+                preview card itself re-enables them. `right` matches the drawer width (max-w-md = 28rem). */}
+            <div
+                className={cn(
+                    'hidden lg:flex fixed top-0 bottom-0 left-0 z-50 p-4 pointer-events-none transition-transform duration-300 ease-out',
+                    previewDoc ? 'translate-x-0' : '-translate-x-full'
+                )}
+                style={{ right: '28rem' }}
+            >
+                {previewDoc && <DocumentFilePreview doc={previewDoc} onClose={() => setPreviewDocId(null)} />}
+            </div>
 
             {/* Drawer */}
             <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-50 flex flex-col shadow-2xl">
@@ -364,6 +465,13 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                                 <SignedAmount amount={tx.total} currency={tx.currencyCode ?? 'EUR'} size="sm" />
                                                 <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                                             </button>
+                                            <MatchAllocationControl
+                                                amount={allocByTx.get(tx.id!) ?? defaultAlloc(tx)}
+                                                max={movementMagnitude}
+                                                currency={bankTx.currency ?? 'EUR'}
+                                                pending={updateMatchAmount.isPending}
+                                                onSave={(v) => handleUpdateAlloc(tx.id!, v)}
+                                            />
                                             <button
                                                 type="button"
                                                 className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
@@ -444,6 +552,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                     {openTx.map((tx) => {
                                         const isSelected = sel.has(tx.id!);
                                         const exactMatch = Math.abs(tx.total ?? 0) === Math.abs(bankTx.amount ?? 0);
+                                        // The entered "amount used" may not exceed this movement's own amount.
+                                        const rowParsed = parseAllocationAmount(amounts.get(tx.id!) ?? '');
+                                        const rowOverCap = rowParsed != null && rowParsed > movementMagnitude + 0.005;
                                         return (
                                             <div
                                                 key={tx.id}
@@ -473,6 +584,58 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                                     </span>
                                                 )}
                                                 <SignedAmount amount={tx.total} currency={tx.currencyCode ?? 'EUR'} size="sm" />
+                                                {/* Partial "amount used" for splitting this movement — appears only for a selected row. The
+                                                    placeholder shows the default (full) allocation; leave it empty to use that. */}
+                                                {isSelected && (
+                                                    <input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        value={amounts.get(tx.id!) ?? ''}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        onChange={(e) => setRowAmount(tx.id!, e.target.value)}
+                                                        placeholder={fmtCurrency(defaultAlloc(tx), bankTx.currency ?? 'EUR')}
+                                                        title={t('konten.drawer.usedAmountHint')}
+                                                        aria-invalid={rowOverCap}
+                                                        className={cn(
+                                                            'w-[5.5rem] px-1.5 py-0.5 text-[12px] text-right tabular-nums rounded-md border bg-transparent outline-none flex-shrink-0',
+                                                            rowOverCap ? 'border-red-400 focus:border-red-500' : 'border-primary/40 focus:border-primary'
+                                                        )}
+                                                    />
+                                                )}
+                                                {/* Toggle the transaction's linked receipt in the left-hand preview. Only shown when a
+                                                    document is actually linked; stops propagation so it does not toggle the row selection. */}
+                                                {tx.documentId != null && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setPreviewDocId((prev) => (prev === tx.documentId ? null : tx.documentId!));
+                                                        }}
+                                                        aria-pressed={previewDocId === tx.documentId}
+                                                        title={previewDocId === tx.documentId ? t('konten.drawer.hideReceipt') : t('konten.drawer.showReceipt')}
+                                                        className={cn(
+                                                            'w-7 h-7 flex items-center justify-center rounded-full border transition-colors flex-shrink-0',
+                                                            previewDocId === tx.documentId
+                                                                ? 'border-primary/40 text-primary bg-primary/10'
+                                                                : 'border-gray-200 dark:border-gray-600 text-muted-foreground hover:text-primary hover:border-primary/40'
+                                                        )}
+                                                    >
+                                                        <FileText className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                                {/* Open the bookkeeping transaction's detail view in a new tab, so the
+                                                    current assignment context (this bank movement) stays open. */}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer');
+                                                    }}
+                                                    title={t('konten.drawer.openTransactionNewTab')}
+                                                    className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors flex-shrink-0"
+                                                >
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                </button>
                                             </div>
                                         );
                                     })}
@@ -532,10 +695,11 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                 open={showCreate}
                 onClose={() => setShowCreate(false)}
                 bankTx={bankTx}
-                onCreated={(id) => {
+                onCreated={() => {
+                    // Stay on the Konten page after creating the linked transaction so the user can move straight on to
+                    // the next bank movement; the list refreshes via query invalidation.
                     setShowCreate(false);
                     onClose();
-                    if (id) navigate(`/transactions?id=${id}`);
                 }}
             />
         </>

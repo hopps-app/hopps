@@ -5,14 +5,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 
 /**
- * Loads Document (Beleg) entities from testdata configuration. Documents represent uploaded receipts/invoices and back
- * the admin belegeCount and document-upload activity chart. Loaded after transactions (order=40) as they only reference
- * organizations.
  */
 @ApplicationScoped
 public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.DocumentData> {
 
-    private static final int ORDER = 50;
 
     @Override
     public int getOrder() {
@@ -33,9 +29,13 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
 
         Log.infof("Loading %d documents", config.getDocuments().size());
 
-        // createdat is computed relative to now so the upload-activity month buckets are stable on any run date: the
-        // 15th of the target month (current month minus monthsAgo), avoiding month-length drift near boundaries.
         String sql = """
+                INSERT INTO document (id, organization_id, bommel_id, name, total, currencycode, transactiontime,
+                                      privatelypaid, filename, filecontenttype, filesize, documentstatus,
+                                      analysisstatus, direction, extractionsource, uploadedby, createdat, updatedat)
+                VALUES (:id, :organizationId, :bommelId, :name, CAST(:total AS numeric), :currencyCode,
+                        CAST(:transactionTime AS timestamp), false, :fileName, :fileContentType, :fileSize,
+                        :documentStatus, :analysisStatus, :direction, :extractionSource, :uploadedBy, NOW(), NOW())
                 INSERT INTO document (id, organization_id, name, documentstatus, uploadedby, createdat)
                 VALUES (:id, :organizationId, :name, 'UPLOADED', 'testdata@hopps.app',
                         date_trunc('month', NOW()) + INTERVAL '14 days' - (INTERVAL '1 month' * :monthsAgo))
@@ -45,9 +45,38 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
             entityManager.createNativeQuery(sql)
                     .setParameter("id", document.getId())
                     .setParameter("organizationId", document.getOrganizationId())
+                    .setParameter("bommelId", document.getBommelId())
                     .setParameter("name", document.getName())
+                    .setParameter("total", document.getTotal())
+                    .setParameter("currencyCode",
+                            document.getCurrencyCode() != null ? document.getCurrencyCode() : "EUR")
+                    .setParameter("transactionTime", document.getTransactionTime())
+                    .setParameter("fileName", document.getFileName())
+                    .setParameter("fileContentType",
+                            document.getFileContentType() != null ? document.getFileContentType() : "application/pdf")
+                    .setParameter("fileSize", document.getFileSize())
+                    .setParameter("documentStatus",
+                            document.getDocumentStatus() != null ? document.getDocumentStatus() : "CONFIRMED")
+                    .setParameter("analysisStatus",
+                            document.getAnalysisStatus() != null ? document.getAnalysisStatus() : "COMPLETED")
+                    .setParameter("direction",
+                            document.getDirection() != null ? document.getDirection() : "INCOMING")
+                    .setParameter("extractionSource",
+                            document.getExtractionSource() != null ? document.getExtractionSource() : "MANUAL")
+                    .setParameter("uploadedBy",
+                            document.getUploadedBy() != null ? document.getUploadedBy() : "testdata@hopps.app")
                     .setParameter("monthsAgo", document.getMonthsAgo())
                     .executeUpdate();
+
+            // Link the document to an existing transaction (transaction owns the FK) so it shows up as that
+            // transaction's receipt and the reconciliation drawer is reachable from the receipt side too.
+            if (document.getTransactionId() != null) {
+                entityManager.createNativeQuery(
+                        "UPDATE transaction SET document_id = :docId WHERE id = :txId")
+                        .setParameter("docId", document.getId())
+                        .setParameter("txId", document.getTransactionId())
+                        .executeUpdate();
+            }
 
             Log.debugf("Loaded document: %s (id=%d)", document.getName(), document.getId());
         }

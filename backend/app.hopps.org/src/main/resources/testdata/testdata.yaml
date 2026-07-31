@@ -558,160 +558,244 @@ transactions:
     createdBy: "alice@example.test"
     senderName: "Catering Solutions Ltd"
 
-# Documents (Belege) = uploaded receipts/invoices. Back the admin belegeCount and the document-upload activity chart.
-# monthsAgo is whole months before the current month (0 = current); the loader pins createdat to mid-month relative to
-# now, so counts are stable regardless of run date.
+# Test receipts (Belege / Documents), linked to existing transactions so the receipts view is populated and the
+# bank-transaction reconciliation drawer is reachable from the receipt side too. These have no file in S3 — the file
+# endpoint returns 404 for them (no preview), which the UI handles gracefully.
 documents:
-  # buehnefrei-ev (organization id=4): spread across the full 6-month chart window (monthsAgo 0..5)
-  # so every bar is non-zero and varied. Counts per month: 5m=2, 4m=3, 3m=5, 2m=4, 1m=6, 0m=8 -> belegeCount = 28
-  # 5 months ago (2)
   - id: 1
     organizationId: 4
-    name: "Beleg 001 - Project Funding"
-    monthsAgo: 5
+    bommelId: 23
+    transactionId: 1
+    name: "Rechnung Office Depot"
+    total: 125.50
+    currencyCode: "EUR"
+    transactionTime: "2026-02-01T10:00:00Z"
+    fileName: "beleg-office-depot.pdf"
+    direction: "INCOMING"
+
   - id: 2
     organizationId: 4
-    name: "Beleg 002 - Insurance Premium"
-    monthsAgo: 5
-  # 4 months ago (3)
+    bommelId: 24
+    transactionId: 2
+    name: "Rechnung Kaffeemaschine"
+    total: 450.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-02T11:30:00Z"
+    fileName: "beleg-kaffeemaschine.pdf"
+    direction: "INCOMING"
+
   - id: 3
     organizationId: 4
-    name: "Beleg 003 - Venue Booking"
-    monthsAgo: 4
+    bommelId: 25
+    transactionId: 3
+    name: "Mietbeleg Februar"
+    total: 1500.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-03T09:00:00Z"
+    fileName: "beleg-miete-februar.pdf"
+    direction: "INCOMING"
+
   - id: 4
     organizationId: 4
-    name: "Beleg 004 - Catering Service"
-    monthsAgo: 4
+    bommelId: 26
+    transactionId: 4
+    name: "Beleg Workshop-Material"
+    total: 275.30
+    currencyCode: "EUR"
+    transactionTime: "2026-02-04T14:15:00Z"
+    fileName: "beleg-workshop-material.pdf"
+    direction: "INCOMING"
+
   - id: 5
     organizationId: 4
-    name: "Beleg 005 - Marketing Materials"
-    monthsAgo: 4
-  # 3 months ago (5)
-  - id: 6
-    organizationId: 4
-    name: "Beleg 006 - Sound System"
-    monthsAgo: 3
-  - id: 7
-    organizationId: 4
-    name: "Beleg 007 - Lighting Equipment"
-    monthsAgo: 3
-  - id: 8
-    organizationId: 4
-    name: "Beleg 008 - Stage Props"
-    monthsAgo: 3
-  - id: 9
-    organizationId: 4
-    name: "Beleg 009 - Costumes Purchase"
-    monthsAgo: 3
-  - id: 10
-    organizationId: 4
-    name: "Beleg 010 - Utilities Bill"
-    monthsAgo: 3
-  # 2 months ago (4)
-  - id: 11
-    organizationId: 4
-    name: "Beleg 011 - Workshop Materials"
-    monthsAgo: 2
-  - id: 12
-    organizationId: 4
-    name: "Beleg 012 - Training Session"
-    monthsAgo: 2
-  - id: 13
-    organizationId: 4
-    name: "Beleg 013 - Rent Payment"
-    monthsAgo: 2
-  - id: 14
-    organizationId: 4
-    name: "Beleg 014 - Printing Costs"
-    monthsAgo: 2
-  # 1 month ago (6)
-  - id: 15
-    organizationId: 4
-    name: "Beleg 015 - Office Supplies"
-    monthsAgo: 1
-  - id: 16
-    organizationId: 4
-    name: "Beleg 016 - Coffee Machine"
-    monthsAgo: 1
-  - id: 17
-    organizationId: 4
-    name: "Beleg 017 - Cleaning Service"
-    monthsAgo: 1
-  - id: 18
-    organizationId: 4
-    name: "Beleg 018 - Props Warehouse"
-    monthsAgo: 1
-  - id: 19
-    organizationId: 4
-    name: "Beleg 019 - Audio Equipment"
-    monthsAgo: 1
-  - id: 20
-    organizationId: 4
-    name: "Beleg 020 - Ticket Printing"
-    monthsAgo: 1
-  # current month (8)
-  - id: 21
-    organizationId: 4
-    name: "Beleg 021 - Office Supplies"
-    monthsAgo: 0
-  - id: 22
-    organizationId: 4
-    name: "Beleg 022 - Coffee Machine"
-    monthsAgo: 0
-  - id: 23
-    organizationId: 4
-    name: "Beleg 023 - Rent Payment"
-    monthsAgo: 0
-  - id: 24
-    organizationId: 4
-    name: "Beleg 024 - Stage Decoration"
-    monthsAgo: 0
-  - id: 25
-    organizationId: 4
-    name: "Beleg 025 - Program Booklets"
-    monthsAgo: 0
-  - id: 26
-    organizationId: 4
-    name: "Beleg 026 - Refreshments"
-    monthsAgo: 0
-  - id: 27
-    organizationId: 4
-    name: "Beleg 027 - Microphones"
-    monthsAgo: 0
-  - id: 28
-    organizationId: 4
-    name: "Beleg 028 - Set Construction"
-    monthsAgo: 0
+    bommelId: 27
+    transactionId: 5
+    name: "Förderbescheid Stadt"
+    total: 5000.00
+    currencyCode: "EUR"
+    transactionTime: "2026-02-05T16:00:00Z"
+    fileName: "beleg-foerderbescheid.pdf"
+    direction: "OUTGOING"
 
-  # kaeltekrieger (organization id=3): smaller spread across 4 months. 3m=1, 2m=2, 1m=1, 0m=3 -> belegeCount = 7
-  - id: 29
-    organizationId: 3
-    name: "Beleg 029 - Ice Resurfacer Service"
-    monthsAgo: 3
-  - id: 30
-    organizationId: 3
-    name: "Beleg 030 - Kiosk Supplies"
-    monthsAgo: 2
-  - id: 31
-    organizationId: 3
-    name: "Beleg 031 - Team Jerseys"
-    monthsAgo: 2
-  - id: 32
-    organizationId: 3
-    name: "Beleg 032 - Referee Fees"
-    monthsAgo: 1
-  - id: 33
-    organizationId: 3
-    name: "Beleg 033 - Ice Maintenance"
-    monthsAgo: 0
-  - id: 34
-    organizationId: 3
-    name: "Beleg 034 - Zamboni Fuel"
-    monthsAgo: 0
-  - id: 35
-    organizationId: 3
-    name: "Beleg 035 - Shop Merchandise"
-    monthsAgo: 0
+# Test bank account (Bühnefrei e.V., organization id=4). A seed BankImport is created automatically for it.
+bankAccounts:
+  - id: 1
+    organizationId: 4
+    bommelId: 23
+    name: "Testkonto Bühnefrei"
+    iban: "DE02120300000000202051"
+    bic: "BYLADEM1001"
+    bankName: "Testbank"
+    accountHolder: "Theatervereine Bühnefrei e.V."
+    currency: "EUR"
+    openingBalance: 10000.00
+    openingBalanceDate: "2025-12-31"
+    description: "Girokonto für Testzwecke"
+    color: "#7E3FB4"
+    createdBy: "alice@example.test"
+
+# Test bank transactions on account 1 (negative = outgoing/expense, positive = incoming/income).
+# ids 1-14: one exact-amount match for (almost) every existing transaction, so linking is testable everywhere.
+# ids 15-20: the amount-priority demo for transaction 2 (total 450,00) — see the note further down.
+# id 21: a partially matched transaction whose still-open amount (340,00) matches transaction 11.
+# Additionally the loader generates 25 "450,00"-in-purpose noise rows (ids 101-125) so the "450,00" search
+# exceeds the picker's 25-row page.
+bankTransactions:
+  - id: 1
+    bankAccountId: 1
+    bookingDate: "2026-01-05"
+    amount: -125.50
+    counterpartyName: "Office Depot GmbH"
+    purpose: "Bürobedarf Rechnung"
+
+  - id: 2
+    bankAccountId: 1
+    bookingDate: "2026-01-06"
+    amount: -1500.00
+    counterpartyName: "Property Management Ltd"
+    purpose: "Miete Februar"
+
+  - id: 3
+    bankAccountId: 1
+    bookingDate: "2026-01-07"
+    amount: -275.30
+    counterpartyName: "Craft Supplies Inc"
+    purpose: "Workshop Material"
+
+  - id: 4
+    bankAccountId: 1
+    bookingDate: "2026-01-08"
+    amount: 5000.00
+    counterpartyName: "City Council"
+    purpose: "Projektförderung"
+
+  - id: 5
+    bankAccountId: 1
+    bookingDate: "2026-01-09"
+    amount: -890.00
+    counterpartyName: "Theater Supplies GmbH"
+    purpose: "Kostüme"
+
+  - id: 6
+    bankAccountId: 1
+    bookingDate: "2026-01-10"
+    amount: -320.50
+    counterpartyName: "Props Warehouse"
+    purpose: "Bühnenrequisiten"
+
+  - id: 7
+    bankAccountId: 1
+    bookingDate: "2026-01-11"
+    amount: -1200.00
+    counterpartyName: "Stage Tech Solutions"
+    purpose: "Lichttechnik"
+
+  - id: 8
+    bankAccountId: 1
+    bookingDate: "2026-01-12"
+    amount: -2500.00
+    counterpartyName: "Audio Pro GmbH"
+    purpose: "Soundsystem"
+
+  - id: 9
+    bankAccountId: 1
+    bookingDate: "2026-01-13"
+    amount: -450.75
+    counterpartyName: "Print Shop Ltd"
+    purpose: "Marketingmaterial"
+
+  - id: 10
+    bankAccountId: 1
+    bookingDate: "2026-01-14"
+    amount: -340.00
+    counterpartyName: "City Utilities"
+    purpose: "Nebenkosten"
+
+  - id: 11
+    bankAccountId: 1
+    bookingDate: "2026-01-15"
+    amount: -600.00
+    counterpartyName: "Professional Trainers AG"
+    purpose: "Schulung"
+
+  - id: 12
+    bankAccountId: 1
+    bookingDate: "2026-01-16"
+    amount: -1800.00
+    counterpartyName: "Insurance Company"
+    purpose: "Versicherungsprämie"
+
+  - id: 13
+    bankAccountId: 1
+    bookingDate: "2026-01-17"
+    amount: -750.00
+    counterpartyName: "Event Spaces GmbH"
+    purpose: "Raumbuchung"
+
+  - id: 14
+    bankAccountId: 1
+    bookingDate: "2026-01-18"
+    amount: -420.00
+    counterpartyName: "Catering Solutions Ltd"
+    purpose: "Catering"
+
+  # --- Amount-priority demo for transaction 2 (total 450,00) ---
+  # id 15 is the ONLY exact 450,00 match and is booked earliest (2026-01-02). ids 16-20 (and the generated noise)
+  # merely contain "450,00" in their purpose but have a different amount, and are booked later. Sorted by booking
+  # date (the old behaviour) the exact match lands last and falls off the 25-row page; with the amount-priority
+  # fix it is ranked first and shows at the top of the picker.
+  - id: 15
+    bankAccountId: 1
+    bookingDate: "2026-01-02"
+    amount: -450.00
+    counterpartyName: "Tech Store AG"
+    purpose: "Kaffeemaschine"
+
+  - id: 16
+    bankAccountId: 1
+    bookingDate: "2026-03-10"
+    amount: -150.00
+    counterpartyName: "Ratenkauf AG"
+    purpose: "Rate 1/3 zu 450,00 EUR"
+
+  - id: 17
+    bankAccountId: 1
+    bookingDate: "2026-03-12"
+    amount: -150.00
+    counterpartyName: "Ratenkauf AG"
+    purpose: "Rate 2/3 zu 450,00 EUR"
+
+  - id: 18
+    bankAccountId: 1
+    bookingDate: "2026-03-14"
+    amount: -150.00
+    counterpartyName: "Ratenkauf AG"
+    purpose: "Rate 3/3 zu 450,00 EUR"
+
+  - id: 19
+    bankAccountId: 1
+    bookingDate: "2026-03-16"
+    amount: -1450.00
+    counterpartyName: "Möbel Meyer"
+    purpose: "Sideboard 1450,00"
+
+  - id: 20
+    bankAccountId: 1
+    bookingDate: "2026-03-18"
+    amount: -2450.00
+    counterpartyName: "Bühnenbau GmbH"
+    purpose: "Podest 2450,00"
+
+  # --- Partial-match demo: still-open amount 340,00 matches transaction 11 ---
+  - id: 21
+    bankAccountId: 1
+    bookingDate: "2026-02-20"
+    amount: -540.00
+    counterpartyName: "Sammelrechnung GmbH"
+    purpose: "Teilzahlung, offen 340,00"
+    # Signed net coverage (expense movement → negative); still-open magnitude = |amount − matchedAmount| = 340,00
+    status: "PARTIALLY_MATCHED"
+    matchedAmount: -200.00
 
 # Sequence configuration for ID generators
 sequences:
@@ -719,4 +803,7 @@ sequences:
   Organization_SEQ: 4
   Member_SEQ: 23
   Transaction_SEQ: 15
-  Document_SEQ: 35
+  Document_SEQ: 5
+  BankAccount_SEQ: 1
+  BankImport_SEQ: 1
+  BankTransaction_SEQ: 200

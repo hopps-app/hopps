@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -113,9 +114,9 @@ class TransactionResourceTest {
     }
 
     /**
-     * Creates a transaction that satisfies every confirm precondition: amount, date, counterparty and name are set and
-     * the amount is exactly covered by a linked bank transaction. Returns its id. Used by the confirm-related tests now
-     * that confirming enforces these rules.
+     * Creates a transaction that satisfies every confirm precondition: amount, date, counterparty, name and bommel are
+     * set and the amount is exactly covered by a linked bank transaction. Returns its id. Used by the confirm-related
+     * tests now that confirming enforces these rules.
      */
     @Transactional
     Long createConfirmableTransaction(BigDecimal total) {
@@ -126,6 +127,7 @@ class TransactionResourceTest {
         tx.setCreatedBy("alice@example.test");
         tx.setTotal(total);
         tx.setName("Confirmable Transaction");
+        tx.setBommel(bommelRepository.findById(24L));
         tx.setTransactionTime(Instant.parse("2024-01-01T00:00:00Z"));
         TradeParty counterparty = new TradeParty();
         counterparty.setOrganization(org);
@@ -342,6 +344,149 @@ class TransactionResourceTest {
     }
 
     @Test
+    void shouldRejectConfirmWithoutBommel() {
+        // A draft may be saved without a Bommel, but it must be assigned before the transaction can be confirmed.
+        // This transaction satisfies every other precondition; only the Bommel is missing.
+        Long id = createConfirmableTransaction(BigDecimal.valueOf(30));
+        removeBommel(id);
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", id)
+                .then()
+                .statusCode(400);
+
+        // It stays a draft.
+        given()
+                .when()
+                .get("/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("status", is("DRAFT"));
+    }
+
+    /**
+     * Detaches the Bommel from a transaction so the confirm gate's Bommel requirement can be exercised in isolation.
+     */
+    @Transactional
+    void removeBommel(Long transactionId) {
+        Transaction tx = transactionRepository.findById(transactionId);
+        tx.setBommel(null);
+    }
+
+    @Test
+    void shouldConfirmWhenSignedBankAmountsNetToTotal() {
+        // An expense of 5 (total -5) linked to bank movements -5, +5, -5 nets (signed) to -5 and is therefore fully
+        // covered, even though the absolute amounts sum to 15. The confirm gate must use the signed net, not the sum
+        // of absolute amounts.
+        Long id = createConfirmableTransactionWithBankAmounts(new BigDecimal("-5.00"),
+                List.of(new BigDecimal("-5.00"), new BigDecimal("5.00"), new BigDecimal("-5.00")));
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", id)
+                .then()
+                .statusCode(200)
+                .body("status", is("CONFIRMED"));
+    }
+
+    @Test
+    void shouldConfirmZeroPassThroughWithOffsettingBankMovements() {
+        // A "durchlaufender Posten": a transaction with a total of 0 (no real income/expense) backed by two bank
+        // movements that cancel out (+13.68 and -13.68). It nets to zero and must be confirmable.
+        Long id = createConfirmableTransactionWithBankAmounts(BigDecimal.ZERO,
+                List.of(new BigDecimal("13.68"), new BigDecimal("-13.68")));
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", id)
+                .then()
+                .statusCode(200)
+                .body("status", is("CONFIRMED"));
+    }
+
+    @Test
+    void shouldRejectZeroTransactionWithSingleBankMovement() {
+        // A zero total backed by a single movement is not a valid pass-through (needs at least two offsetting
+        // movements), so it must stay unconfirmable.
+        Long id = createConfirmableTransactionWithBankAmounts(BigDecimal.ZERO,
+                List.of(new BigDecimal("13.68")));
+
+        given()
+                .contentType("application/json")
+                .when()
+                .post("/{id}/confirm", id)
+                .then()
+                .statusCode(400);
+    }
+
+    /**
+     * Like {@link #createConfirmableTransaction} but links the transaction to several bank transactions with the given
+     * (signed) amounts, so the net-vs-absolute coverage behaviour can be exercised. All other confirm preconditions
+     * (date, counterparty, name, bommel) are satisfied.
+     */
+    @Transactional
+    Long createConfirmableTransactionWithBankAmounts(BigDecimal total, List<BigDecimal> bankAmounts) {
+        Organization org = organizationRepository.findById(4L);
+
+        Transaction tx = new Transaction();
+        tx.setOrganization(org);
+        tx.setCreatedBy("alice@example.test");
+        tx.setTotal(total);
+        tx.setName("Multi-match Transaction");
+        tx.setBommel(bommelRepository.findById(24L));
+        tx.setTransactionTime(Instant.parse("2024-01-01T00:00:00Z"));
+        TradeParty counterparty = new TradeParty();
+        counterparty.setOrganization(org);
+        counterparty.setName("ACME Supplier");
+        tx.setCounterparty(counterparty);
+        transactionRepository.persist(tx);
+
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setOrganization(org);
+        bankAccount.setBommel(bommelRepository.findById(23L));
+        bankAccount.setName("Test Account");
+        bankAccount.setIban("DE89370400440532013000");
+        bankAccount.setCreatedBy("alice@example.test");
+        em.persist(bankAccount);
+
+        BankImport bankImport = new BankImport();
+        bankImport.setOrganization(org);
+        bankImport.setBankAccount(bankAccount);
+        bankImport.setFileName("test.csv");
+        bankImport.setFileSize(0);
+        bankImport.setFileSha256("test-sha-multi-" + total.toPlainString());
+        bankImport.setImportedBy("alice@example.test");
+        em.persist(bankImport);
+
+        for (int i = 0; i < bankAmounts.size(); i++) {
+            BigDecimal amount = bankAmounts.get(i);
+            BankTransaction bankTx = new BankTransaction();
+            bankTx.setOrganization(org);
+            bankTx.setBankAccount(bankAccount);
+            bankTx.setBankImport(bankImport);
+            bankTx.setBookingDate(LocalDate.of(2024, 1, 1));
+            bankTx.setAmount(amount);
+            bankTx.setCurrency("EUR");
+            bankTx.setDedupeHash("multi-" + total.toPlainString() + "-" + i);
+            em.persist(bankTx);
+
+            BankTransactionMatch match = new BankTransactionMatch();
+            match.setBankTransaction(bankTx);
+            match.setTransaction(tx);
+            match.setMatchedAmount(amount.abs());
+            match.setMatchType(BankTransactionMatchType.MANUAL);
+            match.setMatchedBy("alice@example.test");
+            em.persist(match);
+        }
+
+        return tx.getId();
+    }
+
+    @Test
     void shouldConfirmLinkedDocumentWhenTransactionConfirmed() {
         Long txId = createConfirmableTransaction(BigDecimal.valueOf(30));
         Long docId = linkDocumentToTransaction(txId);
@@ -521,6 +666,33 @@ class TransactionResourceTest {
                 .then()
                 .statusCode(200)
                 .body("size()", is(2));
+    }
+
+    @Test
+    void aggregateReturnsCountAndIncomeExpenseSums() {
+        // Two transactions matching a unique search term: one income (+100), one expense (-40).
+        given().contentType("application/json")
+                .body("{\"name\":\"ZzAggUnique income\",\"total\":100.00,\"privatelyPaid\":false}")
+                .when()
+                .post()
+                .then()
+                .statusCode(201);
+        given().contentType("application/json")
+                .body("{\"name\":\"ZzAggUnique expense\",\"total\":-40.00,\"privatelyPaid\":false}")
+                .when()
+                .post()
+                .then()
+                .statusCode(201);
+
+        given()
+                .queryParam("search", "ZzAggUnique")
+                .when()
+                .get("/aggregate")
+                .then()
+                .statusCode(200)
+                .body("count", is(2))
+                .body("sumIncome", is(100.0f))
+                .body("sumExpense", is(40.0f));
     }
 
     protected String getAccessToken(String userName) {

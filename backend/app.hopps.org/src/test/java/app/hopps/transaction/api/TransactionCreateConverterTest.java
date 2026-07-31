@@ -2,12 +2,10 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.category.domain.Category;
-import app.hopps.category.repository.CategoryRepository;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +30,7 @@ class TransactionCreateConverterTest {
     BommelRepository bommelRepository;
 
     @Mock
-    CategoryRepository categoryRepository;
+    CategoryGroupService categoryGroupService;
 
     @InjectMocks
     TransactionCreateConverter converter;
@@ -53,8 +51,8 @@ class TransactionCreateConverterTest {
     void shouldApplyAllBasicFields() {
         var request = new TransactionCreateRequest(
                 "Test Transaction", BigDecimal.valueOf(100.50), BigDecimal.valueOf(19.00),
-                "EUR", null, null, null, null, null, true,
-                null, null, null, null, null);
+                "EUR", null, null, null, true,
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -70,8 +68,8 @@ class TransactionCreateConverterTest {
     void shouldParseTransactionDate() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                "2025-03-15", null, null, null, null, false,
-                null, null, null, null, null);
+                "2025-03-15", null, null, false,
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -85,8 +83,8 @@ class TransactionCreateConverterTest {
     void shouldParseDueDate() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, "2025-06-01", null, null, null, false,
-                null, null, null, null, null);
+                null, "2025-06-01", null, false,
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -100,8 +98,8 @@ class TransactionCreateConverterTest {
     void shouldSkipNullTransactionDate() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
-                null, null, null, null, null);
+                null, null, null, false,
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -114,8 +112,8 @@ class TransactionCreateConverterTest {
     void shouldSkipBlankTransactionDate() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                "  ", "  ", null, null, null, false,
-                null, null, null, null, null);
+                "  ", "  ", null, false,
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -132,8 +130,8 @@ class TransactionCreateConverterTest {
 
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, 42L, null, null, false,
-                null, null, null, null, null);
+                null, null, 42L, false,
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -146,84 +144,13 @@ class TransactionCreateConverterTest {
     void shouldNotLookUpBommelWhenNull() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
-                null, null, null, null, null);
+                null, null, null, false,
+                null, null, null, null, null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
         assertNull(transaction.getBommel());
-        verifyNoInteractions(bommelRepository);
-    }
-
-    @Test
-    @DisplayName("should look up and set category")
-    void shouldLookUpAndSetCategory() {
-        Category category = new Category();
-        category.setName("Office Supplies");
-        when(categoryRepository.findById(7L)).thenReturn(category);
-
-        var request = new TransactionCreateRequest(
-                "Test", BigDecimal.TEN, null, null,
-                null, null, null, 7L, null, false,
-                null, null, null, null, null);
-
-        converter.applyRequestToTransaction(transaction, request, organization);
-
-        assertEquals(category, transaction.getCategory());
-        verify(categoryRepository).findById(7L);
-    }
-
-    @Test
-    @DisplayName("should not look up category when id is null")
-    void shouldNotLookUpCategoryWhenNull() {
-        var request = new TransactionCreateRequest(
-                "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
-                null, null, null, null, null);
-
-        converter.applyRequestToTransaction(transaction, request, organization);
-
-        assertNull(transaction.getCategory());
-        verifyNoInteractions(categoryRepository);
-    }
-
-    @Test
-    @DisplayName("should set transaction area")
-    void shouldSetTransactionArea() {
-        var request = new TransactionCreateRequest(
-                "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, "ideell", false,
-                null, null, null, null, null);
-
-        converter.applyRequestToTransaction(transaction, request, organization);
-
-        assertEquals(TransactionArea.IDEELL, transaction.getArea());
-    }
-
-    @Test
-    @DisplayName("should skip null area")
-    void shouldSkipNullArea() {
-        var request = new TransactionCreateRequest(
-                "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
-                null, null, null, null, null);
-
-        converter.applyRequestToTransaction(transaction, request, organization);
-
-        assertNull(transaction.getArea());
-    }
-
-    @Test
-    @DisplayName("should skip blank area")
-    void shouldSkipBlankArea() {
-        var request = new TransactionCreateRequest(
-                "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, "  ", false,
-                null, null, null, null, null);
-
-        converter.applyRequestToTransaction(transaction, request, organization);
-
-        assertNull(transaction.getArea());
+        verify(bommelRepository, never()).findById(anyLong());
     }
 
     @Test
@@ -232,9 +159,9 @@ class TransactionCreateConverterTest {
         // Positive total => income: the counterparty is the recipient, the organization is the sender.
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
+                null, null, null, false,
                 "ACME Corp", "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -256,9 +183,9 @@ class TransactionCreateConverterTest {
         // Negative total => expense: the counterparty is the sender, the organization is the recipient.
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN.negate(), null, null,
-                null, null, null, null, null, false,
+                null, null, null, false,
                 "ACME Corp", "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -275,9 +202,9 @@ class TransactionCreateConverterTest {
     void shouldNotCreateCounterpartyWhenNameNull() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
+                null, null, null, false,
                 null, "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -292,9 +219,9 @@ class TransactionCreateConverterTest {
     void shouldNotCreateCounterpartyWhenNameBlank() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
+                null, null, null, false,
                 "  ", "Main Street 1", "12345", "Berlin",
-                null);
+                null, null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -308,9 +235,9 @@ class TransactionCreateConverterTest {
     void shouldSetTags() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
+                null, null, null, false,
                 null, null, null, null,
-                List.of("urgent", "office"));
+                List.of("urgent", "office"), null);
 
         converter.applyRequestToTransaction(transaction, request, organization);
 
@@ -322,8 +249,8 @@ class TransactionCreateConverterTest {
     void shouldNotModifyTagsWhenNull() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
-                null, null, null, null, null);
+                null, null, null, false,
+                null, null, null, null, null, null);
 
         Set<String> tagsBefore = transaction.getTags();
         converter.applyRequestToTransaction(transaction, request, organization);
@@ -336,8 +263,8 @@ class TransactionCreateConverterTest {
     void shouldNotModifyTagsWhenEmpty() {
         var request = new TransactionCreateRequest(
                 "Test", BigDecimal.TEN, null, null,
-                null, null, null, null, null, false,
-                null, null, null, null, List.of());
+                null, null, null, false,
+                null, null, null, null, List.of(), null);
 
         Set<String> tagsBefore = transaction.getTags();
         converter.applyRequestToTransaction(transaction, request, organization);

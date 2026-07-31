@@ -129,9 +129,8 @@ function DashboardView() {
         queryKey: ['transactions', organization?.id, selectedBommelId, startDate, endDate],
         queryFn: () =>
             apiService.orgService.transactionsAll(
-                undefined, // area
-                selectedBommelId, // bommelId
-                undefined, // categoryId
+                selectedBommelId != null ? [selectedBommelId] : undefined, // bommelId(s)
+                undefined, // categoryValue
                 undefined, // detached
                 endDate, // endDate
                 undefined, // page
@@ -388,7 +387,7 @@ function DashboardView() {
                                     <XAxis dataKey="month" />
                                     <YAxis />
                                     <Tooltip
-                                        formatter={(value: number) => `€${value.toFixed(2)}`}
+                                        formatter={(value) => `€${Number(value).toFixed(2)}`}
                                         contentStyle={{
                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                             border: '1px solid #A7A7A7',

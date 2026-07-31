@@ -22,7 +22,8 @@ type MockKeycloak = {
 // Mock Keycloak class
 vi.mock('keycloak-js', () => {
     return {
-        default: vi.fn().mockImplementation(() => {
+        // Regular function (not an arrow) so it can be used with `new` — vitest 4 rejects `new` on arrow-based mocks.
+        default: vi.fn().mockImplementation(function () {
             return {
                 init: vi.fn().mockResolvedValue(true),
                 login: vi.fn().mockResolvedValue(undefined),

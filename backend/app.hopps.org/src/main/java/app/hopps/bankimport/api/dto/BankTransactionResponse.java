@@ -33,13 +33,22 @@ public record BankTransactionResponse(
         BigDecimal balanceAfter,
         BankTransactionStatus status,
         BigDecimal matchedAmount,
-        List<Long> matchedTransactionIds) {
+        List<Long> matchedTransactionIds,
+        // The portion of this bank movement used for one specific bookkeeping transaction (the match's allocation).
+        // Only populated where the response is returned in the context of a single transaction (see GET
+        // /bank-transactions/for-transaction/{transactionId}); null otherwise.
+        BigDecimal allocatedAmount) {
 
     public static BankTransactionResponse from(BankTransaction tx) {
         return from(tx, List.of());
     }
 
     public static BankTransactionResponse from(BankTransaction tx, List<Long> matchedTransactionIds) {
+        return from(tx, matchedTransactionIds, null);
+    }
+
+    public static BankTransactionResponse from(BankTransaction tx, List<Long> matchedTransactionIds,
+            BigDecimal allocatedAmount) {
         return new BankTransactionResponse(
                 tx.getId(),
                 tx.getBankAccount() != null ? tx.getBankAccount().getId() : null,
@@ -62,6 +71,7 @@ public record BankTransactionResponse(
                 tx.getBalanceAfter(),
                 tx.getStatus(),
                 tx.getMatchedAmount(),
-                matchedTransactionIds);
+                matchedTransactionIds,
+                allocatedAmount);
     }
 }

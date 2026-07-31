@@ -2,6 +2,9 @@ package app.hopps.bankimport.api;
 
 import app.hopps.bankimport.api.dto.BankTransactionAggregateResponse;
 import app.hopps.bankimport.api.dto.BankTransactionResponse;
+import app.hopps.bankimport.api.dto.MatchAllocationResponse;
+import app.hopps.bankimport.api.dto.MatchAmountRequest;
+import app.hopps.bankimport.api.dto.MatchRequest;
 import app.hopps.bankimport.domain.BankTransaction;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
@@ -11,11 +14,13 @@ import app.hopps.document.api.dto.DocumentResponse;
 import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -37,6 +42,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Read-only cross-account listing & aggregation of bank transactions. The per-account listing reuses the same query
@@ -57,7 +63,7 @@ public class BankTransactionResource {
     BankTransactionReceiptService receiptService;
 
     @GET
-    @Operation(summary = "List bank transactions", description = "Cross-account listing scoped to the current org. Filters: accountIds, dateFrom/dateTo, status (multi), search (purpose/counterparty).")
+    @Operation(summary = "List bank transactions", description = "Cross-account listing scoped to the current org. Filters: accountIds, dateFrom/dateTo, status (multi), search (purpose/counterparty), minAmount/maxAmount (magnitude range).")
     @APIResponse(responseCode = "200", description = "List of transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionResponse[].class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     public List<BankTransactionResponse> list(
@@ -66,6 +72,8 @@ public class BankTransactionResource {
             @QueryParam("dateTo") @Parameter(description = "Booking date inclusive (ISO-8601)") String dateTo,
             @QueryParam("status") @Parameter(description = "Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)") String statusesCsv,
             @QueryParam("search") @Parameter(description = "Substring match on purpose / counterparty name") String search,
+            @QueryParam("minAmount") @Parameter(description = "Minimum transaction amount by magnitude (absolute value, inclusive)") String minAmount,
+            @QueryParam("maxAmount") @Parameter(description = "Maximum transaction amount by magnitude (absolute value, inclusive)") String maxAmount,
             @QueryParam("sort") @DefaultValue("bookingDate") @Parameter(description = "Sort field: bookingDate, amount or counterpartyName") String sort,
             @QueryParam("direction") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String direction,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
@@ -76,7 +84,8 @@ public class BankTransactionResource {
         LocalDate to = parseDate(dateTo);
 
         List<BankTransaction> rows = transactionRepository.findFiltered(
-                accountIds, from, to, statuses, search, sort, isAscending(direction), new Page(pageIndex, pageSize));
+                accountIds, from, to, statuses, search, parseAmount(minAmount), parseAmount(maxAmount), sort,
+                isAscending(direction), new Page(pageIndex, pageSize));
         return rows.stream().map(BankTransactionResponse::from).toList();
     }
 
@@ -90,15 +99,19 @@ public class BankTransactionResource {
             @QueryParam("dateFrom") String dateFrom,
             @QueryParam("dateTo") String dateTo,
             @QueryParam("status") String statusesCsv,
-            @QueryParam("search") String search) {
+            @QueryParam("search") String search,
+            @QueryParam("minAmount") @Parameter(description = "Minimum transaction amount by magnitude (absolute value, inclusive)") String minAmount,
+            @QueryParam("maxAmount") @Parameter(description = "Maximum transaction amount by magnitude (absolute value, inclusive)") String maxAmount) {
         List<Long> accountIds = parseLongList(accountIdsCsv);
         List<BankTransactionStatus> statuses = parseStatusList(statusesCsv);
         LocalDate from = parseDate(dateFrom);
         LocalDate to = parseDate(dateTo);
-        BigDecimal[] aggr = transactionRepository.aggregate(accountIds, from, to, statuses, search);
+        BigDecimal min = parseAmount(minAmount);
+        BigDecimal max = parseAmount(maxAmount);
+        BigDecimal[] aggr = transactionRepository.aggregate(accountIds, from, to, statuses, search, min, max);
         BigDecimal incoming = aggr[0];
         BigDecimal outgoing = aggr[1];
-        long count = transactionRepository.countFiltered(accountIds, from, to, statuses, search);
+        long count = transactionRepository.countFiltered(accountIds, from, to, statuses, search, min, max);
         return new BankTransactionAggregateResponse(incoming, outgoing, incoming.add(outgoing), count);
     }
 
@@ -121,19 +134,52 @@ public class BankTransactionResource {
     @POST
     @Path("/{id}/matches")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Link a bank transaction to a hopps transaction", description = "Creates a MANUAL match between the bank transaction and a bookkeeping transaction.")
+    @Operation(summary = "Link a bank transaction to a hopps transaction", description = "Creates a MANUAL match between the bank transaction and a bookkeeping transaction. Optionally records how much of the bank movement is used for this transaction (the allocation) — omit for the full amount, or set it to split a collective transfer across several transactions.")
     @APIResponse(responseCode = "204", description = "Match created")
-    @APIResponse(responseCode = "400", description = "Cannot match an ignored bank transaction")
+    @APIResponse(responseCode = "400", description = "Missing transaction id, invalid allocation amount, or ignored bank transaction")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank transaction or transaction not found")
-    public jakarta.ws.rs.core.Response addMatch(
+    public Response addMatch(
             @PathParam("id") @Parameter(description = "Bank transaction ID") Long id,
-            @Parameter(description = "Hopps transaction ID") Long transactionId,
+            MatchRequest request,
             @Context SecurityContext securityContext) {
+        if (request == null || request.transactionId() == null) {
+            throw new BadRequestException("transactionId is required");
+        }
         String username = securityContext.getUserPrincipal() != null ? securityContext.getUserPrincipal().getName()
                 : "unknown";
-        matchService.addMatch(id, transactionId, username);
-        return jakarta.ws.rs.core.Response.noContent().build();
+        matchService.addMatch(id, request.transactionId(), username, request.amount());
+        return Response.noContent().build();
+    }
+
+    @PATCH
+    @Path("/{id}/matches/{transactionId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Update the used amount of a match", description = "Sets how much of the bank movement is used for the linked transaction (the allocation). Used to disentangle a collective transfer after the fact.")
+    @APIResponse(responseCode = "204", description = "Allocation updated")
+    @APIResponse(responseCode = "400", description = "Invalid allocation amount")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank transaction or match not found")
+    public Response updateMatchAmount(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id,
+            @PathParam("transactionId") @Parameter(description = "Hopps transaction ID") Long transactionId,
+            MatchAmountRequest request) {
+        matchService.updateMatchAmount(id, transactionId, request != null ? request.amount() : null);
+        return Response.noContent().build();
+    }
+
+    @GET
+    @Path("/{id}/matches")
+    @Operation(summary = "List the matches of a bank transaction", description = "Returns each linked bookkeeping transaction together with the portion of the bank movement allocated to it.")
+    @APIResponse(responseCode = "200", description = "List of allocations", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MatchAllocationResponse[].class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    public List<MatchAllocationResponse> listMatches(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id) {
+        return matchService.getAllocationsByTransactionForBankTransaction(id)
+                .entrySet()
+                .stream()
+                .map(e -> new MatchAllocationResponse(e.getKey(), e.getValue()))
+                .toList();
     }
 
     @POST
@@ -200,9 +246,11 @@ public class BankTransactionResource {
     @APIResponse(responseCode = "401", description = "User not logged in")
     public List<BankTransactionResponse> listForTransaction(
             @PathParam("transactionId") @Parameter(description = "Bookkeeping transaction ID") Long transactionId) {
+        Map<Long, BigDecimal> allocations = matchService.getAllocationsByBankTransactionForTransaction(transactionId);
         return matchService.getBankTransactionsForTransaction(transactionId)
                 .stream()
-                .map(tx -> BankTransactionResponse.from(tx, matchService.getMatchedTransactionIds(tx.getId())))
+                .map(tx -> BankTransactionResponse.from(tx, matchService.getMatchedTransactionIds(tx.getId()),
+                        allocations.get(tx.getId())))
                 .toList();
     }
 
@@ -217,6 +265,8 @@ public class BankTransactionResource {
             @QueryParam("dateTo") String dateTo,
             @QueryParam("status") String statusesCsv,
             @QueryParam("search") String search,
+            @QueryParam("minAmount") @Parameter(description = "Minimum transaction amount by magnitude (absolute value, inclusive)") String minAmount,
+            @QueryParam("maxAmount") @Parameter(description = "Maximum transaction amount by magnitude (absolute value, inclusive)") String maxAmount,
             @QueryParam("sort") @DefaultValue("bookingDate") @Parameter(description = "Sort field: bookingDate, amount or counterpartyName") String sort,
             @QueryParam("direction") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String direction,
             @QueryParam("page") @DefaultValue("0") int pageIndex,
@@ -225,8 +275,8 @@ public class BankTransactionResource {
         LocalDate from = parseDate(dateFrom);
         LocalDate to = parseDate(dateTo);
         List<BankTransaction> rows = transactionRepository.findFiltered(
-                List.of(accountId), from, to, statuses, search, sort, isAscending(direction),
-                new Page(pageIndex, pageSize));
+                List.of(accountId), from, to, statuses, search, parseAmount(minAmount), parseAmount(maxAmount), sort,
+                isAscending(direction), new Page(pageIndex, pageSize));
         return rows.stream().map(BankTransactionResponse::from).toList();
     }
 
@@ -254,6 +304,22 @@ public class BankTransactionResource {
 
     private static LocalDate parseDate(String value) {
         return (value == null || value.isBlank()) ? null : LocalDate.parse(value);
+    }
+
+    /**
+     * Parses an amount-range bound. Accepts both comma and dot as decimal separator (the SPA sends a locale-formatted
+     * value); blank or non-numeric input is treated as "no bound" ({@code null}) rather than a 400 so a partially typed
+     * filter never breaks the listing.
+     */
+    private static BigDecimal parseAmount(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return new BigDecimal(value.trim().replace(" ", "").replace(",", "."));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /** Maps the {@code direction} query param to a boolean; anything other than {@code asc} means descending. */

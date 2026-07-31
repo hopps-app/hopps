@@ -65,6 +65,7 @@ export function useReceiptForm() {
     const [contractPartner, setContractPartner] = useState('');
     const [bommelId, setBommelId] = useState<number | null>(null);
     const [category, setCategory] = useState('');
+    const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [area, setArea] = useState('');
     const [tags, setTags] = useState<Tag[]>([]);
     const [grossAmount, setGrossAmount] = useState('');
@@ -330,10 +331,15 @@ export function useReceiptForm() {
             loadedValues.bommelId = transaction.bommelId;
         }
 
-        // Set category
-        if (transaction.categoryId) {
-            setCategory(String(transaction.categoryId));
-            loadedValues.category = String(transaction.categoryId);
+        // Set category-group values
+        if (transaction.categoryValues && transaction.categoryValues.length > 0) {
+            const cv: Record<number, string> = {};
+            transaction.categoryValues.forEach((c: { groupId?: number; value?: string }) => {
+                if (c.groupId != null && c.value != null) {
+                    cv[c.groupId] = c.value;
+                }
+            });
+            setCategoryValues(cv);
         }
 
         // Set area
@@ -431,6 +437,7 @@ export function useReceiptForm() {
         setContractPartner('');
         setBommelId(null);
         setCategory('');
+        setCategoryValues({});
         setArea('');
         setTags([]);
         setGrossAmount('');
@@ -450,17 +457,17 @@ export function useReceiptForm() {
     const isDirty = useMemo(() => {
         return Boolean(
             receiptNumber ||
-                receiptDate ||
-                dueDate ||
-                transactionKind ||
-                contractPartner ||
-                bommelId ||
-                category ||
-                area ||
-                tags.length > 0 ||
-                grossAmount ||
-                taxAmount ||
-                file
+            receiptDate ||
+            dueDate ||
+            transactionKind ||
+            contractPartner ||
+            bommelId ||
+            category ||
+            area ||
+            tags.length > 0 ||
+            grossAmount ||
+            taxAmount ||
+            file
         );
     }, [receiptNumber, receiptDate, dueDate, transactionKind, contractPartner, bommelId, category, area, tags, grossAmount, taxAmount, file]);
 
@@ -502,6 +509,8 @@ export function useReceiptForm() {
         setBommelId,
         category,
         setCategory,
+        categoryValues,
+        setCategoryValues,
         area,
         setArea,
         tags,

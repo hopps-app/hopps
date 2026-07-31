@@ -14,3 +14,9 @@ onlyBuiltDependencies:
   - esbuild
   - sqlite3
   - unrs-resolver
+allowBuilds:
+  '@pact-foundation/pact-node': set this to true or false
+  '@parcel/watcher': set this to true or false
+  '@scarf/scarf': set this to true or false
+  esbuild: set this to true or false
+  unrs-resolver: set this to true or false

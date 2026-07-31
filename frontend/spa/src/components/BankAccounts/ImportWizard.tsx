@@ -90,7 +90,7 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
     const selectedSchema = isTemplateSelected ? undefined : schemas.find((s) => String(s.id) === schemaId.replace('org:', ''));
     const selectedTemplate = isTemplateSelected ? templates.find((tpl) => `tpl:${tpl.templateId}` === schemaId) : undefined;
     const selectedName = selectedSchema?.name ?? selectedTemplate?.name ?? '';
-    const detectionFailed = state === 'preview' && !isMt940 && detection?.type === 'NONE';
+    const detectionSucceeded = detection != null && detection.type !== 'NONE';
 
     // Trigger preview automatically on drop
     const loadPreview = useCallback(
@@ -98,6 +98,7 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
             setState('previewing');
             setSchemaId('');
             setShowAllCols(false);
+            createdSchemaRef.current = null;
             try {
                 const result = await previewMutation.mutateAsync({ accountId, file: f });
                 setPreview(result);
@@ -225,10 +226,12 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
                     </div>
                 )}
 
-                {/* Manual schema picker — only shown when auto-detection failed */}
-                {detectionFailed || (detection?.type === 'NONE' && schemaId) ? (
+                {/* Schema picker — always available for CSV so a confident-but-wrong auto-detection can be overridden */}
+                {!isMt940 && !isDetecting ? (
                     <div className="grid gap-1.5">
-                        <label className="text-sm font-medium">{t('bankImport.wizard.schemaRequired')}</label>
+                        <label className="text-sm font-medium">
+                            {detectionSucceeded ? t('bankImport.wizard.schemaLabelChange') : t('bankImport.wizard.schemaRequired')}
+                        </label>
                         <BaseSelect value={schemaId} onValueChange={setSchemaId}>
                             <SelectTrigger>
                                 <SelectValue placeholder={t('bankImport.wizard.schemaPlaceholder')} />

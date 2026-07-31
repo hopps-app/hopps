@@ -3,7 +3,6 @@ package app.hopps.transaction.api.dto;
 import app.hopps.document.domain.AnalysisStatus;
 import app.hopps.document.domain.ExtractionSource;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionStatus;
 
 import java.math.BigDecimal;
@@ -19,10 +18,7 @@ public record TransactionResponse(
         Long documentId,
         Long bommelId,
         String bommelName,
-        Long categoryId,
-        String categoryName,
         TransactionStatus status,
-        TransactionArea area,
         String name,
         BigDecimal total,
         BigDecimal totalTax,
@@ -35,20 +31,37 @@ public record TransactionResponse(
         String senderZipCode,
         String senderCity,
         List<String> tags,
+        // Category-group values chosen for this transaction (groupId null = the group was deleted)
+        List<TransactionCategoryValueResponse> categoryValues,
         // Analysis data (from linked document)
         AnalysisStatus analysisStatus,
         ExtractionSource extractionSource,
         String analysisError,
         Instant createdAt,
         Instant updatedAt,
-        String createdBy) {
+        String createdBy,
+        // Magnitude of this transaction's amount already covered by linked bank movements (signed net, then abs). The
+        // still-open amount to reconcile is |total| - coveredAmount. Null when not computed for this response.
+        BigDecimal coveredAmount) {
 
     /**
-     * Creates a TransactionResponse from a Transaction entity.
+     * Creates a TransactionResponse from a Transaction entity without coverage information.
      */
     public static TransactionResponse from(Transaction tx) {
+        return from(tx, null);
+    }
+
+    /**
+     * Creates a TransactionResponse from a Transaction entity, including how much of its amount is already covered by
+     * linked bank movements.
+     */
+    public static TransactionResponse from(Transaction tx, BigDecimal coveredAmount) {
         List<String> tagList = tx.getTags() != null
                 ? new ArrayList<>(tx.getTags())
+                : List.of();
+
+        List<TransactionCategoryValueResponse> categoryValues = tx.getCategoryValues() != null
+                ? tx.getCategoryValues().stream().map(TransactionCategoryValueResponse::from).toList()
                 : List.of();
 
         // Get analysis info from linked document if available
@@ -66,10 +79,7 @@ public record TransactionResponse(
                 tx.getDocument() != null ? tx.getDocument().getId() : null,
                 tx.getBommel() != null ? tx.getBommel().id : null,
                 tx.getBommel() != null ? tx.getBommel().getName() : null,
-                tx.getCategory() != null ? tx.getCategory().getId() : null,
-                tx.getCategory() != null ? tx.getCategory().getName() : null,
                 tx.getStatus(),
-                tx.getArea(),
                 tx.getName(),
                 tx.getTotal(),
                 tx.getTotalTax(),
@@ -82,11 +92,13 @@ public record TransactionResponse(
                 tx.getSenderZipCode(),
                 tx.getSenderCity(),
                 tagList,
+                categoryValues,
                 analysisStatus,
                 extractionSource,
                 analysisError,
                 tx.getCreatedAt(),
                 tx.getUpdatedAt(),
-                tx.getCreatedBy());
+                tx.getCreatedBy(),
+                coveredAmount);
     }
 }

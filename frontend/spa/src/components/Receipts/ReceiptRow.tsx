@@ -99,7 +99,7 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                 onClick={handleRowClick}
                 onKeyDown={handleKeyDown}
                 className={cn(
-                    'hidden md:grid grid-cols-[24px_1.5fr_1fr_1fr_1fr_100px_80px_100px_48px] gap-1 items-center',
+                    'hidden md:grid grid-cols-[24px_1.5fr_1fr_1fr_100px_80px_100px_48px] gap-1 items-center',
                     'px-5 py-3.5 cursor-pointer',
                     'hover:bg-[var(--background-tertiary)] transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--purple-500)] focus-visible:ring-inset'
@@ -137,9 +137,6 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         t('receipts.unassigned')
                     )}
                 </span>
-
-                {/* Category */}
-                <span className="text-sm font-medium truncate text-center">{receipt.category}</span>
 
                 {/* Status Badge */}
                 <div className="flex justify-center">
@@ -224,7 +221,6 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                                 )}
                             </span>
                         </div>
-                        {receipt.category && <span className="text-xs font-medium mt-0.5 block">{receipt.category}</span>}
                     </div>
                     <div className="text-right shrink-0">
                         <span className={cn('text-sm font-semibold tabular-nums', amountColorClass(receipt.amount))}>{formatAmount(receipt.amount)}</span>
@@ -292,13 +288,8 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                             )}
                         </div>
 
-                        {(receipt.area || receipt.tags.length > 0) && (
+                        {receipt.tags.length > 0 && (
                             <div className="flex flex-wrap items-center gap-2 pt-1">
-                                {receipt.area && (
-                                    <span className="bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                        {t(`receipts.areas.${receipt.area.toLowerCase()}`)}
-                                    </span>
-                                )}
                                 {receipt.tags.map((tag) => (
                                     <span
                                         key={tag}

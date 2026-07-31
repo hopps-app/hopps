@@ -50,8 +50,9 @@ class ErrorBoundaryInner extends Component<Props, State> {
     }
 }
 
-// Export the wrapped component with translation
-export const ErrorBoundary = withTranslation()(ErrorBoundaryInner);
+// Export the wrapped component with translation. The explicit type keeps the emitted declaration portable
+// (the inferred HOC type references react-i18next internals, which TS cannot name across the package boundary).
+export const ErrorBoundary: React.ComponentType<Omit<Props, keyof WithTranslation>> = withTranslation()(ErrorBoundaryInner);
 
 interface ErrorFallbackProps {
     error?: Error;

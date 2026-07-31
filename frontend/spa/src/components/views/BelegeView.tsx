@@ -21,20 +21,24 @@ import {
     Link2,
     Landmark,
     PencilLine,
+    Search,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
+import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import { LoadingState } from '@/components/common/LoadingState';
-import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import InvoiceUploadFormBommelSelector, { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
+import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import {
     useDocuments,
     useDocument,
@@ -56,6 +60,7 @@ import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
+import { getDuplicateDocumentId } from '@/utils/errorUtils';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
@@ -95,6 +100,15 @@ function fileIcon(contentType: string | undefined): string {
     if (contentType.includes('pdf')) return '📄';
     if (contentType.includes('image')) return '🖼️';
     return '📎';
+}
+
+// The bommel field's initial value: the entity's own bommel if it has one, otherwise the cached last choice. When the
+// cache is empty (explicitly cleared) or unset, the field starts empty — there is deliberately no root fallback. The
+// cache thus takes priority over the empty default while still letting the user clear the field afterwards.
+function initialBommelId(entityBommelId?: number | null): string {
+    if (entityBommelId != null) return String(entityBommelId);
+    const cached = getCachedBommelId();
+    return typeof cached === 'number' ? String(cached) : '';
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -272,7 +286,11 @@ function ReceiptDataRow({
 
 // ─── Review Drawer ────────────────────────────────────────────────────────────
 
-function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+// Exported so the Konten (bank accounts) page can reuse the exact same receipt-review / transaction-reconcile flow:
+// after uploading a receipt onto a bank transaction there, the user stays on the Konten page and completes + confirms
+// the transaction in this drawer instead of being navigated to the receipts page. The component is self-contained
+// (driven only by the `doc` prop and the callbacks), so reusing it needs no view-level state from BelegeView.
+export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -282,7 +300,6 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const reanalyzeMutation = useReanalyzeDocument();
     const updateTransaction = useUpdateTransaction();
     const confirmTransaction = useConfirmTransaction();
-    const rootBommel = useBommelsStore((s) => s.rootBommel);
 
     // Live document — polls every 2s while the AI analysis is still running so results appear automatically
     const { data: liveDoc } = useDocument(docProp?.id);
@@ -310,7 +327,11 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     const [senderName, setSenderName] = useState('');
     const [bommelId, setBommelId] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
+    const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [direction, setDirection] = useState<DocumentDirection>('INCOMING');
+    const { data: categoryGroups = [] } = useCategoryGroups();
+    const reviewAllBommels = useBommelsStore((s) => s.allBommels);
+    const { showError: showCategoryError } = useToast();
     // In bank-reconcile mode the detail view is split into the transaction data (primary) and the analysed receipt data.
     const [detailTab, setDetailTab] = useState<'transaction' | 'receipt'>('transaction');
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -348,9 +369,19 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
             setAmount(linkedTx.total != null ? String(Math.abs(Number(linkedTx.total))) : '');
             setDate(linkedTx.transactionTime ? new Date(linkedTx.transactionTime).toISOString().slice(0, 10) : '');
             setSenderName(linkedTx.senderName ?? '');
-            setBommelId(linkedTx.bommelId != null ? String(linkedTx.bommelId) : '');
+            // Use the transaction's own bommel once it has one (e.g. a value already saved on the draft); a freshly
+            // created draft carries no bommel (the backend no longer seeds the bank account's root bommel), so this
+            // falls back to the shared "last used" bommel cache — the same one the transaction forms use.
+            setBommelId(initialBommelId(linkedTx.bommelId));
             setPrivatelyPaid(linkedTx.privatelyPaid ?? false);
             setDirection(Number(linkedTx.total ?? 0) < 0 ? 'INCOMING' : 'OUTGOING');
+            const cv: Record<number, string> = {};
+            (linkedTx.categoryValues ?? []).forEach((c) => {
+                if (c.groupId != null && c.value != null) {
+                    cv[c.groupId] = c.value;
+                }
+            });
+            setCategoryValues(cv);
             return;
         }
 
@@ -359,7 +390,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         setAmount(docProp.total != null ? String(Math.abs(Number(docProp.total))) : '');
         setDate(docProp.transactionTime ? new Date(docProp.transactionTime).toISOString().slice(0, 10) : '');
         setSenderName(docProp.senderName ?? '');
-        setBommelId(docProp.bommelId != null ? String(docProp.bommelId) : '');
+        setBommelId(initialBommelId(docProp.bommelId));
         setPrivatelyPaid(docProp.privatelyPaid ?? false);
         setDirection(docProp.direction ?? 'INCOMING');
     }, [docProp, hasLinkedTransaction, linkedTx]);
@@ -376,16 +407,6 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
         if (liveDoc.senderName) setSenderName((p) => p || liveDoc.senderName!);
         if (liveDoc.bommelId != null) setBommelId((p) => p || String(liveDoc.bommelId));
     }, [liveDoc, hasLinkedTransaction]);
-
-    // A bommel must always be selected — when none is set, default to the last one the user picked (so a batch of
-    // receipts can go to the same bommel), falling back to the root bommel. Runs also once the bommels finish loading,
-    // since loading is asynchronous.
-    useEffect(() => {
-        if (open && !bommelId) {
-            const fallback = getLastBommelId() ?? rootBommel?.id;
-            if (fallback != null) setBommelId(String(fallback));
-        }
-    }, [open, bommelId, rootBommel]);
 
     // Refresh the list once analysis finishes so the row's status/amount update too.
     const prevAnalyzingRef = useRef(false);
@@ -428,7 +449,9 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
             total: !isNaN(rawAmount) ? rawAmount : undefined,
             transactionDate: date || undefined,
             senderName: senderName || undefined,
-            bommelId: bommelId ? Number(bommelId) : undefined,
+            // Send 0 (not undefined) when the field is empty so a removed bommel is actually cleared server-side —
+            // undefined would be treated as "unchanged" and keep the previous bommel.
+            bommelId: bommelId ? Number(bommelId) : 0,
             privatelyPaid,
             direction,
         });
@@ -443,8 +466,11 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
             total: signed,
             transactionDate: date || undefined,
             senderName: senderName || undefined,
-            bommelId: bommelId ? Number(bommelId) : undefined,
+            // Send 0 (not undefined) when the field is empty so a removed bommel is actually cleared server-side —
+            // undefined would be treated as "unchanged" and keep the previous bommel.
+            bommelId: bommelId ? Number(bommelId) : 0,
             privatelyPaid,
+            categoryValues,
         });
     }
 
@@ -478,6 +504,11 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     // when confirmState.canConfirm, so the backend confirm guard always passes.
     async function handleFinalize() {
         if (!doc?.id || !linkedTransactionId) return;
+        const missing = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(reviewAllBommels), categoryValues);
+        if (missing.length > 0) {
+            showCategoryError(t('categoryGroups.fields.missing', { groups: missing.map((g) => g.name).join(', ') }));
+            return;
+        }
         await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
         await confirmTransaction.mutateAsync(linkedTransactionId);
         onClose();
@@ -498,9 +529,21 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
     // counterparty and description set AND the amount exactly covered by the linked bank transactions.
     const parsedAmount = parseFloat(amount.replace(',', '.'));
     const confirmState = getTransactionConfirmState(
-        { amount: isNaN(parsedAmount) ? null : parsedAmount, date: date || null, counterparty: senderName || null, name: name || null },
+        {
+            // Signed by direction (INCOMING invoice = expense −, OUTGOING = income +) so a directional mismatch with the
+            // linked bank movement blocks confirm.
+            amount: isNaN(parsedAmount) ? null : direction === 'INCOMING' ? -Math.abs(parsedAmount) : Math.abs(parsedAmount),
+            date: date || null,
+            counterparty: senderName || null,
+            name: name || null,
+            bommelId: bommelId ? Number(bommelId) : null,
+        },
         linkedBankTxns
     );
+
+    // Required category groups applicable to the selected bommel that still have no value also block confirming here.
+    const missingConfirmGroups = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(reviewAllBommels), categoryValues);
+    const canConfirm = confirmState.canConfirm && missingConfirmGroups.length === 0;
 
     return (
         <>
@@ -780,6 +823,23 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                             disabled={fieldsDisabled}
                                         />
                                     </div>
+                                    {!fieldsDisabled && (
+                                        <CategoryGroupFields
+                                            bommelId={bommelId ? Number(bommelId) : null}
+                                            values={categoryValues}
+                                            onChange={(groupId, value) =>
+                                                setCategoryValues((prev) => {
+                                                    const next = { ...prev };
+                                                    if (value == null || value === '') {
+                                                        delete next[groupId];
+                                                    } else {
+                                                        next[groupId] = value;
+                                                    }
+                                                    return next;
+                                                })
+                                            }
+                                        />
+                                    )}
                                     <button
                                         type="button"
                                         onClick={() => setPrivatelyPaid((v) => !v)}
@@ -902,11 +962,14 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                     <HintTooltip
                                         className="w-full"
                                         content={
-                                            confirmState.canConfirm ? null : (
+                                            canConfirm ? null : (
                                                 <>
                                                     <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
                                                     <span className="block mt-0.5">
-                                                        {confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)).join(', ')}
+                                                        {[
+                                                            ...confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)),
+                                                            ...missingConfirmGroups.map((g) => g.name),
+                                                        ].join(', ')}
                                                     </span>
                                                 </>
                                             )
@@ -914,7 +977,7 @@ function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentRespo
                                     >
                                         <button
                                             onClick={handleFinalize}
-                                            disabled={busy || !confirmState.canConfirm}
+                                            disabled={busy || !canConfirm}
                                             className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[14.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                             style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)', boxShadow: '0 4px 16px rgba(120,60,200,.22)' }}
                                         >
@@ -1105,11 +1168,19 @@ function DocumentRow({
 const MAX_UPLOAD_MB = 10;
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
-type UploadItem = { key: string; name: string; status: 'uploading' | 'done' | 'error' };
+type UploadItem = {
+    key: string;
+    name: string;
+    status: 'uploading' | 'done' | 'error';
+    // When the upload failed because the file was already uploaded (409 duplicate), the id of the existing document so
+    // the row can link straight to it.
+    duplicateOfId?: number;
+};
 
 function UploadZone({ onUploaded }: { onUploaded: () => void }) {
     const { t } = useTranslation();
     const { showWarning } = useToast();
+    const navigate = useNavigate();
     const uploadMutation = useUploadDocument();
     const [analyze, setAnalyze] = useState(true);
     const [items, setItems] = useState<UploadItem[]>([]);
@@ -1124,6 +1195,11 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
             return next;
         });
     }
+
+    const expand = useCallback(() => {
+        setCollapsed(false);
+        localStorage.setItem('receipts.uploadCollapsed', 'false');
+    }, []);
 
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
@@ -1145,8 +1221,10 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                         setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'done' } : it)));
                         onUploaded();
                     })
-                    .catch(() => {
-                        setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'error' } : it)));
+                    .catch((error) => {
+                        // A 409 duplicate carries the existing document's id — keep it so the row can link to it.
+                        const duplicateOfId = getDuplicateDocumentId(error);
+                        setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'error', duplicateOfId } : it)));
                     });
             });
         },
@@ -1181,37 +1259,81 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         multiple: true,
     });
 
+    // A second drop target wrapping the collapsed bar so files can be dropped without expanding first. Dropping here
+    // opens the panel and then hands the files to the same uploader — as if they had been dropped into the expanded
+    // dropzone. Click is disabled (noClick) so clicking the bar still toggles collapse instead of opening a file dialog.
+    const collapsedDropzone = useDropzone({
+        onDrop: (accepted) => {
+            expand();
+            onDrop(accepted);
+        },
+        onDropRejected: (rejections) => {
+            expand();
+            onDropRejected(rejections);
+        },
+        accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
+        maxSize: MAX_UPLOAD_BYTES,
+        multiple: true,
+        noClick: true,
+        noKeyboard: true,
+    });
+
     const isUploading = items.some((it) => it.status === 'uploading');
     const doneCount = items.filter((it) => it.status === 'done').length;
+    // A file is being dragged over the collapsed bar (its own drop target). Drives the highlight + subtitle hint.
+    const dragOverCollapsed = collapsed && collapsedDropzone.isDragActive;
+
+    const header = (
+        <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? t('receipts.upload.expand') : t('receipts.upload.collapse')}
+            className="w-full flex items-center gap-3"
+        >
+            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
+                {isUploading ? <Loader2 size={18} className="text-[#7E3FB4] animate-spin" /> : <Upload size={18} className="text-[#7E3FB4]" />}
+            </span>
+            <span className="flex flex-col min-w-0 flex-1 text-left">
+                <span className="text-[14px] font-bold text-[#1B1B1F]" style={{ fontFamily: FONT }}>
+                    {t('receipts.upload.sectionTitle')}
+                </span>
+                {collapsed && (
+                    <span className="text-[12px] text-[#9A9AA3] truncate" style={{ fontFamily: FONT }}>
+                        {dragOverCollapsed
+                            ? t('receipts.upload.dropzoneActive')
+                            : isUploading
+                              ? t('receipts.upload.progress', { done: doneCount, total: items.length })
+                              : t('receipts.upload.hint')}
+                    </span>
+                )}
+            </span>
+            <ChevronDown size={18} className={cn('text-[#9A9AA3] transition-transform flex-shrink-0', collapsed ? '' : 'rotate-180')} />
+        </button>
+    );
 
     return (
         <div
             className="rounded-[18px] border border-[#E9E9EE] px-5 py-4"
             style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
         >
-            {/* Collapsible header — click to fold the whole upload area away so the receipt list has more room. */}
-            <button
-                type="button"
-                onClick={toggleCollapsed}
-                aria-expanded={!collapsed}
-                aria-label={collapsed ? t('receipts.upload.expand') : t('receipts.upload.collapse')}
-                className="w-full flex items-center gap-3"
-            >
-                <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
-                    {isUploading ? <Loader2 size={18} className="text-[#7E3FB4] animate-spin" /> : <Upload size={18} className="text-[#7E3FB4]" />}
-                </span>
-                <span className="flex flex-col min-w-0 flex-1 text-left">
-                    <span className="text-[14px] font-bold text-[#1B1B1F]" style={{ fontFamily: FONT }}>
-                        {t('receipts.upload.sectionTitle')}
-                    </span>
-                    {collapsed && (
-                        <span className="text-[12px] text-[#9A9AA3] truncate" style={{ fontFamily: FONT }}>
-                            {isUploading ? t('receipts.upload.progress', { done: doneCount, total: items.length }) : t('receipts.upload.hint')}
-                        </span>
+            {/* Collapsible header — click to fold the upload area away. While collapsed the whole bar is also a drop
+                target: dropping files here expands the panel and uploads them, exactly like the open dropzone. Click is
+                disabled on this drop target (noClick), so a plain click still toggles collapse. */}
+            {collapsed ? (
+                <div
+                    {...collapsedDropzone.getRootProps()}
+                    className={cn(
+                        '-mx-2 -my-1 px-2 py-1 rounded-[12px] transition-colors',
+                        dragOverCollapsed && 'bg-[#F3EAFB] ring-2 ring-inset ring-[#9955CC]'
                     )}
-                </span>
-                <ChevronDown size={18} className={cn('text-[#9A9AA3] transition-transform flex-shrink-0', collapsed ? '' : 'rotate-180')} />
-            </button>
+                >
+                    <input {...collapsedDropzone.getInputProps()} />
+                    {header}
+                </div>
+            ) : (
+                header
+            )}
 
             {!collapsed && (
                 <div className="mt-4">
@@ -1251,7 +1373,15 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                                 </p>
                             )}
                             {items.map((it) => {
-                                const label = it.status === 'uploading' ? 'itemUploading' : it.status === 'done' ? 'itemDone' : 'itemError';
+                                const isDuplicate = it.status === 'error' && it.duplicateOfId != null;
+                                const label =
+                                    it.status === 'uploading'
+                                        ? 'itemUploading'
+                                        : it.status === 'done'
+                                          ? 'itemDone'
+                                          : isDuplicate
+                                            ? 'itemErrorDuplicate'
+                                            : 'itemError';
                                 const color = it.status === 'error' ? '#B12C4C' : it.status === 'done' ? '#1F7A50' : '#9A9AA3';
                                 return (
                                     <div
@@ -1272,9 +1402,25 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                                             {it.status === 'error' && <AlertCircle size={16} className="text-[#B12C4C]" />}
                                         </span>
                                         <span className="flex-1 min-w-0 truncate text-[13px] text-[#1B1B1F]">{it.name}</span>
-                                        <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
-                                            {t(`receipts.upload.${label}`)}
-                                        </span>
+                                        {isDuplicate ? (
+                                            <span className="flex-shrink-0 flex items-center gap-2">
+                                                <span className="text-[12px] font-semibold" style={{ color }}>
+                                                    {t('receipts.upload.itemErrorDuplicate')}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate(`/receipts?id=${it.duplicateOfId}`)}
+                                                    className="inline-flex items-center gap-1 text-[12px] font-bold text-[#7E3FB4] hover:underline"
+                                                >
+                                                    <ExternalLink size={12} />
+                                                    {t('receipts.upload.viewExisting')}
+                                                </button>
+                                            </span>
+                                        ) : (
+                                            <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
+                                                {t(`receipts.upload.${label}`)}
+                                            </span>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -1319,6 +1465,7 @@ export function BelegeView() {
     const [selectedDoc, setSelectedDoc] = useState<DocumentResponse | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const [search, setSearch] = useState('');
     const bulkDelete = useDeleteDocument();
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
@@ -1379,14 +1526,17 @@ export function BelegeView() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allDocs]);
 
-    // Open a specific document when navigated to with ?id= (e.g. from a linked transaction)
+    // Open a specific document when navigated to with ?id= (e.g. from a linked transaction, or the duplicate-upload
+    // link). The document may not be in the currently loaded/filtered list, so fall back to fetching it directly — that
+    // way the deep link always opens its drawer.
     const [searchParams, setSearchParams] = useSearchParams();
+    const idParam = searchParams.get('id');
+    const { data: deepLinkedDoc } = useDocument(idParam ? Number(idParam) : undefined);
     useEffect(() => {
-        const idParam = searchParams.get('id');
         if (!idParam) return;
-        const found = (allDocs as DocumentResponse[] | undefined)?.find((d) => d.id === Number(idParam));
+        const found = (allDocs as DocumentResponse[] | undefined)?.find((d) => d.id === Number(idParam)) ?? deepLinkedDoc;
         if (found) setSelectedDoc(found);
-    }, [searchParams, allDocs]);
+    }, [idParam, allDocs, deepLinkedDoc]);
 
     const closeDrawer = () => {
         setSelectedDoc(null);
@@ -1396,9 +1546,27 @@ export function BelegeView() {
         }
     };
 
+    // Free-text search across the fields shown in the list (name, file name, sender) plus the amount. A purely numeric
+    // term is additionally matched against the absolute total so a receipt can be found by pasting its amount.
+    const searchTerm = search.trim().toLowerCase();
+    const searchAmount = (() => {
+        const normalized = search.trim().replace(/\s/g, '').replace(',', '.');
+        if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
+        const n = Number(normalized);
+        return Number.isFinite(n) ? Math.abs(n) : null;
+    })();
+
     const filtered = docs.filter((doc) => {
-        if (filter === 'unreviewed') return doc.documentStatus !== 'CONFIRMED';
-        if (filter === 'confirmed') return doc.documentStatus === 'CONFIRMED';
+        if (filter === 'unreviewed' && doc.documentStatus === 'CONFIRMED') return false;
+        if (filter === 'confirmed' && doc.documentStatus !== 'CONFIRMED') return false;
+        if (searchTerm) {
+            const matchesText =
+                (doc.name ?? '').toLowerCase().includes(searchTerm) ||
+                (doc.fileName ?? '').toLowerCase().includes(searchTerm) ||
+                (doc.senderName ?? '').toLowerCase().includes(searchTerm);
+            const matchesAmount = searchAmount != null && doc.total != null && Math.abs(Number(doc.total)) === searchAmount;
+            if (!matchesText && !matchesAmount) return false;
+        }
         return true;
     });
 
@@ -1508,20 +1676,45 @@ export function BelegeView() {
                     ))}
                 </div>
 
-                {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
-                {reanalyzable.length > 0 && (
-                    <button
-                        onClick={handleReanalyzeAll}
-                        disabled={reanalyzeDocuments.isPending}
-                        className="ml-auto inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] bg-white hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors disabled:opacity-50"
-                    >
-                        <RefreshCw size={14} className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
-                        {t('receipts.reanalyzeAll')}
-                        <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: '#F3EAFB', color: '#7E3FB4' }}>
-                            {reanalyzable.length}
-                        </span>
-                    </button>
-                )}
+                {/* Right side: re-analyze action + search, pushed to the far right, aligned with the tabs. */}
+                <div className="ml-auto flex items-center gap-2">
+                    {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
+                    {reanalyzable.length > 0 && (
+                        <button
+                            onClick={handleReanalyzeAll}
+                            disabled={reanalyzeDocuments.isPending}
+                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] bg-white hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors disabled:opacity-50"
+                        >
+                            <RefreshCw size={14} className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
+                            {t('receipts.reanalyzeAll')}
+                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: '#F3EAFB', color: '#7E3FB4' }}>
+                                {reanalyzable.length}
+                            </span>
+                        </button>
+                    )}
+
+                    {/* Search — same height as the tabs, far right */}
+                    <div className="relative w-64 max-w-full">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9AA5] pointer-events-none" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder={t('receipts.searchPlaceholder')}
+                            className="w-full rounded-full border border-[#E9E9EE] bg-white py-1.5 pl-9 pr-9 text-[13.5px] text-[#1B1B1F] placeholder:text-[#9A9AA5] outline-none transition-colors focus:border-[#C7A2E3]"
+                        />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => setSearch('')}
+                                aria-label={t('receipts.searchClear')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9A9AA5] transition-colors hover:text-[#1B1B1F]"
+                            >
+                                <X size={15} />
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Bulk selection toolbar */}
@@ -1558,11 +1751,17 @@ export function BelegeView() {
                             <FileText size={26} className="text-[#9955CC]" />
                         </div>
                         <p className="font-bold text-[#1B1B1F]" style={{ fontSize: 16 }}>
-                            {filter === 'unreviewed' ? t('receipts.noUnreviewed') : t('transactions.noResults')}
+                            {searchTerm
+                                ? t('receipts.noSearchResults', { search })
+                                : filter === 'unreviewed'
+                                  ? t('receipts.noUnreviewed')
+                                  : t('transactions.noResults')}
                         </p>
-                        <p className="mt-1 text-[13.5px] text-[#6B6B76]">
-                            {filter === 'unreviewed' ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
-                        </p>
+                        {!searchTerm && (
+                            <p className="mt-1 text-[13.5px] text-[#6B6B76]">
+                                {filter === 'unreviewed' ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
+                            </p>
+                        )}
                     </div>
                 ) : (
                     <div

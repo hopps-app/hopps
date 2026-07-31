@@ -9,9 +9,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
 
+import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
+import { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
 import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
+import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { transactionKeys } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +44,9 @@ function ReceiptUploadView() {
     const { id } = useParams<{ id: string }>();
     // Page title set after isReadOnly state is defined below
     const { showError, showSuccess, showWarning } = useToast();
-    const { loadBommels, rootBommel } = useBommelsStore();
+    const { loadBommels } = useBommelsStore();
+    const allBommels = useBommelsStore((s) => s.allBommels);
+    const { data: categoryGroups = [] } = useCategoryGroups();
     const store = useStore();
     const queryClient = useQueryClient();
 
@@ -68,10 +73,8 @@ function ReceiptUploadView() {
         setContractPartner,
         bommelId,
         setBommelId,
-        category,
-        setCategory,
-        area,
-        setArea,
+        categoryValues,
+        setCategoryValues,
         tags,
         setTags,
         grossAmount,
@@ -246,12 +249,17 @@ function ReceiptUploadView() {
         loadBommels(store.organization.id).catch(() => {});
     }, [store.organization, loadBommels]);
 
-    // Set root bommel as default for new receipts
+    // For a new receipt the Bommel starts empty, but the last choice is pre-selected once: the cached bommel takes
+    // priority over the empty default (so a batch of receipts can go to the same bommel). A cached "cleared" state or no
+    // cache leaves it empty, and there is no root fallback. This runs exactly once so the field can still be cleared
+    // afterwards without being re-filled.
+    const bommelPrefilledRef = useRef(false);
     useEffect(() => {
-        if (!isEditMode && rootBommel?.id && !bommelId) {
-            setBommelId(rootBommel.id);
-        }
-    }, [isEditMode, rootBommel, bommelId, setBommelId]);
+        if (isEditMode || bommelPrefilledRef.current) return;
+        bommelPrefilledRef.current = true;
+        const cached = getCachedBommelId();
+        if (typeof cached === 'number') setBommelId(cached);
+    }, [isEditMode, setBommelId]);
 
     // Track if transaction has been loaded to prevent re-loading
     const transactionLoadedRef = useRef<string | null>(null);
@@ -418,11 +426,10 @@ function ReceiptUploadView() {
             bommelId: bommelId ?? 0,
             senderName: contractPartner || undefined,
             privatelyPaid: isUnpaid,
-            area: area || undefined,
-            categoryId: category ? parseInt(category, 10) : undefined,
             tags: tags.length > 0 ? tags : undefined,
+            categoryValues: Object.keys(categoryValues).length > 0 ? categoryValues : undefined,
         };
-    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, category, area, tags, grossAmount, taxAmount]);
+    }, [receiptNumber, receiptDate, dueDate, transactionKind, isUnpaid, contractPartner, bommelId, categoryValues, tags, grossAmount, taxAmount]);
 
     // Field change handlers that clear validation errors
     const handleReceiptDateChange = useCallback(
@@ -486,14 +493,6 @@ function ReceiptUploadView() {
         [setReceiptNumber, setFieldLoading, isAnalyzing, clearFieldError]
     );
 
-    const handleAreaChange = useCallback(
-        (value: string) => {
-            setArea(value);
-            clearFieldError('area');
-        },
-        [setArea, clearFieldError]
-    );
-
     // Submit handler - validates and scrolls to first error if invalid
     const handleSubmit = useCallback(async () => {
         if (!validate()) {
@@ -507,6 +506,12 @@ function ReceiptUploadView() {
         }
         if (!transactionId) {
             showError(t('common.validationError'));
+            return;
+        }
+
+        const missingGroups = missingRequiredGroups(categoryGroups, bommelId, buildBommelIndex(allBommels), categoryValues);
+        if (missingGroups.length > 0) {
+            showError(t('categoryGroups.fields.missing', { groups: missingGroups.map((g) => g.name).join(', ') }));
             return;
         }
 
@@ -529,7 +534,22 @@ function ReceiptUploadView() {
         } finally {
             setIsSubmitting(false);
         }
-    }, [validate, transactionId, showError, showSuccess, resetForm, setIsSubmitting, t, buildTransactionPayload, navigate, queryClient]);
+    }, [
+        validate,
+        transactionId,
+        showError,
+        showSuccess,
+        resetForm,
+        setIsSubmitting,
+        t,
+        buildTransactionPayload,
+        navigate,
+        queryClient,
+        categoryGroups,
+        bommelId,
+        allBommels,
+        categoryValues,
+    ]);
 
     // Save as draft - saves current form data to transaction without confirming
     const handleSaveDraft = useCallback(async () => {
@@ -842,10 +862,18 @@ function ReceiptUploadView() {
                             onContractPartnerChange={handleContractPartnerChange}
                             bommelId={bommelId}
                             onBommelIdChange={handleBommelIdChange}
-                            category={category}
-                            onCategoryChange={setCategory}
-                            area={area}
-                            onAreaChange={handleAreaChange}
+                            categoryValues={categoryValues}
+                            onCategoryValueChange={(groupId, value) =>
+                                setCategoryValues((prev) => {
+                                    const next = { ...prev };
+                                    if (value == null || value === '') {
+                                        delete next[groupId];
+                                    } else {
+                                        next[groupId] = value;
+                                    }
+                                    return next;
+                                })
+                            }
                             tags={tags}
                             onTagsChange={setTags}
                             grossAmount={grossAmount}

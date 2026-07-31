@@ -27,6 +27,13 @@ export default tseslint.config(
             'prettier/prettier': 'error',
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
             'react-hooks/exhaustive-deps': 'warn',
+            // eslint-plugin-react-hooks v6 folded the new React-Compiler rules into its "recommended" preset as
+            // errors. They flag pre-existing patterns across the app; keep them visible as warnings for now and
+            // adopt/fix them deliberately in a dedicated follow-up rather than as part of this dependency bump.
+            'react-hooks/set-state-in-effect': 'warn',
+            'react-hooks/refs': 'warn',
+            'react-hooks/immutability': 'warn',
+            'react-hooks/incompatible-library': 'warn',
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
             'import/order': [

@@ -1,11 +1,13 @@
 package app.hopps.document.service;
 
 import app.hopps.bankimport.service.DedupeHashService;
+import app.hopps.document.api.dto.DuplicateDocumentResponse;
 import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
@@ -55,7 +57,12 @@ public class DocumentFileService {
         String fileHash = DedupeHashService.sha256(bytes);
         Document existing = documentRepository.findByFileHash(fileHash);
         if (existing != null && !Objects.equals(existing.getId(), document.getId())) {
-            throw new ClientErrorException("Dieser Beleg wurde bereits hochgeladen", Response.Status.CONFLICT);
+            // Return the existing document's id in the 409 body so the client can link straight to the already-booked
+            // receipt.
+            throw new ClientErrorException(Response.status(Response.Status.CONFLICT)
+                    .entity(new DuplicateDocumentResponse(existing.getId(), "Dieser Beleg wurde bereits hochgeladen"))
+                    .type(MediaType.APPLICATION_JSON)
+                    .build());
         }
 
         String fileKey = "documents/" + UUID.randomUUID() + "/" + file.fileName();

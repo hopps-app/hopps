@@ -331,15 +331,19 @@ public final class Mt940Parser {
             int[] pos = positions.get(i);
             int code = pos[0];
             int valueEnd = (i + 1 < positions.size()) ? positions.get(i + 1)[1] : value.length();
-            String fieldVal = value.substring(pos[2], valueEnd).trim();
+            String rawFieldVal = value.substring(pos[2], valueEnd);
+            String fieldVal = rawFieldVal.trim();
 
             if (code == 0) {
                 transactionType = fieldVal;
             } else if (code >= 20 && code <= 29) {
-                if (purposeParts.length() > 0) {
-                    // No space needed — MT940 purpose parts are concatenated without separator
-                }
-                purposeParts.append(fieldVal);
+                // Verwendungszweck (?20–?29): the bank splits one logical purpose across these continuation subfields
+                // at fixed-width boundaries, so a boundary can fall exactly on a space. Append the RAW content (not
+                // trimmed) so a space sitting at the split is preserved (e.g. "…29.05.2026 " + "siehe Anlage").
+                // Trimming
+                // each part here would glue the words into "29.05.2026siehe Anlage". The whole blob is trimmed once
+                // below.
+                purposeParts.append(rawFieldVal);
             } else if (code == 30) {
                 bic = fieldVal.isEmpty() ? null : fieldVal;
             } else if (code == 31) {

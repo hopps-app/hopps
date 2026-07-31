@@ -1,16 +1,17 @@
 package app.hopps.transaction.api;
 
 import app.hopps.bankimport.service.BankTransactionMatchService;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.transaction.api.dto.TransactionAggregateResponse;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionChangedEvent;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -40,6 +41,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST API for transaction management.
@@ -76,6 +78,9 @@ public class TransactionResource {
     @Inject
     BankTransactionMatchService bankTransactionMatchService;
 
+    @Inject
+    CategoryGroupService categoryGroupService;
+
     @GET
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
     @APIResponse(responseCode = "200", description = "List of transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse[].class)))
@@ -83,12 +88,11 @@ public class TransactionResource {
             @QueryParam("search") @Parameter(description = "Search in name and sender name") String search,
             @QueryParam("startDate") @Parameter(description = "Filter transactions from this date (ISO format: YYYY-MM-DD)") String startDate,
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
-            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID") Long bommelId,
-            @QueryParam("categoryId") @Parameter(description = "Filter by category ID") Long categoryId,
+            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
-            @QueryParam("area") @Parameter(description = "Filter by transaction area (IDEELL, ZWECKBETRIEB, VERMOEGENSVERWALTUNG, WIRTSCHAFTLICH)") TransactionArea area,
+            @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues,
             @QueryParam("sortBy") @DefaultValue("createdAt") @Parameter(description = "Field to sort by: createdAt, updatedAt, transactionTime or total") String sortBy,
             @QueryParam("sortDir") @DefaultValue("desc") @Parameter(description = "Sort direction: asc or desc") String sortDir,
             @QueryParam("page") @DefaultValue("0") @Parameter(description = "Page index (0-based)") int pageIndex,
@@ -112,18 +116,51 @@ public class TransactionResource {
                 search,
                 startInstant,
                 endInstant,
-                bommelId,
-                categoryId,
+                bommelIds,
                 status,
                 privatelyPaid,
                 detached,
-                area,
+                categoryValues,
                 sort,
                 page);
 
+        // Batch the bank coverage for the whole page in a single grouped query (avoids N+1) so each row can show how
+        // much of its amount still needs to be reconciled with bank movements.
+        List<Long> ids = transactions.stream().map(Transaction::getId).toList();
+        Map<Long, BigDecimal> covered = bankTransactionMatchService.getCoveredAmountsForTransactions(ids);
         return transactions.stream()
-                .map(TransactionResponse::from)
+                .map(tx -> TransactionResponse.from(tx, covered.getOrDefault(tx.getId(), BigDecimal.ZERO)))
                 .toList();
+    }
+
+    @GET
+    @Path("/aggregate")
+    @Operation(summary = "Aggregate transaction totals", description = "Returns the total count and income/expense sums for the same filter set as GET /transactions. Drives paging (count) and the overview totals across all pages, not just the current one.")
+    @APIResponse(responseCode = "200", description = "Aggregated totals", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionAggregateResponse.class)))
+    public TransactionAggregateResponse aggregateTransactions(
+            @QueryParam("search") @Parameter(description = "Search in name and counterparty; a numeric term also matches the amount") String search,
+            @QueryParam("startDate") @Parameter(description = "Filter transactions from this date (ISO format: YYYY-MM-DD)") String startDate,
+            @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
+            @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
+            @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
+            @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
+            @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
+            @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues) {
+
+        Instant startInstant = null;
+        Instant endInstant = null;
+        if (startDate != null && !startDate.isBlank()) {
+            startInstant = LocalDate.parse(startDate).atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+        if (endDate != null && !endDate.isBlank()) {
+            endInstant = LocalDate.parse(endDate).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+
+        BigDecimal[] sums = transactionRepository.aggregate(search, startInstant, endInstant, bommelIds, status,
+                privatelyPaid, detached, categoryValues);
+        long count = transactionRepository.countFiltered(search, startInstant, endInstant, bommelIds, status,
+                privatelyPaid, detached, categoryValues);
+        return new TransactionAggregateResponse(sums[0], sums[1], count);
     }
 
     /**
@@ -152,7 +189,8 @@ public class TransactionResource {
         if (transaction == null) {
             throw new NotFoundException("Transaction not found");
         }
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     @POST
@@ -179,7 +217,8 @@ public class TransactionResource {
         LOG.info("Transaction created: id={}", transaction.getId());
 
         return Response.status(Response.Status.CREATED)
-                .entity(TransactionResponse.from(transaction))
+                .entity(TransactionResponse.from(transaction,
+                        bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId())))
                 .build();
     }
 
@@ -207,7 +246,8 @@ public class TransactionResource {
         }
 
         LOG.info("Transaction updated: id={}", transaction.getId());
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     /**
@@ -224,7 +264,7 @@ public class TransactionResource {
     @POST
     @Path("/{id}/confirm")
     @Transactional
-    @Operation(summary = "Confirm a transaction", description = "Marks a transaction as confirmed. Only permitted when the mandatory fields (amount, date, counterparty, name) are set and the amount is exactly covered by linked bank transactions.")
+    @Operation(summary = "Confirm a transaction", description = "Marks a transaction as confirmed. Only permitted when the mandatory fields (amount, date, counterparty, name, bommel) are set and the amount is exactly covered by linked bank transactions.")
     @APIResponse(responseCode = "200", description = "Transaction confirmed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse.class)))
     @APIResponse(responseCode = "400", description = "Transaction is not ready to be confirmed (missing fields or amount not covered by bank transactions)")
     @APIResponse(responseCode = "404", description = "Transaction not found")
@@ -256,20 +296,34 @@ public class TransactionResource {
 
         LOG.info("Transaction confirmed: id={}", transaction.getId());
 
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     /**
      * Collects the reasons a transaction cannot yet be confirmed. Empty list means it is ready. The mandatory fields
-     * mirror the frontend gate: amount, date, counterparty and name must be set, and the amount must be exactly covered
-     * by the linked bank transactions (sum of their absolute amounts equals the transaction amount).
+     * mirror the frontend gate: amount, date, counterparty, name and bommel must be set, and the amount must be exactly
+     * covered (signed net) by the linked bank transactions. A zero amount is only accepted as a "pass-through"
+     * (durchlaufender Posten) when it is backed by at least two bank movements that net to zero.
      */
     private List<String> collectConfirmBlockers(Transaction transaction) {
         List<String> missing = new ArrayList<>();
 
         BigDecimal total = transaction.getTotal();
-        boolean hasAmount = total != null && total.compareTo(BigDecimal.ZERO) != 0;
-        if (!hasAmount) {
+        BigDecimal effectiveTotal = total == null ? BigDecimal.ZERO : total;
+        boolean isZero = effectiveTotal.compareTo(BigDecimal.ZERO) == 0;
+
+        // Coverage is signed (see getCoveredAmountForTransaction): opposite movements net out.
+        BigDecimal covered = bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId());
+        int linkedBankTxCount = bankTransactionMatchService
+                .getAllocationsByBankTransactionForTransaction(transaction.getId())
+                .size();
+
+        // A zero-amount transaction ("durchlaufender Posten") may only be confirmed when it is backed by at least two
+        // bank movements that net to exactly zero; otherwise a zero amount counts as "no amount entered".
+        boolean isZeroPassThrough = isZero && linkedBankTxCount >= 2 && covered.signum() == 0;
+
+        if (isZero && !isZeroPassThrough) {
             missing.add("amount");
         }
         if (transaction.getTransactionTime() == null) {
@@ -282,12 +336,21 @@ public class TransactionResource {
         if (transaction.getName() == null || transaction.getName().isBlank()) {
             missing.add("name");
         }
+        // A Bommel is not required to save a draft, but it must be assigned before the transaction can be confirmed:
+        // the confirmation is what books the amount against an organizational unit.
+        if (transaction.getBommel() == null) {
+            missing.add("bommel");
+        }
 
-        if (hasAmount) {
-            BigDecimal covered = bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId());
-            if (covered.compareTo(total.abs()) != 0) {
-                missing.add("bankCoverage");
-            }
+        // The linked movements must net to exactly the transaction's signed total, so an expense movement does not
+        // cover an income transaction (and vice versa). A valid zero pass-through already nets to zero and is exempt.
+        if (!isZeroPassThrough && covered.compareTo(effectiveTotal) != 0) {
+            missing.add("bankCoverage");
+        }
+
+        // Every mandatory category group applicable to this transaction's bommel must have a value before confirming.
+        for (String groupName : categoryGroupService.missingRequiredGroups(transaction)) {
+            missing.add("categoryGroup:" + groupName);
         }
 
         return missing;
@@ -317,7 +380,8 @@ public class TransactionResource {
 
         LOG.info("Transaction reopened: id={}", transaction.getId());
 
-        return TransactionResponse.from(transaction);
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
     }
 
     @DELETE

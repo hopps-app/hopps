@@ -1,4 +1,64 @@
 {
+    "categoryGroups": {
+        "title": "Kategorien",
+        "subtitle": "Kategoriegruppen ordnen Transaktionen ein – kontextabhängig vom gewählten Bommel.",
+        "addButton": "Neue Gruppe",
+        "hint": "Eine Gruppe gilt für einen Bommel, wenn sie ihm oder einem übergeordneten Bommel zugeordnet ist. Ohne Zuordnung gilt sie für keinen Bommel – für alle Bommel den Root-Bommel auswählen.",
+        "required": "Pflicht",
+        "optional": "optional",
+        "emptyState": {
+            "title": "Noch keine Kategoriegruppen",
+            "description": "Lege eine Gruppe an, um Transaktionen nach eigenen Achsen einzuordnen."
+        },
+        "card": {
+            "appliesTo": "Gilt für",
+            "allBommel": "Alle Bommel",
+            "noBommel": "Keine Bommel",
+            "valueCount": "{{count}} Werte"
+        },
+        "delete": {
+            "title": "Kategoriegruppe löschen",
+            "description": "„{{group}}“ wird gelöscht.",
+            "descriptionLinked": "„{{group}}“ wird gelöscht. Bei {{count}} verknüpften Transaktionen (Entwürfe und bestätigte) wird der Wert dieser Gruppe vollständig entfernt.",
+            "confirm": "Löschen",
+            "loading": "Verknüpfungen werden geprüft …"
+        },
+        "modal": {
+            "createTitle": "Neue Kategoriegruppe",
+            "editTitle": "Kategoriegruppe bearbeiten",
+            "subtitle": "Name, Pflicht, zugeordnete Bommel und mögliche Werte festlegen.",
+            "name": "Name der Gruppe",
+            "namePlaceholder": "z. B. Kostenstelle",
+            "required": "Pflichtfeld",
+            "requiredHint": "Muss bei passenden Bommeln ausgefüllt werden, bevor bestätigt werden kann.",
+            "bommel": "Gilt für Bommel",
+            "bommelHint": "Keine Auswahl = gilt für keinen Bommel. Für alle Bommel den Root-Bommel wählen.",
+            "bommelPlaceholder": "Bommel auswählen …",
+            "bommelSelected": "{{count}} Bommel ausgewählt",
+            "values": "Mögliche Werte",
+            "valuePlaceholder": "Wert hinzufügen …",
+            "addValue": "Hinzufügen",
+            "noValues": "Noch keine Werte angelegt."
+        },
+        "toast": {
+            "created": "Kategoriegruppe angelegt",
+            "updated": "Kategoriegruppe gespeichert",
+            "deleted": "Kategoriegruppe gelöscht",
+            "error": "Aktion fehlgeschlagen"
+        },
+        "reopen": {
+            "title": "Bestätigte Transaktionen betroffen",
+            "description": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
+            "keep": "Nein, nur Gruppe speichern",
+            "confirm": "Ja, auf Entwurf zurücksetzen"
+        },
+        "fields": {
+            "eyebrow": "Kategoriegruppen",
+            "valuePlaceholder": "— bitte wählen —",
+            "noValues": "Keine Werte gefunden",
+            "missing": "Bitte ausfüllen: {{groups}}"
+        }
+    },
     "alpha": {
         "badge": "Alpha",
         "consentText": "Sie nutzen eine Alpha-Testversion von Hopps. Die Software befindet sich noch in der Entwicklung. Vollständige Datenschutz- und Compliance-Anforderungen können in dieser Phase noch nicht garantiert werden. Wir arbeiten kontinuierlich an Verbesserungen.",
@@ -197,6 +257,7 @@
                 "transactions": "Transaktionen",
                 "subBommels": "Subbommel",
                 "toReceipts": "Zu Belege",
+                "toTransactions": "Zu Transaktionen",
                 "hideDetails": "Details ausblenden",
                 "showDetails": "Details einblenden",
                 "bommelNotFound": "Bommel nicht gefunden",
@@ -335,6 +396,36 @@
     "settingsPage": {
         "menu": "Menü"
     },
+    "reports": {
+        "title": "Berichte",
+        "subtitle": "Werten Sie Transaktionen nach Kategoriegruppenwerten für einen Zeitraum aus.",
+        "group": "Kategoriegruppe",
+        "selectGroup": "Kategoriegruppe wählen …",
+        "from": "Von (Transaktionsdatum)",
+        "to": "Bis (Transaktionsdatum)",
+        "bommel": "Bommel",
+        "export": "CSV exportieren",
+        "total": "Gesamt",
+        "table": {
+            "value": "Wert",
+            "count": "Anzahl",
+            "income": "Einnahmen",
+            "expense": "Ausgaben",
+            "net": "Saldo"
+        },
+        "emptyNoGroup": {
+            "title": "Kategoriegruppe wählen",
+            "description": "Wählen Sie oben eine Kategoriegruppe, um die Auswertung anzuzeigen."
+        },
+        "emptyNoData": {
+            "title": "Keine Daten",
+            "description": "Für diese Kategoriegruppe und den gewählten Zeitraum gibt es keine Transaktionen."
+        },
+        "error": {
+            "title": "Bericht konnte nicht geladen werden",
+            "description": "Bitte versuchen Sie es später erneut."
+        }
+    },
     "menu": {
         "dashboard": "Dashboard",
         "receipts": "Belege",
@@ -345,6 +436,7 @@
         "structure": "Bommel Struktur",
         "bankAccounts": "Konten",
         "transactions": "Transaktionen",
+        "reports": "Berichte",
         "admin": "Admin",
         "ngo-details": "Organisation",
         "categories": "Kategorien",
@@ -384,9 +476,15 @@
             "allCategories": "Alle Kategorien",
             "allBommels": "Alle Bommels",
             "allAreas": "Alle Sphären",
-            "advancedFilters": "Weitere Filter"
+            "advancedFilters": "Weitere Filter",
+            "categoryGroups": "Kategoriegruppen",
+            "addCategoryGroup": "Kategoriegruppe",
+            "removeCategoryGroup": "Entfernen"
         },
         "unassigned": "Nicht zugeordnet",
+        "openToCover": "offen: {{amount}}",
+        "overCovered": "überdeckt: {{amount}}",
+        "fullyCovered": "✓ gedeckt",
         "income": "Einnahme",
         "expense": "Ausgabe",
         "noResults": "Keine Transaktionen gefunden",
@@ -418,12 +516,31 @@
             "bankLoading": "Bankumsätze werden geladen …",
             "bankSearchPlaceholder": "Bankumsatz suchen …",
             "bankNoResults": "Keine passenden Bankumsätze gefunden",
+            "purpose": "Verwendungszweck",
+            "showPurpose": "Verwendungszweck anzeigen",
+            "hidePurpose": "Verwendungszweck ausblenden",
             "linkBankTransaction": "Bankumsatz verknüpfen",
             "unlink": "Verknüpfung lösen",
+            "unlinkReopen": {
+                "title": "Verknüpfung lösen und auf Entwurf setzen?",
+                "description": "Diese Transaktion ist bestätigt und vollständig gedeckt. Wenn du diese Bankverknüpfung entfernst, ist sie nicht mehr vollständig gedeckt und wird wieder auf Entwurf gesetzt.",
+                "confirm": "Lösen & auf Entwurf"
+            },
             "openBankAccounts": "In Bankkonten verwalten",
             "deleteConfirmTitle": "Transaktion löschen?",
             "deleteConfirmText": "Diese Transaktion wird dauerhaft gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
             "openAmount": "offen: {{amount}}",
+            "usedAmount": "verwendet: {{amount}}",
+            "editUsedAmount": "Verwendeten Betrag bearbeiten",
+            "partialAmountLabel": "Teilbetrag (optional)",
+            "partialAmountPlaceholder": "voller Betrag",
+            "reconcileTotal": "Betrag",
+            "reconcileAssigned": "Zugeordnet",
+            "reconcileRemaining": "Differenz",
+            "reconcileFull": "Vollständig zugeordnet",
+            "fullyCovered": "Vollständig gedeckt",
+            "stillToCover": "Noch zu decken: {{amount}}",
+            "overCovered": "Überdeckt: {{amount}}",
             "saveDraft": "Als Entwurf speichern"
         },
         "create": {
@@ -446,6 +563,8 @@
             "area": "Sphäre",
             "privatelyPaid": "Privat vorgestreckt",
             "privatelyPaidHint": "Ich habe den Betrag zunächst aus eigener Tasche bezahlt",
+            "privatelyReceived": "Privat entgegengenommen",
+            "privatelyReceivedHint": "Jemand hat den Betrag zunächst privat entgegengenommen",
             "tags": "Tags",
             "tagsPlaceholder": "Tag eingeben und Enter drücken",
             "save": "Speichern",
@@ -467,6 +586,7 @@
             "date": "Datum",
             "counterparty": "Empfänger/Aussteller",
             "name": "Bezeichnung",
+            "bommel": "Bereich (Bommel)",
             "coverage": "Deckung durch Banktransaktionen"
         },
         "bulk": {
@@ -488,6 +608,9 @@
         "noDocument": "Kein Dokument",
         "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
+        "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
+        "searchClear": "Suche löschen",
+        "noSearchResults": "Keine Belege für „{{search}}\" gefunden",
         "newReceipt": "Neuer Beleg",
         "statusBadge": {
             "draft": "Entwurf",
@@ -566,6 +689,8 @@
             "itemUploading": "Wird hochgeladen …",
             "itemDone": "Hochgeladen",
             "itemError": "Fehlgeschlagen",
+            "itemErrorDuplicate": "Doppelt – bereits verbucht",
+            "viewExisting": "Beleg anzeigen",
             "analysis": {
                 "aiWarning": "Die per KI erkannten Daten können Fehler enthalten. Bitte prüfe alle Felder vor dem Speichern.",
                 "pending": "Analyse startet gleich …",
@@ -899,6 +1024,7 @@
             "noFormatDetected": "Format konnte nicht automatisch erkannt werden. Bitte wähle unten ein Schema aus.",
             "formatDetected": "Format erkannt: {{schema}} · Konto {{account}} · {{lines}} Zeilen gelesen",
             "schemaRequired": "Import-Schema auswählen",
+            "schemaLabelChange": "Schema (automatisch erkannt – bei Bedarf ändern)",
             "importBtn": "{{count}} Umsätze importieren",
             "duplicateRow": "Duplikat",
             "duplicateHint_one": "{{count}} bereits vorhandener Umsatz wird übersprungen",
@@ -1038,6 +1164,9 @@
         "open": "offen",
         "allMatched": "abgeglichen",
         "addAccount": "Bankkonto hinzufügen",
+        "accounts": "Konten",
+        "accountsExpand": "Details anzeigen",
+        "accountsCollapse": "Details ausblenden",
         "importAction": "Umsätze importieren",
         "import": "Importieren",
         "assign": "Zuordnen",
@@ -1057,7 +1186,16 @@
             "all": "Alle",
             "open": "Offen",
             "matched": "Zugeordnet",
-            "ignored": "Ignoriert"
+            "ignored": "Ignoriert",
+            "searchPlaceholder": "Suchen (Gegenpartei, Verwendungszweck, Betrag) …",
+            "clearSearch": "Suche löschen",
+            "filters": "Filter",
+            "dateFrom": "Datum von",
+            "dateTo": "Datum bis",
+            "minAmount": "Betrag min.",
+            "maxAmount": "Betrag max.",
+            "clearAll": "Filter zurücksetzen",
+            "noResults": "Keine Transaktionen für die aktuelle Suche/Filter"
         },
         "abgleich": {
             "allClear": "Alles abgeglichen",
@@ -1110,10 +1248,12 @@
             "exactMatch": "passt genau",
             "unlink": "Zuordnung entfernen",
             "openTransaction": "Zur Transaktion wechseln",
+            "openTransactionNewTab": "Transaktion in neuem Tab öffnen",
             "bankAmount": "Betrag",
             "covered": "Gedeckt",
             "remaining": "Differenz",
             "fullyCovered": "Vollständig gedeckt",
+            "usedAmountHint": "Verwendeter Betrag (Standard: voller Betrag)",
             "ignore": "Ignorieren",
             "unignore": "Nicht ignorieren",
             "assign": "Zuordnen",
@@ -1123,7 +1263,9 @@
             "uploadReceiptBusy": "Beleg wird hochgeladen …",
             "createTransaction": "Transaktion ohne Beleg erstellen",
             "createTransactionHint": "Vorbelegt aus der Banktransaktion – ohne verknüpften Beleg",
-            "txSearchPlaceholder": "Nach Betrag oder Name suchen…"
+            "txSearchPlaceholder": "Nach Betrag oder Name suchen…",
+            "showReceipt": "Beleg anzeigen",
+            "hideReceipt": "Beleg ausblenden"
         },
         "openAmount": "offen: {{amount}}",
         "createTx": {

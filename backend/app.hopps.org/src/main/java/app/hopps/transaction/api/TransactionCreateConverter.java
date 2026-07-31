@@ -2,13 +2,11 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.category.domain.Category;
-import app.hopps.category.repository.CategoryRepository;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -23,7 +21,7 @@ public class TransactionCreateConverter {
     BommelRepository bommelRepository;
 
     @Inject
-    CategoryRepository categoryRepository;
+    CategoryGroupService categoryGroupService;
 
     public void applyRequestToTransaction(Transaction transaction, TransactionCreateRequest request,
             Organization organization) {
@@ -51,15 +49,6 @@ public class TransactionCreateConverter {
             transaction.setBommel(bommel);
         }
 
-        if (request.categoryId() != null) {
-            Category category = categoryRepository.findById(request.categoryId());
-            transaction.setCategory(category);
-        }
-
-        if (request.area() != null && !request.area().isBlank()) {
-            transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
-        }
-
         // The senderName* fields describe the counterparty (vendor for expenses, customer for income). The
         // entity stores it on the side matching the direction and records the organization on the other side.
         if (request.senderName() != null && !request.senderName().isBlank()) {
@@ -78,5 +67,8 @@ public class TransactionCreateConverter {
         if (request.tags() != null && !request.tags().isEmpty()) {
             transaction.setTags(new HashSet<>(request.tags()));
         }
+
+        // Validate and store the category-group values (bommel is already resolved above and drives applicability).
+        categoryGroupService.validateAndApply(transaction, request.categoryValues());
     }
 }

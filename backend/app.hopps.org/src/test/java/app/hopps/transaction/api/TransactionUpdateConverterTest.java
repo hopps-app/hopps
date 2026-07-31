@@ -2,13 +2,11 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.category.domain.Category;
-import app.hopps.category.repository.CategoryRepository;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +31,7 @@ class TransactionUpdateConverterTest {
     BommelRepository bommelRepository;
 
     @Mock
-    CategoryRepository categoryRepository;
+    CategoryGroupService categoryGroupService;
 
     @InjectMocks
     TransactionUpdateConverter converter;
@@ -58,7 +56,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateName() {
         var request = new TransactionUpdateRequest(
                 "Updated Name", null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -70,7 +68,7 @@ class TransactionUpdateConverterTest {
     void shouldKeepNameWhenNull() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -82,7 +80,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateTotal() {
         var request = new TransactionUpdateRequest(
                 null, BigDecimal.valueOf(200), null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -96,7 +94,7 @@ class TransactionUpdateConverterTest {
         // (e.g. the analysed value was in the wrong currency and the correct euro amount isn't known yet).
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -108,7 +106,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateTotalTax() {
         var request = new TransactionUpdateRequest(
                 null, null, BigDecimal.valueOf(38), null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -120,7 +118,7 @@ class TransactionUpdateConverterTest {
     void shouldUpdateCurrencyCode() {
         var request = new TransactionUpdateRequest(
                 null, null, null, "USD", null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -132,7 +130,7 @@ class TransactionUpdateConverterTest {
     void shouldKeepCurrencyCodeWhenNull() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -144,7 +142,7 @@ class TransactionUpdateConverterTest {
     void shouldAlwaysUpdatePrivatelyPaid() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, true, null, null, null, null, null, null);
+                null, true, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -156,7 +154,7 @@ class TransactionUpdateConverterTest {
     void shouldParseTransactionDate() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, "2025-04-20", null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -170,7 +168,7 @@ class TransactionUpdateConverterTest {
     void shouldParseDueDate() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, "2025-12-31",
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -184,7 +182,7 @@ class TransactionUpdateConverterTest {
     void shouldSkipBlankDates() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, "  ", "  ",
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -201,7 +199,7 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                10L, null, null, false, null, null, null, null, null, null);
+                10L, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -217,12 +215,12 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                0L, null, null, false, null, null, null, null, null, null);
+                0L, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
         assertNull(transaction.getBommel());
-        verifyNoInteractions(bommelRepository);
+        verify(bommelRepository, never()).findById(anyLong());
     }
 
     @Test
@@ -233,101 +231,12 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
+                null, false, null, null, null, null, null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
         assertEquals(existingBommel, transaction.getBommel());
-        verifyNoInteractions(bommelRepository);
-    }
-
-    @Test
-    @DisplayName("should look up and set category when id is positive")
-    void shouldSetCategoryWhenPositiveId() {
-        Category category = new Category();
-        category.setName("Travel");
-        when(categoryRepository.findById(5L)).thenReturn(category);
-
-        var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
-                null, 5L, null, false, null, null, null, null, null, null);
-
-        converter.applyUpdateRequestToTransaction(transaction, request);
-
-        assertEquals(category, transaction.getCategory());
-        verify(categoryRepository).findById(5L);
-    }
-
-    @Test
-    @DisplayName("should clear category when id is zero or negative")
-    void shouldClearCategoryWhenZeroOrNegativeId() {
-        Category existingCategory = new Category();
-        transaction.setCategory(existingCategory);
-
-        var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
-                null, 0L, null, false, null, null, null, null, null, null);
-
-        converter.applyUpdateRequestToTransaction(transaction, request);
-
-        assertNull(transaction.getCategory());
-        verifyNoInteractions(categoryRepository);
-    }
-
-    @Test
-    @DisplayName("should not touch category when id is null")
-    void shouldNotTouchCategoryWhenNull() {
-        Category existingCategory = new Category();
-        transaction.setCategory(existingCategory);
-
-        var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
-
-        converter.applyUpdateRequestToTransaction(transaction, request);
-
-        assertEquals(existingCategory, transaction.getCategory());
-        verifyNoInteractions(categoryRepository);
-    }
-
-    @Test
-    @DisplayName("should set transaction area")
-    void shouldSetTransactionArea() {
-        var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
-                null, null, "wirtschaftlich", false, null, null, null, null, null, null);
-
-        converter.applyUpdateRequestToTransaction(transaction, request);
-
-        assertEquals(TransactionArea.WIRTSCHAFTLICH, transaction.getArea());
-    }
-
-    @Test
-    @DisplayName("should skip null area")
-    void shouldSkipNullArea() {
-        transaction.setArea(TransactionArea.IDEELL);
-
-        var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
-                null, null, null, false, null, null, null, null, null, null);
-
-        converter.applyUpdateRequestToTransaction(transaction, request);
-
-        assertEquals(TransactionArea.IDEELL, transaction.getArea());
-    }
-
-    @Test
-    @DisplayName("should skip blank area")
-    void shouldSkipBlankArea() {
-        transaction.setArea(TransactionArea.IDEELL);
-
-        var request = new TransactionUpdateRequest(
-                null, null, null, null, null, null,
-                null, null, "  ", false, null, null, null, null, null, null);
-
-        converter.applyUpdateRequestToTransaction(transaction, request);
-
-        assertEquals(TransactionArea.IDEELL, transaction.getArea());
+        verify(bommelRepository, never()).findById(anyLong());
     }
 
     @Test
@@ -336,9 +245,9 @@ class TransactionUpdateConverterTest {
         // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
                 null, BigDecimal.valueOf(50), null, null, null, null,
-                null, null, null, false,
+                null, false,
                 "New Sender", "Street 1", "54321", "Munich",
-                null, null);
+                null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -365,9 +274,9 @@ class TransactionUpdateConverterTest {
         // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
                 null, BigDecimal.valueOf(50), null, null, null, null,
-                null, null, null, false,
+                null, false,
                 "Updated Sender", "New Street 5", "99999", "Hamburg",
-                null, null);
+                null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -385,9 +294,9 @@ class TransactionUpdateConverterTest {
         // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
                 null, BigDecimal.valueOf(50), null, null, null, null,
-                null, null, null, false,
+                null, false,
                 null, "Street 1", "12345", "Berlin",
-                null, null);
+                null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -402,9 +311,9 @@ class TransactionUpdateConverterTest {
         // keep the transaction income (positive total); a null total would clear it and flip the direction
         var request = new TransactionUpdateRequest(
                 null, BigDecimal.valueOf(50), null, null, null, null,
-                null, null, null, false,
+                null, false,
                 "  ", "Street 1", "12345", "Berlin",
-                null, null);
+                null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -425,9 +334,9 @@ class TransactionUpdateConverterTest {
         // flip to an expense without re-sending the counterparty name
         var request = new TransactionUpdateRequest(
                 null, BigDecimal.valueOf(-99), null, null, null, null,
-                null, null, null, false,
+                null, false,
                 null, null, null, null,
-                null, null);
+                null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -442,9 +351,9 @@ class TransactionUpdateConverterTest {
     void shouldSetTags() {
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false,
+                null, false,
                 null, null, null, null,
-                List.of("new-tag", "important"), null);
+                List.of("new-tag", "important"), null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -458,9 +367,9 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false,
+                null, false,
                 null, null, null, null,
-                List.of(), null);
+                List.of(), null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -475,9 +384,9 @@ class TransactionUpdateConverterTest {
 
         var request = new TransactionUpdateRequest(
                 null, null, null, null, null, null,
-                null, null, null, false,
+                null, false,
                 null, null, null, null,
-                null, null);
+                null, null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -489,15 +398,13 @@ class TransactionUpdateConverterTest {
     void shouldApplyMultipleFieldsAtOnce() {
         Bommel bommel = new Bommel();
         when(bommelRepository.findById(3L)).thenReturn(bommel);
-        Category category = new Category();
-        when(categoryRepository.findById(2L)).thenReturn(category);
 
         var request = new TransactionUpdateRequest(
                 "Full Update", BigDecimal.valueOf(999), BigDecimal.valueOf(190), "USD",
                 "2025-01-01", "2025-02-01",
-                3L, 2L, "zweckbetrieb", true,
+                3L, true,
                 "Full Sender", "All Street", "11111", "Frankfurt",
-                List.of("tag1", "tag2"), null);
+                List.of("tag1", "tag2"), null, null);
 
         converter.applyUpdateRequestToTransaction(transaction, request);
 
@@ -509,8 +416,6 @@ class TransactionUpdateConverterTest {
         assertNotNull(transaction.getTransactionTime());
         assertNotNull(transaction.getDueDate());
         assertEquals(bommel, transaction.getBommel());
-        assertEquals(category, transaction.getCategory());
-        assertEquals(TransactionArea.ZWECKBETRIEB, transaction.getArea());
         // total 999 => income, so the counterparty is stored on the recipient side
         assertEquals("Full Sender", transaction.getCounterparty().getName());
         assertEquals(Set.of("tag1", "tag2"), transaction.getTags());

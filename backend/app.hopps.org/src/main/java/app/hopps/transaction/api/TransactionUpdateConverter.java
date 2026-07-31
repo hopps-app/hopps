@@ -2,12 +2,10 @@ package app.hopps.transaction.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
-import app.hopps.category.domain.Category;
-import app.hopps.category.repository.CategoryRepository;
+import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionArea;
 import app.hopps.transaction.domain.TransactionStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -23,7 +21,7 @@ public class TransactionUpdateConverter {
     BommelRepository bommelRepository;
 
     @Inject
-    CategoryRepository categoryRepository;
+    CategoryGroupService categoryGroupService;
 
     public void applyUpdateRequestToTransaction(Transaction transaction, TransactionUpdateRequest request) {
         // Capture the counterparty and direction before total (and thus the direction) may change below, so
@@ -69,19 +67,6 @@ public class TransactionUpdateConverter {
             }
         }
 
-        if (request.categoryId() != null) {
-            if (request.categoryId() > 0) {
-                Category category = categoryRepository.findById(request.categoryId());
-                transaction.setCategory(category);
-            } else {
-                transaction.setCategory(null);
-            }
-        }
-
-        if (request.area() != null && !request.area().isBlank()) {
-            transaction.setArea(TransactionArea.valueOf(request.area().toUpperCase()));
-        }
-
         // Re-place the counterparty (senderName* fields) on the side matching the current direction and keep
         // the organization on the other side. A new counterparty is built when one was supplied; otherwise the
         // existing one is only moved when the direction flipped, to avoid needless churn.
@@ -103,6 +88,11 @@ public class TransactionUpdateConverter {
 
         if (request.status() != null && !request.status().isBlank()) {
             transaction.setStatus(TransactionStatus.valueOf(request.status().toUpperCase()));
+        }
+
+        // null = leave category values unchanged; a present map (possibly empty) replaces them.
+        if (request.categoryValues() != null) {
+            categoryGroupService.validateAndApply(transaction, request.categoryValues());
         }
     }
 }
