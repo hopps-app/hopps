@@ -6,6 +6,7 @@ ENV VITE_KEYCLOAK_URL="VITE_KEYCLOAK_URL_VALUE"
 ENV VITE_KEYCLOAK_REALM="VITE_KEYCLOAK_REALM_VALUE"
 ENV VITE_KEYCLOAK_CLIENT_ID="VITE_KEYCLOAK_CLIENT_ID_VALUE"
 ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
+ENV VITE_SPA_URL="VITE_SPA_URL_VALUE"
 # The app only falls back to `admin` when this value is nullish, so ship a real
 # default instead of a placeholder that would survive into the role check.
 ENV VITE_ADMIN_REALM_ROLE="admin"
