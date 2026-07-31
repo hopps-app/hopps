@@ -469,6 +469,119 @@ frontend:
   volumes: {}
   volumeMounts: {}
 
+admin:
+  # Realm role a user must hold to enter the admin app
+  realmRole: admin
+  replicaCount: 1
+  # List of imagePullSecrets for private image repositories
+  imagePullSecrets: []
+  image:
+    # ToDo: should also be globally configurable
+    #registry: ghcr.io
+    repository: ghcr.io/hopps-app/hopps/admin
+    tag: ""
+    pullPolicy: IfNotPresent
+  envFrom: []
+  #  - configMapRef:
+  #      name: name
+  # The admin app reads its Keycloak and API configuration from these, the same
+  # way the frontend does. Expected: VITE_KEYCLOAK_URL, VITE_KEYCLOAK_REALM,
+  # VITE_KEYCLOAK_CLIENT_ID, VITE_API_ORG_URL, VITE_SPA_URL
+  envVars: []
+  #- name: ENV_VAR
+  #  value: value
+  ingress:
+    enabled: false
+    annotations: {}
+    ingressClassName: ~
+    hosts:
+      - host: admin.chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - admin.chart-example.local
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: false
+    seccompProfile:
+      type: RuntimeDefault
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    port: 8080
+  strategy: {}
+  # type: Recreate
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+    automount: false
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  resources: {}
+  #  requests:
+  #    cpu: 100m
+  #    memory: 256Mi
+  #  limits:
+  #    cpu: 100m
+  #    memory: 256Mi
+  # Node selector settings for scheduling the pod on specific nodes
+  nodeSelector: {}
+  # Tolerations settings for scheduling the pod based on node taints
+  tolerations: []
+  # Affinity settings for controlling pod scheduling
+  affinity: {}
+  livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /
+      port: http
+      scheme: HTTP
+    periodSeconds: 20
+    successThreshold: 1
+    timeoutSeconds: 2
+  readinessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /
+      port: http
+      scheme: HTTP
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  startupProbe:
+    initialDelaySeconds: 1
+    periodSeconds: 5
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 1
+    httpGet:
+      scheme: HTTP
+      path: /
+      port: http
+  volumes: []
+  volumeMounts: []
+
 # Mail Dev Service (GreenMail + Roundcube)
 # Enable this to spin up a dev mail infrastructure for testing
 mailDev:

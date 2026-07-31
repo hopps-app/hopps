@@ -168,6 +168,35 @@ frontend fully qualified name
 {{- end -}}
 
 {{/*
+admin labels
+*/}}
+{{- define "hopps.adminLabels" -}}
+{{ include "hopps.commonLabels" . }}
+{{ include "hopps.adminSelectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
+{{- end -}}
+{{/*
+admin selector labels
+*/}}
+{{- define "hopps.adminSelectorLabels" -}}
+{{ include "hopps.commonSelectorLabels" . }}
+app.kubernetes.io/name: {{ printf "%s-admin" (include "hopps.name" .) }}
+app.kubernetes.io/component: admin
+{{- end -}}
+{{/*
+admin name
+*/}}
+{{- define "hopps.adminName" -}}
+{{- printf "%s-admin" (include "hopps.name" .) -}}
+{{- end -}}
+{{/*
+admin fully qualified name
+*/}}
+{{- define "hopps.adminFullname" -}}
+{{- printf "%s-admin" (include "hopps.fullname" .) -}}
+{{- end -}}
+
+{{/*
 zugferd labels
 */}}
 {{- define "hopps.zugferdLabels" -}}
