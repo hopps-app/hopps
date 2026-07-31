@@ -15,7 +15,53 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
+    }
+
+    /**
+     * Admin overview figures
+     * @return Overview figures
+     */
+    dashboard(): Promise<DashboardResponse> {
+        let url_ = this.baseUrl + "/admin/dashboard";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDashboard(_response);
+        });
+    }
+
+    protected processDashboard(response: Response): Promise<DashboardResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DashboardResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DashboardResponse>(null as any);
     }
 
     /**
@@ -6922,6 +6968,192 @@ export interface IDailyActivity {
     [key: string]: any;
 }
 
+/** A count for a single day */
+export class DailyCount implements IDailyCount {
+    /** The calendar day */
+    day?: Date;
+    /** The count for that day */
+    count?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IDailyCount) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.day = _data["day"] ? new Date(_data["day"].toString()) : <any>undefined;
+            this.count = _data["count"];
+        }
+    }
+
+    static fromJS(data: any): DailyCount {
+        data = typeof data === 'object' ? data : {};
+        let result = new DailyCount();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["day"] = this.day ? formatDate(this.day) : <any>undefined;
+        data["count"] = this.count;
+        return data;
+    }
+
+    clone(): DailyCount {
+        const json = this.toJSON();
+        let result = new DailyCount();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A count for a single day */
+export interface IDailyCount {
+    /** The calendar day */
+    day?: Date;
+    /** The count for that day */
+    count?: number;
+
+    [key: string]: any;
+}
+
+/** Estate-wide figures for the admin overview */
+export class DashboardResponse implements IDashboardResponse {
+    /** Number of active (non-soft-deleted) organizations */
+    totalOrganizations?: number;
+    /** Organizations that registered per month, oldest first, gaps filled with zero */
+    signupsPerMonth?: MonthlyCount[];
+    /** Seconds spent in the application per day across all organizations, oldest first, gaps filled with zero. Combined member time, so a day can exceed 24 hours */
+    activityPerDay?: DailyActivity[];
+    /** Distinct organizations with at least one member active on each day, oldest first */
+    activeOrganizationsPerDay?: DailyCount[];
+    /** Distinct organizations active at any point in the window. Not the sum or maximum of the per-day counts — an organization active on several days still counts once */
+    activeOrganizationsInWindow?: number;
+    /** Documents uploaded per month split by extraction method, oldest first; every month carries all three sources, missing ones as zero */
+    extractionPerMonth?: MonthlyExtraction[];
+
+    [key: string]: any;
+
+    constructor(data?: IDashboardResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.totalOrganizations = _data["totalOrganizations"];
+            if (Array.isArray(_data["signupsPerMonth"])) {
+                this.signupsPerMonth = [] as any;
+                for (let item of _data["signupsPerMonth"])
+                    this.signupsPerMonth!.push(MonthlyCount.fromJS(item));
+            }
+            if (Array.isArray(_data["activityPerDay"])) {
+                this.activityPerDay = [] as any;
+                for (let item of _data["activityPerDay"])
+                    this.activityPerDay!.push(DailyActivity.fromJS(item));
+            }
+            if (Array.isArray(_data["activeOrganizationsPerDay"])) {
+                this.activeOrganizationsPerDay = [] as any;
+                for (let item of _data["activeOrganizationsPerDay"])
+                    this.activeOrganizationsPerDay!.push(DailyCount.fromJS(item));
+            }
+            this.activeOrganizationsInWindow = _data["activeOrganizationsInWindow"];
+            if (Array.isArray(_data["extractionPerMonth"])) {
+                this.extractionPerMonth = [] as any;
+                for (let item of _data["extractionPerMonth"])
+                    this.extractionPerMonth!.push(MonthlyExtraction.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): DashboardResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new DashboardResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["totalOrganizations"] = this.totalOrganizations;
+        if (Array.isArray(this.signupsPerMonth)) {
+            data["signupsPerMonth"] = [];
+            for (let item of this.signupsPerMonth)
+                data["signupsPerMonth"].push(item ? item.toJSON() : <any>undefined);
+        }
+        if (Array.isArray(this.activityPerDay)) {
+            data["activityPerDay"] = [];
+            for (let item of this.activityPerDay)
+                data["activityPerDay"].push(item ? item.toJSON() : <any>undefined);
+        }
+        if (Array.isArray(this.activeOrganizationsPerDay)) {
+            data["activeOrganizationsPerDay"] = [];
+            for (let item of this.activeOrganizationsPerDay)
+                data["activeOrganizationsPerDay"].push(item ? item.toJSON() : <any>undefined);
+        }
+        data["activeOrganizationsInWindow"] = this.activeOrganizationsInWindow;
+        if (Array.isArray(this.extractionPerMonth)) {
+            data["extractionPerMonth"] = [];
+            for (let item of this.extractionPerMonth)
+                data["extractionPerMonth"].push(item ? item.toJSON() : <any>undefined);
+        }
+        return data;
+    }
+
+    clone(): DashboardResponse {
+        const json = this.toJSON();
+        let result = new DashboardResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Estate-wide figures for the admin overview */
+export interface IDashboardResponse {
+    /** Number of active (non-soft-deleted) organizations */
+    totalOrganizations?: number;
+    /** Organizations that registered per month, oldest first, gaps filled with zero */
+    signupsPerMonth?: MonthlyCount[];
+    /** Seconds spent in the application per day across all organizations, oldest first, gaps filled with zero. Combined member time, so a day can exceed 24 hours */
+    activityPerDay?: DailyActivity[];
+    /** Distinct organizations with at least one member active on each day, oldest first */
+    activeOrganizationsPerDay?: DailyCount[];
+    /** Distinct organizations active at any point in the window. Not the sum or maximum of the per-day counts — an organization active on several days still counts once */
+    activeOrganizationsInWindow?: number;
+    /** Documents uploaded per month split by extraction method, oldest first; every month carries all three sources, missing ones as zero */
+    extractionPerMonth?: MonthlyExtraction[];
+
+    [key: string]: any;
+}
+
 export type DetectionType = "ORG" | "TEMPLATE" | "NONE";
 
 export type DocumentDirection = "INCOMING" | "OUTGOING";
@@ -7575,6 +7807,83 @@ export interface IMonthlyCount {
     month?: Date;
     /** Number of documents uploaded that month */
     count?: number;
+
+    [key: string]: any;
+}
+
+/** Documents uploaded in one month, split by extraction method */
+export class MonthlyExtraction implements IMonthlyExtraction {
+    /** First day of the month */
+    month?: Date;
+    /** Document count per extraction source that month; absent sources are zero */
+    counts?: { [key: string]: number; };
+
+    [key: string]: any;
+
+    constructor(data?: IMonthlyExtraction) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.month = _data["month"] ? new Date(_data["month"].toString()) : <any>undefined;
+            if (_data["counts"]) {
+                this.counts = {} as any;
+                for (let key in _data["counts"]) {
+                    if (_data["counts"].hasOwnProperty(key))
+                        (<any>this.counts)![key] = _data["counts"][key];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): MonthlyExtraction {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlyExtraction();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["month"] = this.month ? formatDate(this.month) : <any>undefined;
+        if (this.counts) {
+            data["counts"] = {};
+            for (let key in this.counts) {
+                if (this.counts.hasOwnProperty(key))
+                    (<any>data["counts"])[key] = (<any>this.counts)[key];
+            }
+        }
+        return data;
+    }
+
+    clone(): MonthlyExtraction {
+        const json = this.toJSON();
+        let result = new MonthlyExtraction();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Documents uploaded in one month, split by extraction method */
+export interface IMonthlyExtraction {
+    /** First day of the month */
+    month?: Date;
+    /** Document count per extraction source that month; absent sources are zero */
+    counts?: { [key: string]: number; };
 
     [key: string]: any;
 }
