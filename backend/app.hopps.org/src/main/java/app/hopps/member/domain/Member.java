@@ -10,6 +10,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.util.ArrayList;
@@ -32,6 +33,15 @@ public class Member extends PanacheEntity {
     @Email
     @Schema(examples = "kim.rakete@exemple.com")
     private String email;
+
+    /**
+     * The office the person holds in the association (Vereinsfunktion), e.g. "1. Vorsitzende" or "Kassenwart". Free
+     * text and optional — it is descriptive only and carries no permissions. Not to be confused with the Keycloak role
+     * that governs what a user may do.
+     */
+    @Size(max = 255)
+    @Schema(examples = "Kassenwart", description = "Office held in the association, free text and optional")
+    private String position;
 
     /**
      * The stable, immutable Keycloak user id (the JWT {@code sub} claim). This is the canonical link between a Keycloak
@@ -82,6 +92,14 @@ public class Member extends PanacheEntity {
 
     public String getEmail() {
         return email;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public String getPosition() {
+        return position;
     }
 
     public void setKeycloakId(String keycloakId) {
