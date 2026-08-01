@@ -326,6 +326,10 @@
             "email": "E-Mail",
             "phoneNumber": "Telefonnummer",
             "typeEV": "eingetragener Verein (e.V.)",
+            "typeGGmbH": "gemeinnützige GmbH (gGmbH)",
+            "typeStiftung": "Stiftung",
+            "typeEG": "gemeinnützige Genossenschaft (eG)",
+            "typeGUG": "gemeinnützige UG (haftungsbeschränkt)",
             "typeAndere": "Andere",
             "nameRequired": "Organisationsname ist erforderlich",
             "foundingDateFormat": "Bitte geben Sie das Datum im Format TT.MM.JJJJ ein",
@@ -370,12 +374,29 @@
                 "errorGeneric": "Das Logo konnte nicht hochgeladen werden.",
                 "pending": "{{name}} – wird beim Speichern übernommen"
             },
-            "members": {
-                "title": "Mitglieder & Ansprechpartner",
+            "users": {
+                "title": "Benutzer & Zugriff",
                 "note": "Wer in hopps für Ihre Organisation mitarbeiten darf.",
                 "name": "Name",
                 "email": "E-Mail",
-                "empty": "Noch keine Mitglieder vorhanden."
+                "empty": "Noch keine Benutzer vorhanden.",
+                "add": {
+                    "button": "Benutzer hinzufügen",
+                    "title": "Benutzer hinzufügen",
+                    "subtitle": "Wer soll in hopps für Ihre Organisation mitarbeiten dürfen?",
+                    "firstName": "Vorname",
+                    "lastName": "Nachname",
+                    "firstNamePlaceholder": "z.B. Anke",
+                    "lastNamePlaceholder": "z.B. Reuter",
+                    "role": "Funktion",
+                    "rolePlaceholder": "z.B. 1. Vorsitzende, Kassenwart",
+                    "firstNameRequired": "Vorname ist erforderlich",
+                    "lastNameRequired": "Nachname ist erforderlich",
+                    "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+                    "hint": "Der Benutzer erhält einen Zugang zu hopps und kann Belege und Transaktionen Ihrer Organisation sehen.",
+                    "submit": "Hinzufügen",
+                    "notAvailable": "Benutzer können noch nicht hinzugefügt werden – die Schnittstelle dazu fehlt noch."
+                }
             }
         },
         "noOrganization": {

@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Address, Member, OrganizationInput, TYPE } from '@hopps/api-client';
+import { Address, Member, OrganizationInput, OrganizationType } from '@hopps/api-client';
 import { useQuery } from '@tanstack/react-query';
-import { Building2, Check, Globe, ImageIcon, Info, Landmark, Undo2, Upload, Users } from 'lucide-react';
+import { Building2, Check, Globe, ImageIcon, Info, Landmark, Undo2, Upload, UserPlus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { LoadingState } from '@/components/common/LoadingState';
+import { AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
@@ -46,15 +47,31 @@ function germanToIso(german: string): string {
 
 // ─── Layout primitives ────────────────────────────────────────────────────────
 
-function SectionCard({ icon, title, note, children }: { icon: React.ReactNode; title: string; note?: string; children: React.ReactNode }) {
+function SectionCard({
+    icon,
+    title,
+    note,
+    action,
+    children,
+}: {
+    icon: React.ReactNode;
+    title: string;
+    note?: string;
+    /** Rendered top right of the card header. */
+    action?: React.ReactNode;
+    children: React.ReactNode;
+}) {
     return (
         <section className={`${CARD} px-6 py-[22px] flex flex-col gap-4`}>
-            <div className="flex items-center gap-[13px]">
-                <div className="w-9 h-9 rounded-[10px] bg-[#F1F1F4] text-[#6B6B76] grid place-items-center flex-shrink-0">{icon}</div>
-                <div className="flex flex-col gap-[3px]">
-                    <span className="text-[16.5px] font-extrabold tracking-[-0.01em] text-[#1B1B1F]">{title}</span>
-                    {note && <span className="text-[13.5px] text-[#6B6B76]">{note}</span>}
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-[13px] min-w-0">
+                    <div className="w-9 h-9 rounded-[10px] bg-[#F1F1F4] text-[#6B6B76] grid place-items-center flex-shrink-0">{icon}</div>
+                    <div className="flex flex-col gap-[3px] min-w-0">
+                        <span className="text-[16.5px] font-extrabold tracking-[-0.01em] text-[#1B1B1F]">{title}</span>
+                        {note && <span className="text-[13.5px] text-[#6B6B76]">{note}</span>}
+                    </div>
                 </div>
+                {action}
             </div>
             {children}
         </section>
@@ -82,7 +99,7 @@ const AVATAR_TONES = [
     { bg: '#F1F1F4', fg: '#6B6B76' },
 ];
 
-function MemberAvatar({ name }: { name: string }) {
+function UserAvatar({ name }: { name: string }) {
     const initials =
         name
             .split(/\s+/)
@@ -220,9 +237,14 @@ function OrganizationDetailsSettingsView() {
     const countryOptions = useCountries();
     const setOrganization = useStore((state) => state.setOrganization);
 
+    // Order mirrors app.hopps.organization.domain.OrganizationType — most common legal form first, fallback last.
     const typeOptions = useMemo(
         () => [
             { label: t('organization.details.typeEV'), value: 'EINGETRAGENER_VEREIN' },
+            { label: t('organization.details.typeGGmbH'), value: 'GEMEINNUETZIGE_GMBH' },
+            { label: t('organization.details.typeStiftung'), value: 'STIFTUNG' },
+            { label: t('organization.details.typeEG'), value: 'GEMEINNUETZIGE_GENOSSENSCHAFT' },
+            { label: t('organization.details.typeGUG'), value: 'GEMEINNUETZIGE_UG' },
             { label: t('organization.details.typeAndere'), value: 'ANDERE' },
         ],
         [t]
@@ -287,6 +309,16 @@ function OrganizationDetailsSettingsView() {
     // A logo picked but not yet uploaded. It counts towards the unsaved changes and goes up on submit.
     const [pendingLogo, setPendingLogo] = useState<File | null>(null);
     const [logoVersion, setLogoVersion] = useState(0);
+    const [addUserOpen, setAddUserOpen] = useState(false);
+
+    // TODO: there is no endpoint to add a user to an organization yet — see issue #751. Once it exists, call it here
+    // and invalidate the ['organization', slug, 'members'] query.
+    const handleAddUser = useCallback(
+        async (_values: NewUserValues) => {
+            toast({ title: t('organization.details.users.add.notAvailable'), variant: 'warning' });
+        },
+        [t, toast]
+    );
 
     const hasChanges = isDirty || pendingLogo !== null;
     const dirtyCount = Object.keys(dirtyFields).length + (pendingLogo ? 1 : 0);
@@ -366,7 +398,8 @@ function OrganizationDetailsSettingsView() {
     }, [organization, setOrganization, t, toast]);
 
     const slug = organization?.slug;
-    const { data: members = [], isLoading: membersLoading } = useQuery<Member[]>({
+    // The backend calls a hopps user linked to an organization a "Member" — these are not club members.
+    const { data: users = [], isLoading: usersLoading } = useQuery<Member[]>({
         queryKey: ['organization', slug, 'members'],
         queryFn: () => apiService.orgService.members(slug!),
         enabled: !!slug,
@@ -407,7 +440,7 @@ function OrganizationDetailsSettingsView() {
 
                 const input = new OrganizationInput();
                 input.name = data.name;
-                input.type = data.type as TYPE;
+                input.type = data.type as OrganizationType;
                 input.website = data.website || undefined;
                 input.address = address;
                 input.foundingDate = data.foundingDate ? new Date(germanToIso(data.foundingDate)) : undefined;
@@ -442,222 +475,244 @@ function OrganizationDetailsSettingsView() {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col min-h-full" style={{ fontFamily: FONT }}>
-            {/* Sticky page header — the save action only appears once something changed */}
-            <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 backdrop-blur-[10px]">
-                <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F]">{t('organization.details.title')}</h1>
-                        <p className="mt-[5px] text-[14.5px] text-[#6B6B76]">{t('organization.details.description')}</p>
-                    </div>
-
-                    {hasChanges && (
-                        <div className="ml-auto flex items-center gap-2.5 pt-1">
-                            {/* The counter is the first thing to go when the row gets tight. */}
-                            <span className="hidden lg:flex items-center gap-2 text-[13.5px] font-bold text-[#B47C18] whitespace-nowrap">
-                                <Info size={16} />
-                                {t('organization.details.unsavedChanges', { count: dirtyCount })}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={discardChanges}
-                                disabled={isSubmitting}
-                                className="inline-flex items-center gap-2 rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <Undo2 size={15} />
-                                {t('organization.details.discard')}
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] hover:bg-[#7E3FB4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <Check size={16} />
-                                {isSubmitting ? t('common.loading') : t('organization.details.saveChanges')}
-                            </button>
+        <>
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col min-h-full" style={{ fontFamily: FONT }}>
+                {/* Sticky page header — the save action only appears once something changed */}
+                <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 backdrop-blur-[10px]">
+                    <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F]">{t('organization.details.title')}</h1>
+                            <p className="mt-[5px] text-[14.5px] text-[#6B6B76]">{t('organization.details.description')}</p>
                         </div>
-                    )}
-                </div>
-            </header>
 
-            <div className="mx-auto w-full max-w-[940px] flex flex-col gap-[18px] pb-8">
-                <LogoCard pendingFile={pendingLogo} onFileSelected={handleLogoSelected} version={logoVersion} disabled={isSubmitting} />
-
-                {/* Placeholders use the design system's quiet ink (--ink-3) instead of the app-wide, much darker --muted. */}
-                <fieldset disabled={isSubmitting} className="min-w-0 flex flex-col gap-[18px] [&_input::placeholder]:text-[#9A9AA3]">
-                    {/* Name & address */}
-                    <SectionCard icon={<Building2 size={19} aria-hidden="true" />} title={t('organization.details.generalInfo')}>
-                        <FieldGrid>
-                            <GridField span={4}>
-                                <TextField
-                                    label={t('organization.details.name')}
-                                    placeholder={t('organization.details.placeholder.name')}
-                                    error={errors.name?.message}
-                                    required
-                                    {...register('name')}
-                                />
-                            </GridField>
-                            <GridField span={2}>
-                                <Controller
-                                    name="type"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                            label={t('organization.details.type')}
-                                            items={typeOptions}
-                                            value={field.value}
-                                            onValueChanged={field.onChange}
-                                            error={errors.type?.message}
-                                            required
-                                        />
-                                    )}
-                                />
-                            </GridField>
-                            <GridField span={3}>
-                                <TextField
-                                    label={t('organization.details.street')}
-                                    placeholder={t('organization.details.placeholder.street')}
-                                    {...register('street')}
-                                />
-                            </GridField>
-                            <GridField span={1}>
-                                <TextField
-                                    label={t('organization.details.number')}
-                                    placeholder={t('organization.details.placeholder.number')}
-                                    {...register('number')}
-                                />
-                            </GridField>
-                            <GridField span={1}>
-                                <TextField label={t('organization.details.plz')} placeholder={t('organization.details.placeholder.plz')} {...register('plz')} />
-                            </GridField>
-                            <GridField span={1}>
-                                <TextField
-                                    label={t('organization.details.city')}
-                                    placeholder={t('organization.details.placeholder.city')}
-                                    {...register('city')}
-                                />
-                            </GridField>
-                            <GridField span={2}>
-                                <Controller
-                                    name="country"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                            label={t('organization.details.country')}
-                                            items={countryOptions}
-                                            value={field.value}
-                                            onValueChanged={field.onChange}
-                                        />
-                                    )}
-                                />
-                            </GridField>
-                            <GridField span={4}>
-                                <TextField
-                                    label={t('organization.details.additionalLine')}
-                                    placeholder={t('organization.details.placeholder.additionalLine')}
-                                    {...register('additionalLine')}
-                                />
-                            </GridField>
-                        </FieldGrid>
-                    </SectionCard>
-
-                    {/* Legal */}
-                    <SectionCard icon={<Landmark size={19} aria-hidden="true" />} title={t('organization.details.legalInfo')}>
-                        <FieldGrid>
-                            <GridField span={2}>
-                                <TextField
-                                    label={t('organization.details.foundingDate')}
-                                    placeholder={t('organization.details.placeholder.foundingDate')}
-                                    error={errors.foundingDate?.message}
-                                    {...register('foundingDate')}
-                                />
-                            </GridField>
-                            <GridField span={2}>
-                                <TextField
-                                    label={t('organization.details.registrationNumber')}
-                                    placeholder={t('organization.details.placeholder.registrationNumber')}
-                                    {...register('registrationNumber')}
-                                />
-                            </GridField>
-                            <GridField span={2}>
-                                <TextField
-                                    label={t('organization.details.registrationCourt')}
-                                    placeholder={t('organization.details.placeholder.registrationCourt')}
-                                    {...register('registrationCourt')}
-                                />
-                            </GridField>
-                            <GridField span={3}>
-                                <TextField
-                                    label={t('organization.details.taxNumber')}
-                                    placeholder={t('organization.details.placeholder.taxNumber')}
-                                    {...register('taxNumber')}
-                                />
-                            </GridField>
-                        </FieldGrid>
-                    </SectionCard>
-
-                    {/* Contact */}
-                    <SectionCard icon={<Globe size={19} aria-hidden="true" />} title={t('organization.details.contactInfo')}>
-                        <FieldGrid>
-                            <GridField span={2}>
-                                <TextField
-                                    label={t('organization.details.website')}
-                                    placeholder={t('organization.details.placeholder.website')}
-                                    {...register('website')}
-                                />
-                            </GridField>
-                            <GridField span={2}>
-                                <TextField
-                                    label={t('organization.details.email')}
-                                    placeholder={t('organization.details.placeholder.email')}
-                                    {...register('email')}
-                                />
-                            </GridField>
-                            <GridField span={2} hint={t('organization.details.phoneNumberHint')}>
-                                <TextField
-                                    label={t('organization.details.phoneNumber')}
-                                    placeholder={t('organization.details.placeholder.phoneNumber')}
-                                    {...register('phoneNumber')}
-                                />
-                            </GridField>
-                        </FieldGrid>
-                    </SectionCard>
-
-                    {/* Members */}
-                    <SectionCard icon={<Users size={19} aria-hidden="true" />} title={t('organization.details.members.title')}>
-                        {membersLoading ? (
-                            <div className="py-6">
-                                <LoadingState />
-                            </div>
-                        ) : members.length === 0 ? (
-                            <p className="py-4 text-[13.5px] text-[#9A9AA3]">{t('organization.details.members.empty')}</p>
-                        ) : (
-                            <div>
-                                <div className="grid grid-cols-[minmax(160px,1.7fr)_1.5fr] gap-3 px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76]">
-                                    <span>{t('organization.details.members.name')}</span>
-                                    <span>{t('organization.details.members.email')}</span>
-                                </div>
-                                {members.map((member) => {
-                                    const name = [member.firstName, member.lastName].filter(Boolean).join(' ') || member.email;
-                                    return (
-                                        <div
-                                            key={member.id ?? member.email}
-                                            className="grid grid-cols-[minmax(160px,1.7fr)_1.5fr] gap-3 items-center px-1 py-[11px] border-t border-[#E9E9EE]"
-                                        >
-                                            <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] min-w-0">
-                                                <MemberAvatar name={name} />
-                                                <span className="truncate">{name}</span>
-                                            </span>
-                                            <span className="text-[14px] text-[#6B6B76] truncate">{member.email}</span>
-                                        </div>
-                                    );
-                                })}
+                        {hasChanges && (
+                            <div className="ml-auto flex items-center gap-2.5 pt-1">
+                                {/* The counter is the first thing to go when the row gets tight. */}
+                                <span className="hidden lg:flex items-center gap-2 text-[13.5px] font-bold text-[#B47C18] whitespace-nowrap">
+                                    <Info size={16} />
+                                    {t('organization.details.unsavedChanges', { count: dirtyCount })}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={discardChanges}
+                                    disabled={isSubmitting}
+                                    className="inline-flex items-center gap-2 rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Undo2 size={15} />
+                                    {t('organization.details.discard')}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] hover:bg-[#7E3FB4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Check size={16} />
+                                    {isSubmitting ? t('common.loading') : t('organization.details.saveChanges')}
+                                </button>
                             </div>
                         )}
-                    </SectionCard>
-                </fieldset>
-            </div>
-        </form>
+                    </div>
+                </header>
+
+                <div className="mx-auto w-full max-w-[940px] flex flex-col gap-[18px] pb-8">
+                    <LogoCard pendingFile={pendingLogo} onFileSelected={handleLogoSelected} version={logoVersion} disabled={isSubmitting} />
+
+                    {/* Placeholders use the design system's quiet ink (--ink-3) instead of the app-wide, much darker --muted. */}
+                    <fieldset disabled={isSubmitting} className="min-w-0 flex flex-col gap-[18px] [&_input::placeholder]:text-[#9A9AA3]">
+                        {/* Name & address */}
+                        <SectionCard icon={<Building2 size={19} aria-hidden="true" />} title={t('organization.details.generalInfo')}>
+                            <FieldGrid>
+                                <GridField span={4}>
+                                    <TextField
+                                        label={t('organization.details.name')}
+                                        placeholder={t('organization.details.placeholder.name')}
+                                        error={errors.name?.message}
+                                        required
+                                        {...register('name')}
+                                    />
+                                </GridField>
+                                <GridField span={2}>
+                                    <Controller
+                                        name="type"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                label={t('organization.details.type')}
+                                                items={typeOptions}
+                                                value={field.value}
+                                                onValueChanged={field.onChange}
+                                                error={errors.type?.message}
+                                                required
+                                            />
+                                        )}
+                                    />
+                                </GridField>
+                                <GridField span={3}>
+                                    <TextField
+                                        label={t('organization.details.street')}
+                                        placeholder={t('organization.details.placeholder.street')}
+                                        {...register('street')}
+                                    />
+                                </GridField>
+                                <GridField span={1}>
+                                    <TextField
+                                        label={t('organization.details.number')}
+                                        placeholder={t('organization.details.placeholder.number')}
+                                        {...register('number')}
+                                    />
+                                </GridField>
+                                <GridField span={1}>
+                                    <TextField
+                                        label={t('organization.details.plz')}
+                                        placeholder={t('organization.details.placeholder.plz')}
+                                        {...register('plz')}
+                                    />
+                                </GridField>
+                                <GridField span={1}>
+                                    <TextField
+                                        label={t('organization.details.city')}
+                                        placeholder={t('organization.details.placeholder.city')}
+                                        {...register('city')}
+                                    />
+                                </GridField>
+                                <GridField span={2}>
+                                    <Controller
+                                        name="country"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                label={t('organization.details.country')}
+                                                items={countryOptions}
+                                                value={field.value}
+                                                onValueChanged={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                </GridField>
+                                <GridField span={4}>
+                                    <TextField
+                                        label={t('organization.details.additionalLine')}
+                                        placeholder={t('organization.details.placeholder.additionalLine')}
+                                        {...register('additionalLine')}
+                                    />
+                                </GridField>
+                            </FieldGrid>
+                        </SectionCard>
+
+                        {/* Legal */}
+                        <SectionCard icon={<Landmark size={19} aria-hidden="true" />} title={t('organization.details.legalInfo')}>
+                            <FieldGrid>
+                                <GridField span={2}>
+                                    <TextField
+                                        label={t('organization.details.foundingDate')}
+                                        placeholder={t('organization.details.placeholder.foundingDate')}
+                                        error={errors.foundingDate?.message}
+                                        {...register('foundingDate')}
+                                    />
+                                </GridField>
+                                <GridField span={2}>
+                                    <TextField
+                                        label={t('organization.details.registrationNumber')}
+                                        placeholder={t('organization.details.placeholder.registrationNumber')}
+                                        {...register('registrationNumber')}
+                                    />
+                                </GridField>
+                                <GridField span={2}>
+                                    <TextField
+                                        label={t('organization.details.registrationCourt')}
+                                        placeholder={t('organization.details.placeholder.registrationCourt')}
+                                        {...register('registrationCourt')}
+                                    />
+                                </GridField>
+                                <GridField span={3}>
+                                    <TextField
+                                        label={t('organization.details.taxNumber')}
+                                        placeholder={t('organization.details.placeholder.taxNumber')}
+                                        {...register('taxNumber')}
+                                    />
+                                </GridField>
+                            </FieldGrid>
+                        </SectionCard>
+
+                        {/* Contact */}
+                        <SectionCard icon={<Globe size={19} aria-hidden="true" />} title={t('organization.details.contactInfo')}>
+                            <FieldGrid>
+                                <GridField span={2}>
+                                    <TextField
+                                        label={t('organization.details.website')}
+                                        placeholder={t('organization.details.placeholder.website')}
+                                        {...register('website')}
+                                    />
+                                </GridField>
+                                <GridField span={2}>
+                                    <TextField
+                                        label={t('organization.details.email')}
+                                        placeholder={t('organization.details.placeholder.email')}
+                                        {...register('email')}
+                                    />
+                                </GridField>
+                                <GridField span={2} hint={t('organization.details.phoneNumberHint')}>
+                                    <TextField
+                                        label={t('organization.details.phoneNumber')}
+                                        placeholder={t('organization.details.placeholder.phoneNumber')}
+                                        {...register('phoneNumber')}
+                                    />
+                                </GridField>
+                            </FieldGrid>
+                        </SectionCard>
+
+                        {/* Users */}
+                        <SectionCard
+                            icon={<Users size={19} aria-hidden="true" />}
+                            title={t('organization.details.users.title')}
+                            action={
+                                <button
+                                    type="button"
+                                    onClick={() => setAddUserOpen(true)}
+                                    className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-[#ECE0F6] px-4 py-2 text-[13.5px] font-bold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB]"
+                                >
+                                    <UserPlus size={15} aria-hidden="true" />
+                                    {t('organization.details.users.add.button')}
+                                </button>
+                            }
+                        >
+                            {usersLoading ? (
+                                <div className="py-6">
+                                    <LoadingState />
+                                </div>
+                            ) : users.length === 0 ? (
+                                <p className="py-4 text-[13.5px] text-[#9A9AA3]">{t('organization.details.users.empty')}</p>
+                            ) : (
+                                <div>
+                                    <div className="grid grid-cols-[minmax(160px,1.7fr)_1.5fr] gap-3 px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76]">
+                                        <span>{t('organization.details.users.name')}</span>
+                                        <span>{t('organization.details.users.email')}</span>
+                                    </div>
+                                    {users.map((user) => {
+                                        const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+                                        return (
+                                            <div
+                                                key={user.id ?? user.email}
+                                                className="grid grid-cols-[minmax(160px,1.7fr)_1.5fr] gap-3 items-center px-1 py-[11px] border-t border-[#E9E9EE]"
+                                            >
+                                                <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] min-w-0">
+                                                    <UserAvatar name={name} />
+                                                    <span className="truncate">{name}</span>
+                                                </span>
+                                                <span className="text-[14px] text-[#6B6B76] truncate">{user.email}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </SectionCard>
+                    </fieldset>
+                </div>
+            </form>
+
+            {/* Outside the form on purpose: a portalled dialog still bubbles its submit up the React tree. */}
+            <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} onSubmit={handleAddUser} />
+        </>
     );
 }
 

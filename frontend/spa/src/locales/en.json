@@ -327,6 +327,10 @@
             "email": "Email",
             "phoneNumber": "Phone Number",
             "typeEV": "Registered Association (e.V.)",
+            "typeGGmbH": "Non-profit Limited Company (gGmbH)",
+            "typeStiftung": "Foundation (Stiftung)",
+            "typeEG": "Non-profit Cooperative (eG)",
+            "typeGUG": "Non-profit Entrepreneurial Company (gUG)",
             "typeAndere": "Other",
             "nameRequired": "Organization name is required",
             "foundingDateFormat": "Please enter the date in DD.MM.YYYY format",
@@ -371,12 +375,29 @@
                 "errorGeneric": "The logo could not be uploaded.",
                 "pending": "{{name}} – applied when you save"
             },
-            "members": {
-                "title": "Members & contacts",
+            "users": {
+                "title": "Users & access",
                 "note": "Who is allowed to work in hopps for your organization.",
                 "name": "Name",
                 "email": "Email",
-                "empty": "No members yet."
+                "empty": "No users yet.",
+                "add": {
+                    "button": "Add user",
+                    "title": "Add user",
+                    "subtitle": "Who should be able to work in hopps for your organization?",
+                    "firstName": "First name",
+                    "lastName": "Last name",
+                    "firstNamePlaceholder": "e.g. Anke",
+                    "lastNamePlaceholder": "e.g. Reuter",
+                    "role": "Role",
+                    "rolePlaceholder": "e.g. Chairperson, Treasurer",
+                    "firstNameRequired": "First name is required",
+                    "lastNameRequired": "Last name is required",
+                    "emailInvalid": "Please enter a valid email address",
+                    "hint": "The user gets access to hopps and can see your organization's documents and transactions.",
+                    "submit": "Add",
+                    "notAvailable": "Users cannot be added yet – the endpoint for this does not exist."
+                }
             }
         },
         "noOrganization": {
