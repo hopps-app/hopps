@@ -1,0 +1,58 @@
+package app.hopps.organization.domain;
+
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
+/**
+ * Legal form (Rechtsform) of an {@link Organization}.
+ * <p>
+ * Persisted by name ({@link jakarta.persistence.EnumType#STRING})
+ * </p>
+ */
+@Schema(name = "OrganizationType", description = "Legal form of an organization")
+public enum OrganizationType {
+
+    /** Eingetragener Verein — the default and by far the most common legal form for German NGOs. */
+    EINGETRAGENER_VEREIN {
+        @Override
+        public String getDisplayString() {
+            return "e.V.";
+        }
+    },
+    /** Gemeinnützige GmbH — professionally run organizations with a commercial operation. */
+    GEMEINNUETZIGE_GMBH {
+        @Override
+        public String getDisplayString() {
+            return "gGmbH";
+        }
+    },
+    /** Stiftung, rechtsfähig or as a Treuhandstiftung — endowed assets bound to a purpose, no members. */
+    STIFTUNG {
+        @Override
+        public String getDisplayString() {
+            return "Stiftung";
+        }
+    },
+    /** Gemeinnützige Genossenschaft — members acting economically together (Bürgerenergie, social projects). */
+    GEMEINNUETZIGE_GENOSSENSCHAFT {
+        @Override
+        public String getDisplayString() {
+            return "eG";
+        }
+    },
+    /** Gemeinnützige UG (haftungsbeschränkt) — the "small gGmbH" for founders with little starting capital. */
+    GEMEINNUETZIGE_UG {
+        @Override
+        public String getDisplayString() {
+            return "gUG (haftungsbeschränkt)";
+        }
+    },
+    /** Fallback for anything not covered above. */
+    ANDERE {
+        @Override
+        public String getDisplayString() {
+            return "Andere";
+        }
+    };
+
+    public abstract String getDisplayString();
+}
