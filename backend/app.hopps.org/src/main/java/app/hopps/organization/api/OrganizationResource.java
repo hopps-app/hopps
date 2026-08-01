@@ -6,6 +6,7 @@ import app.hopps.organization.model.NewOrganizationInput;
 import app.hopps.organization.model.OrganizationInput;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.OrganizationCreationService;
+import app.hopps.organization.service.OrganizationLogoService;
 import app.hopps.shared.security.SecurityUtils;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import app.hopps.shared.validation.RestValidator;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -35,8 +37,11 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Path("/organization")
 public class OrganizationResource {
@@ -51,6 +56,9 @@ public class OrganizationResource {
 
     @Inject
     OrganizationRepository organizationRepository;
+
+    @Inject
+    OrganizationLogoService logoService;
 
     @Inject
     SecurityUtils securityUtils;
@@ -148,6 +156,62 @@ public class OrganizationResource {
 
         LOG.info("Successfully updated organization: {}", organization.getSlug());
         return Response.ok(organization).build();
+    }
+
+    @POST
+    @Path("/my/logo")
+    @Authenticated
+    @Transactional
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Upload my organization's logo", description = "Uploads the logo of the current user's organization and replaces a previously uploaded one. Accepts PNG and JPEG (at least 256x256 px) or SVG, up to 2 MB.")
+    @APIResponse(responseCode = "200", description = "Logo uploaded successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
+    @APIResponse(responseCode = "400", description = "No file provided, or the image is unreadable or smaller than 256x256 px")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Organization not found for user")
+    @APIResponse(responseCode = "413", description = "Logo is larger than 2 MB")
+    @APIResponse(responseCode = "415", description = "Unsupported file type, only PNG, JPEG and SVG are allowed")
+    public Organization uploadMyLogo(@Context SecurityContext securityContext,
+            @RestForm("file") FileUpload file) {
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+
+        logoService.upload(organization, file);
+        organizationRepository.persist(organization);
+        organizationRepository.flush();
+
+        // Initialize lazy collections before the transaction ends to avoid a LazyInitializationException during
+        // serialization.
+        organization.getMembers().size();
+
+        LOG.info("Successfully uploaded logo for organization: {}", organization.getSlug());
+        return organization;
+    }
+
+    @GET
+    @Path("/my/logo")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(summary = "Download my organization's logo", description = "Returns the raw logo image of the current user's organization.")
+    @APIResponse(responseCode = "200", description = "Logo image")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Organization has no logo, or the stored image is gone")
+    public Response downloadMyLogo(@Context SecurityContext securityContext) {
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+        if (!organization.hasLogo()) {
+            throw new NotFoundException("Organization has no logo");
+        }
+
+        try {
+            return Response.ok(logoService.download(organization))
+                    .header("Content-Type", organization.getLogoContentType())
+                    .build();
+        } catch (NoSuchKeyException e) {
+            // The key is on the organization but the object is gone (e.g. ephemeral local storage was reset). Return a
+            // clean 404 instead of leaking a 500 with internal storage details.
+            LOG.warn("Logo missing in storage for organization {}: key={}", organization.getSlug(),
+                    organization.getLogoKey());
+            throw new NotFoundException("Logo is no longer available in storage");
+        }
     }
 
     @POST

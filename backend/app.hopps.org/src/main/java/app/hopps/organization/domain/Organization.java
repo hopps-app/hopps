@@ -2,6 +2,8 @@ package app.hopps.organization.domain;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.member.domain.Member;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
@@ -76,6 +78,14 @@ public class Organization extends PanacheEntity {
     @Schema(description = "Whether uploaded documents should be automatically analyzed by AI", examples = "true")
     private boolean autoAnalyzeDocuments = true;
 
+    @JsonIgnore
+    @Schema(hidden = true)
+    private String logoKey;
+
+    @JsonIgnore
+    @Schema(hidden = true)
+    private String logoContentType;
+
     public Organization() {
         // no args constructor
     }
@@ -134,6 +144,34 @@ public class Organization extends PanacheEntity {
 
     public void setProfilePicture(URL profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    @JsonIgnore
+    public String getLogoKey() {
+        return logoKey;
+    }
+
+    public void setLogoKey(String logoKey) {
+        this.logoKey = logoKey;
+    }
+
+    @JsonIgnore
+    public String getLogoContentType() {
+        return logoContentType;
+    }
+
+    public void setLogoContentType(String logoContentType) {
+        this.logoContentType = logoContentType;
+    }
+
+    /**
+     * Whether a logo has been uploaded for this organization. Exposed instead of the S3 key so clients know when to
+     * fetch {@code GET /organization/my/logo}.
+     */
+    @JsonProperty("hasLogo")
+    @Schema(description = "Whether a logo has been uploaded for this organization", examples = "true")
+    public boolean hasLogo() {
+        return logoKey != null && !logoKey.isBlank();
     }
 
     public Set<Member> getMembers() {
