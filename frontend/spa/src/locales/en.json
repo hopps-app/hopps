@@ -395,7 +395,6 @@
                     "firstNameRequired": "First name is required",
                     "lastNameRequired": "Last name is required",
                     "emailInvalid": "Please enter a valid email address",
-                    "hint": "The user gets access to hopps and can see your organization's documents and transactions.",
                     "submit": "Add",
                     "notAvailable": "Users cannot be added yet – the endpoint for this does not exist."
                 }

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Address, Member, OrganizationInput, OrganizationType } from '@hopps/api-client';
-import { useQuery } from '@tanstack/react-query';
+import { Address, ApiException, Member, NewMemberInput, OrganizationInput, OrganizationType } from '@hopps/api-client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Building2, Check, Globe, ImageIcon, Info, Landmark, Undo2, Upload, UserPlus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -238,6 +238,7 @@ function OrganizationDetailsSettingsView() {
     const organization = useStore((state) => state.organization);
     const countryOptions = useCountries();
     const setOrganization = useStore((state) => state.setOrganization);
+    const queryClient = useQueryClient();
 
     // Order mirrors app.hopps.organization.domain.OrganizationType — most common legal form first, fallback last.
     const typeOptions = useMemo(
@@ -313,13 +314,31 @@ function OrganizationDetailsSettingsView() {
     const [logoVersion, setLogoVersion] = useState(0);
     const [addUserOpen, setAddUserOpen] = useState(false);
 
-    // TODO: there is no endpoint to add a user to an organization yet — see issue #751. Once it exists, call it here
-    // and invalidate the ['organization', slug, 'members'] query.
     const handleAddUser = useCallback(
-        async (_values: NewUserValues) => {
-            toast({ title: t('organization.details.users.add.notAvailable'), variant: 'warning' });
+        async (values: NewUserValues) => {
+            const input = new NewMemberInput();
+            input.firstName = values.firstName;
+            input.lastName = values.lastName;
+            input.email = values.email;
+            input.position = values.position || undefined;
+
+            try {
+                await apiService.orgService.addOrganizationMember(input);
+            } catch (error) {
+                console.error('Failed to add member:', error);
+                const duplicate = ApiException.isApiException(error) && error.status === 409;
+                toast({
+                    title: t(`organization.details.users.add.${duplicate ? 'duplicate' : 'error'}`),
+                    variant: 'error',
+                });
+                // Rethrow so the dialog stays open and the entered values are not lost.
+                throw error;
+            }
+
+            await queryClient.invalidateQueries({ queryKey: ['organization', organization?.slug, 'members'] });
+            toast({ title: t('organization.details.users.add.success'), variant: 'success' });
         },
-        [t, toast]
+        [organization?.slug, queryClient, t, toast]
     );
 
     const hasChanges = isDirty || pendingLogo !== null;

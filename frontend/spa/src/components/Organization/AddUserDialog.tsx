@@ -24,8 +24,8 @@ type AddUserDialogProps = {
 
 /**
  * Dialog for giving a person access to the organization in hopps. These are hopps users, not club members — the
- * backend calls the entity Member. Collects the fields that model actually carries; the board function and access
- * level from the design need a backend model first (see issue #751).
+ * backend calls the entity Member. The board function maps to Member.position; the access level from the design has
+ * no backend model yet, and neither does the endpoint that would submit this form (see issue #751).
  */
 export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
     const { t } = useTranslation();
@@ -57,8 +57,12 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
     }, [open, reset]);
 
     const submit = handleSubmit(async (values) => {
-        await onSubmit(values);
-        onClose();
+        try {
+            await onSubmit(values);
+            onClose();
+        } catch {
+            // The caller surfaces the error; keep the dialog open so the input can be corrected.
+        }
     });
 
     return (
@@ -107,7 +111,6 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
                             required
                             {...register('email')}
                         />
-                        <p className="text-[12.5px] leading-snug text-[#6B6B76]">{t('organization.details.users.add.hint')}</p>
                     </fieldset>
 
                     <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4">

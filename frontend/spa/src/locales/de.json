@@ -394,7 +394,6 @@
                     "firstNameRequired": "Vorname ist erforderlich",
                     "lastNameRequired": "Nachname ist erforderlich",
                     "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse an",
-                    "hint": "Der Benutzer erhält einen Zugang zu hopps und kann Belege und Transaktionen Ihrer Organisation sehen.",
                     "submit": "Hinzufügen",
                     "notAvailable": "Benutzer können noch nicht hinzugefügt werden – die Schnittstelle dazu fehlt noch."
                 }

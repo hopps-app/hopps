@@ -3985,6 +3985,68 @@ export class Client {
     }
 
     /**
+     * Add a member to my organization
+     * @return Member added to the organization
+     */
+    addOrganizationMember(body: NewMemberInput): Promise<Member> {
+        let url_ = this.baseUrl + "/organization/my/members";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddOrganizationMember(_response);
+        });
+    }
+
+    protected processAddOrganizationMember(response: Response): Promise<Member> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = Member.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Validation of fields failed", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found for user", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A member with that email already exists", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Member>(null as any);
+    }
+
+    /**
      * Validates the organization input
      * @return Validation successful
      */
@@ -7836,6 +7898,8 @@ export class Member implements IMember {
     /** Last Name of the Member */
     lastName!: string;
     email!: string;
+    /** Office held in the association, free text and optional */
+    position?: string;
     organizations?: Organization[];
 
     [key: string]: any;
@@ -7859,6 +7923,7 @@ export class Member implements IMember {
             this.firstName = _data["firstName"];
             this.lastName = _data["lastName"];
             this.email = _data["email"];
+            this.position = _data["position"];
             if (Array.isArray(_data["organizations"])) {
                 this.organizations = [] as any;
                 for (let item of _data["organizations"])
@@ -7884,6 +7949,7 @@ export class Member implements IMember {
         data["firstName"] = this.firstName;
         data["lastName"] = this.lastName;
         data["email"] = this.email;
+        data["position"] = this.position;
         if (Array.isArray(this.organizations)) {
             data["organizations"] = [];
             for (let item of this.organizations)
@@ -7908,7 +7974,76 @@ export interface IMember {
     /** Last Name of the Member */
     lastName: string;
     email: string;
+    /** Office held in the association, free text and optional */
+    position?: string;
     organizations?: Organization[];
+
+    [key: string]: any;
+}
+
+export class NewMemberInput implements INewMemberInput {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    position?: string;
+
+    [key: string]: any;
+
+    constructor(data?: INewMemberInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.email = _data["email"];
+            this.position = _data["position"];
+        }
+    }
+
+    static fromJS(data: any): NewMemberInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new NewMemberInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["email"] = this.email;
+        data["position"] = this.position;
+        return data;
+    }
+
+    clone(): NewMemberInput {
+        const json = this.toJSON();
+        let result = new NewMemberInput();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface INewMemberInput {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    position?: string;
 
     [key: string]: any;
 }
