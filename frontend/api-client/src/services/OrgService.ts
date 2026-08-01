@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -3858,6 +3858,130 @@ export class Client {
             });
         }
         return Promise.resolve<Organization>(null as any);
+    }
+
+    /**
+     * Upload my organization's logo
+     * @param file (optional) 
+     * @return Logo uploaded successfully
+     */
+    logoPOST(file: FileParameter | undefined): Promise<Organization> {
+        let url_ = this.baseUrl + "/organization/my/logo";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new globalThis.Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLogoPOST(_response);
+        });
+    }
+
+    protected processLogoPOST(response: Response): Promise<Organization> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Organization.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("No file provided, or the image is unreadable or smaller than 256x256 px", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found for user", status, _responseText, _headers);
+            });
+        } else if (status === 413) {
+            return response.text().then((_responseText) => {
+            return throwException("Logo is larger than 2 MB", status, _responseText, _headers);
+            });
+        } else if (status === 415) {
+            return response.text().then((_responseText) => {
+            return throwException("Unsupported file type, only PNG, JPEG and SVG are allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Organization>(null as any);
+    }
+
+    /**
+     * Download my organization's logo
+     * @return Logo image
+     */
+    logoGET(): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/organization/my/logo";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLogoGET(_response);
+        });
+    }
+
+    protected processLogoGET(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization has no logo, or the stored image is gone", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
     }
 
     /**
@@ -7876,6 +8000,8 @@ export class Organization implements IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Whether a logo has been uploaded for this organization */
+    hasLogo?: boolean;
 
     [key: string]: any;
 
@@ -7915,6 +8041,7 @@ export class Organization implements IOrganization {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.hasLogo = _data["hasLogo"];
         }
     }
 
@@ -7952,6 +8079,7 @@ export class Organization implements IOrganization {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["hasLogo"] = this.hasLogo;
         return data;
     }
 
@@ -7983,6 +8111,8 @@ export interface IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Whether a logo has been uploaded for this organization */
+    hasLogo?: boolean;
 
     [key: string]: any;
 }

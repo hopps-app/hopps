@@ -347,7 +347,35 @@
                 "taxNumber": "z.B. 12/345/67890",
                 "website": "https://example.com",
                 "email": "z.B. info@verein.de",
-                "phoneNumber": "z.B. +49 123 4567890"
+                "phoneNumber": "z.B. +49 123 4567890",
+                "additionalLine": "optional"
+            },
+            "generalInfoNote": "Erscheint auf Auswertungen, Spendenbescheinigungen und Belegen.",
+            "legalInfoNote": "Angaben aus dem Vereinsregister-Auszug und dem Freistellungsbescheid.",
+            "contactInfoNote": "So erreichen Mitglieder und Spender Ihre Organisation.",
+            "phoneNumberHint": "Optional, hilft bei Rückfragen des Finanzamts.",
+            "unsavedChanges_one": "{{count}} ungespeicherte Änderung",
+            "unsavedChanges_other": "{{count}} ungespeicherte Änderungen",
+            "discard": "Verwerfen",
+            "saveChanges": "Änderungen speichern",
+            "logo": {
+                "title": "Vereinslogo",
+                "note": "PNG, JPG oder SVG, mindestens 256 px",
+                "alt": "Logo der Organisation",
+                "upload": "Logo hochladen",
+                "replace": "Logo ersetzen",
+                "errorType": "Nur PNG, JPG oder SVG sind als Logo erlaubt.",
+                "errorTooLarge": "Das Logo darf höchstens 2 MB groß sein.",
+                "errorTooSmall": "Das Logo muss mindestens 256 px breit und hoch sein.",
+                "errorGeneric": "Das Logo konnte nicht hochgeladen werden.",
+                "pending": "{{name}} – wird beim Speichern übernommen"
+            },
+            "members": {
+                "title": "Mitglieder & Ansprechpartner",
+                "note": "Wer in hopps für Ihre Organisation mitarbeiten darf.",
+                "name": "Name",
+                "email": "E-Mail",
+                "empty": "Noch keine Mitglieder vorhanden."
             }
         },
         "noOrganization": {

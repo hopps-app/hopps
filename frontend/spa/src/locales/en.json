@@ -348,7 +348,35 @@
                 "taxNumber": "e.g. 12/345/67890",
                 "website": "https://example.com",
                 "email": "e.g. info@association.org",
-                "phoneNumber": "e.g. +49 123 4567890"
+                "phoneNumber": "e.g. +49 123 4567890",
+                "additionalLine": "optional"
+            },
+            "generalInfoNote": "Appears on reports, donation receipts and documents.",
+            "legalInfoNote": "Details from your register of associations extract and tax exemption notice.",
+            "contactInfoNote": "How members and donors can reach your organization.",
+            "phoneNumberHint": "Optional, helps with queries from the tax office.",
+            "unsavedChanges_one": "{{count}} unsaved change",
+            "unsavedChanges_other": "{{count}} unsaved changes",
+            "discard": "Discard",
+            "saveChanges": "Save changes",
+            "logo": {
+                "title": "Organization logo",
+                "note": "PNG, JPG or SVG, at least 256 px. Appears on donation receipts.",
+                "alt": "Organization logo",
+                "upload": "Upload logo",
+                "replace": "Replace logo",
+                "errorType": "Only PNG, JPG or SVG files are allowed as a logo.",
+                "errorTooLarge": "The logo must not be larger than 2 MB.",
+                "errorTooSmall": "The logo must be at least 256 px wide and high.",
+                "errorGeneric": "The logo could not be uploaded.",
+                "pending": "{{name}} – applied when you save"
+            },
+            "members": {
+                "title": "Members & contacts",
+                "note": "Who is allowed to work in hopps for your organization.",
+                "name": "Name",
+                "email": "Email",
+                "empty": "No members yet."
             }
         },
         "noOrganization": {
