@@ -8,6 +8,8 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
@@ -34,8 +36,9 @@ public class Organization extends PanacheEntity {
     private String slug;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Schema(examples = "EINGETRAGENER_VEREIN")
-    private TYPE type;
+    private OrganizationType type;
 
     @Embedded
     private Address address;
@@ -114,11 +117,11 @@ public class Organization extends PanacheEntity {
         this.slug = slug;
     }
 
-    public TYPE getType() {
+    public OrganizationType getType() {
         return type;
     }
 
-    public void setType(TYPE type) {
+    public void setType(OrganizationType type) {
         this.type = type;
     }
 
@@ -258,21 +261,4 @@ public class Organization extends PanacheEntity {
         this.autoAnalyzeDocuments = autoAnalyzeDocuments;
     }
 
-    public enum TYPE {
-
-        EINGETRAGENER_VEREIN {
-            @Override
-            public String getDisplayString() {
-                return "e.V.";
-            }
-        },
-        ANDERE {
-            @Override
-            public String getDisplayString() {
-                return "Andere";
-            }
-        };
-
-        public abstract String getDisplayString();
-    }
 }
