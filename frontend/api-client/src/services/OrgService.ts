@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -7985,7 +7985,7 @@ export class Organization implements IOrganization {
     id?: number;
     name!: string;
     slug!: string;
-    type!: TYPE;
+    type!: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
     members?: Member[];
@@ -8096,7 +8096,7 @@ export interface IOrganization {
     id?: number;
     name: string;
     slug: string;
-    type: TYPE;
+    type: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
     members?: Member[];
@@ -8120,7 +8120,7 @@ export interface IOrganization {
 export class OrganizationInput implements IOrganizationInput {
     name?: string;
     slug?: string;
-    type?: TYPE;
+    type?: OrganizationType;
     website?: string;
     profilePicture?: string;
     address?: Address;
@@ -8208,7 +8208,7 @@ export class OrganizationInput implements IOrganizationInput {
 export interface IOrganizationInput {
     name?: string;
     slug?: string;
-    type?: TYPE;
+    type?: OrganizationType;
     website?: string;
     profilePicture?: string;
     address?: Address;
@@ -8294,6 +8294,9 @@ export interface IOrganizationStatistics {
 
     [key: string]: any;
 }
+
+/** Legal form of an organization */
+export type OrganizationType = "EINGETRAGENER_VEREIN" | "GEMEINNUETZIGE_GMBH" | "STIFTUNG" | "GEMEINNUETZIGE_GENOSSENSCHAFT" | "GEMEINNUETZIGE_UG" | "ANDERE";
 
 export class OwnerInput implements IOwnerInput {
     email?: string;
@@ -8655,8 +8658,6 @@ export interface ISchemaDetectionResult {
 
     [key: string]: any;
 }
-
-export type TYPE = "EINGETRAGENER_VEREIN" | "ANDERE";
 
 export class TransactionAggregateResponse implements ITransactionAggregateResponse {
     sumIncome?: number;
