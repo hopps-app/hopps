@@ -44,7 +44,7 @@ public class OrganizationLogoService {
      * @param organization
      *            the organization to attach the logo to
      * @param file
-     *            the uploaded image (PNG or SVG)
+     *            the uploaded image (PNG, JPEG or SVG)
      */
     public void upload(Organization organization, FileUpload file) {
         if (file == null || file.fileName() == null || file.fileName().isBlank()) {
