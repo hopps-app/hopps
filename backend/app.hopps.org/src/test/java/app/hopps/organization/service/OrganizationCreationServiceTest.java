@@ -2,6 +2,7 @@ package app.hopps.organization.service;
 
 import app.hopps.member.domain.Member;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.domain.OrganizationType;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -44,7 +45,7 @@ class OrganizationCreationServiceTest {
         testOrganization = new Organization();
         testOrganization.setName("Test Organization");
         testOrganization.setSlug("test-org");
-        testOrganization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        testOrganization.setType(OrganizationType.EINGETRAGENER_VEREIN);
 
         testOwner = new Member();
         testOwner.setEmail("test@example.com");

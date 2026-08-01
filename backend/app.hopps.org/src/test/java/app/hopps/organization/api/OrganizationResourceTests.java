@@ -4,6 +4,7 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.api.OrganizationResource;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.domain.OrganizationType;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.model.NewOrganizationInput;
 import app.hopps.organization.model.OrganizationInput;
@@ -101,7 +102,7 @@ class OrganizationResourceTests {
         QuarkusTransaction.commit();
 
         OrganizationInput organizationInput = new OrganizationInput("Schützenverein", "schuetzenverein",
-                Organization.TYPE.EINGETRAGENER_VEREIN, URI.create("https://hopps.cloud").toURL(),
+                OrganizationType.EINGETRAGENER_VEREIN, URI.create("https://hopps.cloud").toURL(),
                 URI.create("https://hopps.cloud").toURL(), null, null, null, null, null, null, null, null, null);
         OwnerInput ownerInput = new OwnerInput("info@op-paf.de", "Test", "User");
         NewOrganizationInput newOrganizationInput = new NewOrganizationInput(ownerInput, "testPassword",
