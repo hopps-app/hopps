@@ -378,6 +378,7 @@
                 "title": "Benutzer & Zugriff",
                 "note": "Wer in hopps für Ihre Organisation mitarbeiten darf.",
                 "name": "Name",
+                "position": "Position",
                 "email": "E-Mail",
                 "empty": "Noch keine Benutzer vorhanden.",
                 "add": {
@@ -388,8 +389,8 @@
                     "lastName": "Nachname",
                     "firstNamePlaceholder": "z.B. Anke",
                     "lastNamePlaceholder": "z.B. Reuter",
-                    "role": "Funktion",
-                    "rolePlaceholder": "z.B. 1. Vorsitzende, Kassenwart",
+                    "position": "Position",
+                    "positionPlaceholder": "z.B. 1. Vorsitzende, Kassenwart",
                     "firstNameRequired": "Vorname ist erforderlich",
                     "lastNameRequired": "Nachname ist erforderlich",
                     "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse an",

@@ -229,6 +229,7 @@
         "title": "Користувачі та доступ",
         "note": "Хто може працювати в hopps для вашої організації.",
         "name": "Ім'я",
+        "position": "Посада",
         "email": "Електронна пошта",
         "empty": "Ще немає користувачів.",
         "add": {
@@ -239,8 +240,8 @@
           "lastName": "Прізвище",
           "firstNamePlaceholder": "напр. Анна",
           "lastNamePlaceholder": "напр. Шевченко",
-          "role": "Функція",
-          "rolePlaceholder": "напр. Голова, Скарбник",
+          "position": "Посада",
+          "positionPlaceholder": "напр. Голова, Скарбник",
           "firstNameRequired": "Ім'я є обов'язковим",
           "lastNameRequired": "Прізвище є обов'язковим",
           "emailInvalid": "Введіть коректну адресу електронної пошти",

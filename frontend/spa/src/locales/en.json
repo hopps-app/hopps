@@ -379,6 +379,7 @@
                 "title": "Users & access",
                 "note": "Who is allowed to work in hopps for your organization.",
                 "name": "Name",
+                "position": "Position",
                 "email": "Email",
                 "empty": "No users yet.",
                 "add": {
@@ -389,8 +390,8 @@
                     "lastName": "Last name",
                     "firstNamePlaceholder": "e.g. Anke",
                     "lastNamePlaceholder": "e.g. Reuter",
-                    "role": "Role",
-                    "rolePlaceholder": "e.g. Chairperson, Treasurer",
+                    "position": "Position",
+                    "positionPlaceholder": "e.g. Chairperson, Treasurer",
                     "firstNameRequired": "First name is required",
                     "lastNameRequired": "Last name is required",
                     "emailInvalid": "Please enter a valid email address",

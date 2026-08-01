@@ -99,6 +99,8 @@ const AVATAR_TONES = [
     { bg: '#F1F1F4', fg: '#6B6B76' },
 ];
 
+const USER_ROW_GRID = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)] gap-3';
+
 function UserAvatar({ name }: { name: string }) {
     const initials =
         name
@@ -684,20 +686,26 @@ function OrganizationDetailsSettingsView() {
                                 <p className="py-4 text-[13.5px] text-[#9A9AA3]">{t('organization.details.users.empty')}</p>
                             ) : (
                                 <div>
-                                    <div className="grid grid-cols-[minmax(160px,1.7fr)_1.5fr] gap-3 px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76]">
+                                    <div className={`${USER_ROW_GRID} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76]`}>
                                         <span>{t('organization.details.users.name')}</span>
+                                        <span>{t('organization.details.users.position')}</span>
                                         <span>{t('organization.details.users.email')}</span>
                                     </div>
                                     {users.map((user) => {
                                         const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+                                        // The backend does not carry a position per member yet — see issue #751.
+                                        const position = typeof user.position === 'string' ? user.position.trim() : '';
                                         return (
                                             <div
                                                 key={user.id ?? user.email}
-                                                className="grid grid-cols-[minmax(160px,1.7fr)_1.5fr] gap-3 items-center px-1 py-[11px] border-t border-[#E9E9EE]"
+                                                className={`${USER_ROW_GRID} items-center px-1 py-[11px] border-t border-[#E9E9EE]`}
                                             >
                                                 <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] min-w-0">
                                                     <UserAvatar name={name} />
                                                     <span className="truncate">{name}</span>
+                                                </span>
+                                                <span className={`text-[14px] truncate ${position ? 'text-[#6B6B76]' : 'text-[#9A9AA3]'}`}>
+                                                    {position || '–'}
                                                 </span>
                                                 <span className="text-[14px] text-[#6B6B76] truncate">{user.email}</span>
                                             </div>

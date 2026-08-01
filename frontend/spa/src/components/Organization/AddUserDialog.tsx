@@ -12,7 +12,7 @@ export type NewUserValues = {
     firstName: string;
     lastName: string;
     /** Free text, e.g. "1. Vorsitzende" or "Kassenwart". */
-    role: string;
+    position: string;
     email: string;
 };
 
@@ -35,7 +35,7 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
             z.object({
                 firstName: z.string().trim().min(1, t('organization.details.users.add.firstNameRequired')),
                 lastName: z.string().trim().min(1, t('organization.details.users.add.lastNameRequired')),
-                role: z.string().trim(),
+                position: z.string().trim(),
                 email: z.string().trim().email(t('organization.details.users.add.emailInvalid')),
             }),
         [t]
@@ -48,12 +48,12 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
         formState: { errors, isSubmitting },
     } = useForm<NewUserValues>({
         resolver: zodResolver(schema),
-        defaultValues: { firstName: '', lastName: '', role: '', email: '' },
+        defaultValues: { firstName: '', lastName: '', position: '', email: '' },
     });
 
     // Start from a clean form every time the dialog opens.
     useEffect(() => {
-        if (open) reset({ firstName: '', lastName: '', role: '', email: '' });
+        if (open) reset({ firstName: '', lastName: '', position: '', email: '' });
     }, [open, reset]);
 
     const submit = handleSubmit(async (values) => {
@@ -95,10 +95,10 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
                             />
                         </div>
                         <TextField
-                            label={t('organization.details.users.add.role')}
-                            placeholder={t('organization.details.users.add.rolePlaceholder')}
-                            error={errors.role?.message}
-                            {...register('role')}
+                            label={t('organization.details.users.add.position')}
+                            placeholder={t('organization.details.users.add.positionPlaceholder')}
+                            error={errors.position?.message}
+                            {...register('position')}
                         />
                         <TextField
                             label={t('organization.details.users.email')}
