@@ -43,9 +43,7 @@ const MobileSidebar: React.FC = () => {
                         ${active ? 'bg-purple-100 dark:bg-purple-300 text-primary' : 'text-grey-900 dark:text-grey-800 hover:bg-hover-effect dark:hover:bg-purple-200'}
                     `}
                 >
-                    <span className="flex-shrink-0">
-                        <Icon icon={item.icon} size={18} />
-                    </span>
+                    <span className="flex-shrink-0">{typeof item.icon === 'string' ? <Icon icon={item.icon} size={18} /> : <item.icon size={18} />}</span>
                     <span className="flex-1 text-left">{t(item.label)}</span>
                 </button>
             </div>
