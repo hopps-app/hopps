@@ -1,7 +1,9 @@
 package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
+import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.model.NewMemberInput;
 import app.hopps.organization.model.NewOrganizationInput;
 import app.hopps.organization.model.OrganizationInput;
 import app.hopps.organization.repository.OrganizationRepository;
@@ -14,6 +16,7 @@ import app.hopps.shared.validation.RestValidator.ValidationResult;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import java.util.Map;
@@ -36,6 +39,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -62,6 +66,9 @@ public class OrganizationResource {
 
     @Inject
     SecurityUtils securityUtils;
+
+    @Inject
+    MemberRepository memberRepository;
 
     @Inject
     JsonWebToken jwt;
@@ -322,6 +329,50 @@ public class OrganizationResource {
         return Response.status(Response.Status.CREATED)
                 .entity(organization)
                 .build();
+    }
+
+    @POST
+    @Path("/my/members")
+    @Authenticated
+    @Transactional
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization. No Keycloak account is provisioned, so the person appears in the member list but cannot log in yet.")
+    @APIResponse(responseCode = "201", description = "Member added to the organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member.class)))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Organization not found for user")
+    @APIResponse(responseCode = "409", description = "A member with that email already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    public Response addMemberToMyOrganization(@Context SecurityContext securityContext,
+            @Parameter(description = "The person to add") NewMemberInput input) {
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+
+        Member member = input.toMember();
+
+        Set<ConstraintViolation<Member>> violations = validator.validate(member);
+        if (!violations.isEmpty()) {
+            String message = violations.stream()
+                    .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                    .collect(Collectors.joining(", "));
+            LOG.warn("Validation failed for new member: {}", message);
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity(message).build());
+        }
+
+        // The email is unique across all members, not just within this organization — it is what the Keycloak account
+        // will be keyed on once provisioning is added.
+        if (memberRepository.findByEmail(member.getEmail()) != null) {
+            LOG.warn("Member with email {} already exists", member.getEmail());
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("conflictingFields", Set.of("email")))
+                    .build();
+        }
+
+        member.addOrganization(organization);
+        organization.addMember(member);
+        memberRepository.persist(member);
+
+        LOG.info("Added member {} to organization {}", member.getEmail(), organization.getSlug());
+        return Response.status(Response.Status.CREATED).entity(member).build();
     }
 
     @POST

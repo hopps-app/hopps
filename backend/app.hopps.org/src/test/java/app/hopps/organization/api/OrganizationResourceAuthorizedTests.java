@@ -17,7 +17,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
@@ -103,6 +105,102 @@ class OrganizationResourceAuthorizedTests {
                 .post("my")
                 .then()
                 .statusCode(409);
+    }
+
+    @Test
+    @DisplayName("should add a member to the current user's organization")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldAddMemberToMyOrganization() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        {"firstName": "Kim", "lastName": "Rakete", "email": "kim.rakete@example.test",
+                         "position": "Kassenwart"}
+                        """)
+                .when()
+                .post("my/members")
+                .then()
+                .statusCode(201)
+                .body("email", is("kim.rakete@example.test"))
+                .body("position", is("Kassenwart"));
+
+        // The new member shows up in the organization's member list.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .when()
+                .get("gruenes-herz-ev/members")
+                .then()
+                .statusCode(200)
+                .body("email", hasItem("kim.rakete@example.test"));
+    }
+
+    @Test
+    @DisplayName("should store no position when it is left empty")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldAcceptMemberWithoutPosition() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"firstName\": \"Kim\", \"lastName\": \"Rakete\", \"email\": \"no-position@example.test\", \"position\": \"  \"}")
+                .when()
+                .post("my/members")
+                .then()
+                .statusCode(201)
+                .body("position", is(nullValue()));
+    }
+
+    @Test
+    @DisplayName("should reject a member whose email is already taken")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldRejectDuplicateMemberEmail() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"firstName\": \"Emanuel\", \"lastName\": \"Urban\", \"email\": \"emanuel_urban@domain.none\"}")
+                .when()
+                .post("my/members")
+                .then()
+                .statusCode(409)
+                .body("conflictingFields", hasItem("email"));
+    }
+
+    @Test
+    @DisplayName("should reject a member with an invalid email")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldRejectMemberWithInvalidEmail() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"firstName\": \"Kim\", \"lastName\": \"Rakete\", \"email\": \"not-an-email\"}")
+                .when()
+                .post("my/members")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("should reject a member without a first name")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldRejectMemberWithoutFirstName() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"lastName\": \"Rakete\", \"email\": \"kim.rakete@example.test\"}")
+                .when()
+                .post("my/members")
+                .then()
+                .statusCode(400);
     }
 
     @Test
