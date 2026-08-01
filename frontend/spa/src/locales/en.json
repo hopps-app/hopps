@@ -396,7 +396,9 @@
                     "lastNameRequired": "Last name is required",
                     "emailInvalid": "Please enter a valid email address",
                     "submit": "Add",
-                    "notAvailable": "Users cannot be added yet – the endpoint for this does not exist."
+                    "success": "User added",
+                    "duplicate": "This email address is already in use.",
+                    "error": "The user could not be added."
                 }
             }
         },

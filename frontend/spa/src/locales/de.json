@@ -395,7 +395,9 @@
                     "lastNameRequired": "Nachname ist erforderlich",
                     "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse an",
                     "submit": "Hinzufügen",
-                    "notAvailable": "Benutzer können noch nicht hinzugefügt werden – die Schnittstelle dazu fehlt noch."
+                    "success": "Benutzer hinzugefügt",
+                    "duplicate": "Diese E-Mail-Adresse wird bereits verwendet.",
+                    "error": "Benutzer konnte nicht hinzugefügt werden."
                 }
             }
         },
