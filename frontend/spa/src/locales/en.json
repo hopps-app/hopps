@@ -358,7 +358,6 @@
             "generalInfoNote": "Appears on reports, donation receipts and documents.",
             "legalInfoNote": "Details from your register of associations extract and tax exemption notice.",
             "contactInfoNote": "How members and donors can reach your organization.",
-            "phoneNumberHint": "Optional, helps with queries from the tax office.",
             "unsavedChanges_one": "{{count}} unsaved change",
             "unsavedChanges_other": "{{count}} unsaved changes",
             "discard": "Discard",
@@ -376,7 +375,7 @@
                 "pending": "{{name}} – applied when you save"
             },
             "users": {
-                "title": "Users & access",
+                "title": "Staff",
                 "note": "Who is allowed to work in hopps for your organization.",
                 "name": "Name",
                 "position": "Position",

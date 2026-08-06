@@ -357,7 +357,6 @@
             "generalInfoNote": "Erscheint auf Auswertungen, Spendenbescheinigungen und Belegen.",
             "legalInfoNote": "Angaben aus dem Vereinsregister-Auszug und dem Freistellungsbescheid.",
             "contactInfoNote": "So erreichen Mitglieder und Spender Ihre Organisation.",
-            "phoneNumberHint": "Optional, hilft bei Rückfragen des Finanzamts.",
             "unsavedChanges_one": "{{count}} ungespeicherte Änderung",
             "unsavedChanges_other": "{{count}} ungespeicherte Änderungen",
             "discard": "Verwerfen",
@@ -375,15 +374,15 @@
                 "pending": "{{name}} – wird beim Speichern übernommen"
             },
             "users": {
-                "title": "Benutzer & Zugriff",
+                "title": "Mitarbeiter",
                 "note": "Wer in hopps für Ihre Organisation mitarbeiten darf.",
                 "name": "Name",
                 "position": "Position",
                 "email": "E-Mail",
-                "empty": "Noch keine Benutzer vorhanden.",
+                "empty": "Noch keine Mitarbeiter vorhanden.",
                 "add": {
-                    "button": "Benutzer hinzufügen",
-                    "title": "Benutzer hinzufügen",
+                    "button": "hinzufügen",
+                    "title": "Mitarbeiter hinzufügen",
                     "subtitle": "Wer soll in hopps für Ihre Organisation mitarbeiten dürfen?",
                     "firstName": "Vorname",
                     "lastName": "Nachname",

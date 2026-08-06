@@ -672,7 +672,7 @@ function OrganizationDetailsSettingsView() {
                                         {...register('email')}
                                     />
                                 </GridField>
-                                <GridField span={2} hint={t('organization.details.phoneNumberHint')}>
+                                <GridField span={2}>
                                     <TextField
                                         label={t('organization.details.phoneNumber')}
                                         placeholder={t('organization.details.placeholder.phoneNumber')}
