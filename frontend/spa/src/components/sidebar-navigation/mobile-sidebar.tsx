@@ -1,17 +1,19 @@
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@radix-ui/react-dialog';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem } from './shared/types';
 
 import AlphaBadge from '@/components/ui/AlphaBadge';
 import Icon from '@/components/ui/Icon';
+import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
 
 const MobileSidebar: React.FC = () => {
     const location = useLocation();
-    const navigate = useNavigate();
+    // Asks before it leaves a form with unsaved changes.
+    const navigate = useGuardedNavigate();
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = React.useState(false);
 
@@ -21,8 +23,8 @@ const MobileSidebar: React.FC = () => {
     };
 
     const handleNavigation = (path: string) => {
-        navigate(path);
-        setIsOpen(false);
+        // Keep the drawer open when the user decides to stay on the page.
+        if (navigate(path)) setIsOpen(false);
     };
 
     const mainItems = menuConfig.filter((item) => !item.isAdmin);

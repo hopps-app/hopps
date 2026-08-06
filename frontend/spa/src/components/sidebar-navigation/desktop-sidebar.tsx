@@ -2,7 +2,7 @@ import { DoubleArrowLeftIcon, DoubleArrowRightIcon, PersonIcon } from '@radix-ui
 import * as Tooltip from '@radix-ui/react-tooltip';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem } from './shared/types';
@@ -10,6 +10,7 @@ import type { MenuItem } from './shared/types';
 import AlphaBadge from '@/components/ui/AlphaBadge';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 import Icon from '@/components/ui/Icon';
+import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
 
@@ -20,7 +21,9 @@ type DesktopSidebarProps = {
 
 const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) => {
     const location = useLocation();
-    const navigate = useNavigate();
+    // Asks before it leaves a form with unsaved changes. Logging out does not need it: that leaves the
+    // document altogether, which the beforeunload handler already covers.
+    const navigate = useGuardedNavigate();
     const { t } = useTranslation();
     const { user, isAuthenticated } = useStore();
 
