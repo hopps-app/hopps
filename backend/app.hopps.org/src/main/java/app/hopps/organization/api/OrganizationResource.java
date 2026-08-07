@@ -1,7 +1,6 @@
 package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
-import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.model.NewMemberInput;
 import app.hopps.organization.model.NewOrganizationInput;
@@ -9,6 +8,7 @@ import app.hopps.organization.model.OrganizationInput;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.organization.service.OrganizationLogoService;
+import app.hopps.organization.service.OrganizationMemberService;
 import app.hopps.shared.security.SecurityUtils;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import app.hopps.shared.validation.RestValidator;
@@ -16,7 +16,6 @@ import app.hopps.shared.validation.RestValidator.ValidationResult;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import java.util.Map;
@@ -68,7 +67,7 @@ public class OrganizationResource {
     SecurityUtils securityUtils;
 
     @Inject
-    MemberRepository memberRepository;
+    OrganizationMemberService organizationMemberService;
 
     @Inject
     JsonWebToken jwt;
@@ -334,10 +333,9 @@ public class OrganizationResource {
     @POST
     @Path("/my/members")
     @Authenticated
-    @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization. No Keycloak account is provisioned, so the person appears in the member list but cannot log in yet.")
+    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app: a Keycloak account is provisioned and Keycloak emails them an invitation link in which they set their own password. The returned member's status says whether that email went out (INVITED) or could not be sent (INVITATION_FAILED) — the account exists either way.")
     @APIResponse(responseCode = "201", description = "Member added to the organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed")
     @APIResponse(responseCode = "401", description = "User not logged in")
@@ -347,31 +345,27 @@ public class OrganizationResource {
             @Parameter(description = "The person to add") NewMemberInput input) {
         Organization organization = securityUtils.getUserOrganization(securityContext);
 
-        Member member = input.toMember();
-
-        Set<ConstraintViolation<Member>> violations = validator.validate(member);
-        if (!violations.isEmpty()) {
-            String message = violations.stream()
+        Member member;
+        try {
+            member = organizationMemberService.addMember(organization, input.toMember());
+        } catch (ConstraintViolationException e) {
+            String message = e.getConstraintViolations()
+                    .stream()
                     .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
                     .collect(Collectors.joining(", "));
             LOG.warn("Validation failed for new member: {}", message);
             throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity(message).build());
-        }
-
-        // The email is unique across all members, not just within this organization — it is what the Keycloak account
-        // will be keyed on once provisioning is added.
-        if (memberRepository.findByEmail(member.getEmail()) != null) {
-            LOG.warn("Member with email {} already exists", member.getEmail());
+        } catch (NonUniqueConstraintViolation.NonUniqueConstraintViolationException e) {
+            Set<String> conflictingFields = e.getViolations()
+                    .stream()
+                    .map(NonUniqueConstraintViolation::field)
+                    .collect(Collectors.toSet());
+            LOG.warn("Uniqueness constraint violation for new member: {}", conflictingFields);
             return Response.status(Response.Status.CONFLICT)
-                    .entity(Map.of("conflictingFields", Set.of("email")))
+                    .entity(Map.of("conflictingFields", conflictingFields))
                     .build();
         }
 
-        member.addOrganization(organization);
-        organization.addMember(member);
-        memberRepository.persist(member);
-
-        LOG.info("Added member {} to organization {}", member.getEmail(), organization.getSlug());
         return Response.status(Response.Status.CREATED).entity(member).build();
     }
 

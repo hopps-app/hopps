@@ -9,8 +9,8 @@ import app.hopps.member.domain.Member;
 public record NewMemberInput(String firstName, String lastName, String email, String position) {
 
     /**
-     * Converts the input to a Member entity. The Keycloak id stays null: this endpoint does not provision an account,
-     * so the person shows up in the member list but cannot log in yet.
+     * Converts the input to a Member entity. The Keycloak id stays null here and is filled in by
+     * {@code CreateUserInKeycloak#inviteUser} once the account has been provisioned.
      *
      * @return a new Member entity populated with the input data
      */
