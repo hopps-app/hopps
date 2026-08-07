@@ -11,13 +11,17 @@ import io.quarkus.test.security.oidc.Claim;
 import io.quarkus.test.security.oidc.OidcSecurity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.keycloak.admin.client.Keycloak;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +41,13 @@ class OrganizationResourceAuthorizedTests {
 
     @Inject
     BommelRepository bommelRepository;
+
+    @Inject
+    Keycloak keycloak;
+
+    @Inject
+    @ConfigProperty(name = "app.hopps.org.auth.realm-name")
+    String realmName;
 
     @BeforeEach
     void cleanDatabase() {
@@ -125,7 +136,10 @@ class OrganizationResourceAuthorizedTests {
                 .then()
                 .statusCode(201)
                 .body("email", is("kim.rakete@example.test"))
-                .body("position", is("Kassenwart"));
+                .body("position", is("Kassenwart"))
+                // The account is provisioned, but Dev Services builds the test realm without an SMTP server, so the
+                // invitation mail cannot go out. That must not fail the request — it is reported through the status.
+                .body("status", is("INVITATION_FAILED"));
 
         // The new member shows up in the organization's member list.
         given()
@@ -135,6 +149,25 @@ class OrganizationResourceAuthorizedTests {
                 .then()
                 .statusCode(200)
                 .body("email", hasItem("kim.rakete@example.test"));
+
+        // A Keycloak account now exists for them, which is what makes the login possible in the first place.
+        assertThat(keycloak.realm(realmName).users().searchByEmail("kim.rakete@example.test", true), hasSize(1));
+    }
+
+    @Test
+    @DisplayName("should list seeded members as active")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldReportSeededMembersAsActive() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .when()
+                .get("gruenes-herz-ev/members")
+                .then()
+                .statusCode(200)
+                .body("find { it.email == 'emanuel_urban@domain.none' }.status", is("ACTIVE"));
     }
 
     @Test
