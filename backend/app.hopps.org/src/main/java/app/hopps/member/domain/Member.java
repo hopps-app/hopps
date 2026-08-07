@@ -2,14 +2,18 @@ package app.hopps.member.domain;
 
 import app.hopps.organization.domain.Organization;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -51,6 +55,17 @@ public class Member extends PanacheEntity {
     @JsonIgnore
     @Column(name = "keycloak_id", unique = true)
     private String keycloakId;
+
+    /**
+     * Whether this person can log in, and how far their invitation got. Derived state as far as clients are concerned:
+     * it is set when the Keycloak account is provisioned, never by the caller, hence read-only in the API.
+     */
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Whether the member can log in, and how far their invitation got", examples = "INVITED")
+    private MemberStatus status = MemberStatus.NO_ACCESS;
 
     @ManyToMany
     @JoinTable(name = "member_verein", joinColumns = @JoinColumn(name = "member_id"))
@@ -108,5 +123,13 @@ public class Member extends PanacheEntity {
 
     public String getKeycloakId() {
         return keycloakId;
+    }
+
+    public void setStatus(MemberStatus status) {
+        this.status = status;
+    }
+
+    public MemberStatus getStatus() {
+        return status;
     }
 }
