@@ -7900,6 +7900,8 @@ export class Member implements IMember {
     email!: string;
     /** Office held in the association, free text and optional */
     position?: string;
+    /** Whether the member can log in, and how far their invitation got */
+    readonly status!: MemberStatus;
     organizations?: Organization[];
 
     [key: string]: any;
@@ -7924,6 +7926,7 @@ export class Member implements IMember {
             this.lastName = _data["lastName"];
             this.email = _data["email"];
             this.position = _data["position"];
+            (this as any).status = _data["status"];
             if (Array.isArray(_data["organizations"])) {
                 this.organizations = [] as any;
                 for (let item of _data["organizations"])
@@ -7950,6 +7953,7 @@ export class Member implements IMember {
         data["lastName"] = this.lastName;
         data["email"] = this.email;
         data["position"] = this.position;
+        data["status"] = this.status;
         if (Array.isArray(this.organizations)) {
             data["organizations"] = [];
             for (let item of this.organizations)
@@ -7976,10 +7980,14 @@ export interface IMember {
     email: string;
     /** Office held in the association, free text and optional */
     position?: string;
+    /** Whether the member can log in, and how far their invitation got */
+    status: MemberStatus;
     organizations?: Organization[];
 
     [key: string]: any;
 }
+
+export type MemberStatus = "NO_ACCESS" | "INVITED" | "INVITATION_FAILED" | "ACTIVE";
 
 export class NewMemberInput implements INewMemberInput {
     firstName?: string;

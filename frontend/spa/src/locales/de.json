@@ -380,6 +380,13 @@
                 "position": "Position",
                 "email": "E-Mail",
                 "empty": "Noch keine Mitarbeiter vorhanden.",
+                "status": {
+                    "title": "Status",
+                    "NO_ACCESS": "Kein Zugang",
+                    "INVITED": "Eingeladen",
+                    "INVITATION_FAILED": "Einladung fehlgeschlagen",
+                    "ACTIVE": "Aktiv"
+                },
                 "add": {
                     "button": "hinzufügen",
                     "title": "Mitarbeiter hinzufügen",

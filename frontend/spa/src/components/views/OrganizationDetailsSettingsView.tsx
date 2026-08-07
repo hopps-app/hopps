@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Address, ApiException, Member, NewMemberInput, OrganizationInput, OrganizationType } from '@hopps/api-client';
+import { Address, ApiException, Member, MemberStatus, NewMemberInput, OrganizationInput, OrganizationType } from '@hopps/api-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Building2, Check, Globe, ImageIcon, Info, Landmark, Undo2, Upload, UserPlus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -99,7 +99,28 @@ const AVATAR_TONES = [
     { bg: '#F1F1F4', fg: '#6B6B76' },
 ];
 
-const USER_ROW_GRID = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)] gap-3';
+const USER_ROW_GRID = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)] gap-3';
+
+/** One tone per {@link MemberStatus}: gold while the invitation is pending, red once it could not be delivered. */
+const STATUS_TONES: Record<MemberStatus, { bg: string; fg: string }> = {
+    ACTIVE: { bg: '#E7F4EC', fg: '#1F7A50' },
+    INVITED: { bg: '#FBF1DD', fg: '#B47C18' },
+    INVITATION_FAILED: { bg: '#FBE9E7', fg: '#B4342A' },
+    NO_ACCESS: { bg: '#F1F1F4', fg: '#6B6B76' },
+};
+
+function StatusPill({ status }: { status: MemberStatus }) {
+    const { t } = useTranslation();
+    const tone = STATUS_TONES[status] ?? STATUS_TONES.NO_ACCESS;
+    return (
+        <span
+            className="inline-flex w-fit items-center rounded-full px-2.5 py-1 text-[12px] font-bold whitespace-nowrap"
+            style={{ backgroundColor: tone.bg, color: tone.fg }}
+        >
+            {t(`organization.details.users.status.${status}`)}
+        </span>
+    );
+}
 
 function UserAvatar({ name }: { name: string }) {
     const initials =
@@ -709,6 +730,7 @@ function OrganizationDetailsSettingsView() {
                                         <span>{t('organization.details.users.name')}</span>
                                         <span>{t('organization.details.users.position')}</span>
                                         <span>{t('organization.details.users.email')}</span>
+                                        <span>{t('organization.details.users.status.title')}</span>
                                     </div>
                                     {users.map((user) => {
                                         const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
@@ -727,6 +749,7 @@ function OrganizationDetailsSettingsView() {
                                                     {position || '–'}
                                                 </span>
                                                 <span className="text-[14px] text-[#6B6B76] truncate">{user.email}</span>
+                                                <StatusPill status={user.status ?? 'NO_ACCESS'} />
                                             </div>
                                         );
                                     })}

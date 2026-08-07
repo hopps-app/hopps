@@ -381,6 +381,13 @@
                 "position": "Position",
                 "email": "Email",
                 "empty": "No users yet.",
+                "status": {
+                    "title": "Status",
+                    "NO_ACCESS": "No access",
+                    "INVITED": "Invited",
+                    "INVITATION_FAILED": "Invitation failed",
+                    "ACTIVE": "Active"
+                },
                 "add": {
                     "button": "Add user",
                     "title": "Add user",
