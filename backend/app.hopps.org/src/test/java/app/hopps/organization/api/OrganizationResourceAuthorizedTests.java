@@ -1,9 +1,12 @@
 package app.hopps.organization.api;
 
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.member.domain.MemberStatus;
+import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.api.OrganizationResource;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
@@ -41,6 +44,9 @@ class OrganizationResourceAuthorizedTests {
 
     @Inject
     BommelRepository bommelRepository;
+
+    @Inject
+    MemberRepository memberRepository;
 
     @Inject
     Keycloak keycloak;
@@ -168,6 +174,28 @@ class OrganizationResourceAuthorizedTests {
                 .then()
                 .statusCode(200)
                 .body("find { it.email == 'emanuel_urban@domain.none' }.status", is("ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("should mark an invited member active once they show up with a token")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldMarkInvitedMemberActiveOnFirstAuthenticatedRequest() {
+        // Put the seeded member back into the state an invited person is in before they have ever logged in.
+        QuarkusTransaction.requiringNew()
+                .run(() -> memberRepository.update("status = ?1 where email = ?2", MemberStatus.INVITED,
+                        "emanuel_urban@domain.none"));
+
+        // Any authenticated request will do — this one resolves the member through SecurityUtils.
+        given()
+                .when()
+                .get("my")
+                .then()
+                .statusCode(200);
+
+        assertEquals(MemberStatus.ACTIVE, memberRepository.findByEmail("emanuel_urban@domain.none").getStatus());
     }
 
     @Test

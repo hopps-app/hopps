@@ -3,9 +3,10 @@ package app.hopps.member.domain;
 /**
  * Whether and how a member can log into hopps.
  * <p>
- * Note that {@link #INVITED} does not flip to {@link #ACTIVE} once the person actually sets their password — hopps
- * would have to ask Keycloak, and there is no login hook to do it on. Both states mean "has an account", they differ
- * only in whether we know the person has used it.
+ * Keycloak never tells hopps that an invitation was completed, so the states that mean "has an account" differ only in
+ * whether we have seen the person use it: {@link #INVITED} and {@link #INVITATION_FAILED} flip to {@link #ACTIVE} on
+ * the first request that arrives with their token, which is proof enough that they got in. See
+ * {@code SecurityUtils#recordAuthentication}.
  */
 public enum MemberStatus {
 
@@ -21,6 +22,9 @@ public enum MemberStatus {
      */
     INVITATION_FAILED,
 
-    /** Has an account and can log in right away, like the founder who chose a password while registering. */
+    /**
+     * Has logged in: either the founder, who chose a password while registering, or an invited person who has since
+     * shown up with a valid token.
+     */
     ACTIVE
 }
