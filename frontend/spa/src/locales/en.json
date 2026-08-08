@@ -355,7 +355,6 @@
                 "phoneNumber": "e.g. +49 123 4567890",
                 "additionalLine": "optional"
             },
-            "generalInfoNote": "Appears on reports, donation receipts and documents.",
             "legalInfoNote": "Details from your register of associations extract and tax exemption notice.",
             "contactInfoNote": "How members and donors can reach your organization.",
             "unsavedChanges_one": "{{count}} unsaved change",
@@ -364,7 +363,7 @@
             "saveChanges": "Save changes",
             "logo": {
                 "title": "Organization logo",
-                "note": "PNG, JPG or SVG, at least 256 px. Appears on donation receipts.",
+                "note": "PNG, JPG or SVG, at least 256 px",
                 "alt": "Organization logo",
                 "upload": "Upload logo",
                 "replace": "Replace logo",

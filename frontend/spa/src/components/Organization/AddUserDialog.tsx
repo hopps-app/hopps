@@ -67,17 +67,19 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-            <DialogContent className="max-w-[460px] gap-0 rounded-[18px] border-[#E9E9EE] p-0 [&_input::placeholder]:text-[#9A9AA3]">
+            <DialogContent className="max-w-[460px] gap-0 rounded-[18px] border-[#E9E9EE] p-0 [&_input::placeholder]:text-[#9A9AA3] dark:border-[#2E2E36] dark:bg-[#1C1C21] dark:[&_input::placeholder]:text-[#6E6E7A]">
                 <form onSubmit={submit}>
                     <DialogHeader className="flex-row items-center gap-[13px] space-y-0 px-6 pt-6 text-left">
-                        <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[12px] bg-[#F3EAFB] text-[#7E3FB4]">
+                        <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[12px] bg-[#F3EAFB] text-[#7E3FB4] dark:bg-[#33204A] dark:text-[#C9A6E6]">
                             <UserPlus size={20} aria-hidden="true" />
                         </div>
                         <div className="flex flex-col gap-[3px]">
-                            <DialogTitle className="text-[17px] font-extrabold tracking-[-0.01em] text-[#1B1B1F]">
+                            <DialogTitle className="text-[17px] font-extrabold tracking-[-0.01em] text-[#1B1B1F] dark:text-[#F2F2F5]">
                                 {t('organization.details.users.add.title')}
                             </DialogTitle>
-                            <DialogDescription className="text-[13.5px] text-[#6B6B76]">{t('organization.details.users.add.subtitle')}</DialogDescription>
+                            <DialogDescription className="text-[13.5px] text-[#6B6B76] dark:text-[#A0A0AC]">
+                                {t('organization.details.users.add.subtitle')}
+                            </DialogDescription>
                         </div>
                     </DialogHeader>
 
@@ -113,19 +115,19 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
                         />
                     </fieldset>
 
-                    <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4">
+                    <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4 dark:border-[#2E2E36]">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isSubmitting}
-                            className="inline-flex items-center rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-[#7E3FB4] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-[#7E3FB4] dark:shadow-none dark:hover:bg-[#AE73DC] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <UserPlus size={16} aria-hidden="true" />
                             {isSubmitting ? t('common.loading') : t('organization.details.users.add.submit')}

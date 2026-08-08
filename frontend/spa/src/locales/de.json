@@ -354,7 +354,6 @@
                 "phoneNumber": "z.B. +49 123 4567890",
                 "additionalLine": "optional"
             },
-            "generalInfoNote": "Erscheint auf Auswertungen, Spendenbescheinigungen und Belegen.",
             "legalInfoNote": "Angaben aus dem Vereinsregister-Auszug und dem Freistellungsbescheid.",
             "contactInfoNote": "So erreichen Mitglieder und Spender Ihre Organisation.",
             "unsavedChanges_one": "{{count}} ungespeicherte Änderung",

@@ -22,7 +22,10 @@ import { useStore } from '@/store/store';
 /** Design system: "Klar" — see the hopps design system tokens (colors.css / typography.css). */
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
-const CARD = 'rounded-[18px] bg-white shadow-[0_1px_2px_rgba(20,20,40,0.05),0_6px_22px_rgba(20,20,40,0.05)]';
+/** In dark mode the drop shadow is invisible, so a hairline ring separates the card from the page instead. */
+const CARD =
+    'rounded-[18px] bg-white shadow-[0_1px_2px_rgba(20,20,40,0.05),0_6px_22px_rgba(20,20,40,0.05)] ' +
+    'dark:bg-[#1C1C21] dark:shadow-none dark:ring-1 dark:ring-[#2E2E36]';
 
 /** Field widths follow the design's 6-column grid; everything collapses to full width on small screens. */
 const SPAN: Record<number, string> = {
@@ -65,10 +68,12 @@ function SectionCard({
         <section className={`${CARD} px-6 py-[22px] flex flex-col gap-4`}>
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-[13px] min-w-0">
-                    <div className="w-9 h-9 rounded-[10px] bg-[#F1F1F4] text-[#6B6B76] grid place-items-center flex-shrink-0">{icon}</div>
+                    <div className="w-9 h-9 rounded-[10px] bg-[#F1F1F4] text-[#6B6B76] dark:bg-[#26262D] dark:text-[#A0A0AC] grid place-items-center flex-shrink-0">
+                        {icon}
+                    </div>
                     <div className="flex flex-col gap-[3px] min-w-0">
-                        <span className="text-[16.5px] font-extrabold tracking-[-0.01em] text-[#1B1B1F]">{title}</span>
-                        {note && <span className="text-[13.5px] text-[#6B6B76]">{note}</span>}
+                        <span className="text-[16.5px] font-extrabold tracking-[-0.01em] text-[#1B1B1F] dark:text-[#F2F2F5]">{title}</span>
+                        {note && <span className="text-[13.5px] text-[#6B6B76] dark:text-[#A0A0AC]">{note}</span>}
                     </div>
                 </div>
                 {action}
@@ -87,36 +92,34 @@ function GridField({ span, hint, children }: { span: number; hint?: string; chil
     return (
         <div className={SPAN[span]}>
             {children}
-            {hint && <p className="mt-1 text-[12.5px] leading-snug text-[#6B6B76]">{hint}</p>}
+            {hint && <p className="mt-1 text-[12.5px] leading-snug text-[#6B6B76] dark:text-[#A0A0AC]">{hint}</p>}
         </div>
     );
 }
 
+/** Class pairs rather than inline styles, so every tone can carry its dark-mode counterpart. */
 const AVATAR_TONES = [
-    { bg: '#F3EAFB', fg: '#7E3FB4' },
-    { bg: '#E7F4EC', fg: '#1F7A50' },
-    { bg: '#FBF1DD', fg: '#B47C18' },
-    { bg: '#F1F1F4', fg: '#6B6B76' },
+    'bg-[#F3EAFB] text-[#7E3FB4] dark:bg-[#33204A] dark:text-[#C9A6E6]',
+    'bg-[#E7F4EC] text-[#1F7A50] dark:bg-[#16301F] dark:text-[#7FD3A0]',
+    'bg-[#FBF1DD] text-[#B47C18] dark:bg-[#33280F] dark:text-[#E4B75B]',
+    'bg-[#F1F1F4] text-[#6B6B76] dark:bg-[#26262D] dark:text-[#A0A0AC]',
 ];
 
 const USER_ROW_GRID = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)] gap-3';
 
 /** One tone per {@link MemberStatus}: gold while the invitation is pending, red once it could not be delivered. */
-const STATUS_TONES: Record<MemberStatus, { bg: string; fg: string }> = {
-    ACTIVE: { bg: '#E7F4EC', fg: '#1F7A50' },
-    INVITED: { bg: '#FBF1DD', fg: '#B47C18' },
-    INVITATION_FAILED: { bg: '#FBE9E7', fg: '#B4342A' },
-    NO_ACCESS: { bg: '#F1F1F4', fg: '#6B6B76' },
+const STATUS_TONES: Record<MemberStatus, string> = {
+    ACTIVE: 'bg-[#E7F4EC] text-[#1F7A50] dark:bg-[#16301F] dark:text-[#7FD3A0]',
+    INVITED: 'bg-[#FBF1DD] text-[#B47C18] dark:bg-[#33280F] dark:text-[#E4B75B]',
+    INVITATION_FAILED: 'bg-[#FBE9E7] text-[#B4342A] dark:bg-[#3A1D19] dark:text-[#F0958A]',
+    NO_ACCESS: 'bg-[#F1F1F4] text-[#6B6B76] dark:bg-[#26262D] dark:text-[#A0A0AC]',
 };
 
 function StatusPill({ status }: { status: MemberStatus }) {
     const { t } = useTranslation();
     const tone = STATUS_TONES[status] ?? STATUS_TONES.NO_ACCESS;
     return (
-        <span
-            className="inline-flex w-fit items-center rounded-full px-2.5 py-1 text-[12px] font-bold whitespace-nowrap"
-            style={{ backgroundColor: tone.bg, color: tone.fg }}
-        >
+        <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-[12px] font-bold whitespace-nowrap ${tone}`}>
             {t(`organization.details.users.status.${status}`)}
         </span>
     );
@@ -132,11 +135,7 @@ function UserAvatar({ name }: { name: string }) {
             .join('') || '?';
     const tone = AVATAR_TONES[[...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % AVATAR_TONES.length];
     return (
-        <span
-            aria-hidden="true"
-            className="w-[30px] h-[30px] rounded-full grid place-items-center text-[12px] font-extrabold flex-shrink-0"
-            style={{ background: tone.bg, color: tone.fg }}
-        >
+        <span aria-hidden="true" className={`w-[30px] h-[30px] rounded-full grid place-items-center text-[12px] font-extrabold flex-shrink-0 ${tone}`}>
             {initials}
         </span>
     );
@@ -214,7 +213,7 @@ function LogoCard({
 
     return (
         <section className={`${CARD} px-6 py-5 flex flex-wrap items-center gap-[18px]`}>
-            <div className="w-[58px] h-[58px] rounded-[16px] bg-[#F3EAFB] text-[#7E3FB4] grid place-items-center flex-shrink-0 overflow-hidden">
+            <div className="w-[58px] h-[58px] rounded-[16px] bg-[#F3EAFB] text-[#7E3FB4] dark:bg-[#33204A] dark:text-[#C9A6E6] grid place-items-center flex-shrink-0 overflow-hidden">
                 {previewUrl ? (
                     <img src={previewUrl} alt={t('organization.details.logo.alt')} className="w-full h-full object-contain" />
                 ) : (
@@ -222,8 +221,8 @@ function LogoCard({
                 )}
             </div>
             <div className="flex flex-col gap-1 min-w-0">
-                <span className="text-[15px] font-extrabold tracking-[-0.01em] text-[#1B1B1F]">{t('organization.details.logo.title')}</span>
-                <span className="text-[13.5px] text-[#6B6B76]">
+                <span className="text-[15px] font-extrabold tracking-[-0.01em] text-[#1B1B1F] dark:text-[#F2F2F5]">{t('organization.details.logo.title')}</span>
+                <span className="text-[13.5px] text-[#6B6B76] dark:text-[#A0A0AC]">
                     {pendingFile ? t('organization.details.logo.pending', { name: pendingFile.name }) : t('organization.details.logo.note')}
                 </span>
             </div>
@@ -241,7 +240,7 @@ function LogoCard({
                 type="button"
                 onClick={() => inputRef.current?.click()}
                 disabled={disabled}
-                className="inline-flex items-center gap-2 rounded-full border border-[#E0E0E6] bg-white px-4 py-2 text-[13.5px] font-bold text-[#1B1B1F] hover:border-[#9A9AA3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-full border border-[#E0E0E6] bg-white px-4 py-2 text-[13.5px] font-bold text-[#1B1B1F] hover:border-[#9A9AA3] dark:border-[#3A3A44] dark:bg-[#26262D] dark:text-[#F2F2F5] dark:hover:border-[#5A5A66] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <Upload size={16} />
                 {hasLogo || pendingFile ? t('organization.details.logo.replace') : t('organization.details.logo.upload')}
@@ -520,17 +519,19 @@ function OrganizationDetailsSettingsView() {
         <>
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col min-h-full" style={{ fontFamily: FONT }}>
                 {/* Sticky page header — the save action only appears once something changed */}
-                <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 backdrop-blur-[10px]">
+                <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 dark:border-[#2E2E36] dark:bg-[#131317]/85 backdrop-blur-[10px]">
                     <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F]">{t('organization.details.title')}</h1>
-                            <p className="mt-[5px] text-[14.5px] text-[#6B6B76]">{t('organization.details.description')}</p>
+                            <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F] dark:text-[#F2F2F5]">
+                                {t('organization.details.title')}
+                            </h1>
+                            <p className="mt-[5px] text-[14.5px] text-[#6B6B76] dark:text-[#A0A0AC]">{t('organization.details.description')}</p>
                         </div>
 
                         {hasChanges && (
                             <div className="ml-auto flex items-center gap-2.5 pt-1">
                                 {/* The counter is the first thing to go when the row gets tight. */}
-                                <span className="hidden lg:flex items-center gap-2 text-[13.5px] font-bold text-[#B47C18] whitespace-nowrap">
+                                <span className="hidden lg:flex items-center gap-2 text-[13.5px] font-bold text-[#B47C18] dark:text-[#E4B75B] whitespace-nowrap">
                                     <Info size={16} />
                                     {t('organization.details.unsavedChanges', { count: dirtyCount })}
                                 </span>
@@ -538,7 +539,7 @@ function OrganizationDetailsSettingsView() {
                                     type="button"
                                     onClick={discardChanges}
                                     disabled={isSubmitting}
-                                    className="inline-flex items-center gap-2 rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-2 rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Undo2 size={15} />
                                     {t('organization.details.discard')}
@@ -546,7 +547,7 @@ function OrganizationDetailsSettingsView() {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] hover:bg-[#7E3FB4] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] hover:bg-[#7E3FB4] dark:shadow-none dark:hover:bg-[#AE73DC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Check size={16} />
                                     {isSubmitting ? t('common.loading') : t('organization.details.saveChanges')}
@@ -560,7 +561,10 @@ function OrganizationDetailsSettingsView() {
                     <LogoCard pendingFile={pendingLogo} onFileSelected={handleLogoSelected} version={logoVersion} disabled={isSubmitting} />
 
                     {/* Placeholders use the design system's quiet ink (--ink-3) instead of the app-wide, much darker --muted. */}
-                    <fieldset disabled={isSubmitting} className="min-w-0 flex flex-col gap-[18px] [&_input::placeholder]:text-[#9A9AA3]">
+                    <fieldset
+                        disabled={isSubmitting}
+                        className="min-w-0 flex flex-col gap-[18px] [&_input::placeholder]:text-[#9A9AA3] dark:[&_input::placeholder]:text-[#6E6E7A]"
+                    >
                         {/* Name & address */}
                         <SectionCard icon={<Building2 size={19} aria-hidden="true" />} title={t('organization.details.generalInfo')}>
                             <FieldGrid>
@@ -711,7 +715,7 @@ function OrganizationDetailsSettingsView() {
                                 <button
                                     type="button"
                                     onClick={() => setAddUserOpen(true)}
-                                    className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-[#ECE0F6] px-4 py-2 text-[13.5px] font-bold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB]"
+                                    className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-[#ECE0F6] px-4 py-2 text-[13.5px] font-bold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB] dark:bg-[#33204A] dark:text-[#D2AEEE] dark:hover:bg-[#3E2859]"
                                 >
                                     <UserPlus size={15} aria-hidden="true" />
                                     {t('organization.details.users.add.button')}
@@ -723,10 +727,12 @@ function OrganizationDetailsSettingsView() {
                                     <LoadingState />
                                 </div>
                             ) : users.length === 0 ? (
-                                <p className="py-4 text-[13.5px] text-[#9A9AA3]">{t('organization.details.users.empty')}</p>
+                                <p className="py-4 text-[13.5px] text-[#9A9AA3] dark:text-[#7A7A86]">{t('organization.details.users.empty')}</p>
                             ) : (
                                 <div>
-                                    <div className={`${USER_ROW_GRID} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76]`}>
+                                    <div
+                                        className={`${USER_ROW_GRID} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76] dark:text-[#A0A0AC]`}
+                                    >
                                         <span>{t('organization.details.users.name')}</span>
                                         <span>{t('organization.details.users.position')}</span>
                                         <span>{t('organization.details.users.email')}</span>
@@ -739,16 +745,18 @@ function OrganizationDetailsSettingsView() {
                                         return (
                                             <div
                                                 key={user.id ?? user.email}
-                                                className={`${USER_ROW_GRID} items-center px-1 py-[11px] border-t border-[#E9E9EE]`}
+                                                className={`${USER_ROW_GRID} items-center px-1 py-[11px] border-t border-[#E9E9EE] dark:border-[#2E2E36]`}
                                             >
-                                                <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] min-w-0">
+                                                <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5] min-w-0">
                                                     <UserAvatar name={name} />
                                                     <span className="truncate">{name}</span>
                                                 </span>
-                                                <span className={`text-[14px] truncate ${position ? 'text-[#6B6B76]' : 'text-[#9A9AA3]'}`}>
+                                                <span
+                                                    className={`text-[14px] truncate ${position ? 'text-[#6B6B76] dark:text-[#A0A0AC]' : 'text-[#9A9AA3] dark:text-[#7A7A86]'}`}
+                                                >
                                                     {position || '–'}
                                                 </span>
-                                                <span className="text-[14px] text-[#6B6B76] truncate">{user.email}</span>
+                                                <span className="text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate">{user.email}</span>
                                                 <StatusPill status={user.status ?? 'NO_ACCESS'} />
                                             </div>
                                         );
