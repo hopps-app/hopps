@@ -3,6 +3,7 @@ package app.hopps.organization.service;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.MemberStatus;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
@@ -124,6 +125,8 @@ public class OrganizationCreationService {
             member.setEmail(email);
             member.setFirstName(firstName);
             member.setLastName(lastName);
+            // The Keycloak account already exists — this member is only catching up with an identity that can log in.
+            member.setStatus(MemberStatus.ACTIVE);
         }
 
         // Validate the organization (and the member's mandatory fields); the email uniqueness check is skipped because

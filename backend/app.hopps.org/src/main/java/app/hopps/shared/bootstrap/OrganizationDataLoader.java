@@ -1,5 +1,6 @@
 package app.hopps.shared.bootstrap;
 
+import app.hopps.organization.domain.OrganizationType;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -40,7 +41,7 @@ public class OrganizationDataLoader implements EntityDataLoader<TestdataConfig.O
 
             entityManager.createNativeQuery(sql)
                     .setParameter("id", org.getId())
-                    .setParameter("type", getTypeOrdinal(org.getType()))
+                    .setParameter("type", toTypeName(org.getType()))
                     .setParameter("slug", org.getSlug())
                     .setParameter("name", org.getName())
                     .setParameter("website", org.getWebsite())
@@ -54,10 +55,15 @@ public class OrganizationDataLoader implements EntityDataLoader<TestdataConfig.O
         }
     }
 
-    private int getTypeOrdinal(String type) {
-        return switch (type) {
-            case "EINGETRAGENER_VEREIN" -> 0;
-            default -> throw new IllegalArgumentException("Unknown organization type: " + type);
-        };
+    /**
+     * The column stores the enum name, so any constant of {@link OrganizationType} is valid — no per-value mapping to
+     * keep in sync. An unknown name in the testdata fails fast instead of ending up as an invalid row.
+     */
+    private String toTypeName(String type) {
+        try {
+            return OrganizationType.valueOf(type).name();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown organization type: " + type, e);
+        }
     }
 }

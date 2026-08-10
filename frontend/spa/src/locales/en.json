@@ -327,6 +327,10 @@
             "email": "Email",
             "phoneNumber": "Phone Number",
             "typeEV": "Registered Association (e.V.)",
+            "typeGGmbH": "Non-profit Limited Company (gGmbH)",
+            "typeStiftung": "Foundation (Stiftung)",
+            "typeEG": "Non-profit Cooperative (eG)",
+            "typeGUG": "Non-profit Entrepreneurial Company (gUG)",
             "typeAndere": "Other",
             "nameRequired": "Organization name is required",
             "foundingDateFormat": "Please enter the date in DD.MM.YYYY format",
@@ -348,7 +352,59 @@
                 "taxNumber": "e.g. 12/345/67890",
                 "website": "https://example.com",
                 "email": "e.g. info@association.org",
-                "phoneNumber": "e.g. +49 123 4567890"
+                "phoneNumber": "e.g. +49 123 4567890",
+                "additionalLine": "optional"
+            },
+            "legalInfoNote": "Details from your register of associations extract and tax exemption notice.",
+            "contactInfoNote": "How members and donors can reach your organization.",
+            "unsavedChanges_one": "{{count}} unsaved change",
+            "unsavedChanges_other": "{{count}} unsaved changes",
+            "discard": "Discard",
+            "saveChanges": "Save changes",
+            "logo": {
+                "title": "Organization logo",
+                "note": "PNG, JPG or SVG, at least 256 px",
+                "alt": "Organization logo",
+                "upload": "Upload logo",
+                "replace": "Replace logo",
+                "errorType": "Only PNG, JPG or SVG files are allowed as a logo.",
+                "errorTooLarge": "The logo must not be larger than 2 MB.",
+                "errorTooSmall": "The logo must be at least 256 px wide and high.",
+                "errorGeneric": "The logo could not be uploaded.",
+                "pending": "{{name}} – applied when you save"
+            },
+            "users": {
+                "title": "Staff",
+                "note": "Who is allowed to work in hopps for your organization.",
+                "name": "Name",
+                "position": "Position",
+                "email": "Email",
+                "empty": "No users yet.",
+                "status": {
+                    "title": "Status",
+                    "NO_ACCESS": "No access",
+                    "INVITED": "Invited",
+                    "INVITATION_FAILED": "Invitation failed",
+                    "ACTIVE": "Active"
+                },
+                "add": {
+                    "button": "Add user",
+                    "title": "Add user",
+                    "subtitle": "Who should be able to work in hopps for your organization?",
+                    "firstName": "First name",
+                    "lastName": "Last name",
+                    "firstNamePlaceholder": "e.g. Anke",
+                    "lastNamePlaceholder": "e.g. Reuter",
+                    "position": "Position",
+                    "positionPlaceholder": "e.g. Chairperson, Treasurer",
+                    "firstNameRequired": "First name is required",
+                    "lastNameRequired": "Last name is required",
+                    "emailInvalid": "Please enter a valid email address",
+                    "submit": "Add",
+                    "success": "User added",
+                    "duplicate": "This email address is already in use.",
+                    "error": "The user could not be added."
+                }
             }
         },
         "noOrganization": {

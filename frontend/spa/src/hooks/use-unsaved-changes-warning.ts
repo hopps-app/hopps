@@ -1,12 +1,43 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
+/** The mounted forms that report their unsaved changes — read by useGuardedNavigate. */
+const dirtyForms = new Set<() => boolean>();
+
+/** True while any mounted form has unsaved changes. */
+export function hasUnsavedChanges(): boolean {
+    return [...dirtyForms].some((isDirty) => isDirty());
+}
+
+/**
+ * navigate() that asks before it leaves a form with unsaved changes, and does nothing if the user
+ * declines. Needed wherever navigation runs from code instead of a link — the sidebar entries are
+ * buttons calling navigate(), which no click interception can recognize as navigation.
+ *
+ * @returns whether the navigation happened
+ */
+export function useGuardedNavigate(): (to: string) => boolean {
+    const navigate = useNavigate();
+    const { t } = useTranslation();
+
+    return useCallback(
+        (to: string) => {
+            if (hasUnsavedChanges() && !window.confirm(t('common.unsavedChangesWarning'))) return false;
+            navigate(to);
+            return true;
+        },
+        [navigate, t]
+    );
+}
 
 /**
  * Hook that warns users when navigating away from a page with unsaved changes.
  *
- * Handles two scenarios:
+ * Handles three scenarios:
  * 1. Browser tab close / page refresh → beforeunload event
  * 2. In-app navigation (sidebar links, etc.) → click interception on anchor/link elements
+ * 3. Navigation triggered from code → useGuardedNavigate reads the registration below
  *
  * Note: This app uses BrowserRouter which doesn't support useBlocker/usePrompt.
  * We use a global click listener approach instead.
@@ -21,6 +52,15 @@ export function useUnsavedChangesWarning(isDirty: boolean) {
     useEffect(() => {
         isDirtyRef.current = isDirty;
     }, [isDirty]);
+
+    // Announce the form for as long as it is mounted, so navigation elsewhere can ask about it
+    useEffect(() => {
+        const isDirtyNow = () => isDirtyRef.current;
+        dirtyForms.add(isDirtyNow);
+        return () => {
+            dirtyForms.delete(isDirtyNow);
+        };
+    }, []);
 
     // Handle browser close / refresh via beforeunload
     useEffect(() => {

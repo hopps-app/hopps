@@ -24,7 +24,8 @@ const SelectTrigger = React.forwardRef<
             'focus-visible:outline-none',
             error
                 ? 'border-red-500 focus-visible:border-red-500 data-[state=open]:border-red-500'
-                : 'border-[#d1d5db] dark:border-gray-700 focus-visible:border-[var(--purple-500)] data-[state=open]:border-[var(--purple-500)]',
+                : // Resting hairline plus a soft purple tint when open/focused, instead of a full-strength purple outline.
+                  'border-[#E0E0E6] dark:border-gray-700 focus-visible:border-[var(--purple-300)] data-[state=open]:border-[var(--purple-300)] data-[state=open]:ring-2 data-[state=open]:ring-[var(--purple-50)] focus-visible:ring-2 focus-visible:ring-[var(--purple-50)]',
             className
         )}
         {...props}
@@ -63,7 +64,9 @@ const SelectContent = React.forwardRef<React.ElementRef<typeof SelectPrimitive.C
             <SelectPrimitive.Content
                 ref={ref}
                 className={cn(
-                    'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+                    // `border` alone resolves to currentColor because the `border` token is an invalid hsl(#hex),
+                    // which painted the panel outline near-black — pin it to the hairline colour instead.
+                    'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-[#E9E9EE] dark:border-gray-700 bg-popover text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
                     position === 'popper' && 'data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
                     className
                 )}

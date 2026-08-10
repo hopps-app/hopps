@@ -57,7 +57,7 @@ class OrganizationTests {
         Organization organization = new Organization();
         organization.setName("Test Verein");
         organization.setSlug("test-verein");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
 
         // when
         organizationRepository.persist(organization);
@@ -76,7 +76,7 @@ class OrganizationTests {
         Organization organization = new Organization();
         organization.setName("Test Verein");
         organization.setSlug("test-verein");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
 
         Address address = new Address();
         address.setStreet("Teststraße");
@@ -102,7 +102,7 @@ class OrganizationTests {
         Organization organization = new Organization();
         organization.setName("");
         organization.setSlug("foobar");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
 
         // when
         Set<ConstraintViolation<Organization>> validations = validator.validate(organization);
@@ -123,7 +123,7 @@ class OrganizationTests {
         Organization organization = new Organization();
         organization.setName("");
         organization.setSlug("valid-slug");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
 
         // when
         QuarkusTransaction.begin();
@@ -146,7 +146,7 @@ class OrganizationTests {
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
-        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setType(OrganizationType.EINGETRAGENER_VEREIN);
         kegelclub.setSlug("kegelklub-999");
 
         Member kevin = new Member();
@@ -172,7 +172,7 @@ class OrganizationTests {
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
-        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setType(OrganizationType.EINGETRAGENER_VEREIN);
 
         // when then
         kegelclub.setSlug("kegelklub-777");

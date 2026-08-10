@@ -2,6 +2,7 @@ package app.hopps.organization.service;
 
 import app.hopps.member.domain.Member;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.domain.OrganizationType;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.CreationValidationDelegate;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
@@ -47,7 +48,7 @@ class CreationValidationDelegateTests {
         // given
         Organization organization = new Organization();
         organization.setName("Kegelclub 777");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
         organization.setSlug("kegelclub-777");
 
         Member owner = new Member();
@@ -70,7 +71,7 @@ class CreationValidationDelegateTests {
         // given
         Organization organization = new Organization();
         organization.setName("Kegelclub 777");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
         organization.setSlug("kegelclub-777-");
 
         Member owner = new Member();
@@ -91,7 +92,7 @@ class CreationValidationDelegateTests {
         // given empty database
         Organization organization = new Organization();
         organization.setName("Kegelclub 777");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
         organization.setSlug("kegelclub-777");
 
         Member owner = new Member();
@@ -114,7 +115,7 @@ class CreationValidationDelegateTests {
         // given
         Organization existingOrganization = new Organization();
         existingOrganization.setName("Kegelclub 777");
-        existingOrganization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        existingOrganization.setType(OrganizationType.EINGETRAGENER_VEREIN);
         existingOrganization.setSlug("kegelclub-777");
 
         QuarkusTransaction.begin();
@@ -125,7 +126,7 @@ class CreationValidationDelegateTests {
         // when
         Organization organization = new Organization();
         organization.setName("Kegelclub 777");
-        organization.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        organization.setType(OrganizationType.EINGETRAGENER_VEREIN);
         organization.setSlug("kegelclub-777");
 
         Member owner = new Member();

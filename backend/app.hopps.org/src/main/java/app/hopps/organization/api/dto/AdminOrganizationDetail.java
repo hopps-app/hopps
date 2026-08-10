@@ -2,6 +2,7 @@ package app.hopps.organization.api.dto;
 
 import app.hopps.organization.domain.Address;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.domain.OrganizationType;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.net.URL;
@@ -23,7 +24,7 @@ public record AdminOrganizationDetail(
         @Schema(description = "Number of uploaded documents (Belege) for this organization") long belegeCount,
         @Schema(description = "Most recent activity across all members, or null if never seen") Instant lastActivityAt,
         @Schema(description = "When the organization was registered") Instant createdAt,
-        Organization.TYPE type,
+        OrganizationType type,
         LocalDate foundingDate,
         String registrationCourt,
         String registrationNumber,

@@ -21,6 +21,9 @@ public class OrganizationContext {
     @Inject
     MemberRepository memberRepository;
 
+    @Inject
+    SecurityUtils securityUtils;
+
     private Organization cachedOrganization;
     private boolean organizationResolved = false;
 
@@ -54,6 +57,10 @@ public class OrganizationContext {
         if (member == null) {
             return;
         }
+
+        // Requests that only ever scope by organization never touch SecurityUtils, so this path has to record the
+        // login too — otherwise someone who only visits, say, the transactions page would stay INVITED forever.
+        securityUtils.recordAuthentication(member);
 
         Collection<Organization> orgs = member.getOrganizations();
         if (orgs.isEmpty()) {
