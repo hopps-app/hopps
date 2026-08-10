@@ -1,11 +1,23 @@
 package app.hopps.member.repository;
 
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.MemberStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class MemberRepository implements PanacheRepository<Member> {
+
+    /**
+     * Flips a member to {@link MemberStatus#ACTIVE}. Written as a bulk update rather than through the entity on
+     * purpose: the member is typically resolved outside a transaction and therefore detached, and the update has to be
+     * a no-op for members that already are active so it can be attempted on every request.
+     *
+     * @return whether this call changed the row
+     */
+    public boolean markActive(Long memberId) {
+        return update("status = ?1 where id = ?2 and status <> ?1", MemberStatus.ACTIVE, memberId) > 0;
+    }
 
     public Member findByEmail(String email) {
         return find("email", email).firstResult();

@@ -4,6 +4,7 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.domain.OrganizationType;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.PersistOrganizationDelegate;
 import io.quarkus.test.junit.QuarkusTest;
@@ -49,7 +50,7 @@ class PersistOrganizationDelegateTests {
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
-        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setType(OrganizationType.EINGETRAGENER_VEREIN);
         kegelclub.setSlug("kegelklub-777");
 
         Member kevin = new Member();
@@ -72,7 +73,7 @@ class PersistOrganizationDelegateTests {
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
-        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setType(OrganizationType.EINGETRAGENER_VEREIN);
         kegelclub.setSlug("kegelklub-777");
 
         Member kevin = new Member();
@@ -94,7 +95,7 @@ class PersistOrganizationDelegateTests {
         // given
         Organization kegelclub = new Organization();
         kegelclub.setName("Kegelklub 777");
-        kegelclub.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        kegelclub.setType(OrganizationType.EINGETRAGENER_VEREIN);
         kegelclub.setSlug("kegelklub-777");
 
         Member kevin = new Member();

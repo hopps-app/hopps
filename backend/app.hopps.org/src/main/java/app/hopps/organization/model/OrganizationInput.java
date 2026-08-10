@@ -2,14 +2,14 @@ package app.hopps.organization.model;
 
 import app.hopps.organization.domain.Address;
 import app.hopps.organization.domain.Organization;
-import app.hopps.organization.domain.Organization.TYPE;
+import app.hopps.organization.domain.OrganizationType;
 
 import java.net.URL;
 import java.time.LocalDate;
 
 public record OrganizationInput(String name,
         String slug,
-        TYPE type,
+        OrganizationType type,
         URL website,
         URL profilePicture,
         Address address,

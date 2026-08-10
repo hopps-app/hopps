@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -3858,6 +3858,192 @@ export class Client {
             });
         }
         return Promise.resolve<Organization>(null as any);
+    }
+
+    /**
+     * Upload my organization's logo
+     * @param file (optional) 
+     * @return Logo uploaded successfully
+     */
+    logoPOST(file: FileParameter | undefined): Promise<Organization> {
+        let url_ = this.baseUrl + "/organization/my/logo";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new globalThis.Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLogoPOST(_response);
+        });
+    }
+
+    protected processLogoPOST(response: Response): Promise<Organization> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Organization.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("No file provided, or the image is unreadable or smaller than 256x256 px", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found for user", status, _responseText, _headers);
+            });
+        } else if (status === 413) {
+            return response.text().then((_responseText) => {
+            return throwException("Logo is larger than 2 MB", status, _responseText, _headers);
+            });
+        } else if (status === 415) {
+            return response.text().then((_responseText) => {
+            return throwException("Unsupported file type, only PNG, JPEG and SVG are allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Organization>(null as any);
+    }
+
+    /**
+     * Download my organization's logo
+     * @return Logo image
+     */
+    logoGET(): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/organization/my/logo";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLogoGET(_response);
+        });
+    }
+
+    protected processLogoGET(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization has no logo, or the stored image is gone", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    /**
+     * Add a member to my organization
+     * @return Member added to the organization
+     */
+    addOrganizationMember(body: NewMemberInput): Promise<Member> {
+        let url_ = this.baseUrl + "/organization/my/members";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddOrganizationMember(_response);
+        });
+    }
+
+    protected processAddOrganizationMember(response: Response): Promise<Member> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = Member.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Validation of fields failed", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found for user", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A member with that email already exists", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Member>(null as any);
     }
 
     /**
@@ -7712,6 +7898,10 @@ export class Member implements IMember {
     /** Last Name of the Member */
     lastName!: string;
     email!: string;
+    /** Office held in the association, free text and optional */
+    position?: string;
+    /** Whether the member can log in, and how far their invitation got */
+    readonly status!: MemberStatus;
     organizations?: Organization[];
 
     [key: string]: any;
@@ -7735,6 +7925,8 @@ export class Member implements IMember {
             this.firstName = _data["firstName"];
             this.lastName = _data["lastName"];
             this.email = _data["email"];
+            this.position = _data["position"];
+            (this as any).status = _data["status"];
             if (Array.isArray(_data["organizations"])) {
                 this.organizations = [] as any;
                 for (let item of _data["organizations"])
@@ -7760,6 +7952,8 @@ export class Member implements IMember {
         data["firstName"] = this.firstName;
         data["lastName"] = this.lastName;
         data["email"] = this.email;
+        data["position"] = this.position;
+        data["status"] = this.status;
         if (Array.isArray(this.organizations)) {
             data["organizations"] = [];
             for (let item of this.organizations)
@@ -7784,7 +7978,80 @@ export interface IMember {
     /** Last Name of the Member */
     lastName: string;
     email: string;
+    /** Office held in the association, free text and optional */
+    position?: string;
+    /** Whether the member can log in, and how far their invitation got */
+    status: MemberStatus;
     organizations?: Organization[];
+
+    [key: string]: any;
+}
+
+export type MemberStatus = "NO_ACCESS" | "INVITED" | "INVITATION_FAILED" | "ACTIVE";
+
+export class NewMemberInput implements INewMemberInput {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    position?: string;
+
+    [key: string]: any;
+
+    constructor(data?: INewMemberInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.email = _data["email"];
+            this.position = _data["position"];
+        }
+    }
+
+    static fromJS(data: any): NewMemberInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new NewMemberInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["email"] = this.email;
+        data["position"] = this.position;
+        return data;
+    }
+
+    clone(): NewMemberInput {
+        const json = this.toJSON();
+        let result = new NewMemberInput();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface INewMemberInput {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    position?: string;
 
     [key: string]: any;
 }
@@ -7861,7 +8128,7 @@ export class Organization implements IOrganization {
     id?: number;
     name!: string;
     slug!: string;
-    type!: TYPE;
+    type!: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
     members?: Member[];
@@ -7876,6 +8143,8 @@ export class Organization implements IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Whether a logo has been uploaded for this organization */
+    hasLogo?: boolean;
 
     [key: string]: any;
 
@@ -7915,6 +8184,7 @@ export class Organization implements IOrganization {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.hasLogo = _data["hasLogo"];
         }
     }
 
@@ -7952,6 +8222,7 @@ export class Organization implements IOrganization {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["hasLogo"] = this.hasLogo;
         return data;
     }
 
@@ -7968,7 +8239,7 @@ export interface IOrganization {
     id?: number;
     name: string;
     slug: string;
-    type: TYPE;
+    type: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
     members?: Member[];
@@ -7983,6 +8254,8 @@ export interface IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Whether a logo has been uploaded for this organization */
+    hasLogo?: boolean;
 
     [key: string]: any;
 }
@@ -7990,7 +8263,7 @@ export interface IOrganization {
 export class OrganizationInput implements IOrganizationInput {
     name?: string;
     slug?: string;
-    type?: TYPE;
+    type?: OrganizationType;
     website?: string;
     profilePicture?: string;
     address?: Address;
@@ -8078,7 +8351,7 @@ export class OrganizationInput implements IOrganizationInput {
 export interface IOrganizationInput {
     name?: string;
     slug?: string;
-    type?: TYPE;
+    type?: OrganizationType;
     website?: string;
     profilePicture?: string;
     address?: Address;
@@ -8164,6 +8437,9 @@ export interface IOrganizationStatistics {
 
     [key: string]: any;
 }
+
+/** Legal form of an organization */
+export type OrganizationType = "EINGETRAGENER_VEREIN" | "GEMEINNUETZIGE_GMBH" | "STIFTUNG" | "GEMEINNUETZIGE_GENOSSENSCHAFT" | "GEMEINNUETZIGE_UG" | "ANDERE";
 
 export class OwnerInput implements IOwnerInput {
     email?: string;
@@ -8525,8 +8801,6 @@ export interface ISchemaDetectionResult {
 
     [key: string]: any;
 }
-
-export type TYPE = "EINGETRAGENER_VEREIN" | "ANDERE";
 
 export class TransactionAggregateResponse implements ITransactionAggregateResponse {
     sumIncome?: number;

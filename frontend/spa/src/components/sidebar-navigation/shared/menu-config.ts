@@ -1,3 +1,5 @@
+import { Building2 } from 'lucide-react';
+
 import type { MenuItem } from './types';
 
 export const menuConfig: MenuItem[] = [
@@ -40,7 +42,7 @@ export const menuConfig: MenuItem[] = [
     {
         id: 'ngo-details',
         label: 'menu.ngo-details',
-        icon: 'Person',
+        icon: Building2,
         path: '/admin/ngo-details',
         isAdmin: true,
     },

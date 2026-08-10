@@ -326,6 +326,10 @@
             "email": "E-Mail",
             "phoneNumber": "Telefonnummer",
             "typeEV": "eingetragener Verein (e.V.)",
+            "typeGGmbH": "gemeinnützige GmbH (gGmbH)",
+            "typeStiftung": "Stiftung",
+            "typeEG": "gemeinnützige Genossenschaft (eG)",
+            "typeGUG": "gemeinnützige UG (haftungsbeschränkt)",
             "typeAndere": "Andere",
             "nameRequired": "Organisationsname ist erforderlich",
             "foundingDateFormat": "Bitte geben Sie das Datum im Format TT.MM.JJJJ ein",
@@ -347,7 +351,59 @@
                 "taxNumber": "z.B. 12/345/67890",
                 "website": "https://example.com",
                 "email": "z.B. info@verein.de",
-                "phoneNumber": "z.B. +49 123 4567890"
+                "phoneNumber": "z.B. +49 123 4567890",
+                "additionalLine": "optional"
+            },
+            "legalInfoNote": "Angaben aus dem Vereinsregister-Auszug und dem Freistellungsbescheid.",
+            "contactInfoNote": "So erreichen Mitglieder und Spender Ihre Organisation.",
+            "unsavedChanges_one": "{{count}} ungespeicherte Änderung",
+            "unsavedChanges_other": "{{count}} ungespeicherte Änderungen",
+            "discard": "Verwerfen",
+            "saveChanges": "Änderungen speichern",
+            "logo": {
+                "title": "Vereinslogo",
+                "note": "PNG, JPG oder SVG, mindestens 256 px",
+                "alt": "Logo der Organisation",
+                "upload": "Logo hochladen",
+                "replace": "Logo ersetzen",
+                "errorType": "Nur PNG, JPG oder SVG sind als Logo erlaubt.",
+                "errorTooLarge": "Das Logo darf höchstens 2 MB groß sein.",
+                "errorTooSmall": "Das Logo muss mindestens 256 px breit und hoch sein.",
+                "errorGeneric": "Das Logo konnte nicht hochgeladen werden.",
+                "pending": "{{name}} – wird beim Speichern übernommen"
+            },
+            "users": {
+                "title": "Mitarbeiter",
+                "note": "Wer in hopps für Ihre Organisation mitarbeiten darf.",
+                "name": "Name",
+                "position": "Position",
+                "email": "E-Mail",
+                "empty": "Noch keine Mitarbeiter vorhanden.",
+                "status": {
+                    "title": "Status",
+                    "NO_ACCESS": "Kein Zugang",
+                    "INVITED": "Eingeladen",
+                    "INVITATION_FAILED": "Einladung fehlgeschlagen",
+                    "ACTIVE": "Aktiv"
+                },
+                "add": {
+                    "button": "hinzufügen",
+                    "title": "Mitarbeiter hinzufügen",
+                    "subtitle": "Wer soll in hopps für Ihre Organisation mitarbeiten dürfen?",
+                    "firstName": "Vorname",
+                    "lastName": "Nachname",
+                    "firstNamePlaceholder": "z.B. Anke",
+                    "lastNamePlaceholder": "z.B. Reuter",
+                    "position": "Position",
+                    "positionPlaceholder": "z.B. 1. Vorsitzende, Kassenwart",
+                    "firstNameRequired": "Vorname ist erforderlich",
+                    "lastNameRequired": "Nachname ist erforderlich",
+                    "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+                    "submit": "Hinzufügen",
+                    "success": "Benutzer hinzugefügt",
+                    "duplicate": "Diese E-Mail-Adresse wird bereits verwendet.",
+                    "error": "Benutzer konnte nicht hinzugefügt werden."
+                }
             }
         },
         "noOrganization": {

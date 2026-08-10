@@ -1,5 +1,6 @@
 package app.hopps.shared.bootstrap;
 
+import app.hopps.member.domain.MemberStatus;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -34,9 +35,14 @@ public class MemberDataLoader implements EntityDataLoader<TestdataConfig.MemberD
 
         for (TestdataConfig.MemberData member : config.getMembers()) {
             // Insert member
+            // Seeded members exist to be logged in as, so their status follows from whether they have a Keycloak id.
+            String status = member.getKeycloakId() != null
+                    ? MemberStatus.ACTIVE.name()
+                    : MemberStatus.NO_ACCESS.name();
+
             String memberSql = """
-                    INSERT INTO Member (id, email, keycloak_id, firstName, lastName)
-                    VALUES (:id, :email, :keycloakId, :firstName, :lastName)
+                    INSERT INTO Member (id, email, keycloak_id, firstName, lastName, status)
+                    VALUES (:id, :email, :keycloakId, :firstName, :lastName, :status)
                     """;
 
             entityManager.createNativeQuery(memberSql)
@@ -45,6 +51,7 @@ public class MemberDataLoader implements EntityDataLoader<TestdataConfig.MemberD
                     .setParameter("keycloakId", member.getKeycloakId())
                     .setParameter("firstName", member.getFirstName())
                     .setParameter("lastName", member.getLastName())
+                    .setParameter("status", status)
                     .executeUpdate();
 
             // Insert member-organization relationships

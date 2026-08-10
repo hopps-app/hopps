@@ -34,6 +34,18 @@ services:
     ports:
       - "4566:4566"
 
+  # Catches the invitation mails Keycloak sends when a user is added to an organization. Nothing leaves the machine.
+  # The realm points at host.docker.internal:1025, so this works for both the compose Keycloak and the one Quarkus
+  # Dev Services starts. Read them at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+
   postgres:
     image: postgres:16-alpine
     volumes:

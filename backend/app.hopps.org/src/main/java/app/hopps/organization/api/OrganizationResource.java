@@ -2,10 +2,13 @@ package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.model.NewMemberInput;
 import app.hopps.organization.model.NewOrganizationInput;
 import app.hopps.organization.model.OrganizationInput;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.OrganizationCreationService;
+import app.hopps.organization.service.OrganizationLogoService;
+import app.hopps.organization.service.OrganizationMemberService;
 import app.hopps.shared.security.SecurityUtils;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import app.hopps.shared.validation.RestValidator;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -34,9 +38,13 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Path("/organization")
 public class OrganizationResource {
@@ -53,7 +61,13 @@ public class OrganizationResource {
     OrganizationRepository organizationRepository;
 
     @Inject
+    OrganizationLogoService logoService;
+
+    @Inject
     SecurityUtils securityUtils;
+
+    @Inject
+    OrganizationMemberService organizationMemberService;
 
     @Inject
     JsonWebToken jwt;
@@ -148,6 +162,62 @@ public class OrganizationResource {
 
         LOG.info("Successfully updated organization: {}", organization.getSlug());
         return Response.ok(organization).build();
+    }
+
+    @POST
+    @Path("/my/logo")
+    @Authenticated
+    @Transactional
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Upload my organization's logo", description = "Uploads the logo of the current user's organization and replaces a previously uploaded one. Accepts PNG and JPEG (at least 256x256 px) or SVG, up to 2 MB.")
+    @APIResponse(responseCode = "200", description = "Logo uploaded successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
+    @APIResponse(responseCode = "400", description = "No file provided, or the image is unreadable or smaller than 256x256 px")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Organization not found for user")
+    @APIResponse(responseCode = "413", description = "Logo is larger than 2 MB")
+    @APIResponse(responseCode = "415", description = "Unsupported file type, only PNG, JPEG and SVG are allowed")
+    public Organization uploadMyLogo(@Context SecurityContext securityContext,
+            @RestForm("file") FileUpload file) {
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+
+        logoService.upload(organization, file);
+        organizationRepository.persist(organization);
+        organizationRepository.flush();
+
+        // Initialize lazy collections before the transaction ends to avoid a LazyInitializationException during
+        // serialization.
+        organization.getMembers().size();
+
+        LOG.info("Successfully uploaded logo for organization: {}", organization.getSlug());
+        return organization;
+    }
+
+    @GET
+    @Path("/my/logo")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(summary = "Download my organization's logo", description = "Returns the raw logo image of the current user's organization.")
+    @APIResponse(responseCode = "200", description = "Logo image")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Organization has no logo, or the stored image is gone")
+    public Response downloadMyLogo(@Context SecurityContext securityContext) {
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+        if (!organization.hasLogo()) {
+            throw new NotFoundException("Organization has no logo");
+        }
+
+        try {
+            return Response.ok(logoService.download(organization))
+                    .header("Content-Type", organization.getLogoContentType())
+                    .build();
+        } catch (NoSuchKeyException e) {
+            // The key is on the organization but the object is gone (e.g. ephemeral local storage was reset). Return a
+            // clean 404 instead of leaking a 500 with internal storage details.
+            LOG.warn("Logo missing in storage for organization {}: key={}", organization.getSlug(),
+                    organization.getLogoKey());
+            throw new NotFoundException("Logo is no longer available in storage");
+        }
     }
 
     @POST
@@ -258,6 +328,45 @@ public class OrganizationResource {
         return Response.status(Response.Status.CREATED)
                 .entity(organization)
                 .build();
+    }
+
+    @POST
+    @Path("/my/members")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app: a Keycloak account is provisioned and Keycloak emails them an invitation link in which they set their own password. The returned member's status says whether that email went out (INVITED) or could not be sent (INVITATION_FAILED) — the account exists either way.")
+    @APIResponse(responseCode = "201", description = "Member added to the organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member.class)))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Organization not found for user")
+    @APIResponse(responseCode = "409", description = "A member with that email already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    public Response addMemberToMyOrganization(@Context SecurityContext securityContext,
+            @Parameter(description = "The person to add") NewMemberInput input) {
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+
+        Member member;
+        try {
+            member = organizationMemberService.addMember(organization, input.toMember());
+        } catch (ConstraintViolationException e) {
+            String message = e.getConstraintViolations()
+                    .stream()
+                    .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                    .collect(Collectors.joining(", "));
+            LOG.warn("Validation failed for new member: {}", message);
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity(message).build());
+        } catch (NonUniqueConstraintViolation.NonUniqueConstraintViolationException e) {
+            Set<String> conflictingFields = e.getViolations()
+                    .stream()
+                    .map(NonUniqueConstraintViolation::field)
+                    .collect(Collectors.toSet());
+            LOG.warn("Uniqueness constraint violation for new member: {}", conflictingFields);
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("conflictingFields", conflictingFields))
+                    .build();
+        }
+
+        return Response.status(Response.Status.CREATED).entity(member).build();
     }
 
     @POST

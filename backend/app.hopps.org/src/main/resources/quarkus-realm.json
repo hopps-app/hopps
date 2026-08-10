@@ -58,6 +58,16 @@
       {
         "id": "19167196-1a9a-44be-8000-89f84e89c946",
         "name": "Owner",
+        "description": "Founder of an organization, created during registration",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "248d65ab-5cec-458a-b141-05b6d7469be9",
+        "attributes": {}
+      },
+      {
+        "id": "6c1f0a52-8f4d-4a7e-9d3b-5c2ea1f7b840",
+        "name": "org-admin",
+        "description": "Person invited into an existing organization (app.hopps.org.auth.member-role)",
         "composite": false,
         "clientRole": false,
         "containerId": "248d65ab-5cec-458a-b141-05b6d7469be9",
@@ -1488,7 +1498,15 @@
     "xXSSProtection": "1; mode=block",
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
-  "smtpServer": {},
+  "smtpServer": {
+    "host": "host.docker.internal",
+    "port": "1025",
+    "from": "noreply@hopps.local",
+    "fromDisplayName": "hopps",
+    "ssl": "false",
+    "starttls": "false",
+    "auth": "false"
+  },
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"

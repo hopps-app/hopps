@@ -3,6 +3,7 @@ package app.hopps.bommel.domain;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.domain.OrganizationType;
 import app.hopps.organization.repository.OrganizationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -61,7 +62,7 @@ public class BommelTestResourceCreator {
         var secondOrg = new Organization();
         secondOrg.setName("OpenProject e.V.");
         secondOrg.setSlug("op-paf");
-        secondOrg.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        secondOrg.setType(OrganizationType.EINGETRAGENER_VEREIN);
         secondOrg.setWebsite(new URI("https://op-paf.de/").toURL());
         orgRepo.persist(secondOrg);
 
@@ -77,7 +78,7 @@ public class BommelTestResourceCreator {
         Organization org = new Organization();
         org.setName("Hopps");
         org.setSlug("hopps");
-        org.setType(Organization.TYPE.EINGETRAGENER_VEREIN);
+        org.setType(OrganizationType.EINGETRAGENER_VEREIN);
         try {
             org.setWebsite(new URI("https://hopps.cloud/").toURL());
         } catch (MalformedURLException | URISyntaxException e) {

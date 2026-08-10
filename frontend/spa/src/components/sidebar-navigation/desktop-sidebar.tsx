@@ -2,7 +2,7 @@ import { DoubleArrowLeftIcon, DoubleArrowRightIcon, PersonIcon } from '@radix-ui
 import * as Tooltip from '@radix-ui/react-tooltip';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem } from './shared/types';
@@ -10,6 +10,7 @@ import type { MenuItem } from './shared/types';
 import AlphaBadge from '@/components/ui/AlphaBadge';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 import Icon from '@/components/ui/Icon';
+import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
 
@@ -20,7 +21,9 @@ type DesktopSidebarProps = {
 
 const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) => {
     const location = useLocation();
-    const navigate = useNavigate();
+    // Asks before it leaves a form with unsaved changes. Logging out does not need it: that leaves the
+    // document altogether, which the beforeunload handler already covers.
+    const navigate = useGuardedNavigate();
     const { t } = useTranslation();
     const { user, isAuthenticated } = useStore();
 
@@ -55,9 +58,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                     ${active ? 'bg-purple-100 dark:bg-purple-300 text-primary' : 'text-grey-900 dark:text-grey-800 hover:bg-hover-effect dark:hover:bg-purple-200'}
                 `}
             >
-                <span className="flex-shrink-0">
-                    <Icon icon={item.icon} size={18} />
-                </span>
+                <span className="flex-shrink-0">{typeof item.icon === 'string' ? <Icon icon={item.icon} size={18} /> : <item.icon size={18} />}</span>
                 {!collapsed && <span className="flex-1 text-left truncate">{t(item.label)}</span>}
             </button>
         );
