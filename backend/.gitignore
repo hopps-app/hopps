@@ -233,4 +233,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Codegraph
+.codegraph
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,java,maven,intellij+all,visualstudiocode,vim,windows

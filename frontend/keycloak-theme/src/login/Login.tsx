@@ -8,7 +8,7 @@ import { getKcClsx, type KcClsx } from "keycloakify/login/lib/kcClsx";
 import type { KcContext } from "./KcContext";
 import type { I18n } from "./i18n";
 
-import authentikLogo from "../assets/authentik.svg";
+import kollicloudLogo from "../assets/kollicloud.svg";
 
 /**
  * Per-provider brand logos, keyed by the identity provider `alias` configured
@@ -16,7 +16,7 @@ import authentikLogo from "../assets/authentik.svg";
  * `iconClasses` that Keycloak reports for the provider (or no icon at all).
  */
 const providerLogos: Record<string, string> = {
-    authentik: authentikLogo
+    kollicloud: kollicloudLogo
 };
 
 export default function Login(props: PageProps<Extract<KcContext, { pageId: "login.ftl" }>, I18n>) {
@@ -80,19 +80,21 @@ export default function Login(props: PageProps<Extract<KcContext, { pageId: "log
                                                 href={p.loginUrl}
                                             >
                                                 {brandLogo ? (
-                                                    <img src={brandLogo} alt="" aria-hidden="true" className="custom-social-logo" />
+                                                    // The brand SVG already contains the provider wordmark, so we
+                                                    // render it as the full button label and drop the redundant
+                                                    // text. `alt` carries the accessible name in place of the span.
+                                                    <img src={brandLogo} alt={p.displayName} className="custom-social-logo" />
                                                 ) : (
-                                                    p.iconClasses && (
-                                                        <i className={clsx(kcClsx("kcCommonLogoIdP"), p.iconClasses)} aria-hidden="true"></i>
-                                                    )
+                                                    <>
+                                                        {p.iconClasses && (
+                                                            <i className={clsx(kcClsx("kcCommonLogoIdP"), p.iconClasses)} aria-hidden="true"></i>
+                                                        )}
+                                                        <span
+                                                            className={clsx(kcClsx("kcFormSocialAccountNameClass"), p.iconClasses && "kc-social-icon-text")}
+                                                            dangerouslySetInnerHTML={{ __html: kcSanitize(p.displayName) }}
+                                                        ></span>
+                                                    </>
                                                 )}
-                                                <span
-                                                    className={clsx(
-                                                        kcClsx("kcFormSocialAccountNameClass"),
-                                                        (brandLogo || p.iconClasses) && "kc-social-icon-text"
-                                                    )}
-                                                    dangerouslySetInnerHTML={{ __html: kcSanitize(p.displayName) }}
-                                                ></span>
                                             </a>
                                         </li>
                                     );
