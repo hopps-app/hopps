@@ -14,6 +14,12 @@ env:
   # prefix which needs to be in front of version tags
   VERSION_TAG_PREFIX: 'hopps-'
 
+# Spelled out rather than inherited: without this the job runs with whatever the org's default workflow token
+# permission happens to be, and a switch to read-only turns every image push into "denied: denied".
+permissions:
+  contents: read
+  packages: write
+
 # FIXME: This builds and pushes every backend service anytime a change is made inside 'backend/**'
 
 jobs:

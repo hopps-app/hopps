@@ -17,6 +17,12 @@ on:
     branches:
       - main
 
+# Spelled out rather than inherited: without this the job runs with whatever the org's default workflow token
+# permission happens to be, and a switch to read-only turns the image push into "denied: denied".
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     # Verhindert doppelte Ausführung bei PRs
