@@ -15,6 +15,17 @@ spec:
       labels:
         {{- include "hopps.roundcubeSelectorLabels" . | nindent 8 }}
     spec:
+      # Runs fully non-root (uid/gid 33 = www-data). The stock roundcube apache
+      # image assumes root, so we work around its two root-only steps:
+      #  - Apache listens on unprivileged 8080 instead of 80 (a non-root process
+      #    cannot bind :80; NET_BIND_SERVICE via securityContext does NOT help
+      #    because Kubernetes sets no ambient caps, so the cap is dropped when the
+      #    entrypoint execs apache). Port override comes from the ConfigMap below.
+      #  - The SQLite dir (/var/roundcube) and Apache's log dir (/var/log/apache2)
+      #    are root-owned in the image, so we mount writable emptyDirs there;
+      #    fsGroup 33 makes them group-writable for www-data.
+      # The Service still exposes port 80 -> targetPort "http" (8080), so the
+      # Ingress is unaffected. Dev-only mail catcher; SQLite state is ephemeral.
       securityContext:
         runAsNonRoot: true
         runAsUser: 33
@@ -32,8 +43,6 @@ spec:
             capabilities:
               drop:
                 - ALL
-              add:
-                - NET_BIND_SERVICE
           env:
             - name: ROUNDCUBEMAIL_DEFAULT_HOST
               value: {{ include "hopps.greenmailFullname" . }}
@@ -45,7 +54,7 @@ spec:
               value: "3025"
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -59,8 +68,29 @@ spec:
               port: http
             periodSeconds: 10
             failureThreshold: 3
+          volumeMounts:
+            - name: apache-config
+              mountPath: /etc/apache2/ports.conf
+              subPath: ports.conf
+              readOnly: true
+            - name: apache-config
+              mountPath: /etc/apache2/sites-enabled/000-default.conf
+              subPath: 000-default.conf
+              readOnly: true
+            - name: roundcube-var
+              mountPath: /var/roundcube
+            - name: apache-logs
+              mountPath: /var/log/apache2
           {{- with .Values.mailDev.roundcube.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+      volumes:
+        - name: apache-config
+          configMap:
+            name: {{ include "hopps.roundcubeFullname" . }}-apache
+        - name: roundcube-var
+          emptyDir: {}
+        - name: apache-logs
+          emptyDir: {}
 {{- end }}

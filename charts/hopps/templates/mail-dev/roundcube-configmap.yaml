@@ -1,0 +1,25 @@
+{{- if .Values.mailDev.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "hopps.roundcubeFullname" . }}-apache
+  labels:
+    {{- include "hopps.roundcubeLabels" . | nindent 4 }}
+data:
+  # Apache listens on an unprivileged port so the container can run as non-root.
+  ports.conf: |
+    Listen 8080
+  # Matching virtual host on :8080. Logs go to stdout/stderr so `kubectl logs`
+  # works; DocumentRoot is Roundcube's web root (/var/www/html).
+  000-default.conf: |
+    <VirtualHost *:8080>
+        DocumentRoot /var/www/html
+        <Directory /var/www/html>
+            Options -Indexes +FollowSymLinks
+            AllowOverride All
+            Require all granted
+        </Directory>
+        ErrorLog /dev/stderr
+        CustomLog /dev/stdout combined
+    </VirtualHost>
+{{- end }}
