@@ -360,7 +360,8 @@ input[type="password"] {
     gap: 0.5rem;
 }
 
-/* Provider button styled to match the hopps card look.
+/* Provider button styled to match the hopps card look — an outlined
+   counterpart to the filled primary "Sign in" button.
    Uses !important on the layout props to override Keycloakify's default
    kcFormSocialAccountListButtonClass, which otherwise positions the icon
    absolutely and makes the logo overlap the label. */
@@ -371,12 +372,17 @@ input[type="password"] {
     justify-content: center;
     gap: 0.6rem;
     width: 100%;
+    min-height: 3.5rem;
     box-sizing: border-box;
-    padding: 0.7rem 1rem;
-    border: 1px solid transparent !important;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e0cfef !important;
     border-radius: 0.75rem;
-    background: transparent !important;
-    box-shadow: none !important;
+    /* Stays white in every state: the brand SVG carries its own white
+       rounded background, so any tinted fill would show through as a pale
+       chip floating inside the button. The hover is carried by the border,
+       the shadow and the lift instead. */
+    background: #fff !important;
+    box-shadow: 0 1px 2px rgba(85, 36, 121, 0.06) !important;
     color: #333;
     font-family: "Reddit Sans", sans-serif;
     font-size: 0.95rem;
@@ -384,45 +390,56 @@ input[type="password"] {
     text-decoration: none;
     cursor: pointer;
     transition:
+        border-color 150ms ease,
         box-shadow 150ms ease,
         transform 150ms ease;
 }
 .custom-social-button:hover,
 .custom-social-button:focus,
 .custom-social-button:active {
-    background: transparent !important;
-    border-color: transparent !important;
+    background: #fff !important;
     color: #552479 !important;
     text-decoration: none;
     outline: none;
 }
-/* Soft drop shadow on the logo chip so it appears to lift on hover,
-   instead of framing the button with a border or fill. */
-.custom-social-button:hover .custom-social-logo,
-.custom-social-button:focus-visible .custom-social-logo {
-    box-shadow: 0 3px 9px rgba(85, 36, 121, 0.18);
-    border-radius: 0.5rem;
-}
-.custom-social-button:hover {
+.custom-social-button:hover,
+.custom-social-button:focus-visible {
+    border-color: #9955cc !important;
+    box-shadow: 0 6px 16px rgba(85, 36, 121, 0.16) !important;
     transform: translateY(-1px);
 }
 .custom-social-button:active {
+    border-color: #552479 !important;
+    box-shadow: 0 2px 6px rgba(85, 36, 121, 0.14) !important;
     transform: translateY(0);
 }
+/* Keyboard users get a real focus ring on top of the hover treatment. */
 .custom-social-button:focus-visible {
-    outline: none !important;
-    box-shadow: none !important;
+    outline: 2px solid #9955cc !important;
+    outline-offset: 2px;
 }
 
 /* Brand logo inside the provider button. The SVG is a full wordmark (logo +
-   provider name), so it acts as the button label itself — center it and cap
-   its height so it scales down responsively while keeping its aspect ratio. */
+   provider name) drawn on its own white rounded artboard, so it acts as the
+   button label itself. The wordmark only fills ~69% of that artboard's
+   height, so we oversize the image and pull the margins back in: the logo
+   reads at ~32px without inflating the button.
+
+   Keep the negative margins SMALLER than the button's padding. The artboard
+   is opaque white, so if it reaches the edge it paints over the button's own
+   border and the frame disappears behind the logo — visible only at the
+   corners the image doesn't span. 8px padding vs 4px pull-back leaves the
+   border 4px of clearance.
+
+   The asymmetric horizontal margins are an optical nudge — the artboard has
+   more empty space to the right of "KolliCloud" than to the left of the
+   mark, so the wordmark would otherwise sit left of centre. */
 .custom-social-button .custom-social-logo {
     position: static !important;
     width: auto;
-    height: 40px;
+    height: 46px;
     max-width: 100%;
-    margin: 0;
+    margin: -4px -6px -4px 6px;
     object-fit: contain;
     flex-shrink: 1;
 }
