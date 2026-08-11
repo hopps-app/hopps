@@ -4,6 +4,7 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.MemberStatus;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.api.OrganizationResource;
+import app.hopps.organization.domain.OrganizationType;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -286,5 +287,36 @@ class OrganizationResourceAuthorizedTests {
         var organization = organizationRepository.findBySlug("gruenes-herz-ev");
         var rootBommel = organization.getRootBommel();
         assertEquals(newName, rootBommel.getName());
+    }
+
+    @Test
+    @DisplayName("should update the organization type and return it as its enum name")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldUpdateOrganizationType() {
+
+        // The name matters: giving OrganizationType constant-specific class bodies makes each constant an anonymous
+        // subclass, and Jackson then writes it as a bean ({"displayString": "e.V."}) instead of the string enum this
+        // API publishes — which no client can read back.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"type\": \"STIFTUNG\"}")
+                .when()
+                .put("my")
+                .then()
+                .statusCode(200)
+                .body("type", is("STIFTUNG"));
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .when()
+                .get("my")
+                .then()
+                .statusCode(200)
+                .body("type", is("STIFTUNG"));
+
+        assertEquals(OrganizationType.STIFTUNG, organizationRepository.findBySlug("gruenes-herz-ev").getType());
     }
 }
