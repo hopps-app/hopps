@@ -18,6 +18,433 @@ export class Client {
     }
 
     /**
+     * Admin overview figures
+     * @return Overview figures
+     */
+    dashboard(): Promise<DashboardResponse> {
+        let url_ = this.baseUrl + "/admin/dashboard";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDashboard(_response);
+        });
+    }
+
+    protected processDashboard(response: Response): Promise<DashboardResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DashboardResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DashboardResponse>(null as any);
+    }
+
+    /**
+     * List organizations
+     * @return List of organizations
+     */
+    organizationsAll(): Promise<AdminOrganizationRow[]> {
+        let url_ = this.baseUrl + "/admin/organizations";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizationsAll(_response);
+        });
+    }
+
+    protected processOrganizationsAll(response: Response): Promise<AdminOrganizationRow[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminOrganizationRow.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdminOrganizationRow[]>(null as any);
+    }
+
+    /**
+     * Get organization detail
+     * @param id The organization id
+     * @return Organization detail
+     */
+    organizationsGET(id: number): Promise<AdminOrganizationDetail> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizationsGET(_response);
+        });
+    }
+
+    protected processOrganizationsGET(response: Response): Promise<AdminOrganizationDetail> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminOrganizationDetail.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdminOrganizationDetail>(null as any);
+    }
+
+    /**
+     * Soft-delete an organization
+     * @param id The organization id
+     * @return Organization soft-deleted
+     */
+    organizationsDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOrganizationsDELETE(_response);
+        });
+    }
+
+    protected processOrganizationsDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or already soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Organization document-upload activity
+     * @param id The organization id
+     * @return Per-month document-upload activity
+     */
+    documentActivity(id: number): Promise<MonthlyUploadResponse> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/document-activity";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentActivity(_response);
+        });
+    }
+
+    protected processDocumentActivity(response: Response): Promise<MonthlyUploadResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MonthlyUploadResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MonthlyUploadResponse>(null as any);
+    }
+
+    /**
+     * Organization Beleg extraction breakdown
+     * @param id The organization id
+     * @return Per-source document counts
+     */
+    extractionBreakdown(id: number): Promise<ExtractionBreakdownResponse> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/extraction-breakdown";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExtractionBreakdown(_response);
+        });
+    }
+
+    protected processExtractionBreakdown(response: Response): Promise<ExtractionBreakdownResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ExtractionBreakdownResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ExtractionBreakdownResponse>(null as any);
+    }
+
+    /**
+     * Organization activity, as time spent in the application
+     * @param id The organization id
+     * @return Per-day time spent in the application
+     */
+    loginActivity(id: number): Promise<LoginActivityResponse> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/login-activity";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLoginActivity(_response);
+        });
+    }
+
+    protected processLoginActivity(response: Response): Promise<LoginActivityResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = LoginActivityResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization not found or soft-deleted", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<LoginActivityResponse>(null as any);
+    }
+
+    /**
+     * Authorise impersonation of a member
+     * @param id The organization id
+     * @param memberId The member id
+     * @return Impersonation authorised and recorded
+     */
+    impersonate(id: number, memberId: number): Promise<ImpersonationTicket> {
+        let url_ = this.baseUrl + "/admin/organizations/{id}/members/{memberId}/impersonate";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImpersonate(_response);
+        });
+    }
+
+    protected processImpersonate(response: Response): Promise<ImpersonationTicket> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ImpersonationTicket.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Organization or member not found, or the member does not belong to that organization", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The member has no Keycloak account and so cannot be impersonated", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ImpersonationTicket>(null as any);
+    }
+
+    /**
      * List bank CSV schemas
      * @param includeArchived (optional) Include archived schemas
      * @return List of schemas
@@ -3582,6 +4009,48 @@ export class Client {
     }
 
     /**
+     * Report that the member is currently using the application
+     * @return Presence recorded
+     */
+    heartbeat(): Promise<void> {
+        let url_ = this.baseUrl + "/member/activity/heartbeat";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processHeartbeat(_response);
+        });
+    }
+
+    protected processHeartbeat(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Validates the member input
      * @return Validation successful
      */
@@ -4339,7 +4808,7 @@ export class Client {
      * @param includeDrafts (optional) Whether to include draft transactions in the statistics
      * @return Organization statistics
      */
-    organizations(orgId: number, includeDrafts: boolean | undefined): Promise<OrganizationStatistics> {
+    organizationsGET2(orgId: number, includeDrafts: boolean | undefined): Promise<OrganizationStatistics> {
         let url_ = this.baseUrl + "/statistics/organizations/{orgId}?";
         if (orgId === undefined || orgId === null)
             throw new globalThis.Error("The parameter 'orgId' must be defined.");
@@ -4358,11 +4827,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processOrganizations(_response);
+            return this.processOrganizationsGET2(_response);
         });
     }
 
-    protected processOrganizations(response: Response): Promise<OrganizationStatistics> {
+    protected processOrganizationsGET2(response: Response): Promise<OrganizationStatistics> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5045,6 +5514,329 @@ export interface IAddress {
     city?: string;
     plz?: string;
     additionalLine?: string;
+
+    [key: string]: any;
+}
+
+/** A member of an organization, as shown on the admin detail page */
+export class AdminMemberSummary implements IAdminMemberSummary {
+    /** Member id, needed to address this member in admin actions */
+    id?: number;
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address */
+    email?: string;
+    /** Whether this member has a Keycloak account and can therefore be impersonated */
+    hasAccount?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IAdminMemberSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.email = _data["email"];
+            this.hasAccount = _data["hasAccount"];
+        }
+    }
+
+    static fromJS(data: any): AdminMemberSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminMemberSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["email"] = this.email;
+        data["hasAccount"] = this.hasAccount;
+        return data;
+    }
+
+    clone(): AdminMemberSummary {
+        const json = this.toJSON();
+        let result = new AdminMemberSummary();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A member of an organization, as shown on the admin detail page */
+export interface IAdminMemberSummary {
+    /** Member id, needed to address this member in admin actions */
+    id?: number;
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address */
+    email?: string;
+    /** Whether this member has a Keycloak account and can therefore be impersonated */
+    hasAccount?: boolean;
+
+    [key: string]: any;
+}
+
+/** Full organization detail for the admin detail page */
+export class AdminOrganizationDetail implements IAdminOrganizationDetail {
+    id?: number;
+    name?: string;
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of uploaded documents (Belege) for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
+    type?: OrganizationType;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    taxNumber?: string;
+    country?: string;
+    website?: string;
+    phoneNumber?: string;
+    address?: Address;
+    /** All members linked to this organization */
+    members?: AdminMemberSummary[];
+    /** Number of bank statement imports run for this organization */
+    bankImportCount?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAdminOrganizationDetail) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.slug = _data["slug"];
+            this.contactEmail = _data["contactEmail"];
+            this.belegeCount = _data["belegeCount"];
+            this.lastActivityAt = _data["lastActivityAt"] ? new Date(_data["lastActivityAt"].toString()) : undefined as any;
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.type = _data["type"];
+            this.foundingDate = _data["foundingDate"] ? new Date(_data["foundingDate"].toString()) : undefined as any;
+            this.registrationCourt = _data["registrationCourt"];
+            this.registrationNumber = _data["registrationNumber"];
+            this.taxNumber = _data["taxNumber"];
+            this.country = _data["country"];
+            this.website = _data["website"];
+            this.phoneNumber = _data["phoneNumber"];
+            this.address = _data["address"] ? Address.fromJS(_data["address"]) : undefined as any;
+            if (Array.isArray(_data["members"])) {
+                this.members = [] as any;
+                for (let item of _data["members"])
+                    this.members!.push(AdminMemberSummary.fromJS(item));
+            }
+            this.bankImportCount = _data["bankImportCount"];
+        }
+    }
+
+    static fromJS(data: any): AdminOrganizationDetail {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminOrganizationDetail();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["slug"] = this.slug;
+        data["contactEmail"] = this.contactEmail;
+        data["belegeCount"] = this.belegeCount;
+        data["lastActivityAt"] = this.lastActivityAt ? this.lastActivityAt.toISOString() : undefined as any;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["type"] = this.type;
+        data["foundingDate"] = this.foundingDate ? formatDate(this.foundingDate) : undefined as any;
+        data["registrationCourt"] = this.registrationCourt;
+        data["registrationNumber"] = this.registrationNumber;
+        data["taxNumber"] = this.taxNumber;
+        data["country"] = this.country;
+        data["website"] = this.website;
+        data["phoneNumber"] = this.phoneNumber;
+        data["address"] = this.address ? this.address.toJSON() : undefined as any;
+        if (Array.isArray(this.members)) {
+            data["members"] = [];
+            for (let item of this.members)
+                data["members"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["bankImportCount"] = this.bankImportCount;
+        return data;
+    }
+
+    clone(): AdminOrganizationDetail {
+        const json = this.toJSON();
+        let result = new AdminOrganizationDetail();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Full organization detail for the admin detail page */
+export interface IAdminOrganizationDetail {
+    id?: number;
+    name?: string;
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of uploaded documents (Belege) for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
+    type?: OrganizationType;
+    foundingDate?: Date;
+    registrationCourt?: string;
+    registrationNumber?: string;
+    taxNumber?: string;
+    country?: string;
+    website?: string;
+    phoneNumber?: string;
+    address?: Address;
+    /** All members linked to this organization */
+    members?: AdminMemberSummary[];
+    /** Number of bank statement imports run for this organization */
+    bankImportCount?: number;
+
+    [key: string]: any;
+}
+
+/** A single organization row for the admin overview table */
+export class AdminOrganizationRow implements IAdminOrganizationRow {
+    /** Organization id */
+    id?: number;
+    /** Organization name */
+    name?: string;
+    /** URL-safe unique slug */
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of uploaded documents (Belege) for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IAdminOrganizationRow) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.slug = _data["slug"];
+            this.contactEmail = _data["contactEmail"];
+            this.belegeCount = _data["belegeCount"];
+            this.lastActivityAt = _data["lastActivityAt"] ? new Date(_data["lastActivityAt"].toString()) : undefined as any;
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): AdminOrganizationRow {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminOrganizationRow();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["slug"] = this.slug;
+        data["contactEmail"] = this.contactEmail;
+        data["belegeCount"] = this.belegeCount;
+        data["lastActivityAt"] = this.lastActivityAt ? this.lastActivityAt.toISOString() : undefined as any;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        return data;
+    }
+
+    clone(): AdminOrganizationRow {
+        const json = this.toJSON();
+        let result = new AdminOrganizationRow();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A single organization row for the admin overview table */
+export interface IAdminOrganizationRow {
+    /** Organization id */
+    id?: number;
+    /** Organization name */
+    name?: string;
+    /** URL-safe unique slug */
+    slug?: string;
+    /** Owner's email, or any member's email, or null */
+    contactEmail?: string;
+    /** Number of uploaded documents (Belege) for this organization */
+    belegeCount?: number;
+    /** Most recent activity across all members, or null if never seen */
+    lastActivityAt?: Date;
+    /** When the organization was registered */
+    createdAt?: Date;
 
     [key: string]: any;
 }
@@ -7425,6 +8217,257 @@ export interface ICsvPreviewResponse {
     [key: string]: any;
 }
 
+/** Time spent in the application on a single day, summed across members */
+export class DailyActivity implements IDailyActivity {
+    /** The calendar day */
+    day?: Date;
+    /** Seconds spent in the application that day, summed across the organization's members */
+    activeSeconds?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IDailyActivity) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.day = _data["day"] ? new Date(_data["day"].toString()) : undefined as any;
+            this.activeSeconds = _data["activeSeconds"];
+        }
+    }
+
+    static fromJS(data: any): DailyActivity {
+        data = typeof data === 'object' ? data : {};
+        let result = new DailyActivity();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["day"] = this.day ? formatDate(this.day) : undefined as any;
+        data["activeSeconds"] = this.activeSeconds;
+        return data;
+    }
+
+    clone(): DailyActivity {
+        const json = this.toJSON();
+        let result = new DailyActivity();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Time spent in the application on a single day, summed across members */
+export interface IDailyActivity {
+    /** The calendar day */
+    day?: Date;
+    /** Seconds spent in the application that day, summed across the organization's members */
+    activeSeconds?: number;
+
+    [key: string]: any;
+}
+
+/** A count for a single day */
+export class DailyCount implements IDailyCount {
+    /** The calendar day */
+    day?: Date;
+    /** The count for that day */
+    count?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IDailyCount) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.day = _data["day"] ? new Date(_data["day"].toString()) : undefined as any;
+            this.count = _data["count"];
+        }
+    }
+
+    static fromJS(data: any): DailyCount {
+        data = typeof data === 'object' ? data : {};
+        let result = new DailyCount();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["day"] = this.day ? formatDate(this.day) : undefined as any;
+        data["count"] = this.count;
+        return data;
+    }
+
+    clone(): DailyCount {
+        const json = this.toJSON();
+        let result = new DailyCount();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A count for a single day */
+export interface IDailyCount {
+    /** The calendar day */
+    day?: Date;
+    /** The count for that day */
+    count?: number;
+
+    [key: string]: any;
+}
+
+/** Estate-wide figures for the admin overview */
+export class DashboardResponse implements IDashboardResponse {
+    /** Number of active (non-soft-deleted) organizations */
+    totalOrganizations?: number;
+    /** Organizations that registered per month, oldest first, gaps filled with zero */
+    signupsPerMonth?: MonthlyCount[];
+    /** Seconds spent in the application per day across all organizations, oldest first, gaps filled with zero. Combined member time, so a day can exceed 24 hours */
+    activityPerDay?: DailyActivity[];
+    /** Distinct organizations with at least one member active on each day, oldest first */
+    activeOrganizationsPerDay?: DailyCount[];
+    /** Distinct organizations active at any point in the window. Not the sum or maximum of the per-day counts — an organization active on several days still counts once */
+    activeOrganizationsInWindow?: number;
+    /** Documents uploaded per month split by extraction method, oldest first; every month carries all three sources, missing ones as zero */
+    extractionPerMonth?: MonthlyExtraction[];
+
+    [key: string]: any;
+
+    constructor(data?: IDashboardResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.totalOrganizations = _data["totalOrganizations"];
+            if (Array.isArray(_data["signupsPerMonth"])) {
+                this.signupsPerMonth = [] as any;
+                for (let item of _data["signupsPerMonth"])
+                    this.signupsPerMonth!.push(MonthlyCount.fromJS(item));
+            }
+            if (Array.isArray(_data["activityPerDay"])) {
+                this.activityPerDay = [] as any;
+                for (let item of _data["activityPerDay"])
+                    this.activityPerDay!.push(DailyActivity.fromJS(item));
+            }
+            if (Array.isArray(_data["activeOrganizationsPerDay"])) {
+                this.activeOrganizationsPerDay = [] as any;
+                for (let item of _data["activeOrganizationsPerDay"])
+                    this.activeOrganizationsPerDay!.push(DailyCount.fromJS(item));
+            }
+            this.activeOrganizationsInWindow = _data["activeOrganizationsInWindow"];
+            if (Array.isArray(_data["extractionPerMonth"])) {
+                this.extractionPerMonth = [] as any;
+                for (let item of _data["extractionPerMonth"])
+                    this.extractionPerMonth!.push(MonthlyExtraction.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): DashboardResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new DashboardResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["totalOrganizations"] = this.totalOrganizations;
+        if (Array.isArray(this.signupsPerMonth)) {
+            data["signupsPerMonth"] = [];
+            for (let item of this.signupsPerMonth)
+                data["signupsPerMonth"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.activityPerDay)) {
+            data["activityPerDay"] = [];
+            for (let item of this.activityPerDay)
+                data["activityPerDay"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.activeOrganizationsPerDay)) {
+            data["activeOrganizationsPerDay"] = [];
+            for (let item of this.activeOrganizationsPerDay)
+                data["activeOrganizationsPerDay"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["activeOrganizationsInWindow"] = this.activeOrganizationsInWindow;
+        if (Array.isArray(this.extractionPerMonth)) {
+            data["extractionPerMonth"] = [];
+            for (let item of this.extractionPerMonth)
+                data["extractionPerMonth"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+
+    clone(): DashboardResponse {
+        const json = this.toJSON();
+        let result = new DashboardResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Estate-wide figures for the admin overview */
+export interface IDashboardResponse {
+    /** Number of active (non-soft-deleted) organizations */
+    totalOrganizations?: number;
+    /** Organizations that registered per month, oldest first, gaps filled with zero */
+    signupsPerMonth?: MonthlyCount[];
+    /** Seconds spent in the application per day across all organizations, oldest first, gaps filled with zero. Combined member time, so a day can exceed 24 hours */
+    activityPerDay?: DailyActivity[];
+    /** Distinct organizations with at least one member active on each day, oldest first */
+    activeOrganizationsPerDay?: DailyCount[];
+    /** Distinct organizations active at any point in the window. Not the sum or maximum of the per-day counts — an organization active on several days still counts once */
+    activeOrganizationsInWindow?: number;
+    /** Documents uploaded per month split by extraction method, oldest first; every month carries all three sources, missing ones as zero */
+    extractionPerMonth?: MonthlyExtraction[];
+
+    [key: string]: any;
+}
+
 export type DetectionType = "ORG" | "TEMPLATE" | "NONE";
 
 export type DocumentDirection = "INCOMING" | "OUTGOING";
@@ -7709,7 +8752,228 @@ export interface IDocumentUpdateRequest {
     [key: string]: any;
 }
 
+/** All-time breakdown of an organization's documents by extraction method */
+export class ExtractionBreakdownResponse implements IExtractionBreakdownResponse {
+    /** Total documents counted — the sum of all per-source counts */
+    total?: number;
+    /** Document count per extraction source; absent sources are zero, null sources are folded into MANUAL */
+    counts?: { [key: string]: number; };
+
+    [key: string]: any;
+
+    constructor(data?: IExtractionBreakdownResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.total = _data["total"];
+            if (_data["counts"]) {
+                this.counts = {} as any;
+                for (let key in _data["counts"]) {
+                    if (_data["counts"].hasOwnProperty(key))
+                        (this.counts as any)![key] = _data["counts"][key];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): ExtractionBreakdownResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExtractionBreakdownResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["total"] = this.total;
+        if (this.counts) {
+            data["counts"] = {};
+            for (let key in this.counts) {
+                if (this.counts.hasOwnProperty(key))
+                    (data["counts"] as any)[key] = (this.counts as any)[key];
+            }
+        }
+        return data;
+    }
+
+    clone(): ExtractionBreakdownResponse {
+        const json = this.toJSON();
+        let result = new ExtractionBreakdownResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** All-time breakdown of an organization's documents by extraction method */
+export interface IExtractionBreakdownResponse {
+    /** Total documents counted — the sum of all per-source counts */
+    total?: number;
+    /** Document count per extraction source; absent sources are zero, null sources are folded into MANUAL */
+    counts?: { [key: string]: number; };
+
+    [key: string]: any;
+}
+
 export type ExtractionSource = "ZUGFERD" | "AI" | "MANUAL";
+
+/** Authorisation to impersonate a member, plus the Keycloak user id to do it with */
+export class ImpersonationTicket implements IImpersonationTicket {
+    /** Keycloak user id (sub) of the member to impersonate */
+    keycloakId?: string;
+    /** Display name of the member, for confirmation UI */
+    displayName?: string;
+    /** Email address of the member */
+    email?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IImpersonationTicket) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.keycloakId = _data["keycloakId"];
+            this.displayName = _data["displayName"];
+            this.email = _data["email"];
+        }
+    }
+
+    static fromJS(data: any): ImpersonationTicket {
+        data = typeof data === 'object' ? data : {};
+        let result = new ImpersonationTicket();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["keycloakId"] = this.keycloakId;
+        data["displayName"] = this.displayName;
+        data["email"] = this.email;
+        return data;
+    }
+
+    clone(): ImpersonationTicket {
+        const json = this.toJSON();
+        let result = new ImpersonationTicket();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Authorisation to impersonate a member, plus the Keycloak user id to do it with */
+export interface IImpersonationTicket {
+    /** Keycloak user id (sub) of the member to impersonate */
+    keycloakId?: string;
+    /** Display name of the member, for confirmation UI */
+    displayName?: string;
+    /** Email address of the member */
+    email?: string;
+
+    [key: string]: any;
+}
+
+/** Per-day time spent in the application by an organization, over the chart window */
+export class LoginActivityResponse implements ILoginActivityResponse {
+    /** Total members of the organization */
+    totalMembers?: number;
+    /** One entry per day, oldest first, gaps filled with zero */
+    days?: DailyActivity[];
+
+    [key: string]: any;
+
+    constructor(data?: ILoginActivityResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.totalMembers = _data["totalMembers"];
+            if (Array.isArray(_data["days"])) {
+                this.days = [] as any;
+                for (let item of _data["days"])
+                    this.days!.push(DailyActivity.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): LoginActivityResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new LoginActivityResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["totalMembers"] = this.totalMembers;
+        if (Array.isArray(this.days)) {
+            data["days"] = [];
+            for (let item of this.days)
+                data["days"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+
+    clone(): LoginActivityResponse {
+        const json = this.toJSON();
+        let result = new LoginActivityResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Per-day time spent in the application by an organization, over the chart window */
+export interface ILoginActivityResponse {
+    /** Total members of the organization */
+    totalMembers?: number;
+    /** One entry per day, oldest first, gaps filled with zero */
+    days?: DailyActivity[];
+
+    [key: string]: any;
+}
 
 export class MatchAllocationResponse implements IMatchAllocationResponse {
     transactionId?: number;
@@ -7989,6 +9253,215 @@ export interface IMember {
 
 export type MemberStatus = "NO_ACCESS" | "INVITED" | "INVITATION_FAILED" | "ACTIVE";
 
+/** Uploaded documents for a single month */
+export class MonthlyCount implements IMonthlyCount {
+    /** First day of the month */
+    month?: Date;
+    /** Number of documents uploaded that month */
+    count?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IMonthlyCount) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.month = _data["month"] ? new Date(_data["month"].toString()) : undefined as any;
+            this.count = _data["count"];
+        }
+    }
+
+    static fromJS(data: any): MonthlyCount {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlyCount();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["month"] = this.month ? formatDate(this.month) : undefined as any;
+        data["count"] = this.count;
+        return data;
+    }
+
+    clone(): MonthlyCount {
+        const json = this.toJSON();
+        let result = new MonthlyCount();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Uploaded documents for a single month */
+export interface IMonthlyCount {
+    /** First day of the month */
+    month?: Date;
+    /** Number of documents uploaded that month */
+    count?: number;
+
+    [key: string]: any;
+}
+
+/** Documents uploaded in one month, split by extraction method */
+export class MonthlyExtraction implements IMonthlyExtraction {
+    /** First day of the month */
+    month?: Date;
+    /** Document count per extraction source that month; absent sources are zero */
+    counts?: { [key: string]: number; };
+
+    [key: string]: any;
+
+    constructor(data?: IMonthlyExtraction) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.month = _data["month"] ? new Date(_data["month"].toString()) : undefined as any;
+            if (_data["counts"]) {
+                this.counts = {} as any;
+                for (let key in _data["counts"]) {
+                    if (_data["counts"].hasOwnProperty(key))
+                        (this.counts as any)![key] = _data["counts"][key];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): MonthlyExtraction {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlyExtraction();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["month"] = this.month ? formatDate(this.month) : undefined as any;
+        if (this.counts) {
+            data["counts"] = {};
+            for (let key in this.counts) {
+                if (this.counts.hasOwnProperty(key))
+                    (data["counts"] as any)[key] = (this.counts as any)[key];
+            }
+        }
+        return data;
+    }
+
+    clone(): MonthlyExtraction {
+        const json = this.toJSON();
+        let result = new MonthlyExtraction();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Documents uploaded in one month, split by extraction method */
+export interface IMonthlyExtraction {
+    /** First day of the month */
+    month?: Date;
+    /** Document count per extraction source that month; absent sources are zero */
+    counts?: { [key: string]: number; };
+
+    [key: string]: any;
+}
+
+/** Per-month document-upload activity for an organization over the reporting window */
+export class MonthlyUploadResponse implements IMonthlyUploadResponse {
+    /** One entry per month, oldest first, gaps filled with zero */
+    months?: MonthlyCount[];
+
+    [key: string]: any;
+
+    constructor(data?: IMonthlyUploadResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["months"])) {
+                this.months = [] as any;
+                for (let item of _data["months"])
+                    this.months!.push(MonthlyCount.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): MonthlyUploadResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new MonthlyUploadResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.months)) {
+            data["months"] = [];
+            for (let item of this.months)
+                data["months"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+
+    clone(): MonthlyUploadResponse {
+        const json = this.toJSON();
+        let result = new MonthlyUploadResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Per-month document-upload activity for an organization over the reporting window */
+export interface IMonthlyUploadResponse {
+    /** One entry per month, oldest first, gaps filled with zero */
+    months?: MonthlyCount[];
+
+    [key: string]: any;
+}
+
 export class NewMemberInput implements INewMemberInput {
     firstName?: string;
     lastName?: string;
@@ -8143,6 +9616,10 @@ export class Organization implements IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** When the organization was registered */
+    createdAt?: Date;
+    /** Soft-delete marker; null while the organization is active */
+    deletedAt?: Date;
     /** Whether a logo has been uploaded for this organization */
     hasLogo?: boolean;
 
@@ -8184,6 +9661,8 @@ export class Organization implements IOrganization {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.deletedAt = _data["deletedAt"] ? new Date(_data["deletedAt"].toString()) : undefined as any;
             this.hasLogo = _data["hasLogo"];
         }
     }
@@ -8222,6 +9701,8 @@ export class Organization implements IOrganization {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["deletedAt"] = this.deletedAt ? this.deletedAt.toISOString() : undefined as any;
         data["hasLogo"] = this.hasLogo;
         return data;
     }
@@ -8254,6 +9735,10 @@ export interface IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** When the organization was registered */
+    createdAt?: Date;
+    /** Soft-delete marker; null while the organization is active */
+    deletedAt?: Date;
     /** Whether a logo has been uploaded for this organization */
     hasLogo?: boolean;
 

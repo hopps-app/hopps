@@ -17,6 +17,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,6 +73,13 @@ public class Member extends PanacheEntity {
     @Schema(examples = "[]")
     private Collection<Organization> organizations = new ArrayList<>();
 
+    /**
+     * Last time this member made an authenticated request, stamped (throttled) by {@code LastSeenFilter}.
+     */
+    @JsonIgnore
+    @Column(name = "last_seen_at")
+    private Instant lastSeenAt;
+
     @JsonIgnore
     public Collection<Organization> getOrganizations() {
         return Collections.unmodifiableCollection(organizations);
@@ -123,6 +131,14 @@ public class Member extends PanacheEntity {
 
     public String getKeycloakId() {
         return keycloakId;
+    }
+
+    public Instant getLastSeenAt() {
+        return lastSeenAt;
+    }
+
+    public void setLastSeenAt(Instant lastSeenAt) {
+        this.lastSeenAt = lastSeenAt;
     }
 
     public void setStatus(MemberStatus status) {

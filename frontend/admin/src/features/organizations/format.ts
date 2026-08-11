@@ -1,0 +1,104 @@
+/**
+ * Absolute date in German convention: `14.05.2026`.
+ * hopps is German-first and the Klar design language mandates `dd.mm.yyyy`, so this
+ * is fixed to de-DE regardless of the UI language toggle.
+ */
+export function formatDate(iso: string | null): string | null {
+    if (!iso) {
+        return null;
+    }
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+
+/**
+ * Month and year only (`2024-03-14` → `03.2024`). Used where the exact day adds nothing —
+ * "Kunde seit" is a question about months, not dates. Fixed to de-DE like `formatDate`.
+ */
+export function formatMonthYear(iso: string | null): string | null {
+    if (!iso) {
+        return null;
+    }
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+    return new Intl.DateTimeFormat('de-DE', { month: '2-digit', year: 'numeric' }).format(date);
+}
+
+/** Integer with German grouping (`1.240`). Used for the Belege count. */
+export function formatNumber(value: number): string {
+    return new Intl.NumberFormat('de-DE').format(value);
+}
+
+/**
+ * Compact integer with a k-suffix for headline chart figures (`14200` → `14,2k`).
+ * German-first: comma decimal separator, matches the mockup's `14,2k`.
+ */
+export function formatCompact(value: number): string {
+    return new Intl.NumberFormat('de-DE', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+}
+
+/** Signed percentage from a fraction (`0.23` → `+23 %`, `-0.1` → `−10 %`). de-DE grouping. */
+export function formatDeltaPct(fraction: number): string {
+    const pct = Math.round(fraction * 100);
+    const sign = pct > 0 ? '↑ ' : pct < 0 ? '↓ ' : '';
+    return `${sign}${new Intl.NumberFormat('de-DE').format(Math.abs(pct))} %`;
+}
+
+/**
+ * A duration in seconds as a compact hours figure (`12240` → `3,4 Std.`). Below an hour it
+ * degrades to whole minutes (`900` → `15 Min.`) and below a minute to a plain dash, since
+ * "0,01 Std." reads as noise rather than information. German-first, like the other formatters.
+ *
+ * Units are baked in rather than translated: the admin surface is German-first, and these are
+ * the same fixed-locale conventions `formatDate` and `formatNumber` already follow.
+ */
+export function formatDuration(seconds: number): string {
+    if (seconds < 60) {
+        return '–';
+    }
+    if (seconds < 3600) {
+        return `${Math.round(seconds / 60)} Min.`;
+    }
+    return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 }).format(seconds / 3600)} Std.`;
+}
+
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+
+/**
+ * Coarse relative time ("vor 3 Tagen"). Used for last-activity, where the exact
+ * timestamp matters less than the order of magnitude — the question being answered
+ * is "is this org still alive", not "when precisely". Follows the active UI language.
+ */
+export function formatRelative(iso: string | null, locale: string, now: number): string | null {
+    if (!iso) {
+        return null;
+    }
+    const then = new Date(iso).getTime();
+    if (Number.isNaN(then)) {
+        return null;
+    }
+
+    const elapsed = now - then;
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+    if (elapsed < HOUR) {
+        return rtf.format(-Math.floor(elapsed / MINUTE), 'minute');
+    }
+    if (elapsed < DAY) {
+        return rtf.format(-Math.floor(elapsed / HOUR), 'hour');
+    }
+    if (elapsed < 30 * DAY) {
+        return rtf.format(-Math.floor(elapsed / DAY), 'day');
+    }
+    if (elapsed < 365 * DAY) {
+        return rtf.format(-Math.floor(elapsed / (30 * DAY)), 'month');
+    }
+    return rtf.format(-Math.floor(elapsed / (365 * DAY)), 'year');
+}

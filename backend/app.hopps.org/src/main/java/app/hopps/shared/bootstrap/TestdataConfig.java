@@ -424,6 +424,15 @@ public class TestdataConfig {
         private String direction;
         private String extractionSource;
         private String uploadedBy;
+        private Long monthsAgo;
+
+        public Long getMonthsAgo() {
+            return monthsAgo;
+        }
+
+        public void setMonthsAgo(Long monthsAgo) {
+            this.monthsAgo = monthsAgo;
+        }
 
         public Long getId() {
             return id;

@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hopps.adminFullname" . }}
+  labels:
+    {{- include "hopps.adminLabels" . | nindent 4 }}
+spec:
+  {{- if not .Values.admin.autoscaling.enabled }}
+  replicas: {{ .Values.admin.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "hopps.adminSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.admin.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "hopps.adminSelectorLabels" . | nindent 8 }}
+        {{- with .Values.admin.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with concat (.Values.global.imagePullSecrets | default list) (.Values.admin.imagePullSecrets | default list) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.admin.serviceAccount.create }}
+      serviceAccountName: {{ .Values.admin.serviceAccount.name | default (include "hopps.adminFullname" .) }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.admin.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+            - name: VITE_ADMIN_REALM_ROLE
+              value: {{ .Values.admin.realmRole | quote }}
+            {{- if .Values.admin.envVars }}
+            {{- toYaml .Values.admin.envVars | nindent 12 }}
+            {{- end }}
+          securityContext:
+            {{- toYaml .Values.admin.securityContext | nindent 12 }}
+          image: "{{ .Values.admin.image.repository }}:{{ .Values.admin.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.admin.image.pullPolicy }}
+          {{- with .Values.admin.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.admin.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.admin.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.admin.readinessProbe | nindent 12 }}
+          {{- with .Values.admin.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.admin.resources | nindent 12 }}
+          {{- with .Values.admin.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.admin.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.admin.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.admin.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.admin.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

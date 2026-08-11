@@ -1,0 +1,173 @@
+{
+    "brand": {
+        "admin": "Admin"
+    },
+    "menu": {
+        "empty": "Noch keine Menüeinträge.",
+        "overview": "Übersicht",
+        "organizations": "Vereine",
+        "collapse": "Einklappen",
+        "expand": "Ausklappen",
+        "logout": "Abmelden",
+        "userMenu": "Benutzermenü",
+        "userFallback": "Benutzer"
+    },
+    "common": {
+        "loading": "Wird geladen…",
+        "close": "Schließen",
+        "cancel": "Abbrechen"
+    },
+    "language": {
+        "label": "Sprache",
+        "en": "English",
+        "de": "Deutsch"
+    },
+    "dashboard": {
+        "title": "Übersicht",
+        "subtitle": "Alle Vereine in Hopps auf einen Blick.",
+        "loadError": "Die Übersicht konnte nicht geladen werden. Bitte erneut versuchen.",
+        "cards": {
+            "totalOrganizations": "Vereine gesamt",
+            "sinceLastMonth": "seit letztem Monat",
+            "activeOrganizations": "Aktive Vereine",
+            "lastDays_one": "am letzten Tag",
+            "lastDays_other": "in den letzten {{count}} Tagen",
+            "belegeThisMonth": "Belege diesen Monat",
+            "vsPreviousMonth": "ggü. Vormonat",
+            "aiShare": "KI-Auslese-Anteil",
+            "pp": "{{value}} pp",
+            "ofBelege": "{{ai}} von {{total}} Belegen"
+        },
+        "signups": {
+            "eyebrow": "Wachstum",
+            "title": "Vereine gesamt",
+            "subtitle": "Gesamtzahl pro Monat, letzte 12 Monate",
+            "tooltip_one": "{{count}} neu in diesem Monat",
+            "tooltip_other": "{{count}} neu in diesem Monat"
+        },
+        "activity": {
+            "eyebrow": "Nutzung",
+            "title": "Zeit in der Anwendung",
+            "subtitle": "alle Vereine zusammen, letzte {{count}} Tage"
+        },
+        "extraction": {
+            "subtitle": "Belege pro Monat, letzte 12 Monate"
+        }
+    },
+    "organizations": {
+        "title": "Vereine",
+        "subtitle": "Alle in Hopps registrierten Vereine.",
+        "count_one": "{{formatted}} Verein",
+        "count_other": "{{formatted}} Vereine",
+        "searchPlaceholder": "Nach Name, Kürzel oder Kontakt suchen…",
+        "empty": "Keine Vereine gefunden.",
+        "emptyTitle": "Keine Treffer",
+        "emptyText": "Für deine Suche gibt es keine Vereine.",
+        "never": "Nie",
+        "loadError": "Vereine konnten nicht geladen werden. Bitte erneut versuchen.",
+        "drawer": {
+            "eyebrow": "Verein"
+        },
+        "columns": {
+            "organization": "Verein",
+            "status": "Status",
+            "contact": "Kontakt",
+            "belege": "Belege",
+            "lastActivity": "Letzte Aktivität",
+            "created": "Erstellt"
+        },
+        "status": {
+            "active": "Aktiv",
+            "dormant": "Ruhend",
+            "new": "Neu",
+            "never": "Nie aktiv"
+        },
+        "detail": {
+            "back": "Zurück zu den Vereinen",
+            "notFound": "Diesen Verein gibt es nicht.",
+            "stammdaten": "Stammdaten",
+            "aktivitaet": "Aktivität",
+            "vorstand": "Vorstand & Zugänge",
+            "actions": "Aktionen"
+        },
+        "charts": {
+            "empty": "Keine Daten",
+            "login": {
+                "eyebrow": "Aktivität",
+                "title": "Zeit in der Anwendung",
+                "subtitle": "pro Tag, letzte 7 Tage"
+            },
+            "belege": {
+                "eyebrow": "Beleg-Verbrauch",
+                "title": "Belege pro Monat",
+                "tooltip_one": "{{count}} Beleg",
+                "tooltip_other": "{{count}} Belege"
+            },
+            "extraction": {
+                "eyebrow": "Beleg-Auslese",
+                "title": "Erfassungswege",
+                "source": {
+                    "zugferd": "ZUGFeRD",
+                    "ai": "Azure",
+                    "manual": "Manuell erfasst"
+                }
+            },
+            "tokens": {
+                "eyebrow": "Token-Verbrauch",
+                "title": "KI-Token pro Monat"
+            }
+        },
+        "delete": {
+            "zoneTitle": "Verein löschen",
+            "zoneText": "Damit wird der Verein und alles, was dazugehört – Mitglieder, Bommeln, Transaktionen und Dokumente – dauerhaft entfernt. Das kann nicht rückgängig gemacht werden.",
+            "title": "Diesen Verein löschen?",
+            "warning": "Der Verein und alle seine Daten werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "prompt": "Tippe {{name}} ein, um zu bestätigen.",
+            "confirm": "Löschen",
+            "hint": "Alle Daten · nicht umkehrbar",
+            "deleting": "Wird gelöscht…"
+        },
+        "fields": {
+            "type": "Typ",
+            "website": "Website",
+            "address": "Adresse",
+            "contactName": "Kontaktperson",
+            "email": "E-Mail",
+            "phone": "Telefon",
+            "customerSince": "Kunde seit",
+            "belegeCreated": "Belege erstellt",
+            "bankImports": "Bank-Importe",
+            "tokenUsage": "KI-Token-Verbrauch",
+            "tokenNone": "Noch nicht erfasst"
+        },
+        "impersonate": {
+            "action": "Impersonieren",
+            "starting": "Wird gestartet…",
+            "title": "Als dieses Mitglied anmelden",
+            "body": "Du meldest dich als {{name}} an, um dessen Ansicht nachzuvollziehen. Die Anwendung öffnet sich in einem neuen Tab. Der Vorgang wird protokolliert.",
+            "warning": "Achtung: Damit wird deine eigene Anmeldung in diesem Browser ersetzt. Du wirst aus deinem Admin-Konto abgemeldet und musst dich danach neu anmelden.",
+            "failed": "Das Impersonieren ist fehlgeschlagen. Bitte erneut versuchen."
+        },
+        "members": {
+            "empty": "Noch keine Nutzer.",
+            "count_one": "{{count}} Nutzer",
+            "count_other": "{{count}} Nutzer",
+            "actions": "Aktionen für {{name}}",
+            "impersonate": "Impersonieren",
+            "impersonateHint": "Ansicht dieses Nutzers öffnen",
+            "delete": "Löschen",
+            "deleteHint": "Zugang entfernen · nicht umkehrbar"
+        }
+    },
+    "home": {
+        "title": "hopps admin",
+        "subtitle": "Administrations- und Support-Dashboard."
+    },
+    "auth": {
+        "keycloakUnreachable": "Der Anmeldedienst ist nicht erreichbar. Bitte versuchen Sie es später erneut.",
+        "forbidden": {
+            "title": "Zugriff verweigert",
+            "description": "Ihr Konto hat keine Berechtigung für das Admin-Dashboard. Wenden Sie sich an eine Administratorin oder einen Administrator, falls dies ein Fehler ist."
+        }
+    }
+}
