@@ -7,52 +7,35 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
  * <p>
  * Persisted by name ({@link jakarta.persistence.EnumType#STRING})
  * </p>
+ * <p>
+ * The display strings are held in a field rather than in constant-specific class bodies on purpose: a body turns the
+ * constant into an anonymous subclass, and Jackson then serializes it as a bean ({@code {"displayString":"e.V."}})
+ * instead of as its name, which breaks the string enum this API publishes.
+ * </p>
  */
 @Schema(name = "OrganizationType", description = "Legal form of an organization")
 public enum OrganizationType {
 
     /** Eingetragener Verein — the default and by far the most common legal form for German NGOs. */
-    EINGETRAGENER_VEREIN {
-        @Override
-        public String getDisplayString() {
-            return "e.V.";
-        }
-    },
+    EINGETRAGENER_VEREIN("e.V."),
     /** Gemeinnützige GmbH — professionally run organizations with a commercial operation. */
-    GEMEINNUETZIGE_GMBH {
-        @Override
-        public String getDisplayString() {
-            return "gGmbH";
-        }
-    },
+    GEMEINNUETZIGE_GMBH("gGmbH"),
     /** Stiftung, rechtsfähig or as a Treuhandstiftung — endowed assets bound to a purpose, no members. */
-    STIFTUNG {
-        @Override
-        public String getDisplayString() {
-            return "Stiftung";
-        }
-    },
+    STIFTUNG("Stiftung"),
     /** Gemeinnützige Genossenschaft — members acting economically together (Bürgerenergie, social projects). */
-    GEMEINNUETZIGE_GENOSSENSCHAFT {
-        @Override
-        public String getDisplayString() {
-            return "eG";
-        }
-    },
+    GEMEINNUETZIGE_GENOSSENSCHAFT("eG"),
     /** Gemeinnützige UG (haftungsbeschränkt) — the "small gGmbH" for founders with little starting capital. */
-    GEMEINNUETZIGE_UG {
-        @Override
-        public String getDisplayString() {
-            return "gUG (haftungsbeschränkt)";
-        }
-    },
+    GEMEINNUETZIGE_UG("gUG (haftungsbeschränkt)"),
     /** Fallback for anything not covered above. */
-    ANDERE {
-        @Override
-        public String getDisplayString() {
-            return "Andere";
-        }
-    };
+    ANDERE("Andere");
 
-    public abstract String getDisplayString();
+    private final String displayString;
+
+    OrganizationType(String displayString) {
+        this.displayString = displayString;
+    }
+
+    public String getDisplayString() {
+        return displayString;
+    }
 }
