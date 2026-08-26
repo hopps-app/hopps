@@ -1072,7 +1072,7 @@
             "fileTitle": "CSV-Datei hochladen",
             "fileDrop": "Datei hier ablegen oder klicken",
             "fileDropHint": "Unterstützte Formate: .csv, .txt",
-            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps erkennt das Format automatisch — kein Einrichten nötig.",
+            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps erkennt das Format automatisch.",
             "mt940Detected": "MT940 erkannt · {{count}} Umsätze gefunden · kein Schema nötig",
             "showMore": "mehr",
             "showLess": "weniger",
@@ -1215,7 +1215,7 @@
     },
     "konten": {
         "title": "Konten",
-        "subtitle": "Bankkonten — alle Geldtöpfe des Vereins an einem Ort.",
+        "subtitle": "Bankabgleich & Barkasse",
         "balance": "Saldo",
         "open": "offen",
         "allMatched": "abgeglichen",

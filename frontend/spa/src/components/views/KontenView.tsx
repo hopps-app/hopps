@@ -26,6 +26,7 @@ import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
+import DropdownMenu from '@/components/ui/DropdownMenu';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
@@ -58,6 +59,10 @@ function fmtDate(date: string | Date | undefined): string {
     const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
+
+// Tab-bar import action — sized to sit level with the segmented tab bar next to it.
+const importBtnCls =
+    'flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-foreground hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -183,24 +188,24 @@ function AccountCard({
 
             <div className="mt-3 text-xs font-mono text-muted-foreground tracking-widest">{maskIban(account.iban)}</div>
 
-            <div className="flex items-end justify-between mt-3">
-                <div>
-                    <div className="text-xs font-semibold text-muted-foreground">{t('konten.balance')}</div>
-                    <div className="text-[22px] font-black tabular-nums mt-0.5">
-                        {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
-                    </div>
-                </div>
-                <div className="text-right">
+            {/* The status pill shares the small label line rather than sitting beside the amount: at the card's width
+                a long balance and the pill collided, and the pill competed with the number for attention. */}
+            <div className="mt-3">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground">{t('konten.balance')}</span>
                     {openCount > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700">
                             {openCount} {t('konten.open')}
                         </span>
                     ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">
                             <Check className="w-3 h-3" strokeWidth={3} />
                             {t('konten.allMatched')}
                         </span>
                     )}
+                </div>
+                <div className="text-[22px] font-black tabular-nums mt-0.5">
+                    {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
                 </div>
             </div>
 
@@ -696,16 +701,6 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
                     <h3 className="font-bold text-[16.5px]">{t('konten.imports.title')}</h3>
                     <p className="text-sm text-muted-foreground mt-0.5">{t('konten.imports.subtitle')}</p>
                 </div>
-                {accounts.length === 1 && (
-                    <button
-                        type="button"
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
-                        onClick={() => onImport(accounts[0].id!)}
-                    >
-                        <Sheet className="w-4 h-4" />
-                        {t('konten.imports.newImport')}
-                    </button>
-                )}
             </div>
 
             {allImports.length === 0 ? (
@@ -864,6 +859,9 @@ export function KontenView() {
     const totalOpen = Object.values(openCountByAccount).reduce((a, b) => a + b, 0);
 
     const activeAccount = accounts.find((a) => String(a.id) === tab);
+    // Which account an import from the tab bar lands in: the open account tab, or the only account there is.
+    // With several accounts and a non-account tab open it stays null and the button turns into a picker.
+    const importTargetId = activeAccount?.id ?? (accounts.length === 1 ? accounts[0].id! : null);
 
     const tabs: { id: TabId; label: string; badge?: number }[] = [
         { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen > 0 ? totalOpen : undefined },
@@ -876,37 +874,40 @@ export function KontenView() {
     }
 
     return (
-        <div className="flex flex-col gap-6 max-w-screen-xl">
-            {/* Page header */}
-            <p className="text-muted-foreground text-sm">{t('konten.subtitle')}</p>
+        <div className="flex flex-col gap-6 w-full">
+            {/* Page header — same shape as the Belege/Transaktionen pages: title on top, one-line subtitle below. */}
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-[26px] font-bold text-foreground leading-tight">{t('konten.title')}</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">{t('konten.subtitle')}</p>
+                </div>
+            </div>
 
             {/* Bank accounts — collapsed to compact pills by default, expandable to the full cards. The header mirrors
-                the collapsible upload panel on the Belege page: icon box + title on the left, chevron on the right.
+                the collapsible upload panel on the Belege page: icon box + title, then a compact expand/collapse chip.
                 When there are no accounts yet the section is forced open so the "add account" card is shown right away. */}
             <div className="flex flex-col gap-3">
                 {/* Header + collapse toggle — only meaningful once at least one account exists. */}
                 {accounts.length > 0 && (
-                    <button
-                        type="button"
-                        onClick={() => setAccountsExpanded((v) => !v)}
-                        aria-expanded={accountsExpanded}
-                        className="w-full flex items-center gap-3 text-left"
-                    >
+                    <div className="flex items-center gap-3">
                         <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
                             <Landmark className="w-[18px] h-[18px]" />
                         </span>
-                        <span className="flex flex-col min-w-0 flex-1">
-                            <span className="text-sm font-bold text-foreground">
-                                {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                                {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
-                            </span>
+                        <span className="text-sm font-bold text-foreground">
+                            {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
                         </span>
-                        <ChevronDown
-                            className={cn('w-[18px] h-[18px] text-muted-foreground transition-transform flex-shrink-0', accountsExpanded ? 'rotate-180' : '')}
-                        />
-                    </button>
+                        {/* The toggle is a compact chip rather than the whole header row: on a wide page a full-width
+                            button puts the chevron far from the label it belongs to, so both live in one pill here. */}
+                        <button
+                            type="button"
+                            onClick={() => setAccountsExpanded((v) => !v)}
+                            aria-expanded={accountsExpanded}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:text-primary hover:bg-primary/10 transition-colors"
+                        >
+                            {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
+                            <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', accountsExpanded && 'rotate-180')} />
+                        </button>
+                    </div>
                 )}
 
                 {/* Collapsed: compact pills only (the add button lives in the expanded cards view) */}
@@ -950,26 +951,48 @@ export function KontenView() {
                 )}
             </div>
 
-            {/* Segmented tab bar */}
-            <div className="flex gap-0.5 rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 w-fit flex-wrap">
-                {tabs.map((t_) => (
-                    <button
-                        key={t_.id}
-                        type="button"
-                        onClick={() => setTab(t_.id)}
-                        className={cn(
-                            'flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-sm font-medium transition-colors whitespace-nowrap',
-                            tab === t_.id ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-                        )}
-                    >
-                        {t_.label}
-                        {t_.badge !== undefined && (
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
-                                {t_.badge}
-                            </span>
-                        )}
+            {/* Segmented tab bar + import action. The import button lives here rather than inside a single tab so it
+                stays reachable from every tab; the target account is the open account tab, or picked from a menu when
+                the current tab isn't account-specific and there is more than one account. */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex gap-0.5 rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 w-fit flex-wrap">
+                    {tabs.map((t_) => (
+                        <button
+                            key={t_.id}
+                            type="button"
+                            onClick={() => setTab(t_.id)}
+                            className={cn(
+                                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-sm font-medium transition-colors whitespace-nowrap',
+                                tab === t_.id ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                            )}
+                        >
+                            {t_.label}
+                            {t_.badge !== undefined && (
+                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                                    {t_.badge}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {importTargetId !== null ? (
+                    <button type="button" onClick={() => setImportAccountId(importTargetId)} className={importBtnCls}>
+                        <Upload className="w-4 h-4" />
+                        {t('konten.import')}
                     </button>
-                ))}
+                ) : accounts.length > 0 ? (
+                    <DropdownMenu
+                        label={t('konten.imports.account')}
+                        items={accounts.map((a) => ({ title: a.name ?? '', onClick: () => setImportAccountId(a.id!) }))}
+                    >
+                        <button type="button" className={importBtnCls}>
+                            <Upload className="w-4 h-4" />
+                            {t('konten.import')}
+                            <ChevronDown className="w-4 h-4" />
+                        </button>
+                    </DropdownMenu>
+                ) : null}
             </div>
 
             {/* Tab content */}

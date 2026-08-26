@@ -1062,7 +1062,7 @@
             "fileTitle": "Upload CSV file",
             "fileDrop": "Drop file here or click to select",
             "fileDropHint": "Supported formats: .csv, .txt",
-            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps auto-detects the format — no setup needed.",
+            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps auto-detects the format.",
             "mt940Detected": "MT940 detected · {{count}} transactions found · no schema needed",
             "showMore": "more",
             "showLess": "less",
@@ -1216,7 +1216,7 @@
     },
     "konten": {
         "title": "Accounts",
-        "subtitle": "Bank accounts — all funds of the club in one place.",
+        "subtitle": "Bank reconciliation & cash box",
         "balance": "Balance",
         "open": "open",
         "allMatched": "reconciled",
