@@ -259,20 +259,20 @@ function AccountPill({ account, openCount, onClick }: { account: BankAccountResp
         <button
             type="button"
             onClick={onClick}
-            className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:shadow-sm transition-all"
+            className="inline-flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:shadow-sm transition-all"
         >
             <span
-                className="w-6 h-6 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
-                style={accountTileStyle(account.color, 8)}
+                className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
+                style={accountTileStyle(account.color, 10)}
             >
-                <Landmark className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <Landmark className="w-[17px] h-[17px]" strokeWidth={1.75} />
             </span>
-            <span className="text-sm font-semibold truncate max-w-[10rem]">{account.name}</span>
-            <span className="text-sm font-bold tabular-nums text-muted-foreground">
+            <span className="text-[15px] font-semibold truncate max-w-[12rem]">{account.name}</span>
+            <span className="text-[15px] font-bold tabular-nums text-muted-foreground">
                 {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
             </span>
             {openCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                <span className="inline-flex items-center justify-center min-w-[21px] h-[21px] px-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">
                     {openCount}
                 </span>
             )}
