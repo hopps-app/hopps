@@ -60,6 +60,9 @@ function fmtDate(date: string | Date | undefined): string {
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+// Soft elevation for the page's white surfaces — same two-layer shadow the Belege/Transaktionen cards use.
+const cardShadow = 'shadow-[0_1px_2px_rgba(20,20,40,.05),0_6px_22px_rgba(20,20,40,.05)]';
+
 // Tab-bar import action — sized to sit level with the segmented tab bar next to it.
 const importBtnCls =
     'flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-foreground hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap';
@@ -137,6 +140,17 @@ function SignedAmount({
 
 // ─── Account Cards ────────────────────────────────────────────────────────────
 
+// Account colour tile: a soft two-stop gradient with a tinted glow instead of a flat fill, matching the gradient
+// language of the app's primary buttons. `color-mix` derives the lighter top stop straight from the account colour,
+// so any colour the user picks works without parsing the hex.
+function accountTileStyle(color?: string, glow = 14): React.CSSProperties {
+    const c = color || '#9955CC';
+    return {
+        background: `linear-gradient(140deg, color-mix(in srgb, ${c} 72%, white) 0%, ${c} 60%, color-mix(in srgb, ${c} 88%, black) 100%)`,
+        boxShadow: `0 ${glow / 5}px ${glow * 0.7}px color-mix(in srgb, ${c} 22%, transparent)`,
+    };
+}
+
 function maskIban(iban?: string): string {
     if (!iban) return '—';
     const clean = iban.replace(/\s+/g, '');
@@ -159,7 +173,10 @@ function AccountCard({
     const { t } = useTranslation();
     return (
         <div
-            className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 w-64 shrink-0 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all"
+            className={cn(
+                cardShadow,
+                'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 w-64 shrink-0 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all'
+            )}
             onClick={onClick}
             role="button"
             tabIndex={0}
@@ -167,10 +184,10 @@ function AccountCard({
         >
             <div className="flex items-center gap-3">
                 <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
-                    style={{ background: account.color || '#9955CC' }}
+                    className="w-11 h-11 rounded-[14px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
+                    style={accountTileStyle(account.color)}
                 >
-                    <Landmark className="w-5 h-5" />
+                    <Landmark className="w-[19px] h-[19px]" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="font-bold text-[15px] truncate">{account.name}</div>
@@ -244,8 +261,11 @@ function AccountPill({ account, openCount, onClick }: { account: BankAccountResp
             onClick={onClick}
             className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:shadow-sm transition-all"
         >
-            <span className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-white" style={{ background: account.color || '#9955CC' }}>
-                <Landmark className="w-3.5 h-3.5" />
+            <span
+                className="w-6 h-6 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
+                style={accountTileStyle(account.color, 8)}
+            >
+                <Landmark className="w-3.5 h-3.5" strokeWidth={1.75} />
             </span>
             <span className="text-sm font-semibold truncate max-w-[10rem]">{account.name}</span>
             <span className="text-sm font-bold tabular-nums text-muted-foreground">
@@ -393,7 +413,10 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                             return (
                                 <div
                                     key={tx.id}
-                                    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-4"
+                                    className={cn(
+                                        cardShadow,
+                                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-4'
+                                    )}
                                 >
                                     <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center flex-shrink-0">
                                         <Landmark className="w-5 h-5" />
@@ -452,7 +475,12 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
             {/* No open booking matches the active search/filter */}
             {noFilterMatch && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
+                    )}
+                >
                     <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <Search className="w-7 h-7 text-muted-foreground" />
                     </div>
@@ -465,7 +493,12 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
             {/* Empty state when there are no bank transactions at all */}
             {noData && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
+                    )}
+                >
                     <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <Unlink className="w-7 h-7 text-muted-foreground" />
                     </div>
@@ -566,7 +599,12 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
             {isLoading ? (
                 <LoadingState className="py-8" />
             ) : filtered.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2'
+                    )}
+                >
                     <Landmark className="w-8 h-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">{filters.hasAnyFilter ? t('konten.filter.noResults') : t('konten.noTransactions')}</p>
                     {filters.hasAnyFilter && (
@@ -576,7 +614,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                     )}
                 </div>
             ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
                     {/* Header */}
                     <div
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
@@ -712,13 +750,18 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
             </div>
 
             {allImports.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2'
+                    )}
+                >
                     <Sheet className="w-8 h-8 text-muted-foreground" />
                     <p className="font-semibold">{t('konten.imports.empty')}</p>
                     <p className="text-sm text-muted-foreground">{t('konten.imports.emptyDesc')}</p>
                 </div>
             ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
                     <div
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
                         style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}

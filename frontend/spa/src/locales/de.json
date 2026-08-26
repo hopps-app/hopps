@@ -1009,7 +1009,7 @@
             "currencyPlaceholder": "Währung auswählen",
             "openingBalance": "Eröffnungssaldo",
             "openingBalanceDate": "Datum des Eröffnungssaldos",
-            "color": "Farbe (Hex)",
+            "color": "Farbe",
             "colorPicker": "Farbe auswählen",
             "defaultSchema": "Standard-Schema",
             "defaultSchemaPlaceholder": "Schema auswählen",

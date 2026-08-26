@@ -999,7 +999,7 @@
             "currencyPlaceholder": "Select currency",
             "openingBalance": "Opening balance",
             "openingBalanceDate": "Opening balance date",
-            "color": "Color (hex)",
+            "color": "Color",
             "colorPicker": "Pick a color",
             "defaultSchema": "Default schema",
             "defaultSchemaPlaceholder": "Select schema",
