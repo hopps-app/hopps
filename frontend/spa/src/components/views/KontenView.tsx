@@ -483,6 +483,10 @@ type StatusFilter = 'ALL' | 'UNMATCHED' | 'FULLY_MATCHED' | 'IGNORED';
 
 const PAGE_SIZE = 50;
 
+// Header and rows must share one template, otherwise the labels sit over the wrong columns. The trailing status and
+// action columns are fixed-width so the pills and buttons line up down the list regardless of row content.
+const ACCOUNT_TX_COLUMNS = '7.5rem minmax(0, 2fr) minmax(0, 1fr) 7rem 7.5rem';
+
 function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
     const [statusFilter, setStatusFilter] = usePersistedState<StatusFilter>('hopps.konten.account.statusFilter', 'ALL');
@@ -576,7 +580,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                     {/* Header */}
                     <div
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
-                        style={{ gridTemplateColumns: '0.9fr 1.8fr 1.1fr 1.2fr' }}
+                        style={{ gridTemplateColumns: ACCOUNT_TX_COLUMNS }}
                     >
                         <SortHeader
                             label={t('konten.table.date')}
@@ -598,6 +602,8 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                             align="right"
                         />
                         <span className="text-right">{t('konten.table.status')}</span>
+                        {/* Spacer above the per-row assign button so STATUS stays over the status pills. */}
+                        <span aria-hidden />
                     </div>
                     {filtered.map((tx, i) => (
                         <div
@@ -607,7 +613,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                                 'grid items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer',
                                 i < filtered.length - 1 && 'border-b border-gray-100 dark:border-gray-700'
                             )}
-                            style={{ gridTemplateColumns: '0.9fr 1.8fr 1.1fr auto auto' }}
+                            style={{ gridTemplateColumns: ACCOUNT_TX_COLUMNS }}
                         >
                             <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(tx.bookingDate)}</span>
                             <div className="min-w-0">
@@ -620,18 +626,20 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                             <span className="flex justify-end">
                                 <StatusPill status={tx.status} />
                             </span>
-                            {(tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED') && (
-                                <button
-                                    type="button"
-                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-semibold hover:bg-primary/10 hover:text-primary transition-colors ml-2"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (tx.id) onOpenDrawer(tx.id);
-                                    }}
-                                >
-                                    {t('konten.assign')} <ArrowRight className="w-3.5 h-3.5" />
-                                </button>
-                            )}
+                            <span className="flex justify-end">
+                                {(tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED') && (
+                                    <button
+                                        type="button"
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-semibold hover:bg-primary/10 hover:text-primary transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (tx.id) onOpenDrawer(tx.id);
+                                        }}
+                                    >
+                                        {t('konten.assign')} <ArrowRight className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                            </span>
                         </div>
                     ))}
                     {(page > 0 || filtered.length === PAGE_SIZE) && (
