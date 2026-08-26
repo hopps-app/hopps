@@ -29,8 +29,8 @@ function Header() {
         <header className="mb-auto flex flex-wrap sm:justify-start sm:flex-nowrap z-50 w-full text-sm py-4">
             <nav className="w-full sm:flex sm:items-center sm:justify-between">
                 <div className="flex items-center justify-between flex-shrink-0 ">
-                    <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="Hopps">
-                        <img src="/logo2.svg" alt="Hopps" />
+                    <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="hopps">
+                        <img src="/logo2.svg" alt="hopps" />
                     </Link>
                     <AlphaBadge />
                 </div>

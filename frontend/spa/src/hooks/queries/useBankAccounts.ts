@@ -308,7 +308,7 @@ export function useStartImport() {
 
     return useMutation({
         mutationFn: ({ accountId, file, schemaId }: { accountId: number; file: File; schemaId?: number }) =>
-            apiService.orgService.importsPOST(accountId, { data: file, fileName: file.name }, schemaId),
+            apiService.orgService.importsPOST(accountId, schemaId, { data: file, fileName: file.name }),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(variables.accountId) });
         },
