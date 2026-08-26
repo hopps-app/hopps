@@ -711,7 +711,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
 
 // ─── Importe Tab ─────────────────────────────────────────────────────────────
 
-function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; onImport: (id: number) => void }) {
+function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
     const { t } = useTranslation();
 
     const importResults = useQueries({
@@ -1049,7 +1049,7 @@ export function KontenView() {
             {/* Tab content */}
             {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
             {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} />}
-            {tab === 'importe' && <ImporteTab accounts={accounts} onImport={setImportAccountId} />}
+            {tab === 'importe' && <ImporteTab accounts={accounts} />}
 
             {/* Match drawer */}
             {matchDrawerBankTxId !== null && (
