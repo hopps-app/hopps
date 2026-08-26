@@ -94,7 +94,7 @@ public class BankAccountImportResource {
     public Response createImport(
             @PathParam("accountId") @Parameter(description = "Bank account ID") Long accountId,
             @RestForm("file") FileUpload file,
-            @RestForm("schemaId") @Parameter(description = "ID of the BankCsvSchema to apply") Long schemaId) {
+            @QueryParam("schemaId") @Parameter(description = "ID of the BankCsvSchema to apply; omit for MT940 files") Long schemaId) {
         if (file == null || file.fileName() == null || file.fileName().isBlank()) {
             throw new BadRequestException("File is required");
         }
