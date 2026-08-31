@@ -3,8 +3,10 @@ package app.hopps.transaction.api;
 import app.hopps.bankimport.service.BankTransactionMatchService;
 import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentChangedEvent;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
+import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.api.dto.TransactionAggregateResponse;
@@ -80,6 +82,12 @@ public class TransactionResource {
 
     @Inject
     CategoryGroupService categoryGroupService;
+
+    @Inject
+    TradePartyService tradePartyService;
+
+    @Inject
+    Event<DocumentChangedEvent> documentChangedEvent;
 
     @GET
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
@@ -374,8 +382,8 @@ public class TransactionResource {
         // Mirror the document back to a reviewable state so it isn't shown as confirmed while its transaction is a
         // draft.
         Document document = transaction.getDocument();
-        if (document != null && document.getDocumentStatus() == DocumentStatus.CONFIRMED) {
-            document.setDocumentStatus(DocumentStatus.ANALYZED);
+        if (document != null) {
+            revertToReview(document);
         }
 
         LOG.info("Transaction reopened: id={}", transaction.getId());
@@ -397,11 +405,46 @@ public class TransactionResource {
             throw new NotFoundException("Transaction not found");
         }
 
-        // Clean up any bank-transaction matches (and recompute their status) before the row is removed.
+        // Clean up any bank-transaction matches (and recompute their status) before the row is removed. The bank
+        // movement itself is kept and becomes matchable again.
         transactionDeletedEvent.fire(new TransactionDeletedEvent(transaction.getId()));
 
+        // send the document back to review so it can be corrected and confirmed again
+        Document document = transaction.getDocument();
+        if (document != null) {
+            revertToReview(document);
+
+            // cleanup transaction from document
+            document.setTransaction(null);
+            documentChangedEvent.fire(new DocumentChangedEvent(document.getId(),
+                    document.getOrganization() != null ? document.getOrganization().getId() : null));
+        }
+
+        TradeParty sender = transaction.getSender();
+        TradeParty recipient = transaction.getRecipient();
+
         transactionRepository.delete(transaction);
-        LOG.info("Transaction deleted: id={}", id);
+
+        // Trade parties are shared with the document, so they are not cascaded
+        tradePartyService.deleteIfUnreferenced(sender);
+        tradePartyService.deleteIfUnreferenced(recipient);
+
+        LOG.info("Transaction deleted: id={}, receiptRevertedToReview={}", id, document != null);
+    }
+
+    /**
+     * Sends a document back to a reviewable state after its transaction was reopened or deleted, so it is not listed as
+     * confirmed while nothing (or only a draft) is booked behind it. {@code reviewedBy} is cleared because the document
+     * is awaiting review again.
+     *
+     * @param document
+     *            the document to revert
+     */
+    private void revertToReview(Document document) {
+        if (document.getDocumentStatus() == DocumentStatus.CONFIRMED) {
+            document.setDocumentStatus(DocumentStatus.ANALYZED);
+        }
+        document.setReviewedBy(null);
     }
 
 }
