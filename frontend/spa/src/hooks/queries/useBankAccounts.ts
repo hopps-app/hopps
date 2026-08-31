@@ -328,9 +328,12 @@ export function useRollbackImport() {
             // The rollback deletes the import's bank transactions and their matches, so every list that shows them
             // goes stale: the reconciliation feeds, the account balances (computed from the transactions) and the
             // bookkeeping transactions whose coverage was provided by the removed matches.
-            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
-            queryClient.invalidateQueries({ queryKey: bankAccountKeys.all });
-            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
+            for (const queryKey of [bankTransactionKeys.all, bankAccountKeys.all, transactionKeys.all]) {
+                // refetch what is on screen right now...
+                queryClient.invalidateQueries({ queryKey, refetchType: 'active' });
+                // drop the cache of everything that is not
+                queryClient.removeQueries({ queryKey, type: 'inactive' });
+            }
             showSuccess(t('bankImport.toast.rollbackSuccess'));
         },
         onError: () => {
