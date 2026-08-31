@@ -1,5 +1,5 @@
 import { Crosshair } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Tree, { CustomNodeElementProps } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
@@ -11,6 +11,9 @@ import { useTreeData } from './hooks/useTreeData';
 import { BommelTreeComponentProps } from './types';
 
 import { EmptyState } from '@/components/common/EmptyState';
+
+const TREE_ZOOM = 0.9;
+const TREE_TOP_PADDING = 80;
 
 function BommelTreeComponent({
     tree,
@@ -28,7 +31,7 @@ function BommelTreeComponent({
     const { t } = useTranslation();
     const [, forceUpdate] = useState({});
     const treeContainerRef = useRef<HTMLDivElement>(null);
-    const [containerWidth, setContainerWidth] = useState(width);
+    const [containerSize, setContainerSize] = useState<{ width: number; height: number } | null>(null);
     const [movingBommelId, setMovingBommelId] = useState<number | null>(null);
     const [autoEditNodeId, setAutoEditNodeId] = useState<number | null>(null);
     const [centerKey, setCenterKey] = useState(0);
@@ -68,18 +71,18 @@ function BommelTreeComponent({
         };
     }, [dragDropEnabled, updateDrag, endDrag, cancelDrag, hasPendingDrag, onMove]);
 
-    // Measure container width for responsive centering
-    useEffect(() => {
+    // Measure the container so the centring effect below knows what it is centring into
+    useLayoutEffect(() => {
         const container = treeContainerRef.current;
         if (!container) return;
 
         const observer = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                setContainerWidth(entry.contentRect.width);
+                setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height });
             }
         });
         observer.observe(container);
-        setContainerWidth(container.clientWidth);
+        setContainerSize({ width: container.clientWidth, height: container.clientHeight });
 
         return () => observer.disconnect();
     }, []);
@@ -94,6 +97,36 @@ function BommelTreeComponent({
 
     // Convert OrganizationTreeNodeModel[] to react-d3-tree format
     const treeData = useTreeData({ tree, rootBommel });
+
+    const depthFactor = editable ? 100 : 140;
+
+    // A container that has not been laid out yet reports 0 - fall back to the prop rather than centring on nothing
+    const layoutWidth = containerSize?.width || width;
+    const [translate, setTranslate] = useState({ x: layoutWidth / 2, y: TREE_TOP_PADDING });
+
+    // `translate` positions the ROOT node, but a lopsided tree (a deep subtree under one child) puts the
+    // tree's visual mass well off to one side of its root. Measure what was actually drawn and centre that
+    // instead. The bbox is in the <g>'s own coordinates, so it does not change when we move the <g> - this
+    // settles after one correction rather than feeding back on itself.
+    useLayoutEffect(() => {
+        const container = treeContainerRef.current;
+        if (!container || !containerSize || containerSize.width === 0) return;
+
+        const group = container.querySelector<SVGGraphicsElement>('g.rd3t-g');
+        if (!group) return;
+
+        const box = group.getBBox();
+        if (box.width === 0 && box.height === 0) return;
+
+        const contentHeight = box.height * TREE_ZOOM;
+        const next = {
+            x: containerSize.width / 2 - (box.x + box.width / 2) * TREE_ZOOM,
+            // Centre vertically too, but never push the root below a comfortable top padding
+            y: Math.max(TREE_TOP_PADDING, (containerSize.height - contentHeight) / 2) - box.y * TREE_ZOOM,
+        };
+
+        setTranslate((prev) => (Math.abs(prev.x - next.x) < 1 && Math.abs(prev.y - next.y) < 1 ? prev : next));
+    }, [containerSize, treeData, centerKey, editable]);
 
     const movingBommel = movingBommelId !== null ? tree.find((n) => n.id === movingBommelId) : null;
 
@@ -230,7 +263,7 @@ function BommelTreeComponent({
     return (
         <div
             ref={treeContainerRef}
-            className={`w-full h-full border dark:border-gray-700 rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[var(--purple-50)] dark:to-[var(--purple-100)] relative ${dragState.isDragging ? 'select-none' : ''}`}
+            className={`w-full h-full border border-border-soft shadow-card rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[var(--purple-50)] dark:to-[var(--purple-100)] relative ${dragState.isDragging ? 'select-none' : ''}`}
             style={height ? { height } : undefined}
         >
             {/* Center tree button */}
@@ -249,16 +282,16 @@ function BommelTreeComponent({
                     key={centerKey}
                     data={treeData}
                     orientation="vertical"
-                    translate={{ x: containerWidth / 2, y: 80 }}
+                    translate={translate}
                     pathFunc="step"
                     nodeSize={{ x: editable ? 280 : 240, y: editable ? 116 : 140 }}
                     renderCustomNodeElement={renderCustomNodeElement}
                     separation={{ siblings: 1, nonSiblings: 1.2 }}
-                    zoom={0.9}
+                    zoom={TREE_ZOOM}
                     scaleExtent={{ min: 0.3, max: 2 }}
                     enableLegacyTransitions={false}
                     collapsible={true}
-                    depthFactor={editable ? 100 : 140}
+                    depthFactor={depthFactor}
                     pathClassFunc={() => 'tree-link'}
                     hasInteractiveNodes={dragDropEnabled}
                     draggable={!dragState.isDragging}

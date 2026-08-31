@@ -206,7 +206,7 @@ export function BommelCard({
         >
             {/* Card */}
             <div
-                className={`relative rounded-xl ${isEditing ? 'px-3 py-3' : 'px-3 py-2'} shadow-md transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white dark:bg-[var(--purple-100)] border border-purple-200 dark:border-[var(--purple-300)]'}`}
+                className={`relative rounded-xl ${isEditing ? 'px-3 py-3' : 'px-3 py-2'} shadow-card transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white dark:bg-[var(--purple-100)] border border-border-soft'}`}
             >
                 {/* Collapse toggle button */}
                 {hasChildren && (

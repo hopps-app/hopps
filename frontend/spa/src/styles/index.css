@@ -62,6 +62,8 @@
         --muted: #636363;
         --muted-foreground: #636363;
         --border: #A7A7A7;
+        /* Softer companion to --border for card surfaces and dividers, where #A7A7A7 reads too heavy */
+        --border-soft: #E7E1EE;
         --popover: var(--grey-white);
         --popover-foreground: var(--grey-black);
         --accent: #f1f1f1;
@@ -112,6 +114,7 @@
         --muted: #a3a3a3;
         --muted-foreground: #a3a3a3;
         --border: #A7A7A7;
+        --border-soft: #3B2352;
         --popover: var(--purple-100);
         --popover-foreground: var(--grey-white);
         --accent: var(--purple-900);

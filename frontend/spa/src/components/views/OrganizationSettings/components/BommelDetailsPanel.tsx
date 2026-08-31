@@ -17,7 +17,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
 
     if (!selectedBommel) {
         return (
-            <Card className="sticky top-6 h-full bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)]">
+            <Card className="sticky top-6 h-full bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)] border-border-soft shadow-card">
                 <CardContent className="py-12 text-center text-gray-500 dark:text-gray-400">{t('organization.structure.details.selectBommel')}</CardContent>
             </Card>
         );
@@ -29,7 +29,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
     const transactionsCount = selectedBommel.data?.transactionsCount || 0;
 
     return (
-        <Card className="sticky top-6 h-full bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)]">
+        <Card className="sticky top-6 h-full bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)] border-border-soft shadow-card">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     {selectedBommel.data?.emoji && <Emoji emoji={selectedBommel.data.emoji} className="text-2xl" />}
@@ -37,7 +37,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 border-b dark:border-gray-700 pb-4">
+                <div className="grid grid-cols-2 gap-4 border-b border-border-soft pb-4">
                     <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.income')}</p>
                         <p className="text-xl text-green-600 dark:text-green-400">+{income.toLocaleString('de-DE')}€</p>
@@ -48,7 +48,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                     </div>
                 </div>
 
-                <div className="border-b dark:border-gray-700 pb-4">
+                <div className="border-b border-border-soft pb-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.total')}</p>
                     <p className={`text-xl ${total >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {total >= 0 ? '+' : ''}

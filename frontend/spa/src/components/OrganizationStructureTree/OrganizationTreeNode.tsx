@@ -198,8 +198,8 @@ function OrganizationTreeNode(props: Props) {
                     {/* Card */}
                     <div
                         onClick={handleSelect}
-                        className={cn('flex-1 bg-white rounded-lg shadow-sm transition-all cursor-pointer p-4 border border-[#A7A7A7]', {
-                            'hover:shadow-md hover:scale-[1.01]': !props.disableHover && !props.isSelected,
+                        className={cn('flex-1 bg-white rounded-lg shadow-card transition-all cursor-pointer p-4 border border-border-soft', {
+                            'hover:shadow-card-hover hover:scale-[1.01]': !props.disableHover && !props.isSelected,
                             'ring-2 ring-primary shadow-md': props.isSelected,
                         })}
                     >
@@ -292,7 +292,7 @@ function OrganizationTreeNode(props: Props) {
                                             </div>
                                         </div>
                                         {/* Total - emphasized with border */}
-                                        <div className="text-right bg-gray-50 rounded-lg px-3 py-2 border border-[#A7A7A7]">
+                                        <div className="text-right bg-gray-50 rounded-lg px-3 py-2 border border-border-soft">
                                             <div className="text-xs text-gray-500 mb-0.5">{t('organization.structure.details.total')}</div>
                                             <div
                                                 className={cn('text-base font-semibold', {

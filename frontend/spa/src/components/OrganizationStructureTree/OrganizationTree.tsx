@@ -100,7 +100,7 @@ function OrganizationTree({ tree, editable, selectable, createNode, deleteNode, 
 
     return (
         <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-            <div className="rounded-[30px] border border-[#A7A7A7] overflow-hidden">
+            <div className="rounded-[30px] border border-border-soft shadow-card overflow-hidden">
                 {/* Root Bommel - always pinned at the top */}
                 {rootNode && (
                     <RootBommelHeader

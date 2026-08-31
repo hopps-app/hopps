@@ -2,14 +2,14 @@ export function TreeStyles() {
     return (
         <style>{`
             .tree-link {
-                stroke: #a78bfa;
-                stroke-width: 2.5;
+                stroke: #cfcfcf;
+                stroke-width: 2;
                 fill: none;
                 transition: stroke 0.2s ease;
             }
             .tree-link:hover {
-                stroke: #7c3aed;
-                stroke-width: 3.5;
+                stroke: #a7a7a7;
+                stroke-width: 3;
             }
             .rd3t-node circle {
                 display: none;
@@ -23,7 +23,8 @@ export function TreeStyles() {
             }
             .bommel-card:hover {
                 transform: scale(1.05);
-                box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15) !important;
+                /* keep in step with the shadow-card-hover token in tailwind.config.js */
+                box-shadow: 0 2px 4px rgba(60, 20, 90, 0.06), 0 8px 24px rgba(60, 20, 90, 0.1) !important;
             }
             .bommel-card.is-being-dragged {
                 opacity: 0.4;
