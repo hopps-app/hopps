@@ -1,4 +1,4 @@
-import { BankAccountResponse, DocumentResponse } from '@hopps/api-client';
+import { BankAccountResponse, DocumentResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeftRight,
@@ -14,11 +14,12 @@ import {
     Plus,
     Search,
     Sheet,
+    Trash2,
     Unlink,
     Upload,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
@@ -26,6 +27,7 @@ import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import DropdownMenu from '@/components/ui/DropdownMenu';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { ReviewDrawer } from '@/components/views/BelegeView';
@@ -34,6 +36,7 @@ import {
     useBankTransactionsByAccount,
     useAllBankTransactions,
     useBankTransactionAggregate,
+    useRollbackImport,
     bankTransactionKeys,
     bankImportKeys,
     type BankTransactionSortField,
@@ -711,8 +714,40 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
 
 // ─── Importe Tab ─────────────────────────────────────────────────────────────
 
+type ImportWithAccount = IBankImportResponse & { account: BankAccountResponse };
+
+// Only a finished import can be removed — while the worker is still reading the file its rows are incomplete, so the
+// backend rejects the rollback for QUEUED/PROCESSING.
+const DELETABLE_IMPORT_STATUSES = ['COMPLETED', 'PARTIAL', 'FAILED'];
+
+/**
+ * Text of the delete confirmation. Spells out what disappears with the import (its bank transactions) and — when the
+ * import's movements are already reconciled — that those links to bookkeeping transactions are removed too. Receipts
+ * and bookkeeping transactions themselves survive; only the link between them and the bank movement is lost.
+ * <p>
+ * Rendered via {@code Trans} so the file name and the counts can be emphasised inside the sentence: the
+ * {@code <strong>} tags live in the translation, where each language decides which words they wrap.
+ */
+function DeleteImportDescription({ target }: { target: ImportWithAccount | null }) {
+    if (!target) return null;
+    const matched = target.matchedTransactions ?? 0;
+    return (
+        <>
+            <Trans i18nKey="konten.imports.deleteConfirm" count={target.totalTransactions ?? 0} values={{ file: target.fileName ?? '' }} />
+            {matched > 0 && (
+                <>
+                    {' '}
+                    <Trans i18nKey="konten.imports.deleteMatchedWarning" count={matched} />
+                </>
+            )}
+        </>
+    );
+}
+
 function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
     const { t } = useTranslation();
+    const rollbackMutation = useRollbackImport();
+    const [deleteTarget, setDeleteTarget] = useState<ImportWithAccount | null>(null);
 
     const importResults = useQueries({
         queries: accounts.map((a) => ({
@@ -721,7 +756,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
         })),
     });
 
-    const allImports = importResults.flatMap((r, i) => (r.data ?? []).map((imp) => ({ ...imp, account: accounts[i] })));
+    const allImports: ImportWithAccount[] = importResults.flatMap((r, i) => (r.data ?? []).map((imp) => ({ ...imp, account: accounts[i] })));
     allImports.sort((a, b) => {
         const da = new Date(a.finishedAt ?? 0).getTime();
         const db = new Date(b.finishedAt ?? 0).getTime();
@@ -729,6 +764,12 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
     });
 
     const isLoading = importResults.some((r) => r.isLoading);
+
+    const handleDelete = async () => {
+        if (!deleteTarget?.id || !deleteTarget.account.id) return;
+        await rollbackMutation.mutateAsync({ importId: deleteTarget.id, accountId: deleteTarget.account.id });
+        setDeleteTarget(null);
+    };
 
     const importStatusColor: Record<string, string> = {
         COMPLETED: 'bg-emerald-100 text-emerald-700',
@@ -764,7 +805,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                 <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
                     <div
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
-                        style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
+                        style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr 60px' }}
                     >
                         <span>{t('konten.table.date')}</span>
                         <span>{t('konten.imports.account')}</span>
@@ -772,6 +813,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                         <span className="text-right">{t('konten.imports.imported')}</span>
                         <span className="text-right">{t('konten.imports.duplicates')}</span>
                         <span className="text-right">{t('konten.imports.matched')}</span>
+                        <span className="sr-only">{t('konten.imports.actions')}</span>
                     </div>
                     {allImports.map((imp, i) => {
                         const total = imp.totalTransactions ?? 0;
@@ -782,7 +824,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                             <div
                                 key={imp.id}
                                 className={cn('grid items-center px-4 py-3', i < allImports.length - 1 && 'border-b border-gray-100 dark:border-gray-700')}
-                                style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
+                                style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr 60px' }}
                             >
                                 <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(imp.finishedAt)}</span>
                                 <span className="flex items-center gap-1.5 text-sm">
@@ -827,11 +869,36 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                                         <span className="text-sm text-muted-foreground">—</span>
                                     )}
                                 </div>
+                                <div className="flex justify-end">
+                                    {DELETABLE_IMPORT_STATUSES.includes(imp.status ?? '') && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setDeleteTarget(imp)}
+                                            title={t('konten.imports.delete')}
+                                            aria-label={t('konten.imports.delete')}
+                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
                 </div>
             )}
+
+            <ConfirmDialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => !open && setDeleteTarget(null)}
+                title={t('konten.imports.deleteTitle')}
+                description={<DeleteImportDescription target={deleteTarget} />}
+                confirmLabel={t('common.delete')}
+                cancelLabel={t('common.cancel')}
+                onConfirm={handleDelete}
+                destructive
+                loading={rollbackMutation.isPending}
+            />
         </div>
     );
 }

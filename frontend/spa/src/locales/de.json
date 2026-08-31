@@ -1284,7 +1284,14 @@
             "matched": "Zugeordnet",
             "newImport": "Neuer Import",
             "empty": "Noch keine Importe",
-            "emptyDesc": "Importiere einen Kontoauszug, um die Historie zu füllen."
+            "emptyDesc": "Importiere einen Kontoauszug, um die Historie zu füllen.",
+            "actions": "Aktionen",
+            "delete": "Import löschen",
+            "deleteTitle": "Import löschen?",
+            "deleteConfirm_one": "Der Import <strong>„{{file}}“</strong> und der daraus erzeugte <strong>1 Umsatz</strong> werden gelöscht. Hochgeladene Belege und erfasste Buchungen bleiben erhalten.",
+            "deleteConfirm_other": "Der Import <strong>„{{file}}“</strong> und die daraus erzeugten <strong>{{count}} Umsätze</strong> werden gelöscht. Hochgeladene Belege und erfasste Buchungen bleiben erhalten.",
+            "deleteMatchedWarning_one": "Achtung: <strong>1 dieser Umsätze</strong> ist einer Buchung zugeordnet – diese Zuordnung geht verloren.",
+            "deleteMatchedWarning_other": "Achtung: <strong>{{count}} dieser Umsätze</strong> sind Buchungen zugeordnet – diese Zuordnungen gehen verloren."
         },
         "empty": {
             "title": "Noch keine Bankkonten",

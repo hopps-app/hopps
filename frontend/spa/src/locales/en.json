@@ -1285,7 +1285,14 @@
             "matched": "Matched",
             "newImport": "New import",
             "empty": "No imports yet",
-            "emptyDesc": "Import a bank statement to populate the history."
+            "emptyDesc": "Import a bank statement to populate the history.",
+            "actions": "Actions",
+            "delete": "Delete import",
+            "deleteTitle": "Delete import?",
+            "deleteConfirm_one": "The import <strong>\"{{file}}\"</strong> and the <strong>one transaction</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
+            "deleteConfirm_other": "The import <strong>\"{{file}}\"</strong> and the <strong>{{count}} transactions</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
+            "deleteMatchedWarning_one": "Note: <strong>1 of these transactions</strong> is linked to a bookkeeping entry — that link will be removed.",
+            "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed."
         },
         "empty": {
             "title": "No bank accounts yet",

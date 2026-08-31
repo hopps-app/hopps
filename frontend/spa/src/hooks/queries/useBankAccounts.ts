@@ -325,6 +325,12 @@ export function useRollbackImport() {
             apiService.orgService.importsDELETE(importId).then(() => ({ accountId })),
         onSuccess: ({ accountId }) => {
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(accountId) });
+            // The rollback deletes the import's bank transactions and their matches, so every list that shows them
+            // goes stale: the reconciliation feeds, the account balances (computed from the transactions) and the
+            // bookkeeping transactions whose coverage was provided by the removed matches.
+            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+            queryClient.invalidateQueries({ queryKey: bankAccountKeys.all });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             showSuccess(t('bankImport.toast.rollbackSuccess'));
         },
         onError: () => {
