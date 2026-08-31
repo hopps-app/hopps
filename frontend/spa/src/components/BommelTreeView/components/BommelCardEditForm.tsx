@@ -76,10 +76,10 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
     };
 
     return (
-        <div ref={containerRef} className="flex flex-col gap-0.5 flex-1 min-w-0" onClick={(e) => e.stopPropagation()} onBlur={handleBlur}>
-            <div className="flex items-center gap-1 flex-1 min-w-0">
-                <div className="w-8 flex-shrink-0">
-                    <EmojiField value={emoji} onChange={onEmojiChange} className="py-0 px-0.5 h-6 text-xs" />
+        <div ref={containerRef} className="flex flex-col gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()} onBlur={handleBlur}>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="w-11 flex-shrink-0">
+                    <EmojiField value={emoji} onChange={onEmojiChange} className="py-0 px-1 h-8 text-sm" />
                 </div>
                 <input
                     type="text"
@@ -88,7 +88,7 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                     onKeyDown={handleKeyDown}
                     autoFocus
                     maxLength={BOMMEL_NAME_MAX_LENGTH + 1}
-                    className={`flex-1 min-w-0 bg-white dark:bg-[var(--purple-50)] text-gray-700 dark:text-gray-100 text-xs font-semibold px-1.5 py-0.5 rounded border-2 outline-none ${
+                    className={`flex-1 min-w-0 h-8 bg-white dark:bg-[var(--purple-50)] text-gray-700 dark:text-gray-100 text-sm font-semibold px-2 py-1 rounded border-2 outline-none ${
                         validationError ? 'border-red-500' : 'border-purple-500'
                     }`}
                     aria-label={t('organization.structure.editName')}
@@ -98,7 +98,7 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                 />
             </div>
             {validationError && (
-                <div id="bommel-name-error" className="text-red-300 text-[10px] font-medium pl-9" role="alert">
+                <div id="bommel-name-error" className="text-red-300 text-[10px] font-medium pl-[3.25rem]" role="alert">
                     {validationError}
                 </div>
             )}
