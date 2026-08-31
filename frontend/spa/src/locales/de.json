@@ -787,7 +787,14 @@
             "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Der Beleg wird dauerhaft gelöscht.",
             "confirm": "Ja, löschen",
             "error": "Fehler beim Löschen des Belegs",
-            "success": "Beleg erfolgreich gelöscht"
+            "success": "Beleg erfolgreich gelöscht",
+            "optionTransactionOnly": "Nur die Buchung wird entfernt. Der Beleg bleibt erhalten und wartet wieder auf Prüfung.",
+            "optionWithReceipt": "Buchung und Beleg werden dauerhaft gelöscht, inklusive der hochgeladenen Datei.",
+            "confirmTransactionOnly": "Nur Transaktion löschen",
+            "confirmWithReceipt": "Mit Beleg löschen",
+            "successTransactionOnly": "Transaktion gelöscht – der Beleg wartet wieder auf Prüfung",
+            "successWithReceipt": "Beleg und Transaktion gelöscht",
+            "descriptionNoName": "Sind Sie sicher, dass Sie diese Transaktion ({{amount}}) löschen möchten?"
         },
         "title": "Belege",
         "subtitle": "{{count}} ungeprüfte Belege",

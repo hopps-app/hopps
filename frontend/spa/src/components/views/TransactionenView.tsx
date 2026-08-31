@@ -30,14 +30,14 @@ import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGr
 import TransactionCategoryFilter from '@/components/CategoryGroups/TransactionCategoryFilter';
 import { LoadingState } from '@/components/common/LoadingState';
 import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
-import { useDocument } from '@/hooks/queries/useDocuments';
+import { useDeleteDocument, useDocument } from '@/hooks/queries/useDocuments';
 import {
     useTransactions,
     useTransactionAggregate,
@@ -163,6 +163,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     // mirroring the receipt detail view. Fetching is gated on documentId (the hook no-ops when it's undefined).
     const { data: linkedDoc } = useDocument(tx?.documentId ?? undefined);
     const deleteMutation = useDeleteTransaction();
+    const deleteDocumentMutation = useDeleteDocument();
     const updateMutation = useUpdateTransaction();
     const confirmMutation = useConfirmTransaction();
     const reopenMutation = useReopenTransaction();
@@ -290,9 +291,14 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
         onClose();
     }
 
-    async function handleDelete() {
+    // Deleting the document takes its transaction with it, so "with receipt" is a single call to the document endpoint.
+    async function handleDelete(withReceipt: boolean) {
         if (!txId) return;
-        await deleteMutation.mutateAsync(txId);
+        if (withReceipt && tx?.documentId != null) {
+            await deleteDocumentMutation.mutateAsync(tx.documentId);
+        } else {
+            await deleteMutation.mutateAsync(txId);
+        }
         setConfirmDeleteOpen(false);
         onDeleted();
         onClose();
@@ -702,16 +708,14 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                 )}
             </div>
 
-            <ConfirmDialog
+            <DeleteTransactionDialog
                 open={confirmDeleteOpen}
-                onOpenChange={setConfirmDeleteOpen}
-                title={t('transactions.detail.deleteConfirmTitle')}
-                description={t('transactions.detail.deleteConfirmText')}
-                confirmLabel={t('transactions.detail.delete')}
-                cancelLabel={t('transactions.detail.cancel')}
-                onConfirm={handleDelete}
-                destructive
-                loading={deleteMutation.isPending}
+                transactionName={tx?.name || tx?.senderName || ''}
+                transactionAmount={fmtCurrency(tx?.total)}
+                hasReceipt={tx?.documentId != null}
+                onDeleteTransactionOnly={() => handleDelete(false)}
+                onDeleteWithReceipt={() => handleDelete(true)}
+                onCancel={() => setConfirmDeleteOpen(false)}
             />
         </>
     );
@@ -874,6 +878,7 @@ export function TransactionenView() {
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const bulkDelete = useDeleteTransaction();
+    const deleteDocumentBulk = useDeleteDocument();
     const PAGE_SIZE = 30;
 
     // Open a specific transaction when navigated to with ?id= (e.g. from a linked receipt)
@@ -975,10 +980,28 @@ export function TransactionenView() {
 
     const clearSelection = () => setSelectedIds(new Set());
 
-    const handleBulkDelete = async () => {
+    // documentId per selected row, for the "with receipts" branch. Only the loaded page is known here; a selection
+    // carried over from another page falls back to a transaction-only delete, so no receipt is removed unseen.
+    const selectedDocumentIds = useMemo(() => {
+        const byId = new Map<number, number | null>();
+        (txData ?? []).forEach((tx) => {
+            if (tx.id != null && selectedIds.has(tx.id)) byId.set(tx.id, tx.documentId ?? null);
+        });
+        return byId;
+    }, [txData, selectedIds]);
+
+    const selectionHasReceipts = Array.from(selectedDocumentIds.values()).some((docId) => docId != null);
+
+    const handleBulkDelete = async (withReceipts: boolean) => {
         const ids = Array.from(selectedIds);
         // allSettled so one failed delete doesn't abort the rest; the list refetches via query invalidation.
-        await Promise.allSettled(ids.map((id) => bulkDelete.mutateAsync(id)));
+        await Promise.allSettled(
+            ids.map((id) => {
+                const documentId = withReceipts ? selectedDocumentIds.get(id) : null;
+                // Deleting the document removes its transaction too, so rows with a receipt need only that one call.
+                return documentId != null ? deleteDocumentBulk.mutateAsync(documentId) : bulkDelete.mutateAsync(id);
+            })
+        );
         if (selectedTxId != null && selectedIds.has(selectedTxId)) setSelectedTxId(null);
         clearSelection();
         setBulkDeleteOpen(false);
@@ -1423,16 +1446,15 @@ export function TransactionenView() {
             {/* Create transaction drawer */}
             <CreateTransactionDrawer open={createOpen} onClose={() => setCreateOpen(false)} />
 
-            <ConfirmDialog
+            <DeleteTransactionDialog
                 open={bulkDeleteOpen}
-                onOpenChange={setBulkDeleteOpen}
-                title={t('transactions.bulk.confirmTitle')}
+                transactionName=""
+                transactionAmount=""
                 description={t('transactions.bulk.confirmDesc', { n: selectedIds.size })}
-                confirmLabel={t('transactions.bulk.delete')}
-                cancelLabel={t('common.cancel')}
-                onConfirm={handleBulkDelete}
-                destructive
-                loading={bulkDelete.isPending}
+                hasReceipt={selectionHasReceipts}
+                onDeleteTransactionOnly={() => handleBulkDelete(false)}
+                onDeleteWithReceipt={() => handleBulkDelete(true)}
+                onCancel={() => setBulkDeleteOpen(false)}
             />
         </div>
     );
