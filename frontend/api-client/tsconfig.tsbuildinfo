@@ -1,1 +1,1 @@
-{"root":["./src/apiservice.ts","./src/authenticatedhttpclient.ts","./src/index.ts","./src/pact/invoicesservice.pact.test.ts","./src/services/orgservice.ts","./src/types/user.ts"],"version":"6.0.3"}
+{"root":["./src/apiservice.ts","./src/authenticatedhttpclient.ts","./src/index.ts","./src/pact/invoicesservice.pact.test.ts","./src/services/orgservice.ts","./src/types/user.ts"],"version":"5.8.3"}
