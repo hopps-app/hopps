@@ -861,7 +861,14 @@
             "warning": "This action cannot be undone. The receipt will be permanently deleted.",
             "confirm": "Yes, delete",
             "error": "Failed to delete receipt",
-            "success": "Receipt successfully deleted"
+            "success": "Receipt successfully deleted",
+            "optionTransactionOnly": "Only the booking is removed. The receipt is kept and returns to review.",
+            "optionWithReceipt": "Booking and receipt are permanently deleted, including the uploaded file.",
+            "confirmTransactionOnly": "Delete transaction only",
+            "confirmWithReceipt": "Delete with receipt",
+            "successTransactionOnly": "Transaction deleted - the receipt is awaiting review again",
+            "successWithReceipt": "Receipt and transaction deleted",
+            "descriptionNoName": "Are you sure you want to delete this transaction ({{amount}})?"
         },
         "title": "Receipts",
         "subtitle": "{{count}} unreviewed receipts",

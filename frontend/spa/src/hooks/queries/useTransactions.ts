@@ -168,6 +168,8 @@ export function useDeleteTransaction() {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             // Deleting a transaction may unmatch a bank transaction (status reset on the backend) — refresh those too.
             queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+            // A linked receipt survives and returns to review state — refresh documents so it reappears there.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
         },
     });
 }

@@ -11,6 +11,7 @@ import ReceiptsEmptyState from '@/components/Receipts/ReceiptsEmptyState';
 import ReceiptsTableHeader from '@/components/Receipts/ReceiptsTableHeader';
 import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { useDeleteDocument } from '@/hooks/queries/useDocuments';
 import { transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -28,6 +29,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const pageSize = 10;
     const [deleteTarget, setDeleteTarget] = useState<Receipt | null>(null);
     const deleteTransaction = useDeleteTransaction();
+    const deleteDocument = useDeleteDocument();
 
     // Map UI filters to API filters
     const apiFilters = useMemo(() => {
@@ -116,21 +118,34 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
 
     const deletingRef = useRef(false);
 
-    const handleDeleteConfirm = useCallback(async () => {
-        if (!deleteTarget) return;
-        if (deletingRef.current) return;
-        deletingRef.current = true;
-        try {
-            await deleteTransaction.mutateAsync(parseInt(deleteTarget.id, 10));
-            setDeleteTarget(null);
-            showSuccess(t('receipts.deleteDialog.success'));
-        } catch (e) {
-            console.error(e);
-            showError(t('receipts.deleteDialog.error'));
-        } finally {
-            deletingRef.current = false;
-        }
-    }, [deleteTarget, deleteTransaction, showError, showSuccess, t]);
+    // Two ways out: drop only the booking and leave the receipt to be reviewed again, or delete both. Deleting the
+    // document deletes its transaction along with it, so the second case is a single call to the document endpoint.
+    const runDelete = useCallback(
+        async (withReceipt: boolean) => {
+            if (!deleteTarget) return;
+            if (deletingRef.current) return;
+            deletingRef.current = true;
+            try {
+                if (withReceipt && deleteTarget.documentId !== null) {
+                    await deleteDocument.mutateAsync(deleteTarget.documentId);
+                    showSuccess(t('receipts.deleteDialog.successWithReceipt'));
+                } else {
+                    await deleteTransaction.mutateAsync(parseInt(deleteTarget.id, 10));
+                    showSuccess(deleteTarget.documentId !== null ? t('receipts.deleteDialog.successTransactionOnly') : t('receipts.deleteDialog.success'));
+                }
+                setDeleteTarget(null);
+            } catch (e) {
+                console.error(e);
+                showError(t('receipts.deleteDialog.error'));
+            } finally {
+                deletingRef.current = false;
+            }
+        },
+        [deleteTarget, deleteDocument, deleteTransaction, showError, showSuccess, t]
+    );
+
+    const handleDeleteTransactionOnly = useCallback(() => runDelete(false), [runDelete]);
+    const handleDeleteWithReceipt = useCallback(() => runDelete(true), [runDelete]);
 
     const handleDeleteCancel = useCallback(() => {
         setDeleteTarget(null);
@@ -227,7 +242,9 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
                 open={!!deleteTarget}
                 transactionName={deleteTarget?.issuer || ''}
                 transactionAmount={deleteTarget ? formatAmount(deleteTarget.amount) : ''}
-                onConfirm={handleDeleteConfirm}
+                hasReceipt={deleteTarget?.documentId != null}
+                onDeleteTransactionOnly={handleDeleteTransactionOnly}
+                onDeleteWithReceipt={handleDeleteWithReceipt}
                 onCancel={handleDeleteCancel}
             />
         </div>
