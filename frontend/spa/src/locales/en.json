@@ -289,7 +289,7 @@
             "dragDropHint": "Bommels can now be moved via drag & drop",
             "centerTree": "Center",
             "addSibling": "Add Bommel",
-            "rootCannotEdit": "The root bommel cannot be edited",
+            "editRoot": "Edit root bommel",
             "rootCannotDelete": "The root bommel cannot be deleted",
             "toast": {
                 "createSuccess": "Bommel successfully created",

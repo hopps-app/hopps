@@ -4,6 +4,9 @@ import * as _ from 'lodash';
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
 import apiService from '@/services/ApiService.ts';
 
+// Emoji-mart id, rendered by the Emoji component. Users can change it in the structure editor.
+export const ROOT_BOMMEL_DEFAULT_EMOJI = 'house';
+
 export class OrganisationTreeService {
     async getOrganizationBommels(organizationId: number): Promise<Bommel[]> {
         const items = await apiService.orgService.bommelsAll(organizationId);
@@ -51,7 +54,7 @@ export class OrganisationTreeService {
                 new Bommel({
                     organizationId,
                     name: 'root',
-                    emoji: '',
+                    emoji: ROOT_BOMMEL_DEFAULT_EMOJI,
                     children: [],
                     parent: undefined,
                 })

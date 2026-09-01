@@ -4,6 +4,10 @@ export default {
     content: ['./src/**/*.{js,jsx,ts,tsx}'],
     theme: {
         extend: {
+            boxShadow: {
+                card: '0 1px 2px rgba(60, 20, 90, 0.04), 0 4px 12px rgba(60, 20, 90, 0.06)',
+                'card-hover': '0 2px 4px rgba(60, 20, 90, 0.06), 0 8px 24px rgba(60, 20, 90, 0.10)',
+            },
             borderRadius: {
                 lg: 'var(--radius)',
                 md: 'calc(var(--radius) - 2px)',
@@ -43,6 +47,7 @@ export default {
                 },
                 separator: 'var(--separator)',
                 border: 'hsl(var(--border))',
+                'border-soft': 'var(--border-soft)',
                 input: 'hsl(var(--input))',
                 ring: 'hsl(var(--ring))',
                 'hover-active': 'var(--hover-active)',

@@ -1,4 +1,4 @@
-import { Edit, Check, RefreshCw, AlertCircle, Info, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { RefreshCw, AlertCircle, Info, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -257,23 +257,14 @@ function OrganizationSettingsView() {
                                 {!isDemoMode && (
                                     <Button
                                         variant={isEditMode ? 'default' : 'outline'}
+                                        icon={isEditMode ? 'Check' : 'Pencil2'}
                                         onClick={() => {
                                             const newEditMode = !isEditMode;
                                             setIsEditMode(newEditMode);
                                             if (!newEditMode) setIsDragDropMode(false);
                                         }}
                                     >
-                                        {isEditMode ? (
-                                            <>
-                                                <Check className="w-4 h-4 mr-2" />
-                                                {t('organization.structure.done')}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Edit className="w-4 h-4 mr-2" />
-                                                {t('organization.structure.edit')}
-                                            </>
-                                        )}
+                                        {isEditMode ? t('organization.structure.done') : t('organization.structure.edit')}
                                     </Button>
                                 )}
                                 <button

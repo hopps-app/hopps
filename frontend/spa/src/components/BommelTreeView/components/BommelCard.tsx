@@ -86,7 +86,7 @@ export function BommelCard({
     };
 
     const handleStartEdit = () => {
-        if (editable && !isRoot) {
+        if (editable) {
             setEditedName(nodeDatum.name);
             setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
             setIsEditing(true);
@@ -206,7 +206,7 @@ export function BommelCard({
         >
             {/* Card */}
             <div
-                className={`relative rounded-xl px-3 py-2 shadow-md transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white dark:bg-[var(--purple-100)] border border-purple-200 dark:border-[var(--purple-300)]'}`}
+                className={`relative rounded-xl ${isEditing ? 'px-3 py-3' : 'px-3 py-2'} shadow-card transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white dark:bg-[var(--purple-100)] border border-border-soft'}`}
             >
                 {/* Collapse toggle button */}
                 {hasChildren && (
@@ -256,9 +256,9 @@ export function BommelCard({
                         />
                     ) : (
                         <div
-                            className={`flex items-center gap-2 min-w-0 flex-1 ${editable && !dragDropEnabled && !isRoot ? 'cursor-text hover:opacity-80' : ''}`}
+                            className={`flex items-center gap-2 min-w-0 flex-1 ${editable && !dragDropEnabled ? 'cursor-text hover:opacity-80' : ''}`}
                             onClick={(e) => {
-                                if (editable && !dragDropEnabled && !isRoot) {
+                                if (editable && !dragDropEnabled) {
                                     e.stopPropagation();
                                     handleStartEdit();
                                 }
