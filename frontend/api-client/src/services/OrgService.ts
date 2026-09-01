@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -1886,15 +1886,19 @@ export class Client {
     /**
      * Queue a bank file import
      * @param accountId Bank account ID
+     * @param schemaId (optional) ID of the BankCsvSchema to apply; omit for MT940 files
      * @param file (optional) 
-     * @param schemaId (optional) 
      * @return Import queued
      */
-    importsPOST(accountId: number, file: FileParameter | undefined, schemaId: number | undefined): Promise<BankImportResponse> {
-        let url_ = this.baseUrl + "/bankaccounts/{accountId}/imports";
+    importsPOST(accountId: number, schemaId: number | undefined, file: FileParameter | undefined): Promise<BankImportResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{accountId}/imports?";
         if (accountId === undefined || accountId === null)
             throw new globalThis.Error("The parameter 'accountId' must be defined.");
         url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        if (schemaId === null)
+            throw new globalThis.Error("The parameter 'schemaId' cannot be null.");
+        else if (schemaId !== undefined)
+            url_ += "schemaId=" + encodeURIComponent("" + schemaId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -1902,10 +1906,6 @@ export class Client {
             throw new globalThis.Error("The parameter 'file' cannot be null.");
         else
             content_.append("file", file.data, file.fileName ? file.fileName : "file");
-        if (schemaId === null || schemaId === undefined)
-            throw new globalThis.Error("The parameter 'schemaId' cannot be null.");
-        else
-            content_.append("schemaId", schemaId.toString());
 
         let options_: RequestInit = {
             body: content_,

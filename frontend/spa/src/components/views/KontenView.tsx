@@ -1,4 +1,4 @@
-import { BankAccountResponse, DocumentResponse } from '@hopps/api-client';
+import { BankAccountResponse, DocumentResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeftRight,
@@ -14,11 +14,12 @@ import {
     Plus,
     Search,
     Sheet,
+    Trash2,
     Unlink,
     Upload,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
@@ -26,6 +27,8 @@ import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import DropdownMenu from '@/components/ui/DropdownMenu';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
@@ -33,6 +36,7 @@ import {
     useBankTransactionsByAccount,
     useAllBankTransactions,
     useBankTransactionAggregate,
+    useRollbackImport,
     bankTransactionKeys,
     bankImportKeys,
     type BankTransactionSortField,
@@ -58,6 +62,13 @@ function fmtDate(date: string | Date | undefined): string {
     const d = typeof date === 'string' ? new Date(date) : date;
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
+
+// Soft elevation for the page's white surfaces — same two-layer shadow the Belege/Transaktionen cards use.
+const cardShadow = 'shadow-[0_1px_2px_rgba(20,20,40,.05),0_6px_22px_rgba(20,20,40,.05)]';
+
+// Tab-bar import action — sized to sit level with the segmented tab bar next to it.
+const importBtnCls =
+    'flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-foreground hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -132,6 +143,17 @@ function SignedAmount({
 
 // ─── Account Cards ────────────────────────────────────────────────────────────
 
+// Account colour tile: a soft two-stop gradient with a tinted glow instead of a flat fill, matching the gradient
+// language of the app's primary buttons. `color-mix` derives the lighter top stop straight from the account colour,
+// so any colour the user picks works without parsing the hex.
+function accountTileStyle(color?: string, glow = 14): React.CSSProperties {
+    const c = color || '#9955CC';
+    return {
+        background: `linear-gradient(140deg, color-mix(in srgb, ${c} 72%, white) 0%, ${c} 60%, color-mix(in srgb, ${c} 88%, black) 100%)`,
+        boxShadow: `0 ${glow / 5}px ${glow * 0.7}px color-mix(in srgb, ${c} 22%, transparent)`,
+    };
+}
+
 function maskIban(iban?: string): string {
     if (!iban) return '—';
     const clean = iban.replace(/\s+/g, '');
@@ -154,7 +176,10 @@ function AccountCard({
     const { t } = useTranslation();
     return (
         <div
-            className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 w-64 shrink-0 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all"
+            className={cn(
+                cardShadow,
+                'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 w-64 shrink-0 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all'
+            )}
             onClick={onClick}
             role="button"
             tabIndex={0}
@@ -162,10 +187,10 @@ function AccountCard({
         >
             <div className="flex items-center gap-3">
                 <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
-                    style={{ background: account.color || '#9955CC' }}
+                    className="w-11 h-11 rounded-[14px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
+                    style={accountTileStyle(account.color)}
                 >
-                    <Landmark className="w-5 h-5" />
+                    <Landmark className="w-[19px] h-[19px]" strokeWidth={1.75} />
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="font-bold text-[15px] truncate">{account.name}</div>
@@ -183,24 +208,24 @@ function AccountCard({
 
             <div className="mt-3 text-xs font-mono text-muted-foreground tracking-widest">{maskIban(account.iban)}</div>
 
-            <div className="flex items-end justify-between mt-3">
-                <div>
-                    <div className="text-xs font-semibold text-muted-foreground">{t('konten.balance')}</div>
-                    <div className="text-[22px] font-black tabular-nums mt-0.5">
-                        {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
-                    </div>
-                </div>
-                <div className="text-right">
+            {/* The status pill shares the small label line rather than sitting beside the amount: at the card's width
+                a long balance and the pill collided, and the pill competed with the number for attention. */}
+            <div className="mt-3">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground">{t('konten.balance')}</span>
                     {openCount > 0 ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700">
                             {openCount} {t('konten.open')}
                         </span>
                     ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700">
                             <Check className="w-3 h-3" strokeWidth={3} />
                             {t('konten.allMatched')}
                         </span>
                     )}
+                </div>
+                <div className="text-[22px] font-black tabular-nums mt-0.5">
+                    {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
                 </div>
             </div>
 
@@ -237,17 +262,20 @@ function AccountPill({ account, openCount, onClick }: { account: BankAccountResp
         <button
             type="button"
             onClick={onClick}
-            className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:shadow-sm transition-all"
+            className="inline-flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:shadow-sm transition-all"
         >
-            <span className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-white" style={{ background: account.color || '#9955CC' }}>
-                <Landmark className="w-3.5 h-3.5" />
+            <span
+                className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
+                style={accountTileStyle(account.color, 10)}
+            >
+                <Landmark className="w-[17px] h-[17px]" strokeWidth={1.75} />
             </span>
-            <span className="text-sm font-semibold truncate max-w-[10rem]">{account.name}</span>
-            <span className="text-sm font-bold tabular-nums text-muted-foreground">
+            <span className="text-[15px] font-semibold truncate max-w-[12rem]">{account.name}</span>
+            <span className="text-[15px] font-bold tabular-nums text-muted-foreground">
                 {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
             </span>
             {openCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                <span className="inline-flex items-center justify-center min-w-[21px] h-[21px] px-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">
                     {openCount}
                 </span>
             )}
@@ -388,7 +416,10 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                             return (
                                 <div
                                     key={tx.id}
-                                    className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-4"
+                                    className={cn(
+                                        cardShadow,
+                                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-4'
+                                    )}
                                 >
                                     <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center flex-shrink-0">
                                         <Landmark className="w-5 h-5" />
@@ -447,7 +478,12 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
             {/* No open booking matches the active search/filter */}
             {noFilterMatch && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
+                    )}
+                >
                     <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <Search className="w-7 h-7 text-muted-foreground" />
                     </div>
@@ -460,7 +496,12 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
             {/* Empty state when there are no bank transactions at all */}
             {noData && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
+                    )}
+                >
                     <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <Unlink className="w-7 h-7 text-muted-foreground" />
                     </div>
@@ -477,6 +518,10 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 type StatusFilter = 'ALL' | 'UNMATCHED' | 'FULLY_MATCHED' | 'IGNORED';
 
 const PAGE_SIZE = 50;
+
+// Header and rows must share one template, otherwise the labels sit over the wrong columns. The trailing status and
+// action columns are fixed-width so the pills and buttons line up down the list regardless of row content.
+const ACCOUNT_TX_COLUMNS = '7.5rem minmax(0, 2fr) minmax(0, 1fr) 7rem 7.5rem';
 
 function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
@@ -557,7 +602,12 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
             {isLoading ? (
                 <LoadingState className="py-8" />
             ) : filtered.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2'
+                    )}
+                >
                     <Landmark className="w-8 h-8 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">{filters.hasAnyFilter ? t('konten.filter.noResults') : t('konten.noTransactions')}</p>
                     {filters.hasAnyFilter && (
@@ -567,11 +617,11 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                     )}
                 </div>
             ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
                     {/* Header */}
                     <div
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
-                        style={{ gridTemplateColumns: '0.9fr 1.8fr 1.1fr 1.2fr' }}
+                        style={{ gridTemplateColumns: ACCOUNT_TX_COLUMNS }}
                     >
                         <SortHeader
                             label={t('konten.table.date')}
@@ -593,6 +643,8 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                             align="right"
                         />
                         <span className="text-right">{t('konten.table.status')}</span>
+                        {/* Spacer above the per-row assign button so STATUS stays over the status pills. */}
+                        <span aria-hidden />
                     </div>
                     {filtered.map((tx, i) => (
                         <div
@@ -602,7 +654,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                                 'grid items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer',
                                 i < filtered.length - 1 && 'border-b border-gray-100 dark:border-gray-700'
                             )}
-                            style={{ gridTemplateColumns: '0.9fr 1.8fr 1.1fr auto auto' }}
+                            style={{ gridTemplateColumns: ACCOUNT_TX_COLUMNS }}
                         >
                             <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(tx.bookingDate)}</span>
                             <div className="min-w-0">
@@ -615,18 +667,20 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                             <span className="flex justify-end">
                                 <StatusPill status={tx.status} />
                             </span>
-                            {(tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED') && (
-                                <button
-                                    type="button"
-                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-semibold hover:bg-primary/10 hover:text-primary transition-colors ml-2"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (tx.id) onOpenDrawer(tx.id);
-                                    }}
-                                >
-                                    {t('konten.assign')} <ArrowRight className="w-3.5 h-3.5" />
-                                </button>
-                            )}
+                            <span className="flex justify-end">
+                                {(tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED') && (
+                                    <button
+                                        type="button"
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-semibold hover:bg-primary/10 hover:text-primary transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (tx.id) onOpenDrawer(tx.id);
+                                        }}
+                                    >
+                                        {t('konten.assign')} <ArrowRight className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                            </span>
                         </div>
                     ))}
                     {(page > 0 || filtered.length === PAGE_SIZE) && (
@@ -660,8 +714,40 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
 
 // ─── Importe Tab ─────────────────────────────────────────────────────────────
 
-function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; onImport: (id: number) => void }) {
+type ImportWithAccount = IBankImportResponse & { account: BankAccountResponse };
+
+// Only a finished import can be removed — while the worker is still reading the file its rows are incomplete, so the
+// backend rejects the rollback for QUEUED/PROCESSING.
+const DELETABLE_IMPORT_STATUSES = ['COMPLETED', 'PARTIAL', 'FAILED'];
+
+/**
+ * Text of the delete confirmation. Spells out what disappears with the import (its bank transactions) and — when the
+ * import's movements are already reconciled — that those links to bookkeeping transactions are removed too. Receipts
+ * and bookkeeping transactions themselves survive; only the link between them and the bank movement is lost.
+ * <p>
+ * Rendered via {@code Trans} so the file name and the counts can be emphasised inside the sentence: the
+ * {@code <strong>} tags live in the translation, where each language decides which words they wrap.
+ */
+function DeleteImportDescription({ target }: { target: ImportWithAccount | null }) {
+    if (!target) return null;
+    const matched = target.matchedTransactions ?? 0;
+    return (
+        <>
+            <Trans i18nKey="konten.imports.deleteConfirm" count={target.totalTransactions ?? 0} values={{ file: target.fileName ?? '' }} />
+            {matched > 0 && (
+                <>
+                    {' '}
+                    <Trans i18nKey="konten.imports.deleteMatchedWarning" count={matched} />
+                </>
+            )}
+        </>
+    );
+}
+
+function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
     const { t } = useTranslation();
+    const rollbackMutation = useRollbackImport();
+    const [deleteTarget, setDeleteTarget] = useState<ImportWithAccount | null>(null);
 
     const importResults = useQueries({
         queries: accounts.map((a) => ({
@@ -670,7 +756,7 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
         })),
     });
 
-    const allImports = importResults.flatMap((r, i) => (r.data ?? []).map((imp) => ({ ...imp, account: accounts[i] })));
+    const allImports: ImportWithAccount[] = importResults.flatMap((r, i) => (r.data ?? []).map((imp) => ({ ...imp, account: accounts[i] })));
     allImports.sort((a, b) => {
         const da = new Date(a.finishedAt ?? 0).getTime();
         const db = new Date(b.finishedAt ?? 0).getTime();
@@ -678,6 +764,12 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
     });
 
     const isLoading = importResults.some((r) => r.isLoading);
+
+    const handleDelete = async () => {
+        if (!deleteTarget?.id || !deleteTarget.account.id) return;
+        await rollbackMutation.mutateAsync({ importId: deleteTarget.id, accountId: deleteTarget.account.id });
+        setDeleteTarget(null);
+    };
 
     const importStatusColor: Record<string, string> = {
         COMPLETED: 'bg-emerald-100 text-emerald-700',
@@ -696,29 +788,24 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
                     <h3 className="font-bold text-[16.5px]">{t('konten.imports.title')}</h3>
                     <p className="text-sm text-muted-foreground mt-0.5">{t('konten.imports.subtitle')}</p>
                 </div>
-                {accounts.length === 1 && (
-                    <button
-                        type="button"
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
-                        onClick={() => onImport(accounts[0].id!)}
-                    >
-                        <Sheet className="w-4 h-4" />
-                        {t('konten.imports.newImport')}
-                    </button>
-                )}
             </div>
 
             {allImports.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2">
+                <div
+                    className={cn(
+                        cardShadow,
+                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2'
+                    )}
+                >
                     <Sheet className="w-8 h-8 text-muted-foreground" />
                     <p className="font-semibold">{t('konten.imports.empty')}</p>
                     <p className="text-sm text-muted-foreground">{t('konten.imports.emptyDesc')}</p>
                 </div>
             ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
                     <div
                         className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
-                        style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
+                        style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr 60px' }}
                     >
                         <span>{t('konten.table.date')}</span>
                         <span>{t('konten.imports.account')}</span>
@@ -726,6 +813,7 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
                         <span className="text-right">{t('konten.imports.imported')}</span>
                         <span className="text-right">{t('konten.imports.duplicates')}</span>
                         <span className="text-right">{t('konten.imports.matched')}</span>
+                        <span className="sr-only">{t('konten.imports.actions')}</span>
                     </div>
                     {allImports.map((imp, i) => {
                         const total = imp.totalTransactions ?? 0;
@@ -736,7 +824,7 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
                             <div
                                 key={imp.id}
                                 className={cn('grid items-center px-4 py-3', i < allImports.length - 1 && 'border-b border-gray-100 dark:border-gray-700')}
-                                style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr' }}
+                                style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr 60px' }}
                             >
                                 <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(imp.finishedAt)}</span>
                                 <span className="flex items-center gap-1.5 text-sm">
@@ -781,11 +869,36 @@ function ImporteTab({ accounts, onImport }: { accounts: BankAccountResponse[]; o
                                         <span className="text-sm text-muted-foreground">—</span>
                                     )}
                                 </div>
+                                <div className="flex justify-end">
+                                    {DELETABLE_IMPORT_STATUSES.includes(imp.status ?? '') && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setDeleteTarget(imp)}
+                                            title={t('konten.imports.delete')}
+                                            aria-label={t('konten.imports.delete')}
+                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
                 </div>
             )}
+
+            <ConfirmDialog
+                open={deleteTarget !== null}
+                onOpenChange={(open) => !open && setDeleteTarget(null)}
+                title={t('konten.imports.deleteTitle')}
+                description={<DeleteImportDescription target={deleteTarget} />}
+                confirmLabel={t('common.delete')}
+                cancelLabel={t('common.cancel')}
+                onConfirm={handleDelete}
+                destructive
+                loading={rollbackMutation.isPending}
+            />
         </div>
     );
 }
@@ -864,6 +977,9 @@ export function KontenView() {
     const totalOpen = Object.values(openCountByAccount).reduce((a, b) => a + b, 0);
 
     const activeAccount = accounts.find((a) => String(a.id) === tab);
+    // Which account an import from the tab bar lands in: the open account tab, or the only account there is.
+    // With several accounts and a non-account tab open it stays null and the button turns into a picker.
+    const importTargetId = activeAccount?.id ?? (accounts.length === 1 ? accounts[0].id! : null);
 
     const tabs: { id: TabId; label: string; badge?: number }[] = [
         { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen > 0 ? totalOpen : undefined },
@@ -876,37 +992,40 @@ export function KontenView() {
     }
 
     return (
-        <div className="flex flex-col gap-6 max-w-screen-xl">
-            {/* Page header */}
-            <p className="text-muted-foreground text-sm">{t('konten.subtitle')}</p>
+        <div className="flex flex-col gap-6 w-full">
+            {/* Page header — same shape as the Belege/Transaktionen pages: title on top, one-line subtitle below. */}
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-[26px] font-bold text-foreground leading-tight">{t('konten.title')}</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">{t('konten.subtitle')}</p>
+                </div>
+            </div>
 
             {/* Bank accounts — collapsed to compact pills by default, expandable to the full cards. The header mirrors
-                the collapsible upload panel on the Belege page: icon box + title on the left, chevron on the right.
+                the collapsible upload panel on the Belege page: icon box + title, then a compact expand/collapse chip.
                 When there are no accounts yet the section is forced open so the "add account" card is shown right away. */}
             <div className="flex flex-col gap-3">
                 {/* Header + collapse toggle — only meaningful once at least one account exists. */}
                 {accounts.length > 0 && (
-                    <button
-                        type="button"
-                        onClick={() => setAccountsExpanded((v) => !v)}
-                        aria-expanded={accountsExpanded}
-                        className="w-full flex items-center gap-3 text-left"
-                    >
+                    <div className="flex items-center gap-3">
                         <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
                             <Landmark className="w-[18px] h-[18px]" />
                         </span>
-                        <span className="flex flex-col min-w-0 flex-1">
-                            <span className="text-sm font-bold text-foreground">
-                                {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                                {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
-                            </span>
+                        <span className="text-sm font-bold text-foreground">
+                            {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
                         </span>
-                        <ChevronDown
-                            className={cn('w-[18px] h-[18px] text-muted-foreground transition-transform flex-shrink-0', accountsExpanded ? 'rotate-180' : '')}
-                        />
-                    </button>
+                        {/* The toggle is a compact chip rather than the whole header row: on a wide page a full-width
+                            button puts the chevron far from the label it belongs to, so both live in one pill here. */}
+                        <button
+                            type="button"
+                            onClick={() => setAccountsExpanded((v) => !v)}
+                            aria-expanded={accountsExpanded}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:text-primary hover:bg-primary/10 transition-colors"
+                        >
+                            {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
+                            <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', accountsExpanded && 'rotate-180')} />
+                        </button>
+                    </div>
                 )}
 
                 {/* Collapsed: compact pills only (the add button lives in the expanded cards view) */}
@@ -950,32 +1069,54 @@ export function KontenView() {
                 )}
             </div>
 
-            {/* Segmented tab bar */}
-            <div className="flex gap-0.5 rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 w-fit flex-wrap">
-                {tabs.map((t_) => (
-                    <button
-                        key={t_.id}
-                        type="button"
-                        onClick={() => setTab(t_.id)}
-                        className={cn(
-                            'flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-sm font-medium transition-colors whitespace-nowrap',
-                            tab === t_.id ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-                        )}
-                    >
-                        {t_.label}
-                        {t_.badge !== undefined && (
-                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
-                                {t_.badge}
-                            </span>
-                        )}
+            {/* Segmented tab bar + import action. The import button lives here rather than inside a single tab so it
+                stays reachable from every tab; the target account is the open account tab, or picked from a menu when
+                the current tab isn't account-specific and there is more than one account. */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex gap-0.5 rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 w-fit flex-wrap">
+                    {tabs.map((t_) => (
+                        <button
+                            key={t_.id}
+                            type="button"
+                            onClick={() => setTab(t_.id)}
+                            className={cn(
+                                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-sm font-medium transition-colors whitespace-nowrap',
+                                tab === t_.id ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                            )}
+                        >
+                            {t_.label}
+                            {t_.badge !== undefined && (
+                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                                    {t_.badge}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {importTargetId !== null ? (
+                    <button type="button" onClick={() => setImportAccountId(importTargetId)} className={importBtnCls}>
+                        <Upload className="w-4 h-4" />
+                        {t('konten.import')}
                     </button>
-                ))}
+                ) : accounts.length > 0 ? (
+                    <DropdownMenu
+                        label={t('konten.imports.account')}
+                        items={accounts.map((a) => ({ title: a.name ?? '', onClick: () => setImportAccountId(a.id!) }))}
+                    >
+                        <button type="button" className={importBtnCls}>
+                            <Upload className="w-4 h-4" />
+                            {t('konten.import')}
+                            <ChevronDown className="w-4 h-4" />
+                        </button>
+                    </DropdownMenu>
+                ) : null}
             </div>
 
             {/* Tab content */}
             {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
             {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} />}
-            {tab === 'importe' && <ImporteTab accounts={accounts} onImport={setImportAccountId} />}
+            {tab === 'importe' && <ImporteTab accounts={accounts} />}
 
             {/* Match drawer */}
             {matchDrawerBankTxId !== null && (

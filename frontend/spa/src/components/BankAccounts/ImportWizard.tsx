@@ -310,7 +310,7 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
                                                 </th>
                                             ))}
                                             {hiddenCount > 0 ? (
-                                                <th className="py-2 px-3 w-10">
+                                                <th className="py-2 px-2 w-20 text-center">
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowAllCols(true)}
@@ -320,7 +320,7 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
                                                     </button>
                                                 </th>
                                             ) : showAllCols && interestingIndices.length > MAX_COLS ? (
-                                                <th className="py-2 px-3 w-10">
+                                                <th className="py-2 px-2 w-20 text-center">
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowAllCols(false)}
@@ -347,7 +347,7 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
                                                         {row[ci] ?? ''}
                                                     </td>
                                                 ))}
-                                                {hiddenCount > 0 && <td className="py-2 px-3 w-10 text-muted-foreground opacity-30">…</td>}
+                                                {hiddenCount > 0 && <td className="py-2 px-2 w-20 text-center text-muted-foreground opacity-30">…</td>}
                                             </tr>
                                         ))}
                                     </tbody>
