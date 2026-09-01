@@ -61,7 +61,7 @@
     },
     "alpha": {
         "badge": "Alpha",
-        "consentText": "You are using an alpha test version of Hopps. The software is still under development. Full data protection and compliance requirements cannot be guaranteed at this stage. We are continuously working on improvements.",
+        "consentText": "You are using an alpha test version of hopps. The software is still under development. Full data protection and compliance requirements cannot be guaranteed at this stage. We are continuously working on improvements.",
         "consentLabel": "I understand that this is an alpha version and I agree to use it.",
         "consentRequired": "Please agree to the use of the alpha version",
         "details": "Details",
@@ -861,7 +861,14 @@
             "warning": "This action cannot be undone. The receipt will be permanently deleted.",
             "confirm": "Yes, delete",
             "error": "Failed to delete receipt",
-            "success": "Receipt successfully deleted"
+            "success": "Receipt successfully deleted",
+            "optionTransactionOnly": "Only the booking is removed. The receipt is kept and returns to review.",
+            "optionWithReceipt": "Booking and receipt are permanently deleted, including the uploaded file.",
+            "confirmTransactionOnly": "Delete transaction only",
+            "confirmWithReceipt": "Delete with receipt",
+            "successTransactionOnly": "Transaction deleted - the receipt is awaiting review again",
+            "successWithReceipt": "Receipt and transaction deleted",
+            "descriptionNoName": "Are you sure you want to delete this transaction ({{amount}})?"
         },
         "title": "Receipts",
         "subtitle": "{{count}} unreviewed receipts",
@@ -999,7 +1006,7 @@
             "currencyPlaceholder": "Select currency",
             "openingBalance": "Opening balance",
             "openingBalanceDate": "Opening balance date",
-            "color": "Color (hex)",
+            "color": "Color",
             "colorPicker": "Pick a color",
             "defaultSchema": "Default schema",
             "defaultSchemaPlaceholder": "Select schema",
@@ -1062,7 +1069,7 @@
             "fileTitle": "Upload CSV file",
             "fileDrop": "Drop file here or click to select",
             "fileDropHint": "Supported formats: .csv, .txt",
-            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps auto-detects the format — no setup needed.",
+            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps auto-detects the format.",
             "mt940Detected": "MT940 detected · {{count}} transactions found · no schema needed",
             "showMore": "more",
             "showLess": "less",
@@ -1216,7 +1223,7 @@
     },
     "konten": {
         "title": "Accounts",
-        "subtitle": "Bank accounts — all funds of the club in one place.",
+        "subtitle": "Bank reconciliation & cash box",
         "balance": "Balance",
         "open": "open",
         "allMatched": "reconciled",
@@ -1285,7 +1292,14 @@
             "matched": "Matched",
             "newImport": "New import",
             "empty": "No imports yet",
-            "emptyDesc": "Import a bank statement to populate the history."
+            "emptyDesc": "Import a bank statement to populate the history.",
+            "actions": "Actions",
+            "delete": "Delete import",
+            "deleteTitle": "Delete import?",
+            "deleteConfirm_one": "The import <strong>\"{{file}}\"</strong> and the <strong>one transaction</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
+            "deleteConfirm_other": "The import <strong>\"{{file}}\"</strong> and the <strong>{{count}} transactions</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
+            "deleteMatchedWarning_one": "Note: <strong>1 of these transactions</strong> is linked to a bookkeeping entry — that link will be removed.",
+            "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed."
         },
         "empty": {
             "title": "No bank accounts yet",

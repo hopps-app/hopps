@@ -7,6 +7,7 @@ import app.hopps.document.api.dto.DocumentUpdateRequest;
 import app.hopps.document.domain.*;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentFileService;
+import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
@@ -35,8 +36,10 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * REST API for document management. Handles document upload, retrieval, and updates.
@@ -59,6 +62,9 @@ public class DocumentResource {
 
     @Inject
     TransactionRepository transactionRepository;
+
+    @Inject
+    TradePartyService tradePartyService;
 
     @Inject
     Event<DocumentCreatedEvent> documentCreatedEvent;
@@ -288,13 +294,19 @@ public class DocumentResource {
 
         // Delete associated transaction first (due to foreign key constraint)
         Transaction transaction = transactionRepository.findByDocumentId(id);
+        Set<TradeParty> parties = new LinkedHashSet<>();
         if (transaction != null) {
-            // Clean up bank-transaction matches (and recompute their status) before the row is removed.
+            // Clean up bank-transaction matches (and recompute their status) before the row is removed. The bank
+            // movement itself is kept and becomes matchable again.
             transactionDeletedEvent.fire(new TransactionDeletedEvent(transaction.getId()));
+            parties.add(transaction.getSender());
+            parties.add(transaction.getRecipient());
             transactionRepository.delete(transaction);
             LOG.info("Transaction deleted for document: transactionId={}, documentId={}",
                     transaction.getId(), id);
         }
+        parties.add(document.getSender());
+        parties.add(document.getRecipient());
 
         // Delete file from storage
         if (document.hasFile()) {
@@ -303,6 +315,11 @@ public class DocumentResource {
 
         notifyChanged(document);
         documentRepository.delete(document);
+
+        // Trade parties are shared between a document and its transaction, so they are not cascaded and need extra
+        // handling
+        parties.forEach(tradePartyService::deleteIfUnreferenced);
+
         LOG.info("Document deleted: id={}", id);
     }
 

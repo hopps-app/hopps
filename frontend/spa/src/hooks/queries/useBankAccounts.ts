@@ -308,7 +308,7 @@ export function useStartImport() {
 
     return useMutation({
         mutationFn: ({ accountId, file, schemaId }: { accountId: number; file: File; schemaId?: number }) =>
-            apiService.orgService.importsPOST(accountId, { data: file, fileName: file.name }, schemaId),
+            apiService.orgService.importsPOST(accountId, schemaId, { data: file, fileName: file.name }),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(variables.accountId) });
         },
@@ -325,6 +325,15 @@ export function useRollbackImport() {
             apiService.orgService.importsDELETE(importId).then(() => ({ accountId })),
         onSuccess: ({ accountId }) => {
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(accountId) });
+            // The rollback deletes the import's bank transactions and their matches, so every list that shows them
+            // goes stale: the reconciliation feeds, the account balances (computed from the transactions) and the
+            // bookkeeping transactions whose coverage was provided by the removed matches.
+            for (const queryKey of [bankTransactionKeys.all, bankAccountKeys.all, transactionKeys.all]) {
+                // refetch what is on screen right now...
+                queryClient.invalidateQueries({ queryKey, refetchType: 'active' });
+                // drop the cache of everything that is not
+                queryClient.removeQueries({ queryKey, type: 'inactive' });
+            }
             showSuccess(t('bankImport.toast.rollbackSuccess'));
         },
         onError: () => {

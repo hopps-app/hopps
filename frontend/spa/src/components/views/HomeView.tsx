@@ -34,9 +34,9 @@ function HomeView() {
         <div className="flex flex-col items-center justify-center min-h-screen px-4">
             <ConnectivityBanner />
             <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full max-w-4xl">
-                <img src="/logo.svg" alt="Hopps" className="h-32 md:h-64 w-auto shrink-0" />
+                <img src="/logo.svg" alt="hopps" className="h-32 md:h-64 w-auto shrink-0" />
                 <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                    <img src="/logo3.svg" alt="Hopps" className="h-12 md:h-16 w-auto mb-4" />
+                    <img src="/logo3.svg" alt="hopps" className="h-12 md:h-16 w-auto mb-4" />
                     <p className="text-base md:text-lg text-black/70 dark:text-white/70 max-w-xl mb-8">{t('home.subtitle')}</p>
                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                         <TooltipProvider>

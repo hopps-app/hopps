@@ -1,5 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AlertTriangle } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
@@ -10,7 +11,8 @@ interface ConfirmDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     title: string;
-    description?: string;
+    /** Plain text, or JSX when parts of the text need emphasis (e.g. a <Trans> with the interpolated values in bold). */
+    description?: ReactNode;
     confirmLabel?: string;
     cancelLabel?: string;
     onConfirm: () => void;
@@ -54,7 +56,7 @@ export function ConfirmDialog({
                         <div className="min-w-0 pt-0.5">
                             <DialogPrimitive.Title className="text-[16px] font-bold text-[#1B1B1F] leading-snug">{title}</DialogPrimitive.Title>
                             {description && (
-                                <DialogPrimitive.Description className="mt-1.5 text-[13.5px] text-[#6B6B76] leading-relaxed">
+                                <DialogPrimitive.Description className="mt-1.5 text-[14.5px] text-[#45454F] leading-relaxed">
                                     {description}
                                 </DialogPrimitive.Description>
                             )}
