@@ -2,7 +2,7 @@ import { Building2 } from 'lucide-react';
 
 import type { MenuItem } from './types';
 
-import { HouseIcon } from '@/components/ui/icons/HouseIcon';
+import { HouseIcon, LandmarkIcon, ListIcon, NetworkIcon, ReceiptIcon, SettingsIcon, SheetIcon, TagIcon } from '@/components/ui/icons/lineIcons';
 
 export const menuConfig: MenuItem[] = [
     {
@@ -14,33 +14,40 @@ export const menuConfig: MenuItem[] = [
     {
         id: 'receipts',
         label: 'menu.receipts',
-        icon: 'Archive',
+        icon: ReceiptIcon,
         path: '/receipts',
-    },
-    {
-        id: 'transactions',
-        label: 'menu.transactions',
-        icon: 'Loop',
-        path: '/transactions',
-    },
-    {
-        id: 'reports',
-        label: 'menu.reports',
-        icon: 'BarChart',
-        path: '/reports',
     },
     {
         id: 'structure',
         label: 'menu.structure',
-        icon: 'Commit',
+        icon: NetworkIcon,
         path: '/structure',
+    },
+    {
+        id: 'transactions',
+        label: 'menu.transactions',
+        icon: ListIcon,
+        path: '/transactions',
     },
     {
         id: 'bank-accounts',
         label: 'menu.bankAccounts',
-        icon: 'CardStack',
+        icon: LandmarkIcon,
         path: '/bank-accounts',
     },
+    {
+        id: 'categories',
+        label: 'menu.categories',
+        icon: TagIcon,
+        path: '/admin/categories',
+    },
+    {
+        id: 'reports',
+        label: 'menu.reports',
+        icon: SheetIcon,
+        path: '/reports',
+    },
+    // Footer group, below the main navigation.
     {
         id: 'ngo-details',
         label: 'menu.ngo-details',
@@ -49,10 +56,10 @@ export const menuConfig: MenuItem[] = [
         isAdmin: true,
     },
     {
-        id: 'categories',
-        label: 'menu.categories',
-        icon: 'MixerHorizontal',
-        path: '/admin/categories',
+        id: 'profile',
+        label: 'settings.menu.profile',
+        icon: SettingsIcon,
+        path: '/profile',
         isAdmin: true,
     },
 ];

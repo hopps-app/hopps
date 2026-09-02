@@ -10,6 +10,7 @@ import type { MenuItem } from './shared/types';
 import AlphaBadge from '@/components/ui/AlphaBadge';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 import Icon from '@/components/ui/Icon';
+import { MoreVerticalIcon } from '@/components/ui/icons/lineIcons';
 import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
@@ -29,10 +30,14 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
 
     const userMenuItems = React.useMemo<DropdownMenuItem[]>(
         () => [
-            { title: t('settings.menu.profile'), onClick: () => navigate('/profile'), icon: <Icon icon="Avatar" /> },
-            { title: t('header.logout'), onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> },
+            {
+                title: t('header.logout'),
+                onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)),
+                icon: <Icon icon="Exit" />,
+                variant: 'destructive',
+            },
         ],
-        [t, navigate]
+        [t]
     );
 
     const isItemActive = (path: string) => {
@@ -115,18 +120,13 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
 
                 <div className="flex-shrink-0 px-2 pb-3 space-y-1">
                     <div className="border-t border-separator mb-2" />
-                    {!collapsed && (
-                        <div className="px-3 pb-1">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-grey-700 dark:text-grey-600">{t('menu.admin')}</span>
-                        </div>
-                    )}
                     {adminItems.map(renderNavItem)}
 
                     <div className="border-t border-separator my-2" />
 
                     {/* User profile */}
                     {isAuthenticated && (
-                        <DropdownMenu items={userMenuItems} className="w-52">
+                        <DropdownMenu items={userMenuItems} className="w-52" side="top">
                             <button
                                 type="button"
                                 className={`w-full flex items-center gap-2.5 rounded-[10px] transition-colors hover:bg-hover-effect dark:hover:bg-purple-200 ${collapsed ? 'justify-center p-2' : 'px-2 py-2'}`}
@@ -138,12 +138,15 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                                     {user?.name ? user.name.charAt(0).toUpperCase() : <PersonIcon className="w-4 h-4" />}
                                 </div>
                                 {!collapsed && (
-                                    <div className="flex flex-col min-w-0 text-left">
-                                        <span className="text-[13px] font-semibold text-[#1B1B1F] dark:text-white truncate leading-tight">
-                                            {user?.name ?? 'User'}
-                                        </span>
-                                        <span className="text-[11px] text-[#9A9AA3] truncate leading-tight">{user?.email ?? ''}</span>
-                                    </div>
+                                    <>
+                                        <div className="flex flex-col min-w-0 text-left">
+                                            <span className="text-[13px] font-semibold text-[#1B1B1F] dark:text-white truncate leading-tight">
+                                                {user?.name ?? 'User'}
+                                            </span>
+                                            <span className="text-[11px] text-[#9A9AA3] truncate leading-tight">{user?.email ?? ''}</span>
+                                        </div>
+                                        <MoreVerticalIcon size={16} className="ml-auto flex-shrink-0 text-grey-700" />
+                                    </>
                                 )}
                             </button>
                         </DropdownMenu>
