@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -185,22 +186,25 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
     }
 
     /**
-     * Appends one AND clause per requested category-group value filter. Each entry is a {@code "groupId:value"} pair;
-     * only the first colon separates the (always numeric) group id from the value, so a value may itself contain
-     * colons. Multiple entries AND together — a transaction must carry the given value for <em>every</em> selected
-     * group. Each clause is an id-subquery against {@link app.hopps.transaction.domain.TransactionCategoryValue}
-     * (matched on its soft-FK {@code categoryGroupId} and the snapshot {@code value} text) rather than a join, so it
-     * neither multiplies nor drops rows. Malformed entries are skipped.
+     * Appends one AND clause per requested category <em>group</em>. Each entry is a {@code "groupId:value"} pair; only
+     * the first colon separates the (always numeric) group id from the value, so a value may itself contain colons.
+     * Entries are grouped by their group id: values within one group OR together, and the groups AND together — a
+     * transaction must match <em>one of</em> the requested values in <em>every</em> requested group. ANDing several
+     * values of the same group would be unsatisfiable, since a transaction carries at most one value per group. Each
+     * clause is an id-subquery against {@link app.hopps.transaction.domain.TransactionCategoryValue} (matched on its
+     * soft-FK {@code categoryGroupId} and the snapshot {@code value} text) rather than a join, so it neither multiplies
+     * nor drops rows. Malformed entries are skipped.
      *
      * @param prefix
      *            {@code ""} for Panache find/count (implicit entity) or {@code "t."} for the aliased aggregate JPQL
      */
-    private static void appendCategoryFilters(StringBuilder query, Map<String, Object> params,
+    // Package-private so the grouping rule can be unit-tested without standing up a database.
+    static void appendCategoryFilters(StringBuilder query, Map<String, Object> params,
             List<String> categoryValues, String prefix) {
         if (categoryValues == null) {
             return;
         }
-        int i = 0;
+        Map<Long, List<String>> valuesByGroup = new LinkedHashMap<>();
         for (String entry : categoryValues) {
             if (entry == null) {
                 continue;
@@ -217,6 +221,14 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
                 continue;
             }
             String value = entry.substring(sep + 1);
+            List<String> groupValues = valuesByGroup.computeIfAbsent(groupId, k -> new ArrayList<>());
+            if (!groupValues.contains(value)) {
+                groupValues.add(value);
+            }
+        }
+
+        int i = 0;
+        for (Map.Entry<Long, List<String>> group : valuesByGroup.entrySet()) {
             String gp = "cgId" + i;
             String vp = "cgVal" + i;
             query.append(" and ")
@@ -224,11 +236,11 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
                     .append("id IN (SELECT cv.transaction.id FROM TransactionCategoryValue cv"
                             + " WHERE cv.categoryGroupId = :")
                     .append(gp)
-                    .append(" AND cv.value = :")
+                    .append(" AND cv.value IN :")
                     .append(vp)
                     .append(")");
-            params.put(gp, groupId);
-            params.put(vp, value);
+            params.put(gp, group.getKey());
+            params.put(vp, group.getValue());
             i++;
         }
     }
