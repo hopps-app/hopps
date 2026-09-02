@@ -31,10 +31,10 @@ export function OpenReceiptsBanner({ count, isLoading }: { count: number | undef
                 <FileText className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-                <p className="text-lg font-bold">{t('dashboard.openReceipts.title')}</p>
-                <p className="mt-0.5 text-sm text-white/90" data-testid="dashboard-open-receipts-count">
-                    {t('dashboard.openReceipts.description', { count })}
+                <p className="text-lg font-bold" data-testid="dashboard-open-receipts-count">
+                    {t('dashboard.openReceipts.title', { count })}
                 </p>
+                <p className="mt-0.5 text-sm text-white/90">{t('dashboard.openReceipts.description', { count })}</p>
             </div>
             <BaseButton
                 className="gap-2 bg-white text-[color:var(--banner-ink)] hover:bg-white/90"

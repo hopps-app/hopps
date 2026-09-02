@@ -349,11 +349,12 @@
     "bommelFilter": "Боммель",
     "resetFilter": "Скинути",
     "openReceipts": {
-      "title": "Відкриті документи",
-      "description_one": "{{count}} документ ще не прив'язаний до проводки.",
-      "description_few": "{{count}} документи ще не прив'язані до проводок.",
-      "description_many": "{{count}} документів ще не прив'язані до проводок.",
-      "description_other": "{{count}} документів ще не прив'язані до проводок.",
+      "title_one": "{{count}} відкритий документ",
+      "title_few": "{{count}} відкриті документи",
+      "title_many": "{{count}} відкритих документів",
+      "title_other": "{{count}} відкритих документів",
+      "description_one": "Він ще не прив'язаний до проводки.",
+      "description_other": "Вони ще не прив'язані до проводок.",
       "action": "Переглянути"
     },
     "kpi": {

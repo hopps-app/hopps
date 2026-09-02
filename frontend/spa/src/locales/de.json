@@ -919,9 +919,10 @@
         "bommelFilter": "Bommel",
         "resetFilter": "Zurücksetzen",
         "openReceipts": {
-            "title": "Offene Belege",
-            "description_one": "{{count}} Beleg ist noch keiner Buchung zugeordnet.",
-            "description_other": "{{count}} Belege sind noch keiner Buchung zugeordnet.",
+            "title_one": "{{count}} offener Beleg",
+            "title_other": "{{count}} offene Belege",
+            "description_one": "Er ist noch keiner Buchung zugeordnet.",
+            "description_other": "Sie sind noch keiner Buchung zugeordnet.",
             "action": "Jetzt prüfen"
         },
         "kpi": {

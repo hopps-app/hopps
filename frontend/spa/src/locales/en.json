@@ -668,9 +668,10 @@
         "bommelFilter": "Bommel",
         "resetFilter": "Reset",
         "openReceipts": {
-            "title": "Open receipts",
-            "description_one": "{{count}} receipt is not yet linked to a booking.",
-            "description_other": "{{count}} receipts are not yet linked to a booking.",
+            "title_one": "{{count}} open receipt",
+            "title_other": "{{count}} open receipts",
+            "description_one": "It is not yet linked to a booking.",
+            "description_other": "They are not yet linked to a booking.",
             "action": "Review now"
         },
         "kpi": {
