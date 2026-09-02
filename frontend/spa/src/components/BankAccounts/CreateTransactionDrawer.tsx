@@ -227,8 +227,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const openAfter = openBefore - signedAmount;
     const coversExactly = Math.abs(openAfter) <= 0.005;
     // An expense can never cover an income (or vice versa)
-    const directionMismatch =
-        Math.abs(openBefore) > 0.005 && Math.abs(signedAmount) > 0.005 && Math.sign(openBefore) !== Math.sign(signedAmount);
+    const directionMismatch = Math.abs(openBefore) > 0.005 && Math.abs(signedAmount) > 0.005 && Math.sign(openBefore) !== Math.sign(signedAmount);
 
     const isBusy = createMutation.isPending || addMatch.isPending || confirmMutation.isPending;
 
@@ -282,9 +281,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             <p className="mt-1.5 text-[13px] font-bold text-[#1B1B1F] truncate" title={bankTx.purpose ?? ''}>
                                 {bankTx.counterpartyName || bankTx.purpose || '—'}
                             </p>
-                            <p className="text-[12px] text-[#6B6B76]">
-                                {[bankTx.bankAccountName, fmtDate(bankTx.bookingDate)].filter(Boolean).join(' · ')}
-                            </p>
+                            <p className="text-[12px] text-[#6B6B76]">{[bankTx.bankAccountName, fmtDate(bankTx.bookingDate)].filter(Boolean).join(' · ')}</p>
                             <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-[#E9E9EE] pt-2.5 text-[12px]">
                                 <dt className="text-[#6B6B76]">{t('konten.drawer.bankAmount')}</dt>
                                 <dd className="text-right font-bold tabular-nums text-[#1B1B1F]">{fmtCurrency(bankTx.amount, bankTx.currency)}</dd>

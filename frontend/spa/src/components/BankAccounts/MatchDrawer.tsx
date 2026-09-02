@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
+import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import {
@@ -22,10 +23,7 @@ import {
 import { useDocument } from '@/hooks/queries/useDocuments';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
-import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
 import { parseAllocationAmount } from '@/utils/parseAmount';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 // ─── BookingMini ──────────────────────────────────────────────────────────────
 
