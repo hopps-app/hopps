@@ -436,5 +436,10 @@
       "searchGroup": "Пошук групи",
       "noGroups": "Групу не знайдено"
     }
+  },
+  "categoryGroups": {
+    "fields": {
+      "valuePlaceholder": "Оберіть значення"
+    }
   }
 }

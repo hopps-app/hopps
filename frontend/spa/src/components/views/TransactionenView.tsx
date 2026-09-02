@@ -31,7 +31,7 @@ import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/
 import { LoadingState } from '@/components/common/LoadingState';
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
-import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
@@ -178,7 +178,9 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const drawerRootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
+    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels, drawerRootBommel?.id), [allBommels, drawerRootBommel?.id]);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
 
@@ -562,9 +564,12 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                             {/* Bommel */}
                             <div>
                                 <label className={labelCls}>{t('transactions.detail.bommel')}</label>
-                                <InvoiceUploadFormBommelSelector
-                                    value={bommelId ? Number(bommelId) : null}
-                                    onChange={(id) => setBommelId(id ? String(id) : '')}
+                                <BommelSelect
+                                    items={drawerBommelItems}
+                                    value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                                    emptyLabel={t('invoiceUpload.selectBommel')}
+                                    onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
+                                    triggerClassName="sm:w-full rounded-xl border-[#E0E0E6] shadow-none hover:shadow-none"
                                 />
                             </div>
 
@@ -1223,7 +1228,7 @@ export function TransactionenView() {
                                 setPage(0);
                             }}
                             placeholder={t('transactions.filters.search')}
-                            className="w-full rounded-xl border border-[#E0E0E6] bg-white py-[11px] pl-[38px] pr-3.5 text-[14.5px] text-[#1B1B1F] placeholder:text-[#9A9AA3] transition-shadow focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB]"
+                            className="w-full rounded-xl border border-[#E0E0E6] bg-white py-[11px] pl-[38px] pr-3.5 text-[14.5px] text-[#1B1B1F] transition-shadow placeholder:text-[#6B6B76] focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB]"
                         />
                     </div>
 
@@ -1315,13 +1320,15 @@ export function TransactionenView() {
                         className="grid grid-cols-2 gap-3 rounded-[18px] border border-[#E9E9EE] p-4 sm:grid-cols-3 md:grid-cols-4"
                         style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
                     >
-                        {/* The trigger carries BaseButton's `shadow-card`, which is too heavy for a control sitting
-                            inside an already elevated filter card. Toned down here only, so the dashboard's copy of
-                            BommelSelect keeps its own look. Radius, border and width are lined up with the other
-                            fields here too. The popover is portalled, so this reaches the trigger only. */}
-                        <div className="flex flex-col gap-1.5 sm:col-span-2 [&_button:hover]:shadow-none [&_button]:rounded-xl [&_button]:border-[#E0E0E6] [&_button]:shadow-none sm:[&_button]:w-full">
+                        <div className="flex flex-col gap-1.5 sm:col-span-2">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.bommel')}</label>
-                            <BommelSelect items={bommelItems} value={bommelSelection} onChange={onBommelSelectionChange} isLoading={bommelsLoading} />
+                            <BommelSelect
+                                items={bommelItems}
+                                value={bommelSelection}
+                                onChange={onBommelSelectionChange}
+                                isLoading={bommelsLoading}
+                                triggerClassName="sm:w-full rounded-xl border-[#E0E0E6] shadow-none hover:shadow-none"
+                            />
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.from')}</label>

@@ -54,7 +54,7 @@
         },
         "fields": {
             "eyebrow": "Kategoriegruppen",
-            "valuePlaceholder": "— bitte wählen —",
+            "valuePlaceholder": "Bitte wählen",
             "noValues": "Keine Werte gefunden",
             "missing": "Bitte ausfüllen: {{groups}}"
         }

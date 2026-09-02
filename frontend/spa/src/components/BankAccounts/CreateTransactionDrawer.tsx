@@ -1,11 +1,13 @@
 import { BankTransactionResponse, TransactionCreateRequest } from '@hopps/api-client';
 import { X, Check, ArrowDownRight, ArrowUpRight, Plus } from 'lucide-react';
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
+import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
+import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
-import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
@@ -49,7 +51,9 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const { data: categoryGroups = [] } = useCategoryGroups();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const rootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
+    const bommelItems = useMemo(() => flattenBommelTree(allBommels, rootBommel?.id), [allBommels, rootBommel?.id]);
     const bankMode = !!bankTx;
 
     // The bommel store is populated on-demand per view; the Konten view doesn't load it, so ensure it's fetched when
@@ -346,7 +350,13 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     {/* Bommel */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.bommel')}</label>
-                        <InvoiceUploadFormBommelSelector value={bommelId ? Number(bommelId) : null} onChange={(id) => setBommelId(id ? String(id) : '')} />
+                        <BommelSelect
+                            items={bommelItems}
+                            value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                            emptyLabel={t('invoiceUpload.selectBommel')}
+                            onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
+                            triggerClassName="sm:w-full rounded-xl border-[#E0E0E6] shadow-none hover:shadow-none"
+                        />
                     </div>
 
                     {/* Category groups (applicable to the selected bommel) */}

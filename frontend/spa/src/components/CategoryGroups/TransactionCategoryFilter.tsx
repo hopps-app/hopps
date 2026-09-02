@@ -102,7 +102,7 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                             <Popover open={openRow === index} onOpenChange={(next) => setOpenRow(next ? index : null)}>
                                 <PopoverTrigger asChild>
                                     <button type="button" className={`${fieldCls} sm:w-48`} aria-haspopup="listbox" aria-expanded={openRow === index}>
-                                        <span className={`truncate ${group ? '' : 'text-[#9A9AA3]'}`}>
+                                        <span className={`truncate ${group ? '' : 'text-[#6B6B76]'}`}>
                                             {group?.name ?? t('transactions.filters.selectGroup')}
                                         </span>
                                         <ChevronIcon />
