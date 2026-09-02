@@ -149,11 +149,11 @@ function TxIcon({ size = 36, incoming }: { size?: number; incoming?: boolean }) 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
         <span
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-semibold border border-[#E0E0E6] bg-white text-[#6B6B76] cursor-default"
+            className="inline-flex cursor-default items-center gap-1.5 rounded-xl bg-[#F3EAFB] px-3 py-1.5 text-[13px] font-semibold text-[#7E3FB4]"
             style={{ fontFamily: FONT }}
         >
             {label}
-            <button onClick={onRemove} className="text-[#9A9AA3] hover:text-[#1B1B1F] transition-colors">
+            <button onClick={onRemove} className="text-[#9955CC] transition-colors hover:text-[#B12C4C]">
                 <X size={12} strokeWidth={2.5} />
             </button>
         </span>
@@ -1120,14 +1120,17 @@ export function TransactionenView() {
 
     const activeFilters: { key: string; label: string; clear: () => void }[] = [];
     if (search) activeFilters.push({ key: 'search', label: `"${search}"`, clear: () => setSearch('') });
-    bommelIds.forEach((id) => {
-        const b = allBommels.find((b) => b.id === id);
+    if (bommelIds.length > 0) {
+        const chosen = allBommels.find((b) => b.id === bommelIds[0]);
         activeFilters.push({
-            key: `bommel-${id}`,
-            label: (b as { name?: string } | undefined)?.name ?? String(id),
-            clear: () => setBommelIds(bommelIds.filter((x) => x !== id)),
+            key: `bommel-${bommelIds[0]}`,
+            label: (chosen as { name?: string } | undefined)?.name ?? String(bommelIds[0]),
+            clear: () => {
+                setBommelIds([]);
+                setPage(0);
+            },
         });
-    });
+    }
     if (startDate) activeFilters.push({ key: 'from', label: `${t('transactions.filters.from')}: ${startDate}`, clear: () => setStartDate('') });
     if (endDate) activeFilters.push({ key: 'to', label: `${t('transactions.filters.to')}: ${endDate}`, clear: () => setEndDate('') });
     if (privatelyPaid) activeFilters.push({ key: 'priv', label: t('transactions.filters.privatelyPaid'), clear: () => setPrivatelyPaid(false) });
@@ -1160,6 +1163,15 @@ export function TransactionenView() {
     const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
     // The status tabs are not a filter for this purpose: switching to Bestätigt or Entwürfe alone does not offer a reset.
     const hasFilters = activeFilters.length > 0;
+    // Badge on the Filter button: how many of the panel's own filters are set. The search box sits outside the
+    // panel, so it is deliberately left out.
+    const advancedFilterCount =
+        (bommelIds.length > 0 ? 1 : 0) +
+        (startDate ? 1 : 0) +
+        (endDate ? 1 : 0) +
+        (privatelyPaid ? 1 : 0) +
+        (detached ? 1 : 0) +
+        Object.keys(categoryFilters).length;
 
     // Input/select base style
     const inputCls =
@@ -1271,6 +1283,20 @@ export function TransactionenView() {
                     >
                         <Filter size={15} />
                         {t('transactions.filters.filter')}
+                        {advancedFilterCount > 0 && (
+                            <span
+                                className="grid place-items-center rounded-full px-[5px] font-extrabold"
+                                style={{
+                                    minWidth: 20,
+                                    height: 20,
+                                    fontSize: 11.5,
+                                    background: advancedOpen ? '#9955CC' : '#F3EAFB',
+                                    color: advancedOpen ? '#FFFFFF' : '#7E3FB4',
+                                }}
+                            >
+                                {advancedFilterCount}
+                            </span>
+                        )}
                     </button>
 
                     {hasFilters && (
@@ -1384,7 +1410,7 @@ export function TransactionenView() {
                 {/* Active filter chips. They summarise what is set while the panel is closed; with it open every
                     one of them is already on screen as its own control, so the strip would just repeat it. */}
                 {!advancedOpen && activeFilters.length > 0 && (
-                    <div className="flex items-center gap-2 flex-wrap pt-1">
+                    <div className="-mt-1 flex flex-wrap items-center gap-2">
                         {activeFilters.map((f) => (
                             <FilterChip key={f.key} label={f.label} onRemove={f.clear} />
                         ))}
