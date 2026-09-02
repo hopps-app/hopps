@@ -433,6 +433,7 @@ export function useRemoveBankTransactionMatch() {
         onSuccess: (_, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
+            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
         },
     });
 }
