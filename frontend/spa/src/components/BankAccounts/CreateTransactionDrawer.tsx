@@ -4,10 +4,11 @@ import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
+import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
-import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import TextField from '@/components/ui/TextField';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
@@ -215,7 +216,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
 
     // Shared input style
     const inputCls =
-        'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2.5 text-[14px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
+        'h-10 w-full rounded-xl border border-[#E0E0E6] bg-white px-3.5 text-[14px] text-[#1B1B1F] placeholder-[#6B6B76] transition-shadow focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB]';
     const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3] mb-1.5';
 
     return (
@@ -326,25 +327,13 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     {/* Name */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.name')}</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder={t('transactions.create.namePlaceholder')}
-                            className={inputCls}
-                        />
+                        <TextField value={name} onValueChange={setName} placeholder={t('transactions.create.namePlaceholder')} />
                     </div>
 
                     {/* Sender — labelled by direction: income means the counterparty is the recipient. */}
                     <div>
                         <label className={labelCls}>{direction === 'income' ? t('transactions.create.recipient') : t('transactions.create.issuer')}</label>
-                        <input
-                            type="text"
-                            value={senderName}
-                            onChange={(e) => setSenderName(e.target.value)}
-                            placeholder={t('transactions.create.senderPlaceholder')}
-                            className={inputCls}
-                        />
+                        <TextField value={senderName} onValueChange={setSenderName} placeholder={t('transactions.create.senderPlaceholder')} />
                     </div>
 
                     {/* Bommel */}

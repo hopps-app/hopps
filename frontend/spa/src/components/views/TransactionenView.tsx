@@ -37,6 +37,7 @@ import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
+import TextField from '@/components/ui/TextField';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument, useDocument } from '@/hooks/queries/useDocuments';
@@ -372,7 +373,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     );
 
     const inputCls =
-        'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2 text-[13.5px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
+        'h-10 w-full rounded-xl border border-[#E0E0E6] bg-white px-3.5 text-[14px] text-[#1B1B1F] placeholder-[#6B6B76] transition-shadow focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB]';
     const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3] mb-1';
 
     return (
@@ -552,13 +553,13 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                             {/* Name */}
                             <div>
                                 <label className={labelCls}>{t('transactions.create.name')}</label>
-                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+                                <TextField value={name} onValueChange={setName} />
                             </div>
 
                             {/* Sender — labelled by direction: income means the counterparty is the recipient. */}
                             <div>
                                 <label className={labelCls}>{kind === 'income' ? t('transactions.create.recipient') : t('transactions.create.issuer')}</label>
-                                <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputCls} />
+                                <TextField value={senderName} onValueChange={setSenderName} />
                             </div>
 
                             {/* Bommel */}

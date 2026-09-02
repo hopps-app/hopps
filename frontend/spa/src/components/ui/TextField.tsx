@@ -39,7 +39,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
     const hasPrependContent = props.loading || props.prependIcon;
 
     return (
-        <div className="grid w-full items-center gap-1">
+        <div className="grid w-full items-center gap-1.5">
             {props.label && (
                 <Label htmlFor={id} className={props.error ? 'text-red-500' : ''} required={props.required}>
                     {props.label}
