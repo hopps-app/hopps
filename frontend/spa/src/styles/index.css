@@ -72,6 +72,12 @@
         --destructive-foreground: var(--grey-white);
         --border-line: #A7A7A7;
         --hover-effect: var(--grey-400);
+        /* Semantic "good news" ink, used where meaning matters more than direction (dashboard KPIs). */
+        --positive: #1F7A50;
+        /* Dashboard chart series: same hue family, clearly separated by lightness so the bars stay
+           distinguishable without colour perception. */
+        --chart-income: #9955CC;
+        --chart-expenses: #C7A2E3;
         --radius: 8px;
         --radius-l: 16px;
         --font: 16px;
@@ -123,6 +129,9 @@
         --destructive-foreground: var(--grey-black);
         --hover-effect: #1a1a1a;
         --border-line: #A7A7A7;
+        --positive: #69CFA0;
+        --chart-income: #B582E0;
+        --chart-expenses: #7E5A9C;
         --radius: 8px;
         --radius-l: 16px;
         --font: 16px;
