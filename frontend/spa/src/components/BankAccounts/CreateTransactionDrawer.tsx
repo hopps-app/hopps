@@ -1,11 +1,13 @@
 import { BankTransactionResponse, TransactionCreateRequest } from '@hopps/api-client';
-import { X, Check, ArrowDownRight, ArrowUpRight, Plus } from 'lucide-react';
+import { X, Check, ArrowDownRight, ArrowUpRight, Landmark, Plus } from 'lucide-react';
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { HintTooltip } from '@/components/ui/HintTooltip';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
@@ -207,6 +209,27 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const missingConfirmGroups = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(allBommels), categoryValues);
     const canConfirm = !!confirmState?.canConfirm && missingConfirmGroups.length === 0;
 
+    // Name what is actually missing, the way the transaction and receipt drawers already do. The static tooltip this
+    // replaces always claimed the mandatory fields were incomplete, which is misleading when the real blocker is
+    // coverage by the bank movement or an unfilled required category group.
+    const confirmBlockers = canConfirm ? null : (
+        <>
+            <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
+            <span className="block mt-0.5">
+                {[...(confirmState?.missing ?? []).map((m) => t(`transactions.confirmBlockers.${m}`)), ...missingConfirmGroups.map((g) => g.name)].join(', ')}
+            </span>
+        </>
+    );
+
+    // What the originating bank movement still has open, and what this entry would leave of it.
+    const signedAmount = parsedAmount != null && !Number.isNaN(parsedAmount) ? (direction === 'expense' ? -Math.abs(parsedAmount) : Math.abs(parsedAmount)) : 0;
+    const openBefore = (bankTx?.amount ?? 0) - (bankTx?.matchedAmount ?? 0);
+    const openAfter = openBefore - signedAmount;
+    const coversExactly = Math.abs(openAfter) <= 0.005;
+    // An expense can never cover an income (or vice versa)
+    const directionMismatch =
+        Math.abs(openBefore) > 0.005 && Math.abs(signedAmount) > 0.005 && Math.sign(openBefore) !== Math.sign(signedAmount);
+
     const isBusy = createMutation.isPending || addMatch.isPending || confirmMutation.isPending;
 
     // Shared input style
@@ -248,6 +271,42 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
 
                 {/* Scrollable body */}
                 <form id="create-tx-form" onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                    {/* Where this transaction came from. Without it the drawer hides the very movement it is meant to
+                        cover, so there is no way to tell how much still needs to be booked. */}
+                    {bankMode && bankTx && (
+                        <div className="rounded-[12px] border border-[#E9E9EE] bg-[#F8F8FA] px-3.5 py-3">
+                            <div className="flex items-center gap-1.5">
+                                <Landmark size={13} className="text-[#7E3FB4]" />
+                                <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">{t('konten.createTx.origin')}</span>
+                            </div>
+                            <p className="mt-1.5 text-[13px] font-bold text-[#1B1B1F] truncate" title={bankTx.purpose ?? ''}>
+                                {bankTx.counterpartyName || bankTx.purpose || '—'}
+                            </p>
+                            <p className="text-[12px] text-[#6B6B76]">
+                                {[bankTx.bankAccountName, fmtDate(bankTx.bookingDate)].filter(Boolean).join(' · ')}
+                            </p>
+                            <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-[#E9E9EE] pt-2.5 text-[12px]">
+                                <dt className="text-[#6B6B76]">{t('konten.drawer.bankAmount')}</dt>
+                                <dd className="text-right font-bold tabular-nums text-[#1B1B1F]">{fmtCurrency(bankTx.amount, bankTx.currency)}</dd>
+                                <dt className="text-[#6B6B76]">{t('konten.createTx.openBefore')}</dt>
+                                <dd className="text-right font-bold tabular-nums text-[#1B1B1F]">{fmtCurrency(openBefore, bankTx.currency)}</dd>
+                                {!directionMismatch && (
+                                    <>
+                                        <dt className="text-[#6B6B76]">{t('konten.createTx.openAfter')}</dt>
+                                        <dd className={cn('text-right font-bold tabular-nums', coversExactly ? 'text-[#1F7A50]' : 'text-[#B47C18]')}>
+                                            {coversExactly ? t('konten.createTx.coversExactly') : fmtCurrency(openAfter, bankTx.currency)}
+                                        </dd>
+                                    </>
+                                )}
+                            </dl>
+                            {directionMismatch && (
+                                <p className="mt-2 rounded-[8px] bg-[#FBF1DD] px-2.5 py-1.5 text-[12px] font-bold text-[#B47C18]">
+                                    {t(openBefore > 0 ? 'konten.createTx.shouldBeIncome' : 'konten.createTx.shouldBeExpense')}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     {/* Direction toggle */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.direction')}</label>
@@ -459,17 +518,18 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                 {isBusy ? '…' : t('konten.createTx.saveDraft')}
                             </button>
                             {/* Save & confirm — only when the confirmation criteria are met */}
-                            <button
-                                type="button"
-                                onClick={() => submit(true)}
-                                disabled={isBusy || !canConfirm}
-                                title={!canConfirm ? t('konten.createTx.confirmBlocked') : undefined}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
-                            >
-                                <Check size={15} strokeWidth={2.5} />
-                                {isBusy ? '…' : t('konten.createTx.saveConfirm')}
-                            </button>
+                            <HintTooltip content={confirmBlockers}>
+                                <button
+                                    type="button"
+                                    onClick={() => submit(true)}
+                                    disabled={isBusy || !canConfirm}
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                >
+                                    <Check size={15} strokeWidth={2.5} />
+                                    {isBusy ? '…' : t('konten.createTx.saveConfirm')}
+                                </button>
+                            </HintTooltip>
                         </>
                     ) : (
                         <button
