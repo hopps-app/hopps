@@ -517,10 +517,11 @@
         "status": {
             "all": "Alle",
             "confirmed": "Bestätigt",
-            "draft": "Entwurf"
+            "draft": "Entwurf",
+            "drafts": "Entwürfe"
         },
         "filters": {
-            "search": "Suchen…",
+            "search": "Nach Name oder Absender suchen…",
             "category": "Kategorie",
             "bommel": "Bommel",
             "area": "Sphäre",
@@ -535,7 +536,12 @@
             "advancedFilters": "Weitere Filter",
             "categoryGroups": "Kategoriegruppen",
             "addCategoryGroup": "Kategoriegruppe",
-            "removeCategoryGroup": "Entfernen"
+            "removeCategoryGroup": "Entfernen",
+            "filter": "Filter",
+            "selectGroup": "Gruppe wählen …",
+            "selectValue": "Wert wählen …",
+            "searchGroup": "Gruppe suchen",
+            "noGroups": "Keine Gruppe gefunden"
         },
         "unassigned": "Nicht zugeordnet",
         "openToCover": "offen: {{amount}}",
@@ -653,7 +659,9 @@
             "delete": "Löschen",
             "confirmTitle": "Ausgewählte Transaktionen löschen?",
             "confirmDesc": "Möchtest du die ausgewählten Transaktionen ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
-        }
+        },
+        "linked": "Verknüpft",
+        "notLinked": "Nicht verknüpft"
     },
     "receipts": {
         "draft": "Entwurf",
@@ -925,7 +933,13 @@
         "allBommels": "Alle Bommels",
         "startDate": "Von",
         "endDate": "Bis",
-        "resetFilter": "Zurücksetzen"
+        "resetFilter": "Zurücksetzen",
+        "bommelSelect": {
+            "label": "Bommel auswählen",
+            "all": "Alle Bommel",
+            "search": "Bommel suchen",
+            "empty": "Kein Bommel gefunden"
+        }
     },
     "categories": {
         "title": "Kategorien",

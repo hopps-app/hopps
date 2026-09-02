@@ -20,7 +20,7 @@ export interface TransactionFilters {
     // Active category-group value filters: groupId → the value a transaction must carry for that group. Multiple
     // entries combine with AND (a transaction must match every selected group). Encoded on the wire as repeatable
     // `categoryValue=<groupId>:<value>` query params.
-    categoryValues?: Record<number, string>;
+    categoryValues?: Record<number, string[]>;
     sortBy?: TransactionSortBy;
     sortDir?: SortDirection;
     page?: number;
@@ -28,10 +28,13 @@ export interface TransactionFilters {
 }
 
 /** Encodes the category-value filter map to the repeatable `groupId:value` wire format, or undefined when empty. */
-function encodeCategoryValues(categoryValues: Record<number, string> | undefined): string[] | undefined {
+function encodeCategoryValues(categoryValues: Record<number, string[]> | undefined): string[] | undefined {
     if (!categoryValues) return undefined;
-    const entries = Object.entries(categoryValues).filter(([, v]) => v != null && v !== '');
-    return entries.length > 0 ? entries.map(([groupId, value]) => `${groupId}:${value}`) : undefined;
+    // One `groupId:value` entry per value. The org service ORs the values of a group and ANDs the groups.
+    const encoded = Object.entries(categoryValues).flatMap(([groupId, values]) =>
+        (values ?? []).filter((v) => v != null && v !== '').map((value) => `${groupId}:${value}`)
+    );
+    return encoded.length > 0 ? encoded : undefined;
 }
 
 export const transactionKeys = {

@@ -518,10 +518,11 @@
         "status": {
             "all": "All",
             "confirmed": "Confirmed",
-            "draft": "Draft"
+            "draft": "Draft",
+            "drafts": "Drafts"
         },
         "filters": {
-            "search": "Search…",
+            "search": "Search by name or sender…",
             "category": "Category",
             "bommel": "Bommel",
             "area": "Area",
@@ -536,7 +537,12 @@
             "advancedFilters": "More filters",
             "categoryGroups": "Category groups",
             "addCategoryGroup": "Category group",
-            "removeCategoryGroup": "Remove"
+            "removeCategoryGroup": "Remove",
+            "filter": "Filter",
+            "selectGroup": "Select group …",
+            "selectValue": "Select value …",
+            "searchGroup": "Search group",
+            "noGroups": "No group found"
         },
         "unassigned": "Unassigned",
         "openToCover": "open: {{amount}}",
@@ -654,7 +660,9 @@
             "delete": "Delete",
             "confirmTitle": "Delete selected transactions?",
             "confirmDesc": "Do you really want to delete the selected transactions ({{n}})? This cannot be undone."
-        }
+        },
+        "linked": "Linked",
+        "notLinked": "Not linked"
     },
     "datePicker": {
         "selectDate": "Select date"
@@ -674,7 +682,13 @@
         "allBommels": "All Bommels",
         "startDate": "From",
         "endDate": "To",
-        "resetFilter": "Reset"
+        "resetFilter": "Reset",
+        "bommelSelect": {
+            "label": "Select bommel",
+            "all": "All bommels",
+            "search": "Search bommel",
+            "empty": "No bommel found"
+        }
     },
     "categories": {
         "title": "Categories",

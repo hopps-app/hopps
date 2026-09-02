@@ -4,8 +4,6 @@ import {
     ArrowUpRight,
     ChevronLeft,
     ChevronRight,
-    ChevronDown,
-    ChevronUp,
     X,
     Plus,
     Search,
@@ -15,20 +13,24 @@ import {
     Check,
     Minus,
     Upload,
-    SlidersHorizontal,
+    Filter,
+    Wallet,
     ExternalLink,
     RotateCcw,
+    Link2,
+    Unlink,
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
-import BommelMultiSelector from '@/components/CategoryGroups/BommelMultiSelector';
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
-import TransactionCategoryFilter from '@/components/CategoryGroups/TransactionCategoryFilter';
+import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/CategoryGroups/TransactionCategoryFilter';
 import { LoadingState } from '@/components/common/LoadingState';
+import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
+import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
@@ -50,6 +52,7 @@ import {
     TransactionSortBy,
     SortDirection,
 } from '@/hooks/queries/useTransactions';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { usePersistedState } from '@/hooks/usePersistedState';
@@ -73,7 +76,11 @@ const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
 // Shared column layout for the transactions table header and rows (must stay in sync).
 // Transaktion | Bommel | Datum | Erstellt am | Status | Betrag
-const TX_GRID = '40px minmax(0,2fr) 1fr 0.95fr 1fr 0.85fr 1fr';
+const TX_GRID = '40px minmax(0,2fr) 1fr 1fr 0.95fr 1fr 0.85fr 1fr';
+// Below this width seven columns leave the Bommel name too little room to be readable, so the column
+// is dropped entirely rather than squeezed. Header and rows both read this, so they stay in step.
+const TX_GRID_NARROW = '40px minmax(0,2fr) 1fr 0.95fr 1fr 0.85fr 1fr';
+const HIDE_BOMMEL_QUERY = '(max-width: 1023px)';
 
 function fmtCurrency(amount: number | undefined): string {
     if (amount === undefined || amount === null) return '—';
@@ -737,6 +744,11 @@ function TransactionRow({
     onToggleBulk: () => void;
 }) {
     const { t } = useTranslation();
+    const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
+    const categoryText = (tx.categoryValues ?? [])
+        .map((c) => c.value)
+        .filter(Boolean)
+        .join(', ');
     const amount = tx.total ? Number(tx.total) : 0;
     const incoming = amount >= 0;
     const highlighted = selected || bulkSelected;
@@ -746,7 +758,7 @@ function TransactionRow({
             onClick={onClick}
             className={cn('w-full grid items-center text-left border-b border-[#E9E9EE] last:border-b-0 transition-colors')}
             style={{
-                gridTemplateColumns: TX_GRID,
+                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
                 padding: '14px 20px',
                 background: highlighted ? '#F3EAFB' : undefined,
                 fontFamily: FONT,
@@ -795,12 +807,27 @@ function TransactionRow({
                 </span>
             </span>
 
-            {/* Bommel */}
-            <span className="pr-3">
-                {tx.bommelName ? (
-                    <span className="text-[13.5px] text-[#6B6B76] truncate">{tx.bommelName}</span>
-                ) : (
-                    <Badge variant="warn">{t('transactions.unassigned')}</Badge>
+            {/* Bommel. `truncate` only bites on a block box, and the grid item needs min-w-0 before it can
+                shrink at all — without both the long names overflowed and pushed the later columns out of line. */}
+            {!hideBommel && (
+                <span className="min-w-0 pr-3">
+                    {tx.bommelName ? (
+                        <span className="block truncate text-[13.5px] text-[#6B6B76]" title={tx.bommelName}>
+                            {tx.bommelName}
+                        </span>
+                    ) : (
+                        <Badge variant="warn">{t('transactions.unassigned')}</Badge>
+                    )}
+                </span>
+            )}
+
+            {/* Category group values, joined. A transaction can carry one per group, and the column is far too
+                narrow to list them, so the full set goes in the title. */}
+            <span className="min-w-0 pr-3">
+                {categoryText && (
+                    <span className="block truncate text-[13.5px] text-[#6B6B76]" title={categoryText}>
+                        {categoryText}
+                    </span>
                 )}
             </span>
 
@@ -810,9 +837,21 @@ function TransactionRow({
             {/* Created at */}
             <span className="text-[13px] text-[#9A9AA3] whitespace-nowrap tabular-nums">{fmtDate(tx.createdAt)}</span>
 
-            {/* Status */}
+            {/* Status, plus whether a bank movement backs this transaction. `coveredAmount` is the signed net
+                of the linked movements, so a non-zero value means at least one is attached. */}
             <span className="flex flex-col items-start gap-1">
                 <StatusBadge status={tx.status} />
+                {Math.abs(tx.coveredAmount != null ? Number(tx.coveredAmount) : 0) > 0.005 ? (
+                    <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#1F7A50]">
+                        <Link2 size={12} strokeWidth={2.5} />
+                        {t('transactions.linked')}
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#B47C18]">
+                        <Unlink size={12} strokeWidth={2.5} />
+                        {t('transactions.notLinked')}
+                    </span>
+                )}
             </span>
 
             {/* Amount — plus the reconciliation delta vs. linked bank movements, shown under the amount like the
@@ -857,6 +896,7 @@ function TransactionRow({
 export function TransactionenView() {
     const { t } = useTranslation();
     usePageTitle(t('transactions.title'));
+    const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
 
     const [search, setSearch] = usePersistedState<string>('hopps.transactions.search', '');
     const [statusFilter, setStatusFilter] = usePersistedState<'ALL' | 'CONFIRMED' | 'DRAFT'>('hopps.transactions.statusFilter', 'ALL');
@@ -867,8 +907,9 @@ export function TransactionenView() {
     const [privatelyPaid, setPrivatelyPaid] = usePersistedState<boolean>('hopps.transactions.privatelyPaid', false);
     const [detached, setDetached] = usePersistedState<boolean>('hopps.transactions.detached', false);
     // Category-group filters: which groups the user chose to surface as filters, and the value picked per group.
-    const [categoryFilterGroupIds, setCategoryFilterGroupIds] = usePersistedState<number[]>('hopps.transactions.categoryFilterGroups', []);
-    const [categoryFilters, setCategoryFilters] = usePersistedState<Record<number, string>>('hopps.transactions.categoryFilters', {});
+    // New storage key: the shape changed from `(number | null)[]` plus a one-value-per-group record to a
+    // row list, and old entries cannot be read as either.
+    const [categoryFilterRows, setCategoryFilterRows] = usePersistedState<CategoryFilterRow[]>('hopps.transactions.categoryFilterRows', []);
     const { data: categoryFilterGroups = [] } = useCategoryGroups();
     const [sortBy, setSortBy] = usePersistedState<TransactionSortBy>('hopps.transactions.sortBy', 'createdAt');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.transactions.sortDir', 'desc');
@@ -921,6 +962,17 @@ export function TransactionenView() {
         setPage(0);
     };
 
+    // Collapse the rows into the wire shape: the values of a group gathered under its id.
+    const categoryFilters = useMemo(() => {
+        const byGroup: Record<number, string[]> = {};
+        categoryFilterRows.forEach((row) => {
+            if (row.groupId == null || !row.value) return;
+            const list = byGroup[row.groupId] ?? (byGroup[row.groupId] = []);
+            if (!list.includes(row.value)) list.push(row.value);
+        });
+        return byGroup;
+    }, [categoryFilterRows]);
+
     const filters: TransactionFilters = {
         search: search || undefined,
         status: statusFilter === 'ALL' ? undefined : (statusFilter as TransactionStatus),
@@ -940,7 +992,46 @@ export function TransactionenView() {
     // Count and income/expense sums across all pages (a single page cannot provide them). Refetches on filter change,
     // not on paging.
     const { data: aggregate } = useTransactionAggregate(filters);
+    // Tab counts: the same filters as the list minus the status tab itself, so each tab reports how many
+    // rows it would show under the filters that are actually active.
+    const countFilters: TransactionFilters = {
+        search: filters.search,
+        bommelIds: filters.bommelIds,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        privatelyPaid: filters.privatelyPaid,
+        detached: filters.detached,
+        categoryValues: filters.categoryValues,
+    };
+    const { data: countAll } = useTransactionAggregate(countFilters);
+    const { data: countConfirmed } = useTransactionAggregate({ ...countFilters, status: 'CONFIRMED' });
+    const { data: countDraft } = useTransactionAggregate({ ...countFilters, status: 'DRAFT' });
+    const statusCounts: Record<'ALL' | 'CONFIRMED' | 'DRAFT', number> = {
+        ALL: countAll?.count ?? 0,
+        CONFIRMED: countConfirmed?.count ?? 0,
+        DRAFT: countDraft?.count ?? 0,
+    };
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const rootBommel = useBommelsStore((s) => s.rootBommel);
+    const loadBommelsForFilter = useBommelsStore((s) => s.loadBommels);
+    const bommelsLoading = useBommelsStore((s) => s.isLoading);
+    const { organization } = useStore();
+
+    useEffect(() => {
+        if (organization?.id && allBommels.length === 0) {
+            loadBommelsForFilter(organization.id);
+        }
+    }, [organization?.id, allBommels.length, loadBommelsForFilter]);
+
+    const bommelItems = useMemo(() => flattenBommelTree(allBommels, rootBommel?.id), [allBommels, rootBommel?.id]);
+
+    // The picker chooses one bommel; the filter still sends a list, because selecting a parent has to
+    // include everything under it and the org service matches bommel ids exactly.
+    const bommelSelection: BommelSelection = bommelIds.length > 0 ? (bommelIds[0] as number) : ALL_BOMMELS;
+    const onBommelSelectionChange = (next: BommelSelection) => {
+        setBommelIds(next === ALL_BOMMELS ? [] : collectSubtreeIds(allBommels, next));
+        setPage(0);
+    };
 
     const transactions: TransactionResponse[] = useMemo(() => {
         if (!txData) return [];
@@ -1008,28 +1099,22 @@ export function TransactionenView() {
     };
 
     // ── Category-group filter handlers ──
-    const addCategoryFilterGroup = (groupId: number) => {
-        setCategoryFilterGroupIds((prev) => (prev.includes(groupId) ? prev : [...prev, groupId]));
+    const addCategoryFilterRow = () => {
+        setCategoryFilterRows((prev) => [...prev, { groupId: null }]);
     };
-    const removeCategoryFilterGroup = (groupId: number) => {
-        setCategoryFilterGroupIds((prev) => prev.filter((id) => id !== groupId));
-        setCategoryFilters((prev) => {
-            const next = { ...prev };
-            delete next[groupId];
-            return next;
-        });
-        setPage(0);
+    const removeCategoryFilterRow = (index: number) => {
+        const had = categoryFilterRows[index]?.value;
+        setCategoryFilterRows((prev) => prev.filter((_, i) => i !== index));
+        if (had) setPage(0);
     };
-    const setCategoryFilterValue = (groupId: number, value: string | undefined) => {
-        setCategoryFilters((prev) => {
-            const next = { ...prev };
-            if (value == null || value === '') {
-                delete next[groupId];
-            } else {
-                next[groupId] = value;
-            }
-            return next;
-        });
+    // Swapping a row's group drops its value, which belonged to the old group.
+    const changeCategoryFilterGroup = (index: number, groupId: number | null) => {
+        const had = categoryFilterRows[index]?.value;
+        setCategoryFilterRows((prev) => prev.map((row, i) => (i === index ? { groupId } : row)));
+        if (had) setPage(0);
+    };
+    const setCategoryFilterRowValue = (index: number, value: string | undefined) => {
+        setCategoryFilterRows((prev) => prev.map((row, i) => (i === index ? { ...row, value } : row)));
         setPage(0);
     };
 
@@ -1048,13 +1133,15 @@ export function TransactionenView() {
     if (privatelyPaid) activeFilters.push({ key: 'priv', label: t('transactions.filters.privatelyPaid'), clear: () => setPrivatelyPaid(false) });
     if (detached) activeFilters.push({ key: 'det', label: t('transactions.filters.detached'), clear: () => setDetached(false) });
     // One chip per category group that actually has a value set (a shown-but-empty group is not an active filter).
-    Object.entries(categoryFilters).forEach(([gid, val]) => {
-        if (!val) return;
+    Object.entries(categoryFilters).forEach(([gid, vals]) => {
         const group = categoryFilterGroups.find((g) => g.id === Number(gid));
         activeFilters.push({
             key: `cat-${gid}`,
-            label: `${group?.name ?? gid}: ${val}`,
-            clear: () => setCategoryFilterValue(Number(gid), undefined),
+            label: `${group?.name ?? gid}: ${vals.join(', ')}`,
+            clear: () => {
+                setCategoryFilterRows((prev) => prev.filter((row) => row.groupId !== Number(gid)));
+                setPage(0);
+            },
         });
     });
 
@@ -1066,17 +1153,17 @@ export function TransactionenView() {
         setEndDate('');
         setPrivatelyPaid(false);
         setDetached(false);
-        setCategoryFilterGroupIds([]);
-        setCategoryFilters({});
+        setCategoryFilterRows([]);
         setPage(0);
     }
 
     const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-    const hasFilters = activeFilters.length > 0 || statusFilter !== 'ALL';
+    // The status tabs are not a filter for this purpose: switching to Bestätigt or Entwürfe alone does not offer a reset.
+    const hasFilters = activeFilters.length > 0;
 
     // Input/select base style
     const inputCls =
-        'rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-1.5 text-[13.5px] text-[#1B1B1F] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
+        'h-10 w-full rounded-xl border border-[#E0E0E6] bg-white px-3.5 text-[14px] text-[#1B1B1F] transition-shadow focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB]';
 
     return (
         <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
@@ -1111,14 +1198,11 @@ export function TransactionenView() {
             </div>
 
             {/* ── Filter bar ── */}
-            <div
-                className="rounded-[18px] border border-[#E9E9EE] p-4 mb-4 flex flex-col gap-3"
-                style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
-            >
-                <div className="flex items-center gap-2 flex-wrap">
+            <div className="mb-4 flex flex-col gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                     {/* Search */}
-                    <div className="relative flex-1 min-w-[200px]">
-                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9AA3] pointer-events-none" />
+                    <div className="relative flex-1 min-w-[220px]">
+                        <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9A9AA3] pointer-events-none" />
                         <input
                             type="text"
                             value={search}
@@ -1127,50 +1211,66 @@ export function TransactionenView() {
                                 setPage(0);
                             }}
                             placeholder={t('transactions.filters.search')}
-                            className={cn(inputCls, 'w-full pl-9')}
+                            className="w-full rounded-xl border border-[#E0E0E6] bg-white py-[11px] pl-[38px] pr-3.5 text-[14.5px] text-[#1B1B1F] placeholder:text-[#9A9AA3] transition-shadow focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB]"
                         />
                     </div>
 
                     {/* Status segmented toggle */}
-                    <div className="inline-flex p-1 gap-0.5" style={{ background: '#F1F1F4', borderRadius: 12 }}>
-                        {(['ALL', 'CONFIRMED', 'DRAFT'] as const).map((s) => (
-                            <button
-                                key={s}
-                                onClick={() => {
-                                    setStatusFilter(s);
-                                    setPage(0);
-                                }}
-                                className="px-3 py-1.5 font-bold transition-all"
-                                style={{
-                                    fontSize: 13.5,
-                                    borderRadius: 9,
-                                    color: statusFilter === s ? '#FFFFFF' : '#6B6B76',
-                                    background: statusFilter === s ? 'linear-gradient(100deg,#7E3FB4,#9955CC)' : 'transparent',
-                                    boxShadow: statusFilter === s ? '0 1px 2px rgba(20,20,40,.12)' : 'none',
-                                }}
-                            >
-                                {t(`transactions.status.${s.toLowerCase()}`)}
-                            </button>
-                        ))}
+                    <div className="inline-flex gap-0.5 p-1" style={{ background: '#F1F1F4', borderRadius: 12 }}>
+                        {(['ALL', 'CONFIRMED', 'DRAFT'] as const).map((s) => {
+                            const active = statusFilter === s;
+                            const label = s === 'DRAFT' ? t('transactions.status.drafts') : t(`transactions.status.${s.toLowerCase()}`);
+                            return (
+                                <button
+                                    key={s}
+                                    onClick={() => {
+                                        setStatusFilter(s);
+                                        setPage(0);
+                                    }}
+                                    className="inline-flex items-center gap-[7px] px-4 py-2 font-bold transition-colors"
+                                    style={{
+                                        fontSize: 13.5,
+                                        borderRadius: 9,
+                                        color: active ? '#1B1B1F' : '#6B6B76',
+                                        background: active ? '#FFFFFF' : 'transparent',
+                                        boxShadow: active ? '0 1px 2px rgba(24,16,40,.08)' : 'none',
+                                    }}
+                                >
+                                    {label}
+                                    <span
+                                        className="grid place-items-center rounded-full px-[5px] font-extrabold"
+                                        style={{
+                                            minWidth: 20,
+                                            height: 20,
+                                            fontSize: 11.5,
+                                            background: active ? '#9955CC' : '#F3EAFB',
+                                            color: active ? '#FFFFFF' : '#7E3FB4',
+                                        }}
+                                    >
+                                        {statusCounts[s]}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
 
                     {/* Advanced filter toggle */}
                     <button
                         onClick={() => setAdvancedOpen((v) => !v)}
-                        className="inline-flex items-center gap-1.5 font-semibold transition-colors"
+                        aria-expanded={advancedOpen}
+                        className="inline-flex items-center gap-[7px] whitespace-nowrap font-semibold transition-colors"
                         style={{
                             fontSize: 13.5,
                             padding: '8px 14px',
-                            borderRadius: 999,
+                            borderRadius: 9,
                             border: '1px solid',
-                            borderColor: advancedOpen ? '#9955CC' : '#E0E0E6',
-                            background: advancedOpen ? '#F3EAFB' : '#FFFFFF',
+                            borderColor: advancedOpen ? 'transparent' : '#E0E0E6',
+                            background: advancedOpen ? '#ECE0F6' : '#FFFFFF',
                             color: advancedOpen ? '#7E3FB4' : '#6B6B76',
                         }}
                     >
-                        <SlidersHorizontal size={14} />
-                        {t('transactions.filters.advancedFilters')}
-                        {advancedOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                        <Filter size={15} />
+                        {t('transactions.filters.filter')}
                     </button>
 
                     {hasFilters && (
@@ -1185,16 +1285,17 @@ export function TransactionenView() {
 
                 {/* Advanced filter panel */}
                 {advancedOpen && (
-                    <div className="pt-3 border-t border-[#E9E9EE] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        <div className="flex flex-col gap-1.5 sm:col-span-2">
+                    <div
+                        className="grid grid-cols-2 gap-3 rounded-[18px] border border-[#E9E9EE] p-4 sm:grid-cols-3 md:grid-cols-4"
+                        style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
+                    >
+                        {/* The trigger carries BaseButton's `shadow-card`, which is too heavy for a control sitting
+                            inside an already elevated filter card. Toned down here only, so the dashboard's copy of
+                            BommelSelect keeps its own look. Radius, border and width are lined up with the other
+                            fields here too. The popover is portalled, so this reaches the trigger only. */}
+                        <div className="flex flex-col gap-1.5 sm:col-span-2 [&_button:hover]:shadow-none [&_button]:rounded-xl [&_button]:border-[#E0E0E6] [&_button]:shadow-none sm:[&_button]:w-full">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.bommel')}</label>
-                            <BommelMultiSelector
-                                value={bommelIds}
-                                onChange={(ids) => {
-                                    setBommelIds(ids);
-                                    setPage(0);
-                                }}
-                            />
+                            <BommelSelect items={bommelItems} value={bommelSelection} onChange={onBommelSelectionChange} isLoading={bommelsLoading} />
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.from')}</label>
@@ -1226,6 +1327,7 @@ export function TransactionenView() {
                                 {[
                                     {
                                         key: 'priv',
+                                        icon: Wallet,
                                         label: t('transactions.filters.privatelyPaid'),
                                         active: privatelyPaid,
                                         toggle: () => {
@@ -1235,6 +1337,7 @@ export function TransactionenView() {
                                     },
                                     {
                                         key: 'det',
+                                        icon: Unlink,
                                         label: t('transactions.filters.detached'),
                                         active: detached,
                                         toggle: () => {
@@ -1242,22 +1345,22 @@ export function TransactionenView() {
                                             setPage(0);
                                         },
                                     },
-                                ].map(({ key, label, active, toggle }) => (
+                                ].map(({ key, icon: Icon, label, active, toggle }) => (
                                     <button
                                         key={key}
                                         onClick={toggle}
-                                        className="inline-flex items-center gap-1.5 font-semibold transition-all"
+                                        className="inline-flex h-10 items-center gap-1.5 font-semibold transition-colors"
                                         style={{
                                             fontSize: 13.5,
-                                            padding: '7px 14px',
-                                            borderRadius: 999,
+                                            padding: '0 14px',
+                                            borderRadius: 12,
                                             border: '1px solid',
                                             borderColor: active ? '#9955CC' : '#E0E0E6',
                                             background: active ? '#F3EAFB' : '#FFFFFF',
                                             color: active ? '#7E3FB4' : '#6B6B76',
                                         }}
                                     >
-                                        {active && <Check size={12} strokeWidth={2.5} />}
+                                        <Icon size={14} strokeWidth={2} />
                                         {label}
                                     </button>
                                 ))}
@@ -1268,18 +1371,19 @@ export function TransactionenView() {
                         {categoryFilterGroups.length > 0 && (
                             <TransactionCategoryFilter
                                 groups={categoryFilterGroups}
-                                shownGroupIds={categoryFilterGroupIds}
-                                values={categoryFilters}
-                                onAddGroup={addCategoryFilterGroup}
-                                onRemoveGroup={removeCategoryFilterGroup}
-                                onChangeValue={setCategoryFilterValue}
+                                rows={categoryFilterRows}
+                                onAddRow={addCategoryFilterRow}
+                                onRemoveRow={removeCategoryFilterRow}
+                                onChangeGroup={changeCategoryFilterGroup}
+                                onChangeValue={setCategoryFilterRowValue}
                             />
                         )}
                     </div>
                 )}
 
-                {/* Active filter chips */}
-                {activeFilters.length > 0 && (
+                {/* Active filter chips. They summarise what is set while the panel is closed; with it open every
+                    one of them is already on screen as its own control, so the strip would just repeat it. */}
+                {!advancedOpen && activeFilters.length > 0 && (
                     <div className="flex items-center gap-2 flex-wrap pt-1">
                         {activeFilters.map((f) => (
                             <FilterChip key={f.key} label={f.label} onRemove={f.clear} />
@@ -1339,9 +1443,8 @@ export function TransactionenView() {
                         <div
                             className="grid items-center border-b border-[#E9E9EE]"
                             style={{
-                                gridTemplateColumns: TX_GRID,
+                                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
                                 padding: '11px 20px',
-                                background: '#F8F8FA',
                                 fontFamily: FONT,
                             }}
                         >
@@ -1369,7 +1472,11 @@ export function TransactionenView() {
                                     <Minus className="w-3 h-3 text-white" strokeWidth={3} />
                                 ) : null}
                             </span>
-                            {[t('transactions.columns.transaction'), t('transactions.columns.bommel')].map((col) => (
+                            {[
+                                t('transactions.columns.transaction'),
+                                ...(hideBommel ? [] : [t('transactions.columns.bommel')]),
+                                t('transactions.columns.category'),
+                            ].map((col) => (
                                 <span
                                     key={col}
                                     style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}

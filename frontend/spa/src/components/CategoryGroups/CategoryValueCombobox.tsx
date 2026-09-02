@@ -15,13 +15,15 @@ type CategoryValueComboboxProps = {
     /** Mark the field as an unmet requirement (warn border) without an inline error text. */
     warn?: boolean;
     disabled?: boolean;
+    /** Overrides the default empty-state text. */
+    placeholder?: string;
 };
 
 /**
  * Searchable value picker backed by the server-side, paginated value endpoint — so a group can hold thousands of values
  * (e.g. a whole chart of accounts) without ever loading them all at once.
  */
-const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value, onChange, warn, disabled }) => {
+const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value, onChange, warn, disabled, placeholder }) => {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [rawQuery, setRawQuery] = useState('');
@@ -54,7 +56,7 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                         aria-haspopup="listbox"
                         aria-expanded={open}
                     >
-                        <span className="truncate">{value || t('categoryGroups.fields.valuePlaceholder')}</span>
+                        <span className="truncate">{value || placeholder || t('categoryGroups.fields.valuePlaceholder')}</span>
                         {!value && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" aria-hidden="true" />}
                     </button>
                 </PopoverTrigger>
