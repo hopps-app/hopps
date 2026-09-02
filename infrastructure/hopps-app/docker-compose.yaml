@@ -1,85 +1,233 @@
+# Hopps - self-hosted deployment.
+#
+# Copy .env.example to .env and fill it in before the first start; several values
+# have no sensible default and the stack will not come up without them.
+#
+#   docker compose up -d
+#
+# The browser-facing URLs (PUBLIC_*) must be reachable from the user's browser.
+# Service-to-service traffic uses the compose network names and never leaves the host.
+
 services:
-  org:
-    image: ghcr.io/hopps-app/hopps/org:395
+
+  # ---------------------------------------------------------------- frontend --
+  frontend:
+    image: ghcr.io/hopps-app/hopps/frontend:${FRONTEND_TAG:-1168}
+    restart: unless-stopped
     ports:
-      - "8101:8080"
+      - "${SPA_PORT:-8080}:8080"
     depends_on:
-      - postgres
-      - keycloak
+      org:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
     environment:
-      - QUARKUS_DATASOURCE_USERNAME=postgres
-      - QUARKUS_DATASOURCE_PASSWORD=postgres
-      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/org
-      - QUARKUS_KEYCLOAK_ADMIN_CLIENT_ENABLED=false
-      - QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL=http://keycloak:8080/
-      - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/realms/hopps
-      - QUARKUS_OIDC_CREDENTIALS_SECRET=mysecret
-      - QUARKUS_OIDC_CLIENT_ID=hopps
-      - QUARKUS_OIDC_TLS_VERIFICATION=none
-      - QUARKUS_OIDC_ENABLED=false
-      - QUARKUS_HTTP_AUTH_PERMISSION_REST_POLICY=permit
-      - QUARKUS_OPENFGA_URL=http://openfga:8080
-      - QUARKUS_OPENFGA_STORE_ID=01JM0XYZABCDEFGHIJKLMNOPQR
+      VITE_TITLE: ${VITE_TITLE:-Hopps}
+      VITE_GENERAL_DATE_FORMAT: ${VITE_GENERAL_DATE_FORMAT:-dd.MM.yyyy}
+      VITE_GENERAL_CURRENCY_SYMBOL_AFTER: ${VITE_GENERAL_CURRENCY_SYMBOL_AFTER:-€}
+      VITE_ALPHA_VERSION: ${VITE_ALPHA_VERSION:-false}
+      VITE_API_ORG_URL: ${PUBLIC_ORG_URL}
+      VITE_KEYCLOAK_URL: ${PUBLIC_KEYCLOAK_URL}
+      VITE_KEYCLOAK_REALM: quarkus
+      VITE_KEYCLOAK_CLIENT_ID: quarkus-app
+
+  # ---------------------------------------------------------------- backend ---
+  org:
+    image: ghcr.io/hopps-app/hopps/org:${TAG:-967}
+    restart: unless-stopped
+    ports:
+      - "${ORG_PORT:-8101}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      # -- database
+      QUARKUS_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      QUARKUS_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/org
+
+      # -- authentication
+      # Discovery runs over the compose network; the issuer inside the tokens is the
+      # public URL the browser used, so it has to be asserted separately.
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/realms/quarkus
+      QUARKUS_OIDC_TOKEN_ISSUER: ${PUBLIC_KEYCLOAK_URL}/realms/quarkus
+      QUARKUS_OIDC_CLIENT_ID: quarkus-app
+      QUARKUS_OIDC_APPLICATION_TYPE: service
+      # Provisions users on organization registration and on member invitations.
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_ENABLED: "true"
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL: http://keycloak:8080
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      HOPPS_SPA_URL: ${PUBLIC_SPA_URL}/
+
+      # -- the SPA is served from a different origin than the API
+      QUARKUS_HTTP_CORS_ENABLED: "true"
+      QUARKUS_HTTP_CORS_ORIGINS: ${PUBLIC_SPA_URL}
+
+      # -- object storage (MinIO speaks the S3 API)
+      QUARKUS_S3_ENDPOINT_OVERRIDE: http://minio:9000
+      QUARKUS_S3_PATH_STYLE_ACCESS: "true"
+      QUARKUS_S3_AWS_REGION: ${S3_REGION:-eu-central-1}
+      QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+
+      # -- document analysis sidecars
+      HOPPS_DOCUMENT_AI_SERVICE_URL: http://az-document-ai:8080
+      HOPPS_ZUGFERD_SERVICE_URL: http://zugferd:8080
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
 
   az-document-ai:
-    image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-395}
-    ports:
-      - "8100:8080"
+    image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-967}
+    restart: unless-stopped
+    expose:
+      - "8080"
     environment:
-      - HOPPS_AZURE_DOCUMENT_AI_ENDPOINT=${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT}
-      - HOPPS_AZURE_DOCUMENT_AI_KEY=${HOPPS_AZURE_DOCUMENT_AI_KEY}
+      HOPPS_AZURE_DOCUMENT_AI_ENDPOINT: ${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT}
+      HOPPS_AZURE_DOCUMENT_AI_KEY: ${HOPPS_AZURE_DOCUMENT_AI_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
 
-  localstack:
-    image: localstack/localstack
+  zugferd:
+    image: ghcr.io/hopps-app/hopps/zugferd:${TAG:-967}
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  # ------------------------------------------------------------ persistence --
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql:ro
     ports:
-      - "4566:4566"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
-  # Catches the invitation mails Keycloak sends when a user is added to an organization. Nothing leaves the machine.
-  # The realm points at host.docker.internal:1025, so this works for both the compose Keycloak and the one Quarkus
-  # Dev Services starts. Read them at http://localhost:8025.
+  # Receipts and invoices are stored here. Back up the minio_data volume.
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ----------------------------------------------------------------- ident ----
+  keycloak:
+    # Keycloak plus the Hopps login theme the realm refers to.
+    image: ghcr.io/hopps-app/hopps/hopps-keycloak:${KEYCLOAK_TAG:-193-keycloak-26.2.1}
+    restart: unless-stopped
+    # The realm template is rendered from .env before the import runs, so redirect
+    # URIs and the Authentik identity provider follow the environment instead of
+    # being baked into the JSON.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        mkdir -p /opt/keycloak/data/import
+        sed -e "s|__PUBLIC_SPA_URL__|$${PUBLIC_SPA_URL}|g" -e "s|__REALM_SSL_REQUIRED__|$${REALM_SSL_REQUIRED:-external}|g" -e "s|__IDP_ENABLED__|$${IDP_ENABLED:-false}|g" -e "s|__IDP_ALIAS__|$${IDP_ALIAS:-oidc}|g" -e "s|__IDP_DISPLAY_NAME__|$${IDP_DISPLAY_NAME:-Single sign-on}|g" -e "s|__IDP_CLIENT_ID__|$${IDP_CLIENT_ID:-unset}|g" -e "s|__IDP_CLIENT_SECRET__|$${IDP_CLIENT_SECRET:-unset}|g" -e "s|__IDP_AUTHORIZATION_URL__|$${IDP_AUTHORIZATION_URL:-https://idp.invalid/authorize}|g" -e "s|__IDP_TOKEN_URL__|$${IDP_TOKEN_URL:-https://idp.invalid/token}|g" -e "s|__IDP_USERINFO_URL__|$${IDP_USERINFO_URL:-https://idp.invalid/userinfo}|g" -e "s|__IDP_JWKS_URL__|$${IDP_JWKS_URL:-https://idp.invalid/jwks}|g" -e "s|__IDP_LOGOUT_URL__|$${IDP_LOGOUT_URL:-https://idp.invalid/logout}|g" -e "s|__IDP_ISSUER__|$${IDP_ISSUER:-https://idp.invalid}|g" /opt/keycloak/data/import-template/quarkus-realm.json > /opt/keycloak/data/import/quarkus-realm.json
+        exec /opt/keycloak/bin/kc.sh start --optimized=false --import-realm
+    ports:
+      - "${KEYCLOAK_PORT:-8092}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_DB_USERNAME=${POSTGRES_USER:-postgres}
+      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+      # Public address the browser uses. Backchannel calls from the org service keep
+      # using http://keycloak:8080, hence the dynamic backchannel.
+      - KC_HOSTNAME=${PUBLIC_KEYCLOAK_URL}
+      - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
+      - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN:-admin}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      # Substituted into hopps-realm.json on import.
+      - PUBLIC_SPA_URL=${PUBLIC_SPA_URL}
+      # Optional: broker logins to a Kollicloud/Authentik OIDC provider.
+      # External identity provider. All optional; see EXTERNAL-IDP.md.
+      - IDP_ENABLED=${IDP_ENABLED:-false}
+      - IDP_ALIAS=${IDP_ALIAS:-oidc}
+      - IDP_DISPLAY_NAME=${IDP_DISPLAY_NAME:-Single sign-on}
+      - IDP_CLIENT_ID=${IDP_CLIENT_ID:-}
+      - IDP_CLIENT_SECRET=${IDP_CLIENT_SECRET:-}
+      - IDP_AUTHORIZATION_URL=${IDP_AUTHORIZATION_URL:-}
+      - IDP_TOKEN_URL=${IDP_TOKEN_URL:-}
+      - IDP_USERINFO_URL=${IDP_USERINFO_URL:-}
+      - IDP_JWKS_URL=${IDP_JWKS_URL:-}
+      - IDP_LOGOUT_URL=${IDP_LOGOUT_URL:-}
+      - IDP_ISSUER=${IDP_ISSUER:-}
+      - REALM_SSL_REQUIRED=${REALM_SSL_REQUIRED:-external}
+      # Only valid when actually set (to "xforwarded" or "forwarded"); an empty value
+      # is rejected by Keycloak, so this is passed through only if defined in .env.
+      - KC_PROXY_HEADERS
+    volumes:
+      # Keycloak requires the import file to be named <realm>-realm.json.
+      - ./hopps-realm.json:/opt/keycloak/data/import-template/quarkus-realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\nHost: localhost\nConnection: close\n\n' >&3 && cat <&3 | grep -q '\"status\": \"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # Catches the invitation mails Keycloak sends when a user is added to an organization.
+  # Nothing leaves the machine. Read them at http://localhost:8025.
+  # Replace with the customer's real SMTP server (Realm settings -> Email) for production.
   mailpit:
     image: axllent/mailpit:latest
+    restart: unless-stopped
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: "true"
       MP_SMTP_AUTH_ALLOW_INSECURE: "true"
 
-  postgres:
-    image: postgres:16-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.4.7
-    command: start-dev --import-realm
-    ports:
-      - "8092:8080"
-    depends_on:
-      - postgres
-    environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: postgres
-      KC_HOSTNAME: localhost
-      KC_HOSTNAME_PORT: 8092
-      KC_HOSTNAME_STRICT: "false"
-      KC_HOSTNAME_STRICT_HTTPS: "false"
-      KC_HTTP_ENABLED: "true"
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - ./keycloak_default_realm.json:/opt/keycloak/data/import/keycloak.default.realm.json
-      # Keycloak theme disabled - jar file is empty
-      # - ../../frontend/keycloak-theme/dist_keycloak/keycloak-theme-for-kc-22-to-25.jar:/opt/keycloak/providers
-
 volumes:
   postgres_data:
+  minio_data:
