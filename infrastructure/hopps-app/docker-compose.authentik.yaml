@@ -6,7 +6,7 @@
 # Stop + wipe:
 #   docker compose -f docker-compose.authentik.yaml down -v
 #
-# Reach Authentik at http://host.docker.internal:9000 from BOTH the browser and
+# Reach Authentik at http://localhost:9100 from BOTH the browser and
 # the Keycloak container so the OIDC issuer/redirects stay consistent.
 # Initial admin: akadmin / see AUTHENTIK_BOOTSTRAP_PASSWORD below.
 #
@@ -29,7 +29,7 @@ services:
     image: ghcr.io/goauthentik/server:2024.12
     command: server
     ports:
-      - "9000:9000"
+      - "9100:9000"
     depends_on:
       - authentik-postgres
       - authentik-redis
