@@ -74,6 +74,13 @@
         --hover-effect: var(--grey-400);
         /* Semantic "good news" ink, used where meaning matters more than direction (dashboard KPIs). */
         --positive: #1F7A50;
+        /* Tailwind's `text-foreground` maps to this; without it the utility resolved to nothing and
+           silently inherited whatever colour the parent had. */
+        --foreground: var(--font-color);
+        /* The "open receipts" band paints white text on a purple ground, so it must NOT follow the
+           inverted purple scale in dark mode — these stay dark in both themes. */
+        --banner-gradient: linear-gradient(100deg, #7E3FB4, #9955CC);
+        --banner-ink: #7E3FB4;
         /* Dashboard chart series: same hue family, clearly separated by lightness so the bars stay
            distinguishable without colour perception. */
         --chart-income: #9955CC;
@@ -130,6 +137,9 @@
         --hover-effect: #1a1a1a;
         --border-line: #A7A7A7;
         --positive: #69CFA0;
+        --foreground: var(--font-color);
+        --banner-gradient: linear-gradient(100deg, #6E34A2, #8B4CBB);
+        --banner-ink: #6E34A2;
         --chart-income: #B582E0;
         --chart-expenses: #7E5A9C;
         --radius: 8px;

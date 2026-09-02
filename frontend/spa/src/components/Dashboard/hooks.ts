@@ -60,13 +60,17 @@ export function useYearTotals(organizationId: number | undefined) {
     });
 }
 
-/** Uploaded documents that have not been linked to a transaction yet. */
+/**
+ * Uploaded receipts still waiting to be reviewed. Confirming a receipt always ends with a linked
+ * transaction, so "not confirmed" is the app's own notion of an open receipt — and it is exactly the
+ * set the receipts list shows under its default filter, which is where the banner sends you.
+ */
 export function useOpenReceiptsCount(organizationId: number | undefined) {
     return useQuery({
         queryKey: ['dashboard', 'open-receipts', organizationId],
         queryFn: async () => {
             const documents = await apiService.orgService.documentsAll(undefined);
-            return documents.filter((document) => document.transactionId == null).length;
+            return documents.filter((document) => document.documentStatus !== 'CONFIRMED').length;
         },
         enabled: organizationId != null,
     });

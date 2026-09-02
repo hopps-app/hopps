@@ -24,7 +24,7 @@ export function OpenReceiptsBanner({ count, isLoading }: { count: number | undef
 
     return (
         <div
-            className="mb-4 flex flex-col gap-4 rounded-[18px] bg-[linear-gradient(100deg,var(--purple-700),var(--purple-500))] px-5 py-5 text-white sm:mb-[18px] sm:flex-row sm:items-center sm:gap-5 sm:px-6"
+            className="mb-4 flex flex-col gap-4 rounded-[18px] bg-[image:var(--banner-gradient)] px-5 py-5 text-white sm:mb-[18px] sm:flex-row sm:items-center sm:gap-5 sm:px-6"
             data-testid="dashboard-open-receipts-banner"
         >
             <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[15px] bg-white/20">
@@ -37,7 +37,7 @@ export function OpenReceiptsBanner({ count, isLoading }: { count: number | undef
                 </p>
             </div>
             <BaseButton
-                className="gap-2 bg-white text-[var(--purple-700)] hover:bg-white/90"
+                className="gap-2 bg-white text-[color:var(--banner-ink)] hover:bg-white/90"
                 onClick={() => navigate('/receipts')}
                 data-testid="dashboard-open-receipts-action"
             >
