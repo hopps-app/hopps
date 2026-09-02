@@ -129,9 +129,11 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
         .map((b) => {
             const d = b.bookingDate ? new Date(b.bookingDate).getTime() : null;
             const delta = d != null && refDate != null ? d - refDate : null;
-            return { b, group: delta == null ? 2 : delta >= 0 ? 0 : 1, dist: delta == null ? 0 : Math.abs(delta) };
+            // Movements running the other way stay selectable
+            const wrongDirection = Math.sign(b.amount ?? 0) !== 0 && Math.sign(b.amount ?? 0) !== txSign ? 1 : 0;
+            return { b, wrongDirection, group: delta == null ? 2 : delta >= 0 ? 0 : 1, dist: delta == null ? 0 : Math.abs(delta) };
         })
-        .sort((x, y) => x.group - y.group || x.dist - y.dist)
+        .sort((x, y) => x.wrongDirection - y.wrongDirection || x.group - y.group || x.dist - y.dist)
         .map((x) => x.b);
 
     function openPicker() {
