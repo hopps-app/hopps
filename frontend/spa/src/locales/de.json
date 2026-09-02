@@ -913,19 +913,49 @@
     "dashboard": {
         "title": "Dashboard",
         "incomeExpenseChart": "Einnahmen & Ausgaben",
-        "loadError": "Diagrammdaten konnten nicht geladen werden",
-        "noData": "Keine Daten verfügbar",
-        "noDataHint": "Laden Sie Ihren ersten Beleg hoch, um Einnahmen- und Ausgabendaten hier zu sehen.",
-        "uploadFirst": "Beleg hochladen",
-        "timeRange": "Zeige Daten von {{startDate}} bis {{endDate}}",
         "income": "Einnahmen",
         "expenses": "Ausgaben",
         "filterLabel": "Zeitraum",
         "bommelFilter": "Bommel",
-        "allBommels": "Alle Bommels",
-        "startDate": "Von",
-        "endDate": "Bis",
-        "resetFilter": "Zurücksetzen"
+        "resetFilter": "Zurücksetzen",
+        "openReceipts": {
+            "title": "Offene Belege",
+            "description_one": "{{count}} Beleg ist noch keiner Buchung zugeordnet.",
+            "description_other": "{{count}} Belege sind noch keiner Buchung zugeordnet.",
+            "action": "Jetzt prüfen"
+        },
+        "kpi": {
+            "balance": "Kontostand",
+            "available": "Aktuell verfügbar",
+            "noAccount": "Noch kein Konto verbunden",
+            "income": "Einnahmen {{year}} gesamt",
+            "expenses": "Ausgaben {{year}} gesamt",
+            "noTransactions": "Noch keine Buchungen",
+            "noComparison": "Kein Vergleichswert aus dem Vorjahr",
+            "changeUp": "↑ {{percent}} % mehr als im Vorjahreszeitraum",
+            "changeDown": "↓ {{percent}} % weniger als im Vorjahreszeitraum",
+            "changeFlat": "Unverändert gegenüber dem Vorjahreszeitraum"
+        },
+        "bommelSelect": {
+            "label": "Bommel auswählen",
+            "all": "Alle Bommel",
+            "search": "Bommel suchen",
+            "empty": "Kein Bommel gefunden"
+        },
+        "periodSelect": {
+            "label": "Zeitraum auswählen",
+            "options": {
+                "ytd": "Dieses Jahr",
+                "quarter": "Dieses Quartal",
+                "last6Months": "Letzte 6 Monate",
+                "last12Months": "Letzte 12 Monate",
+                "previousYear": "Vorjahr"
+            }
+        },
+        "chart": {
+            "tableCaption": "Einnahmen und Ausgaben je Monat",
+            "month": "Monat"
+        }
     },
     "categories": {
         "title": "Kategorien",

@@ -661,20 +661,50 @@
     },
     "dashboard": {
         "title": "Dashboard",
-        "incomeExpenseChart": "Income & Expenses",
-        "loadError": "Failed to load chart data",
-        "noData": "No data available",
-        "noDataHint": "Upload your first receipt to see income and expense data here.",
-        "uploadFirst": "Upload receipt",
-        "timeRange": "Showing data from {{startDate}} to {{endDate}}",
+        "incomeExpenseChart": "Income & expenses",
         "income": "Income",
         "expenses": "Expenses",
-        "filterLabel": "Time Range",
+        "filterLabel": "Period",
         "bommelFilter": "Bommel",
-        "allBommels": "All Bommels",
-        "startDate": "From",
-        "endDate": "To",
-        "resetFilter": "Reset"
+        "resetFilter": "Reset",
+        "openReceipts": {
+            "title": "Open receipts",
+            "description_one": "{{count}} receipt is not yet linked to a booking.",
+            "description_other": "{{count}} receipts are not yet linked to a booking.",
+            "action": "Review now"
+        },
+        "kpi": {
+            "balance": "Account balance",
+            "available": "Currently available",
+            "noAccount": "No account connected yet",
+            "income": "Total income {{year}}",
+            "expenses": "Total expenses {{year}}",
+            "noTransactions": "No bookings yet",
+            "noComparison": "No comparison value from last year",
+            "changeUp": "↑ {{percent}} % more than the same period last year",
+            "changeDown": "↓ {{percent}} % less than the same period last year",
+            "changeFlat": "Unchanged from the same period last year"
+        },
+        "bommelSelect": {
+            "label": "Select bommel",
+            "all": "All bommels",
+            "search": "Search bommel",
+            "empty": "No bommel found"
+        },
+        "periodSelect": {
+            "label": "Select period",
+            "options": {
+                "ytd": "This year",
+                "quarter": "This quarter",
+                "last6Months": "Last 6 months",
+                "last12Months": "Last 12 months",
+                "previousYear": "Previous year"
+            }
+        },
+        "chart": {
+            "tableCaption": "Income and expenses per month",
+            "month": "Month"
+        }
     },
     "categories": {
         "title": "Categories",
