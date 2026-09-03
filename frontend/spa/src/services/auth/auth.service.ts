@@ -5,6 +5,11 @@ import { useStore } from '@/store/store';
 
 // give keycloak some margin to refresh
 const TOKEN_REFRESH_MARGIN_SECONDS = 60;
+// Keycloak's own hint parameter. In the URL it pins the login to a single brokered identity provider
+// and skips Keycloak's provider chooser, so a portal that has already authenticated the user can link
+// straight through to the matching broker. The alias is never hardcoded — each entry link carries its
+// own, which is what lets several providers share this one path.
+const IDP_HINT_PARAM = 'kc_idp_hint';
 // Poll often enough that a short-lived access token is renewed well before it expires. Each successful refresh also
 // resets Keycloak's SSO session idle timeout, so an open (even backgrounded) tab stays logged in instead of silently
 // crossing the idle window. Browsers throttle background timers, but combined with a short access-token lifespan this
@@ -81,8 +86,15 @@ export class AuthService {
         return isSuccessInit;
     }
 
+    /**
+     * Read the hint per call rather than once at construction: init() runs its check-sso before the
+     * guard decides a login is needed, so the URL is only inspected at the moment we actually redirect.
+     * Without the parameter nothing changes: Keycloak shows its own form alongside every configured broker.
+     */
     async login(redirectUri?: string) {
-        return await this.keycloak.login(redirectUri ? { redirectUri } : undefined);
+        const idpHint = new URLSearchParams(window.location.search).get(IDP_HINT_PARAM) ?? undefined;
+
+        return await this.keycloak.login({ redirectUri, idpHint });
     }
 
     async logout() {
