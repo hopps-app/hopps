@@ -42,7 +42,7 @@ const MobileSidebar: React.FC = () => {
                         w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
                         transition-colors duration-150
                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1
-                        ${active ? 'bg-purple-100 dark:bg-purple-300 text-primary' : 'text-grey-900 dark:text-grey-800 hover:bg-hover-effect dark:hover:bg-purple-200'}
+                        ${active ? 'bg-purple-100 dark:bg-purple-300 text-primary dark:text-purple-950' : 'text-grey-900 dark:text-grey-800 hover:bg-hover-effect dark:hover:bg-purple-200'}
                     `}
                 >
                     <span className="flex-shrink-0">{typeof item.icon === 'string' ? <Icon icon={item.icon} size={18} /> : <item.icon size={18} />}</span>
