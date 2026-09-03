@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
+import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import {
@@ -23,19 +24,6 @@ import { useDocument } from '@/hooks/queries/useDocuments';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 import { parseAllocationAmount } from '@/utils/parseAmount';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtCurrency(amount: number | undefined, currency = 'EUR'): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-}
-
-function fmtDate(date: string | Date | undefined): string {
-    if (!date) return '—';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
 
 // ─── BookingMini ──────────────────────────────────────────────────────────────
 

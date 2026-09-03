@@ -669,7 +669,7 @@
     },
     "dashboard": {
         "title": "Dashboard",
-        "incomeExpenseChart": "Income & Expenses",
+        "incomeExpenseChart": "Income & expenses",
         "loadError": "Failed to load chart data",
         "noData": "No data available",
         "noDataHint": "Upload your first receipt to see income and expense data here.",
@@ -677,7 +677,7 @@
         "timeRange": "Showing data from {{startDate}} to {{endDate}}",
         "income": "Income",
         "expenses": "Expenses",
-        "filterLabel": "Time Range",
+        "filterLabel": "Period",
         "bommelFilter": "Bommel",
         "allBommels": "All Bommels",
         "startDate": "From",
@@ -688,6 +688,39 @@
             "all": "All bommels",
             "search": "Search bommel",
             "empty": "No bommel found"
+        },
+        "openReceipts": {
+            "title_one": "{{count}} open receipt",
+            "title_other": "{{count}} open receipts",
+            "description_one": "It is not yet linked to a booking.",
+            "description_other": "They are not yet linked to a booking.",
+            "action": "Review now"
+        },
+        "kpi": {
+            "balance": "Account balance",
+            "available": "Currently available",
+            "noAccount": "No account connected yet",
+            "income": "Total income {{year}}",
+            "expenses": "Total expenses {{year}}",
+            "noTransactions": "No bookings yet",
+            "noComparison": "No comparison value from last year",
+            "changeUp": "↑ {{percent}} % more than the same period last year",
+            "changeDown": "↓ {{percent}} % less than the same period last year",
+            "changeFlat": "Unchanged from the same period last year"
+        },
+        "periodSelect": {
+            "label": "Select period",
+            "options": {
+                "ytd": "This year",
+                "quarter": "This quarter",
+                "last6Months": "Last 6 months",
+                "last12Months": "Last 12 months",
+                "previousYear": "Previous year"
+            }
+        },
+        "chart": {
+            "tableCaption": "Income and expenses per month",
+            "month": "Month"
         }
     },
     "categories": {
@@ -1355,10 +1388,16 @@
         "openAmount": "open: {{amount}}",
         "createTx": {
             "title": "Transaction from bank transaction",
-            "subtitle": "Prefilled from the bank transaction – linked automatically",
+            "subtitle": "Prefilled from the bank transaction, linked automatically",
             "saveDraft": "Save as draft",
             "saveConfirm": "Save & confirm",
-            "confirmBlocked": "Some required fields are still missing to confirm (name, counterparty, date, amount)."
+            "confirmBlocked": "Some required fields are still missing to confirm (name, counterparty, date, amount).",
+            "origin": "From this bank transaction",
+            "openBefore": "Still open",
+            "openAfter": "Open afterwards",
+            "coversExactly": "Covers the rest exactly",
+            "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
+            "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
         }
     }
 }

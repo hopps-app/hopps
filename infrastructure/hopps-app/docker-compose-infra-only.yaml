@@ -1,39 +1,46 @@
+# Infrastructure only, for running the backend services from the IDE.
 services:
-  localstack:
-    image: localstack/localstack
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
     ports:
-      - "4566:4566"
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: hopps
+      MINIO_ROOT_PASSWORD: hoppshopps
 
   postgres:
     image: postgres:16-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql:ro
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4.7
+    image: ghcr.io/hopps-app/hopps/hopps-keycloak:193-keycloak-26.2.1
     command: start-dev --import-realm
     ports:
       - "8092:8080"
     depends_on:
       - postgres
     environment:
-      - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
-      - KC_DB_USERNAME=postgres
-      - KC_DB_PASSWORD=postgres
-      - KC_HOSTNAME_URL=http://localhost:8092
-      - KC_HOSTNAME_ADMIN_URL=http://localhost:8092
-      - KC_HTTP_ENABLED=true
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HOSTNAME: http://localhost:8092
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     volumes:
-      - ./keycloak_default_realm.json:/opt/keycloak/data/import/keycloak.default.realm.json
+      # Keycloak requires the import file to be named <realm>-realm.json.
+      - ./hopps-realm.json:/opt/keycloak/data/import/quarkus-realm.json:ro
 
 volumes:
   postgres_data:
