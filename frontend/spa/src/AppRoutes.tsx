@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { LoadingState } from '@/components/common/LoadingState';
+import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
 import AuthGuard from '@/guards/AuthGuard';
@@ -30,8 +31,8 @@ const BankAccountDetailView = lazy(() => import('@/components/views/BankAccountD
 const BankImportView = lazy(() => import('@/components/views/BankImportView').then((m) => ({ default: m.BankImportView })));
 const BankSchemasView = lazy(() => import('@/components/views/BankSchemasView').then((m) => ({ default: m.BankSchemasView })));
 
-function LazyRoute({ children }: { children: React.ReactNode }) {
-    return <Suspense fallback={<LoadingState className="py-12" />}>{children}</Suspense>;
+function LazyRoute({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
+    return <Suspense fallback={fallback ?? <LoadingState className="py-12" />}>{children}</Suspense>;
 }
 
 export default function AppRoutes() {
@@ -69,7 +70,7 @@ export default function AppRoutes() {
                 <Route
                     path="/dashboard/*"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<DashboardSkeleton />}>
                             <DashboardView />
                         </LazyRoute>
                     }
