@@ -2,11 +2,13 @@ import { Building2 } from 'lucide-react';
 
 import type { MenuItem } from './types';
 
+import { HouseIcon } from '@/components/ui/icons/HouseIcon';
+
 export const menuConfig: MenuItem[] = [
     {
         id: 'dashboard',
         label: 'menu.dashboard',
-        icon: 'Grid',
+        icon: HouseIcon,
         path: '/dashboard',
     },
     {

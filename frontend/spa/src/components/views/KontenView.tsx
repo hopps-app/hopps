@@ -521,7 +521,7 @@ const PAGE_SIZE = 50;
 
 // Header and rows must share one template, otherwise the labels sit over the wrong columns. The trailing status and
 // action columns are fixed-width so the pills and buttons line up down the list regardless of row content.
-const ACCOUNT_TX_COLUMNS = '7.5rem minmax(0, 2fr) minmax(0, 1fr) 7rem 7.5rem';
+const ACCOUNT_TX_COLUMNS = '7.5rem minmax(0, 2fr) minmax(0, 1fr) 7.5rem 7.5rem';
 
 function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
@@ -642,7 +642,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                             onClick={() => handleSort('amount')}
                             align="right"
                         />
-                        <span className="text-right">{t('konten.table.status')}</span>
+                        <span className="text-center">{t('konten.table.status')}</span>
                         {/* Spacer above the per-row assign button so STATUS stays over the status pills. */}
                         <span aria-hidden />
                     </div>
@@ -664,7 +664,7 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
                             <span className="text-right">
                                 <SignedAmount amount={tx.amount} currency={tx.currency ?? 'EUR'} size="sm" matchedAmount={tx.matchedAmount} />
                             </span>
-                            <span className="flex justify-end">
+                            <span className="flex justify-center">
                                 <StatusPill status={tx.status} />
                             </span>
                             <span className="flex justify-end">
