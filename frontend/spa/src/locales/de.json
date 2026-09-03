@@ -1371,10 +1371,16 @@
         "openAmount": "offen: {{amount}}",
         "createTx": {
             "title": "Transaktion aus Banktransaktion",
-            "subtitle": "Vorbelegt aus der Banktransaktion – wird automatisch zugeordnet",
+            "subtitle": "Vorbelegt aus der Banktransaktion, wird automatisch zugeordnet",
             "saveDraft": "Als Entwurf speichern",
             "saveConfirm": "Speichern & bestätigen",
-            "confirmBlocked": "Zum Bestätigen fehlen noch Pflichtangaben (Bezeichnung, Gegenpartei, Datum, Betrag)."
+            "confirmBlocked": "Zum Bestätigen fehlen noch Pflichtangaben (Bezeichnung, Gegenpartei, Datum, Betrag).",
+            "origin": "Aus dieser Banktransaktion",
+            "openBefore": "Davon noch offen",
+            "openAfter": "Danach noch offen",
+            "coversExactly": "Deckt den Rest genau",
+            "shouldBeIncome": "Diese Banktransaktion ist eine Einnahme. Bitte „Einnahme\" wählen.",
+            "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
         }
     }
 }
