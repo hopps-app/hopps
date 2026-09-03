@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
+import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
 import AuthGuard from '@/guards/AuthGuard';
@@ -114,7 +115,7 @@ export default function AppRoutes() {
                 <Route
                     path="/transactions"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<TransactionsSkeleton />}>
                             <TransactionenView />
                         </LazyRoute>
                     }

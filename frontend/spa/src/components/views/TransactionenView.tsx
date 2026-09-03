@@ -28,13 +28,14 @@ import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransac
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/CategoryGroups/TransactionCategoryFilter';
-import { LoadingState } from '@/components/common/LoadingState';
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
+import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
+import { DrawerSkeleton, TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
 import TextField from '@/components/ui/TextField';
@@ -74,16 +75,6 @@ import { useStore } from '@/store/store';
 // radius-card: 18px · radius-md: 14px · radius-sm: 10px
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
-
-// Shared column layout for the transactions table header and rows (must stay in sync).
-// Transaktion | Bommel | Datum | Erstellt am | Status | Betrag
-const TX_GRID = '40px minmax(0,2fr) 1fr 1fr 0.95fr 1fr 0.85fr 1fr';
-// Below this width seven columns leave the Bommel name too little room to be readable, so the column
-// is dropped entirely rather than squeezed. Header and rows both read this, so they stay in step.
-const TX_GRID_NARROW = '40px minmax(0,2fr) 1fr 0.95fr 1fr 0.85fr 1fr';
-const HIDE_BOMMEL_QUERY = '(max-width: 1023px)';
 
 function fmtCurrency(amount: number | undefined): string {
     if (amount === undefined || amount === null) return '—';
@@ -423,9 +414,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                 </div>
 
                 {isLoading || !tx ? (
-                    <div className="flex-1 flex items-center justify-center">
-                        <LoadingState />
-                    </div>
+                    <DrawerSkeleton />
                 ) : !editMode ? (
                     <div className="flex-1 overflow-y-auto">
                         {/* Hero */}
@@ -1496,7 +1485,7 @@ export function TransactionenView() {
             {/* ── Table ── */}
             <div className="flex-1 min-h-0 overflow-auto">
                 {isLoading ? (
-                    <LoadingState className="py-12" />
+                    <TableSkeleton hideBommel={hideBommel} />
                 ) : transactions.length === 0 ? (
                     <div
                         className="flex flex-col items-center justify-center py-20 text-center rounded-[18px] border border-border-soft"
