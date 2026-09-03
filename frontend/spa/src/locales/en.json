@@ -1372,10 +1372,16 @@
         "openAmount": "open: {{amount}}",
         "createTx": {
             "title": "Transaction from bank transaction",
-            "subtitle": "Prefilled from the bank transaction – linked automatically",
+            "subtitle": "Prefilled from the bank transaction, linked automatically",
             "saveDraft": "Save as draft",
             "saveConfirm": "Save & confirm",
-            "confirmBlocked": "Some required fields are still missing to confirm (name, counterparty, date, amount)."
+            "confirmBlocked": "Some required fields are still missing to confirm (name, counterparty, date, amount).",
+            "origin": "From this bank transaction",
+            "openBefore": "Still open",
+            "openAfter": "Open afterwards",
+            "coversExactly": "Covers the rest exactly",
+            "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
+            "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
         }
     }
 }
