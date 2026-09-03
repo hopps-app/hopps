@@ -9,7 +9,6 @@ export const menuConfig: MenuItem[] = [
         id: 'dashboard',
         label: 'menu.dashboard',
         icon: HouseIcon,
-        icon: HouseIcon,
         path: '/dashboard',
     },
     {
