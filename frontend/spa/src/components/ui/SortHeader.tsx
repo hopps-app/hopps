@@ -19,8 +19,14 @@ export function SortHeader({ label, active, direction, onClick, align = 'left' }
         <button
             type="button"
             onClick={onClick}
-            className={cn('inline-flex items-center gap-1 select-none transition-colors hover:text-[#7E3FB4]', align === 'right' && 'justify-self-end')}
-            style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: active ? '#7E3FB4' : '#9A9AA3' }}
+            className={cn('inline-flex items-center gap-1 select-none transition-colors hover:text-purple-700', align === 'right' && 'justify-self-end')}
+            style={{
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+                color: active ? 'var(--purple-700)' : 'var(--ink-faint)',
+            }}
         >
             {label}
             {active ? (

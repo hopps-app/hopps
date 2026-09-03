@@ -32,7 +32,7 @@ const itemCls = (chosen: boolean) =>
     );
 
 const fieldCls =
-    'flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-[#E0E0E6] bg-white px-3.5 text-left text-[14px] text-[#1B1B1F] transition-shadow focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB]';
+    'flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-left text-[14px] text-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
 
 /**
  * Category-group filter for the transactions view. Rather than surfacing every group at once (there can be hundreds —
@@ -65,13 +65,13 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
 
     return (
         <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3]">{t('transactions.filters.categoryGroups')}</label>
+            <label className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--ink-faint)]">{t('transactions.filters.categoryGroups')}</label>
 
             <div className="flex flex-col items-start gap-2.5">
                 {cards.map((card) => (
                     <span
                         key={card.groupId}
-                        className="inline-flex max-w-full items-center gap-2 rounded-xl bg-[#F3EAFB] px-3 py-1.5 text-[13px] font-semibold text-[#7E3FB4]"
+                        className="inline-flex max-w-full items-center gap-2 rounded-xl bg-[var(--accent-surface)] px-3 py-1.5 text-[13px] font-semibold text-purple-700"
                     >
                         <span className="truncate">
                             {card.name} : {card.values.join(', ')}
@@ -86,7 +86,7 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                                     .reverse()
                                     .forEach(onRemoveRow);
                             }}
-                            className="shrink-0 text-[#9955CC] transition-colors hover:text-[#B12C4C]"
+                            className="shrink-0 text-primary transition-colors hover:text-[var(--negative)]"
                             aria-label={t('transactions.filters.removeCategoryGroup')}
                         >
                             <X className="h-3.5 w-3.5" />
@@ -102,17 +102,13 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                             <Popover open={openRow === index} onOpenChange={(next) => setOpenRow(next ? index : null)}>
                                 <PopoverTrigger asChild>
                                     <button type="button" className={`${fieldCls} sm:w-48`} aria-haspopup="listbox" aria-expanded={openRow === index}>
-                                        <span className={`truncate ${group ? '' : 'text-[#6B6B76]'}`}>
+                                        <span className={`truncate ${group ? '' : 'text-muted-foreground'}`}>
                                             {group?.name ?? t('transactions.filters.selectGroup')}
                                         </span>
                                         <ChevronIcon />
                                     </button>
                                 </PopoverTrigger>
-                                <PopoverContent
-                                    align="start"
-                                    sideOffset={6}
-                                    className="z-[110] w-[260px] rounded-2xl border-border-soft p-2 shadow-card-hover"
-                                >
+                                <PopoverContent align="start" sideOffset={6} className="z-[110] w-[260px] rounded-2xl border-border-soft p-2 shadow-card-hover">
                                     <Command className="[&_[cmdk-input-wrapper]]:mb-1.5 [&_[cmdk-input-wrapper]]:h-9 [&_[cmdk-input-wrapper]]:rounded-[10px] [&_[cmdk-input-wrapper]]:border-b-0 [&_[cmdk-input-wrapper]]:bg-hover-effect [&_[cmdk-input-wrapper]]:px-2.5">
                                         <CommandInput placeholder={t('transactions.filters.searchGroup')} className="h-9 py-0" />
                                         <CommandList className="max-h-[264px]">
@@ -129,7 +125,10 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                                                         }}
                                                     >
                                                         <span className="truncate">{g.name}</span>
-                                                        <Check className={cn('ml-auto h-4 w-4', g.id === row.groupId ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
+                                                        <Check
+                                                            className={cn('ml-auto h-4 w-4', g.id === row.groupId ? 'opacity-100' : 'opacity-0')}
+                                                            aria-hidden="true"
+                                                        />
                                                     </CommandItem>
                                                 ))}
                                             </CommandGroup>
@@ -152,7 +151,7 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                             <button
                                 type="button"
                                 onClick={() => onRemoveRow(index)}
-                                className="shrink-0 text-[#9A9AA3] transition-colors hover:text-[#B12C4C]"
+                                className="shrink-0 text-[var(--ink-faint)] transition-colors hover:text-[var(--negative)]"
                                 aria-label={t('transactions.filters.removeCategoryGroup')}
                             >
                                 <X className="h-4 w-4" />
@@ -165,7 +164,7 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                     <button
                         type="button"
                         onClick={onAddRow}
-                        className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-dashed border-[#C7A2E3] px-3.5 text-[13.5px] font-semibold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB]"
+                        className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-dashed border-purple-300 px-3.5 text-[13.5px] font-semibold text-purple-700 transition-colors hover:bg-[var(--accent-surface)]"
                     >
                         <Plus className="h-4 w-4" />
                         {t('transactions.filters.addCategoryGroup')}

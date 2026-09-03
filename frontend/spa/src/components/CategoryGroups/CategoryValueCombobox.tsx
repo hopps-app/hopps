@@ -46,11 +46,11 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                         type="button"
                         disabled={disabled}
                         className={cn(
-                            'flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border bg-white px-3.5 text-left text-[14px] text-[var(--font-color)] dark:bg-[var(--purple-50)]',
-                            'border-[#E0E0E6] transition-shadow focus:border-[#9955CC] focus:outline-none focus:ring-[3px] focus:ring-[#F3EAFB] dark:border-gray-700',
+                            'flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border bg-[var(--background-secondary)] px-3.5 text-left text-[14px] text-[var(--font-color)]',
+                            'border-border-soft transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            !value && 'text-[#6B6B76] dark:text-gray-400',
-                            warn && 'border-[#B47C18]',
+                            !value && 'text-muted-foreground',
+                            warn && 'border-[var(--warning)]',
                             // Room for the clear button sitting on top of the field.
                             value && !disabled && 'pr-10'
                         )}
@@ -58,7 +58,7 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                         aria-expanded={open}
                     >
                         <span className="truncate">{value || placeholder || t('categoryGroups.fields.valuePlaceholder')}</span>
-                        {!value && <ChevronDownIcon className="h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" aria-hidden="true" />}
+                        {!value && <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
                     </button>
                 </PopoverTrigger>
                 <PopoverContent align="start" sideOffset={6} className="w-full min-w-[220px] rounded-2xl border-border-soft p-2 shadow-card-hover">
@@ -102,7 +102,7 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                         e.stopPropagation();
                         onChange(undefined);
                     }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#9A9AA3] transition-colors hover:text-[#B12C4C]"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--ink-faint)] transition-colors hover:text-[var(--negative)]"
                     aria-label={t('common.delete')}
                 >
                     <X className="h-4 w-4" aria-hidden="true" />

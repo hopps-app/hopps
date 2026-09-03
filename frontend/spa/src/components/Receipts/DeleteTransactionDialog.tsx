@@ -19,9 +19,9 @@ export interface DeleteTransactionDialogProps {
 // The app's pill buttons. Each option's card is tinted to match its button so the colour alone says which is which:
 // neutral = the receipt survives, red = everything goes.
 const PILL = 'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold transition-colors';
-const NEUTRAL_BUTTON = `${PILL} border border-[#E0E0E6] text-[#1B1B1F] hover:bg-[#F8F8FA]`;
-const DESTRUCTIVE_BUTTON = `${PILL} bg-[#FBEAEF] text-[#B12C4C] hover:bg-[#F5D9E1]`;
-const GHOST_BUTTON = `${PILL} text-[#6B6B76] hover:bg-[#F8F8FA]`;
+const NEUTRAL_BUTTON = `${PILL} border border-border-soft text-foreground hover:bg-[var(--surface-sunken)]`;
+const DESTRUCTIVE_BUTTON = `${PILL} bg-[var(--negative-surface)] text-[var(--negative)] hover:bg-[var(--negative-surface-strong)]`;
+const GHOST_BUTTON = `${PILL} text-muted-foreground hover:bg-[var(--surface-sunken)]`;
 
 export function DeleteTransactionDialog({
     open,
@@ -56,18 +56,18 @@ export function DeleteTransactionDialog({
 
                 {hasReceipt ? (
                     <div className="flex flex-col gap-2">
-                        <div className="rounded-lg border border-[#E0E0E6] bg-[#F8F8FA] p-3">
-                            <p className="text-sm font-bold text-[#1B1B1F]">{t('receipts.deleteDialog.confirmTransactionOnly')}</p>
-                            <p className="text-sm text-[#6B6B76]">{t('receipts.deleteDialog.optionTransactionOnly')}</p>
+                        <div className="rounded-lg border border-border-soft bg-[var(--surface-sunken)] p-3">
+                            <p className="text-sm font-bold text-foreground">{t('receipts.deleteDialog.confirmTransactionOnly')}</p>
+                            <p className="text-sm text-muted-foreground">{t('receipts.deleteDialog.optionTransactionOnly')}</p>
                         </div>
-                        <div className="rounded-lg border border-[#E8A0B2] bg-[#FBEAEF] p-3">
-                            <p className="text-sm font-bold text-[#B12C4C]">{t('receipts.deleteDialog.confirmWithReceipt')}</p>
-                            <p className="text-sm text-[#B12C4C]">{t('receipts.deleteDialog.optionWithReceipt')}</p>
+                        <div className="rounded-lg border border-[var(--negative-border)] bg-[var(--negative-surface)] p-3">
+                            <p className="text-sm font-bold text-[var(--negative)]">{t('receipts.deleteDialog.confirmWithReceipt')}</p>
+                            <p className="text-sm text-[var(--negative)]">{t('receipts.deleteDialog.optionWithReceipt')}</p>
                         </div>
                     </div>
                 ) : (
-                    <div className="rounded-lg border border-[#E8A0B2] bg-[#FBEAEF] p-4">
-                        <p className="text-sm font-bold text-[#B12C4C]">{t('receipts.deleteDialog.warning')}</p>
+                    <div className="rounded-lg border border-[var(--negative-border)] bg-[var(--negative-surface)] p-4">
+                        <p className="text-sm font-bold text-[var(--negative)]">{t('receipts.deleteDialog.warning')}</p>
                     </div>
                 )}
 

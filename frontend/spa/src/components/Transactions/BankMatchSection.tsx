@@ -40,11 +40,11 @@ function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmoun
 
     return (
         <span className="flex flex-col items-end flex-shrink-0 leading-tight">
-            <span className="text-[13px] font-bold tabular-nums" style={{ color: total >= 0 ? '#1F7A50' : '#B12C4C' }}>
+            <span className="text-[13px] font-bold tabular-nums" style={{ color: total >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
                 {fmtCurrency(total)}
             </span>
             {partiallyMatched && (
-                <span className="text-[11px] font-semibold text-[#B47C18] tabular-nums">
+                <span className="text-[11px] font-semibold text-[var(--warning)] tabular-nums">
                     {t('transactions.detail.openAmount', { amount: fmtCurrency(open) })}
                 </span>
             )}
@@ -192,8 +192,8 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
     return (
         <div className="px-6 py-5">
             <div className="flex items-center gap-2 mb-3">
-                <Link2 size={15} className="text-[#7E3FB4]" />
-                <span className="text-[14px] font-bold text-[#1B1B1F]">{t('transactions.detail.payment')}</span>
+                <Link2 size={15} className="text-purple-700" />
+                <span className="text-[14px] font-bold text-foreground">{t('transactions.detail.payment')}</span>
             </div>
 
             {/* Always-visible coverage indicator: how much of this transaction still needs to be covered by bank
@@ -204,8 +204,8 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                     // Three states: fully covered (green), still open (amber), or over-covered when the linked
                     // movements exceed the transaction amount (red).
                     const overCovered = !isFullyAssigned && Math.abs(assignedSum) > Math.abs(txTotal);
-                    const bg = isFullyAssigned ? '#E7F4EC' : overCovered ? '#FBEAEF' : '#FBF3E4';
-                    const color = isFullyAssigned ? '#1F7A50' : overCovered ? '#B12C4C' : '#B47C18';
+                    const bg = isFullyAssigned ? 'var(--positive-surface)' : overCovered ? 'var(--negative-surface)' : 'var(--warning-surface)';
+                    const color = isFullyAssigned ? 'var(--positive)' : overCovered ? 'var(--negative)' : 'var(--warning)';
                     return (
                         <div className="flex items-center justify-between gap-2 mb-3 px-3 py-2 rounded-[10px]" style={{ background: bg }}>
                             <span className="text-[12px] font-semibold" style={{ color }}>
@@ -215,13 +215,13 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                       ? t('transactions.detail.overCovered', { amount: fmtCurrency(Math.abs(remaining)) })
                                       : t('transactions.detail.stillToCover', { amount: fmtCurrency(Math.abs(remaining)) })}
                             </span>
-                            {isFullyAssigned && <span className="text-[13px] font-bold text-[#1F7A50]">✓</span>}
+                            {isFullyAssigned && <span className="text-[13px] font-bold text-[var(--positive)]">✓</span>}
                         </div>
                     );
                 })()}
 
             {isLoading ? (
-                <div className="flex items-center gap-2 p-3 text-[13px] text-[#6B6B76]">
+                <div className="flex items-center gap-2 p-3 text-[13px] text-muted-foreground">
                     <Loader2 size={14} className="animate-spin" />
                     {t('transactions.detail.bankLoading')}
                 </div>
@@ -229,7 +229,11 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                 <>
                     <div className="space-y-2">
                         {linked.map((b) => (
-                            <div key={b.id} className="flex flex-col gap-2 p-3 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+                            <div
+                                key={b.id}
+                                className="flex flex-col gap-2 p-3 rounded-[10px] border border-border-soft"
+                                style={{ background: 'var(--surface-sunken)' }}
+                            >
                                 {/* Row 1: icon + counterparty/date span the full width so long names wrap cleanly instead
                                     of being squeezed into a tiny column by the amount/controls. */}
                                 <button
@@ -238,23 +242,32 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                     title={t('transactions.detail.openBankTransaction')}
                                     className="flex items-start gap-3 min-w-0 text-left group"
                                 >
-                                    <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#E7F4EC' }}>
-                                        <Landmark size={16} className="text-[#1F7A50]" />
+                                    <span
+                                        className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
+                                        style={{ background: 'var(--positive-surface)' }}
+                                    >
+                                        <Landmark size={16} className="text-[var(--positive)]" />
                                     </span>
                                     <span className="flex flex-col min-w-0 flex-1">
                                         {/* overflow-wrap:anywhere forces a break inside very long tokens (e.g. "Siemens-Betriebskrankenkasse") */}
-                                        <span className="text-[13px] font-bold text-[#1B1B1F] break-words [overflow-wrap:anywhere]">
+                                        <span className="text-[13px] font-bold text-foreground break-words [overflow-wrap:anywhere]">
                                             {b.counterpartyName || b.purpose || '—'}
                                         </span>
-                                        <span className="text-[12px] text-[#6B6B76] break-words">
+                                        <span className="text-[12px] text-muted-foreground break-words">
                                             {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                         </span>
                                     </span>
-                                    <ExternalLink size={15} className="text-[#9A9AA3] group-hover:text-[#7E3FB4] transition-colors flex-shrink-0 mt-0.5" />
+                                    <ExternalLink
+                                        size={15}
+                                        className="text-[var(--ink-faint)] group-hover:text-purple-700 transition-colors flex-shrink-0 mt-0.5"
+                                    />
                                 </button>
                                 {/* Row 2: amount + allocation ("verwendet") + unlink, aligned under the title. */}
                                 <div className="flex items-center justify-between gap-2 pl-12">
-                                    <span className="text-[13px] font-bold tabular-nums" style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                                    <span
+                                        className="text-[13px] font-bold tabular-nums"
+                                        style={{ color: (b.amount ?? 0) >= 0 ? 'var(--positive)' : 'var(--negative)' }}
+                                    >
                                         {fmtCurrency(b.amount)}
                                     </span>
                                     <div className="flex items-center gap-2">
@@ -268,7 +281,7 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                             onClick={() => requestUnlink(b)}
                                             disabled={removeMatch.isPending}
                                             title={t('transactions.detail.unlink')}
-                                            className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#B12C4C] hover:border-[#E8A0B2] transition-colors flex-shrink-0 disabled:opacity-50"
+                                            className="w-8 h-8 flex items-center justify-center rounded-full border border-border-soft text-muted-foreground hover:text-[var(--negative)] hover:border-[var(--negative-border)] transition-colors flex-shrink-0 disabled:opacity-50"
                                         >
                                             <Unlink size={14} />
                                         </button>
@@ -282,78 +295,78 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                         amount still needs to be assigned to reach this transaction's total. */}
                     <div
                         className="mt-3 rounded-[10px] px-4 py-3 flex items-center justify-between gap-3"
-                        style={{ background: isFullyAssigned ? '#E7F4EC' : '#F8F8FA' }}
+                        style={{ background: isFullyAssigned ? 'var(--positive-surface)' : 'var(--surface-sunken)' }}
                     >
                         <span className="flex flex-col gap-0.5">
-                            <span className="text-[11px] font-semibold text-[#6B6B76]">{t('transactions.detail.reconcileTotal')}</span>
-                            <span className="text-[13px] font-bold tabular-nums text-[#1B1B1F]">{fmtCurrency(Math.abs(txTotal))}</span>
+                            <span className="text-[11px] font-semibold text-muted-foreground">{t('transactions.detail.reconcileTotal')}</span>
+                            <span className="text-[13px] font-bold tabular-nums text-foreground">{fmtCurrency(Math.abs(txTotal))}</span>
                         </span>
                         <span className="flex flex-col gap-0.5 text-right">
-                            <span className="text-[11px] font-semibold text-[#6B6B76]">{t('transactions.detail.reconcileAssigned')}</span>
-                            <span className="text-[13px] font-bold tabular-nums" style={{ color: '#1F7A50' }}>
+                            <span className="text-[11px] font-semibold text-muted-foreground">{t('transactions.detail.reconcileAssigned')}</span>
+                            <span className="text-[13px] font-bold tabular-nums" style={{ color: 'var(--positive)' }}>
                                 {fmtCurrency(Math.abs(assignedSum))}
                             </span>
                         </span>
                         <span className="flex flex-col gap-0.5 text-right">
-                            <span className="text-[11px] font-semibold text-[#6B6B76]">
+                            <span className="text-[11px] font-semibold text-muted-foreground">
                                 {isFullyAssigned ? t('transactions.detail.reconcileFull') : t('transactions.detail.reconcileRemaining')}
                             </span>
-                            <span className="text-[13px] font-bold tabular-nums" style={{ color: isFullyAssigned ? '#1F7A50' : '#B47C18' }}>
+                            <span className="text-[13px] font-bold tabular-nums" style={{ color: isFullyAssigned ? 'var(--positive)' : 'var(--warning)' }}>
                                 {isFullyAssigned ? '✓' : fmtCurrency(Math.abs(remaining))}
                             </span>
                         </span>
                     </div>
                 </>
             ) : (
-                <div className="flex items-start gap-3 p-3 rounded-[10px] mb-2" style={{ background: '#F3EAFB' }}>
-                    <Unlink size={15} className="text-[#7E3FB4] mt-0.5 flex-shrink-0" />
-                    <p className="text-[13px] text-[#7E3FB4] font-medium">{t('transactions.detail.notLinked')}</p>
+                <div className="flex items-start gap-3 p-3 rounded-[10px] mb-2" style={{ background: 'var(--accent-surface)' }}>
+                    <Unlink size={15} className="text-purple-700 mt-0.5 flex-shrink-0" />
+                    <p className="text-[13px] text-purple-700 font-medium">{t('transactions.detail.notLinked')}</p>
                 </div>
             )}
 
             {/* Link picker */}
             {pickerOpen ? (
-                <div className="mt-3 rounded-[12px] border border-[#E9E9EE] overflow-hidden">
-                    <div className="flex items-center gap-2 px-3 py-2 border-b border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
-                        <Search size={14} className="text-[#9A9AA3]" />
+                <div className="mt-3 rounded-[12px] border border-border-soft overflow-hidden">
+                    <div className="flex items-center gap-2 px-3 py-2 border-b border-border-soft" style={{ background: 'var(--surface-sunken)' }}>
+                        <Search size={14} className="text-[var(--ink-faint)]" />
                         <input
                             autoFocus
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder={t('transactions.detail.bankSearchPlaceholder')}
-                            className="flex-1 bg-transparent text-[13px] text-[#1B1B1F] placeholder-[#9A9AA3] outline-none"
+                            className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-[var(--ink-faint)] outline-none"
                         />
-                        <button onClick={() => setPickerOpen(false)} className="text-[#9A9AA3] hover:text-[#1B1B1F] transition-colors">
+                        <button onClick={() => setPickerOpen(false)} className="text-[var(--ink-faint)] hover:text-foreground transition-colors">
                             <X size={15} />
                         </button>
                     </div>
                     {/* Optional partial amount — rarely needed (splitting a collective transfer). Empty = full amount. */}
-                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-[#F1F1F4]">
-                        <span className="text-[11px] text-[#9A9AA3]">{t('transactions.detail.partialAmountLabel')}</span>
+                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-[var(--surface-track)]">
+                        <span className="text-[11px] text-[var(--ink-faint)]">{t('transactions.detail.partialAmountLabel')}</span>
                         <input
                             type="text"
                             inputMode="decimal"
                             value={linkAmount}
                             onChange={(e) => setLinkAmount(e.target.value)}
                             placeholder={t('transactions.detail.partialAmountPlaceholder')}
-                            className="w-24 px-1.5 py-0.5 text-[12px] text-right tabular-nums rounded-md border border-[#E9E9EE] outline-none focus:border-[#C7A2E3]"
+                            className="w-24 px-1.5 py-0.5 text-[12px] text-right tabular-nums rounded-md border border-border-soft outline-none focus:border-purple-300"
                         />
                     </div>
                     <div className="max-h-64 overflow-y-auto">
                         {isFetching ? (
-                            <div className="flex items-center gap-2 px-3 py-4 text-[13px] text-[#6B6B76]">
+                            <div className="flex items-center gap-2 px-3 py-4 text-[13px] text-muted-foreground">
                                 <Loader2 size={14} className="animate-spin" />
                                 {t('transactions.detail.bankLoading')}
                             </div>
                         ) : candidates.length === 0 ? (
-                            <p className="px-3 py-4 text-[13px] text-[#9A9AA3] text-center">{t('transactions.detail.bankNoResults')}</p>
+                            <p className="px-3 py-4 text-[13px] text-[var(--ink-faint)] text-center">{t('transactions.detail.bankNoResults')}</p>
                         ) : (
                             candidates.map((b) => {
                                 const showPurpose = b.id != null && purposeShown.has(b.id);
                                 return (
-                                    <div key={b.id} className="border-b border-[#F1F1F4] last:border-b-0">
-                                        <div className="w-full flex items-center gap-2 pl-3 pr-2 hover:bg-[#F3EAFB] transition-colors">
+                                    <div key={b.id} className="border-b border-[var(--surface-track)] last:border-b-0">
+                                        <div className="w-full flex items-center gap-2 pl-3 pr-2 hover:bg-[var(--accent-surface)] transition-colors">
                                             <button
                                                 onClick={() => link(b.id!, b.amount ?? 0)}
                                                 disabled={addMatch.isPending}
@@ -361,15 +374,15 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                             >
                                                 <span
                                                     className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
-                                                    style={{ background: '#F1F1F4' }}
+                                                    style={{ background: 'var(--surface-track)' }}
                                                 >
-                                                    <Landmark size={15} className="text-[#6B6B76]" />
+                                                    <Landmark size={15} className="text-muted-foreground" />
                                                 </span>
                                                 <span className="flex flex-col min-w-0 flex-1">
-                                                    <span className="text-[13px] font-bold text-[#1B1B1F] truncate">
+                                                    <span className="text-[13px] font-bold text-foreground truncate">
                                                         {b.counterpartyName || b.purpose || '—'}
                                                     </span>
-                                                    <span className="text-[12px] text-[#6B6B76]">
+                                                    <span className="text-[12px] text-muted-foreground">
                                                         {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                                     </span>
                                                 </span>
@@ -384,8 +397,8 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                                     className={cn(
                                                         'w-7 h-7 flex items-center justify-center rounded-full border transition-colors flex-shrink-0',
                                                         showPurpose
-                                                            ? 'border-[#C7A2E3] text-[#7E3FB4] bg-[#F3EAFB]'
-                                                            : 'border-[#E9E9EE] text-[#9A9AA3] hover:text-[#7E3FB4] hover:border-[#C7A2E3]'
+                                                            ? 'border-purple-300 text-purple-700 bg-[var(--accent-surface)]'
+                                                            : 'border-border-soft text-[var(--ink-faint)] hover:text-purple-700 hover:border-purple-300'
                                                     )}
                                                 >
                                                     <FileText size={13} />
@@ -395,10 +408,10 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                         {showPurpose && b.purpose && (
                                             <div className="px-3 pb-2.5">
                                                 <p
-                                                    className="text-[12px] text-[#4B4B55] whitespace-pre-wrap break-words rounded-[8px] px-2.5 py-2"
-                                                    style={{ background: '#F8F8FA' }}
+                                                    className="text-[12px] text-muted-foreground whitespace-pre-wrap break-words rounded-[8px] px-2.5 py-2"
+                                                    style={{ background: 'var(--surface-sunken)' }}
                                                 >
-                                                    <span className="font-semibold text-[#6B6B76]">{t('transactions.detail.purpose')}: </span>
+                                                    <span className="font-semibold text-muted-foreground">{t('transactions.detail.purpose')}: </span>
                                                     {b.purpose}
                                                 </p>
                                             </div>
@@ -412,7 +425,7 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
             ) : (
                 <button
                     onClick={openPicker}
-                    className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors"
+                    className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full text-[13.5px] font-bold border border-border-soft text-purple-700 hover:bg-[var(--accent-surface)] hover:border-purple-300 transition-colors"
                 >
                     <Link2 size={14} />
                     {t('transactions.detail.linkBankTransaction')}
@@ -423,7 +436,7 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
             {tx.id && (
                 <button
                     onClick={() => navigate('/bank-accounts')}
-                    className="mt-2 w-full text-[12px] text-[#9A9AA3] hover:text-[#7E3FB4] transition-colors text-center"
+                    className="mt-2 w-full text-[12px] text-[var(--ink-faint)] hover:text-purple-700 transition-colors text-center"
                 >
                     {t('transactions.detail.openBankAccounts')}
                 </button>

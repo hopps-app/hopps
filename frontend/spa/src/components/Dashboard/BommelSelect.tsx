@@ -85,7 +85,7 @@ export function BommelSelect({ items, value, onChange, isLoading, emptyLabel, tr
                 >
                     <span className="flex min-w-0 items-center gap-2 truncate">
                         {selected?.emoji && <Emoji emoji={selected.emoji} className="text-base" />}
-                        <span className={cn('truncate', showsPlaceholder && 'font-normal text-[#6B6B76]')}>{label}</span>
+                        <span className={cn('truncate', showsPlaceholder && 'font-normal text-muted-foreground')}>{label}</span>
                     </span>
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" aria-hidden="true" />
                 </BaseButton>

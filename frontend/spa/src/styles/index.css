@@ -85,6 +85,29 @@
            distinguishable without colour perception. */
         --chart-income: #9955CC;
         --chart-expenses: #C7A2E3;
+
+        /* Data-dense views (transactions, bank matching, their drawers) were built against a fixed
+           prototype palette. These are that palette, expressed as tokens so the same markup works in
+           both themes. Light keeps the prototype's exact values. */
+        --surface-sunken: #F8F8FA;
+        --surface-track: #F1F1F4;
+        --ink-faint: #9A9AA3;
+        --border-strong: #C0C0CC;
+        --accent-surface: #F3EAFB;
+        --accent-surface-strong: #E0C8F5;
+        --positive-surface: #E7F4EC;
+        --positive-surface-strong: #B8E4CA;
+        --positive-border: #7DC4A0;
+        /* Ink for a negative amount. --negative-solid is the filled-button variant: it must stay dark
+           enough for white label text, which the ink itself does not in dark mode. */
+        --negative: #B12C4C;
+        --negative-solid: #B12C4C;
+        --negative-surface: #FBEAEF;
+        --negative-surface-strong: #F5C6D2;
+        --negative-border: #E8A0B2;
+        --warning: #B47C18;
+        --warning-surface: #FBF1DD;
+        --warning-border: #E4C876;
         --radius: 8px;
         --radius-l: 16px;
         --font: 16px;
@@ -127,7 +150,9 @@
         --muted: #a3a3a3;
         --muted-foreground: #a3a3a3;
         --border: #A7A7A7;
-        --border-soft: #3B2352;
+        /* Also the divider between table rows, which sits on the card (--purple-100) rather than on
+           the page ground, so it has to stay visible against the lighter of the two. */
+        --border-soft: #4A2C68;
         --popover: var(--purple-100);
         --popover-foreground: var(--grey-white);
         --accent: var(--purple-900);
@@ -142,6 +167,26 @@
         --banner-ink: #6E34A2;
         --chart-income: #B582E0;
         --chart-expenses: #7E5A9C;
+
+        /* Dark counterparts of the prototype palette. Surfaces sink below the card (--purple-100),
+           inks lighten far enough to clear 4.5:1 on it. */
+        --surface-sunken: #2E1449;
+        --surface-track: #261139;
+        --ink-faint: #9C90AA;
+        --border-strong: #5B4173;
+        --accent-surface: #33194B;
+        --accent-surface-strong: #4B2A6B;
+        --positive-surface: #16362A;
+        --positive-surface-strong: #1E4A36;
+        --positive-border: #2F7355;
+        --negative: #F08AA1;
+        --negative-solid: #A33350;
+        --negative-surface: #3E1C27;
+        --negative-surface-strong: #58202F;
+        --negative-border: #7A3A4B;
+        --warning: #E4B04F;
+        --warning-surface: #3A2C12;
+        --warning-border: #6E5626;
         --radius: 8px;
         --radius-l: 16px;
         --font: 16px;
