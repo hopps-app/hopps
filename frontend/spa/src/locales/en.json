@@ -54,7 +54,7 @@
         },
         "fields": {
             "eyebrow": "Category groups",
-            "valuePlaceholder": "— please select —",
+            "valuePlaceholder": "Please select",
             "noValues": "No values found",
             "missing": "Please fill in: {{groups}}"
         }
@@ -518,10 +518,11 @@
         "status": {
             "all": "All",
             "confirmed": "Confirmed",
-            "draft": "Draft"
+            "draft": "Draft",
+            "drafts": "Drafts"
         },
         "filters": {
-            "search": "Search…",
+            "search": "Search by name or sender…",
             "category": "Category",
             "bommel": "Bommel",
             "area": "Area",
@@ -536,7 +537,12 @@
             "advancedFilters": "More filters",
             "categoryGroups": "Category groups",
             "addCategoryGroup": "Category group",
-            "removeCategoryGroup": "Remove"
+            "removeCategoryGroup": "Remove",
+            "filter": "Filter",
+            "selectGroup": "Select group …",
+            "selectValue": "Select value …",
+            "searchGroup": "Search group",
+            "noGroups": "No group found"
         },
         "unassigned": "Unassigned",
         "openToCover": "open: {{amount}}",
@@ -654,7 +660,9 @@
             "delete": "Delete",
             "confirmTitle": "Delete selected transactions?",
             "confirmDesc": "Do you really want to delete the selected transactions ({{n}})? This cannot be undone."
-        }
+        },
+        "linked": "Linked",
+        "notLinked": "Not linked"
     },
     "datePicker": {
         "selectDate": "Select date"
@@ -705,7 +713,15 @@
         "chart": {
             "tableCaption": "Income and expenses per month",
             "month": "Month"
-        }
+        },
+        "loadError": "Failed to load chart data",
+        "noData": "No data available",
+        "noDataHint": "Upload your first receipt to see income and expense data here.",
+        "uploadFirst": "Upload receipt",
+        "timeRange": "Showing data from {{startDate}} to {{endDate}}",
+        "allBommels": "All Bommels",
+        "startDate": "From",
+        "endDate": "To"
     },
     "categories": {
         "title": "Categories",

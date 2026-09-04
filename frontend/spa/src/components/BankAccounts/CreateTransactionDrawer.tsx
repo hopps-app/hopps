@@ -1,13 +1,16 @@
 import { BankTransactionResponse, TransactionCreateRequest } from '@hopps/api-client';
 import { X, Check, ArrowDownRight, ArrowUpRight, Landmark, Plus } from 'lucide-react';
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
-import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
+import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
+import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { HintTooltip } from '@/components/ui/HintTooltip';
+import TextField from '@/components/ui/TextField';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
@@ -51,7 +54,9 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const { data: categoryGroups = [] } = useCategoryGroups();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const rootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
+    const bommelItems = useMemo(() => flattenBommelTree(allBommels, rootBommel?.id), [allBommels, rootBommel?.id]);
     const bankMode = !!bankTx;
 
     // The bommel store is populated on-demand per view; the Konten view doesn't load it, so ensure it's fetched when
@@ -233,8 +238,8 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
 
     // Shared input style
     const inputCls =
-        'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2.5 text-[14px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
-    const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3] mb-1.5';
+        'h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[14px] text-foreground placeholder:text-muted-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
+    const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--ink-faint)] mb-1.5';
 
     return (
         <>
@@ -250,19 +255,27 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     'fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out',
                     open ? 'translate-x-0' : 'translate-x-full'
                 )}
-                style={{ width: 460, maxWidth: '100vw', background: '#FFFFFF', boxShadow: '0 12px 40px rgba(20,20,40,.16)', fontFamily: FONT }}
+                style={{
+                    width: 460,
+                    maxWidth: '100vw',
+                    background: 'var(--background-secondary)',
+                    boxShadow: '0 12px 40px rgba(20,20,40,.16)',
+                    fontFamily: FONT,
+                }}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-[#E9E9EE]">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border-soft">
                     <div>
-                        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">
+                        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-purple-700">
                             {bankMode ? t('konten.createTx.title') : t('transactions.create.title')}
                         </span>
-                        <p className="mt-0.5 text-[13px] text-[#6B6B76]">{bankMode ? t('konten.createTx.subtitle') : t('transactions.create.subtitle')}</p>
+                        <p className="mt-0.5 text-[13px] text-muted-foreground">
+                            {bankMode ? t('konten.createTx.subtitle') : t('transactions.create.subtitle')}
+                        </p>
                     </div>
                     <button
                         onClick={handleClose}
-                        className="w-9 h-9 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#1B1B1F] hover:border-[#C7A2E3] transition-colors"
+                        className="w-9 h-9 flex items-center justify-center rounded-full border border-border-soft text-muted-foreground hover:text-foreground hover:border-purple-300 transition-colors"
                     >
                         <X size={17} />
                     </button>
@@ -273,31 +286,38 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     {/* Where this transaction came from. Without it the drawer hides the very movement it is meant to
                         cover, so there is no way to tell how much still needs to be booked. */}
                     {bankMode && bankTx && (
-                        <div className="rounded-[12px] border border-[#E9E9EE] bg-[#F8F8FA] px-3.5 py-3">
+                        <div className="rounded-[12px] border border-border-soft bg-[var(--surface-sunken)] px-3.5 py-3">
                             <div className="flex items-center gap-1.5">
-                                <Landmark size={13} className="text-[#7E3FB4]" />
-                                <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">{t('konten.createTx.origin')}</span>
+                                <Landmark size={13} className="text-purple-700" />
+                                <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-purple-700">{t('konten.createTx.origin')}</span>
                             </div>
-                            <p className="mt-1.5 text-[13px] font-bold text-[#1B1B1F] truncate" title={bankTx.purpose ?? ''}>
+                            <p className="mt-1.5 text-[13px] font-bold text-foreground truncate" title={bankTx.purpose ?? ''}>
                                 {bankTx.counterpartyName || bankTx.purpose || '—'}
                             </p>
-                            <p className="text-[12px] text-[#6B6B76]">{[bankTx.bankAccountName, fmtDate(bankTx.bookingDate)].filter(Boolean).join(' · ')}</p>
-                            <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-[#E9E9EE] pt-2.5 text-[12px]">
-                                <dt className="text-[#6B6B76]">{t('konten.drawer.bankAmount')}</dt>
-                                <dd className="text-right font-bold tabular-nums text-[#1B1B1F]">{fmtCurrency(bankTx.amount, bankTx.currency)}</dd>
-                                <dt className="text-[#6B6B76]">{t('konten.createTx.openBefore')}</dt>
-                                <dd className="text-right font-bold tabular-nums text-[#1B1B1F]">{fmtCurrency(openBefore, bankTx.currency)}</dd>
+                            <p className="text-[12px] text-muted-foreground">
+                                {[bankTx.bankAccountName, fmtDate(bankTx.bookingDate)].filter(Boolean).join(' · ')}
+                            </p>
+                            <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border-soft pt-2.5 text-[12px]">
+                                <dt className="text-muted-foreground">{t('konten.drawer.bankAmount')}</dt>
+                                <dd className="text-right font-bold tabular-nums text-foreground">{fmtCurrency(bankTx.amount, bankTx.currency)}</dd>
+                                <dt className="text-muted-foreground">{t('konten.createTx.openBefore')}</dt>
+                                <dd className="text-right font-bold tabular-nums text-foreground">{fmtCurrency(openBefore, bankTx.currency)}</dd>
                                 {!directionMismatch && (
                                     <>
-                                        <dt className="text-[#6B6B76]">{t('konten.createTx.openAfter')}</dt>
-                                        <dd className={cn('text-right font-bold tabular-nums', coversExactly ? 'text-[#1F7A50]' : 'text-[#B47C18]')}>
+                                        <dt className="text-muted-foreground">{t('konten.createTx.openAfter')}</dt>
+                                        <dd
+                                            className={cn(
+                                                'text-right font-bold tabular-nums',
+                                                coversExactly ? 'text-[var(--positive)]' : 'text-[var(--warning)]'
+                                            )}
+                                        >
                                             {coversExactly ? t('konten.createTx.coversExactly') : fmtCurrency(openAfter, bankTx.currency)}
                                         </dd>
                                     </>
                                 )}
                             </dl>
                             {directionMismatch && (
-                                <p className="mt-2 rounded-[8px] bg-[#FBF1DD] px-2.5 py-1.5 text-[12px] font-bold text-[#B47C18]">
+                                <p className="mt-2 rounded-[8px] bg-[var(--warning-surface)] px-2.5 py-1.5 text-[12px] font-bold text-[var(--warning)]">
                                     {t(openBefore > 0 ? 'konten.createTx.shouldBeIncome' : 'konten.createTx.shouldBeExpense')}
                                 </p>
                             )}
@@ -313,8 +333,18 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                 const Icon = d === 'expense' ? ArrowDownRight : ArrowUpRight;
                                 const activeColor =
                                     d === 'expense'
-                                        ? { bg: '#FBEAEF', border: '#E8A0B2', text: '#B12C4C', iconBg: '#F5C6D2' }
-                                        : { bg: '#E7F4EC', border: '#7DC4A0', text: '#1F7A50', iconBg: '#B8E4CA' };
+                                        ? {
+                                              bg: 'var(--negative-surface)',
+                                              border: 'var(--negative-border)',
+                                              text: 'var(--negative)',
+                                              iconBg: 'var(--negative-surface-strong)',
+                                          }
+                                        : {
+                                              bg: 'var(--positive-surface)',
+                                              border: 'var(--positive-border)',
+                                              text: 'var(--positive)',
+                                              iconBg: 'var(--positive-surface-strong)',
+                                          };
                                 return (
                                     <button
                                         key={d}
@@ -322,17 +352,20 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                         onClick={() => setDirection(d)}
                                         className="flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
                                         style={{
-                                            borderColor: active ? activeColor.border : '#E9E9EE',
-                                            background: active ? activeColor.bg : '#F8F8FA',
+                                            borderColor: active ? activeColor.border : 'var(--border-soft)',
+                                            background: active ? activeColor.bg : 'var(--surface-sunken)',
                                         }}
                                     >
                                         <span
                                             className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0"
-                                            style={{ background: active ? activeColor.iconBg : '#EBEBF0', color: active ? activeColor.text : '#9A9AA3' }}
+                                            style={{
+                                                background: active ? activeColor.iconBg : 'var(--surface-track)',
+                                                color: active ? activeColor.text : 'var(--ink-faint)',
+                                            }}
                                         >
                                             <Icon size={18} strokeWidth={2} />
                                         </span>
-                                        <span className="font-bold text-[14px]" style={{ color: active ? activeColor.text : '#6B6B76' }}>
+                                        <span className="font-bold text-[14px]" style={{ color: active ? activeColor.text : 'var(--muted-foreground)' }}>
                                             {t(`transactions.create.${d}`)}
                                         </span>
                                         {active && (
@@ -354,7 +387,9 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                         <div>
                             <label className={labelCls}>{t('transactions.create.amount')} *</label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6B76] font-bold text-[15px] pointer-events-none">€</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-[15px] pointer-events-none">
+                                    €
+                                </span>
                                 <input
                                     type="text"
                                     inputMode="decimal"
@@ -364,10 +399,10 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                         setAmountError(false);
                                     }}
                                     placeholder={t('transactions.create.amountPlaceholder')}
-                                    className={cn(inputCls, 'pl-7', amountError && 'border-[#E8A0B2] bg-[#FFF5F7]')}
+                                    className={cn(inputCls, 'pl-7', amountError && 'border-[var(--negative-border)] bg-[var(--negative-surface)]')}
                                 />
                             </div>
-                            {amountError && <p className="mt-1 text-[12px] text-[#B12C4C]">{t('transactions.create.errorAmount')}</p>}
+                            {amountError && <p className="mt-1 text-[12px] text-[var(--negative)]">{t('transactions.create.errorAmount')}</p>}
                         </div>
                         <div>
                             <label className={labelCls}>{t('transactions.create.date')}</label>
@@ -378,31 +413,25 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     {/* Name */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.name')}</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder={t('transactions.create.namePlaceholder')}
-                            className={inputCls}
-                        />
+                        <TextField value={name} onValueChange={setName} placeholder={t('transactions.create.namePlaceholder')} />
                     </div>
 
                     {/* Sender — labelled by direction: income means the counterparty is the recipient. */}
                     <div>
                         <label className={labelCls}>{direction === 'income' ? t('transactions.create.recipient') : t('transactions.create.issuer')}</label>
-                        <input
-                            type="text"
-                            value={senderName}
-                            onChange={(e) => setSenderName(e.target.value)}
-                            placeholder={t('transactions.create.senderPlaceholder')}
-                            className={inputCls}
-                        />
+                        <TextField value={senderName} onValueChange={setSenderName} placeholder={t('transactions.create.senderPlaceholder')} />
                     </div>
 
                     {/* Bommel */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.bommel')}</label>
-                        <InvoiceUploadFormBommelSelector value={bommelId ? Number(bommelId) : null} onChange={(id) => setBommelId(id ? String(id) : '')} />
+                        <BommelSelect
+                            items={bommelItems}
+                            value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                            emptyLabel={t('invoiceUpload.selectBommel')}
+                            onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
+                            triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
+                        />
                     </div>
 
                     {/* Category groups (applicable to the selected bommel) */}
@@ -429,27 +458,27 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             onClick={() => setPrivatelyPaid((v) => !v)}
                             className="w-full flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
                             style={{
-                                borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE',
-                                background: privatelyPaid ? '#F3EAFB' : '#F8F8FA',
+                                borderColor: privatelyPaid ? 'var(--primary)' : 'var(--border-soft)',
+                                background: privatelyPaid ? 'var(--accent-surface)' : 'var(--surface-sunken)',
                             }}
                         >
                             <span
                                 className="w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 transition-colors"
-                                style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
+                                style={{ background: privatelyPaid ? 'var(--accent-surface-strong)' : 'var(--surface-track)' }}
                             >
                                 {privatelyPaid ? (
-                                    <Check size={17} strokeWidth={2.5} color="#7E3FB4" />
+                                    <Check size={17} strokeWidth={2.5} color="var(--purple-700)" />
                                 ) : (
-                                    <span className="w-4 h-4 rounded border-2 border-[#C0C0CC]" />
+                                    <span className="w-4 h-4 rounded border-2 border-[var(--border-strong)]" />
                                 )}
                             </span>
                             <div className="min-w-0">
                                 {/* Wording depends on direction: an expense was privately advanced/paid, an income was
                                     privately received first (someone collected the money before it reached the org). */}
-                                <p className="text-[14px] font-bold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
+                                <p className="text-[14px] font-bold" style={{ color: privatelyPaid ? 'var(--purple-700)' : 'var(--foreground)' }}>
                                     {direction === 'income' ? t('transactions.create.privatelyReceived') : t('transactions.create.privatelyPaid')}
                                 </p>
-                                <p className="text-[12px] text-[#6B6B76] leading-snug">
+                                <p className="text-[12px] text-muted-foreground leading-snug">
                                     {direction === 'income' ? t('transactions.create.privatelyReceivedHint') : t('transactions.create.privatelyPaidHint')}
                                 </p>
                             </div>
@@ -460,20 +489,20 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     <div>
                         <label className={labelCls}>{t('transactions.create.tags')}</label>
                         <div
-                            className="flex flex-wrap gap-1.5 rounded-[10px] border border-[#E9E9EE] bg-white p-2 cursor-text focus-within:ring-2 focus-within:ring-[#F3EAFB] focus-within:border-[#9955CC] transition-colors"
+                            className="flex flex-wrap gap-1.5 rounded-[10px] border border-border-soft bg-[var(--background-secondary)] p-2 cursor-text focus-within:ring-2 focus-within:ring-[var(--accent-surface)] focus-within:border-primary transition-colors"
                             onClick={() => tagInputRef.current?.focus()}
                         >
                             {tags.map((tag) => (
                                 <span
                                     key={tag}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold"
-                                    style={{ background: '#F3EAFB', color: '#7E3FB4' }}
+                                    style={{ background: 'var(--accent-surface)', color: 'var(--purple-700)' }}
                                 >
                                     {tag}
                                     <button
                                         type="button"
                                         onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
-                                        className="hover:text-[#B12C4C] transition-colors"
+                                        className="hover:text-[var(--negative)] transition-colors"
                                     >
                                         <X size={11} strokeWidth={2.5} />
                                     </button>
@@ -487,18 +516,18 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                 onKeyDown={handleTagKeyDown}
                                 onBlur={addTag}
                                 placeholder={tags.length === 0 ? t('transactions.create.tagsPlaceholder') : ''}
-                                className="flex-1 min-w-[120px] text-[13.5px] text-[#1B1B1F] placeholder-[#9A9AA3] bg-transparent outline-none py-0.5"
+                                className="flex-1 min-w-[120px] text-[13.5px] text-foreground placeholder:text-[var(--ink-faint)] bg-transparent outline-none py-0.5"
                             />
                         </div>
                     </div>
                 </form>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-[#E9E9EE] flex items-center gap-2" style={{ background: '#FFFFFF' }}>
+                <div className="px-6 py-4 border-t border-border-soft flex items-center gap-2" style={{ background: 'var(--background-secondary)' }}>
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-5 py-2.5 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors"
+                        className="px-5 py-2.5 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors"
                     >
                         {t('transactions.create.cancel')}
                     </button>
@@ -510,7 +539,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                 type="button"
                                 onClick={() => submit(false)}
                                 disabled={isBusy}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors disabled:opacity-50"
                             >
                                 {isBusy ? '…' : t('konten.createTx.saveDraft')}
                             </button>
@@ -521,7 +550,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                     onClick={() => submit(true)}
                                     disabled={isBusy || !canConfirm}
                                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                    style={{ background: 'var(--banner-gradient)' }}
                                 >
                                     <Check size={15} strokeWidth={2.5} />
                                     {isBusy ? '…' : t('konten.createTx.saveConfirm')}
@@ -534,7 +563,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             type="submit"
                             disabled={createMutation.isPending}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                            style={{ background: 'var(--banner-gradient)' }}
                         >
                             <Plus size={15} strokeWidth={2.5} />
                             {createMutation.isPending ? '…' : t('transactions.create.save')}

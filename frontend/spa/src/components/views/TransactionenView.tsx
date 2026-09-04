@@ -4,8 +4,6 @@ import {
     ArrowUpRight,
     ChevronLeft,
     ChevronRight,
-    ChevronDown,
-    ChevronUp,
     X,
     Plus,
     Search,
@@ -15,26 +13,32 @@ import {
     Check,
     Minus,
     Upload,
-    SlidersHorizontal,
+    Filter,
+    Wallet,
     ExternalLink,
     RotateCcw,
+    Link2,
+    Unlink,
 } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
-import BommelMultiSelector from '@/components/CategoryGroups/BommelMultiSelector';
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
-import TransactionCategoryFilter from '@/components/CategoryGroups/TransactionCategoryFilter';
-import { LoadingState } from '@/components/common/LoadingState';
-import InvoiceUploadFormBommelSelector, { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/CategoryGroups/TransactionCategoryFilter';
+import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
+import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
+import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
+import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
+import { DrawerSkeleton, TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { SortHeader } from '@/components/ui/SortHeader';
+import TextField from '@/components/ui/TextField';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument, useDocument } from '@/hooks/queries/useDocuments';
@@ -50,6 +54,7 @@ import {
     TransactionSortBy,
     SortDirection,
 } from '@/hooks/queries/useTransactions';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { usePersistedState } from '@/hooks/usePersistedState';
@@ -58,22 +63,18 @@ import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
-// ─── Design tokens (from prototype) ──────────────────────────────────────────
-// bg: #F3F4F6 · surface: #FFFFFF · surface-2: #F8F8FA · surface-3: #F1F1F4
-// ink: #1B1B1F · ink-2: #6B6B76 · ink-3: #9A9AA3
-// line: #E9E9EE · pp: #9955CC · pp-ink: #7E3FB4 · pp-tint: #F3EAFB
-// pos-bg: #E7F4EC · pos-ink: #1F7A50 · neg-bg: #FBEAEF · neg-ink: #B12C4C
-// warn: #B47C18 · warn-bg: #FBF1DD
+// ─── Design tokens ───────────────────────────────────────────────────────────
+// The prototype's fixed palette now lives in styles/index.css, once per theme, so this view renders
+// in dark mode as well. The mapping:
+// surface: --background-secondary · sunken: --surface-sunken · track: --surface-track
+// ink: --foreground · ink-2: --muted-foreground · ink-3: --ink-faint
+// line: --border-soft · strong line: --border-strong · purple: --primary / --purple-700
+// purple tint: --accent-surface · positive/negative/warning: --positive · --negative · --warning
+// (each with a matching --*-surface, and --negative-solid for the filled destructive button)
 // font: "Hanken Grotesk"
 // radius-card: 18px · radius-md: 14px · radius-sm: 10px
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
-
-// Shared column layout for the transactions table header and rows (must stay in sync).
-// Transaktion | Bommel | Datum | Erstellt am | Status | Betrag
-const TX_GRID = '40px minmax(0,2fr) 1fr 0.95fr 1fr 0.85fr 1fr';
 
 function fmtCurrency(amount: number | undefined): string {
     if (amount === undefined || amount === null) return '—';
@@ -90,11 +91,11 @@ function fmtDate(date: Date | string | undefined): string {
 
 function Badge({ children, variant = 'neutral' }: { children: React.ReactNode; variant?: 'pos' | 'neg' | 'warn' | 'neutral' | 'purple' }) {
     const styles: Record<string, string> = {
-        pos: 'bg-[#E7F4EC] text-[#1F7A50]',
-        neg: 'bg-[#FBEAEF] text-[#B12C4C]',
-        warn: 'bg-[#FBF1DD] text-[#B47C18]',
-        neutral: 'bg-[#F1F1F4] text-[#6B6B76]',
-        purple: 'bg-[#F3EAFB] text-[#7E3FB4]',
+        pos: 'bg-[var(--positive-surface)] text-[var(--positive)]',
+        neg: 'bg-[var(--negative-surface)] text-[var(--negative)]',
+        warn: 'bg-[var(--warning-surface)] text-[var(--warning)]',
+        neutral: 'bg-[var(--surface-track)] text-muted-foreground',
+        purple: 'bg-[var(--accent-surface)] text-purple-700',
     };
     return (
         <span
@@ -108,7 +109,7 @@ function Badge({ children, variant = 'neutral' }: { children: React.ReactNode; v
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
     return (
-        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]" style={{ fontFamily: FONT }}>
+        <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-purple-700" style={{ fontFamily: FONT }}>
             {children}
         </span>
     );
@@ -129,8 +130,8 @@ function StatusBadge({ status }: { status?: TransactionStatus }) {
 
 function TxIcon({ size = 36, incoming }: { size?: number; incoming?: boolean }) {
     // Use purple tint for expense (outgoing), green tint for income
-    const bg = incoming ? '#E7F4EC' : '#F3EAFB';
-    const color = incoming ? '#1F7A50' : '#7E3FB4';
+    const bg = incoming ? 'var(--positive-surface)' : 'var(--accent-surface)';
+    const color = incoming ? 'var(--positive)' : 'var(--purple-700)';
     const Icon = incoming ? ArrowUpRight : ArrowDownRight;
     return (
         <span className="inline-flex items-center justify-center flex-shrink-0" style={{ width: size, height: size, borderRadius: 10, background: bg, color }}>
@@ -142,11 +143,11 @@ function TxIcon({ size = 36, incoming }: { size?: number; incoming?: boolean }) 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
         <span
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-semibold border border-[#E0E0E6] bg-white text-[#6B6B76] cursor-default"
+            className="inline-flex cursor-default items-center gap-1.5 rounded-xl bg-[var(--accent-surface)] px-3 py-1.5 text-[13px] font-semibold text-purple-700"
             style={{ fontFamily: FONT }}
         >
             {label}
-            <button onClick={onRemove} className="text-[#9A9AA3] hover:text-[#1B1B1F] transition-colors">
+            <button onClick={onRemove} className="text-primary transition-colors hover:text-[var(--negative)]">
                 <X size={12} strokeWidth={2.5} />
             </button>
         </span>
@@ -171,7 +172,9 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const drawerRootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
+    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels, drawerRootBommel?.id), [allBommels, drawerRootBommel?.id]);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
 
@@ -363,8 +366,8 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
     );
 
     const inputCls =
-        'w-full rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2 text-[13.5px] text-[#1B1B1F] placeholder-[#9A9AA3] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
-    const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3] mb-1';
+        'h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[14px] text-foreground placeholder:text-muted-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
+    const labelCls = 'block text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--ink-faint)] mb-1';
 
     return (
         <>
@@ -391,33 +394,40 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                     'fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out',
                     open ? 'translate-x-0' : 'translate-x-full'
                 )}
-                style={{ width: 420, maxWidth: '100vw', background: '#FFFFFF', boxShadow: '0 12px 40px rgba(20,20,40,.16)', fontFamily: FONT }}
+                style={{
+                    width: 420,
+                    maxWidth: '100vw',
+                    background: 'var(--background-secondary)',
+                    boxShadow: '0 12px 40px rgba(20,20,40,.16)',
+                    fontFamily: FONT,
+                }}
             >
                 {/* Sticky header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-[#E9E9EE]" style={{ background: '#FFFFFF' }}>
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border-soft" style={{ background: 'var(--background-secondary)' }}>
                     <Eyebrow>{editMode ? t('transactions.detail.editTitle') : t('transactions.detail.title')}</Eyebrow>
                     <button
                         onClick={onClose}
-                        className="w-9 h-9 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#1B1B1F] hover:border-[#C7A2E3] transition-colors"
+                        className="w-9 h-9 flex items-center justify-center rounded-full border border-border-soft text-muted-foreground hover:text-foreground hover:border-purple-300 transition-colors"
                     >
                         <X size={17} />
                     </button>
                 </div>
 
                 {isLoading || !tx ? (
-                    <div className="flex-1 flex items-center justify-center">
-                        <LoadingState />
-                    </div>
+                    <DrawerSkeleton />
                 ) : !editMode ? (
                     <div className="flex-1 overflow-y-auto">
                         {/* Hero */}
-                        <div className="px-6 pt-7 pb-6 flex flex-col items-center text-center border-b border-[#E9E9EE]">
+                        <div className="px-6 pt-7 pb-6 flex flex-col items-center text-center border-b border-border-soft">
                             <TxIcon size={52} incoming={amount >= 0} />
-                            <h2 className="mt-4 font-bold text-[#1B1B1F] leading-snug" style={{ fontSize: 20 }}>
+                            <h2 className="mt-4 font-bold text-foreground leading-snug" style={{ fontSize: 20 }}>
                                 {tx.name ?? '—'}
                             </h2>
-                            {tx.senderName && <p className="mt-1 text-[13.5px] text-[#6B6B76]">{tx.senderName}</p>}
-                            <p className="mt-4 font-bold tabular-nums leading-none" style={{ fontSize: 38, color: amount >= 0 ? '#1F7A50' : '#B12C4C' }}>
+                            {tx.senderName && <p className="mt-1 text-[13.5px] text-muted-foreground">{tx.senderName}</p>}
+                            <p
+                                className="mt-4 font-bold tabular-nums leading-none"
+                                style={{ fontSize: 38, color: amount >= 0 ? 'var(--positive)' : 'var(--negative)' }}
+                            >
                                 {fmtCurrency(amount)}
                             </p>
                             <div className="mt-3">
@@ -426,7 +436,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                         </div>
 
                         {/* Details */}
-                        <div className="px-6 py-5 border-b border-[#E9E9EE]">
+                        <div className="px-6 py-5 border-b border-border-soft">
                             <dl style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 12, columnGap: 16 }}>
                                 {[
                                     [t('transactions.detail.bommel'), tx.bommelName ?? '—'],
@@ -440,30 +450,30 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                         ]),
                                 ].map(([label, value]) => (
                                     <>
-                                        <dt className="text-[13.5px] text-[#6B6B76]">{label}</dt>
-                                        <dd className="text-[13.5px] font-semibold text-[#1B1B1F] text-right">{value}</dd>
+                                        <dt className="text-[13.5px] text-muted-foreground">{label}</dt>
+                                        <dd className="text-[13.5px] font-semibold text-foreground text-right">{value}</dd>
                                     </>
                                 ))}
                             </dl>
                         </div>
 
                         {/* Beleg */}
-                        <div className="px-6 py-5 border-b border-[#E9E9EE]">
+                        <div className="px-6 py-5 border-b border-border-soft">
                             <div className="flex items-center gap-2 mb-3">
-                                <FileText size={15} className="text-[#7E3FB4]" />
-                                <span className="text-[14px] font-bold text-[#1B1B1F]">{t('transactions.detail.receipt')}</span>
+                                <FileText size={15} className="text-purple-700" />
+                                <span className="text-[14px] font-bold text-foreground">{t('transactions.detail.receipt')}</span>
                             </div>
                             {tx.documentId ? (
                                 <button
                                     onClick={() => navigate(`/receipts?id=${tx.documentId}`)}
-                                    className="w-full flex items-center gap-3 p-3 rounded-[10px] border border-[#E9E9EE] text-left transition-colors hover:border-[#C7A2E3] hover:bg-[#F3EAFB]"
-                                    style={{ background: '#F8F8FA' }}
+                                    className="w-full flex items-center gap-3 p-3 rounded-[10px] border border-border-soft text-left transition-colors hover:border-purple-300 hover:bg-[var(--accent-surface)]"
+                                    style={{ background: 'var(--surface-sunken)' }}
                                 >
                                     <Badge variant="neutral">PDF</Badge>
-                                    <span className="flex-1 text-[13px] text-[#1B1B1F] truncate">
+                                    <span className="flex-1 text-[13px] text-foreground truncate">
                                         {linkedDoc?.fileName ?? `${t('transactions.detail.receipt')} #${tx.documentId}`}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 text-[12.5px] font-bold text-[#7E3FB4] flex-shrink-0">
+                                    <span className="inline-flex items-center gap-1 text-[12.5px] font-bold text-purple-700 flex-shrink-0">
                                         {t('transactions.detail.openReceipt')}
                                         <ExternalLink size={13} />
                                     </span>
@@ -471,12 +481,12 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                             ) : (
                                 <div
                                     className="flex flex-col items-center justify-center gap-2 p-6 rounded-[14px] border-2 border-dashed text-center"
-                                    style={{ borderColor: '#E0E0E6' }}
+                                    style={{ borderColor: 'var(--border-soft)' }}
                                 >
-                                    <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: '#F3EAFB' }}>
-                                        <Upload size={20} className="text-[#7E3FB4]" />
+                                    <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-surface)' }}>
+                                        <Upload size={20} className="text-purple-700" />
                                     </div>
-                                    <p className="text-[13px] text-[#6B6B76]">{t('transactions.detail.noReceipt')}</p>
+                                    <p className="text-[13px] text-muted-foreground">{t('transactions.detail.noReceipt')}</p>
                                 </div>
                             )}
                         </div>
@@ -497,23 +507,39 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                         const Icon = d === 'expense' ? ArrowDownRight : ArrowUpRight;
                                         const c =
                                             d === 'expense'
-                                                ? { bg: '#FBEAEF', border: '#E8A0B2', text: '#B12C4C', iconBg: '#F5C6D2' }
-                                                : { bg: '#E7F4EC', border: '#7DC4A0', text: '#1F7A50', iconBg: '#B8E4CA' };
+                                                ? {
+                                                      bg: 'var(--negative-surface)',
+                                                      border: 'var(--negative-border)',
+                                                      text: 'var(--negative)',
+                                                      iconBg: 'var(--negative-surface-strong)',
+                                                  }
+                                                : {
+                                                      bg: 'var(--positive-surface)',
+                                                      border: 'var(--positive-border)',
+                                                      text: 'var(--positive)',
+                                                      iconBg: 'var(--positive-surface-strong)',
+                                                  };
                                         return (
                                             <button
                                                 key={d}
                                                 type="button"
                                                 onClick={() => setKind(d)}
                                                 className="flex items-center gap-2.5 p-3 rounded-[12px] border-2 transition-all text-left"
-                                                style={{ borderColor: active ? c.border : '#E9E9EE', background: active ? c.bg : '#F8F8FA' }}
+                                                style={{
+                                                    borderColor: active ? c.border : 'var(--border-soft)',
+                                                    background: active ? c.bg : 'var(--surface-sunken)',
+                                                }}
                                             >
                                                 <span
                                                     className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
-                                                    style={{ background: active ? c.iconBg : '#EBEBF0', color: active ? c.text : '#9A9AA3' }}
+                                                    style={{
+                                                        background: active ? c.iconBg : 'var(--surface-track)',
+                                                        color: active ? c.text : 'var(--ink-faint)',
+                                                    }}
                                                 >
                                                     <Icon size={16} strokeWidth={2} />
                                                 </span>
-                                                <span className="font-bold text-[13.5px]" style={{ color: active ? c.text : '#6B6B76' }}>
+                                                <span className="font-bold text-[13.5px]" style={{ color: active ? c.text : 'var(--muted-foreground)' }}>
                                                     {t(`transactions.create.${d}`)}
                                                 </span>
                                             </button>
@@ -543,21 +569,24 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                             {/* Name */}
                             <div>
                                 <label className={labelCls}>{t('transactions.create.name')}</label>
-                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+                                <TextField value={name} onValueChange={setName} />
                             </div>
 
                             {/* Sender — labelled by direction: income means the counterparty is the recipient. */}
                             <div>
                                 <label className={labelCls}>{kind === 'income' ? t('transactions.create.recipient') : t('transactions.create.issuer')}</label>
-                                <input type="text" value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputCls} />
+                                <TextField value={senderName} onValueChange={setSenderName} />
                             </div>
 
                             {/* Bommel */}
                             <div>
                                 <label className={labelCls}>{t('transactions.detail.bommel')}</label>
-                                <InvoiceUploadFormBommelSelector
-                                    value={bommelId ? Number(bommelId) : null}
-                                    onChange={(id) => setBommelId(id ? String(id) : '')}
+                                <BommelSelect
+                                    items={drawerBommelItems}
+                                    value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                                    emptyLabel={t('invoiceUpload.selectBommel')}
+                                    onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
+                                    triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
                                 />
                             </div>
 
@@ -583,19 +612,22 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 type="button"
                                 onClick={() => setPrivatelyPaid((v) => !v)}
                                 className="w-full flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
-                                style={{ borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE', background: privatelyPaid ? '#F3EAFB' : '#F8F8FA' }}
+                                style={{
+                                    borderColor: privatelyPaid ? 'var(--primary)' : 'var(--border-soft)',
+                                    background: privatelyPaid ? 'var(--accent-surface)' : 'var(--surface-sunken)',
+                                }}
                             >
                                 <span
                                     className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0"
-                                    style={{ background: privatelyPaid ? '#E0C8F5' : '#EBEBF0' }}
+                                    style={{ background: privatelyPaid ? 'var(--accent-surface-strong)' : 'var(--surface-track)' }}
                                 >
                                     {privatelyPaid ? (
-                                        <Check size={16} strokeWidth={2.5} color="#7E3FB4" />
+                                        <Check size={16} strokeWidth={2.5} color="var(--purple-700)" />
                                     ) : (
-                                        <span className="w-4 h-4 rounded border-2 border-[#C0C0CC]" />
+                                        <span className="w-4 h-4 rounded border-2 border-[var(--border-strong)]" />
                                     )}
                                 </span>
-                                <span className="text-[13.5px] font-bold" style={{ color: privatelyPaid ? '#7E3FB4' : '#1B1B1F' }}>
+                                <span className="text-[13.5px] font-bold" style={{ color: privatelyPaid ? 'var(--purple-700)' : 'var(--foreground)' }}>
                                     {t('transactions.detail.privatelyPaid')}
                                 </span>
                             </button>
@@ -604,7 +636,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                         {/* Zahlung & Abgleich – Banktransaktionen direkt beim Bearbeiten verknüpfen. currentTotal feeds
                             the live edited amount+direction so the reconciliation difference updates immediately when
                             income↔expense is flipped (the sign reverses), before the change is saved. */}
-                        <div className="border-t border-[#E9E9EE]">
+                        <div className="border-t border-border-soft">
                             <BankMatchSection
                                 tx={tx}
                                 currentTotal={(() => {
@@ -619,12 +651,12 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
 
                 {/* Sticky footer */}
                 {tx && !isLoading && (
-                    <div className="px-6 py-4 border-t border-[#E9E9EE] flex items-center gap-2" style={{ background: '#FFFFFF' }}>
+                    <div className="px-6 py-4 border-t border-border-soft flex items-center gap-2" style={{ background: 'var(--background-secondary)' }}>
                         {editMode ? (
                             <>
                                 <button
                                     onClick={() => setEditMode(false)}
-                                    className="px-4 py-2 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors"
+                                    className="px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors"
                                 >
                                     {t('transactions.detail.cancel')}
                                 </button>
@@ -637,9 +669,11 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     disabled={updateMutation.isPending}
                                     className={cn(
                                         'inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 disabled:opacity-50',
-                                        tx.status === 'DRAFT' ? 'border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA]' : 'text-white'
+                                        tx.status === 'DRAFT'
+                                            ? 'border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)]'
+                                            : 'text-white'
                                     )}
-                                    style={tx.status === 'DRAFT' ? undefined : { background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                    style={tx.status === 'DRAFT' ? undefined : { background: 'var(--banner-gradient)' }}
                                 >
                                     {tx.status !== 'DRAFT' && <Check size={14} strokeWidth={2.5} />}
                                     {updateMutation.isPending
@@ -654,7 +688,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                             onClick={handleSaveAndConfirm}
                                             disabled={updateMutation.isPending || confirmMutation.isPending || !canConfirm}
                                             className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                            style={{ background: 'var(--banner-gradient)' }}
                                         >
                                             <Check size={14} strokeWidth={2.5} />
                                             {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
@@ -667,7 +701,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 <button
                                     onClick={() => setConfirmDeleteOpen(true)}
                                     disabled={deleteMutation.isPending}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-[var(--negative)] hover:bg-[var(--negative-surface)] transition-colors"
                                 >
                                     <Trash2 size={14} />
                                     {t('transactions.detail.delete')}
@@ -675,7 +709,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 <div className="flex-1" />
                                 <button
                                     onClick={startEdit}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#1B1B1F] hover:bg-[#F8F8FA] transition-colors"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-foreground hover:bg-[var(--surface-sunken)] transition-colors"
                                 >
                                     <Pencil size={14} />
                                     {t('transactions.detail.edit')}
@@ -686,7 +720,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                             onClick={handleConfirm}
                                             disabled={confirmMutation.isPending || !canConfirm}
                                             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)' }}
+                                            style={{ background: 'var(--banner-gradient)' }}
                                         >
                                             <Check size={14} strokeWidth={2.5} />
                                             {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
@@ -696,7 +730,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                     <button
                                         onClick={handleReopen}
                                         disabled={reopenMutation.isPending}
-                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-[#E0E0E6] text-[#B47C18] hover:bg-[#FBF1DD] hover:border-[#E4C876] transition-colors disabled:opacity-50"
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-[var(--warning)] hover:bg-[var(--warning-surface)] hover:border-[var(--warning-border)] transition-colors disabled:opacity-50"
                                     >
                                         <RotateCcw size={14} />
                                         {reopenMutation.isPending ? '…' : t('transactions.detail.reopen')}
@@ -737,6 +771,11 @@ function TransactionRow({
     onToggleBulk: () => void;
 }) {
     const { t } = useTranslation();
+    const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
+    const categoryText = (tx.categoryValues ?? [])
+        .map((c) => c.value)
+        .filter(Boolean)
+        .join(', ');
     const amount = tx.total ? Number(tx.total) : 0;
     const incoming = amount >= 0;
     const highlighted = selected || bulkSelected;
@@ -744,15 +783,15 @@ function TransactionRow({
     return (
         <button
             onClick={onClick}
-            className={cn('w-full grid items-center text-left border-b border-[#E9E9EE] last:border-b-0 transition-colors')}
+            className={cn('w-full grid items-center text-left border-b border-border-soft last:border-b-0 transition-colors')}
             style={{
-                gridTemplateColumns: TX_GRID,
+                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
                 padding: '14px 20px',
-                background: highlighted ? '#F3EAFB' : undefined,
+                background: highlighted ? 'var(--accent-surface)' : undefined,
                 fontFamily: FONT,
             }}
             onMouseEnter={(e) => {
-                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA';
+                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-sunken)';
             }}
             onMouseLeave={(e) => {
                 if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '';
@@ -777,7 +816,7 @@ function TransactionRow({
                 }}
                 className={cn(
                     'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                    bulkSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
+                    bulkSelected ? 'bg-primary border-primary' : 'border-[var(--border-strong)] hover:border-primary'
                 )}
             >
                 {bulkSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
@@ -787,32 +826,59 @@ function TransactionRow({
             <span className="flex items-center gap-3 min-w-0 pr-4">
                 <TxIcon size={36} incoming={incoming} />
                 <span className="flex flex-col min-w-0">
-                    <span className="font-bold text-[14px] text-[#1B1B1F] truncate leading-snug flex items-center gap-1.5">
+                    <span className="font-bold text-[14px] text-foreground truncate leading-snug flex items-center gap-1.5">
                         {tx.name ?? '—'}
-                        {tx.documentId && <FileText size={13} className="text-[#7E3FB4] flex-shrink-0" />}
+                        {tx.documentId && <FileText size={13} className="text-purple-700 flex-shrink-0" />}
                     </span>
-                    <span className="text-[12px] text-[#6B6B76] truncate leading-snug">{tx.senderName ?? ''}</span>
+                    <span className="text-[12px] text-muted-foreground truncate leading-snug">{tx.senderName ?? ''}</span>
                 </span>
             </span>
 
-            {/* Bommel */}
-            <span className="pr-3">
-                {tx.bommelName ? (
-                    <span className="text-[13.5px] text-[#6B6B76] truncate">{tx.bommelName}</span>
-                ) : (
-                    <Badge variant="warn">{t('transactions.unassigned')}</Badge>
+            {/* Bommel. `truncate` only bites on a block box, and the grid item needs min-w-0 before it can
+                shrink at all — without both the long names overflowed and pushed the later columns out of line. */}
+            {!hideBommel && (
+                <span className="min-w-0 pr-3">
+                    {tx.bommelName ? (
+                        <span className="block truncate text-[13.5px] text-muted-foreground" title={tx.bommelName}>
+                            {tx.bommelName}
+                        </span>
+                    ) : (
+                        <Badge variant="warn">{t('transactions.unassigned')}</Badge>
+                    )}
+                </span>
+            )}
+
+            {/* Category group values, joined. A transaction can carry one per group, and the column is far too
+                narrow to list them, so the full set goes in the title. */}
+            <span className="min-w-0 pr-3">
+                {categoryText && (
+                    <span className="block truncate text-[13.5px] text-muted-foreground" title={categoryText}>
+                        {categoryText}
+                    </span>
                 )}
             </span>
 
             {/* Date */}
-            <span className="text-[13.5px] text-[#6B6B76] whitespace-nowrap tabular-nums">{fmtDate(tx.transactionTime)}</span>
+            <span className="text-[13.5px] text-muted-foreground whitespace-nowrap tabular-nums">{fmtDate(tx.transactionTime)}</span>
 
             {/* Created at */}
-            <span className="text-[13px] text-[#9A9AA3] whitespace-nowrap tabular-nums">{fmtDate(tx.createdAt)}</span>
+            <span className="text-[13px] text-[var(--ink-faint)] whitespace-nowrap tabular-nums">{fmtDate(tx.createdAt)}</span>
 
-            {/* Status */}
+            {/* Status, plus whether a bank movement backs this transaction. `coveredAmount` is the signed net
+                of the linked movements, so a non-zero value means at least one is attached. */}
             <span className="flex flex-col items-start gap-1">
                 <StatusBadge status={tx.status} />
+                {Math.abs(tx.coveredAmount != null ? Number(tx.coveredAmount) : 0) > 0.005 ? (
+                    <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[var(--positive)]">
+                        <Link2 size={12} strokeWidth={2.5} />
+                        {t('transactions.linked')}
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[var(--warning)]">
+                        <Unlink size={12} strokeWidth={2.5} />
+                        {t('transactions.notLinked')}
+                    </span>
+                )}
             </span>
 
             {/* Amount — plus the reconciliation delta vs. linked bank movements, shown under the amount like the
@@ -820,7 +886,7 @@ function TransactionRow({
                 still needs income, a negative value (red) still needs expense — so a positive and a negative shortfall
                 never look alike. Hidden once it matches (delta ≈ 0), regardless of confirm status. */}
             <span className="flex flex-col items-end leading-tight">
-                <span className="font-bold tabular-nums whitespace-nowrap" style={{ fontSize: 14.5, color: incoming ? '#1F7A50' : '#B12C4C' }}>
+                <span className="font-bold tabular-nums whitespace-nowrap" style={{ fontSize: 14.5, color: incoming ? 'var(--positive)' : 'var(--negative)' }}>
                     {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
                 </span>
                 {(() => {
@@ -835,7 +901,10 @@ function TransactionRow({
                         const over = Math.abs(covered) > Math.abs(total) + 0.005;
                         const label = over ? 'transactions.overCovered' : 'transactions.openToCover';
                         return (
-                            <span className="text-[11px] font-semibold tabular-nums whitespace-nowrap" style={{ color: positive ? '#1F7A50' : '#B12C4C' }}>
+                            <span
+                                className="text-[11px] font-semibold tabular-nums whitespace-nowrap"
+                                style={{ color: positive ? 'var(--positive)' : 'var(--negative)' }}
+                            >
                                 {t(label, { amount: `${positive ? '+' : '–'} ${fmtCurrency(open)}` })}
                             </span>
                         );
@@ -843,7 +912,7 @@ function TransactionRow({
                     // Fully covered: surface a positive status on drafts (still being reconciled); confirmed rows are
                     // done, so they stay clean.
                     if (tx.status === 'DRAFT') {
-                        return <span className="text-[11px] font-semibold text-[#1F7A50] whitespace-nowrap">{t('transactions.fullyCovered')}</span>;
+                        return <span className="text-[11px] font-semibold text-[var(--positive)] whitespace-nowrap">{t('transactions.fullyCovered')}</span>;
                     }
                     return null;
                 })()}
@@ -857,6 +926,7 @@ function TransactionRow({
 export function TransactionenView() {
     const { t } = useTranslation();
     usePageTitle(t('transactions.title'));
+    const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
 
     const [search, setSearch] = usePersistedState<string>('hopps.transactions.search', '');
     const [statusFilter, setStatusFilter] = usePersistedState<'ALL' | 'CONFIRMED' | 'DRAFT'>('hopps.transactions.statusFilter', 'ALL');
@@ -867,8 +937,9 @@ export function TransactionenView() {
     const [privatelyPaid, setPrivatelyPaid] = usePersistedState<boolean>('hopps.transactions.privatelyPaid', false);
     const [detached, setDetached] = usePersistedState<boolean>('hopps.transactions.detached', false);
     // Category-group filters: which groups the user chose to surface as filters, and the value picked per group.
-    const [categoryFilterGroupIds, setCategoryFilterGroupIds] = usePersistedState<number[]>('hopps.transactions.categoryFilterGroups', []);
-    const [categoryFilters, setCategoryFilters] = usePersistedState<Record<number, string>>('hopps.transactions.categoryFilters', {});
+    // New storage key: the shape changed from `(number | null)[]` plus a one-value-per-group record to a
+    // row list, and old entries cannot be read as either.
+    const [categoryFilterRows, setCategoryFilterRows] = usePersistedState<CategoryFilterRow[]>('hopps.transactions.categoryFilterRows', []);
     const { data: categoryFilterGroups = [] } = useCategoryGroups();
     const [sortBy, setSortBy] = usePersistedState<TransactionSortBy>('hopps.transactions.sortBy', 'createdAt');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.transactions.sortDir', 'desc');
@@ -921,6 +992,17 @@ export function TransactionenView() {
         setPage(0);
     };
 
+    // Collapse the rows into the wire shape: the values of a group gathered under its id.
+    const categoryFilters = useMemo(() => {
+        const byGroup: Record<number, string[]> = {};
+        categoryFilterRows.forEach((row) => {
+            if (row.groupId == null || !row.value) return;
+            const list = byGroup[row.groupId] ?? (byGroup[row.groupId] = []);
+            if (!list.includes(row.value)) list.push(row.value);
+        });
+        return byGroup;
+    }, [categoryFilterRows]);
+
     const filters: TransactionFilters = {
         search: search || undefined,
         status: statusFilter === 'ALL' ? undefined : (statusFilter as TransactionStatus),
@@ -940,7 +1022,46 @@ export function TransactionenView() {
     // Count and income/expense sums across all pages (a single page cannot provide them). Refetches on filter change,
     // not on paging.
     const { data: aggregate } = useTransactionAggregate(filters);
+    // Tab counts: the same filters as the list minus the status tab itself, so each tab reports how many
+    // rows it would show under the filters that are actually active.
+    const countFilters: TransactionFilters = {
+        search: filters.search,
+        bommelIds: filters.bommelIds,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        privatelyPaid: filters.privatelyPaid,
+        detached: filters.detached,
+        categoryValues: filters.categoryValues,
+    };
+    const { data: countAll } = useTransactionAggregate(countFilters);
+    const { data: countConfirmed } = useTransactionAggregate({ ...countFilters, status: 'CONFIRMED' });
+    const { data: countDraft } = useTransactionAggregate({ ...countFilters, status: 'DRAFT' });
+    const statusCounts: Record<'ALL' | 'CONFIRMED' | 'DRAFT', number> = {
+        ALL: countAll?.count ?? 0,
+        CONFIRMED: countConfirmed?.count ?? 0,
+        DRAFT: countDraft?.count ?? 0,
+    };
     const allBommels = useBommelsStore((s) => s.allBommels);
+    const rootBommel = useBommelsStore((s) => s.rootBommel);
+    const loadBommelsForFilter = useBommelsStore((s) => s.loadBommels);
+    const bommelsLoading = useBommelsStore((s) => s.isLoading);
+    const { organization } = useStore();
+
+    useEffect(() => {
+        if (organization?.id && allBommels.length === 0) {
+            loadBommelsForFilter(organization.id);
+        }
+    }, [organization?.id, allBommels.length, loadBommelsForFilter]);
+
+    const bommelItems = useMemo(() => flattenBommelTree(allBommels, rootBommel?.id), [allBommels, rootBommel?.id]);
+
+    // The picker chooses one bommel; the filter still sends a list, because selecting a parent has to
+    // include everything under it and the org service matches bommel ids exactly.
+    const bommelSelection: BommelSelection = bommelIds.length > 0 ? (bommelIds[0] as number) : ALL_BOMMELS;
+    const onBommelSelectionChange = (next: BommelSelection) => {
+        setBommelIds(next === ALL_BOMMELS ? [] : collectSubtreeIds(allBommels, next));
+        setPage(0);
+    };
 
     const transactions: TransactionResponse[] = useMemo(() => {
         if (!txData) return [];
@@ -1008,53 +1129,52 @@ export function TransactionenView() {
     };
 
     // ── Category-group filter handlers ──
-    const addCategoryFilterGroup = (groupId: number) => {
-        setCategoryFilterGroupIds((prev) => (prev.includes(groupId) ? prev : [...prev, groupId]));
+    const addCategoryFilterRow = () => {
+        setCategoryFilterRows((prev) => [...prev, { groupId: null }]);
     };
-    const removeCategoryFilterGroup = (groupId: number) => {
-        setCategoryFilterGroupIds((prev) => prev.filter((id) => id !== groupId));
-        setCategoryFilters((prev) => {
-            const next = { ...prev };
-            delete next[groupId];
-            return next;
-        });
-        setPage(0);
+    const removeCategoryFilterRow = (index: number) => {
+        const had = categoryFilterRows[index]?.value;
+        setCategoryFilterRows((prev) => prev.filter((_, i) => i !== index));
+        if (had) setPage(0);
     };
-    const setCategoryFilterValue = (groupId: number, value: string | undefined) => {
-        setCategoryFilters((prev) => {
-            const next = { ...prev };
-            if (value == null || value === '') {
-                delete next[groupId];
-            } else {
-                next[groupId] = value;
-            }
-            return next;
-        });
+    // Swapping a row's group drops its value, which belonged to the old group.
+    const changeCategoryFilterGroup = (index: number, groupId: number | null) => {
+        const had = categoryFilterRows[index]?.value;
+        setCategoryFilterRows((prev) => prev.map((row, i) => (i === index ? { groupId } : row)));
+        if (had) setPage(0);
+    };
+    const setCategoryFilterRowValue = (index: number, value: string | undefined) => {
+        setCategoryFilterRows((prev) => prev.map((row, i) => (i === index ? { ...row, value } : row)));
         setPage(0);
     };
 
     const activeFilters: { key: string; label: string; clear: () => void }[] = [];
     if (search) activeFilters.push({ key: 'search', label: `"${search}"`, clear: () => setSearch('') });
-    bommelIds.forEach((id) => {
-        const b = allBommels.find((b) => b.id === id);
+    if (bommelIds.length > 0) {
+        const chosen = allBommels.find((b) => b.id === bommelIds[0]);
         activeFilters.push({
-            key: `bommel-${id}`,
-            label: (b as { name?: string } | undefined)?.name ?? String(id),
-            clear: () => setBommelIds(bommelIds.filter((x) => x !== id)),
+            key: `bommel-${bommelIds[0]}`,
+            label: (chosen as { name?: string } | undefined)?.name ?? String(bommelIds[0]),
+            clear: () => {
+                setBommelIds([]);
+                setPage(0);
+            },
         });
-    });
+    }
     if (startDate) activeFilters.push({ key: 'from', label: `${t('transactions.filters.from')}: ${startDate}`, clear: () => setStartDate('') });
     if (endDate) activeFilters.push({ key: 'to', label: `${t('transactions.filters.to')}: ${endDate}`, clear: () => setEndDate('') });
     if (privatelyPaid) activeFilters.push({ key: 'priv', label: t('transactions.filters.privatelyPaid'), clear: () => setPrivatelyPaid(false) });
     if (detached) activeFilters.push({ key: 'det', label: t('transactions.filters.detached'), clear: () => setDetached(false) });
     // One chip per category group that actually has a value set (a shown-but-empty group is not an active filter).
-    Object.entries(categoryFilters).forEach(([gid, val]) => {
-        if (!val) return;
+    Object.entries(categoryFilters).forEach(([gid, vals]) => {
         const group = categoryFilterGroups.find((g) => g.id === Number(gid));
         activeFilters.push({
             key: `cat-${gid}`,
-            label: `${group?.name ?? gid}: ${val}`,
-            clear: () => setCategoryFilterValue(Number(gid), undefined),
+            label: `${group?.name ?? gid}: ${vals.join(', ')}`,
+            clear: () => {
+                setCategoryFilterRows((prev) => prev.filter((row) => row.groupId !== Number(gid)));
+                setPage(0);
+            },
         });
     });
 
@@ -1066,27 +1186,36 @@ export function TransactionenView() {
         setEndDate('');
         setPrivatelyPaid(false);
         setDetached(false);
-        setCategoryFilterGroupIds([]);
-        setCategoryFilters({});
+        setCategoryFilterRows([]);
         setPage(0);
     }
 
     const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-    const hasFilters = activeFilters.length > 0 || statusFilter !== 'ALL';
+    // The status tabs are not a filter for this purpose: switching to Bestätigt or Entwürfe alone does not offer a reset.
+    const hasFilters = activeFilters.length > 0;
+    // Badge on the Filter button: how many of the panel's own filters are set. The search box sits outside the
+    // panel, so it is deliberately left out.
+    const advancedFilterCount =
+        (bommelIds.length > 0 ? 1 : 0) +
+        (startDate ? 1 : 0) +
+        (endDate ? 1 : 0) +
+        (privatelyPaid ? 1 : 0) +
+        (detached ? 1 : 0) +
+        Object.keys(categoryFilters).length;
 
     // Input/select base style
     const inputCls =
-        'rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-1.5 text-[13.5px] text-[#1B1B1F] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
+        'h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[14px] text-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
 
     return (
-        <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
+        <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT }}>
             {/* ── Header ── */}
             <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
-                    <h1 className="font-bold text-[#1B1B1F] leading-tight" style={{ fontSize: 26 }}>
+                    <h1 className="font-bold text-foreground leading-tight" style={{ fontSize: 26 }}>
                         {t('transactions.title')}
                     </h1>
-                    <p className="mt-1 text-[13.5px] text-[#6B6B76]">
+                    <p className="mt-1 text-[13.5px] text-muted-foreground">
                         {t('transactions.subtitle', {
                             count: totalCount,
                             income: fmtCurrency(totalIncome),
@@ -1098,7 +1227,7 @@ export function TransactionenView() {
                     onClick={() => setCreateOpen(true)}
                     className="inline-flex items-center gap-2 whitespace-nowrap text-white font-bold transition-opacity hover:opacity-90"
                     style={{
-                        background: 'linear-gradient(100deg,#7E3FB4,#9955CC)',
+                        background: 'var(--banner-gradient)',
                         fontSize: 14.5,
                         padding: '11px 20px',
                         borderRadius: 999,
@@ -1111,14 +1240,11 @@ export function TransactionenView() {
             </div>
 
             {/* ── Filter bar ── */}
-            <div
-                className="rounded-[18px] border border-[#E9E9EE] p-4 mb-4 flex flex-col gap-3"
-                style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
-            >
-                <div className="flex items-center gap-2 flex-wrap">
+            <div className="mb-4 flex flex-col gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                     {/* Search */}
-                    <div className="relative flex-1 min-w-[200px]">
-                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9AA3] pointer-events-none" />
+                    <div className="relative flex-1 min-w-[220px]">
+                        <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-faint)] pointer-events-none" />
                         <input
                             type="text"
                             value={search}
@@ -1127,56 +1253,86 @@ export function TransactionenView() {
                                 setPage(0);
                             }}
                             placeholder={t('transactions.filters.search')}
-                            className={cn(inputCls, 'w-full pl-9')}
+                            className="w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] py-[11px] pl-[38px] pr-3.5 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]"
                         />
                     </div>
 
                     {/* Status segmented toggle */}
-                    <div className="inline-flex p-1 gap-0.5" style={{ background: '#F1F1F4', borderRadius: 12 }}>
-                        {(['ALL', 'CONFIRMED', 'DRAFT'] as const).map((s) => (
-                            <button
-                                key={s}
-                                onClick={() => {
-                                    setStatusFilter(s);
-                                    setPage(0);
-                                }}
-                                className="px-3 py-1.5 font-bold transition-all"
-                                style={{
-                                    fontSize: 13.5,
-                                    borderRadius: 9,
-                                    color: statusFilter === s ? '#FFFFFF' : '#6B6B76',
-                                    background: statusFilter === s ? 'linear-gradient(100deg,#7E3FB4,#9955CC)' : 'transparent',
-                                    boxShadow: statusFilter === s ? '0 1px 2px rgba(20,20,40,.12)' : 'none',
-                                }}
-                            >
-                                {t(`transactions.status.${s.toLowerCase()}`)}
-                            </button>
-                        ))}
+                    <div className="inline-flex gap-0.5 p-1" style={{ background: 'var(--surface-track)', borderRadius: 12 }}>
+                        {(['ALL', 'CONFIRMED', 'DRAFT'] as const).map((s) => {
+                            const active = statusFilter === s;
+                            const label = s === 'DRAFT' ? t('transactions.status.drafts') : t(`transactions.status.${s.toLowerCase()}`);
+                            return (
+                                <button
+                                    key={s}
+                                    onClick={() => {
+                                        setStatusFilter(s);
+                                        setPage(0);
+                                    }}
+                                    className="inline-flex items-center gap-[7px] px-4 py-2 font-bold transition-colors"
+                                    style={{
+                                        fontSize: 13.5,
+                                        borderRadius: 9,
+                                        color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
+                                        background: active ? 'var(--background-secondary)' : 'transparent',
+                                        boxShadow: active ? '0 1px 2px rgba(24,16,40,.08)' : 'none',
+                                    }}
+                                >
+                                    {label}
+                                    <span
+                                        className="grid place-items-center rounded-full px-[5px] font-extrabold"
+                                        style={{
+                                            minWidth: 20,
+                                            height: 20,
+                                            fontSize: 11.5,
+                                            background: active ? 'var(--primary)' : 'var(--accent-surface)',
+                                            color: active ? '#FFFFFF' : 'var(--purple-700)',
+                                        }}
+                                    >
+                                        {statusCounts[s]}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
 
                     {/* Advanced filter toggle */}
                     <button
                         onClick={() => setAdvancedOpen((v) => !v)}
-                        className="inline-flex items-center gap-1.5 font-semibold transition-colors"
+                        aria-expanded={advancedOpen}
+                        className="inline-flex items-center gap-[7px] whitespace-nowrap font-semibold transition-colors"
                         style={{
                             fontSize: 13.5,
                             padding: '8px 14px',
-                            borderRadius: 999,
+                            borderRadius: 9,
                             border: '1px solid',
-                            borderColor: advancedOpen ? '#9955CC' : '#E0E0E6',
-                            background: advancedOpen ? '#F3EAFB' : '#FFFFFF',
-                            color: advancedOpen ? '#7E3FB4' : '#6B6B76',
+                            borderColor: advancedOpen ? 'transparent' : 'var(--border-soft)',
+                            background: advancedOpen ? 'var(--purple-100)' : 'var(--background-secondary)',
+                            color: advancedOpen ? 'var(--purple-700)' : 'var(--muted-foreground)',
                         }}
                     >
-                        <SlidersHorizontal size={14} />
-                        {t('transactions.filters.advancedFilters')}
-                        {advancedOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                        <Filter size={15} />
+                        {t('transactions.filters.filter')}
+                        {advancedFilterCount > 0 && (
+                            <span
+                                className="grid place-items-center rounded-full px-[5px] font-extrabold"
+                                style={{
+                                    minWidth: 20,
+                                    height: 20,
+                                    fontSize: 11.5,
+                                    background: advancedOpen ? 'var(--primary)' : 'var(--accent-surface)',
+                                    color: advancedOpen ? '#FFFFFF' : 'var(--purple-700)',
+                                }}
+                            >
+                                {advancedFilterCount}
+                            </span>
+                        )}
                     </button>
 
                     {hasFilters && (
                         <button
                             onClick={resetAll}
-                            className="text-[13px] font-semibold text-[#9A9AA3] hover:text-[#1B1B1F] transition-colors underline-offset-2 hover:underline"
+                            className="text-[13px] font-semibold text-[var(--ink-faint)] hover:text-foreground transition-colors underline-offset-2 hover:underline"
                         >
                             {t('transactions.filters.reset')}
                         </button>
@@ -1185,19 +1341,26 @@ export function TransactionenView() {
 
                 {/* Advanced filter panel */}
                 {advancedOpen && (
-                    <div className="pt-3 border-t border-[#E9E9EE] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div
+                        className="grid grid-cols-2 gap-3 rounded-[18px] border border-border-soft p-4 sm:grid-cols-3 md:grid-cols-4"
+                        style={{ background: 'var(--background-secondary)', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
+                    >
                         <div className="flex flex-col gap-1.5 sm:col-span-2">
-                            <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.bommel')}</label>
-                            <BommelMultiSelector
-                                value={bommelIds}
-                                onChange={(ids) => {
-                                    setBommelIds(ids);
-                                    setPage(0);
-                                }}
+                            <label className="text-[11px] font-bold text-[var(--ink-faint)] uppercase tracking-[0.06em]">
+                                {t('transactions.filters.bommel')}
+                            </label>
+                            <BommelSelect
+                                items={bommelItems}
+                                value={bommelSelection}
+                                onChange={onBommelSelectionChange}
+                                isLoading={bommelsLoading}
+                                triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.from')}</label>
+                            <label className="text-[11px] font-bold text-[var(--ink-faint)] uppercase tracking-[0.06em]">
+                                {t('transactions.filters.from')}
+                            </label>
                             <input
                                 type="date"
                                 value={startDate}
@@ -1209,7 +1372,7 @@ export function TransactionenView() {
                             />
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">{t('transactions.filters.to')}</label>
+                            <label className="text-[11px] font-bold text-[var(--ink-faint)] uppercase tracking-[0.06em]">{t('transactions.filters.to')}</label>
                             <input
                                 type="date"
                                 value={endDate}
@@ -1221,11 +1384,12 @@ export function TransactionenView() {
                             />
                         </div>
                         <div className="flex flex-col gap-1.5 sm:col-span-2">
-                            <label className="text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]">Eigenschaften</label>
+                            <label className="text-[11px] font-bold text-[var(--ink-faint)] uppercase tracking-[0.06em]">Eigenschaften</label>
                             <div className="flex gap-2 flex-wrap">
                                 {[
                                     {
                                         key: 'priv',
+                                        icon: Wallet,
                                         label: t('transactions.filters.privatelyPaid'),
                                         active: privatelyPaid,
                                         toggle: () => {
@@ -1235,6 +1399,7 @@ export function TransactionenView() {
                                     },
                                     {
                                         key: 'det',
+                                        icon: Unlink,
                                         label: t('transactions.filters.detached'),
                                         active: detached,
                                         toggle: () => {
@@ -1242,22 +1407,22 @@ export function TransactionenView() {
                                             setPage(0);
                                         },
                                     },
-                                ].map(({ key, label, active, toggle }) => (
+                                ].map(({ key, icon: Icon, label, active, toggle }) => (
                                     <button
                                         key={key}
                                         onClick={toggle}
-                                        className="inline-flex items-center gap-1.5 font-semibold transition-all"
+                                        className="inline-flex h-10 items-center gap-1.5 font-semibold transition-colors"
                                         style={{
                                             fontSize: 13.5,
-                                            padding: '7px 14px',
-                                            borderRadius: 999,
+                                            padding: '0 14px',
+                                            borderRadius: 12,
                                             border: '1px solid',
-                                            borderColor: active ? '#9955CC' : '#E0E0E6',
-                                            background: active ? '#F3EAFB' : '#FFFFFF',
-                                            color: active ? '#7E3FB4' : '#6B6B76',
+                                            borderColor: active ? 'var(--primary)' : 'var(--border-soft)',
+                                            background: active ? 'var(--accent-surface)' : 'var(--background-secondary)',
+                                            color: active ? 'var(--purple-700)' : 'var(--muted-foreground)',
                                         }}
                                     >
-                                        {active && <Check size={12} strokeWidth={2.5} />}
+                                        <Icon size={14} strokeWidth={2} />
                                         {label}
                                     </button>
                                 ))}
@@ -1268,19 +1433,20 @@ export function TransactionenView() {
                         {categoryFilterGroups.length > 0 && (
                             <TransactionCategoryFilter
                                 groups={categoryFilterGroups}
-                                shownGroupIds={categoryFilterGroupIds}
-                                values={categoryFilters}
-                                onAddGroup={addCategoryFilterGroup}
-                                onRemoveGroup={removeCategoryFilterGroup}
-                                onChangeValue={setCategoryFilterValue}
+                                rows={categoryFilterRows}
+                                onAddRow={addCategoryFilterRow}
+                                onRemoveRow={removeCategoryFilterRow}
+                                onChangeGroup={changeCategoryFilterGroup}
+                                onChangeValue={setCategoryFilterRowValue}
                             />
                         )}
                     </div>
                 )}
 
-                {/* Active filter chips */}
-                {activeFilters.length > 0 && (
-                    <div className="flex items-center gap-2 flex-wrap pt-1">
+                {/* Active filter chips. They summarise what is set while the panel is closed; with it open every
+                    one of them is already on screen as its own control, so the strip would just repeat it. */}
+                {!advancedOpen && activeFilters.length > 0 && (
+                    <div className="-mt-1 flex flex-wrap items-center gap-2">
                         {activeFilters.map((f) => (
                             <FilterChip key={f.key} label={f.label} onRemove={f.clear} />
                         ))}
@@ -1289,12 +1455,15 @@ export function TransactionenView() {
 
                 {/* Bulk selection toolbar */}
                 {selectedIds.size > 0 && (
-                    <div className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1" style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}>
-                        <span className="text-[13.5px] font-bold text-[#1B1B1F]">{t('transactions.bulk.selectedCount', { n: selectedIds.size })}</span>
+                    <div
+                        className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1"
+                        style={{ background: 'var(--accent-surface)', borderColor: 'var(--purple-200)' }}
+                    >
+                        <span className="text-[13.5px] font-bold text-foreground">{t('transactions.bulk.selectedCount', { n: selectedIds.size })}</span>
                         <button
                             type="button"
                             onClick={clearSelection}
-                            className="text-[13px] font-semibold text-[#6B6B76] hover:text-[#1B1B1F] transition-colors"
+                            className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
                         >
                             {t('transactions.bulk.clear')}
                         </button>
@@ -1304,7 +1473,7 @@ export function TransactionenView() {
                             onClick={() => setBulkDeleteOpen(true)}
                             disabled={bulkDelete.isPending}
                             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                            style={{ background: '#B12C4C' }}
+                            style={{ background: 'var(--negative-solid)' }}
                         >
                             <Trash2 size={14} />
                             {t('transactions.bulk.delete')}
@@ -1316,32 +1485,31 @@ export function TransactionenView() {
             {/* ── Table ── */}
             <div className="flex-1 min-h-0 overflow-auto">
                 {isLoading ? (
-                    <LoadingState className="py-12" />
+                    <TableSkeleton hideBommel={hideBommel} />
                 ) : transactions.length === 0 ? (
                     <div
-                        className="flex flex-col items-center justify-center py-20 text-center rounded-[18px] border border-[#E9E9EE]"
-                        style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05)' }}
+                        className="flex flex-col items-center justify-center py-20 text-center rounded-[18px] border border-border-soft"
+                        style={{ background: 'var(--background-secondary)', boxShadow: '0 1px 2px rgba(20,20,40,.05)' }}
                     >
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: '#F3EAFB' }}>
-                            <FileText size={26} className="text-[#9955CC]" />
+                        <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: 'var(--accent-surface)' }}>
+                            <FileText size={26} className="text-primary" />
                         </div>
-                        <p className="font-bold text-[#1B1B1F]" style={{ fontSize: 16 }}>
+                        <p className="font-bold text-foreground" style={{ fontSize: 16 }}>
                             {t('transactions.noResults')}
                         </p>
-                        <p className="mt-1 text-[13.5px] text-[#6B6B76]">{t('transactions.noResultsDesc')}</p>
+                        <p className="mt-1 text-[13.5px] text-muted-foreground">{t('transactions.noResultsDesc')}</p>
                     </div>
                 ) : (
                     <div
-                        className="rounded-[18px] border border-[#E9E9EE] overflow-hidden"
-                        style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
+                        className="rounded-[18px] border border-border-soft overflow-hidden"
+                        style={{ background: 'var(--background-secondary)', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
                     >
                         {/* Table header */}
                         <div
-                            className="grid items-center border-b border-[#E9E9EE]"
+                            className="grid items-center border-b border-border-soft"
                             style={{
-                                gridTemplateColumns: TX_GRID,
+                                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
                                 padding: '11px 20px',
-                                background: '#F8F8FA',
                                 fontFamily: FONT,
                             }}
                         >
@@ -1360,7 +1528,7 @@ export function TransactionenView() {
                                 }}
                                 className={cn(
                                     'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                                    allPageSelected || somePageSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
+                                    allPageSelected || somePageSelected ? 'bg-primary border-primary' : 'border-[var(--border-strong)] hover:border-primary'
                                 )}
                             >
                                 {allPageSelected ? (
@@ -1369,10 +1537,14 @@ export function TransactionenView() {
                                     <Minus className="w-3 h-3 text-white" strokeWidth={3} />
                                 ) : null}
                             </span>
-                            {[t('transactions.columns.transaction'), t('transactions.columns.bommel')].map((col) => (
+                            {[
+                                t('transactions.columns.transaction'),
+                                ...(hideBommel ? [] : [t('transactions.columns.bommel')]),
+                                t('transactions.columns.category'),
+                            ].map((col) => (
                                 <span
                                     key={col}
-                                    style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}
+                                    style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}
                                 >
                                     {col}
                                 </span>
@@ -1389,7 +1561,7 @@ export function TransactionenView() {
                                 direction={sortDir}
                                 onClick={() => handleSort('createdAt')}
                             />
-                            <span style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                                 {t('transactions.columns.status')}
                             </span>
                             <SortHeader
@@ -1421,19 +1593,19 @@ export function TransactionenView() {
                     <button
                         onClick={() => setPage((p) => Math.max(0, p - 1))}
                         disabled={page === 0}
-                        className="w-9 h-9 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#1B1B1F] hover:border-[#C7A2E3] disabled:opacity-35 disabled:pointer-events-none transition-colors"
-                        style={{ background: '#FFFFFF' }}
+                        className="w-9 h-9 flex items-center justify-center rounded-full border border-border-soft text-muted-foreground hover:text-foreground hover:border-purple-300 disabled:opacity-35 disabled:pointer-events-none transition-colors"
+                        style={{ background: 'var(--background-secondary)' }}
                     >
                         <ChevronLeft size={17} />
                     </button>
-                    <span className="text-[13.5px] font-semibold text-[#6B6B76]">
+                    <span className="text-[13.5px] font-semibold text-muted-foreground">
                         {page + 1} / {totalPages}
                     </span>
                     <button
                         onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                         disabled={page >= totalPages - 1}
-                        className="w-9 h-9 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#1B1B1F] hover:border-[#C7A2E3] disabled:opacity-35 disabled:pointer-events-none transition-colors"
-                        style={{ background: '#FFFFFF' }}
+                        className="w-9 h-9 flex items-center justify-center rounded-full border border-border-soft text-muted-foreground hover:text-foreground hover:border-purple-300 disabled:opacity-35 disabled:pointer-events-none transition-colors"
+                        style={{ background: 'var(--background-secondary)' }}
                     >
                         <ChevronRight size={17} />
                     </button>

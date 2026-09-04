@@ -74,7 +74,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
                     aria-invalid={error}
                     className={cn(
                         'w-[4.5rem] px-1.5 py-0.5 text-[12px] text-right tabular-nums rounded-md border bg-transparent outline-none',
-                        error ? 'border-red-400' : 'border-primary'
+                        error ? 'border-[var(--negative)]' : 'border-primary'
                     )}
                 />
                 <button
@@ -82,7 +82,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
                     onClick={save}
                     disabled={pending}
                     title={t('common.save')}
-                    className="w-6 h-6 flex items-center justify-center rounded-full text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 disabled:opacity-50"
+                    className="w-6 h-6 flex items-center justify-center rounded-full text-[var(--positive)] hover:bg-[var(--positive-surface)] disabled:opacity-50"
                 >
                     <Check size={13} />
                 </button>
@@ -90,7 +90,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
                     type="button"
                     onClick={cancel}
                     title={t('common.cancel')}
-                    className="w-6 h-6 flex items-center justify-center rounded-full text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="w-6 h-6 flex items-center justify-center rounded-full text-muted-foreground hover:bg-[var(--surface-sunken)]"
                 >
                     <X size={13} />
                 </button>
@@ -109,7 +109,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
             className={cn(
                 'inline-flex items-center gap-1 flex-shrink-0 text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md transition-colors',
                 isPartial
-                    ? 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30'
+                    ? 'text-[var(--warning)] bg-[var(--warning-surface)] hover:opacity-80'
                     : 'text-muted-foreground/60 hover:text-primary hover:bg-primary/5'
             )}
         >

@@ -15,13 +15,15 @@ type CategoryValueComboboxProps = {
     /** Mark the field as an unmet requirement (warn border) without an inline error text. */
     warn?: boolean;
     disabled?: boolean;
+    /** Overrides the default empty-state text. */
+    placeholder?: string;
 };
 
 /**
  * Searchable value picker backed by the server-side, paginated value endpoint — so a group can hold thousands of values
  * (e.g. a whole chart of accounts) without ever loading them all at once.
  */
-const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value, onChange, warn, disabled }) => {
+const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value, onChange, warn, disabled, placeholder }) => {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [rawQuery, setRawQuery] = useState('');
@@ -37,44 +39,55 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
     const items = data?.items ?? [];
 
     return (
-        <div className="flex items-center w-full">
+        <div className="relative w-full">
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <button
                         type="button"
                         disabled={disabled}
                         className={cn(
-                            'flex items-center w-full h-10 justify-between text-sm border rounded-xl px-3 py-3 text-left cursor-pointer bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)]',
-                            'border-[#d1d5db] dark:border-gray-700 hover:border-[var(--purple-500)] transition-colors focus:outline-none',
+                            'flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border bg-[var(--background-secondary)] px-3.5 text-left text-[14px] text-[var(--font-color)]',
+                            'border-border-soft transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            !value && 'text-[#666] dark:text-gray-400',
-                            warn && 'border-[#B47C18]',
-                            value && !disabled && 'rounded-r-none border-r-0'
+                            !value && 'text-muted-foreground',
+                            warn && 'border-[var(--warning)]',
+                            // Room for the clear button sitting on top of the field.
+                            value && !disabled && 'pr-10'
                         )}
                         aria-haspopup="listbox"
                         aria-expanded={open}
                     >
-                        <span className="truncate">{value || t('categoryGroups.fields.valuePlaceholder')}</span>
-                        {!value && <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 text-[#666] dark:text-gray-400" aria-hidden="true" />}
+                        <span className="truncate">{value || placeholder || t('categoryGroups.fields.valuePlaceholder')}</span>
+                        {!value && <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
                     </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                    <Command shouldFilter={false}>
-                        <CommandInput placeholder={t('common.search')} className="h-9" value={rawQuery} onValueChange={setRawQuery} />
-                        <CommandList>
+                <PopoverContent align="start" sideOffset={6} className="w-full min-w-[220px] rounded-2xl border-border-soft p-2 shadow-card-hover">
+                    {/* Same panel as the bommel and group pickers: rounded card, search as a filled pill, rounded rows. */}
+                    <Command
+                        shouldFilter={false}
+                        className="[&_[cmdk-input-wrapper]]:mb-1.5 [&_[cmdk-input-wrapper]]:h-9 [&_[cmdk-input-wrapper]]:rounded-[10px] [&_[cmdk-input-wrapper]]:border-b-0 [&_[cmdk-input-wrapper]]:bg-hover-effect [&_[cmdk-input-wrapper]]:px-2.5"
+                    >
+                        <CommandInput placeholder={t('common.search')} className="h-9 py-0" value={rawQuery} onValueChange={setRawQuery} />
+                        <CommandList className="max-h-[264px]">
                             <CommandEmpty>{isLoading ? t('common.loading') : t('categoryGroups.fields.noValues')}</CommandEmpty>
-                            <CommandGroup>
+                            <CommandGroup className="p-0">
                                 {items.map((item) => (
                                     <CommandItem
                                         key={item.id}
                                         value={String(item.id)}
+                                        className={cn(
+                                            'rounded-[10px] px-2.5 py-2 text-sm',
+                                            value === item.value
+                                                ? 'bg-purple-100 font-bold text-purple-700 data-[selected=true]:bg-purple-100 data-[selected=true]:text-purple-700'
+                                                : 'font-medium'
+                                        )}
                                         onSelect={() => {
                                             onChange(item.value);
                                             setOpen(false);
                                         }}
                                     >
-                                        {item.value}
-                                        <CheckIcon className={cn('ml-auto', value === item.value ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
+                                        <span className="truncate">{item.value}</span>
+                                        <CheckIcon className={cn('ml-auto h-4 w-4', value === item.value ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
                                     </CommandItem>
                                 ))}
                             </CommandGroup>
@@ -89,13 +102,10 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                         e.stopPropagation();
                         onChange(undefined);
                     }}
-                    className={cn(
-                        'flex items-center h-10 py-3 px-3 border border-l-0 rounded-r-xl transition-colors bg-white dark:bg-[var(--purple-50)]',
-                        warn ? 'border-[#B47C18]' : 'border-[#d1d5db] dark:border-gray-700'
-                    )}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--ink-faint)] transition-colors hover:text-[var(--negative)]"
                     aria-label={t('common.delete')}
                 >
-                    <X className="w-4 h-4 text-[var(--purple-500)]" aria-hidden="true" />
+                    <X className="h-4 w-4" aria-hidden="true" />
                 </button>
             )}
         </div>

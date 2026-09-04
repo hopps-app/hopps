@@ -54,7 +54,7 @@
         },
         "fields": {
             "eyebrow": "Kategoriegruppen",
-            "valuePlaceholder": "— bitte wählen —",
+            "valuePlaceholder": "Bitte wählen",
             "noValues": "Keine Werte gefunden",
             "missing": "Bitte ausfüllen: {{groups}}"
         }
@@ -517,10 +517,11 @@
         "status": {
             "all": "Alle",
             "confirmed": "Bestätigt",
-            "draft": "Entwurf"
+            "draft": "Entwurf",
+            "drafts": "Entwürfe"
         },
         "filters": {
-            "search": "Suchen…",
+            "search": "Nach Name oder Absender suchen…",
             "category": "Kategorie",
             "bommel": "Bommel",
             "area": "Sphäre",
@@ -535,7 +536,12 @@
             "advancedFilters": "Weitere Filter",
             "categoryGroups": "Kategoriegruppen",
             "addCategoryGroup": "Kategoriegruppe",
-            "removeCategoryGroup": "Entfernen"
+            "removeCategoryGroup": "Entfernen",
+            "filter": "Filter",
+            "selectGroup": "Gruppe wählen …",
+            "selectValue": "Wert wählen …",
+            "searchGroup": "Gruppe suchen",
+            "noGroups": "Keine Gruppe gefunden"
         },
         "unassigned": "Nicht zugeordnet",
         "openToCover": "offen: {{amount}}",
@@ -653,7 +659,9 @@
             "delete": "Löschen",
             "confirmTitle": "Ausgewählte Transaktionen löschen?",
             "confirmDesc": "Möchtest du die ausgewählten Transaktionen ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
-        }
+        },
+        "linked": "Verknüpft",
+        "notLinked": "Nicht verknüpft"
     },
     "receipts": {
         "draft": "Entwurf",
@@ -956,7 +964,15 @@
         "chart": {
             "tableCaption": "Einnahmen und Ausgaben je Monat",
             "month": "Monat"
-        }
+        },
+        "loadError": "Diagrammdaten konnten nicht geladen werden",
+        "noData": "Keine Daten verfügbar",
+        "noDataHint": "Laden Sie Ihren ersten Beleg hoch, um Einnahmen- und Ausgabendaten hier zu sehen.",
+        "uploadFirst": "Beleg hochladen",
+        "timeRange": "Zeige Daten von {{startDate}} bis {{endDate}}",
+        "allBommels": "Alle Bommels",
+        "startDate": "Von",
+        "endDate": "Bis"
     },
     "categories": {
         "title": "Kategorien",
