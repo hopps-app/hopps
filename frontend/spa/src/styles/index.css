@@ -119,7 +119,10 @@
         --hover-active: var(--purple-950);
         --secondary: var(--grey-black);
         --secondary-foreground: var(--grey-white);
-        --separator: var(--purple-800);
+        /* The inverted purple scale turns --purple-800 near-white here, which drew glaring white
+           dividers (sidebar edge, section rules) on the dark surfaces. Keep the divider one step
+           above the surface instead. */
+        --separator: var(--purple-200);
         --font-color: var(--grey-white);
         --font-family: "Reddit Sans", reddit;
         --body-background: var(--purple-50);
