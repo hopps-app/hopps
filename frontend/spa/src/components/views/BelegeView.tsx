@@ -1632,7 +1632,7 @@ export function BelegeView() {
     const unreviewedCount = docs.filter((d) => d.documentStatus !== 'CONFIRMED').length;
 
     return (
-        <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
+        <div className="flex flex-col w-full" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
             {/* Header */}
             <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
@@ -1739,7 +1739,7 @@ export function BelegeView() {
             )}
 
             {/* Document list */}
-            <div className="flex-1 min-h-0 overflow-auto">
+            <div>
                 {isLoading ? (
                     <LoadingState className="py-12" />
                 ) : filtered.length === 0 ? (

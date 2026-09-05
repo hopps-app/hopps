@@ -1,7 +1,7 @@
 import { BankImportResponse, BankTransactionResponse } from '@hopps/api-client';
 import { ColDef, SortChangedEvent } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import { ArrowLeft, Edit, Upload, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Edit, Upload, AlertCircle } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -25,6 +25,8 @@ import type { SortDirection } from '@/hooks/queries/useTransactions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/lib/utils';
+
+const PAGE_SIZE = 50;
 
 function formatCurrency(amount: number | undefined, currency = 'EUR'): string {
     if (amount === undefined || amount === null) return '—';
@@ -125,13 +127,13 @@ export function BankAccountDetailView() {
     const accountId = Number(id);
     const navigate = useNavigate();
     const [editOpen, setEditOpen] = useState(false);
-    const [page] = useState(0);
+    const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
     const gridRef = useRef<AgGridReact>(null);
 
     const { data: account, isLoading: accountLoading, refetch: refetchAccount } = useBankAccount(accountId);
-    const { data: transactions = [], isLoading: txLoading } = useBankTransactionsByAccount(accountId, page, 50, undefined, sortBy, sortDir);
+    const { data: transactions = [], isLoading: txLoading } = useBankTransactionsByAccount(accountId, page, PAGE_SIZE, undefined, sortBy, sortDir);
     const { data: imports = [], refetch: refetchImports } = useBankImports(accountId);
 
     usePageTitle(account?.name ?? t('bankAccounts.title'), 'CardStack');
@@ -206,6 +208,7 @@ export function BankAccountDetailView() {
         if (active?.colId) {
             setSortBy(active.colId as BankTransactionSortField);
             setSortDir(active.sort as SortDirection);
+            setPage(0);
         }
     }, []);
 
@@ -295,18 +298,43 @@ export function BankAccountDetailView() {
                 ) : transactions.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-6 text-center">{t('bankAccounts.transactions.empty')}</p>
                 ) : (
-                    <div className="ag-theme-quartz" style={{ height: 400, width: '100%' }}>
-                        <AgGridReact
-                            ref={gridRef}
-                            rowData={transactions}
-                            columnDefs={columnDefs}
-                            pagination={false}
-                            domLayout="normal"
-                            suppressCellFocus
-                            sortingOrder={['desc', 'asc']}
-                            onSortChanged={onSortChanged}
-                        />
-                    </div>
+                    <>
+                        <div className="ag-theme-quartz" style={{ height: 400, width: '100%' }}>
+                            <AgGridReact
+                                ref={gridRef}
+                                rowData={transactions}
+                                columnDefs={columnDefs}
+                                pagination={false}
+                                domLayout="normal"
+                                suppressCellFocus
+                                sortingOrder={['desc', 'asc']}
+                                onSortChanged={onSortChanged}
+                            />
+                        </div>
+                        {(page > 0 || transactions.length === PAGE_SIZE) && (
+                            <div className="flex items-center justify-between mt-3">
+                                <span className="text-xs text-muted-foreground">{t('konten.pagination.page', { page: page + 1 })}</span>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                                        disabled={page === 0}
+                                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((p) => p + 1)}
+                                        disabled={transactions.length < PAGE_SIZE}
+                                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                    >
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
