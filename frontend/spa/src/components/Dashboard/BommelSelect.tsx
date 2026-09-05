@@ -72,14 +72,16 @@ export function BommelSelect({ items, value, onChange, isLoading, emptyLabel, tr
         >
             <PopoverTrigger asChild>
                 <BaseButton
-                    variant="outline"
+                    variant="ghost"
                     role="combobox"
                     aria-expanded={open}
                     aria-label={t('dashboard.bommelSelect.label')}
                     disabled={isLoading}
                     data-testid="dashboard-bommel-filter"
                     className={cn(
-                        'h-10 w-full justify-between rounded-[13px] border-border-soft bg-background-secondary px-3 text-sm font-semibold text-foreground sm:w-[200px]',
+                        // variant="ghost" avoids the "outline" variant's shadow-card, which doesn't match the shadow-less
+                        // look of the other dashboard filters (e.g. PeriodSelect) — its own hover bg/text are neutralized below.
+                        'h-10 w-full justify-between rounded-[13px] border border-border-soft bg-background-secondary px-3 text-sm font-semibold text-foreground hover:bg-background-secondary hover:text-foreground sm:w-[200px]',
                         triggerClassName
                     )}
                 >
