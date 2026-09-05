@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 
+import LegalFooter from '@/components/common/LegalFooter/LegalFooter';
 import Header from '@/layouts/default/Header.tsx';
 
 function DefaultLayout() {
@@ -9,6 +10,7 @@ function DefaultLayout() {
             <div className="min-h-[calc(100vh-80px)] pb-9">
                 <Outlet />
             </div>
+            <LegalFooter />
         </div>
     );
 }

@@ -30,6 +30,15 @@ services:
       VITE_KEYCLOAK_URL: ${PUBLIC_KEYCLOAK_URL}
       VITE_KEYCLOAK_REALM: quarkus
       VITE_KEYCLOAK_CLIENT_ID: quarkus-app
+      # Impressum / Datenschutzerklärung. Either link an external page here, or
+      # mount your own content via the volume below. See legal/README.md.
+      HOPPS_IMPRINT_URL: ${HOPPS_IMPRINT_URL:-}
+      HOPPS_PRIVACY_URL: ${HOPPS_PRIVACY_URL:-}
+    # Uncomment to serve your own Impressum/Datenschutz content (impressum.html,
+    # datenschutz.html, ... in ./legal). A mounted file is ignored for a page
+    # whose *_URL above is set.
+    #volumes:
+    #  - ./legal:/app/legal:ro
 
   # ---------------------------------------------------------------- backend ---
   org:

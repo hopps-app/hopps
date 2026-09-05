@@ -31,6 +31,7 @@ const ReportsView = lazy(() => import('@/components/views/ReportsView').then((m)
 const BankAccountDetailView = lazy(() => import('@/components/views/BankAccountDetailView').then((m) => ({ default: m.BankAccountDetailView })));
 const BankImportView = lazy(() => import('@/components/views/BankImportView').then((m) => ({ default: m.BankImportView })));
 const BankSchemasView = lazy(() => import('@/components/views/BankSchemasView').then((m) => ({ default: m.BankSchemasView })));
+const LegalView = lazy(() => import('@/components/views/LegalView').then((m) => ({ default: m.LegalView })));
 
 function LazyRoute({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
     return <Suspense fallback={fallback ?? <LoadingState className="py-12" />}>{children}</Suspense>;
@@ -50,6 +51,24 @@ export default function AppRoutes() {
                     }
                 />
             </Route>
+
+            {/* Public legal pages (Impressum / Datenschutzerklärung) — operator-configurable */}
+            <Route
+                path="/impressum"
+                element={
+                    <LazyRoute>
+                        <LegalView page="imprint" titleKey="legal.imprint" />
+                    </LazyRoute>
+                }
+            />
+            <Route
+                path="/datenschutz"
+                element={
+                    <LazyRoute>
+                        <LegalView page="privacy" titleKey="legal.privacy" />
+                    </LazyRoute>
+                }
+            />
 
             <Route
                 element={

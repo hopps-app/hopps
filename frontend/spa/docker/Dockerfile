@@ -12,10 +12,18 @@ ENV VITE_ALPHA_VERSION="VITE_ALPHA_VERSION_VALUE"
 ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
 ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
 
+# Legal pages (Impressum / Datenschutzerklärung) are configured at runtime, not
+# baked in. Link an external page with HOPPS_IMPRINT_URL / HOPPS_PRIVACY_URL, or
+# mount your own content into /app/legal (impressum.{html,txt,md},
+# datenschutz.{html,txt,md}). Override the directory with HOPPS_LEGAL_DIR.
+
 WORKDIR /app
 
 # Copy the pre-built React app (built by CI before Docker step)
 COPY dist ./build
+
+# Default mount point for operator-supplied legal content (see server.js)
+RUN mkdir -p /app/legal
 
 # Copy server and scripts
 COPY docker/node/server.js .

@@ -1,4 +1,11 @@
 {
+    "legal": {
+        "imprint": "Impressum",
+        "privacy": "Datenschutz",
+        "backHome": "Zur Startseite",
+        "notConfigured": "Für diese Instanz wurde keine entsprechende Seite hinterlegt.",
+        "loadError": "Der Inhalt konnte nicht geladen werden."
+    },
     "categoryGroups": {
         "title": "Kategorien",
         "subtitle": "Kategoriegruppen ordnen Transaktionen ein – kontextabhängig vom gewählten Bommel.",

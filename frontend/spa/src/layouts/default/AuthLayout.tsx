@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import LegalFooter from '@/components/common/LegalFooter/LegalFooter';
 import SidebarNavigation from '@/components/sidebar-navigation';
 import { PageTitleProvider } from '@/hooks/PageTitleProvider';
 import { useActivityHeartbeat } from '@/hooks/use-activity-heartbeat';
@@ -33,10 +34,13 @@ export default function AuthLayout() {
                     className={`flex-1 flex flex-col min-h-0 min-w-0 ml-0 transition-[margin] duration-300 ease-in-out ${collapsed ? 'sm:ml-16' : 'sm:ml-60'}`}
                 >
                     <main className="flex-1 min-h-0 overflow-auto">
-                        <div className="h-full p-4 sm:p-7">
-                            <ErrorBoundary key={location.pathname}>
-                                <Outlet />
-                            </ErrorBoundary>
+                        <div className="flex min-h-full flex-col">
+                            <div className="flex-1 p-4 sm:p-7">
+                                <ErrorBoundary key={location.pathname}>
+                                    <Outlet />
+                                </ErrorBoundary>
+                            </div>
+                            <LegalFooter className="px-4" />
                         </div>
                     </main>
                 </div>
