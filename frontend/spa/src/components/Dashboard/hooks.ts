@@ -23,6 +23,7 @@ export function useBankBalance(organizationId: number | undefined) {
             };
         },
         enabled: organizationId != null,
+        refetchOnMount: 'always',
     });
 }
 
@@ -57,6 +58,7 @@ export function useYearTotals(organizationId: number | undefined) {
             };
         },
         enabled: organizationId != null,
+        refetchOnMount: 'always',
     });
 }
 
@@ -73,6 +75,7 @@ export function useOpenReceiptsCount(organizationId: number | undefined) {
             return documents.filter((document) => document.documentStatus !== 'CONFIRMED').length;
         },
         enabled: organizationId != null,
+        refetchOnMount: 'always',
     });
 }
 
@@ -134,5 +137,6 @@ export function useIncomeExpenseSeries(organizationId: number | undefined, bomme
             };
         },
         enabled: organizationId != null,
+        refetchOnMount: 'always',
     });
 }

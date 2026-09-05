@@ -73,7 +73,7 @@ export function KpiCard({ label, value, context, tone = 'neutral', icon: Icon, i
                     )}
                 </div>
             ) : (
-                <p className={cn('mt-2 text-xs font-bold', tone === 'positive' ? 'text-[var(--positive)]' : 'text-muted-foreground')}>{context}</p>
+                <p className={cn('mt-2 text-xs font-bold', tone === 'positive' ? 'text-[var(--positive)]' : 'text-muted-foreground/70')}>{context}</p>
             )}
         </Card>
     );
