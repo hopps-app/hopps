@@ -476,11 +476,7 @@ export function ImportWizardDialog({ accountId, open, onOpenChange, onViewTransa
                     <p className="text-sm text-muted-foreground">{t('bankImport.wizard.dropSubtitle')}</p>
                 </DialogHeader>
                 {accountId != null && (
-                    <ImportWizard
-                        accountId={accountId}
-                        onClose={() => onOpenChange(false)}
-                        onViewTransactions={() => onViewTransactions?.(accountId)}
-                    />
+                    <ImportWizard accountId={accountId} onClose={() => onOpenChange(false)} onViewTransactions={() => onViewTransactions?.(accountId)} />
                 )}
             </DialogContent>
         </Dialog>

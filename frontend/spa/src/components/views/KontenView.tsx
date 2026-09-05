@@ -28,8 +28,8 @@ import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { SortHeader } from '@/components/ui/SortHeader';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { SortHeader } from '@/components/ui/SortHeader';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
     useBankAccounts,
