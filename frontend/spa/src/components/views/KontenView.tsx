@@ -28,8 +28,8 @@ import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import DropdownMenu from '@/components/ui/DropdownMenu';
 import { SortHeader } from '@/components/ui/SortHeader';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
     useBankAccounts,
@@ -65,10 +65,6 @@ function fmtDate(date: string | Date | undefined): string {
 
 // Soft elevation for the page's white surfaces — same two-layer shadow the Belege/Transaktionen cards use.
 const cardShadow = 'shadow-[0_1px_2px_rgba(20,20,40,.05),0_6px_22px_rgba(20,20,40,.05)]';
-
-// Tab-bar import action — sized to sit level with the segmented tab bar next to it.
-const importBtnCls =
-    'flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-foreground hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -451,7 +447,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-4">
+                        <div className="flex items-center justify-between mt-4 mb-4">
                             <span className="text-xs text-muted-foreground">{t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}</span>
                             <div className="flex items-center gap-1">
                                 <button
@@ -523,7 +519,15 @@ const PAGE_SIZE = 50;
 // action columns are fixed-width so the pills and buttons line up down the list regardless of row content.
 const ACCOUNT_TX_COLUMNS = '7.5rem minmax(0, 2fr) minmax(0, 1fr) 7.5rem 7.5rem';
 
-function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; onOpenDrawer: (id: number) => void }) {
+function AccountTab({
+    account,
+    onOpenDrawer,
+    onImport,
+}: {
+    account: BankAccountResponse;
+    onOpenDrawer: (id: number) => void;
+    onImport: (accountId: number) => void;
+}) {
     const { t } = useTranslation();
     const [statusFilter, setStatusFilter] = usePersistedState<StatusFilter>('hopps.konten.account.statusFilter', 'ALL');
     const [page, setPage] = useState(0);
@@ -596,7 +600,15 @@ function AccountTab({ account, onOpenDrawer }: { account: BankAccountResponse; o
             </div>
 
             <div className="mb-4">
-                <BankTxFilterBar filters={filters} />
+                <BankTxFilterBar
+                    filters={filters}
+                    actions={
+                        <BaseButton size="sm" className="gap-1.5 whitespace-nowrap" onClick={() => onImport(account.id!)}>
+                            <Upload className="w-4 h-4" />
+                            {t('konten.import')}
+                        </BaseButton>
+                    }
+                />
             </div>
 
             {isLoading ? (
@@ -977,9 +989,6 @@ export function KontenView() {
     const totalOpen = Object.values(openCountByAccount).reduce((a, b) => a + b, 0);
 
     const activeAccount = accounts.find((a) => String(a.id) === tab);
-    // Which account an import from the tab bar lands in: the open account tab, or the only account there is.
-    // With several accounts and a non-account tab open it stays null and the button turns into a picker.
-    const importTargetId = activeAccount?.id ?? (accounts.length === 1 ? accounts[0].id! : null);
 
     const tabs: { id: TabId; label: string; badge?: number }[] = [
         { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen > 0 ? totalOpen : undefined },
@@ -1069,9 +1078,8 @@ export function KontenView() {
                 )}
             </div>
 
-            {/* Segmented tab bar + import action. The import button lives here rather than inside a single tab so it
-                stays reachable from every tab; the target account is the open account tab, or picked from a menu when
-                the current tab isn't account-specific and there is more than one account. */}
+            {/* Segmented tab bar. Import now lives next to the filter bar inside each account's own tab, where the
+                target account is always unambiguous — no cross-account picker needed. */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex gap-0.5 rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 w-fit flex-wrap">
                     {tabs.map((t_) => (
@@ -1093,29 +1101,11 @@ export function KontenView() {
                         </button>
                     ))}
                 </div>
-
-                {importTargetId !== null ? (
-                    <button type="button" onClick={() => setImportAccountId(importTargetId)} className={importBtnCls}>
-                        <Upload className="w-4 h-4" />
-                        {t('konten.import')}
-                    </button>
-                ) : accounts.length > 0 ? (
-                    <DropdownMenu
-                        label={t('konten.imports.account')}
-                        items={accounts.map((a) => ({ title: a.name ?? '', onClick: () => setImportAccountId(a.id!) }))}
-                    >
-                        <button type="button" className={importBtnCls}>
-                            <Upload className="w-4 h-4" />
-                            {t('konten.import')}
-                            <ChevronDown className="w-4 h-4" />
-                        </button>
-                    </DropdownMenu>
-                ) : null}
             </div>
 
             {/* Tab content */}
             {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
-            {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} />}
+            {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} onImport={setImportAccountId} />}
             {tab === 'importe' && <ImporteTab accounts={accounts} />}
 
             {/* Match drawer */}
@@ -1150,6 +1140,7 @@ export function KontenView() {
                         refetch();
                     }
                 }}
+                onViewTransactions={(id) => setTab(String(id))}
             />
         </div>
     );

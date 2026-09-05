@@ -29,9 +29,11 @@ type WizardState = 'drop' | 'previewing' | 'preview' | 'importing' | 'done';
 interface ImportWizardProps {
     accountId: number;
     onClose?: () => void;
+    /** Called from the "view transactions" button on the done screen, after `onClose`. */
+    onViewTransactions?: () => void;
 }
 
-export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
+export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportWizardProps) {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
 
@@ -387,9 +389,11 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
                     <p className="text-center text-sm text-muted-foreground">{importStatus?.progress ?? 0}%</p>
                 </div>
                 <p className="font-semibold">{t('bankImport.progress.processing')}</p>
-                {importStatus?.importedRows !== undefined && (
+                {/* totalRows defaults to 0 on the backend until parsing finishes, not undefined — checking it directly
+                    (rather than importedRows) avoids a meaningless "0 von 0" flash before the real count is known. */}
+                {!!importStatus?.totalRows && (
                     <p className="text-sm text-muted-foreground">
-                        {t('bankImport.progress.rows', { imported: importStatus.importedRows, total: importStatus.totalRows ?? '?' })}
+                        {t('bankImport.progress.rows', { imported: importStatus.importedRows ?? 0, total: importStatus.totalRows })}
                     </p>
                 )}
             </div>
@@ -437,7 +441,14 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
                     </div>
                 )}
 
-                <Button onClick={() => onClose?.()}>{t('bankImport.result.viewTransactions')}</Button>
+                <Button
+                    onClick={() => {
+                        onClose?.();
+                        onViewTransactions?.();
+                    }}
+                >
+                    {t('bankImport.result.viewTransactions')}
+                </Button>
             </div>
         );
     }
@@ -451,9 +462,11 @@ interface ImportWizardDialogProps {
     accountId: number | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    /** Called with the imported account's id when the user clicks "view transactions" on the done screen. */
+    onViewTransactions?: (accountId: number) => void;
 }
 
-export function ImportWizardDialog({ accountId, open, onOpenChange }: ImportWizardDialogProps) {
+export function ImportWizardDialog({ accountId, open, onOpenChange, onViewTransactions }: ImportWizardDialogProps) {
     const { t } = useTranslation();
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -462,7 +475,13 @@ export function ImportWizardDialog({ accountId, open, onOpenChange }: ImportWiza
                     <DialogTitle>{t('bankImport.title')}</DialogTitle>
                     <p className="text-sm text-muted-foreground">{t('bankImport.wizard.dropSubtitle')}</p>
                 </DialogHeader>
-                {accountId != null && <ImportWizard accountId={accountId} onClose={() => onOpenChange(false)} />}
+                {accountId != null && (
+                    <ImportWizard
+                        accountId={accountId}
+                        onClose={() => onOpenChange(false)}
+                        onViewTransactions={() => onViewTransactions?.(accountId)}
+                    />
+                )}
             </DialogContent>
         </Dialog>
     );
