@@ -1208,7 +1208,7 @@ export function TransactionenView() {
         'h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[14px] text-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
 
     return (
-        <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT }}>
+        <div className="flex flex-col w-full" style={{ fontFamily: FONT }}>
             {/* ── Header ── */}
             <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
@@ -1483,7 +1483,7 @@ export function TransactionenView() {
             </div>
 
             {/* ── Table ── */}
-            <div className="flex-1 min-h-0 overflow-auto">
+            <div>
                 {isLoading ? (
                     <TableSkeleton hideBommel={hideBommel} />
                 ) : transactions.length === 0 ? (
