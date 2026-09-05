@@ -148,4 +148,14 @@ public class BankImportService {
         }
         return job;
     }
+
+    /**
+     * Commits a progress snapshot in its own transaction, so a concurrent status poll can see it before the caller's
+     * own long-running import transaction commits.
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void reportProgress(Long importId, int progress, int importedRows, int duplicateRows, int errorRows) {
+        BankImport.update("progress = ?1, importedRows = ?2, duplicateRows = ?3, errorRows = ?4 where id = ?5",
+                progress, importedRows, duplicateRows, errorRows, importId);
+    }
 }
