@@ -312,8 +312,31 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - **Weitere Workflows:** SonarQube-, Dependency-Track-Analyse, `helm-release.yaml`, `claude-code-review.yml`
 
 ### Kubernetes/Helm
-**Chart:** `/charts/hopps` (Version 0.2.7)
+**Chart:** `/charts/hopps` (Version 0.2.10)
 **Dependencies:** KeycloakX (codecentric, v7.0.1), PostgreSQL (bitnami, v16.4.5)
+
+#### WICHTIG: Chart-Änderungen für das `hopps.cloud`-Repo verfügbar machen
+
+Das GitOps-Repo **`hopps.cloud`** deployt hopps über eine Flux-`HelmRelease`, die eine
+**feste Chart-Version** aus der OCI-Registry `oci://ghcr.io/hopps-app/hopps` pinnt. Der
+Publish-Workflow `helm-release.yaml` veröffentlicht den Chart bei Push auf `charts/hopps/**`
+unter genau der Version aus `charts/hopps/Chart.yaml` (`version:`) — er bumpt sie **nicht**
+automatisch.
+
+**Deshalb wird jede Änderung an `charts/hopps/**` (Templates *oder* `values.yaml`) in
+`hopps.cloud` erst sichtbar, wenn die Chart-Version erhöht und dort nachgezogen wird.**
+Reihenfolge einhalten (sonst findet Flux den Chart-Tag nicht):
+
+1. **hopps-Repo:** `charts/hopps/Chart.yaml` → `version:` erhöhen (SemVer, z. B. `0.2.9 → 0.2.10`).
+2. Nach Merge auf `main` publiziert der Workflow `helm-release.yaml` den neuen Chart-Tag in die OCI-Registry.
+3. **hopps.cloud-Repo:** in den betroffenen Overlays
+   `infrastructure/hopps/overlays/{prod,demo,dev}/helm-release.yaml` das Feld
+   `spec.chart.spec.version` auf die **neue** Version setzen. Flux zieht dann den neuen Chart
+   und rendert neue/geänderte `values` (z. B. zusätzliche `frontend.envVars`).
+
+> Reine `values`-Overrides in der `HelmRelease` selbst (ohne Chart-Änderung) greifen zwar auch
+> ohne Version-Bump beim nächsten Reconcile — sobald aber der Chart (Template/`values.yaml`)
+> selbst geändert wurde, ist der Bump zwingend. Im Zweifel immer bumpen.
 
 ## Testing
 

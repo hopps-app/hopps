@@ -1,4 +1,11 @@
 {
+    "legal": {
+        "imprint": "Imprint",
+        "privacy": "Privacy",
+        "backHome": "Back to home",
+        "notConfigured": "No such page has been configured for this instance.",
+        "loadError": "The content could not be loaded."
+    },
     "categoryGroups": {
         "title": "Categories",
         "subtitle": "Category groups classify transactions — depending on the selected bommel.",
