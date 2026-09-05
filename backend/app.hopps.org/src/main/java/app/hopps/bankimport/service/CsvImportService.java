@@ -58,6 +58,9 @@ public class CsvImportService {
     @Inject
     ImportFileStorageService fileStorage;
 
+    @Inject
+    BankImportService bankImportService;
+
     /**
      * Runs the full import pipeline for a {@link BankImport} that the worker just claimed (status=PROCESSING). Persists
      * the finished status (COMPLETED / PARTIAL / FAILED) before returning.
@@ -88,6 +91,9 @@ public class CsvImportService {
                 fail(job, "Datei enthält " + totalRows + " Zeilen — Maximum sind " + MAX_ROWS);
                 return;
             }
+            // A fixed row count would never fire on most real imports (a monthly bank export rarely clears 50 rows) —
+            // scale the checkpoint to the file so ~20 progress updates land regardless of size.
+            int checkpointInterval = Math.max(1, totalRows / 20);
 
             Map<BankFieldType, BankCsvColumnMapping> mappingByField = indexMappings(schema);
             Set<String> positiveIndicators = parsePositiveIndicators(schema.getAmountTypePositiveValues());
@@ -151,11 +157,10 @@ public class CsvImportService {
                 tx.persist();
                 importedRows++;
 
-                if ((importedRows + duplicateRows + errorRows) % 50 == 0) {
-                    job.setProgress(percent(importedRows + duplicateRows + errorRows, totalRows));
-                    job.setImportedRows(importedRows);
-                    job.setDuplicateRows(duplicateRows);
-                    job.setErrorRows(errorRows);
+                if ((importedRows + duplicateRows + errorRows) % checkpointInterval == 0) {
+                    bankImportService.reportProgress(importId,
+                            percent(importedRows + duplicateRows + errorRows, totalRows),
+                            importedRows, duplicateRows, errorRows);
                 }
             }
 

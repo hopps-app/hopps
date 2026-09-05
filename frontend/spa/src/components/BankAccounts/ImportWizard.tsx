@@ -378,10 +378,11 @@ export function ImportWizard({ accountId, onClose }: ImportWizardProps) {
     }
 
     // ── Importing ─────────────────────────────────────────────────────────────────
+    // A spinner alongside the progress bar reads as two competing loading indicators — BankAccountDetailView shows
+    // an in-progress import with the bar alone, so this mirrors that rather than layering both.
     if (state === 'importing') {
         return (
             <div className="flex flex-col items-center gap-6 py-8">
-                <Loader2 className="w-12 h-12 text-primary animate-spin" />
                 <div className="w-full max-w-xs space-y-2">
                     <Progress value={importStatus?.progress ?? 0} className="h-2" />
                     <p className="text-center text-sm text-muted-foreground">{importStatus?.progress ?? 0}%</p>

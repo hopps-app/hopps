@@ -44,6 +44,9 @@ public class Mt940ImportService {
     @Inject
     ImportFileStorageService fileStorage;
 
+    @Inject
+    BankImportService bankImportService;
+
     /**
      * Runs the full MT940 import pipeline for a {@link BankImport} that the worker just claimed (status=PROCESSING).
      */
@@ -72,6 +75,9 @@ public class Mt940ImportService {
                 fail(job, "Datei enthält " + totalRows + " Transaktionen — Maximum sind " + MAX_ROWS);
                 return;
             }
+            // A fixed row count would never fire on most real imports (a monthly bank export rarely clears 50 rows) —
+            // scale the checkpoint to the file so ~20 progress updates land regardless of size.
+            int checkpointInterval = Math.max(1, totalRows / 20);
 
             Set<String> dedupeHashes = new HashSet<>();
 
@@ -131,11 +137,10 @@ public class Mt940ImportService {
                 tx.persist();
                 importedRows++;
 
-                if ((importedRows + duplicateRows + errorRows) % 50 == 0) {
-                    job.setProgress(percent(importedRows + duplicateRows + errorRows, totalRows));
-                    job.setImportedRows(importedRows);
-                    job.setDuplicateRows(duplicateRows);
-                    job.setErrorRows(errorRows);
+                if ((importedRows + duplicateRows + errorRows) % checkpointInterval == 0) {
+                    bankImportService.reportProgress(importId,
+                            percent(importedRows + duplicateRows + errorRows, totalRows),
+                            importedRows, duplicateRows, errorRows);
                 }
             }
 
