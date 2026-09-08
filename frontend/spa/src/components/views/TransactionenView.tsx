@@ -37,6 +37,7 @@ import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
 import { DrawerSkeleton, TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { HintTooltip } from '@/components/ui/HintTooltip';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import TextField from '@/components/ui/TextField';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
@@ -143,7 +144,7 @@ function TxIcon({ size = 36, incoming }: { size?: number; incoming?: boolean }) 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
     return (
         <span
-            className="inline-flex cursor-default items-center gap-1.5 rounded-xl bg-[var(--accent-surface)] px-3 py-1.5 text-[13px] font-semibold text-purple-700"
+            className="inline-flex cursor-default items-center gap-1.5 rounded-[var(--btn-radius)] bg-[var(--accent-surface)] px-3 py-1.5 text-[13px] font-semibold text-purple-700"
             style={{ fontFamily: FONT }}
         >
             {label}
@@ -654,26 +655,27 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                     <div className="px-6 py-4 border-t border-border-soft flex items-center gap-2" style={{ background: 'var(--background-secondary)' }}>
                         {editMode ? (
                             <>
-                                <button
+                                <BaseButton
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => setEditMode(false)}
-                                    className="px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors"
+                                    className="rounded-[var(--btn-radius)] border border-border-soft text-[14px] font-bold text-muted-foreground hover:bg-[var(--surface-sunken)]"
                                 >
                                     {t('transactions.detail.cancel')}
-                                </button>
+                                </BaseButton>
                                 <div className="flex-1" />
                                 {/* Saving is always allowed — a draft may stay incomplete. For a draft, Save is the
                                     secondary action and Confirm (gated) the primary one; a confirmed transaction being
                                     edited only offers Save. */}
-                                <button
+                                <BaseButton
+                                    variant={tx.status === 'DRAFT' ? 'ghost' : 'default'}
+                                    size="sm"
                                     onClick={handleSave}
                                     disabled={updateMutation.isPending}
                                     className={cn(
-                                        'inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold transition-opacity hover:opacity-90 disabled:opacity-50',
-                                        tx.status === 'DRAFT'
-                                            ? 'border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)]'
-                                            : 'text-white'
+                                        'rounded-[var(--btn-radius)] gap-1.5 text-[14px] font-bold',
+                                        tx.status === 'DRAFT' && 'bg-[var(--purple-100)] text-[var(--purple-700)] hover:bg-[var(--purple-200)]'
                                     )}
-                                    style={tx.status === 'DRAFT' ? undefined : { background: 'var(--banner-gradient)' }}
                                 >
                                     {tx.status !== 'DRAFT' && <Check size={14} strokeWidth={2.5} />}
                                     {updateMutation.isPending
@@ -681,18 +683,19 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                         : tx.status === 'DRAFT'
                                           ? t('transactions.detail.saveDraft')
                                           : t('transactions.detail.save')}
-                                </button>
+                                </BaseButton>
                                 {tx.status === 'DRAFT' && (
                                     <HintTooltip content={confirmBlockers}>
-                                        <button
+                                        <BaseButton
+                                            variant="default"
+                                            size="sm"
                                             onClick={handleSaveAndConfirm}
                                             disabled={updateMutation.isPending || confirmMutation.isPending || !canConfirm}
-                                            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            style={{ background: 'var(--banner-gradient)' }}
+                                            className="rounded-[var(--btn-radius)] gap-1.5 text-[14px] font-bold"
                                         >
                                             <Check size={14} strokeWidth={2.5} />
                                             {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
-                                        </button>
+                                        </BaseButton>
                                     </HintTooltip>
                                 )}
                             </>
@@ -701,36 +704,39 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 <button
                                     onClick={() => setConfirmDeleteOpen(true)}
                                     disabled={deleteMutation.isPending}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-[var(--negative)] hover:bg-[var(--negative-surface)] transition-colors"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--btn-radius)] text-[14px] font-bold text-[var(--negative)] hover:bg-[var(--negative-surface)] transition-colors"
                                 >
                                     <Trash2 size={14} />
                                     {t('transactions.detail.delete')}
                                 </button>
                                 <div className="flex-1" />
-                                <button
+                                <BaseButton
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={startEdit}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-foreground hover:bg-[var(--surface-sunken)] transition-colors"
+                                    className="rounded-[var(--btn-radius)] gap-1.5 border border-border-soft text-[14px] font-bold text-foreground hover:bg-[var(--surface-sunken)]"
                                 >
                                     <Pencil size={14} />
                                     {t('transactions.detail.edit')}
-                                </button>
+                                </BaseButton>
                                 {tx.status === 'DRAFT' ? (
                                     <HintTooltip content={confirmBlockers}>
-                                        <button
+                                        <BaseButton
+                                            variant="default"
+                                            size="sm"
                                             onClick={handleConfirm}
                                             disabled={confirmMutation.isPending || !canConfirm}
-                                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            style={{ background: 'var(--banner-gradient)' }}
+                                            className="rounded-[var(--btn-radius)] gap-1.5 text-[14px] font-bold"
                                         >
                                             <Check size={14} strokeWidth={2.5} />
                                             {confirmMutation.isPending ? '…' : t('transactions.detail.confirm')}
-                                        </button>
+                                        </BaseButton>
                                     </HintTooltip>
                                 ) : (
                                     <button
                                         onClick={handleReopen}
                                         disabled={reopenMutation.isPending}
-                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-[var(--warning)] hover:bg-[var(--warning-surface)] hover:border-[var(--warning-border)] transition-colors disabled:opacity-50"
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--btn-radius)] text-[14px] font-bold border border-border-soft text-[var(--warning)] hover:bg-[var(--warning-surface)] hover:border-[var(--warning-border)] transition-colors disabled:opacity-50"
                                     >
                                         <RotateCcw size={14} />
                                         {reopenMutation.isPending ? '…' : t('transactions.detail.reopen')}
@@ -1225,13 +1231,11 @@ export function TransactionenView() {
                 </div>
                 <button
                     onClick={() => setCreateOpen(true)}
-                    className="inline-flex items-center gap-2 whitespace-nowrap text-white font-bold transition-opacity hover:opacity-90"
+                    className="inline-flex items-center gap-2 whitespace-nowrap bg-primary text-white font-bold transition-colors hover:bg-primary/90"
                     style={{
-                        background: 'var(--banner-gradient)',
                         fontSize: 14.5,
                         padding: '11px 20px',
-                        borderRadius: 999,
-                        boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(120,60,200,.18)',
+                        borderRadius: 'var(--btn-radius)',
                     }}
                 >
                     <Plus size={16} strokeWidth={2.5} />
@@ -1272,7 +1276,7 @@ export function TransactionenView() {
                                     className="inline-flex items-center gap-[7px] px-4 py-2 font-bold transition-colors"
                                     style={{
                                         fontSize: 13.5,
-                                        borderRadius: 9,
+                                        borderRadius: 'var(--btn-radius)',
                                         color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
                                         background: active ? 'var(--background-secondary)' : 'transparent',
                                         boxShadow: active ? '0 1px 2px rgba(24,16,40,.08)' : 'none',
@@ -1304,7 +1308,7 @@ export function TransactionenView() {
                         style={{
                             fontSize: 13.5,
                             padding: '8px 14px',
-                            borderRadius: 9,
+                            borderRadius: 'var(--btn-radius)',
                             border: '1px solid',
                             borderColor: advancedOpen ? 'transparent' : 'var(--border-soft)',
                             background: advancedOpen ? 'var(--purple-100)' : 'var(--background-secondary)',
@@ -1415,7 +1419,7 @@ export function TransactionenView() {
                                         style={{
                                             fontSize: 13.5,
                                             padding: '0 14px',
-                                            borderRadius: 12,
+                                            borderRadius: 'var(--btn-radius)',
                                             border: '1px solid',
                                             borderColor: active ? 'var(--primary)' : 'var(--border-soft)',
                                             background: active ? 'var(--accent-surface)' : 'var(--background-secondary)',

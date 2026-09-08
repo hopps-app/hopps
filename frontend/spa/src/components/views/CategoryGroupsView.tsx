@@ -80,7 +80,7 @@ function CategoryGroupsView() {
                 <button
                     type="button"
                     onClick={openCreate}
-                    className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap"
+                    className="inline-flex items-center gap-2 h-10 px-4 rounded-[var(--btn-radius)] bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap"
                 >
                     <Plus className="h-4 w-4" />
                     {t('categoryGroups.addButton')}
