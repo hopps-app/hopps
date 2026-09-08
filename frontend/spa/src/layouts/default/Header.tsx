@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import AlphaBadge from '@/components/ui/AlphaBadge';
 import Button from '@/components/ui/Button.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
 import authService from '@/services/auth/auth.service.ts';
@@ -32,7 +31,6 @@ function Header() {
                     <Link to="/" className="flex-none text-xl font-semibold text-white focus:outline-none focus:opacity-80" aria-label="hopps">
                         <img src="/logo2.svg" alt="hopps" />
                     </Link>
-                    <AlphaBadge />
                 </div>
                 <div className="basis-full grow flex justify-between flex-row">
                     <div className="flex flex-row">
