@@ -6,7 +6,6 @@ import { useLocation } from 'react-router-dom';
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem } from './shared/types';
 
-import AlphaBadge from '@/components/ui/AlphaBadge';
 import Icon from '@/components/ui/Icon';
 import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
 
@@ -70,7 +69,6 @@ const MobileSidebar: React.FC = () => {
                         <div className="flex items-center gap-3">
                             <img src="/logo.svg" alt="hopps logo" className="w-8 h-8" />
                             <span className="text-primary font-bold text-xl tracking-tight">hopps</span>
-                            <AlphaBadge />
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}

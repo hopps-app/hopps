@@ -844,12 +844,10 @@ function TransactionRow({
                 shrink at all — without both the long names overflowed and pushed the later columns out of line. */}
             {!hideBommel && (
                 <span className="min-w-0 pr-3">
-                    {tx.bommelName ? (
+                    {tx.bommelName && (
                         <span className="block truncate text-[13.5px] text-muted-foreground" title={tx.bommelName}>
                             {tx.bommelName}
                         </span>
-                    ) : (
-                        <Badge variant="warn">{t('transactions.unassigned')}</Badge>
                     )}
                 </span>
             )}
@@ -902,19 +900,8 @@ function TransactionRow({
                     if (Math.abs(total) < 0.005) return null;
                     const remaining = total - covered; // signed
                     const open = Math.abs(remaining);
-                    if (open > 0.005) {
-                        const positive = remaining > 0;
-                        const over = Math.abs(covered) > Math.abs(total) + 0.005;
-                        const label = over ? 'transactions.overCovered' : 'transactions.openToCover';
-                        return (
-                            <span
-                                className="text-[11px] font-semibold tabular-nums whitespace-nowrap"
-                                style={{ color: positive ? 'var(--positive)' : 'var(--negative)' }}
-                            >
-                                {t(label, { amount: `${positive ? '+' : '–'} ${fmtCurrency(open)}` })}
-                            </span>
-                        );
-                    }
+                    // "offen"/"überdeckt" indicator hidden for now.
+                    if (open > 0.005) return null;
                     // Fully covered: surface a positive status on drafts (still being reconciled); confirmed rows are
                     // done, so they stay clean.
                     if (tx.status === 'DRAFT') {
@@ -1257,12 +1244,12 @@ export function TransactionenView() {
                                 setPage(0);
                             }}
                             placeholder={t('transactions.filters.search')}
-                            className="w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] py-[11px] pl-[38px] pr-3.5 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]"
+                            className="h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] pl-[38px] pr-3.5 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]"
                         />
                     </div>
 
                     {/* Status segmented toggle */}
-                    <div className="inline-flex gap-0.5 p-1" style={{ background: 'var(--surface-track)', borderRadius: 12 }}>
+                    <div className="inline-flex h-10 items-center gap-0.5 p-1" style={{ background: 'var(--surface-track)', borderRadius: 12 }}>
                         {(['ALL', 'CONFIRMED', 'DRAFT'] as const).map((s) => {
                             const active = statusFilter === s;
                             const label = s === 'DRAFT' ? t('transactions.status.drafts') : t(`transactions.status.${s.toLowerCase()}`);
@@ -1273,7 +1260,7 @@ export function TransactionenView() {
                                         setStatusFilter(s);
                                         setPage(0);
                                     }}
-                                    className="inline-flex items-center gap-[7px] px-4 py-2 font-bold transition-colors"
+                                    className="inline-flex h-8 items-center gap-[7px] px-4 font-bold transition-colors"
                                     style={{
                                         fontSize: 13.5,
                                         borderRadius: 'var(--btn-radius)',
@@ -1304,10 +1291,10 @@ export function TransactionenView() {
                     <button
                         onClick={() => setAdvancedOpen((v) => !v)}
                         aria-expanded={advancedOpen}
-                        className="inline-flex items-center gap-[7px] whitespace-nowrap font-semibold transition-colors"
+                        className="inline-flex h-10 items-center gap-[7px] whitespace-nowrap font-semibold transition-colors"
                         style={{
                             fontSize: 13.5,
-                            padding: '8px 14px',
+                            padding: '0 14px',
                             borderRadius: 'var(--btn-radius)',
                             border: '1px solid',
                             borderColor: advancedOpen ? 'transparent' : 'var(--border-soft)',
@@ -1336,8 +1323,9 @@ export function TransactionenView() {
                     {hasFilters && (
                         <button
                             onClick={resetAll}
-                            className="text-[13px] font-semibold text-[var(--ink-faint)] hover:text-foreground transition-colors underline-offset-2 hover:underline"
+                            className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-full border border-border-soft px-4 text-[14px] font-bold text-foreground transition-colors hover:bg-[var(--surface-sunken)]"
                         >
+                            <RotateCcw size={14} />
                             {t('transactions.filters.reset')}
                         </button>
                     )}
