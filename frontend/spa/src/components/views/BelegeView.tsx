@@ -36,6 +36,7 @@ import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
@@ -951,7 +952,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     <button
                                         onClick={() => setConfirmDeleteOpen(true)}
                                         disabled={deleteMutation.isPending}
-                                        className="py-2 px-4 rounded-full text-[13.5px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors disabled:opacity-50"
+                                        className="rounded-[var(--btn-radius)] px-4 py-2 text-[13.5px] font-bold text-[var(--negative)] transition-colors hover:bg-[var(--negative-surface)] disabled:opacity-50"
                                     >
                                         <Trash2 size={14} />
                                     </button>
@@ -975,28 +976,30 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             )
                                         }
                                     >
-                                        <button
+                                        <BaseButton
+                                            variant="default"
                                             onClick={handleFinalize}
                                             disabled={busy || !canConfirm}
-                                            className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[14.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)', boxShadow: '0 4px 16px rgba(120,60,200,.22)' }}
+                                            className="h-auto w-full gap-2 rounded-[var(--btn-radius)] py-3 text-[14.5px] font-bold"
                                         >
                                             <Check size={16} strokeWidth={2.5} />
                                             {confirmTransaction.isPending ? '…' : t('receipts.review.finalize')}
-                                        </button>
+                                        </BaseButton>
                                     </HintTooltip>
                                     <div className="flex gap-2">
-                                        <button
+                                        <BaseButton
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={handleSave}
                                             disabled={busy}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                                            className="flex-1 gap-1.5 rounded-[var(--btn-radius)] border border-border-soft text-[13.5px] font-bold text-muted-foreground hover:bg-[var(--surface-sunken)]"
                                         >
                                             {updateTransaction.isPending && !confirmTransaction.isPending ? '…' : t('receipts.review.saveDraft')}
-                                        </button>
+                                        </BaseButton>
                                         <button
                                             onClick={handleDelete}
                                             disabled={deleteMutation.isPending}
-                                            className="py-2 px-4 rounded-full text-[13.5px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors disabled:opacity-50"
+                                            className="rounded-[var(--btn-radius)] px-4 py-2 text-[13.5px] font-bold text-[var(--negative)] transition-colors hover:bg-[var(--negative-surface)] disabled:opacity-50"
                                         >
                                             <Trash2 size={14} />
                                         </button>
@@ -1005,37 +1008,41 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                             ) : (
                                 /* Fresh receipt without a transaction yet: create the draft transaction (stays open) or save the receipt. */
                                 <>
-                                    <button
+                                    <BaseButton
+                                        variant="default"
                                         onClick={handleCreateTransaction}
                                         disabled={busy}
-                                        className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[14.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                                        style={{ background: 'linear-gradient(100deg,#7E3FB4,#9955CC)', boxShadow: '0 4px 16px rgba(120,60,200,.22)' }}
+                                        className="h-auto w-full gap-2 rounded-[var(--btn-radius)] py-3 text-[14.5px] font-bold"
                                     >
                                         <Check size={16} strokeWidth={2.5} />
                                         {confirmMutation.isPending ? '…' : t('receipts.review.createTransaction')}
-                                    </button>
+                                    </BaseButton>
                                     <div className="flex gap-2">
-                                        <button
+                                        <BaseButton
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={handleSave}
                                             disabled={busy}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                                            className="flex-1 gap-1.5 rounded-[var(--btn-radius)] border border-border-soft text-[13.5px] font-bold text-muted-foreground hover:bg-[var(--surface-sunken)]"
                                         >
                                             {updateMutation.isPending && !confirmMutation.isPending ? '…' : t('receipts.review.save')}
-                                        </button>
+                                        </BaseButton>
                                         {(status === 'failed' || status === 'ready') && (
-                                            <button
+                                            <BaseButton
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => doc.id && reanalyzeMutation.mutate(doc.id)}
                                                 disabled={reanalyzeMutation.isPending}
-                                                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                                                className="flex-1 gap-1.5 rounded-[var(--btn-radius)] border border-border-soft text-[13.5px] font-bold text-muted-foreground hover:bg-[var(--surface-sunken)]"
                                             >
                                                 <RefreshCw size={13} className={reanalyzeMutation.isPending ? 'animate-spin' : ''} />
                                                 {t('receipts.review.reanalyze')}
-                                            </button>
+                                            </BaseButton>
                                         )}
                                         <button
                                             onClick={handleDelete}
                                             disabled={deleteMutation.isPending}
-                                            className="py-2 px-4 rounded-full text-[13.5px] font-bold text-[#B12C4C] hover:bg-[#FBEAEF] transition-colors disabled:opacity-50"
+                                            className="rounded-[var(--btn-radius)] px-4 py-2 text-[13.5px] font-bold text-[var(--negative)] transition-colors hover:bg-[var(--negative-surface)] disabled:opacity-50"
                                         >
                                             <Trash2 size={14} />
                                         </button>
