@@ -4,6 +4,9 @@ import app.hopps.bankimport.service.DedupeHashService;
 import app.hopps.document.api.dto.DuplicateDocumentResponse;
 import app.hopps.document.domain.Document;
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.shared.infrastructure.storage.FileStorage;
+import app.hopps.shared.infrastructure.storage.StorageKeys;
+import app.hopps.shared.infrastructure.storage.StoredFile;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ClientErrorException;
@@ -11,8 +14,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,15 +26,17 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DocumentFileService {
     private static final Logger LOG = getLogger(DocumentFileService.class);
 
+    private static final String DEFAULT_FILE_NAME = "document";
+
     @Inject
-    StorageService storageService;
+    FileStorage fileStorage;
 
     @Inject
     DocumentRepository documentRepository;
 
     /**
-     * Handles file upload for a document: rejects duplicate content, stores the file in S3 and updates document
-     * metadata (including the content hash).
+     * Handles file upload for a document: rejects duplicate content, stores the file and updates document metadata
+     * (including the content hash).
      *
      * @param document
      *            the document to attach the file to
@@ -65,9 +68,10 @@ public class DocumentFileService {
                     .build());
         }
 
-        String fileKey = "documents/" + UUID.randomUUID() + "/" + file.fileName();
+        String fileKey = "documents/" + UUID.randomUUID() + "/"
+                + StorageKeys.sanitizeFileName(file.fileName(), DEFAULT_FILE_NAME);
         try {
-            storageService.uploadFile(fileKey, bytes, file.contentType());
+            fileStorage.put(fileKey, bytes, file.contentType());
             LOG.info("File uploaded to storage: key={}, size={}", fileKey, file.size());
 
             document.setFileKey(fileKey);
@@ -85,7 +89,7 @@ public class DocumentFileService {
      * Deletes a file from storage.
      *
      * @param fileKey
-     *            the S3 key of the file to delete
+     *            the storage key of the file to delete
      */
     public void deleteFile(String fileKey) {
         if (fileKey == null || fileKey.isBlank()) {
@@ -93,7 +97,7 @@ public class DocumentFileService {
         }
 
         try {
-            storageService.deleteFile(fileKey);
+            fileStorage.delete(fileKey);
             LOG.info("File deleted from storage: key={}", fileKey);
         } catch (Exception e) {
             LOG.warn("Failed to delete file from storage: key={}", fileKey, e);
@@ -102,14 +106,17 @@ public class DocumentFileService {
     }
 
     /**
-     * Downloads a file from storage.
+     * Opens a file from storage. The caller owns the returned handle and must close it.
      *
      * @param fileKey
-     *            the S3 key of the file
+     *            the storage key of the file
      *
-     * @return ResponseInputStream of the file content
+     * @return the open file
+     *
+     * @throws app.hopps.shared.infrastructure.storage.StoredFileNotFoundException
+     *             if the file is no longer stored
      */
-    public ResponseInputStream<GetObjectResponse> downloadFile(String fileKey) {
-        return storageService.downloadFile(fileKey);
+    public StoredFile downloadFile(String fileKey) {
+        return fileStorage.get(fileKey);
     }
 }

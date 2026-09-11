@@ -26,6 +26,23 @@ registration creates both the organization and its owner account in Keycloak.
 | `minio`          | S3-compatible storage for uploaded receipts | 9000/9001 (localhost only) |
 | `mailpit`        | Catches outgoing mail during evaluation   | 8025 (localhost only)  |
 
+### Storing files without MinIO
+
+Uploaded files can also go straight onto a local volume, which removes MinIO
+from the stack:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.local-storage.yaml up -d
+```
+
+The files then live in `hopps-app_org_storage` instead of `hopps-app_minio_data`
+(back that volume up instead — see below). This works with a single `org`
+container only, since a local directory is not shared between replicas.
+
+Switching an existing installation over does **not** move the files that are
+already in MinIO; copy them out first (`mc mirror`), keeping their paths, or
+existing receipts will 404.
+
 ## Configuration
 
 Everything is driven from `.env`; see `.env.example` for the full list.
@@ -86,12 +103,15 @@ There is no `latest` tag; always pin explicitly.
 Two volumes hold all state:
 
 - `hopps-app_postgres_data` — application data and Keycloak users
-- `hopps-app_minio_data` — uploaded receipt files
+- `hopps-app_minio_data` — uploaded receipt files (or `hopps-app_org_storage`
+  when running with the local-storage overlay)
 
 Back up both together; a receipt row without its file is not recoverable.
 
 ## Other files
 
+- `docker-compose.local-storage.yaml` — overlay that replaces MinIO with a
+  local volume, see above.
 - `docker-compose-infra-only.yaml` — Postgres, Keycloak and MinIO only, for
   running the backend from an IDE. Development helper, not for deployment.
 - `docker-compose.authentik.yaml` — optional Authentik identity provider used

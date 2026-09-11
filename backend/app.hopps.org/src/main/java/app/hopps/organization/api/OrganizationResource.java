@@ -9,6 +9,7 @@ import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.organization.service.OrganizationLogoService;
 import app.hopps.organization.service.OrganizationMemberService;
+import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.SecurityUtils;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import app.hopps.shared.validation.RestValidator;
@@ -44,7 +45,6 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 @Path("/organization")
 public class OrganizationResource {
@@ -208,10 +208,11 @@ public class OrganizationResource {
         }
 
         try {
-            return Response.ok(logoService.download(organization))
+            // The stream is handed to JAX-RS, which closes it once the entity has been written.
+            return Response.ok(logoService.download(organization).content())
                     .header("Content-Type", organization.getLogoContentType())
                     .build();
-        } catch (NoSuchKeyException e) {
+        } catch (StoredFileNotFoundException e) {
             // The key is on the organization but the object is gone (e.g. ephemeral local storage was reset). Return a
             // clean 404 instead of leaking a 500 with internal storage details.
             LOG.warn("Logo missing in storage for organization {}: key={}", organization.getSlug(),

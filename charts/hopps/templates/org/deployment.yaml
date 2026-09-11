@@ -1,3 +1,10 @@
+{{- if eq .Values.org.storage.type "local" }}
+{{- $multiReplica := or (gt (int .Values.org.replicaCount) 1) .Values.org.autoscaling.enabled }}
+{{- $sharedVolume := has "ReadWriteMany" .Values.org.storage.local.persistence.accessModes }}
+{{- if and $multiReplica (not $sharedVolume) }}
+{{- fail "org.storage.type=local stores files in a directory that is not shared between pods. Keep org.replicaCount at 1 with autoscaling disabled, or use a ReadWriteMany volume in org.storage.local.persistence.accessModes." }}
+{{- end }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,6 +52,13 @@ spec:
             # zugferd
             - name: HOPPS_ZUGFERD_SERVICE_URL
               value: http://{{ .Release.Name }}-zugferd:{{ .Values.zugferd.service.port }}
+            # file storage
+            - name: HOPPS_STORAGE_TYPE
+              value: {{ .Values.org.storage.type | quote }}
+            {{- if eq .Values.org.storage.type "local" }}
+            - name: HOPPS_STORAGE_LOCAL_ROOT
+              value: {{ .Values.org.storage.local.mountPath | quote }}
+            {{- end }}
 
           securityContext:
             {{- toYaml .Values.org.securityContext | nindent 12 }}
@@ -67,13 +81,32 @@ spec:
             {{- toYaml .Values.org.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.org.resources | nindent 12 }}
-          {{- with .Values.org.volumeMounts }}
+          {{- $localStorage := eq .Values.org.storage.type "local" }}
+          {{- if or .Values.org.volumeMounts $localStorage }}
           volumeMounts:
+            {{- with .Values.org.volumeMounts }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if $localStorage }}
+            - name: file-storage
+              mountPath: {{ .Values.org.storage.local.mountPath }}
+            {{- end }}
           {{- end }}
-      {{- with .Values.org.volumes }}
+      {{- $localStorage := eq .Values.org.storage.type "local" }}
+      {{- if or .Values.org.volumes $localStorage }}
       volumes:
+        {{- with .Values.org.volumes }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if $localStorage }}
+        - name: file-storage
+          {{- if .Values.org.storage.local.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.org.storage.local.persistence.existingClaim | default (printf "%s-storage" (include "hopps.orgFullname" .)) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
       {{- end }}
       {{- with .Values.org.nodeSelector }}
       nodeSelector:

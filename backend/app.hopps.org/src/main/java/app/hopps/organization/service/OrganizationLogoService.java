@@ -1,7 +1,9 @@
 package app.hopps.organization.service;
 
-import app.hopps.document.service.StorageService;
 import app.hopps.organization.domain.Organization;
+import app.hopps.shared.infrastructure.storage.FileStorage;
+import app.hopps.shared.infrastructure.storage.StorageKeys;
+import app.hopps.shared.infrastructure.storage.StoredFile;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
@@ -10,8 +12,6 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Stores and reads the organization logo. The logo lives in S3 like document files do; the organization only keeps the
- * object key.
+ * Stores and reads the organization logo. The logo goes into the same file storage as document files; the organization
+ * only keeps the storage key.
  */
 @ApplicationScoped
 public class OrganizationLogoService {
@@ -34,9 +34,10 @@ public class OrganizationLogoService {
     private static final String SVG_CONTENT_TYPE = "image/svg+xml";
     private static final long MAX_SIZE_BYTES = 2L * 1024 * 1024;
     private static final int MIN_DIMENSION_PX = 256;
+    private static final String DEFAULT_FILE_NAME = "logo";
 
     @Inject
-    StorageService storageService;
+    FileStorage fileStorage;
 
     /**
      * Validates and stores the uploaded logo, replacing any previously uploaded one.
@@ -70,8 +71,9 @@ public class OrganizationLogoService {
         validateMinimumSize(bytes, file.contentType());
 
         String previousKey = organization.getLogoKey();
-        String key = "organizations/" + organization.getId() + "/logo/" + UUID.randomUUID() + "/" + file.fileName();
-        storageService.uploadFile(key, bytes, file.contentType());
+        String key = "organizations/" + organization.getId() + "/logo/" + UUID.randomUUID() + "/"
+                + StorageKeys.sanitizeFileName(file.fileName(), DEFAULT_FILE_NAME);
+        fileStorage.put(key, bytes, file.contentType());
         LOG.info("Logo uploaded: organizationId={}, key={}, size={}", organization.getId(), key, file.size());
 
         organization.setLogoKey(key);
@@ -82,8 +84,19 @@ public class OrganizationLogoService {
         }
     }
 
-    public ResponseInputStream<GetObjectResponse> download(Organization organization) {
-        return storageService.downloadFile(organization.getLogoKey());
+    /**
+     * Opens the stored logo. The caller owns the returned handle and must close it.
+     *
+     * @param organization
+     *            the organization whose logo to read
+     *
+     * @return the open logo file
+     *
+     * @throws app.hopps.shared.infrastructure.storage.StoredFileNotFoundException
+     *             if the logo is no longer stored
+     */
+    public StoredFile download(Organization organization) {
+        return fileStorage.get(organization.getLogoKey());
     }
 
     /**
@@ -112,7 +125,7 @@ public class OrganizationLogoService {
 
     private void deleteQuietly(String key) {
         try {
-            storageService.deleteFile(key);
+            fileStorage.delete(key);
             LOG.info("Previous logo deleted: key={}", key);
         } catch (Exception e) {
             LOG.warn("Failed to delete previous logo: key={}", key, e);

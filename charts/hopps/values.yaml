@@ -139,6 +139,32 @@ org:
   #- name: ENV_VAR
   #  value: value
 
+  # Where uploaded files (receipts, organization logos, bank import files) are stored.
+  storage:
+    # "s3" or "local".
+    # s3:    endpoint and credentials have to be supplied through envFrom/envVars
+    #        (QUARKUS_S3_ENDPOINT_OVERRIDE, QUARKUS_S3_AWS_*, BUCKET_NAME).
+    # local: the chart mounts a volume into the org pod and stores files there.
+    type: s3
+    local:
+      mountPath: /var/lib/hopps/storage
+      persistence:
+        # false uses an emptyDir - files are lost when the pod restarts, so only for evaluation.
+        enabled: true
+        # Use a PVC you manage yourself instead of the one this chart creates.
+        existingClaim: ""
+        storageClass: ""
+        accessModes:
+          - ReadWriteOnce
+        size: 20Gi
+    # With type=local, mind three things:
+    #  * org.replicaCount must stay 1 unless the volume supports ReadWriteMany - the chart refuses
+    #    to render otherwise, because a local directory is not shared between pods.
+    #  * set org.podSecurityContext.fsGroup to org.securityContext.runAsUser (1000 by default),
+    #    or the mounted volume comes up root-owned and the application cannot write to it.
+    #  * set org.strategy.type to Recreate - a rolling update cannot start a second pod while the
+    #    first one still holds a ReadWriteOnce volume.
+
   ingress:
     enabled: false
     annotations: {}
@@ -155,6 +181,7 @@ org:
   podAnnotations: {}
   podLabels: {}
   podSecurityContext: {}
+  # fsGroup: 1000
   securityContext:
     allowPrivilegeEscalation: false
     capabilities:
