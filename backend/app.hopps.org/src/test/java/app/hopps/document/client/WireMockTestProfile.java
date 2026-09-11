@@ -15,8 +15,6 @@ public class WireMockTestProfile implements QuarkusTestProfile {
         config.put("quarkus.wiremock.devservices.port", String.valueOf(WIREMOCK_PORT));
         config.put("quarkus.rest-client.document-ai.url", "http://localhost:" + WIREMOCK_PORT);
         config.put("quarkus.rest-client.zugferd.url", "http://localhost:" + WIREMOCK_PORT);
-        // Ensure S3 devservices are enabled for integration tests
-        config.put("quarkus.s3.devservices.enabled", "true");
         return config;
     }
 }
