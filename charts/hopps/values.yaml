@@ -178,6 +178,22 @@ org:
     # - secretName: chart-example-tls
     #   hosts:
     #     - chart-example.local
+
+  # Exposes the management port (health probes, metrics) on its own host. Keep this disabled
+  # unless that host is restricted to your monitoring - it is not meant to be public.
+  managementIngress:
+    enabled: false
+    annotations: {}
+    ingressClassName: ~
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    # - secretName: chart-example-tls
+    #   hosts:
+    #     - chart-example.local
   podAnnotations: {}
   podLabels: {}
   podSecurityContext: {}
