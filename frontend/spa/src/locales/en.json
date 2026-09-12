@@ -150,7 +150,10 @@
         "title": "Accounting made simple",
         "subtitle": "hopps is a free, open-source accounting software built for associations. Manage finances, receipts, and expenses easily and efficiently.",
         "register": "Register organization",
-        "login": "Login"
+        "login": "Login",
+        "setup": "Start initial setup",
+        "setupSubtitle": "This installation has not been set up yet. Create your association and the first administrator account.",
+        "singleTenantSubtitle": "Accounting for {{organization}}. Sign in with your account."
     },
     "invoiceUpload": {
         "title": "Upload new Invoice",
@@ -422,6 +425,20 @@
             "submit": "Create organization",
             "error": "The organization could not be created. Please try again.",
             "slugConflict": "An organization with this name already exists. Please choose a different name."
+        },
+        "setup": {
+            "header": "Initial setup",
+            "subtitle": "Create your association and the first administrator account. Invite further members from the settings afterwards.",
+            "submit": "Complete setup",
+            "successHeading": "Your association is set up. Sign in with the account you just created.",
+            "alreadyDone": "This installation is already set up. Please sign in."
+        },
+        "noAccess": {
+            "title": "No access",
+            "message": "Your account is not a member of {{organization}} yet.",
+            "messageUnnamed": "Your account is not a member of this organization yet.",
+            "suggestion": "Ask an administrator of your association to invite you as a member. You can sign in again afterwards.",
+            "signedInAs": "Signed in as {{email}}"
         }
     },
     "organizationTree": {

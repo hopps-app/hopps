@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -4009,6 +4009,44 @@ export class Client {
     }
 
     /**
+     * Describe this installation
+     * @return Installation facts
+     */
+    instance(): Promise<InstanceInfo> {
+        let url_ = this.baseUrl + "/instance";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processInstance(_response);
+        });
+    }
+
+    protected processInstance(response: Response): Promise<InstanceInfo> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = InstanceInfo.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InstanceInfo>(null as any);
+    }
+
+    /**
      * Report that the member is currently using the application
      * @return Presence recorded
      */
@@ -4148,6 +4186,10 @@ export class Client {
             result400 = ValidationResult.fromJS(resultData400);
             return throwException("Validation of fields failed", status, _responseText, _headers, result400);
             });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Single-tenant installation that is already set up (code SETUP_COMPLETE)", status, _responseText, _headers);
+            });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
             return throwException("Email or slug already exists", status, _responseText, _headers);
@@ -4257,11 +4299,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("Organization not found for user", status, _responseText, _headers);
+            return throwException("User is not a member of any organization (code NO_ORGANIZATION_ACCESS)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -4315,7 +4353,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
+            return throwException("Single-tenant installation, organizations cannot be created by users (code SINGLE_TENANT)", status, _responseText, _headers);
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
@@ -4603,7 +4641,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
+            return throwException("User is not a member of any organization", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -4663,7 +4701,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
+            return throwException("User is not a member of any organization", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -7130,7 +7168,6 @@ export class Bommel implements IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
-    children?: Bommel[];
 
     [key: string]: any;
 
@@ -7155,11 +7192,6 @@ export class Bommel implements IBommel {
             this.responsibleMember = _data["responsibleMember"] ? Member.fromJS(_data["responsibleMember"]) : undefined as any;
             this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : undefined as any;
             this.parent = _data["parent"] ? Bommel.fromJS(_data["parent"]) : undefined as any;
-            if (Array.isArray(_data["children"])) {
-                this.children = [] as any;
-                for (let item of _data["children"])
-                    this.children!.push(Bommel.fromJS(item));
-            }
         }
     }
 
@@ -7182,11 +7214,6 @@ export class Bommel implements IBommel {
         data["responsibleMember"] = this.responsibleMember ? this.responsibleMember.toJSON() : undefined as any;
         data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
         data["parent"] = this.parent ? this.parent.toJSON() : undefined as any;
-        if (Array.isArray(this.children)) {
-            data["children"] = [];
-            for (let item of this.children)
-                data["children"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 
@@ -7205,7 +7232,6 @@ export interface IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
-    children?: Bommel[];
 
     [key: string]: any;
 }
@@ -8902,6 +8928,77 @@ export interface IImpersonationTicket {
     [key: string]: any;
 }
 
+/** Public facts about this installation, available without logging in */
+export class InstanceInfo implements IInstanceInfo {
+    /** Whether this installation serves one organization (single) or many (multi) */
+    tenancy?: Mode;
+    /** True while a single-tenant installation still has to be set up, i.e. no organization exists yet */
+    setupRequired?: boolean;
+    /** Name of the organization of a single-tenant installation, once set up */
+    organizationName?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IInstanceInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.tenancy = _data["tenancy"];
+            this.setupRequired = _data["setupRequired"];
+            this.organizationName = _data["organizationName"];
+        }
+    }
+
+    static fromJS(data: any): InstanceInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new InstanceInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["tenancy"] = this.tenancy;
+        data["setupRequired"] = this.setupRequired;
+        data["organizationName"] = this.organizationName;
+        return data;
+    }
+
+    clone(): InstanceInfo {
+        const json = this.toJSON();
+        let result = new InstanceInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Public facts about this installation, available without logging in */
+export interface IInstanceInfo {
+    /** Whether this installation serves one organization (single) or many (multi) */
+    tenancy?: Mode;
+    /** True while a single-tenant installation still has to be set up, i.e. no organization exists yet */
+    setupRequired?: boolean;
+    /** Name of the organization of a single-tenant installation, once set up */
+    organizationName?: string | undefined;
+
+    [key: string]: any;
+}
+
 /** Per-day time spent in the application by an organization, over the chart window */
 export class LoginActivityResponse implements ILoginActivityResponse {
     /** Total members of the organization */
@@ -9252,6 +9349,8 @@ export interface IMember {
 }
 
 export type MemberStatus = "NO_ACCESS" | "INVITED" | "INVITATION_FAILED" | "ACTIVE";
+
+export type Mode = "SINGLE" | "MULTI";
 
 /** Uploaded documents for a single month */
 export class MonthlyCount implements IMonthlyCount {

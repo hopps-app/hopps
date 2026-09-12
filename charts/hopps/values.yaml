@@ -139,6 +139,11 @@ org:
   #- name: ENV_VAR
   #  value: value
 
+  # "multi" (the hosted SaaS: open sign-up, /admin estate API) or "single" (one
+  # association per installation: one-time initial setup, access by invitation
+  # only, /admin switched off). Sets HOPPS_TENANCY_MODE on the org container.
+  tenancyMode: multi
+
   ingress:
     enabled: false
     annotations: {}
