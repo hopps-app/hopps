@@ -14,12 +14,10 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -52,13 +50,7 @@ class DocumentResourceTest {
     TestdataBootstrapper testdataBootstrapper;
 
     @Inject
-    S3Client s3Client;
-
-    @Inject
     EntityManager entityManager;
-
-    @ConfigProperty(name = "bucket.name")
-    String bucketName;
 
     private static final String SENDER_NAME = "Appointmed GmbH";
 

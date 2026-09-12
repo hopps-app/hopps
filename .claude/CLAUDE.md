@@ -30,7 +30,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - **Datenbank:** PostgreSQL 16 mit Flyway Migrations
 - **ORM:** Hibernate mit Panache
 - **Auth:** Keycloak (OAuth2/OIDC), Quarkus OIDC + Keycloak Admin Client
-- **Storage:** AWS S3 (LocalStack lokal)
+- **Storage:** umschaltbar über `hopps.storage.type` — `s3` (AWS S3 / MinIO / LocalStack) oder `local` (Verzeichnis auf einem Volume)
 - **Realtime:** Quarkus WebSockets Next (Live-Benachrichtigungen bei Dokumentänderungen)
 - **AI/ML:** LangChain4j mit OpenAI, Azure Document AI
 
@@ -63,7 +63,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 
 **Features:**
 - Keycloak User Provisioning
-- S3 Dokumentenspeicherung
+- Dokumentenspeicherung über `FileStorage` (`shared/infrastructure/storage`), wahlweise S3 oder lokales Verzeichnis
 - Bank-CSV-Import mit konfigurierbaren Schemata und Transaktions-Matching
 - WebSocket-Live-Benachrichtigungen
 
@@ -243,9 +243,15 @@ frontend/api-client/
 - `az-document-ai` - Document Analysis (8100)
 - `postgres` - PostgreSQL 16 (`postgres:16-alpine`, 5432)
 - `keycloak` - offizielles Keycloak (`quay.io/keycloak/keycloak:26.4.7`, 8092)
-- `localstack` - AWS S3 Mock (4566)
+- `minio` - S3-kompatibler Objektspeicher (9000/9001, nur localhost)
 
-Hinweis: Der `zugferd`-Service ist nicht Teil dieses Compose-Files. Weitere Compose-Setups: `docker-compose-infra-only.yaml`, `docker-compose.authentik.yaml`.
+Hinweis: Der `zugferd`-Service ist nicht Teil dieses Compose-Files. Weitere Compose-Setups: `docker-compose-infra-only.yaml`, `docker-compose.authentik.yaml`, `docker-compose.local-storage.yaml` (ersetzt MinIO durch ein lokales Volume).
+
+**Storage-Backend umschalten:** Im Dev-Mode und in Tests startet Quarkus für S3 automatisch LocalStack
+(Dev Services, Testcontainers). Mit `HOPPS_STORAGE_TYPE=local` werden Dateien stattdessen unter
+`HOPPS_STORAGE_LOCAL_ROOT` abgelegt; dann zusätzlich `QUARKUS_S3_DEVSERVICES_ENABLED=false` setzen, damit
+kein LocalStack-Container mehr hochgefahren wird. Die Testsuite läuft bereits auf `local`; nur
+`S3FileStorageTest` schaltet per Profil auf S3 zurück.
 
 **Benötigte Umgebungsvariablen:**
 ```bash
@@ -312,7 +318,7 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - **Weitere Workflows:** SonarQube-, Dependency-Track-Analyse, `helm-release.yaml`, `claude-code-review.yml`
 
 ### Kubernetes/Helm
-**Chart:** `/charts/hopps` (Version 0.2.10)
+**Chart:** `/charts/hopps` (Version 0.3.0)
 **Dependencies:** KeycloakX (codecentric, v7.0.1), PostgreSQL (bitnami, v16.4.5)
 
 #### WICHTIG: Chart-Änderungen für das `hopps.cloud`-Repo verfügbar machen

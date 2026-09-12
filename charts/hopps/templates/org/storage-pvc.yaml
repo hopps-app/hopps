@@ -1,0 +1,22 @@
+{{- if and (eq .Values.org.storage.type "local") .Values.org.storage.local.persistence.enabled }}
+{{- if not .Values.org.storage.local.persistence.existingClaim }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "hopps.orgFullname" . }}-storage
+  labels:
+    {{- include "hopps.orgLabels" . | nindent 4 }}
+  annotations:
+    # Uploaded receipts are not recoverable from anywhere else, so keep the claim when the release goes.
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    {{- toYaml .Values.org.storage.local.persistence.accessModes | nindent 4 }}
+  {{- with .Values.org.storage.local.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.org.storage.local.persistence.size | quote }}
+{{- end }}
+{{- end }}
