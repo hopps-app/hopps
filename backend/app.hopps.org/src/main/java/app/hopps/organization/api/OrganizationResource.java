@@ -76,25 +76,34 @@ public class OrganizationResource {
     @Path("{slug}")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization", description = "Retrieves the details of an organization using the unique slug identifier.")
+    @Operation(summary = "Get organization", description = "Retrieves the details of the current user's organization using its unique slug identifier. Other organizations are not visible: their slugs answer 404 just like unknown ones.")
     @APIResponse(responseCode = "200", description = "Organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
+    @APIResponse(responseCode = "403", description = "User is not a member of any organization")
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
-    public Response getOrganizationBySlug(@PathParam("slug") String slug) {
-
-        Organization organization = organizationRepository.findBySlug(slug);
+    public Response getOrganizationBySlug(@Context SecurityContext securityContext, @PathParam("slug") String slug) {
+        Organization organization = ownOrganizationBySlug(securityContext, slug);
         if (organization == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.ok(organization).build();
     }
 
+    /**
+     * The caller's organization if {@code slug} names it, else null. Organizations are not browsable by slug — a user
+     * only ever sees the one they belong to, so any other slug looks exactly like an unknown one.
+     */
+    private Organization ownOrganizationBySlug(SecurityContext securityContext, String slug) {
+        Organization own = securityUtils.getUserOrganization(securityContext);
+        return own.getSlug().equals(slug) ? own : null;
+    }
+
     @GET
     @Path("/my")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get my organization", description = "Retrieves the details of an organization the current user is assigned to.")
+    @Operation(summary = "Get my organization", description = "Retrieves the details of the organization the current user is assigned to. A logged-in account that has not been invited into an organization gets 403 with code NO_ORGANIZATION_ACCESS.")
     @APIResponse(responseCode = "200", description = "Own organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
-    @APIResponse(responseCode = "404", description = "Organization not found for user")
+    @APIResponse(responseCode = "403", description = "User is not a member of any organization (code NO_ORGANIZATION_ACCESS)")
     public Organization getMyOrganization(@Context SecurityContext securityContext) {
         return securityUtils.getUserOrganization(securityContext);
     }
@@ -225,10 +234,11 @@ public class OrganizationResource {
     @Authenticated
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create my organization", description = "Creates a new organization and links it to the already-authenticated user (found or created by their Keycloak id) — without provisioning a new Keycloak user. The organization becomes the user's default organization on the next login.")
+    @Operation(summary = "Create my organization", description = "Creates a new organization and links it to the already-authenticated user (found or created by their Keycloak id) — without provisioning a new Keycloak user. The organization becomes the user's default organization on the next login. Not available on a single-tenant installation (403, code SINGLE_TENANT).")
     @APIResponse(responseCode = "201", description = "Organization created and linked to the current user", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed")
     @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "Single-tenant installation, organizations cannot be created by users (code SINGLE_TENANT)")
     @APIResponse(responseCode = "409", description = "Slug already exists, or the user is already assigned to an organization")
     public Response createMyOrganization(OrganizationInput input) {
         Organization organization = input.toOrganization();
@@ -283,11 +293,13 @@ public class OrganizationResource {
     @Path("{slug}/members")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization members", description = "Retrieves the members of an organization using the unique slug identifier.")
+    @Operation(summary = "Get organization members", description = "Retrieves the members of the current user's organization using its unique slug identifier. Other organizations' slugs answer 404.")
     @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
+    @APIResponse(responseCode = "403", description = "User is not a member of any organization")
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
-    public Response getOrganizationMembersBySlug(@PathParam("slug") String slug) {
-        Organization organization = organizationRepository.findBySlug(slug);
+    public Response getOrganizationMembersBySlug(@Context SecurityContext securityContext,
+            @PathParam("slug") String slug) {
+        Organization organization = ownOrganizationBySlug(securityContext, slug);
         if (organization == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -297,9 +309,10 @@ public class OrganizationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a new organization")
+    @Operation(summary = "Create a new organization", description = "Registers a new organization together with its owner account. On a single-tenant installation this is the one-time initial setup: it works while no organization exists and answers 403 (code SETUP_COMPLETE) afterwards.")
     @APIResponse(responseCode = "201", description = "Organization created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
+    @APIResponse(responseCode = "403", description = "Single-tenant installation that is already set up (code SETUP_COMPLETE)")
     @APIResponse(responseCode = "409", description = "Email or slug already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public Response create(NewOrganizationInput input) {
         Organization organization = input.toOrganization();
