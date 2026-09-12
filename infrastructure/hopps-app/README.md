@@ -10,8 +10,9 @@ docker compose up -d
 ```
 
 Then open the SPA at the `PUBLIC_SPA_URL` from your `.env` (default
-<http://localhost:8080>) and click **Register organization**. The first
-registration creates both the organization and its owner account in Keycloak.
+<http://localhost:8080>) and click **Start initial setup**. This creates your
+association and its first administrator account in Keycloak. Once that is done
+the start page only offers the login; see [Single-tenant mode](#single-tenant-mode).
 
 ## What runs
 
@@ -46,6 +47,34 @@ Service-to-service traffic uses the compose network names and is unaffected.
 The Keycloak realm is imported only on the very first start (existing realms are
 left alone). If you change `PUBLIC_SPA_URL` afterwards, update the `quarkus-app`
 client's redirect URIs and web origins in the Keycloak admin console as well.
+
+### Single-tenant mode
+
+A self-hosted installation serves exactly one association, so the stack runs
+with `HOPPS_TENANCY_MODE=single` by default. Compared to the hosted SaaS
+(`multi`) this means:
+
+- **One organization, created once.** The registration form is the initial
+  setup. As soon as the organization exists it is closed for good: the start
+  page only shows the login, `/register` redirects home, and the API answers
+  `403` (`SETUP_COMPLETE`) to further sign-ups.
+- **Access by invitation only.** Someone who can log in - through a password
+  account or an [external identity provider](#signing-in-with-an-external-identity-provider) -
+  but is not a member of the organization sees *No access* with a logout
+  button. They cannot create an organization of their own. A member with
+  administrator rights invites them under *Settings → Association → Add member*;
+  Keycloak sends the invitation mail (caught by `mailpit` until you configure
+  SMTP). If a Keycloak account for that email already exists (typical for
+  identity-provider logins), the invitation links it instead of creating one.
+- **The SaaS admin API is off.** Everything under `/admin` (estate overview,
+  impersonation) answers `404`. The separate admin app is not part of this stack.
+
+The org service refuses to start with `HOPPS_TENANCY_MODE=single` while the
+database holds more than one organization, so a multi-tenant database cannot be
+switched over by accident. Switching from `single` to `multi` is always possible.
+
+The SPA reads the mode from the backend (`GET /instance`); there is nothing to
+configure on the frontend.
 
 ### Email
 
