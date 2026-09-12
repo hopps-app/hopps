@@ -7,6 +7,7 @@ import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkel
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
 import AuthGuard from '@/guards/AuthGuard';
+import SetupGuard from '@/guards/SetupGuard';
 import AuthLayout from '@/layouts/default/AuthLayout';
 import DefaultLayout from '@/layouts/default/DefaultLayout.tsx';
 
@@ -42,12 +43,15 @@ export default function AppRoutes() {
         <Routes>
             <Route path="/" element={<HomeView />} />
             <Route element={<DefaultLayout />}>
+                {/* Sign-up on the hosted SaaS; the one-time initial setup on a single-tenant installation */}
                 <Route
                     path="/register"
                     element={
-                        <LazyRoute>
-                            <RegisterOrganizationView />
-                        </LazyRoute>
+                        <SetupGuard>
+                            <LazyRoute>
+                                <RegisterOrganizationView />
+                            </LazyRoute>
+                        </SetupGuard>
                     }
                 />
             </Route>

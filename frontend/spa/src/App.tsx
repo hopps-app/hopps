@@ -4,16 +4,18 @@ import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './AppRoutes';
 
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { NoAccessView } from '@/components/NoAccessView';
 import { OrganizationErrorView } from '@/components/OrganizationErrorView';
 import authService from '@/services/auth/auth.service.ts';
 import connectivityService from '@/services/ConnectivityService.ts';
 import emojiService from '@/services/EmojiService';
+import { fetchInstanceInfo } from '@/services/instance/instanceService';
 import languageService from '@/services/LanguageService.ts';
 import themeService from '@/services/ThemeService.ts';
 import { useStore } from '@/store/store.ts';
 
 function App() {
-    const { isInitialized, setIsInitialized, organizationError, isAuthenticated } = useStore();
+    const { isInitialized, setIsInitialized, organizationError, isAuthenticated, instance } = useStore();
     // const queryClient = useQueryClient();
     const loadUserOrganisation = async () => {
         const apiService = (await import('@/services/ApiService.ts')).default;
@@ -30,27 +32,11 @@ function App() {
             useStore.getState().setOrganization(organisation);
             useStore.getState().setOrganizationError(false);
         } catch (error: unknown) {
+            // 403 NO_ORGANIZATION_ACCESS: the account can log in but is not a member of any organization (older
+            // backends said 404). Any other failure lands on the same screen for now, so the two are not told apart.
             console.error('Failed to load organization:', error);
-
-            // Check if it's a 404 error (organization not found)
-            const isNotFoundError =
-                error &&
-                typeof error === 'object' &&
-                'response' in error &&
-                error.response &&
-                typeof error.response === 'object' &&
-                'status' in error.response &&
-                error.response.status === 404;
-
-            if (isNotFoundError) {
-                useStore.getState().setOrganization(null);
-                useStore.getState().setOrganizationError(true);
-            } else {
-                // For other errors, we might want to handle differently
-                // For now, we'll also show the error state
-                useStore.getState().setOrganization(null);
-                useStore.getState().setOrganizationError(true);
-            }
+            useStore.getState().setOrganization(null);
+            useStore.getState().setOrganizationError(true);
         }
     };
 
@@ -64,6 +50,12 @@ function App() {
                 await connectivityService.checkAll();
 
                 const { keycloakReachable, backendReachable } = useStore.getState();
+
+                if (backendReachable) {
+                    // Needed before login: decides whether the start page offers sign-up, the initial setup, or
+                    // only the login, and what to show someone who is logged in but has no organization.
+                    useStore.getState().setInstance(await fetchInstanceInfo());
+                }
 
                 if (keycloakReachable) {
                     const success = await authService.init();
@@ -80,9 +72,10 @@ function App() {
         initApp();
     }, [setIsInitialized]);
 
-    // Show organization error view if user is authenticated but has no organization
+    // Logged in, but no organization: on a single-tenant installation there is nothing to create, the person has to
+    // be invited by an administrator. On the hosted SaaS they create their own organization.
     if (isInitialized && isAuthenticated && organizationError) {
-        return <OrganizationErrorView />;
+        return instance?.tenancy === 'single' ? <NoAccessView /> : <OrganizationErrorView />;
     }
 
     return isInitialized ? (

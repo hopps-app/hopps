@@ -150,7 +150,10 @@
         "title": "Buchhaltung einfach gemacht",
         "subtitle": "hopps ist eine kostenlose, Open-Source-Buchhaltungssoftware speziell für Vereine. Verwalten Sie Finanzen, Belege und Ausgaben einfach und effizient.",
         "register": "Organisation registrieren",
-        "login": "Anmelden"
+        "login": "Anmelden",
+        "setup": "Ersteinrichtung starten",
+        "setupSubtitle": "Diese Installation ist noch nicht eingerichtet. Legen Sie Ihren Verein und das erste Administrator-Konto an.",
+        "singleTenantSubtitle": "Buchhaltung von {{organization}}. Melden Sie sich mit Ihrem Konto an."
     },
     "invoiceUpload": {
         "title": "Neue Rechnung hochladen",
@@ -421,6 +424,20 @@
             "submit": "Organisation erstellen",
             "error": "Die Organisation konnte nicht erstellt werden. Bitte versuche es erneut.",
             "slugConflict": "Eine Organisation mit diesem Namen existiert bereits. Bitte wähle einen anderen Namen."
+        },
+        "setup": {
+            "header": "Ersteinrichtung",
+            "subtitle": "Legen Sie Ihren Verein und das erste Administrator-Konto an. Weitere Mitglieder laden Sie anschließend in den Einstellungen ein.",
+            "submit": "Einrichtung abschließen",
+            "successHeading": "Ihr Verein ist eingerichtet. Melden Sie sich jetzt mit dem gerade angelegten Konto an.",
+            "alreadyDone": "Diese Installation ist bereits eingerichtet. Bitte melden Sie sich an."
+        },
+        "noAccess": {
+            "title": "Kein Zugriff",
+            "message": "Ihr Konto ist noch kein Mitglied von {{organization}}.",
+            "messageUnnamed": "Ihr Konto ist noch kein Mitglied dieser Organisation.",
+            "suggestion": "Bitten Sie eine Administratorin oder einen Administrator Ihres Vereins, Sie als Mitglied einzuladen. Danach können Sie sich erneut anmelden.",
+            "signedInAs": "Angemeldet als {{email}}"
         }
     },
     "organizationTree": {
