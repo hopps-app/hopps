@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * <ol>
  * <li>Validate constraints on Organization and Member entities</li>
  * <li>Validate uniqueness of email (owner) and slug (organization)</li>
- * <li>Create user in Keycloak identity provider</li>
+ * <li>Create user with the identity provider</li>
  * <li>Persist Organization, Member, and root Bommel entities</li>
  * </ol>
  */
@@ -39,7 +39,7 @@ public class OrganizationCreationService {
     CreationValidationDelegate validationDelegate;
 
     @Inject
-    CreateUserInKeycloak keycloakService;
+    IdentityProvisioningService identityProvisioningService;
 
     @Inject
     PersistOrganizationDelegate persistenceDelegate;
@@ -61,14 +61,14 @@ public class OrganizationCreationService {
      * @param owner
      *            The owner/initial member of the organization
      * @param newPassword
-     *            The password for the new Keycloak user
+     *            The password for the new identity provider account
      *
      * @throws ConstraintViolationException
      *             if validation of organization or owner fails
      * @throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException
      *             if email or slug already exists
      * @throws jakarta.ws.rs.WebApplicationException
-     *             if Keycloak user creation fails
+     *             if the identity provider account cannot be created
      */
     public void createOrganization(Organization organization, Member owner, String newPassword) {
         LOG.info("Starting organization creation: name={}, slug={}, owner={}",
@@ -82,10 +82,11 @@ public class OrganizationCreationService {
         LOG.debug("Validating uniqueness of email and slug");
         validationDelegate.validateUniqueness(organization, owner);
 
-        // Step 3: Create user in Keycloak
-        LOG.debug("Creating user in Keycloak: {}", owner.getEmail());
-        keycloakService.createUserInKeycloak(owner, newPassword);
-        LOG.info("Successfully created Keycloak user: {}", owner.getEmail());
+        // Step 3: Create user with the identity provider
+        // TODO: send duplicate responso if the email is already in the identity provider
+        LOG.debug("Creating identity provider account: {}", owner.getEmail());
+        identityProvisioningService.createOwner(owner, newPassword);
+        LOG.info("Successfully created identity provider account: {}", owner.getEmail());
 
         // Step 4: Persist JPA entities (Organization, Member, root Bommel)
         LOG.debug("Persisting organization entities");

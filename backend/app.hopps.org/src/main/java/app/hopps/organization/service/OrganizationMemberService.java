@@ -17,8 +17,8 @@ import java.util.Set;
 
 /**
  * Adds a person to an existing organization and gives them access to the app. Unlike the founder, who picks a password
- * while registering the organization, an invited user gets a credential-less Keycloak account plus an invitation email
- * in which they choose their own password
+ * while registering the organization, an invited user gets a credential-less identity provider account plus an
+ * invitation email in which they choose their own password
  */
 @ApplicationScoped
 public class OrganizationMemberService {
@@ -32,7 +32,7 @@ public class OrganizationMemberService {
     MemberRepository memberRepository;
 
     @Inject
-    CreateUserInKeycloak keycloakService;
+    IdentityProvisioningService identityProvisioningService;
 
     @Inject
     PersistMemberDelegate persistenceDelegate;
@@ -54,7 +54,7 @@ public class OrganizationMemberService {
      * @throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException
      *             if a member with that email already exists
      * @throws jakarta.ws.rs.WebApplicationException
-     *             if the Keycloak account cannot be provisioned
+     *             if the identity provider account cannot be provisioned
      */
     public Member addMember(Organization organization, Member member) {
         LOG.info("Adding member {} to organization {}", member.getEmail(), organization.getSlug());
@@ -71,8 +71,9 @@ public class OrganizationMemberService {
                     Set.of(new NonUniqueConstraintViolation("email", member)));
         }
 
-        // provision the Keycloak account and send the invitation, deliberately before and outside of the transaction
-        boolean userCreated = keycloakService.inviteUser(member, memberRoleName);
+        // provision the identity provider account and send the invitation, deliberately before and outside of the
+        // transaction
+        boolean userCreated = identityProvisioningService.inviteMember(member, memberRoleName);
 
         try {
             persistenceDelegate.persistMember(member, organization);
@@ -80,8 +81,9 @@ public class OrganizationMemberService {
             // Undo the invitation so a failed request does not leave an account behind that nothing points at. Only
             // an account we created ourselves may go — a linked, pre-existing one belongs to someone else.
             if (userCreated) {
-                LOG.warn("Persisting member {} failed, removing the Keycloak account again", member.getEmail());
-                keycloakService.deleteUser(member.getKeycloakId());
+                LOG.warn("Persisting member {} failed, removing the identity provider account again",
+                        member.getEmail());
+                identityProvisioningService.deleteUser(member.getKeycloakId());
             }
             throw e;
         }
