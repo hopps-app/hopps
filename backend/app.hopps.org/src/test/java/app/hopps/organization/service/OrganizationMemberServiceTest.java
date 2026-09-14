@@ -36,7 +36,7 @@ class OrganizationMemberServiceTest {
     OrganizationMemberService organizationMemberService;
 
     @InjectMock
-    CreateUserInKeycloak keycloakService;
+    IdentityProvisioningService identityProvisioningService;
 
     @InjectMock
     PersistMemberDelegate persistenceDelegate;
@@ -69,7 +69,7 @@ class OrganizationMemberServiceTest {
             member.setKeycloakId(KEYCLOAK_ID);
             member.setStatus(MemberStatus.INVITED);
             return userCreated;
-        }).when(keycloakService).inviteUser(any(), anyString());
+        }).when(identityProvisioningService).inviteMember(any(), anyString());
     }
 
     @Test
@@ -83,11 +83,11 @@ class OrganizationMemberServiceTest {
         assertEquals(MemberStatus.INVITED, added.getStatus());
         assertEquals(KEYCLOAK_ID, added.getKeycloakId());
         verify(persistenceDelegate, times(1)).persistMember(testMember, testOrganization);
-        verify(keycloakService, never()).deleteUser(anyString());
+        verify(identityProvisioningService, never()).deleteUser(anyString());
     }
 
     @Test
-    @DisplayName("should remove the Keycloak account again when persisting the member fails")
+    @DisplayName("should remove the identity provider account again when persisting the member fails")
     void shouldRollBackKeycloakUserOnPersistenceFailure() {
         stubSuccessfulInvite(true);
         doThrow(new IllegalStateException("database is down")).when(persistenceDelegate)
@@ -96,11 +96,11 @@ class OrganizationMemberServiceTest {
         assertThrows(IllegalStateException.class,
                 () -> organizationMemberService.addMember(testOrganization, testMember));
 
-        verify(keycloakService, times(1)).deleteUser(KEYCLOAK_ID);
+        verify(identityProvisioningService, times(1)).deleteUser(KEYCLOAK_ID);
     }
 
     @Test
-    @DisplayName("should keep a pre-existing Keycloak account when persisting the member fails")
+    @DisplayName("should keep a pre-existing identity provider account when persisting the member fails")
     void shouldNotDeleteLinkedAccountOnPersistenceFailure() {
         // The account belonged to someone before this request — it must survive our failure.
         stubSuccessfulInvite(false);
@@ -110,30 +110,30 @@ class OrganizationMemberServiceTest {
         assertThrows(IllegalStateException.class,
                 () -> organizationMemberService.addMember(testOrganization, testMember));
 
-        verify(keycloakService, never()).deleteUser(anyString());
+        verify(identityProvisioningService, never()).deleteUser(anyString());
     }
 
     @Test
-    @DisplayName("should reject a duplicate email before touching Keycloak")
+    @DisplayName("should reject a duplicate email before touching the identity provider")
     void shouldRejectDuplicateEmail() {
         when(memberRepository.findByEmail(eq("invited@example.com"))).thenReturn(new Member());
 
         assertThrows(NonUniqueConstraintViolation.NonUniqueConstraintViolationException.class,
                 () -> organizationMemberService.addMember(testOrganization, testMember));
 
-        verify(keycloakService, never()).inviteUser(any(), anyString());
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
         verify(persistenceDelegate, never()).persistMember(any(), any());
     }
 
     @Test
-    @DisplayName("should reject an invalid member before touching Keycloak")
+    @DisplayName("should reject an invalid member before touching the identity provider")
     void shouldRejectInvalidMember() {
         testMember.setEmail("not-an-email");
 
         assertThrows(ConstraintViolationException.class,
                 () -> organizationMemberService.addMember(testOrganization, testMember));
 
-        verify(keycloakService, never()).inviteUser(any(), anyString());
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
         verify(persistenceDelegate, never()).persistMember(any(), any());
     }
 }
