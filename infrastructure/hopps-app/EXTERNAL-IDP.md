@@ -1,8 +1,13 @@
 # Signing in with an external identity provider
 
-Hopps authenticates against its own Keycloak. Keycloak can in turn *broker* to an
+This page is about the bundled Keycloak (`docker-compose.keycloak.yaml`, see
+[README.md](README.md#b-the-bundled-keycloak)). Keycloak can *broker* to an
 existing OpenID Connect provider, so people sign in with an account they already
 have instead of a password managed here.
+
+Hopps can also use an Authentik directly, without any Keycloak; the accounts then
+live in Authentik only. That is option A in [README.md](README.md#identity-provider)
+and needs none of the `IDP_*` variables below.
 
 ```
 Browser ──▶ Hopps SPA ──▶ Keycloak ──▶ your OIDC provider
@@ -143,6 +148,10 @@ Then in `.env` — the split addresses matter here, because the browser reaches
 Authentik on the published port while Keycloak reaches it by container name:
 
 ```bash
+HOPPS_AUTH_PROVIDER=keycloak
+COMPOSE_FILE=docker-compose.yaml:docker-compose.keycloak.yaml
+COMPOSE_PATH_SEPARATOR=:
+
 IDP_ENABLED=true
 IDP_ALIAS=kollicloud
 IDP_DISPLAY_NAME=Kollicloud

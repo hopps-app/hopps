@@ -1,0 +1,120 @@
+# Hopps's own Keycloak, for installations without an existing identity provider.
+#
+# An overlay for docker-compose.yaml, not a stack of its own. Enable it in .env by
+# adding it to COMPOSE_FILE, e.g.
+#
+#   COMPOSE_FILE=docker-compose.yaml:docker-compose.keycloak.yaml
+#   COMPOSE_PATH_SEPARATOR=:
+#
+# Use it together with HOPPS_AUTH_PROVIDER=keycloak in .env. Adds Keycloak
+# (accounts, login page, self-registration of organizations) and mailpit, and
+# points org and frontend at it. The OIDC_* and AUTHENTIK_* variables are then
+# ignored.
+
+services:
+
+  frontend:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      VITE_KEYCLOAK_URL: ${PUBLIC_KEYCLOAK_URL}
+      VITE_KEYCLOAK_REALM: quarkus
+      VITE_KEYCLOAK_CLIENT_ID: quarkus-app
+      # Empty on purpose: a leftover value would send the SPA to another provider
+      # than the one the backend accepts tokens from.
+      VITE_OIDC_PROVIDER_URL: ""
+      VITE_OIDC_CLIENT_ID: ""
+
+  org:
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      # Discovery runs over the compose network; the issuer inside the tokens is the
+      # public URL the browser used, so it has to be asserted separately.
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/realms/quarkus
+      QUARKUS_OIDC_TOKEN_ISSUER: ${PUBLIC_KEYCLOAK_URL}/realms/quarkus
+      QUARKUS_OIDC_CLIENT_ID: quarkus-app
+      # Provisions users on organization registration and on member invitations,
+      # when HOPPS_AUTH_PROVIDER=keycloak.
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_ENABLED: "true"
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL: http://keycloak:8080
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Where the link in Keycloak's invitation email lands after the password is set.
+      HOPPS_SPA_URL: ${PUBLIC_SPA_URL}/
+
+  keycloak:
+    # Keycloak plus the Hopps login theme the realm refers to.
+    image: ghcr.io/hopps-app/hopps/hopps-keycloak:${KEYCLOAK_TAG:-193-keycloak-26.2.1}
+    restart: unless-stopped
+    # The realm template is rendered from .env before the import runs, so redirect
+    # URIs and the brokered identity provider follow the environment instead of
+    # being baked into the JSON.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        mkdir -p /opt/keycloak/data/import
+        sed -e "s|__PUBLIC_SPA_URL__|$${PUBLIC_SPA_URL}|g" -e "s|__REALM_SSL_REQUIRED__|$${REALM_SSL_REQUIRED:-external}|g" -e "s|__IDP_ENABLED__|$${IDP_ENABLED:-false}|g" -e "s|__IDP_ALIAS__|$${IDP_ALIAS:-oidc}|g" -e "s|__IDP_DISPLAY_NAME__|$${IDP_DISPLAY_NAME:-Single sign-on}|g" -e "s|__IDP_CLIENT_ID__|$${IDP_CLIENT_ID:-unset}|g" -e "s|__IDP_CLIENT_SECRET__|$${IDP_CLIENT_SECRET:-unset}|g" -e "s|__IDP_AUTHORIZATION_URL__|$${IDP_AUTHORIZATION_URL:-https://idp.invalid/authorize}|g" -e "s|__IDP_TOKEN_URL__|$${IDP_TOKEN_URL:-https://idp.invalid/token}|g" -e "s|__IDP_USERINFO_URL__|$${IDP_USERINFO_URL:-https://idp.invalid/userinfo}|g" -e "s|__IDP_JWKS_URL__|$${IDP_JWKS_URL:-https://idp.invalid/jwks}|g" -e "s|__IDP_LOGOUT_URL__|$${IDP_LOGOUT_URL:-https://idp.invalid/logout}|g" -e "s|__IDP_ISSUER__|$${IDP_ISSUER:-https://idp.invalid}|g" /opt/keycloak/data/import-template/quarkus-realm.json > /opt/keycloak/data/import/quarkus-realm.json
+        exec /opt/keycloak/bin/kc.sh start --optimized=false --import-realm
+    ports:
+      - "${KEYCLOAK_PORT:-8092}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_DB_USERNAME=${POSTGRES_USER:-postgres}
+      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+      # Public address the browser uses. Backchannel calls from the org service keep
+      # using http://keycloak:8080, hence the dynamic backchannel.
+      - KC_HOSTNAME=${PUBLIC_KEYCLOAK_URL}
+      - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
+      - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN:-admin}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      # Substituted into hopps-realm.json on import.
+      - PUBLIC_SPA_URL=${PUBLIC_SPA_URL}
+      # Optional: Keycloak brokers logins to another OIDC provider. All optional;
+      # see EXTERNAL-IDP.md.
+      - IDP_ENABLED=${IDP_ENABLED:-false}
+      - IDP_ALIAS=${IDP_ALIAS:-oidc}
+      - IDP_DISPLAY_NAME=${IDP_DISPLAY_NAME:-Single sign-on}
+      - IDP_CLIENT_ID=${IDP_CLIENT_ID:-}
+      - IDP_CLIENT_SECRET=${IDP_CLIENT_SECRET:-}
+      - IDP_AUTHORIZATION_URL=${IDP_AUTHORIZATION_URL:-}
+      - IDP_TOKEN_URL=${IDP_TOKEN_URL:-}
+      - IDP_USERINFO_URL=${IDP_USERINFO_URL:-}
+      - IDP_JWKS_URL=${IDP_JWKS_URL:-}
+      - IDP_LOGOUT_URL=${IDP_LOGOUT_URL:-}
+      - IDP_ISSUER=${IDP_ISSUER:-}
+      - REALM_SSL_REQUIRED=${REALM_SSL_REQUIRED:-external}
+      # Only valid when actually set (to "xforwarded" or "forwarded"); an empty value
+      # is rejected by Keycloak, so this is passed through only if defined in .env.
+      - KC_PROXY_HEADERS
+    volumes:
+      # Keycloak requires the import file to be named <realm>-realm.json.
+      - ./hopps-realm.json:/opt/keycloak/data/import-template/quarkus-realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\nHost: localhost\nConnection: close\n\n' >&3 && cat <&3 | grep -q '\"status\": \"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # Catches the invitation mails Keycloak sends when a user is added to an organization.
+  # Nothing leaves the machine. Read them at http://localhost:8025.
+  # Replace with the customer's real SMTP server (Realm settings -> Email) for production.
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
