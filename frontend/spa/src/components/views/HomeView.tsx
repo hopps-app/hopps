@@ -6,6 +6,7 @@ import { ConnectivityBanner } from '@/components/common/ConnectivityBanner/Conne
 import LegalFooter from '@/components/common/LegalFooter/LegalFooter';
 import Button from '@/components/ui/Button.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/shadecn/Tooltip';
+import { isSelfRegistrationEnabled } from '@/services/auth/auth.config.ts';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
 
@@ -42,22 +43,23 @@ function HomeView() {
                         <p className="text-base md:text-lg text-black/70 dark:text-white/70 max-w-xl mb-8">{t('home.subtitle')}</p>
                         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                             <TooltipProvider>
-                                {registerDisabled ? (
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <span tabIndex={0} className="w-full sm:w-auto">
-                                                <Button disabled className="w-full sm:w-auto">
-                                                    {t('home.register')}
-                                                </Button>
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>{t('connectivity.buttonDisabledHint')}</TooltipContent>
-                                    </Tooltip>
-                                ) : (
-                                    <Button onClick={onClickRegister} className="w-full sm:w-auto">
-                                        {t('home.register')}
-                                    </Button>
-                                )}
+                                {isSelfRegistrationEnabled &&
+                                    (registerDisabled ? (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <span tabIndex={0} className="w-full sm:w-auto">
+                                                    <Button disabled className="w-full sm:w-auto">
+                                                        {t('home.register')}
+                                                    </Button>
+                                                </span>
+                                            </TooltipTrigger>
+                                            <TooltipContent>{t('connectivity.buttonDisabledHint')}</TooltipContent>
+                                        </Tooltip>
+                                    ) : (
+                                        <Button onClick={onClickRegister} className="w-full sm:w-auto">
+                                            {t('home.register')}
+                                        </Button>
+                                    ))}
 
                                 {loginDisabled ? (
                                     <Tooltip>

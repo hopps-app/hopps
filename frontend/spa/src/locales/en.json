@@ -403,6 +403,22 @@
                     "success": "User added",
                     "duplicate": "This email address is already in use.",
                     "error": "The user could not be added."
+                },
+                "setupLink": {
+                    "title": "Pass on the invitation link",
+                    "description": "The invitation could not be sent by email. Pass this link on to {{name}}. With it, they set their password and can log in. The link is only valid for a limited time.",
+                    "linkLabel": "Invitation link",
+                    "copy": "Copy link",
+                    "copied": "Link copied",
+                    "copyFailed": "Could not copy the link"
+                },
+                "remove": {
+                    "button": "Remove {{name}}",
+                    "title": "Remove user?",
+                    "description": "{{name}} will no longer have access to this organization in hopps. Their account with the login provider is kept.",
+                    "confirm": "Remove",
+                    "success": "User removed",
+                    "error": "The user could not be removed."
                 }
             }
         },

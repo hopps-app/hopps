@@ -1,3 +1,4 @@
+import { oidcProviderUrl } from '@/services/auth/auth.config.ts';
 import { useStore } from '@/store/store';
 
 const TIMEOUT_MS = 5000;
@@ -11,9 +12,11 @@ function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response>
 
 async function checkKeycloak(): Promise<boolean> {
     try {
-        const keycloakUrl = import.meta.env.VITE_KEYCLOAK_URL;
-        const realm = import.meta.env.VITE_KEYCLOAK_REALM;
-        const url = `${keycloakUrl}/realms/${realm}/.well-known/openid-configuration`;
+        // The discovery document of whichever provider the SPA logs in with (see auth.config.ts).
+        const issuer = oidcProviderUrl
+            ? oidcProviderUrl.replace(/\/+$/, '')
+            : `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}`;
+        const url = `${issuer}/.well-known/openid-configuration`;
 
         const response = await fetchWithTimeout(url);
         return response.ok;

@@ -1,6 +1,8 @@
 import { User } from '@hopps/api-client';
 import Keycloak from 'keycloak-js';
 
+import { oidcClientId, oidcProviderUrl } from '@/services/auth/auth.config.ts';
+import { OidcAuthService } from '@/services/auth/oidc-auth.service.ts';
 import { useStore } from '@/store/store';
 
 // give keycloak some margin to refresh
@@ -19,7 +21,17 @@ const PROACTIVE_REFRESH_INTERVAL_MS = 60_000;
 // ended session — retry a few times before giving up.
 const MAX_REFRESH_ATTEMPTS = 3;
 
-export class AuthService {
+/** What the rest of the SPA needs from the login, whichever identity provider is behind it. */
+export interface Auth {
+    init(): Promise<boolean>;
+    login(redirectUri?: string): Promise<void>;
+    logout(): Promise<void>;
+    isAuthenticated(): boolean;
+    refreshToken(): Promise<boolean>;
+    getAuthToken(): string | undefined;
+}
+
+export class AuthService implements Auth {
     private keycloak: Keycloak;
     private refreshInterval: ReturnType<typeof setInterval> | null = null;
     private refreshInFlight: Promise<boolean> | null = null;
@@ -190,5 +202,16 @@ export class AuthService {
     }
 }
 
-const authService = new AuthService();
+// Keycloak unless the deployment points the SPA at an external OIDC provider (see auth.config.ts).
+function createAuthService(): Auth {
+    if (!oidcProviderUrl) {
+        return new AuthService();
+    }
+    if (!oidcClientId) {
+        console.error('VITE_OIDC_PROVIDER_URL is set but VITE_OIDC_CLIENT_ID is not, so the login will fail.');
+    }
+    return new OidcAuthService(oidcProviderUrl, oidcClientId ?? '');
+}
+
+const authService = createAuthService();
 export default authService;

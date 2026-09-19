@@ -402,6 +402,22 @@
                     "success": "Benutzer hinzugefügt",
                     "duplicate": "Diese E-Mail-Adresse wird bereits verwendet.",
                     "error": "Benutzer konnte nicht hinzugefügt werden."
+                },
+                "setupLink": {
+                    "title": "Einladungslink weitergeben",
+                    "description": "Die Einladung konnte nicht per E-Mail verschickt werden. Geben Sie diesen Link an {{name}} weiter. Damit legt die Person ihr Passwort fest und kann sich anmelden. Der Link ist nur begrenzt gültig.",
+                    "linkLabel": "Einladungslink",
+                    "copy": "Link kopieren",
+                    "copied": "Link kopiert",
+                    "copyFailed": "Link konnte nicht kopiert werden"
+                },
+                "remove": {
+                    "button": "{{name}} entfernen",
+                    "title": "Mitarbeiter entfernen?",
+                    "description": "{{name}} hat danach keinen Zugang mehr zu dieser Organisation in hopps. Das Konto beim Anmeldedienst bleibt bestehen.",
+                    "confirm": "Entfernen",
+                    "success": "Mitarbeiter entfernt",
+                    "error": "Mitarbeiter konnte nicht entfernt werden."
                 }
             }
         },

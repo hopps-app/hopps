@@ -1,4 +1,7 @@
 # Infrastructure only, for running the backend services from the IDE.
+# No identity provider: in dev mode Quarkus Dev Services start Keycloak (port 8554),
+# or point quarkus.oidc.auth-server-url at an external one such as the Authentik
+# from docker-compose.authentik.yaml.
 services:
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
@@ -20,27 +23,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-
-  keycloak:
-    image: ghcr.io/hopps-app/hopps/hopps-keycloak:193-keycloak-26.2.1
-    command: start-dev --import-realm
-    ports:
-      - "8092:8080"
-    depends_on:
-      - postgres
-    environment:
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_DB_USERNAME: postgres
-      KC_DB_PASSWORD: postgres
-      KC_HOSTNAME: http://localhost:8092
-      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
-      KC_HTTP_ENABLED: "true"
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-    volumes:
-      # Keycloak requires the import file to be named <realm>-realm.json.
-      - ./hopps-realm.json:/opt/keycloak/data/import/quarkus-realm.json:ro
 
 volumes:
   postgres_data:

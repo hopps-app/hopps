@@ -1,0 +1,34 @@
+# Automatic reading of receipts that are not ZUGFeRD e-invoices (photos, scans,
+# plain PDFs), using Azure Document Intelligence and OpenAI.
+#
+# An overlay for docker-compose.yaml, not a stack of its own. Enable it in .env by
+# adding it to COMPOSE_FILE, e.g.
+#
+#   COMPOSE_FILE=docker-compose.yaml:docker-compose.keycloak.yaml:docker-compose.document-ai.yaml
+#   COMPOSE_PATH_SEPARATOR=:
+#
+# Sends the receipts to Azure and OpenAI, under the operator's own accounts (block D
+# and OPENAI_API_KEY in .env). Without this overlay those receipts are marked for
+# manual entry; ZUGFeRD e-invoices are read by zugferd either way.
+
+services:
+
+  org:
+    environment:
+      HOPPS_DOCUMENT_AI_SERVICE_URL: http://az-document-ai:8080
+
+  az-document-ai:
+    image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-967}
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      HOPPS_AZURE_DOCUMENT_AI_ENDPOINT: ${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT}
+      HOPPS_AZURE_DOCUMENT_AI_KEY: ${HOPPS_AZURE_DOCUMENT_AI_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s

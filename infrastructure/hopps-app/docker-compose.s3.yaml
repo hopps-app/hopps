@@ -1,0 +1,49 @@
+# MinIO as file storage, instead of the local org_storage volume.
+#
+# An overlay for docker-compose.yaml, not a stack of its own. Enable it in .env by
+# adding it to COMPOSE_FILE, e.g.
+#
+#   COMPOSE_FILE=docker-compose.yaml:docker-compose.s3.yaml
+#   COMPOSE_PATH_SEPARATOR=:
+#
+# Use it when org runs more than once or the files should live in an object store.
+# The org_storage volume then stays empty. Switching does not move existing files,
+# see README.md, "File storage".
+
+services:
+
+  org:
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      HOPPS_STORAGE_TYPE: s3
+      # MinIO speaks the S3 API.
+      QUARKUS_S3_ENDPOINT_OVERRIDE: http://minio:9000
+      QUARKUS_S3_PATH_STYLE_ACCESS: "true"
+      QUARKUS_S3_AWS_REGION: ${S3_REGION:-eu-central-1}
+      QUARKUS_S3_AWS_CREDENTIALS_TYPE: static
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+
+  # Receipts and invoices are stored here. Back up the minio_data volume.
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  minio_data:

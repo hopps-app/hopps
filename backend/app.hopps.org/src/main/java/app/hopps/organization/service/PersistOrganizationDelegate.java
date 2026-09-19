@@ -3,7 +3,9 @@ package app.hopps.organization.service;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.member.repository.MemberRoleRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -20,6 +22,9 @@ public class PersistOrganizationDelegate {
 
     @Inject
     MemberRepository memberRepository;
+
+    @Inject
+    MemberRoleRepository memberRoleRepository;
 
     @Inject
     BommelRepository bommelRepository;
@@ -41,5 +46,6 @@ public class PersistOrganizationDelegate {
         memberRepository.persist(owner);
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
+        memberRoleRepository.assign(owner, rootBommel, Role.OWNER);
     }
 }

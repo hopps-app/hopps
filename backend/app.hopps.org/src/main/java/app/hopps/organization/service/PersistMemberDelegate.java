@@ -1,7 +1,9 @@
 package app.hopps.organization.service;
 
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.member.repository.MemberRoleRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,6 +18,9 @@ public class PersistMemberDelegate {
 
     @Inject
     MemberRepository memberRepository;
+
+    @Inject
+    MemberRoleRepository memberRoleRepository;
 
     @Inject
     OrganizationRepository organizationRepository;
@@ -43,5 +48,8 @@ public class PersistMemberDelegate {
         member.addOrganization(attached);
         attached.addMember(member);
         memberRepository.persist(member);
+        if (attached.getRootBommel() != null) {
+            memberRoleRepository.assign(member, attached.getRootBommel(), Role.ADMIN);
+        }
     }
 }

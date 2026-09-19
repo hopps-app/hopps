@@ -4148,6 +4148,10 @@ export class Client {
             result400 = ValidationResult.fromJS(resultData400);
             return throwException("Validation of fields failed", status, _responseText, _headers, result400);
             });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Registration is disabled because accounts are managed by an external identity provider (Authentik)", status, _responseText, _headers);
+            });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
             return throwException("Email or slug already exists", status, _responseText, _headers);
@@ -4513,6 +4517,117 @@ export class Client {
             });
         }
         return Promise.resolve<Member>(null as any);
+    }
+
+    /**
+     * Remove a member from my organization
+     * @param memberId Id of the member to remove
+     * @return Member removed
+     */
+    removeOrganizationMember(memberId: number): Promise<void> {
+        let url_ = this.baseUrl + "/organization/my/members/{memberId}";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveOrganizationMember(_response);
+        });
+    }
+
+    protected processRemoveOrganizationMember(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("The current user may not manage members", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("No member with that id in the current user\'s organization", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The member to remove is the current user or the owner", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Get my permissions in my organization
+     * @return The current user's permissions
+     */
+    getMyPermissions(): Promise<Permission[]> {
+        let url_ = this.baseUrl + "/organization/my/permissions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyPermissions(_response);
+        });
+    }
+
+    protected processGetMyPermissions(response: Response): Promise<Permission[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(item);
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("User has no organization", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Permission[]>(null as any);
     }
 
     /**
@@ -7130,7 +7245,6 @@ export class Bommel implements IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
-    children?: Bommel[];
 
     [key: string]: any;
 
@@ -7155,11 +7269,6 @@ export class Bommel implements IBommel {
             this.responsibleMember = _data["responsibleMember"] ? Member.fromJS(_data["responsibleMember"]) : undefined as any;
             this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : undefined as any;
             this.parent = _data["parent"] ? Bommel.fromJS(_data["parent"]) : undefined as any;
-            if (Array.isArray(_data["children"])) {
-                this.children = [] as any;
-                for (let item of _data["children"])
-                    this.children!.push(Bommel.fromJS(item));
-            }
         }
     }
 
@@ -7182,11 +7291,6 @@ export class Bommel implements IBommel {
         data["responsibleMember"] = this.responsibleMember ? this.responsibleMember.toJSON() : undefined as any;
         data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
         data["parent"] = this.parent ? this.parent.toJSON() : undefined as any;
-        if (Array.isArray(this.children)) {
-            data["children"] = [];
-            for (let item of this.children)
-                data["children"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 
@@ -7205,7 +7309,6 @@ export interface IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
-    children?: Bommel[];
 
     [key: string]: any;
 }
@@ -9167,6 +9270,8 @@ export class Member implements IMember {
     /** Whether the member can log in, and how far their invitation got */
     readonly status!: MemberStatus;
     organizations?: Organization[];
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    readonly setupLink?: string;
 
     [key: string]: any;
 
@@ -9196,6 +9301,7 @@ export class Member implements IMember {
                 for (let item of _data["organizations"])
                     this.organizations!.push(Organization.fromJS(item));
             }
+            (this as any).setupLink = _data["setupLink"];
         }
     }
 
@@ -9223,6 +9329,7 @@ export class Member implements IMember {
             for (let item of this.organizations)
                 data["organizations"].push(item ? item.toJSON() : undefined as any);
         }
+        data["setupLink"] = this.setupLink;
         return data;
     }
 
@@ -9247,6 +9354,8 @@ export interface IMember {
     /** Whether the member can log in, and how far their invitation got */
     status: MemberStatus;
     organizations?: Organization[];
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    setupLink?: string;
 
     [key: string]: any;
 }
@@ -10057,6 +10166,8 @@ export interface IPagedValuesResponse {
 
     [key: string]: any;
 }
+
+export type Permission = "MANAGE_MEMBERS";
 
 /** Pending group state to preview the re-draft impact */
 export class ReopenImpactRequest implements IReopenImpactRequest {

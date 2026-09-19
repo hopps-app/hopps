@@ -2,6 +2,7 @@ package app.hopps.member.domain;
 
 import app.hopps.organization.domain.Organization;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
@@ -11,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -80,6 +82,18 @@ public class Member extends PanacheEntity {
     @Column(name = "last_seen_at")
     private Instant lastSeenAt;
 
+    /**
+     * One-time link in which an invited person sets their own password, for the inviting admin to pass on. Only set in
+     * the response to adding a member, and only when the identity provider could not email the invitation itself
+     * (Authentik without a mail server). Never persisted: it is a credential for the new account.
+     */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "One-time link in which the invited person sets their password, to be passed on by the "
+            + "inviting admin. Only present right after adding a member whose invitation email could not be sent.")
+    private String setupLink;
+
     @JsonIgnore
     public Collection<Organization> getOrganizations() {
         return Collections.unmodifiableCollection(organizations);
@@ -147,5 +161,13 @@ public class Member extends PanacheEntity {
 
     public MemberStatus getStatus() {
         return status;
+    }
+
+    public void setSetupLink(String setupLink) {
+        this.setupLink = setupLink;
+    }
+
+    public String getSetupLink() {
+        return setupLink;
     }
 }
