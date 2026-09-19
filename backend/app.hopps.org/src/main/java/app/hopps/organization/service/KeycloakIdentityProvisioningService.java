@@ -3,6 +3,7 @@ package app.hopps.organization.service;
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.MemberStatus;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Typed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -18,6 +19,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Used when {@code app.hopps.org.auth.provider=keycloak}, the default. See {@link IdentityProvisioningServiceProducer}.
+ */
+@Typed(KeycloakIdentityProvisioningService.class)
 @ApplicationScoped
 public class KeycloakIdentityProvisioningService implements IdentityProvisioningService {
 

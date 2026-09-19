@@ -34,6 +34,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -71,6 +72,9 @@ public class OrganizationResource {
 
     @Inject
     JsonWebToken jwt;
+
+    @ConfigProperty(name = "app.hopps.org.auth.provider")
+    String authProvider;
 
     @GET
     @Path("{slug}")
@@ -301,7 +305,14 @@ public class OrganizationResource {
     @APIResponse(responseCode = "201", description = "Organization created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "409", description = "Email or slug already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    @APIResponse(responseCode = "403", description = "Registration is disabled because accounts are managed by an external identity provider (Authentik)")
     public Response create(NewOrganizationInput input) {
+        // With Authentik the partner owns the accounts, so there is no founder account for hopps to create. Refuse
+        // before validating, so this public endpoint does not reveal which emails or slugs exist.
+        if ("authentik".equals(authProvider)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
         Organization organization = input.toOrganization();
         Member owner = input.toOwner();
 
@@ -335,7 +346,7 @@ public class OrganizationResource {
     @Authenticated
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app: a Keycloak account is provisioned and Keycloak emails them an invitation link in which they set their own password. The returned member's status says whether that email went out (INVITED) or could not be sent (INVITATION_FAILED) — the account exists either way.")
+    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app. With Keycloak, an account is provisioned and Keycloak emails them an invitation link in which they set their own password. With Authentik, an existing account for that email is linked as is; otherwise one is created and Authentik emails the link, or, without a mail server, the returned member carries it as setupLink for the inviting admin to pass on. The status says whether an email went out (INVITED) or not (INVITATION_FAILED); the account exists either way.")
     @APIResponse(responseCode = "201", description = "Member added to the organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed")
     @APIResponse(responseCode = "401", description = "User not logged in")

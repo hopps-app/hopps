@@ -3,10 +3,11 @@ package app.hopps.organization.service;
 import app.hopps.member.domain.Member;
 
 /**
- * Provisions member accounts with whichever identity provider the deployment is configured to use.
- * {@link KeycloakIdentityProvisioningService} is the only implementation today; a self-hosted deployment that wants a
- * different provider (e.g. Authentik) is meant to add its own implementation of this interface rather than change the
- * callers.
+ * Provisions member accounts with whichever identity provider the deployment is configured to use, selected via
+ * {@code app.hopps.org.auth.provider}: {@link KeycloakIdentityProvisioningService} ({@code keycloak}, the default) or
+ * {@link app.hopps.organization.service.authentik.AuthentikIdentityProvisioningService} ({@code authentik}).
+ * {@link IdentityProvisioningServiceProducer} hands out the active one, so callers keep injecting this interface
+ * without caring which provider is behind it.
  */
 public interface IdentityProvisioningService {
 
@@ -18,6 +19,9 @@ public interface IdentityProvisioningService {
      *            the founder to provision; its email becomes the username
      * @param newPassword
      *            the password the founder chose
+     *
+     * @throws UnsupportedOperationException
+     *             if the provider's accounts belong to someone else (Authentik), where registration is disabled
      */
     void createOwner(Member owner, String newPassword);
 
