@@ -9,6 +9,7 @@ import { z } from 'zod';
 
 import { LoadingState } from '@/components/common/LoadingState';
 import { AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
+import { SetupLinkDialog } from '@/components/Organization/SetupLinkDialog';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
@@ -333,6 +334,8 @@ function OrganizationDetailsSettingsView() {
     const [pendingLogo, setPendingLogo] = useState<File | null>(null);
     const [logoVersion, setLogoVersion] = useState(0);
     const [addUserOpen, setAddUserOpen] = useState(false);
+    // Set-password link of a just added person whose invitation email could not be sent, for the admin to pass on.
+    const [setupLink, setSetupLink] = useState<{ link: string; name: string } | null>(null);
 
     const handleAddUser = useCallback(
         async (values: NewUserValues) => {
@@ -342,8 +345,9 @@ function OrganizationDetailsSettingsView() {
             input.email = values.email;
             input.position = values.position || undefined;
 
+            let added: Member;
             try {
-                await apiService.orgService.addOrganizationMember(input);
+                added = await apiService.orgService.addOrganizationMember(input);
             } catch (error) {
                 console.error('Failed to add member:', error);
                 const duplicate = ApiException.isApiException(error) && error.status === 409;
@@ -357,6 +361,9 @@ function OrganizationDetailsSettingsView() {
 
             await queryClient.invalidateQueries({ queryKey: ['organization', organization?.slug, 'members'] });
             toast({ title: t('organization.details.users.add.success'), variant: 'success' });
+            if (added.setupLink) {
+                setSetupLink({ link: added.setupLink, name: `${added.firstName ?? ''} ${added.lastName ?? ''}`.trim() });
+            }
         },
         [organization?.slug, queryClient, t, toast]
     );
@@ -770,6 +777,7 @@ function OrganizationDetailsSettingsView() {
 
             {/* Outside the form on purpose: a portalled dialog still bubbles its submit up the React tree. */}
             <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} onSubmit={handleAddUser} />
+            <SetupLinkDialog link={setupLink?.link ?? null} name={setupLink?.name ?? ''} onClose={() => setSetupLink(null)} />
         </>
     );
 }
