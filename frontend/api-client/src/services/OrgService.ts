@@ -4148,6 +4148,10 @@ export class Client {
             result400 = ValidationResult.fromJS(resultData400);
             return throwException("Validation of fields failed", status, _responseText, _headers, result400);
             });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Registration is disabled because accounts are managed by an external identity provider (Authentik)", status, _responseText, _headers);
+            });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
             return throwException("Email or slug already exists", status, _responseText, _headers);
@@ -7130,7 +7134,6 @@ export class Bommel implements IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
-    children?: Bommel[];
 
     [key: string]: any;
 
@@ -7155,11 +7158,6 @@ export class Bommel implements IBommel {
             this.responsibleMember = _data["responsibleMember"] ? Member.fromJS(_data["responsibleMember"]) : undefined as any;
             this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : undefined as any;
             this.parent = _data["parent"] ? Bommel.fromJS(_data["parent"]) : undefined as any;
-            if (Array.isArray(_data["children"])) {
-                this.children = [] as any;
-                for (let item of _data["children"])
-                    this.children!.push(Bommel.fromJS(item));
-            }
         }
     }
 
@@ -7182,11 +7180,6 @@ export class Bommel implements IBommel {
         data["responsibleMember"] = this.responsibleMember ? this.responsibleMember.toJSON() : undefined as any;
         data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
         data["parent"] = this.parent ? this.parent.toJSON() : undefined as any;
-        if (Array.isArray(this.children)) {
-            data["children"] = [];
-            for (let item of this.children)
-                data["children"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 
@@ -7205,7 +7198,6 @@ export interface IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
-    children?: Bommel[];
 
     [key: string]: any;
 }
@@ -9167,6 +9159,8 @@ export class Member implements IMember {
     /** Whether the member can log in, and how far their invitation got */
     readonly status!: MemberStatus;
     organizations?: Organization[];
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    readonly setupLink?: string;
 
     [key: string]: any;
 
@@ -9196,6 +9190,7 @@ export class Member implements IMember {
                 for (let item of _data["organizations"])
                     this.organizations!.push(Organization.fromJS(item));
             }
+            (this as any).setupLink = _data["setupLink"];
         }
     }
 
@@ -9223,6 +9218,7 @@ export class Member implements IMember {
             for (let item of this.organizations)
                 data["organizations"].push(item ? item.toJSON() : undefined as any);
         }
+        data["setupLink"] = this.setupLink;
         return data;
     }
 
@@ -9247,6 +9243,8 @@ export interface IMember {
     /** Whether the member can log in, and how far their invitation got */
     status: MemberStatus;
     organizations?: Organization[];
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    setupLink?: string;
 
     [key: string]: any;
 }
