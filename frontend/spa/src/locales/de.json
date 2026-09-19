@@ -418,6 +418,14 @@
                     "copy": "Link kopieren",
                     "copied": "Link kopiert",
                     "copyFailed": "Link konnte nicht kopiert werden"
+                },
+                "remove": {
+                    "button": "{{name}} entfernen",
+                    "title": "Mitarbeiter entfernen?",
+                    "description": "{{name}} hat danach keinen Zugang mehr zu dieser Organisation in hopps. Das Konto beim Anmeldedienst bleibt bestehen.",
+                    "confirm": "Entfernen",
+                    "success": "Mitarbeiter entfernt",
+                    "error": "Mitarbeiter konnte nicht entfernt werden."
                 }
             }
         },

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Address, ApiException, Member, MemberStatus, NewMemberInput, OrganizationInput, OrganizationType } from '@hopps/api-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, Check, Globe, ImageIcon, Info, Landmark, Undo2, Upload, UserPlus, Users } from 'lucide-react';
+import { Building2, Check, Globe, ImageIcon, Info, Landmark, Trash2, Undo2, Upload, UserPlus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { LoadingState } from '@/components/common/LoadingState';
 import { AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
 import { SetupLinkDialog } from '@/components/Organization/SetupLinkDialog';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
@@ -106,7 +107,16 @@ const AVATAR_TONES = [
     'bg-[#F1F1F4] text-[#6B6B76] dark:bg-[#26262D] dark:text-[#A0A0AC]',
 ];
 
-const USER_ROW_GRID = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)] gap-3';
+// One grid for the whole user list, with each row as a subgrid: the columns are sized across all rows, so a long
+// status pill ("Einladung fehlgeschlagen") no longer shifts that one row's columns out of line with the others.
+const USER_LIST_GRID = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)] gap-x-3';
+// Same columns plus one for the remove button, for users who may manage members.
+const USER_LIST_GRID_WITH_ACTIONS = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)_32px] gap-x-3';
+const USER_ROW = 'col-span-full grid grid-cols-subgrid';
+
+function displayName(member: Member): string {
+    return [member.firstName, member.lastName].filter(Boolean).join(' ') || member.email || '';
+}
 
 /** One tone per {@link MemberStatus}: gold while the invitation is pending, red once it could not be delivered. */
 const STATUS_TONES: Record<MemberStatus, string> = {
@@ -452,6 +462,32 @@ function OrganizationDetailsSettingsView() {
         queryFn: () => apiService.orgService.members(slug!),
         enabled: !!slug,
     });
+    const { data: permissions = [] } = useQuery({
+        queryKey: ['organization', slug, 'permissions'],
+        queryFn: () => apiService.orgService.getMyPermissions(),
+        enabled: !!slug,
+    });
+    const canManageMembers = permissions.includes('MANAGE_MEMBERS');
+    const currentUserEmail = useStore((state) => state.user?.email)?.toLowerCase();
+
+    const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
+    const [removingMember, setRemovingMember] = useState(false);
+    const handleRemoveMember = useCallback(async () => {
+        if (memberToRemove?.id == null) return;
+        setRemovingMember(true);
+        try {
+            await apiService.orgService.removeOrganizationMember(memberToRemove.id);
+            await queryClient.invalidateQueries({ queryKey: ['organization', slug, 'members'] });
+            toast({ title: t('organization.details.users.remove.success'), variant: 'success' });
+            setMemberToRemove(null);
+        } catch (error) {
+            console.error('Failed to remove member:', error);
+            toast({ title: t('organization.details.users.remove.error'), variant: 'error' });
+        } finally {
+            setRemovingMember(false);
+        }
+    }, [memberToRemove, queryClient, slug, t, toast]);
+    const userListGrid = canManageMembers ? USER_LIST_GRID_WITH_ACTIONS : USER_LIST_GRID;
 
     const onSubmit = useCallback(
         async (data: FormValues) => {
@@ -736,23 +772,26 @@ function OrganizationDetailsSettingsView() {
                             ) : users.length === 0 ? (
                                 <p className="py-4 text-[13.5px] text-[#9A9AA3] dark:text-[#7A7A86]">{t('organization.details.users.empty')}</p>
                             ) : (
-                                <div>
+                                <div className={userListGrid}>
                                     <div
-                                        className={`${USER_ROW_GRID} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76] dark:text-[#A0A0AC]`}
+                                        className={`${USER_ROW} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76] dark:text-[#A0A0AC]`}
                                     >
                                         <span>{t('organization.details.users.name')}</span>
                                         <span>{t('organization.details.users.position')}</span>
                                         <span>{t('organization.details.users.email')}</span>
                                         <span>{t('organization.details.users.status.title')}</span>
+                                        {canManageMembers && <span />}
                                     </div>
                                     {users.map((user) => {
-                                        const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+                                        const name = displayName(user);
+                                        // Nobody can remove themselves (the backend refuses too).
+                                        const isCurrentUser = !!currentUserEmail && user.email?.toLowerCase() === currentUserEmail;
                                         // The backend does not carry a position per member yet — see issue #751.
                                         const position = typeof user.position === 'string' ? user.position.trim() : '';
                                         return (
                                             <div
                                                 key={user.id ?? user.email}
-                                                className={`${USER_ROW_GRID} items-center px-1 py-[11px] border-t border-[#E9E9EE] dark:border-[#2E2E36]`}
+                                                className={`${USER_ROW} items-center px-1 py-[11px] border-t border-[#E9E9EE] dark:border-[#2E2E36]`}
                                             >
                                                 <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5] min-w-0">
                                                     <UserAvatar name={name} />
@@ -765,6 +804,20 @@ function OrganizationDetailsSettingsView() {
                                                 </span>
                                                 <span className="text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate">{user.email}</span>
                                                 <StatusPill status={user.status ?? 'NO_ACCESS'} />
+                                                {canManageMembers &&
+                                                    (isCurrentUser ? (
+                                                        <span />
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setMemberToRemove(user)}
+                                                            aria-label={t('organization.details.users.remove.button', { name })}
+                                                            title={t('organization.details.users.remove.button', { name })}
+                                                            className="grid h-8 w-8 place-items-center rounded-full text-[#9A9AA3] transition-colors hover:bg-[#FBE9E7] hover:text-[#B4342A] dark:text-[#7A7A86] dark:hover:bg-[#3A1D19] dark:hover:text-[#F0958A]"
+                                                        >
+                                                            <Trash2 size={16} aria-hidden="true" />
+                                                        </button>
+                                                    ))}
                                             </div>
                                         );
                                     })}
@@ -778,6 +831,16 @@ function OrganizationDetailsSettingsView() {
             {/* Outside the form on purpose: a portalled dialog still bubbles its submit up the React tree. */}
             <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} onSubmit={handleAddUser} />
             <SetupLinkDialog link={setupLink?.link ?? null} name={setupLink?.name ?? ''} onClose={() => setSetupLink(null)} />
+            <ConfirmDialog
+                open={memberToRemove !== null}
+                onOpenChange={(open) => !open && !removingMember && setMemberToRemove(null)}
+                title={t('organization.details.users.remove.title')}
+                description={t('organization.details.users.remove.description', { name: memberToRemove ? displayName(memberToRemove) : '' })}
+                confirmLabel={t('organization.details.users.remove.confirm')}
+                onConfirm={handleRemoveMember}
+                destructive
+                loading={removingMember}
+            />
         </>
     );
 }
