@@ -1,8 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import Header from '../Header';
+
+// Pin the Keycloak mode, where registration is offered: a developer's .env.local may point the SPA at an OIDC provider.
+vi.mock('@/services/auth/auth.config.ts', () => ({
+    oidcProviderUrl: undefined,
+    oidcClientId: undefined,
+    isSelfRegistrationEnabled: true,
+}));
 
 describe('Header', () => {
     test('renders the header with login and register buttons', () => {
