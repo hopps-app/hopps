@@ -1,6 +1,7 @@
 package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.Permission;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.model.NewMemberInput;
 import app.hopps.organization.model.NewOrganizationInput;
@@ -9,6 +10,7 @@ import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.organization.service.OrganizationLogoService;
 import app.hopps.organization.service.OrganizationMemberService;
+import app.hopps.shared.security.AccessService;
 import app.hopps.shared.security.SecurityUtils;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import app.hopps.shared.validation.RestValidator;
@@ -23,6 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
@@ -37,6 +40,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -69,6 +73,9 @@ public class OrganizationResource {
 
     @Inject
     OrganizationMemberService organizationMemberService;
+
+    @Inject
+    AccessService accessService;
 
     @Inject
     JsonWebToken jwt;
@@ -378,6 +385,37 @@ public class OrganizationResource {
         }
 
         return Response.status(Response.Status.CREATED).entity(member).build();
+    }
+
+    @GET
+    @Path("/my/permissions")
+    @Authenticated
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(operationId = "getMyPermissions", summary = "Get my permissions in my organization", description = "Returns what the current user may do in their organization as a whole, derived from the roles they hold on its root bommel.")
+    @APIResponse(responseCode = "200", description = "The current user's permissions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = Permission.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "User has no organization")
+    public Set<Permission> getMyPermissions(@Context SecurityContext securityContext) {
+        Member currentUser = securityUtils.getCurrentUser(securityContext);
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+        return accessService.permissions(currentUser, organization);
+    }
+
+    @DELETE
+    @Path("/my/members/{memberId}")
+    @Authenticated
+    @Operation(operationId = "removeOrganizationMember", summary = "Remove a member from my organization", description = "Removes a person from the current user's organization. Needs the MANAGE_MEMBERS permission; nobody can remove themselves or the owner. Only hopps's own records are deleted: the person's account at the identity provider (Keycloak or Authentik) stays untouched, so they can still log in there, just no longer into this organization.")
+    @APIResponse(responseCode = "204", description = "Member removed")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "The current user may not manage members")
+    @APIResponse(responseCode = "404", description = "No member with that id in the current user's organization")
+    @APIResponse(responseCode = "409", description = "The member to remove is the current user or the owner")
+    public Response removeMemberFromMyOrganization(@Context SecurityContext securityContext,
+            @PathParam("memberId") @Parameter(description = "Id of the member to remove") long memberId) {
+        Member currentUser = securityUtils.getCurrentUser(securityContext);
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+        organizationMemberService.removeMember(organization, memberId, currentUser);
+        return Response.noContent().build();
     }
 
     @POST

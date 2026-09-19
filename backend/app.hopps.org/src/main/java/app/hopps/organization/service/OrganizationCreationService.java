@@ -4,7 +4,9 @@ import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.MemberStatus;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
+import app.hopps.member.repository.MemberRoleRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
@@ -46,6 +48,9 @@ public class OrganizationCreationService {
 
     @Inject
     MemberRepository memberRepository;
+
+    @Inject
+    MemberRoleRepository memberRoleRepository;
 
     @Inject
     OrganizationRepository organizationRepository;
@@ -152,6 +157,7 @@ public class OrganizationCreationService {
         }
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
+        memberRoleRepository.assign(member, rootBommel, Role.OWNER);
 
         LOG.info("Created organization {} ({}) for existing user {}", organization.getName(), organization.getSlug(),
                 keycloakId);
