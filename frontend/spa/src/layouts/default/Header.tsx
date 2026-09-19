@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AlphaBadge from '@/components/ui/AlphaBadge';
 import Button from '@/components/ui/Button.tsx';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
+import { isSelfRegistrationEnabled } from '@/services/auth/auth.config.ts';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store';
 
@@ -46,7 +47,7 @@ function Header() {
                                 <Button variant="link" className="px-0" onClick={onClickLogin}>
                                     {t('header.login')}
                                 </Button>
-                                <Button onClick={onClickRegister}>{t('header.register')}</Button>
+                                {isSelfRegistrationEnabled && <Button onClick={onClickRegister}>{t('header.register')}</Button>}
                             </div>
                         )
                     )}

@@ -11,6 +11,9 @@ ENV VITE_KEYCLOAK_CLIENT_ID="VITE_KEYCLOAK_CLIENT_ID_VALUE"
 ENV VITE_ALPHA_VERSION="VITE_ALPHA_VERSION_VALUE"
 ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
 ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
+# VITE_OIDC_PROVIDER_URL / VITE_OIDC_CLIENT_ID are optional and deliberately have no
+# default here: set them to log in at an external OIDC provider (e.g. Authentik)
+# instead of Keycloak. Left unset, replaceEnvs.sh blanks them and Keycloak is used.
 
 # Legal pages (Impressum / Datenschutzerklärung) are configured at runtime, not
 # baked in. Link an external page with HOPPS_IMPRINT_URL / HOPPS_PRIVACY_URL, or
