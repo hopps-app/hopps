@@ -1,6 +1,6 @@
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
-import { de, enUS, uk } from 'date-fns/locale';
+import { de, enUS, fr, it, uk } from 'date-fns/locale';
 import { X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -39,6 +39,10 @@ export const DateRangeFilter = ({ filters, onChange, label }: DateRangeFilterPro
                 return de;
             case 'uk':
                 return uk;
+            case 'it':
+                return it;
+            case 'fr':
+                return fr;
             default:
                 return enUS;
         }
