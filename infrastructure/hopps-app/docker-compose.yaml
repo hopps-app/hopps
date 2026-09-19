@@ -37,7 +37,6 @@ services:
       VITE_TITLE: ${VITE_TITLE:-Hopps}
       VITE_GENERAL_DATE_FORMAT: ${VITE_GENERAL_DATE_FORMAT:-dd.MM.yyyy}
       VITE_GENERAL_CURRENCY_SYMBOL_AFTER: ${VITE_GENERAL_CURRENCY_SYMBOL_AFTER:-€}
-      VITE_ALPHA_VERSION: ${VITE_ALPHA_VERSION:-false}
       VITE_API_ORG_URL: ${PUBLIC_ORG_URL}
       # -- login at the external OIDC provider (the browser talks to it directly)
       VITE_OIDC_PROVIDER_URL: ${PUBLIC_OIDC_ISSUER_URL:-}

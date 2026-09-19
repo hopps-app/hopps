@@ -11,9 +11,6 @@ interface ImportMetaEnv {
     readonly VITE_OIDC_PROVIDER_URL?: string;
     readonly VITE_OIDC_CLIENT_ID?: string;
 
-    // Feature flags
-    readonly VITE_ALPHA_VERSION: string;
-
     // API URLs
     readonly VITE_API_ORG_URL: string;
 }

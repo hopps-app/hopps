@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ApiException, NewOrganizationInput } from '@hopps/api-client';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -11,7 +11,6 @@ import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
-import { isAlphaVersion } from '@/utils/featureFlags';
 
 type FormFields = {
     organizationName: string;
@@ -20,7 +19,6 @@ type FormFields = {
     email: string;
     password: string;
     passwordConfirm: string;
-    alphaConsent: boolean;
 };
 
 type Props = {
@@ -40,8 +38,6 @@ export function OrganizationRegistrationForm(props: Props) {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
 
-    const alphaEnabled = isAlphaVersion();
-
     const schema = useMemo(
         () =>
             z
@@ -52,13 +48,12 @@ export function OrganizationRegistrationForm(props: Props) {
                     email: z.string().email(t('validation.email')),
                     password: z.string().min(8, t('validation.passwordMin')),
                     passwordConfirm: z.string().min(8, t('validation.passwordMin')),
-                    alphaConsent: alphaEnabled ? z.literal(true, { message: t('alpha.consentRequired') }) : z.boolean(),
                 })
                 .refine((data) => data.password === data.passwordConfirm, {
                     message: t('validation.passwordMatch'),
                     path: ['passwordConfirm'],
                 }),
-        [t, alphaEnabled]
+        [t]
     );
 
     const { register, handleSubmit, watch, formState } = useForm<FormFields>({
@@ -68,7 +63,6 @@ export function OrganizationRegistrationForm(props: Props) {
     });
     const errors = formState.errors;
     const submittingRef = useRef(false);
-    const [showConsentDetails, setShowConsentDetails] = useState(false);
     const password = watch('password') ?? '';
 
     async function onSubmit(data: FormFields) {
@@ -174,27 +168,6 @@ export function OrganizationRegistrationForm(props: Props) {
                     autoComplete="new-password"
                 />
             </div>
-
-            {alphaEnabled && (
-                <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 dark:border-amber-700/60 dark:bg-amber-900/20">
-                    <label className="flex items-start gap-2 cursor-pointer">
-                        <input type="checkbox" {...register('alphaConsent')} className="mt-0.5 h-4 w-4 rounded border-amber-400 accent-primary" />
-                        <span className="text-xs text-amber-900 dark:text-amber-200">
-                            {t('alpha.consentLabel')}{' '}
-                            <button
-                                type="button"
-                                className="underline underline-offset-2 hover:text-amber-950 dark:hover:text-amber-100"
-                                aria-expanded={showConsentDetails}
-                                onClick={() => setShowConsentDetails((prev) => !prev)}
-                            >
-                                {showConsentDetails ? t('alpha.hideDetails') : t('alpha.details')}
-                            </button>
-                        </span>
-                    </label>
-                    {showConsentDetails && <p className="mt-1 ml-6 text-xs text-amber-800 dark:text-amber-300">{t('alpha.consentText')}</p>}
-                    {errors.alphaConsent && <p className="mt-1 ml-6 text-xs text-destructive">{errors.alphaConsent.message}</p>}
-                </div>
-            )}
 
             <div className="mt-6">
                 <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
