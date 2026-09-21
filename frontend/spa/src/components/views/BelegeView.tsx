@@ -34,6 +34,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import InvoiceUploadFormBommelSelector, { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
+import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
@@ -176,7 +177,7 @@ function DirectionToggle({
                         )}
                         style={{
                             borderColor: active ? ink : '#E9E9EE',
-                            background: active ? bg : '#F8F8FA',
+                            background: active ? bg : '#FFFFFF',
                             fontFamily: FONT,
                         }}
                     >
@@ -271,7 +272,7 @@ function ReceiptDataRow({
     applyLabel: string;
 }) {
     return (
-        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-[10px] border border-[#E9E9EE]" style={{ background: '#FFFFFF' }}>
             <div className="min-w-0">
                 <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3]">{label}</div>
                 <div className="text-[13.5px] text-[#1B1B1F] truncate">{value || '—'}</div>
@@ -568,7 +569,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                     'fixed top-0 right-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out',
                     open ? 'translate-x-0' : 'translate-x-full'
                 )}
-                style={{ width: 460, maxWidth: '100vw', background: '#FFFFFF', boxShadow: '0 12px 40px rgba(20,20,40,.16)', fontFamily: FONT }}
+                style={{ width: 460, maxWidth: '100vw', background: 'var(--drawer-bg)', boxShadow: 'var(--shadow-lg)', fontFamily: FONT }}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-[#E9E9EE]">
@@ -576,12 +577,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                         <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">{t('receipts.review.title')}</span>
                         {doc && <p className="mt-0.5 text-[13px] text-[#6B6B76] truncate max-w-[300px]">{doc.fileName}</p>}
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="w-9 h-9 flex items-center justify-center rounded-full border border-[#E9E9EE] text-[#6B6B76] hover:text-[#1B1B1F] transition-colors"
-                    >
-                        <X size={17} />
-                    </button>
+                    <CloseButton onClick={onClose} />
                 </div>
 
                 {!doc ? (
@@ -593,7 +589,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                         <div className="flex-1 overflow-y-auto">
                             {/* Status bar — the analyzing/ready/failed states are explained by the banner below, so the
                                 short description is only shown for the states without a banner (pending, confirmed). */}
-                            <div className="px-6 py-3 border-b border-[#E9E9EE] flex flex-col gap-1.5" style={{ background: '#F8F8FA' }}>
+                            <div className="px-6 py-3 border-b border-[#E9E9EE] flex flex-col gap-1.5" style={{ background: '#FFFFFF' }}>
                                 <div className="flex items-center gap-2">
                                     <StatusBadge status={status} />
                                 </div>
@@ -604,7 +600,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
 
                             {/* File preview card */}
                             <div className="px-6 pt-5 pb-4">
-                                <div className="flex items-center gap-3 p-4 rounded-[14px] border border-[#E9E9EE]" style={{ background: '#F8F8FA' }}>
+                                <div className="flex items-center gap-3 p-4 rounded-[14px] border border-[#E9E9EE]" style={{ background: '#FFFFFF' }}>
                                     <div
                                         className="w-11 h-11 rounded-[10px] flex items-center justify-center flex-shrink-0 text-xl"
                                         style={{ background: '#F3EAFB' }}
@@ -683,7 +679,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     <button
                                         onClick={() => navigate(`/transactions?id=${doc.transactionId}`)}
                                         className="w-full flex items-center gap-3 p-3 rounded-[12px] border border-[#E9E9EE] text-left transition-colors hover:border-[#C7A2E3] hover:bg-[#F3EAFB]"
-                                        style={{ background: '#F8F8FA' }}
+                                        style={{ background: '#FFFFFF' }}
                                     >
                                         <span
                                             className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
@@ -706,7 +702,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                             {hasLinkedTransaction && linkedBankTxns.length > 0 && (
                                 <div className="px-6 pt-2 space-y-2">
                                     {linkedBankTxns.map((b) => (
-                                        <div key={b.id} className="rounded-[12px] border border-[#E9E9EE] p-3.5" style={{ background: '#F8F8FA' }}>
+                                        <div key={b.id} className="rounded-[12px] border border-[#E9E9EE] p-3.5" style={{ background: '#FFFFFF' }}>
                                             <div className="flex items-center gap-2 mb-2.5">
                                                 <Landmark size={14} className="text-[#1F7A50] flex-shrink-0" />
                                                 <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#9A9AA3]">
@@ -848,7 +844,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                         className="w-full flex items-center gap-3 p-3 rounded-[10px] border transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                                         style={{
                                             borderColor: privatelyPaid ? '#9955CC' : '#E9E9EE',
-                                            background: privatelyPaid ? '#F3EAFB' : '#F8F8FA',
+                                            background: privatelyPaid ? '#F3EAFB' : '#FFFFFF',
                                         }}
                                     >
                                         <span
@@ -932,7 +928,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                     type="button"
                                                     onClick={() => doc.id && reanalyzeMutation.mutate(doc.id)}
                                                     disabled={reanalyzeMutation.isPending}
-                                                    className="mt-1 flex items-center gap-1.5 py-2 px-4 rounded-full text-[13px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-[#F8F8FA] transition-colors disabled:opacity-50"
+                                                    className="mt-1 flex items-center gap-1.5 py-2 px-4 rounded-full text-[13px] font-bold border border-[#E0E0E6] text-[#6B6B76] hover:bg-white transition-colors disabled:opacity-50"
                                                 >
                                                     <RefreshCw size={13} className={reanalyzeMutation.isPending ? 'animate-spin' : ''} />
                                                     {t('receipts.review.reanalyze')}
@@ -945,7 +941,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                         </div>
 
                         {/* Footer */}
-                        <div className="px-6 py-4 border-t border-[#E9E9EE] flex flex-col gap-2" style={{ background: '#FFFFFF' }}>
+                        <div className="px-6 py-4 border-t border-[#E9E9EE] flex flex-col gap-2" style={{ background: 'var(--drawer-bg)' }}>
                             {isFinalized ? (
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-[13px] text-[#6B6B76]">{t('receipts.review.alreadyConfirmed')}</span>
