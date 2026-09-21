@@ -16,6 +16,7 @@ import app.hopps.transaction.api.dto.TransactionUpdateRequest;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionChangedEvent;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
+import app.hopps.transaction.domain.TransactionDisplayStatus;
 import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
 import io.quarkus.panache.common.Page;
@@ -98,6 +99,7 @@ public class TransactionResource {
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
             @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
+            @QueryParam("displayStatus") @Parameter(description = "Filter by derived display status; repeatable and combined with OR. DRAFT: nothing linked, PARTIAL: bank movements cover only part of the amount, LINKED: covered exactly but not confirmed, CONFIRMED") List<TransactionDisplayStatus> displayStatuses,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
             @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues,
@@ -126,6 +128,7 @@ public class TransactionResource {
                 endInstant,
                 bommelIds,
                 status,
+                displayStatuses,
                 privatelyPaid,
                 detached,
                 categoryValues,
@@ -151,6 +154,7 @@ public class TransactionResource {
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
             @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
+            @QueryParam("displayStatus") @Parameter(description = "Filter by derived display status; repeatable and combined with OR. DRAFT: nothing linked, PARTIAL: bank movements cover only part of the amount, LINKED: covered exactly but not confirmed, CONFIRMED") List<TransactionDisplayStatus> displayStatuses,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
             @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues) {
@@ -165,9 +169,9 @@ public class TransactionResource {
         }
 
         BigDecimal[] sums = transactionRepository.aggregate(search, startInstant, endInstant, bommelIds, status,
-                privatelyPaid, detached, categoryValues);
+                displayStatuses, privatelyPaid, detached, categoryValues);
         long count = transactionRepository.countFiltered(search, startInstant, endInstant, bommelIds, status,
-                privatelyPaid, detached, categoryValues);
+                displayStatuses, privatelyPaid, detached, categoryValues);
         return new TransactionAggregateResponse(sums[0], sums[1], count);
     }
 
