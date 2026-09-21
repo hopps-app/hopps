@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { useLegalConfig } from '@/hooks/use-legal-config';
+import { cn } from '@/lib/utils';
 import type { LegalPageConfig } from '@/services/legal/legalService';
 
 const LINK_CLASS = 'hover:text-foreground transition-colors';
@@ -37,7 +38,7 @@ export function LegalFooter({ className = '' }: { className?: string }) {
     if (!showImprint && !showPrivacy) return null;
 
     return (
-        <footer className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-4 text-sm text-muted-foreground ${className}`}>
+        <footer className={cn('flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-4 text-sm text-muted-foreground', className)}>
             {showImprint && <LegalLink config={config.imprint} route="/impressum" label={t('legal.imprint')} />}
             {showImprint && showPrivacy && <span aria-hidden="true">·</span>}
             {showPrivacy && <LegalLink config={config.privacy} route="/datenschutz" label={t('legal.privacy')} />}

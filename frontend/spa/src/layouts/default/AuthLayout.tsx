@@ -35,12 +35,13 @@ export default function AuthLayout() {
                 >
                     <main className="flex-1 min-h-0 overflow-auto">
                         <div className="flex h-full flex-col">
-                            <div className="flex-1 p-4 sm:p-7">
+                            <div className="flex-1 p-4 sm:p-7 sm:pb-5">
                                 <ErrorBoundary key={location.pathname}>
                                     <Outlet />
                                 </ErrorBoundary>
                             </div>
-                            <LegalFooter className="px-4" />
+                            {/* The gap to the content is the content's own bottom padding, so the footer adds none above. */}
+                            <LegalFooter className="px-4 pt-0" />
                         </div>
                     </main>
                 </div>
