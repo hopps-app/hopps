@@ -51,6 +51,34 @@ class StorageKeysTest {
     }
 
     @Test
+    void shouldKeepDisplayNamesReadable() {
+        // Unlike the key, the display name keeps spaces and umlauts - it is what the user sees again.
+        assertEquals("Beleg Mai 2026 ü.pdf", StorageKeys.displayName("  Beleg Mai 2026 ü.pdf  ", "fallback"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "", "   " })
+    void shouldFallBackForBlankDisplayName(String fileName) {
+        assertEquals("fallback", StorageKeys.displayName(fileName, "fallback"));
+    }
+
+    @Test
+    void shouldFallBackForNullDisplayName() {
+        assertEquals("fallback", StorageKeys.displayName(null, "fallback"));
+    }
+
+    @Test
+    void shouldFitDisplayNameIntoTheDatabaseColumn() {
+        String name = "a".repeat(400) + ".pdf";
+
+        String displayName = StorageKeys.displayName(name, "fallback");
+
+        // Document.fileName and BankImport.fileName are varchar(255) columns.
+        assertEquals(255, displayName.length());
+        assertTrue(displayName.endsWith(".pdf"), displayName);
+    }
+
+    @Test
     void shouldAcceptRegularKeys() {
         assertDoesNotThrow(() -> StorageKeys.validateKey("documents/019676cf-46cf-71be-803d-1011e05e0840/beleg.pdf"));
         assertDoesNotThrow(() -> StorageKeys.validateKey("logo"));

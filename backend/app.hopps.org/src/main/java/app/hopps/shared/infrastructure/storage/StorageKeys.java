@@ -28,6 +28,12 @@ public final class StorageKeys {
 
     private static final int MAX_KEY_LENGTH = 255;
 
+    /**
+     * The original file name is persisted next to the key ({@code Document.fileName}, {@code BankImport.fileName}) in
+     * {@code varchar(255)} columns as well.
+     */
+    private static final int MAX_DISPLAY_NAME_LENGTH = 255;
+
     private StorageKeys() {
     }
 
@@ -55,7 +61,29 @@ public final class StorageKeys {
         if (name.isBlank()) {
             return fallback;
         }
-        return truncate(name);
+        return truncate(name, MAX_FILE_NAME_LENGTH);
+    }
+
+    /**
+     * Prepares a user-supplied file name for the {@code fileName} columns that keep the original name for display. The
+     * name is kept as-is apart from trimming and truncation, so it still reads like the file the user uploaded.
+     * <p>
+     * Call this <em>before</em> writing the file to storage: an over-long name would otherwise fail the insert after
+     * the file has already been stored and leave it orphaned.
+     *
+     * @param fileName
+     *            the original file name, may be {@code null}
+     * @param fallback
+     *            the name to use when the original is {@code null} or blank
+     *
+     * @return a non-blank name that fits a {@code varchar(255)} column, keeping the extension when truncated
+     */
+    public static String displayName(String fileName, String fallback) {
+        String name = fileName == null ? "" : fileName.trim();
+        if (name.isBlank()) {
+            return fallback;
+        }
+        return truncate(name, MAX_DISPLAY_NAME_LENGTH);
     }
 
     /**
@@ -91,12 +119,12 @@ public final class StorageKeys {
         }
     }
 
-    private static String truncate(String name) {
-        if (name.length() <= MAX_FILE_NAME_LENGTH) {
+    private static String truncate(String name, int maxLength) {
+        if (name.length() <= maxLength) {
             return name;
         }
         int dot = name.lastIndexOf('.');
         String extension = dot > 0 && name.length() - dot <= MAX_EXTENSION_LENGTH ? name.substring(dot) : "";
-        return name.substring(0, MAX_FILE_NAME_LENGTH - extension.length()) + extension;
+        return name.substring(0, maxLength - extension.length()) + extension;
     }
 }

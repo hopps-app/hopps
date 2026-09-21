@@ -84,6 +84,25 @@ class DocumentResourceTest {
     }
 
     @Test
+    void shouldAcceptFileNamesLongerThanTheColumn() {
+        InputStream zugferdInputStream = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(zugferdInputStream);
+        String fileName = "a".repeat(300) + ".pdf";
+
+        // Document.fileName is varchar(255); the name is truncated instead of failing the insert after the file has
+        // already been written to storage.
+        given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", fileName, zugferdInputStream, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode())
+                .body("fileName", hasLength(255))
+                .body("fileName", endsWith(".pdf"));
+    }
+
+    @Test
     void shouldFailOnUnsupportedMediaType() {
         // REST Assured may not properly forward the content type in some cases,
         // so the endpoint might return 400 (Bad Request) instead of 415

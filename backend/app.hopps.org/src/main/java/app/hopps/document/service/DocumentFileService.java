@@ -70,12 +70,15 @@ public class DocumentFileService {
 
         String fileKey = "documents/" + UUID.randomUUID() + "/"
                 + StorageKeys.sanitizeFileName(file.fileName(), DEFAULT_FILE_NAME);
+        // Bound the display name before the file goes to storage, so a name that does not fit the column cannot fail
+        // the insert afterwards and leave the stored file orphaned.
+        String fileName = StorageKeys.displayName(file.fileName(), DEFAULT_FILE_NAME);
         try {
             fileStorage.put(fileKey, bytes, file.contentType());
             LOG.info("File uploaded to storage: key={}, size={}", fileKey, file.size());
 
             document.setFileKey(fileKey);
-            document.setFileName(file.fileName());
+            document.setFileName(fileName);
             document.setFileContentType(file.contentType());
             document.setFileSize(file.size());
             document.setFileHash(fileHash);

@@ -15,7 +15,7 @@ import java.util.UUID;
 @ApplicationScoped
 public class ImportFileStorageService {
 
-    private static final String DEFAULT_FILE_NAME = "import.csv";
+    static final String DEFAULT_FILE_NAME = "import.csv";
     private static final String DEFAULT_CONTENT_TYPE = "text/csv";
 
     @Inject
