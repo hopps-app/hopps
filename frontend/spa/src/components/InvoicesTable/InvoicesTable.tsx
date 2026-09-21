@@ -5,7 +5,7 @@ import './styles/InvoicesTable.scss';
 import { CellMouseOverEvent, ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { format } from 'date-fns';
-import { de, enUS, uk } from 'date-fns/locale';
+import { de, enUS, fr, it, uk } from 'date-fns/locale';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -33,6 +33,10 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
                 return de;
             case 'uk':
                 return uk;
+            case 'it':
+                return it;
+            case 'fr':
+                return fr;
             default:
                 return enUS;
         }
