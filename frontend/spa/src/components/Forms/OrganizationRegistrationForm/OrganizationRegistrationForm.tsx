@@ -9,6 +9,7 @@ import { PasswordStrengthMeter } from './PasswordStrengthMeter.tsx';
 
 import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
+import { useInstance } from '@/hooks/use-instance';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
 
@@ -37,6 +38,8 @@ function createSlug(input: string): string {
 export function OrganizationRegistrationForm(props: Props) {
     const { t } = useTranslation();
     const { showError, showSuccess } = useToast();
+    // On a single-tenant installation this same form is the one-time initial setup, and reads as such.
+    const isSetup = useInstance().tenancy === 'single';
 
     const schema = useMemo(
         () =>
@@ -90,7 +93,10 @@ export function OrganizationRegistrationForm(props: Props) {
             props.onSuccess();
         } catch (e) {
             console.error(e);
-            if (ApiException.isApiException(e) && e.status === 409) {
+            if (ApiException.isApiException(e) && e.status === 403) {
+                // Single-tenant installation whose organization already exists (code SETUP_COMPLETE).
+                showError(t('organization.setup.alreadyDone'));
+            } else if (ApiException.isApiException(e) && e.status === 409) {
                 try {
                     const body = JSON.parse(e.response);
                     const fields: string[] = body.conflictingFields ?? [];
@@ -119,8 +125,8 @@ export function OrganizationRegistrationForm(props: Props) {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-4">
-                <h1 className="text-xl font-semibold text-left">{t('organization.registration.header')}</h1>
-                <p className="mt-1 text-sm text-muted text-left">{t('organization.registration.subtitle')}</p>
+                <h1 className="text-xl font-semibold text-left">{isSetup ? t('organization.setup.header') : t('organization.registration.header')}</h1>
+                <p className="mt-1 text-sm text-muted text-left">{isSetup ? t('organization.setup.subtitle') : t('organization.registration.subtitle')}</p>
             </div>
             <div>
                 <TextField
@@ -171,7 +177,7 @@ export function OrganizationRegistrationForm(props: Props) {
 
             <div className="mt-6">
                 <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
-                    {t('header.register')}
+                    {isSetup ? t('organization.setup.submit') : t('header.register')}
                 </Button>
             </div>
         </form>

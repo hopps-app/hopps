@@ -63,6 +63,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 
 **Features:**
 - Keycloak User Provisioning
+- Tenancy-Modus (`hopps.tenancy.mode` / `HOPPS_TENANCY_MODE`, Package `shared/tenancy`): `multi` (SaaS, Default) oder `single` (Self-Hosting, genau eine Organisation: einmalige Ersteinrichtung über `POST /organization`, danach `403 SETUP_COMPLETE`; `POST /organization/my` → `403 SINGLE_TENANT`; `/admin/*` → `404`). Öffentlicher Endpoint `GET /instance` liefert Modus, `setupRequired` und Org-Name an das SPA. Eingeloggte Konten ohne Mitgliedschaft bekommen `403 NO_ORGANIZATION_ACCESS` (früher 404).
 - S3 Dokumentenspeicherung
 - Bank-CSV-Import mit konfigurierbaren Schemata und Transaktions-Matching
 - WebSocket-Live-Benachrichtigungen

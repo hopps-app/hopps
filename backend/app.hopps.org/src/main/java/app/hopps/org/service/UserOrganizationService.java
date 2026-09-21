@@ -4,10 +4,9 @@ import app.hopps.member.domain.Member;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.KeycloakPrincipals;
+import app.hopps.shared.security.NoOrganizationAccessException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 
 import java.util.Collection;
@@ -26,16 +25,14 @@ public class UserOrganizationService {
      *
      * @return The user's organization
      *
-     * @throws WebApplicationException
-     *             if user is not found or has no organization
+     * @throws NoOrganizationAccessException
+     *             (403) if no member is linked to the token or the member has no organization
      */
     public Organization getUserOrganization(SecurityContext securityContext) {
         String keycloakId = KeycloakPrincipals.keycloakId(securityContext.getUserPrincipal());
         Member me = memberRepository.findByKeycloakId(keycloakId);
         if (me == null) {
-            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
-                    .entity("User not found in database")
-                    .build());
+            throw new NoOrganizationAccessException("No member is linked to this account");
         }
 
         Collection<Organization> orgs = me.getOrganizations();
@@ -46,8 +43,6 @@ public class UserOrganizationService {
 
         return orgs.stream()
                 .findFirst()
-                .orElseThrow(() -> new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
-                        .entity("Organization of user not found in database")
-                        .build()));
+                .orElseThrow(() -> new NoOrganizationAccessException("Member is not assigned to an organization"));
     }
 }

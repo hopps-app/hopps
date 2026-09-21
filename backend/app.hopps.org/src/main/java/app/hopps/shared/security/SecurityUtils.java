@@ -7,8 +7,6 @@ import app.hopps.organization.domain.Organization;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +33,9 @@ public class SecurityUtils {
      *
      * @return the user's organization
      *
-     * @throws WebApplicationException
-     *             if user not found (404) or has no organization
+     * @throws NoOrganizationAccessException
+     *             (403, code {@code NO_ORGANIZATION_ACCESS}) if no member is linked to the token or the member has no
+     *             organization
      * @throws IllegalStateException
      *             if user belongs to multiple organizations (not yet supported)
      */
@@ -51,9 +50,7 @@ public class SecurityUtils {
 
         return orgs.stream()
                 .findFirst()
-                .orElseThrow(() -> new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
-                        .entity("Organization of user not found in database")
-                        .build()));
+                .orElseThrow(() -> new NoOrganizationAccessException("Member is not assigned to an organization"));
     }
 
     /**
@@ -64,8 +61,8 @@ public class SecurityUtils {
      *
      * @return the current user
      *
-     * @throws WebApplicationException
-     *             if user not found (404)
+     * @throws NoOrganizationAccessException
+     *             (403) if no member is linked to the token
      */
     public Member getCurrentUser(SecurityContext securityContext) {
         return requireMember(securityContext);
@@ -75,17 +72,16 @@ public class SecurityUtils {
      * Resolves the member the current token belongs to, and takes the opportunity to record that they got in — see
      * {@link #recordAuthentication(Member)}.
      *
-     * @throws WebApplicationException
-     *             if no member is linked to the token's Keycloak id (404)
+     * @throws NoOrganizationAccessException
+     *             (403) if no member is linked to the token's Keycloak id — the account exists in Keycloak, but nobody
+     *             has invited it into an organization
      */
     private Member requireMember(SecurityContext securityContext) {
         String keycloakId = KeycloakPrincipals.keycloakId(securityContext.getUserPrincipal());
         Member member = memberRepository.findByKeycloakId(keycloakId);
 
         if (member == null) {
-            throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND)
-                    .entity("User not found in database")
-                    .build());
+            throw new NoOrganizationAccessException("No member is linked to this account");
         }
 
         recordAuthentication(member);

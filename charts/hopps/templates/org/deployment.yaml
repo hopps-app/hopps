@@ -39,6 +39,9 @@ spec:
             {{- if .Values.org.envVars }}
             {{- toYaml .Values.org.envVars | nindent 12 }}
             {{- end }}
+            # tenancy
+            - name: HOPPS_TENANCY_MODE
+              value: {{ .Values.org.tenancyMode | quote }}
             # az-document-ai
             - name: HOPPS_DOCUMENT_AI_SERVICE_URL
               value: http://{{ .Release.Name }}-az-document-ai:{{ .Values.azDocumentAi.service.port }}

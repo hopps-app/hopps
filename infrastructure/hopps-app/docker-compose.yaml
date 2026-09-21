@@ -58,6 +58,9 @@ services:
       QUARKUS_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/org
 
+      # -- tenancy: one association per installation (see .env.example)
+      HOPPS_TENANCY_MODE: ${HOPPS_TENANCY_MODE:-single}
+
       # -- authentication
       # Discovery runs over the compose network; the issuer inside the tokens is the
       # public URL the browser used, so it has to be asserted separately.
