@@ -7,6 +7,7 @@ import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -32,6 +33,9 @@ public class BankTransactionMatchService {
 
     @Inject
     OrganizationContext organizationContext;
+
+    @Inject
+    TransactionAuditor transactionAuditor;
 
     @Transactional
     public void addMatch(Long bankTxId, Long transactionId, String username) {
@@ -64,11 +68,11 @@ public class BankTransactionMatchService {
         // When the transaction has no amount yet (e.g. it was cleared because the analysed value was in the wrong
         // currency), adopt the bank transaction's signed euro amount so the booking gets its correct value from the
         // reconciled movement. Only for the default (full) link — an explicit partial allocation means the user is
-        // splitting the movement and the transaction is expected to already carry its own total. A deliberate total of
-        // zero (a "durchlaufender Posten" that nets out across two opposite movements) is left untouched — overwriting
-        // it with the first movement's amount would break the pass-through and leave a phantom difference.
+        // splitting the movement and the transaction is expected to already carry its own total.
+        boolean adoptedTotal = false;
         if (!manual && tx.getTotal() == null) {
             tx.setTotal(bankTx.getAmount());
+            adoptedTotal = true;
         }
 
         boolean alreadyLinked = em.createQuery(
@@ -96,6 +100,7 @@ public class BankTransactionMatchService {
         match.setMatchType(BankTransactionMatchType.MANUAL);
         match.setMatchedBy(username);
         em.persist(match);
+        transactionAuditor.linked(tx, bankTxId, allocation, manual, adoptedTotal);
 
         recomputeStatus(bankTx);
     }
@@ -120,8 +125,13 @@ public class BankTransactionMatchService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Match not found"));
 
+        BigDecimal previousAmount = match.getMatchedAmount();
         match.setMatchedAmount(validateAllocation(amount, bankTx.getAmount()));
         match.setAmountManual(true);
+        if (previousAmount == null || previousAmount.compareTo(match.getMatchedAmount()) != 0) {
+            transactionAuditor.allocationChanged(organizationId(bankTx), transactionId, bankTxId, previousAmount,
+                    match.getMatchedAmount());
+        }
 
         recomputeStatus(bankTx);
     }
@@ -163,6 +173,15 @@ public class BankTransactionMatchService {
             throw new NotFoundException("Bank transaction not found");
         }
 
+        BigDecimal matchedAmount = em.createQuery(
+                "SELECT m.matchedAmount FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId",
+                BigDecimal.class)
+                .setParameter("bankTxId", bankTxId)
+                .setParameter("txId", transactionId)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+
         int deleted = em.createQuery(
                 "DELETE FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId")
                 .setParameter("bankTxId", bankTxId)
@@ -172,6 +191,7 @@ public class BankTransactionMatchService {
         if (deleted == 0) {
             throw new NotFoundException("Match not found");
         }
+        transactionAuditor.unlinked(organizationId(bankTx), transactionId, bankTxId, matchedAmount);
 
         recomputeStatus(bankTx);
     }
@@ -363,6 +383,10 @@ public class BankTransactionMatchService {
                 Long.class)
                 .setParameter("bankTxId", bankTxId)
                 .getResultList();
+    }
+
+    private static Long organizationId(BankTransaction bankTx) {
+        return bankTx.getOrganization() == null ? null : bankTx.getOrganization().getId();
     }
 
     private void recomputeStatus(BankTransaction bankTx) {

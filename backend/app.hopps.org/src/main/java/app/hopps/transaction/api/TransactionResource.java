@@ -1,5 +1,6 @@
 package app.hopps.transaction.api;
 
+import app.hopps.audit.domain.AuditAction;
 import app.hopps.bankimport.service.BankTransactionMatchService;
 import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.Document;
@@ -13,6 +14,7 @@ import app.hopps.transaction.api.dto.TransactionAggregateResponse;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
+import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionChangedEvent;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
@@ -65,6 +67,9 @@ public class TransactionResource {
 
     @Inject
     SecurityIdentity securityIdentity;
+
+    @Inject
+    TransactionAuditor transactionAuditor;
 
     @Inject
     TransactionCreateConverter createConverter;
@@ -226,6 +231,7 @@ public class TransactionResource {
 
         // Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before building the response.
         transactionRepository.persistAndFlush(transaction);
+        transactionAuditor.created(transaction);
         LOG.info("Transaction created: id={}", transaction.getId());
 
         return Response.status(Response.Status.CREATED)
@@ -249,7 +255,9 @@ public class TransactionResource {
         }
 
         BigDecimal previousTotal = transaction.getTotal();
+        Map<String, Object> before = transactionAuditor.snapshot(transaction);
         updateConverter.applyUpdateRequestToTransaction(transaction, request);
+        transactionAuditor.updated(transaction, before);
 
         // If the amount changed, refresh any bank-transaction match snapshot so a partially covered bank transaction
         // no longer stays FULLY_MATCHED (and the still-open amount reappears in the list).
@@ -297,7 +305,9 @@ public class TransactionResource {
             }
         }
 
+        TransactionStatus previousStatus = transaction.getStatus();
         transaction.setStatus(TransactionStatus.CONFIRMED);
+        transactionAuditor.statusChanged(transaction, previousStatus, AuditAction.CONFIRM);
 
         // Keep the linked receipt (Beleg) in sync: confirming the bookkeeping transaction also confirms its document,
         // so it no longer lingers in the "needs manual review" state.
@@ -381,7 +391,9 @@ public class TransactionResource {
             throw new NotFoundException("Transaction not found");
         }
 
+        TransactionStatus previousStatus = transaction.getStatus();
         transaction.setStatus(TransactionStatus.DRAFT);
+        transactionAuditor.statusChanged(transaction, previousStatus, AuditAction.REOPEN);
 
         // Mirror the document back to a reviewable state so it isn't shown as confirmed while its transaction is a
         // draft.
