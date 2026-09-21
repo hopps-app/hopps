@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { FONT } from './layout';
 
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-
 import { getTransactionDisplayStatus, type TransactionDisplayStatus } from '@/lib/transactionStatus';
 import { cn } from '@/lib/utils';
 
