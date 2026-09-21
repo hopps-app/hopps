@@ -473,7 +473,8 @@ public class DocumentResource {
             transaction.setTotal(outgoing ? total.abs() : total.abs().negate());
         }
         transaction.setTotalTax(document.getTotalTax());
-        transaction.setCurrencyCode(document.getCurrencyCode());
+        transaction.setCurrencyCode(
+                document.getCurrencyCode() != null ? document.getCurrencyCode() : organization.getCurrency().name());
         transaction.setTransactionTime(document.getTransactionTime());
         transaction.setPrivatelyPaid(document.isPrivatelyPaid());
         if (document.getBommel() != null) {

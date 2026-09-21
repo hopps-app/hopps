@@ -3,6 +3,7 @@ package app.hopps.transaction.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.category.service.CategoryGroupService;
+import app.hopps.organization.domain.Currency;
 import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.domain.Transaction;
@@ -270,5 +271,19 @@ class TransactionCreateConverterTest {
         converter.applyRequestToTransaction(transaction, request, organization);
 
         assertSame(tagsBefore, transaction.getTags());
+    }
+
+    @Test
+    @DisplayName("should fall back to the organization's currency when the request names none")
+    void shouldDefaultCurrencyToOrganization() {
+        organization.setCurrency(Currency.CHF);
+        var request = new TransactionCreateRequest(
+                "Mitgliedsbeitrag", BigDecimal.valueOf(25), null,
+                null, null, null, null, false,
+                null, null, null, null, null, null);
+
+        converter.applyRequestToTransaction(transaction, request, organization);
+
+        assertEquals("CHF", transaction.getCurrencyCode());
     }
 }

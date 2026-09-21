@@ -6,7 +6,9 @@ import app.hopps.organization.model.NewMemberInput;
 import app.hopps.organization.model.NewOrganizationInput;
 import app.hopps.organization.model.OrganizationInput;
 import app.hopps.organization.repository.OrganizationRepository;
+import app.hopps.organization.service.CurrencyLockedException;
 import app.hopps.organization.service.OrganizationCreationService;
+import app.hopps.organization.service.OrganizationCurrencyService;
 import app.hopps.organization.service.OrganizationLogoService;
 import app.hopps.organization.service.OrganizationMemberService;
 import app.hopps.shared.security.SecurityUtils;
@@ -70,6 +72,9 @@ public class OrganizationResource {
     OrganizationMemberService organizationMemberService;
 
     @Inject
+    OrganizationCurrencyService organizationCurrencyService;
+
+    @Inject
     JsonWebToken jwt;
 
     @GET
@@ -105,7 +110,7 @@ public class OrganizationResource {
     @APIResponse(responseCode = "200", description = "Own organization retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "403", description = "User is not a member of any organization (code NO_ORGANIZATION_ACCESS)")
     public Organization getMyOrganization(@Context SecurityContext securityContext) {
-        return securityUtils.getUserOrganization(securityContext);
+        return organizationCurrencyService.withCurrencyLock(securityUtils.getUserOrganization(securityContext));
     }
 
     @PUT
@@ -114,11 +119,13 @@ public class OrganizationResource {
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update my organization", description = "Updates the details of the current user's organization. Fields like name, address, website, and type can be changed.")
+    @Operation(summary = "Update my organization", description = "Updates the details of the current user's organization. Fields like name, address, website, and type can be changed. The currency can only be changed while the organization has no transactions; afterwards a different currency is rejected with 409 and code CURRENCY_LOCKED.")
     @APIResponse(responseCode = "200", description = "Organization updated successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Organization not found for user")
+    @APIResponse(responseCode = "409", description = "Currency change rejected because transactions exist (code "
+            + CurrencyLockedException.CODE + ")")
     public Response updateMyOrganization(@Context SecurityContext securityContext, OrganizationInput input) {
         Organization organization = securityUtils.getUserOrganization(securityContext);
 
@@ -162,6 +169,7 @@ public class OrganizationResource {
         if (input.autoAnalyzeDocuments() != null) {
             organization.setAutoAnalyzeDocuments(input.autoAnalyzeDocuments());
         }
+        organizationCurrencyService.changeCurrency(organization, input.currency());
 
         organizationRepository.persist(organization);
         organizationRepository.flush();
@@ -170,7 +178,7 @@ public class OrganizationResource {
         organization.getMembers().size();
 
         LOG.info("Successfully updated organization: {}", organization.getSlug());
-        return Response.ok(organization).build();
+        return Response.ok(organizationCurrencyService.withCurrencyLock(organization)).build();
     }
 
     @POST

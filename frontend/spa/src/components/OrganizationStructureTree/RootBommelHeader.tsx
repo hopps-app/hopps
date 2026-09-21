@@ -8,6 +8,7 @@ import Emoji from '@/components/ui/Emoji.tsx';
 import EmojiField from '@/components/ui/EmojiField.tsx';
 import Icon from '@/components/ui/Icon.tsx';
 import TextField from '@/components/ui/TextField.tsx';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils.ts';
 
 type Props = {
@@ -18,14 +19,14 @@ type Props = {
     onEdit?: (node: OrganizationTreeNodeModel) => void;
 };
 
-const formatCurrency = (value?: number) => {
-    if (value === undefined || value === null) return '-';
-    const sign = value >= 0 ? '+' : '';
-    return `${sign}${value.toLocaleString('de-DE')}€`;
-};
-
 function RootBommelHeader({ node, isSelected, isEditable, onClick, onEdit }: Props) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
+    const formatCurrency = (value?: number) => {
+        if (value === undefined || value === null) return '-';
+        const sign = value >= 0 ? '+' : '';
+        return `${sign}${format(value, { fractionDigits: 0 })}`;
+    };
     const { data } = node;
     const emoji = data?.emoji || '';
 
@@ -197,7 +198,7 @@ function RootBommelHeader({ node, isSelected, isEditable, onClick, onEdit }: Pro
                                 <div className="text-right">
                                     <div className="text-[10px] text-white/60">{t('organization.structure.details.expenses')}</div>
                                     <div className="text-sm font-medium text-red-200">
-                                        {data?.expenses !== undefined ? `-${Math.abs(data.expenses).toLocaleString('de-DE')}€` : '-'}
+                                        {data?.expenses !== undefined ? `-${format(Math.abs(data.expenses), { fractionDigits: 0 })}` : '-'}
                                     </div>
                                 </div>
                             </div>

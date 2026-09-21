@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/Label';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';
 import { useCreateBankAccount, useUpdateBankAccount } from '@/hooks/queries/useBankAccounts';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 
 const ACCT_COLORS = ['#9955CC', '#2E9E6B', '#2A6FDB', '#C8385A', '#B47C18', '#5B5BD6'];
@@ -67,6 +68,7 @@ interface BankAccountDrawerProps {
 }
 
 export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: BankAccountDrawerProps) {
+    const { currency } = useCurrency();
     const { t } = useTranslation();
     const schema = buildSchema(t);
     const isEdit = !!account;
@@ -113,7 +115,7 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
 
     const onSubmit = async (values: FormValues) => {
         const openingBalanceDate = values.openingBalanceDate ? new Date(values.openingBalanceDate) : undefined;
-        const payload = { ...values, currency: 'EUR', openingBalanceDate };
+        const payload = { ...values, currency, openingBalanceDate };
         try {
             if (isEdit && account?.id) {
                 await updateMutation.mutateAsync({ id: account.id, data: payload });

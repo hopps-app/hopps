@@ -54,6 +54,7 @@ import {
     TransactionSortBy,
     SortDirection,
 } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -75,11 +76,6 @@ import { useStore } from '@/store/store';
 // radius-card: 18px · radius-md: 14px · radius-sm: 10px
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtCurrency(amount: number | undefined): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-}
 
 function fmtDate(date: Date | string | undefined): string {
     if (!date) return '—';
@@ -157,6 +153,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 // ─── Detail Drawer ────────────────────────────────────────────────────────────
 
 function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; onClose: () => void; onDeleted: () => void }) {
+    const { format, symbol } = useCurrency();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { data: tx, isLoading } = useTransaction(txId ?? 0);
@@ -428,7 +425,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                                 className="mt-4 font-bold tabular-nums leading-none"
                                 style={{ fontSize: 38, color: amount >= 0 ? 'var(--positive)' : 'var(--negative)' }}
                             >
-                                {fmtCurrency(amount)}
+                                {format(amount)}
                             </p>
                             <div className="mt-3">
                                 <StatusBadge status={tx.status} />
@@ -551,7 +548,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
                             {/* Amount + Date */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className={labelCls}>{t('transactions.create.amount')}</label>
+                                    <label className={labelCls}>{t('transactions.create.amount', { symbol })}</label>
                                     <input
                                         type="text"
                                         inputMode="decimal"
@@ -745,7 +742,7 @@ function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; 
             <DeleteTransactionDialog
                 open={confirmDeleteOpen}
                 transactionName={tx?.name || tx?.senderName || ''}
-                transactionAmount={fmtCurrency(tx?.total)}
+                transactionAmount={format(tx?.total)}
                 hasReceipt={tx?.documentId != null}
                 onDeleteTransactionOnly={() => handleDelete(false)}
                 onDeleteWithReceipt={() => handleDelete(true)}
@@ -770,6 +767,7 @@ function TransactionRow({
     bulkSelected: boolean;
     onToggleBulk: () => void;
 }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
     const categoryText = (tx.categoryValues ?? [])
@@ -885,7 +883,7 @@ function TransactionRow({
                 never look alike. Hidden once it matches (delta ≈ 0), regardless of confirm status. */}
             <span className="flex flex-col items-end leading-tight">
                 <span className="font-bold tabular-nums whitespace-nowrap" style={{ fontSize: 14.5, color: incoming ? 'var(--positive)' : 'var(--negative)' }}>
-                    {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
+                    {incoming ? '+' : '–'} {format(Math.abs(amount))}
                 </span>
                 {(() => {
                     // coveredAmount is the SIGNED net of linked bank movements (same as the detail's "Zugeordnet").
@@ -911,6 +909,7 @@ function TransactionRow({
 // ─── Main view ────────────────────────────────────────────────────────────────
 
 export function TransactionenView() {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     usePageTitle(t('transactions.title'));
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
@@ -1205,8 +1204,8 @@ export function TransactionenView() {
                     <p className="mt-1 text-[13.5px] text-muted-foreground">
                         {t('transactions.subtitle', {
                             count: totalCount,
-                            income: fmtCurrency(totalIncome),
-                            expense: fmtCurrency(totalExpense),
+                            income: format(totalIncome),
+                            expense: format(totalExpense),
                         })}
                     </p>
                 </div>

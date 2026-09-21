@@ -3,7 +3,7 @@ import { X, Check, ArrowDownRight, ArrowUpRight, Landmark, Plus } from 'lucide-r
 import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
+import { fmtDate } from '@/components/BankAccounts/format';
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
@@ -14,6 +14,7 @@ import TextField from '@/components/ui/TextField';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useCreateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useToast } from '@/hooks/use-toast';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ interface Props {
 }
 
 export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Props) {
+    const { format, symbol } = useCurrency();
     const { t } = useTranslation();
     const createMutation = useCreateTransaction();
     const addMatch = useAddBankTransactionMatch();
@@ -299,9 +301,9 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             </p>
                             <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border-soft pt-2.5 text-[12px]">
                                 <dt className="text-muted-foreground">{t('konten.drawer.bankAmount')}</dt>
-                                <dd className="text-right font-bold tabular-nums text-foreground">{fmtCurrency(bankTx.amount, bankTx.currency)}</dd>
+                                <dd className="text-right font-bold tabular-nums text-foreground">{format(bankTx.amount, { currency: bankTx.currency })}</dd>
                                 <dt className="text-muted-foreground">{t('konten.createTx.openBefore')}</dt>
-                                <dd className="text-right font-bold tabular-nums text-foreground">{fmtCurrency(openBefore, bankTx.currency)}</dd>
+                                <dd className="text-right font-bold tabular-nums text-foreground">{format(openBefore, { currency: bankTx.currency })}</dd>
                                 {!directionMismatch && (
                                     <>
                                         <dt className="text-muted-foreground">{t('konten.createTx.openAfter')}</dt>
@@ -311,7 +313,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                                 coversExactly ? 'text-[var(--positive)]' : 'text-[var(--warning)]'
                                             )}
                                         >
-                                            {coversExactly ? t('konten.createTx.coversExactly') : fmtCurrency(openAfter, bankTx.currency)}
+                                            {coversExactly ? t('konten.createTx.coversExactly') : format(openAfter, { currency: bankTx.currency })}
                                         </dd>
                                     </>
                                 )}
@@ -385,10 +387,10 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     {/* Amount + Name row */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className={labelCls}>{t('transactions.create.amount')} *</label>
+                            <label className={labelCls}>{t('transactions.create.amount', { symbol })} *</label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-[15px] pointer-events-none">
-                                    €
+                                    {symbol}
                                 </span>
                                 <input
                                     type="text"
@@ -399,7 +401,11 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                         setAmountError(false);
                                     }}
                                     placeholder={t('transactions.create.amountPlaceholder')}
-                                    className={cn(inputCls, 'pl-7', amountError && 'border-[var(--negative-border)] bg-[var(--negative-surface)]')}
+                                    className={cn(
+                                        inputCls,
+                                        symbol.length > 1 ? 'pl-12' : 'pl-7',
+                                        amountError && 'border-[var(--negative-border)] bg-[var(--negative-surface)]'
+                                    )}
                                 />
                             </div>
                             {amountError && <p className="mt-1 text-[12px] text-[var(--negative)]">{t('transactions.create.errorAmount')}</p>}

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from './BommelSelect';
 import { BommelTreeItem, collectSubtreeIds } from './bommelTree';
-import { formatCurrency, formatDay } from './format';
+import { formatDay } from './format';
 import { useIncomeExpenseSeries } from './hooks';
 import { IncomeExpenseChart } from './IncomeExpenseChart';
 import { DEFAULT_PERIOD, PeriodId, resolvePeriod } from './periods';
@@ -15,6 +15,7 @@ import { SectionError, Skeleton } from './SectionState';
 import { Card } from '@/components/ui/Card';
 import Emoji from '@/components/ui/Emoji';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { useCurrency } from '@/hooks/use-currency';
 
 type IncomeExpenseCardProps = {
     organizationId: number | undefined;
@@ -29,6 +30,7 @@ type IncomeExpenseCardProps = {
  */
 export function IncomeExpenseCard({ organizationId, bommels, bommelItems, isBommelsLoading }: IncomeExpenseCardProps) {
     const { t, i18n } = useTranslation();
+    const { format } = useCurrency();
 
     const [bommel, setBommel] = useState<BommelSelection>(ALL_BOMMELS);
     const [period, setPeriod] = useState<PeriodId>(DEFAULT_PERIOD);
@@ -115,13 +117,13 @@ export function IncomeExpenseCard({ organizationId, bommels, bommelItems, isBomm
                                 <span>
                                     {t('dashboard.income')}{' '}
                                     <b className="font-extrabold tabular-nums text-foreground" data-testid="dashboard-chart-income">
-                                        {formatCurrency(i18n.language, data?.income)}
+                                        {format(data?.income ?? 0)}
                                     </b>
                                 </span>
                                 <span>
                                     {t('dashboard.expenses')}{' '}
                                     <b className="font-extrabold tabular-nums text-foreground" data-testid="dashboard-chart-expenses">
-                                        {formatCurrency(i18n.language, data?.expenses)}
+                                        {format(data?.expenses ?? 0)}
                                     </b>
                                 </span>
                             </>

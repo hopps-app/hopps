@@ -14,13 +14,9 @@ import {
     useUpdateBankTransactionMatchAmount,
 } from '@/hooks/queries/useBankAccounts';
 import { useReopenTransaction } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 import { parseAllocationAmount } from '@/utils/parseAmount';
-
-function fmtCurrency(amount: number | undefined): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-}
 
 function fmtDate(date: Date | string | undefined): string {
     if (!date) return '—';
@@ -31,6 +27,7 @@ function fmtDate(date: Date | string | undefined): string {
 // Shows a bank transaction's amount. If it is already partially matched, the still-open (uncovered) amount
 // is shown below the actual amount.
 function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmount?: number }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const total = amount ?? 0;
     // matchedAmount is the SIGNED net coverage; the still-open amount is |total − matched|.
@@ -41,11 +38,11 @@ function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmoun
     return (
         <span className="flex flex-col items-end flex-shrink-0 leading-tight">
             <span className="text-[13px] font-bold tabular-nums" style={{ color: total >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
-                {fmtCurrency(total)}
+                {format(total)}
             </span>
             {partiallyMatched && (
                 <span className="text-[11px] font-semibold text-[var(--warning)] tabular-nums">
-                    {t('transactions.detail.openAmount', { amount: fmtCurrency(open) })}
+                    {t('transactions.detail.openAmount', { amount: format(open) })}
                 </span>
             )}
         </span>
@@ -57,6 +54,7 @@ function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmoun
  * detail drawer and the receipt review drawer so bank transactions can be assigned in either place.
  */
 export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse; currentTotal?: number | null }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { data: linked, isLoading } = useBankTransactionsForTransaction(tx.id);
@@ -212,8 +210,8 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                 {isFullyAssigned
                                     ? t('transactions.detail.fullyCovered')
                                     : overCovered
-                                      ? t('transactions.detail.overCovered', { amount: fmtCurrency(Math.abs(remaining)) })
-                                      : t('transactions.detail.stillToCover', { amount: fmtCurrency(Math.abs(remaining)) })}
+                                      ? t('transactions.detail.overCovered', { amount: format(Math.abs(remaining)) })
+                                      : t('transactions.detail.stillToCover', { amount: format(Math.abs(remaining)) })}
                             </span>
                             {isFullyAssigned && <span className="text-[13px] font-bold text-[var(--positive)]">✓</span>}
                         </div>
@@ -268,7 +266,7 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                         className="text-[13px] font-bold tabular-nums"
                                         style={{ color: (b.amount ?? 0) >= 0 ? 'var(--positive)' : 'var(--negative)' }}
                                     >
-                                        {fmtCurrency(b.amount)}
+                                        {format(b.amount)}
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <MatchAllocationControl
@@ -299,12 +297,12 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                     >
                         <span className="flex flex-col gap-0.5">
                             <span className="text-[11px] font-semibold text-muted-foreground">{t('transactions.detail.reconcileTotal')}</span>
-                            <span className="text-[13px] font-bold tabular-nums text-foreground">{fmtCurrency(Math.abs(txTotal))}</span>
+                            <span className="text-[13px] font-bold tabular-nums text-foreground">{format(Math.abs(txTotal))}</span>
                         </span>
                         <span className="flex flex-col gap-0.5 text-right">
                             <span className="text-[11px] font-semibold text-muted-foreground">{t('transactions.detail.reconcileAssigned')}</span>
                             <span className="text-[13px] font-bold tabular-nums" style={{ color: 'var(--positive)' }}>
-                                {fmtCurrency(Math.abs(assignedSum))}
+                                {format(Math.abs(assignedSum))}
                             </span>
                         </span>
                         <span className="flex flex-col gap-0.5 text-right">
@@ -312,7 +310,7 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
                                 {isFullyAssigned ? t('transactions.detail.reconcileFull') : t('transactions.detail.reconcileRemaining')}
                             </span>
                             <span className="text-[13px] font-bold tabular-nums" style={{ color: isFullyAssigned ? 'var(--positive)' : 'var(--warning)' }}>
-                                {isFullyAssigned ? '✓' : fmtCurrency(Math.abs(remaining))}
+                                {isFullyAssigned ? '✓' : format(Math.abs(remaining))}
                             </span>
                         </span>
                     </div>

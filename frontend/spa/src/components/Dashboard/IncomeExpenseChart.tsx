@@ -2,8 +2,10 @@ import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { TooltipContentProps } from 'recharts';
 
-import { formatCurrency, formatMonthLabel } from './format';
+import { formatMonthLabel } from './format';
 import { MonthlyPoint } from './hooks';
+
+import { useCurrency } from '@/hooks/use-currency';
 
 type IncomeExpenseChartProps = {
     data: MonthlyPoint[];
@@ -13,6 +15,7 @@ type IncomeExpenseChartProps = {
 
 export function IncomeExpenseChart({ data, withYear }: IncomeExpenseChartProps) {
     const { t, i18n } = useTranslation();
+    const { format } = useCurrency();
 
     const chartData = data.map((point) => ({
         ...point,
@@ -32,7 +35,7 @@ export function IncomeExpenseChart({ data, withYear }: IncomeExpenseChartProps) 
                     <p key={String(entry.dataKey)} className="flex items-center gap-2 tabular-nums">
                         <span className="h-[10px] w-[10px] shrink-0 rounded-[3px]" style={{ background: entry.color }} aria-hidden="true" />
                         <span className="text-muted-foreground">{entry.name}</span>
-                        <span className="ml-auto font-semibold">{formatCurrency(i18n.language, Number(entry.value ?? 0))}</span>
+                        <span className="ml-auto font-semibold">{format(Number(entry.value ?? 0))}</span>
                     </p>
                 ))}
             </div>
@@ -90,8 +93,8 @@ export function IncomeExpenseChart({ data, withYear }: IncomeExpenseChartProps) 
                         {chartData.map((point) => (
                             <tr key={point.monthKey}>
                                 <th scope="row">{point.label}</th>
-                                <td>{formatCurrency(i18n.language, point.income)}</td>
-                                <td>{formatCurrency(i18n.language, point.expenses)}</td>
+                                <td>{format(point.income ?? 0)}</td>
+                                <td>{format(point.expenses ?? 0)}</td>
                             </tr>
                         ))}
                     </tbody>

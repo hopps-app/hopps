@@ -10,6 +10,7 @@ import Emoji from '@/components/ui/Emoji.tsx';
 import EmojiField from '@/components/ui/EmojiField.tsx';
 import Icon from '@/components/ui/Icon.tsx';
 import TextField from '@/components/ui/TextField.tsx';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils.ts';
 
 type Props = {
@@ -158,10 +159,11 @@ function OrganizationTreeNode(props: Props) {
 
     const { total, income, expenses, transactionsCount, subBommelsCount } = props.node.data || {};
 
+    const { format } = useCurrency();
     const formatCurrency = (value?: number) => {
         if (value === undefined || value === null) return '-';
         const sign = value >= 0 ? '+' : '';
-        return `${sign}${value.toLocaleString('de-DE')}€`;
+        return `${sign}${format(value, { fractionDigits: 0 })}`;
     };
 
     return (
@@ -287,7 +289,7 @@ function OrganizationTreeNode(props: Props) {
                                             <div className="text-right">
                                                 <div className="text-[10px] text-gray-500">{t('organization.structure.details.expenses')}</div>
                                                 <div className="text-sm font-medium text-red-600">
-                                                    {expenses !== undefined ? `-${Math.abs(expenses).toLocaleString('de-DE')}€` : '-'}
+                                                    {expenses !== undefined ? `-${format(Math.abs(expenses), { fractionDigits: 0 })}` : '-'}
                                                 </div>
                                             </div>
                                         </div>

@@ -2747,6 +2747,125 @@ export class Client {
     }
 
     /**
+     * Get all categories for user's organization
+     * @return Categories retrieved successfully
+     */
+    categoryAll(): Promise<Category[]> {
+        let url_ = this.baseUrl + "/category";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCategoryAll(_response);
+        });
+    }
+
+    protected processCategoryAll(response: Response): Promise<Category[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(Category.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("User or organization not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Category[]>(null as any);
+    }
+
+    /**
+     * Create a new category
+     * @return Category created successfully
+     */
+    categoryPOST(body: CategoryInput): Promise<Category> {
+        let url_ = this.baseUrl + "/category";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCategoryPOST(_response);
+        });
+    }
+
+    protected processCategoryPOST(response: Response): Promise<Category> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = Category.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid category data", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("User or organization not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A category with this name already exists", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Category>(null as any);
+    }
+
+    /**
      * List category groups
      * @param bommelId (optional) Return only groups applicable to this bommel (self or ancestor assignment)
      * @return Category groups
@@ -3315,6 +3434,173 @@ export class Client {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Group or value not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Update a category
+     * @return Category updated successfully
+     */
+    categoryPUT(id: number, body: CategoryInput): Promise<Category> {
+        let url_ = this.baseUrl + "/category/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCategoryPUT(_response);
+        });
+    }
+
+    protected processCategoryPUT(response: Response): Promise<Category> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Category.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid category data", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Category not found or not accessible", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A category with this name already exists", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Category>(null as any);
+    }
+
+    /**
+     * Get category by ID
+     * @return Category retrieved successfully
+     */
+    categoryGET(id: number): Promise<Category> {
+        let url_ = this.baseUrl + "/category/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCategoryGET(_response);
+        });
+    }
+
+    protected processCategoryGET(response: Response): Promise<Category> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Category.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Category not found or not accessible", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Category>(null as any);
+    }
+
+    /**
+     * Delete a category
+     * @return Category deleted successfully
+     */
+    categoryDELETE(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/category/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCategoryDELETE(_response);
+        });
+    }
+
+    protected processCategoryDELETE(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Category not found or not accessible", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -4254,6 +4540,10 @@ export class Client {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Organization not found for user", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Currency change rejected because transactions exist (code CURRENCY_LOCKED)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7390,6 +7680,80 @@ export interface IBommelStatisticsMap {
     [key: string]: any;
 }
 
+/** A category for organizing content or entities */
+export class Category implements ICategory {
+    id?: number;
+    name!: string;
+    description?: string;
+    /** The organization this category belongs to */
+    organization!: Organization;
+
+    [key: string]: any;
+
+    constructor(data?: ICategory) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.organization = new Organization();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : new Organization();
+        }
+    }
+
+    static fromJS(data: any): Category {
+        data = typeof data === 'object' ? data : {};
+        let result = new Category();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
+        return data;
+    }
+
+    clone(): Category {
+        const json = this.toJSON();
+        let result = new Category();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category for organizing content or entities */
+export interface ICategory {
+    id?: number;
+    name: string;
+    description?: string;
+    /** The organization this category belongs to */
+    organization: Organization;
+
+    [key: string]: any;
+}
+
 /** A categorisation axis whose applicability depends on the bommel */
 export class CategoryGroup implements ICategoryGroup {
     id?: number;
@@ -8132,6 +8496,71 @@ export interface ICategoryGroupValueResponse {
     [key: string]: any;
 }
 
+/** Input for creating a new category */
+export class CategoryInput implements ICategoryInput {
+    /** Name of the category */
+    name!: string;
+    /** Description of the category */
+    description?: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+        }
+    }
+
+    static fromJS(data: any): CategoryInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        return data;
+    }
+
+    clone(): CategoryInput {
+        const json = this.toJSON();
+        let result = new CategoryInput();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Input for creating a new category */
+export interface ICategoryInput {
+    /** Name of the category */
+    name: string;
+    /** Description of the category */
+    description?: string;
+
+    [key: string]: any;
+}
+
 export class CsvPreviewResponse implements ICsvPreviewResponse {
     detectedEncoding?: string;
     detectedDelimiter?: string;
@@ -8242,6 +8671,8 @@ export interface ICsvPreviewResponse {
 
     [key: string]: any;
 }
+
+export type Currency = "EUR" | "CHF";
 
 /** Time spent in the application on a single day, summed across members */
 export class DailyActivity implements IDailyActivity {
@@ -9715,6 +10146,10 @@ export class Organization implements IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Currency the organization keeps its books in; every amount is shown in it. Can only be changed while the organization has no transactions. */
+    currency!: Currency;
+    /** Whether the currency is fixed because transactions exist. Only filled for the caller's own organization (GET/PUT /organization/my). */
+    readonly currencyLocked?: boolean | undefined;
     /** When the organization was registered */
     createdAt?: Date;
     /** Soft-delete marker; null while the organization is active */
@@ -9760,6 +10195,8 @@ export class Organization implements IOrganization {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.currency = _data["currency"];
+            (this as any).currencyLocked = _data["currencyLocked"];
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.deletedAt = _data["deletedAt"] ? new Date(_data["deletedAt"].toString()) : undefined as any;
             this.hasLogo = _data["hasLogo"];
@@ -9800,6 +10237,8 @@ export class Organization implements IOrganization {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["currency"] = this.currency;
+        data["currencyLocked"] = this.currencyLocked;
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["deletedAt"] = this.deletedAt ? this.deletedAt.toISOString() : undefined as any;
         data["hasLogo"] = this.hasLogo;
@@ -9834,6 +10273,10 @@ export interface IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Currency the organization keeps its books in; every amount is shown in it. Can only be changed while the organization has no transactions. */
+    currency: Currency;
+    /** Whether the currency is fixed because transactions exist. Only filled for the caller's own organization (GET/PUT /organization/my). */
+    currencyLocked?: boolean | undefined;
     /** When the organization was registered */
     createdAt?: Date;
     /** Soft-delete marker; null while the organization is active */
@@ -9859,6 +10302,7 @@ export class OrganizationInput implements IOrganizationInput {
     email?: string;
     phoneNumber?: string;
     autoAnalyzeDocuments?: boolean;
+    currency?: Currency;
 
     [key: string]: any;
 
@@ -9891,6 +10335,7 @@ export class OrganizationInput implements IOrganizationInput {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.currency = _data["currency"];
         }
     }
 
@@ -9921,6 +10366,7 @@ export class OrganizationInput implements IOrganizationInput {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["currency"] = this.currency;
         return data;
     }
 
@@ -9947,6 +10393,7 @@ export interface IOrganizationInput {
     email?: string;
     phoneNumber?: string;
     autoAnalyzeDocuments?: boolean;
+    currency?: Currency;
 
     [key: string]: any;
 }

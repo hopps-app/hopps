@@ -1,6 +1,7 @@
 package app.hopps.organization.model;
 
 import app.hopps.organization.domain.Address;
+import app.hopps.organization.domain.Currency;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.domain.OrganizationType;
 
@@ -20,7 +21,8 @@ public record OrganizationInput(String name,
         String taxNumber,
         String email,
         String phoneNumber,
-        Boolean autoAnalyzeDocuments) {
+        Boolean autoAnalyzeDocuments,
+        Currency currency) {
 
     /**
      * Builds a new Organization entity from this input.
@@ -42,6 +44,9 @@ public record OrganizationInput(String name,
         org.setPhoneNumber(phoneNumber);
         if (autoAnalyzeDocuments != null) {
             org.setAutoAnalyzeDocuments(autoAnalyzeDocuments);
+        }
+        if (currency != null) {
+            org.setCurrency(currency);
         }
         return org;
     }
