@@ -16,6 +16,7 @@ import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
 import { FONT } from '@/components/Transactions/layout';
 import { StatusBadge } from '@/components/Transactions/StatusBadge';
+import { TagInput } from '@/components/Transactions/TagInput';
 import { DrawerSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import { CloseButton } from '@/components/ui/CloseButton';
@@ -99,6 +100,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const [senderName, setSenderName] = useState('');
     const [bommelId, setBommelId] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
+    const [tags, setTags] = useState<string[]>([]);
     const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const { data: categoryGroups = [] } = useCategoryGroups();
@@ -123,6 +125,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
         const lastBommel = getLastBommelId();
         setBommelId(tx.bommelId != null ? String(tx.bommelId) : lastBommel ? String(lastBommel) : '');
         setPrivatelyPaid(tx.privatelyPaid ?? false);
+        setTags(tx.tags ?? []);
         const cv: Record<number, string> = {};
         (tx.categoryValues ?? []).forEach((c) => {
             if (c.groupId != null && c.value != null) {
@@ -158,6 +161,8 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
             senderName: senderName || undefined,
             bommelId: bommelId ? Number(bommelId) : 0,
             privatelyPaid,
+            // Always sent, so removing the last tag clears them (an omitted list leaves them as they are).
+            tags,
             categoryValues,
         });
         await updateMutation.mutateAsync({ id: tx.id, data });
@@ -274,6 +279,24 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                       categoryGroups.find((g) => g.id === c.groupId)?.name ?? t('categoryGroups.fields.eyebrow'),
                       c.value ?? '—',
                   ]),
+              ...(tx.tags?.length
+                  ? [
+                        [
+                            t('transactions.create.tags'),
+                            <span key="tags" className="flex flex-wrap justify-end gap-1.5">
+                                {tx.tags.map((tag) => (
+                                    <span
+                                        key={tag}
+                                        className="rounded-[var(--btn-radius)] px-2.5 py-1 text-[12.5px] font-semibold"
+                                        style={{ background: 'var(--accent-surface)', color: 'var(--purple-700)' }}
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </span>,
+                        ] as [string, ReactNode],
+                    ]
+                  : []),
           ]
         : [];
 
@@ -493,6 +516,11 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     <span className="h-[21px] w-[21px] rounded-full bg-white shadow-[0_1px_3px_rgba(24,16,40,0.25)]" />
                                 </button>
                             </div>
+
+                            {/* Tags */}
+                            <Field label={t('transactions.create.tags')}>
+                                <TagInput value={tags} onChange={setTags} placeholder={t('transactions.create.tagsPlaceholder')} />
+                            </Field>
 
                             {/* Category groups (applicable to the selected bommel); draws its own divider and heading. */}
                             <CategoryGroupFields
