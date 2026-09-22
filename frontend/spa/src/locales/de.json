@@ -414,7 +414,7 @@
                 "remove": {
                     "button": "{{name}} entfernen",
                     "title": "Mitarbeiter entfernen?",
-                    "description": "{{name}} hat danach keinen Zugang mehr zu dieser Organisation in hopps. Das Konto beim Anmeldedienst bleibt bestehen.",
+                    "description": "{{name}} hat danach keinen Zugang mehr zu dieser Organisation in hopps.",
                     "confirm": "Entfernen",
                     "success": "Mitarbeiter entfernt",
                     "error": "Mitarbeiter konnte nicht entfernt werden."

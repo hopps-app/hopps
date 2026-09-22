@@ -770,55 +770,59 @@ function OrganizationDetailsSettingsView() {
                             ) : users.length === 0 ? (
                                 <p className="py-4 text-[13.5px] text-[#9A9AA3] dark:text-[#7A7A86]">{t('organization.details.users.empty')}</p>
                             ) : (
-                                <div className={userListGrid}>
-                                    <div
-                                        className={`${USER_ROW} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76] dark:text-[#A0A0AC]`}
-                                    >
-                                        <span>{t('organization.details.users.name')}</span>
-                                        <span>{t('organization.details.users.position')}</span>
-                                        <span>{t('organization.details.users.email')}</span>
-                                        <span>{t('organization.details.users.status.title')}</span>
-                                        {canManageMembers && <span />}
-                                    </div>
-                                    {users.map((user) => {
-                                        const name = displayName(user);
-                                        // Nobody can remove themselves (the backend refuses too).
-                                        const isCurrentUser = !!currentUserEmail && user.email?.toLowerCase() === currentUserEmail;
-                                        // The backend does not carry a position per member yet — see issue #751.
-                                        const position = typeof user.position === 'string' ? user.position.trim() : '';
-                                        return (
-                                            <div
-                                                key={user.id ?? user.email}
-                                                className={`${USER_ROW} items-center px-1 py-[11px] border-t border-[#E9E9EE] dark:border-[#2E2E36]`}
-                                            >
-                                                <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5] min-w-0">
-                                                    <UserAvatar name={name} />
-                                                    <span className="truncate">{name}</span>
-                                                </span>
-                                                <span
-                                                    className={`text-[14px] truncate ${position ? 'text-[#6B6B76] dark:text-[#A0A0AC]' : 'text-[#9A9AA3] dark:text-[#7A7A86]'}`}
+                                // Scoped to this table only: at narrow widths the grid's minimum column widths no
+                                // longer fit, and this scrolls on its own instead of shifting the whole page sideways.
+                                <div className="overflow-x-auto">
+                                    <div className={userListGrid}>
+                                        <div
+                                            className={`${USER_ROW} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76] dark:text-[#A0A0AC]`}
+                                        >
+                                            <span>{t('organization.details.users.name')}</span>
+                                            <span>{t('organization.details.users.position')}</span>
+                                            <span>{t('organization.details.users.email')}</span>
+                                            <span>{t('organization.details.users.status.title')}</span>
+                                            {canManageMembers && <span />}
+                                        </div>
+                                        {users.map((user) => {
+                                            const name = displayName(user);
+                                            // Nobody can remove themselves (the backend refuses too).
+                                            const isCurrentUser = !!currentUserEmail && user.email?.toLowerCase() === currentUserEmail;
+                                            // The backend does not carry a position per member yet — see issue #751.
+                                            const position = typeof user.position === 'string' ? user.position.trim() : '';
+                                            return (
+                                                <div
+                                                    key={user.id ?? user.email}
+                                                    className={`${USER_ROW} items-center px-1 py-[11px] border-t border-[#E9E9EE] dark:border-[#2E2E36]`}
                                                 >
-                                                    {position || '–'}
-                                                </span>
-                                                <span className="text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate">{user.email}</span>
-                                                <StatusPill status={user.status ?? 'NO_ACCESS'} />
-                                                {canManageMembers &&
-                                                    (isCurrentUser ? (
-                                                        <span />
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setMemberToRemove(user)}
-                                                            aria-label={t('organization.details.users.remove.button', { name })}
-                                                            title={t('organization.details.users.remove.button', { name })}
-                                                            className="grid h-8 w-8 place-items-center rounded-full text-[#9A9AA3] transition-colors hover:bg-[#FBE9E7] hover:text-[#B4342A] dark:text-[#7A7A86] dark:hover:bg-[#3A1D19] dark:hover:text-[#F0958A]"
-                                                        >
-                                                            <Trash2 size={16} aria-hidden="true" />
-                                                        </button>
-                                                    ))}
-                                            </div>
-                                        );
-                                    })}
+                                                    <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5] min-w-0">
+                                                        <UserAvatar name={name} />
+                                                        <span className="truncate">{name}</span>
+                                                    </span>
+                                                    <span
+                                                        className={`text-[14px] truncate ${position ? 'text-[#6B6B76] dark:text-[#A0A0AC]' : 'text-[#9A9AA3] dark:text-[#7A7A86]'}`}
+                                                    >
+                                                        {position || '–'}
+                                                    </span>
+                                                    <span className="text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate">{user.email}</span>
+                                                    <StatusPill status={user.status ?? 'NO_ACCESS'} />
+                                                    {canManageMembers &&
+                                                        (isCurrentUser ? (
+                                                            <span />
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setMemberToRemove(user)}
+                                                                aria-label={t('organization.details.users.remove.button', { name })}
+                                                                title={t('organization.details.users.remove.button', { name })}
+                                                                className="grid h-8 w-8 place-items-center rounded-full text-[#9A9AA3] transition-colors hover:bg-[#FBE9E7] hover:text-[#B4342A] dark:text-[#7A7A86] dark:hover:bg-[#3A1D19] dark:hover:text-[#F0958A]"
+                                                            >
+                                                                <Trash2 size={16} aria-hidden="true" />
+                                                            </button>
+                                                        ))}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
                         </SectionCard>

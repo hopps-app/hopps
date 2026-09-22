@@ -415,7 +415,7 @@
                 "remove": {
                     "button": "Remove {{name}}",
                     "title": "Remove user?",
-                    "description": "{{name}} will no longer have access to this organization in hopps. Their account with the login provider is kept.",
+                    "description": "{{name}} will no longer have access to this organization in hopps.",
                     "confirm": "Remove",
                     "success": "User removed",
                     "error": "The user could not be removed."
