@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -4501,7 +4501,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
+            return throwException("The current user may not manage members", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -9269,7 +9269,6 @@ export class Member implements IMember {
     position?: string;
     /** Whether the member can log in, and how far their invitation got */
     readonly status!: MemberStatus;
-    organizations?: Organization[];
     /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
     readonly setupLink?: string;
 
@@ -9296,11 +9295,6 @@ export class Member implements IMember {
             this.email = _data["email"];
             this.position = _data["position"];
             (this as any).status = _data["status"];
-            if (Array.isArray(_data["organizations"])) {
-                this.organizations = [] as any;
-                for (let item of _data["organizations"])
-                    this.organizations!.push(Organization.fromJS(item));
-            }
             (this as any).setupLink = _data["setupLink"];
         }
     }
@@ -9324,11 +9318,6 @@ export class Member implements IMember {
         data["email"] = this.email;
         data["position"] = this.position;
         data["status"] = this.status;
-        if (Array.isArray(this.organizations)) {
-            data["organizations"] = [];
-            for (let item of this.organizations)
-                data["organizations"].push(item ? item.toJSON() : undefined as any);
-        }
         data["setupLink"] = this.setupLink;
         return data;
     }
@@ -9353,7 +9342,6 @@ export interface IMember {
     position?: string;
     /** Whether the member can log in, and how far their invitation got */
     status: MemberStatus;
-    organizations?: Organization[];
     /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
     setupLink?: string;
 
@@ -9713,7 +9701,6 @@ export class Organization implements IOrganization {
     type!: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
-    members?: Member[];
     website?: string;
     profilePicture?: string;
     foundingDate?: Date;
@@ -9731,6 +9718,7 @@ export class Organization implements IOrganization {
     deletedAt?: Date;
     /** Whether a logo has been uploaded for this organization */
     hasLogo?: boolean;
+    members?: Member[];
 
     [key: string]: any;
 
@@ -9755,11 +9743,6 @@ export class Organization implements IOrganization {
             this.type = _data["type"];
             this.address = _data["address"] ? Address.fromJS(_data["address"]) : undefined as any;
             this.rootBommel = _data["rootBommel"] ? Bommel.fromJS(_data["rootBommel"]) : undefined as any;
-            if (Array.isArray(_data["members"])) {
-                this.members = [] as any;
-                for (let item of _data["members"])
-                    this.members!.push(Member.fromJS(item));
-            }
             this.website = _data["website"];
             this.profilePicture = _data["profilePicture"];
             this.foundingDate = _data["foundingDate"] ? new Date(_data["foundingDate"].toString()) : undefined as any;
@@ -9773,6 +9756,11 @@ export class Organization implements IOrganization {
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.deletedAt = _data["deletedAt"] ? new Date(_data["deletedAt"].toString()) : undefined as any;
             this.hasLogo = _data["hasLogo"];
+            if (Array.isArray(_data["members"])) {
+                this.members = [] as any;
+                for (let item of _data["members"])
+                    this.members!.push(Member.fromJS(item));
+            }
         }
     }
 
@@ -9795,11 +9783,6 @@ export class Organization implements IOrganization {
         data["type"] = this.type;
         data["address"] = this.address ? this.address.toJSON() : undefined as any;
         data["rootBommel"] = this.rootBommel ? this.rootBommel.toJSON() : undefined as any;
-        if (Array.isArray(this.members)) {
-            data["members"] = [];
-            for (let item of this.members)
-                data["members"].push(item ? item.toJSON() : undefined as any);
-        }
         data["website"] = this.website;
         data["profilePicture"] = this.profilePicture;
         data["foundingDate"] = this.foundingDate ? formatDate(this.foundingDate) : undefined as any;
@@ -9813,6 +9796,11 @@ export class Organization implements IOrganization {
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["deletedAt"] = this.deletedAt ? this.deletedAt.toISOString() : undefined as any;
         data["hasLogo"] = this.hasLogo;
+        if (Array.isArray(this.members)) {
+            data["members"] = [];
+            for (let item of this.members)
+                data["members"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 
@@ -9832,7 +9820,6 @@ export interface IOrganization {
     type: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
-    members?: Member[];
     website?: string;
     profilePicture?: string;
     foundingDate?: Date;
@@ -9850,6 +9837,7 @@ export interface IOrganization {
     deletedAt?: Date;
     /** Whether a logo has been uploaded for this organization */
     hasLogo?: boolean;
+    members?: Member[];
 
     [key: string]: any;
 }

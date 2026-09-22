@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
+import { useHasPermission } from '@/hooks/queries';
 import { useCountries } from '@/hooks/use-countries';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -462,12 +463,7 @@ function OrganizationDetailsSettingsView() {
         queryFn: () => apiService.orgService.members(slug!),
         enabled: !!slug,
     });
-    const { data: permissions = [] } = useQuery({
-        queryKey: ['organization', slug, 'permissions'],
-        queryFn: () => apiService.orgService.getMyPermissions(),
-        enabled: !!slug,
-    });
-    const canManageMembers = permissions.includes('MANAGE_MEMBERS');
+    const canManageMembers = useHasPermission('MANAGE_MEMBERS');
     const currentUserEmail = useStore((state) => state.user?.email)?.toLowerCase();
 
     const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
@@ -755,14 +751,16 @@ function OrganizationDetailsSettingsView() {
                             icon={<Users size={19} aria-hidden="true" />}
                             title={t('organization.details.users.title')}
                             action={
-                                <button
-                                    type="button"
-                                    onClick={() => setAddUserOpen(true)}
-                                    className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-[#ECE0F6] px-4 py-2 text-[13.5px] font-bold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB] dark:bg-[#33204A] dark:text-[#D2AEEE] dark:hover:bg-[#3E2859]"
-                                >
-                                    <UserPlus size={15} aria-hidden="true" />
-                                    {t('organization.details.users.add.button')}
-                                </button>
+                                canManageMembers && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setAddUserOpen(true)}
+                                        className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-[#ECE0F6] px-4 py-2 text-[13.5px] font-bold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB] dark:bg-[#33204A] dark:text-[#D2AEEE] dark:hover:bg-[#3E2859]"
+                                    >
+                                        <UserPlus size={15} aria-hidden="true" />
+                                        {t('organization.details.users.add.button')}
+                                    </button>
+                                )
                             }
                         >
                             {usersLoading ? (
