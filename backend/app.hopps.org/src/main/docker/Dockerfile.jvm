@@ -79,6 +79,13 @@ FROM registry.access.redhat.com/ubi8/openjdk-21:1.19
 
 ENV LANGUAGE='en_US:en'
 
+# Default root for HOPPS_STORAGE_TYPE=local. The directory has to exist in the image and be owned by the runtime user,
+# so that a volume mounted here inherits that ownership - an empty named volume would otherwise come up root-owned and
+# the application (UID 185) could not write to it. Group 0 with g+rwX keeps it writable under an arbitrary UID too.
+USER root
+RUN mkdir -p /var/lib/hopps/storage \
+    && chown -R 185:0 /var/lib/hopps \
+    && chmod -R g+rwX /var/lib/hopps
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
 COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
