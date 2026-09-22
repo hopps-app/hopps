@@ -318,6 +318,14 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - **Container Registry:** ghcr.io/hopps-app/hopps
 - **Weitere Workflows:** SonarQube-, Dependency-Track-Analyse, `helm-release.yaml`, `claude-code-review.yml`
 
+### Releases (release-please)
+- Eine Version für die gesamte App: Tag `vX.Y.Z` → alle Images (`org`, `az-document-ai`, `zugferd`, `frontend`, `admin`, `hopps-keycloak`) bekommen den Tag `X.Y.Z`. Wird u. a. vom Co-op-Cloud-Recipe (Kollicloud) konsumiert.
+- `release.yml` hält einen PR `chore(main): release X.Y.Z` offen (Changelog aus den Commit-Titeln). **Merge dieses PRs = Release:** Tag + GitHub Release werden erstellt, danach startet `release.yml` die Image-Workflows per `workflow_dispatch` auf dem Tag (ein mit `GITHUB_TOKEN` erstellter Tag triggert keine anderen Workflows).
+- PR-Titel müssen Conventional Commits folgen (`feat(scope): ...`, `fix: ...`, `feat!:` für Breaking Changes), geprüft durch `pr-title.yml`. `feat` → Minor, `fix` → Patch.
+- Breaking Changes an Konfiguration/Env-Vars (für Betreiber relevant) im Release-PR bzw. in den Release Notes ergänzen.
+- Builds auf `main` behalten die Run-Number-Tags (Dev-Deployment in `hopps.cloud`). Der Helm-Chart wird weiterhin separat versioniert.
+- Konfiguration: `release-please-config.json`, `.release-please-manifest.json`.
+
 ### Kubernetes/Helm
 **Chart:** `/charts/hopps` (Version 0.3.0)
 **Dependencies:** KeycloakX (codecentric, v7.0.1), PostgreSQL (bitnami, v16.4.5)

@@ -1,0 +1,43 @@
+name: release
+
+# Keeps a "chore(main): release x.y.z" PR open that collects the changelog from the conventional commit titles on main.
+# Merging that PR creates the vX.Y.Z tag and the GitHub release, then builds every image with that version.
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+  # to start the image workflows for the new tag
+  actions: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build-images:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      # A tag pushed with GITHUB_TOKEN does not trigger other workflows, so start them explicitly on the tag.
+      # They derive the image version from the tag, exactly as on a manually pushed vX.Y.Z tag.
+      - name: Build images for ${{ needs.release-please.outputs.tag_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          for workflow in backend.yml frontend.yml admin.yml keycloak.yml; do
+            gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref "$TAG"
+          done
