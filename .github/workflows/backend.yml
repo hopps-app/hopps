@@ -6,13 +6,12 @@ on:
       - backend/**
       - .github/workflows/backend.yml
     branches: [ "**" ]
-    tags: [ 'hopps-*.*.*' ]
+    tags: [ 'v*.*.*' ]
+  # started by release.yml on the new release tag
+  workflow_dispatch:
 
 env:
   BASE_IMAGE_NAME: ghcr.io/hopps-app/hopps
-
-  # prefix which needs to be in front of version tags
-  VERSION_TAG_PREFIX: 'hopps-'
 
 # Spelled out rather than inherited: without this the job runs with whatever the org's default workflow token
 # permission happens to be, and a switch to read-only turns every image push into "denied: denied".
@@ -63,8 +62,8 @@ jobs:
           tags: |
             # increasing run number tag on main
             type=raw,value=${{ github.run_number }},enable={{is_default_branch}}
-            # for version tags (only works for tags)
-            type=match,pattern=${{ env.VERSION_TAG_PREFIX }}\d.\d.\d
+            # release tag vX.Y.Z -> image tag X.Y.Z
+            type=semver,pattern={{version}}
             # for containers on feature branches
             type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
 

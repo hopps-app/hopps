@@ -9,7 +9,9 @@ on:
       - .github/workflows/keycloak.yml
     branches: [ "**" ]
     tags:
-      - '*.*.*'
+      - 'v*.*.*'
+  # started by release.yml on the new release tag
+  workflow_dispatch:
   pull_request:
     paths:
       - frontend/keycloak-theme/**
@@ -50,9 +52,9 @@ jobs:
       - name: Determine Docker image tag
         id: get-version
         run: |
-          if git describe --tags --exact-match 2>/dev/null; then
-            TAG=$(git describe --tags --exact-match)
-            echo "VERSION=${TAG}-keycloak-${KEYCLOAK_VERSION}" >> $GITHUB_ENV
+          # release tag vX.Y.Z -> image tag X.Y.Z, otherwise the run number
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_RUN_NUMBER}-keycloak-${KEYCLOAK_VERSION}" >> $GITHUB_ENV
           fi
@@ -64,6 +66,7 @@ jobs:
           file: ${{ matrix.baseDirectory }}/Dockerfile
           push: ${{ !startsWith(github.ref, 'refs/heads/dependabot') }}
           tags: ghcr.io/${{ github.repository }}/hopps-keycloak:${{ env.VERSION }}
+          labels: app.hopps.keycloak-version=${{ env.KEYCLOAK_VERSION }}
 
       - name: Trigger deploy workflow
         uses: actions/github-script@v9

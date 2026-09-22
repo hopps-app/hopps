@@ -8,7 +8,9 @@ on:
       - .github/workflows/admin.yml
     branches: [ "**" ]
     tags:
-      - 'admin-*.*.*'
+      - 'v*.*.*'
+  # started by release.yml on the new release tag
+  workflow_dispatch:
   pull_request:
     paths:
       - frontend/admin/**
@@ -83,9 +85,9 @@ jobs:
       - name: Determine Docker image tag
         id: get-version
         run: |
-          if git describe --tags --exact-match 2>/dev/null; then
-            TAG=$(git describe --tags --exact-match)
-            echo "VERSION=${TAG#admin-}" >> $GITHUB_ENV
+          # release tag vX.Y.Z -> image tag X.Y.Z, otherwise the run number
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
           else
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
           fi
