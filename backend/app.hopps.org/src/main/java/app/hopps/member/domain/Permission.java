@@ -6,6 +6,6 @@ package app.hopps.member.domain;
  */
 public enum Permission {
 
-    /** Remove members from the organization. */
+    /** Add or remove members of the organization. */
     MANAGE_MEMBERS
 }

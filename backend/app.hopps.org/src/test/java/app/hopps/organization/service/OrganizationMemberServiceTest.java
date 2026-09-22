@@ -2,6 +2,7 @@ package app.hopps.organization.service;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.MemberStatus;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.domain.OrganizationType;
@@ -10,6 +11,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.ForbiddenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,7 @@ class OrganizationMemberServiceTest {
 
     private Organization testOrganization;
     private Member testMember;
+    private Member owner;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +61,12 @@ class OrganizationMemberServiceTest {
         testMember.setEmail("invited@example.com");
         testMember.setFirstName("Invited");
         testMember.setLastName("Person");
+
+        owner = new Member();
+        owner.setEmail("owner@example.com");
+        owner.setFirstName("Owning");
+        owner.setLastName("Person");
+        owner.addOrganization(testOrganization, Role.OWNER);
 
         when(memberRepository.findByEmail(anyString())).thenReturn(null);
     }
@@ -78,7 +87,7 @@ class OrganizationMemberServiceTest {
         stubSuccessfulInvite(true);
         doNothing().when(persistenceDelegate).persistMember(any(), any());
 
-        Member added = organizationMemberService.addMember(testOrganization, testMember);
+        Member added = organizationMemberService.addMember(testOrganization, testMember, owner);
 
         assertEquals(MemberStatus.INVITED, added.getStatus());
         assertEquals(KEYCLOAK_ID, added.getKeycloakId());
@@ -94,7 +103,7 @@ class OrganizationMemberServiceTest {
                 .persistMember(any(), any());
 
         assertThrows(IllegalStateException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
 
         verify(identityProvisioningService, times(1)).deleteUser(KEYCLOAK_ID);
     }
@@ -108,7 +117,7 @@ class OrganizationMemberServiceTest {
                 .persistMember(any(), any());
 
         assertThrows(IllegalStateException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
 
         verify(identityProvisioningService, never()).deleteUser(anyString());
     }
@@ -119,7 +128,7 @@ class OrganizationMemberServiceTest {
         when(memberRepository.findByEmail(eq("invited@example.com"))).thenReturn(new Member());
 
         assertThrows(NonUniqueConstraintViolation.NonUniqueConstraintViolationException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
 
         verify(identityProvisioningService, never()).inviteMember(any(), anyString());
         verify(persistenceDelegate, never()).persistMember(any(), any());
@@ -131,7 +140,23 @@ class OrganizationMemberServiceTest {
         testMember.setEmail("not-an-email");
 
         assertThrows(ConstraintViolationException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
+
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
+        verify(persistenceDelegate, never()).persistMember(any(), any());
+    }
+
+    @Test
+    @DisplayName("should reject adding a member when the caller may not manage members")
+    void shouldRejectAddMemberWithoutPermission() {
+        Member nonOwner = new Member();
+        nonOwner.setEmail("admin@example.com");
+        nonOwner.setFirstName("Regular");
+        nonOwner.setLastName("Admin");
+        nonOwner.addOrganization(testOrganization, Role.ADMIN);
+
+        assertThrows(ForbiddenException.class,
+                () -> organizationMemberService.addMember(testOrganization, testMember, nonOwner));
 
         verify(identityProvisioningService, never()).inviteMember(any(), anyString());
         verify(persistenceDelegate, never()).persistMember(any(), any());

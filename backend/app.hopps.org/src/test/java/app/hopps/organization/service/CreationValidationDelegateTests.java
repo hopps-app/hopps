@@ -56,8 +56,6 @@ class CreationValidationDelegateTests {
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
 
-        organization.getMembers().add(owner);
-
         // when
         delegate.validateWithValidator(organization, owner);
 
@@ -79,8 +77,6 @@ class CreationValidationDelegateTests {
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
 
-        organization.getMembers().add(owner);
-
         // when
         assertThrows(ConstraintViolationException.class, () -> delegate.validateWithValidator(organization, owner));
     }
@@ -99,8 +95,6 @@ class CreationValidationDelegateTests {
         owner.setFirstName("Kevin");
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
-
-        organization.getMembers().add(owner);
 
         // when
         delegate.validateUniqueness(organization, owner);
@@ -133,8 +127,6 @@ class CreationValidationDelegateTests {
         owner.setFirstName("Kevin");
         owner.setLastName("Kegler");
         owner.setEmail("kevin@example.com");
-
-        organization.getMembers().add(owner);
 
         // then
         NonUniqueConstraintViolationException exception = assertThrows(NonUniqueConstraintViolationException.class,

@@ -5,7 +5,6 @@ import app.hopps.member.domain.Member;
 import app.hopps.member.domain.Permission;
 import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
-import app.hopps.member.repository.MemberRoleRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.AccessService;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
@@ -23,7 +22,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 
@@ -53,9 +51,6 @@ public class OrganizationMemberService {
     BommelRepository bommelRepository;
 
     @Inject
-    MemberRoleRepository memberRoleRepository;
-
-    @Inject
     AccessService accessService;
 
     @ConfigProperty(name = "app.hopps.org.auth.member-role")
@@ -66,10 +61,14 @@ public class OrganizationMemberService {
      *            the organization to add the person to
      * @param member
      *            the person to add, not yet persisted and without a Keycloak id
+     * @param currentUser
+     *            the member making the request, who needs {@link Permission#MANAGE_MEMBERS}
      *
      * @return the persisted member, whose {@link app.hopps.member.domain.MemberStatus} says whether the invitation
      *         email reached them
      *
+     * @throws ForbiddenException
+     *             if the current user may not manage members
      * @throws ConstraintViolationException
      *             if the member is missing required fields
      * @throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException
@@ -77,7 +76,9 @@ public class OrganizationMemberService {
      * @throws jakarta.ws.rs.WebApplicationException
      *             if the identity provider account cannot be provisioned
      */
-    public Member addMember(Organization organization, Member member) {
+    public Member addMember(Organization organization, Member member, Member currentUser) {
+        accessService.require(currentUser, Permission.MANAGE_MEMBERS, organization);
+
         LOG.info("Adding member {} to organization {}", member.getEmail(), organization.getSlug());
 
         // validate constraints using Jakarta Bean Validation
@@ -139,27 +140,20 @@ public class OrganizationMemberService {
         accessService.require(currentUser, Permission.MANAGE_MEMBERS, organization);
 
         Member member = memberRepository.findById(memberId);
-        if (member == null || member.getOrganizations()
-                .stream()
-                .noneMatch(org -> Objects.equals(org.getId(), organization.getId()))) {
+        if (member == null || member.getRole(organization).isEmpty()) {
             throw new NotFoundException("No member " + memberId + " in organization " + organization.getSlug());
         }
         if (Objects.equals(member.id, currentUser.id)) {
             throw new ClientErrorException("Members cannot remove themselves", Response.Status.CONFLICT);
         }
-        Set<Long> organizationBommels = bommelRepository
-                .getSelfAndDescendantIds(Set.of(organization.getRootBommel().id));
-        if (memberRoleRepository.rolesOn(member, organizationBommels).contains(Role.OWNER)) {
+        if (member.getRole(organization).filter(Role.OWNER::equals).isPresent()) {
             throw new ClientErrorException("The owner cannot be removed", Response.Status.CONFLICT);
         }
 
-        memberRoleRepository.removeFrom(member, organizationBommels);
-        // Member owns the member_verein join table, so its collection is what the membership lives in.
-        var remaining = new ArrayList<>(member.getOrganizations());
-        remaining.removeIf(org -> Objects.equals(org.getId(), organization.getId()));
-        member.setOrganizations(remaining);
+        // Role lives on the same membership row, so removing it takes the role with it.
+        member.removeOrganization(organization);
 
-        if (remaining.isEmpty()) {
+        if (member.getOrganizations().isEmpty()) {
             bommelRepository.update("responsibleMember = null where responsibleMember = ?1", member);
             memberRepository.delete(member);
         }

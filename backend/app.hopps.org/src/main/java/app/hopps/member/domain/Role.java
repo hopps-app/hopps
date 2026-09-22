@@ -4,9 +4,9 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * A role a member holds on a bommel (see {@link MemberRole}), as a named set of {@link Permission}s. Kept in hopps's
- * own database rather than at the identity provider: roles apply to one organization or even one bommel, which a global
- * IdP role cannot express, and every IdP (Keycloak, Authentik, ...) models roles differently anyway.
+ * A role a member holds in an organization (see {@link MemberOrganization}), as a named set of {@link Permission}s.
+ * Kept in hopps's own database rather than at the identity provider: roles apply per organization, which a global IdP
+ * role cannot express, and every IdP (Keycloak, Authentik, ...) models roles differently anyway.
  */
 public enum Role {
 

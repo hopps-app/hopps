@@ -5,7 +5,6 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
-import app.hopps.member.repository.MemberRoleRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -24,14 +23,11 @@ public class PersistOrganizationDelegate {
     MemberRepository memberRepository;
 
     @Inject
-    MemberRoleRepository memberRoleRepository;
-
-    @Inject
     BommelRepository bommelRepository;
 
     @Transactional
     public void persistOrg(@Valid Organization organization, @Valid Member owner) {
-        owner.addOrganization(organization);
+        owner.addOrganization(organization, Role.OWNER);
 
         Bommel rootBommel = new Bommel();
         rootBommel.setName(organization.getName());
@@ -40,12 +36,11 @@ public class PersistOrganizationDelegate {
         rootBommel.setEmoji(Bommel.DEFAULT_ROOT_BOMMEL_EMOJI);
         rootBommel.setResponsibleMember(owner);
 
-        organization.addMember(owner);
+        organization.addMember(owner, Role.OWNER);
         organization.setRootBommel(rootBommel);
 
         memberRepository.persist(owner);
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
-        memberRoleRepository.assign(owner, rootBommel, Role.OWNER);
     }
 }

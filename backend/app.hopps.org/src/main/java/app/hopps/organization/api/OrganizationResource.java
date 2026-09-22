@@ -353,19 +353,21 @@ public class OrganizationResource {
     @Authenticated
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app. With Keycloak, an account is provisioned and Keycloak emails them an invitation link in which they set their own password. With Authentik, an existing account for that email is linked as is; otherwise one is created and Authentik emails the link, or, without a mail server, the returned member carries it as setupLink for the inviting admin to pass on. The status says whether an email went out (INVITED) or not (INVITATION_FAILED); the account exists either way.")
+    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app. Needs the MANAGE_MEMBERS permission. With Keycloak, an account is provisioned and Keycloak emails them an invitation link in which they set their own password. With Authentik, an existing account for that email is linked as is; otherwise one is created and Authentik emails the link, or, without a mail server, the returned member carries it as setupLink for the inviting admin to pass on. The status says whether an email went out (INVITED) or not (INVITATION_FAILED); the account exists either way.")
     @APIResponse(responseCode = "201", description = "Member added to the organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed")
     @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "The current user may not manage members")
     @APIResponse(responseCode = "404", description = "Organization not found for user")
     @APIResponse(responseCode = "409", description = "A member with that email already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public Response addMemberToMyOrganization(@Context SecurityContext securityContext,
             @Parameter(description = "The person to add") NewMemberInput input) {
+        Member currentUser = securityUtils.getCurrentUser(securityContext);
         Organization organization = securityUtils.getUserOrganization(securityContext);
 
         Member member;
         try {
-            member = organizationMemberService.addMember(organization, input.toMember());
+            member = organizationMemberService.addMember(organization, input.toMember(), currentUser);
         } catch (ConstraintViolationException e) {
             String message = e.getConstraintViolations()
                     .stream()
@@ -391,7 +393,7 @@ public class OrganizationResource {
     @Path("/my/permissions")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(operationId = "getMyPermissions", summary = "Get my permissions in my organization", description = "Returns what the current user may do in their organization as a whole, derived from the roles they hold on its root bommel.")
+    @Operation(operationId = "getMyPermissions", summary = "Get my permissions in my organization", description = "Returns what the current user may do in their organization, derived from the role they hold in it.")
     @APIResponse(responseCode = "200", description = "The current user's permissions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = Permission.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "User has no organization")

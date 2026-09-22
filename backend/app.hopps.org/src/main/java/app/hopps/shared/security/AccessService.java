@@ -1,52 +1,35 @@
 package app.hopps.shared.security;
 
-import app.hopps.bommel.domain.Bommel;
-import app.hopps.bommel.domain.TreeSearchBommel;
-import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.Permission;
 import app.hopps.member.domain.Role;
-import app.hopps.member.repository.MemberRoleRepository;
 import app.hopps.organization.domain.Organization;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.ForbiddenException;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 /**
- * The one place that answers what a member may do. Permissions come from the {@link Role}s a member holds on a bommel
- * or any of its ancestors, as a role covers the whole subtree below the bommel it was granted on.
+ * The one place that answers what a member may do. Permissions come from the {@link Role} a member holds in an
+ * organization ({@link Member#getRole(Organization)}), which is organization-wide for now — there is no bommel-level
+ * override.
  */
 @ApplicationScoped
 public class AccessService {
 
-    @Inject
-    MemberRoleRepository memberRoleRepository;
-
-    @Inject
-    BommelRepository bommelRepository;
-
-    public Set<Permission> permissions(Member member, Bommel bommel) {
-        List<Long> lineage = new ArrayList<>();
-        lineage.add(bommel.id);
-        bommelRepository.getParents(bommel)
-                .stream()
-                .map(TreeSearchBommel::bommel)
-                .forEach(parent -> lineage.add(parent.id));
-
-        Set<Permission> permissions = EnumSet.noneOf(Permission.class);
-        memberRoleRepository.rolesOn(member, lineage).forEach(role -> permissions.addAll(role.getPermissions()));
-        return permissions;
-    }
-
-    /** Permissions on the organization as a whole, i.e. on its root bommel. */
+    /**
+     * Get permisions for member role
+     *
+     * @param member
+     * @param organization
+     *
+     * @return
+     */
     public Set<Permission> permissions(Member member, Organization organization) {
-        Bommel root = organization.getRootBommel();
-        return root == null ? EnumSet.noneOf(Permission.class) : permissions(member, root);
+        return member.getRole(organization)
+                .map(Role::getPermissions)
+                .orElseGet(() -> EnumSet.noneOf(Permission.class));
     }
 
     /**
