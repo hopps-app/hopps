@@ -12,10 +12,6 @@ export function dateFnsLocale(language: string) {
     }
 }
 
-export function formatCurrency(language: string, value: number | undefined, currency = 'EUR'): string {
-    return new Intl.NumberFormat(language, { style: 'currency', currency }).format(value ?? 0);
-}
-
 export function formatMonthLabel(language: string, monthKey: string, withYear: boolean): string {
     const date = new Date(`${monthKey}-01T00:00:00`);
     return format(date, withYear ? 'MMM yy' : 'MMM', { locale: dateFnsLocale(language) });

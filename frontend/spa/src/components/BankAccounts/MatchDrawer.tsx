@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
-import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
+import { fmtDate } from '@/components/BankAccounts/format';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import {
@@ -21,6 +21,7 @@ import {
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { useDocument } from '@/hooks/queries/useDocuments';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 import { parseAllocationAmount } from '@/utils/parseAmount';
@@ -70,13 +71,14 @@ function HoppsTxMini({ tx }: { tx: TransactionResponse }) {
 
 // ─── SignedAmount ─────────────────────────────────────────────────────────────
 
-function SignedAmount({ amount, currency = 'EUR', size = 'base' }: { amount: number | undefined; currency?: string; size?: 'sm' | 'base' | 'lg' }) {
+function SignedAmount({ amount, currency, size = 'base' }: { amount: number | undefined; currency?: string; size?: 'sm' | 'base' | 'lg' }) {
+    const { format } = useCurrency();
     const pos = (amount ?? 0) >= 0;
     const sizeClass = size === 'lg' ? 'text-xl' : size === 'sm' ? 'text-[13px]' : 'text-base';
     return (
         <span className={cn('font-bold tabular-nums whitespace-nowrap flex-shrink-0', sizeClass, pos ? 'text-emerald-600' : 'text-foreground')}>
             {pos ? '+ ' : '– '}
-            {fmtCurrency(Math.abs(amount ?? 0), currency)}
+            {format(Math.abs(amount ?? 0), { currency })}
         </span>
     );
 }
@@ -92,6 +94,7 @@ interface MatchDrawerProps {
 }
 
 export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawerProps) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [sel, setSel] = useState<Set<number>>(new Set());
@@ -362,7 +365,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                         <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
                             <div className="flex items-start justify-between gap-3">
                                 <BookingMini tx={bankTx} />
-                                <SignedAmount amount={bankTx.amount} currency={bankTx.currency ?? 'EUR'} size="base" />
+                                <SignedAmount amount={bankTx.amount} currency={bankTx.currency} size="base" />
                             </div>
                             <div className="flex gap-2 mt-3 flex-wrap">
                                 {bankTx.bankAccountName && (
@@ -450,13 +453,13 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                                 <div className="flex-1 min-w-0">
                                                     <HoppsTxMini tx={tx} />
                                                 </div>
-                                                <SignedAmount amount={tx.total} currency={tx.currencyCode ?? 'EUR'} size="sm" />
+                                                <SignedAmount amount={tx.total} currency={tx.currencyCode} size="sm" />
                                                 <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                                             </button>
                                             <MatchAllocationControl
                                                 amount={allocByTx.get(tx.id!) ?? defaultAlloc(tx)}
                                                 max={movementMagnitude}
-                                                currency={bankTx.currency ?? 'EUR'}
+                                                currency={bankTx.currency}
                                                 pending={updateMatchAmount.isPending}
                                                 onSave={(v) => handleUpdateAlloc(tx.id!, v)}
                                             />
@@ -484,13 +487,13 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                             >
                                 <div className="flex flex-col gap-0.5">
                                     <span className="text-xs text-muted-foreground font-medium">{t('konten.drawer.bankAmount')}</span>
-                                    <span className="font-bold tabular-nums">{fmtCurrency(absAmount, bankTx.currency ?? 'EUR')}</span>
+                                    <span className="font-bold tabular-nums">{format(absAmount, { currency: bankTx.currency })}</span>
                                 </div>
                                 {alreadyMatchedSum + selectedSum > 0 && (
                                     <div className="flex flex-col gap-0.5 text-right">
                                         <span className="text-xs text-muted-foreground font-medium">{t('konten.drawer.covered')}</span>
                                         <span className="font-bold tabular-nums text-emerald-600">
-                                            {fmtCurrency(alreadyMatchedSum + selectedSum, bankTx.currency ?? 'EUR')}
+                                            {format(alreadyMatchedSum + selectedSum, { currency: bankTx.currency })}
                                         </span>
                                     </div>
                                 )}
@@ -499,7 +502,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                         {isFullyCovered ? t('konten.drawer.fullyCovered') : t('konten.drawer.remaining')}
                                     </span>
                                     <span className={cn('font-bold tabular-nums', isFullyCovered ? 'text-emerald-600' : 'text-amber-600')}>
-                                        {isFullyCovered ? '✓' : (remaining < 0 ? '– ' : '+ ') + fmtCurrency(Math.abs(remaining), bankTx.currency ?? 'EUR')}
+                                        {isFullyCovered ? '✓' : (remaining < 0 ? '– ' : '+ ') + format(Math.abs(remaining), { currency: bankTx.currency })}
                                     </span>
                                 </div>
                             </div>
@@ -571,7 +574,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                                         {t('konten.drawer.exactMatch')}
                                                     </span>
                                                 )}
-                                                <SignedAmount amount={tx.total} currency={tx.currencyCode ?? 'EUR'} size="sm" />
+                                                <SignedAmount amount={tx.total} currency={tx.currencyCode} size="sm" />
                                                 {/* Partial "amount used" for splitting this movement — appears only for a selected row. The
                                                     placeholder shows the default (full) allocation; leave it empty to use that. */}
                                                 {isSelected && (
@@ -581,7 +584,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                                         value={amounts.get(tx.id!) ?? ''}
                                                         onClick={(e) => e.stopPropagation()}
                                                         onChange={(e) => setRowAmount(tx.id!, e.target.value)}
-                                                        placeholder={fmtCurrency(defaultAlloc(tx), bankTx.currency ?? 'EUR')}
+                                                        placeholder={format(defaultAlloc(tx), { currency: bankTx.currency })}
                                                         title={t('konten.drawer.usedAmountHint')}
                                                         aria-invalid={rowOverCap}
                                                         className={cn(

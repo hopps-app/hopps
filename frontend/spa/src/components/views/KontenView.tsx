@@ -42,6 +42,7 @@ import {
     type BankTransactionSortField,
 } from '@/hooks/queries/useBankAccounts';
 import type { SortDirection } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useBankTxFilters } from '@/hooks/useBankTxFilters';
 import { usePersistedState } from '@/hooks/usePersistedState';
@@ -51,11 +52,6 @@ import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtCurrency(amount: number | undefined, currency = 'EUR'): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-}
 
 function fmtDate(date: string | Date | undefined): string {
     if (!date) return '—';
@@ -104,7 +100,7 @@ function StatusPill({ status }: { status?: string }) {
 
 function SignedAmount({
     amount,
-    currency = 'EUR',
+    currency,
     size = 'base',
     matchedAmount,
 }: {
@@ -113,6 +109,7 @@ function SignedAmount({
     size?: 'sm' | 'base' | 'lg';
     matchedAmount?: number;
 }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const total = amount ?? 0;
     // matchedAmount is the SIGNED net coverage (income + / expense −); the still-open amount is |total − matched|, so
@@ -126,11 +123,11 @@ function SignedAmount({
         <span className="inline-flex flex-col items-end leading-tight">
             <span className={cn('font-bold tabular-nums whitespace-nowrap', sizeClass, pos ? 'text-emerald-600' : 'text-foreground')}>
                 {pos ? '+ ' : '– '}
-                {fmtCurrency(Math.abs(total), currency)}
+                {format(Math.abs(total), { currency })}
             </span>
             {partiallyMatched && (
                 <span className="text-[11px] font-semibold text-amber-600 tabular-nums whitespace-nowrap">
-                    {t('konten.openAmount', { amount: fmtCurrency(open, currency) })}
+                    {t('konten.openAmount', { amount: format(open, { currency }) })}
                 </span>
             )}
         </span>
@@ -169,6 +166,7 @@ function AccountCard({
     onEdit: (e: React.MouseEvent) => void;
     onImport: (e: React.MouseEvent) => void;
 }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     return (
         <div
@@ -221,7 +219,7 @@ function AccountCard({
                     )}
                 </div>
                 <div className="text-[22px] font-black tabular-nums mt-0.5">
-                    {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
+                    {format(account.balance ?? account.openingBalance, { currency: account.currency })}
                 </div>
             </div>
 
@@ -254,6 +252,7 @@ function AddAccountCard({ onClick }: { onClick: () => void }) {
 // Compact one-line representation of a bank account, shown when the account section is collapsed. Clicking it jumps to
 // that account's tab, just like the full card.
 function AccountPill({ account, openCount, onClick }: { account: BankAccountResponse; openCount: number; onClick: () => void }) {
+    const { format } = useCurrency();
     return (
         <button
             type="button"
@@ -268,7 +267,7 @@ function AccountPill({ account, openCount, onClick }: { account: BankAccountResp
             </span>
             <span className="text-[15px] font-semibold truncate max-w-[12rem]">{account.name}</span>
             <span className="text-[15px] font-bold tabular-nums text-muted-foreground">
-                {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
+                {format(account.balance ?? account.openingBalance, { currency: account.currency })}
             </span>
             {openCount > 0 && (
                 <span className="inline-flex items-center justify-center min-w-[21px] h-[21px] px-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">
@@ -432,7 +431,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                                             {acct.name}
                                         </span>
                                     )}
-                                    <SignedAmount amount={tx.amount} currency={tx.currency ?? 'EUR'} matchedAmount={tx.matchedAmount} />
+                                    <SignedAmount amount={tx.amount} currency={tx.currency} matchedAmount={tx.matchedAmount} />
                                     <button
                                         type="button"
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm font-semibold hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0"
@@ -528,6 +527,7 @@ function AccountTab({
     onOpenDrawer: (id: number) => void;
     onImport: (accountId: number) => void;
 }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const [statusFilter, setStatusFilter] = usePersistedState<StatusFilter>('hopps.konten.account.statusFilter', 'ALL');
     const [page, setPage] = useState(0);
@@ -575,7 +575,7 @@ function AccountTab({
                     <span className="font-mono">{account.iban}</span>
                     {(account.balance ?? account.openingBalance) !== undefined && (
                         <span>
-                            · {t('konten.balance')} {fmtCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
+                            · {t('konten.balance')} {format(account.balance ?? account.openingBalance, { currency: account.currency })}
                         </span>
                     )}
                 </span>
@@ -674,7 +674,7 @@ function AccountTab({
                                 <div className="text-xs text-muted-foreground truncate">{tx.purpose}</div>
                             </div>
                             <span className="text-right">
-                                <SignedAmount amount={tx.amount} currency={tx.currency ?? 'EUR'} size="sm" matchedAmount={tx.matchedAmount} />
+                                <SignedAmount amount={tx.amount} currency={tx.currency} size="sm" matchedAmount={tx.matchedAmount} />
                             </span>
                             <span className="flex justify-center">
                                 <StatusPill status={tx.status} />

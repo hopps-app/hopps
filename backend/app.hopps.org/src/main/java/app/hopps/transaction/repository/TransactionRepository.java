@@ -34,6 +34,14 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
     }
 
     /**
+     * Whether the organization has at least one transaction, regardless of status. Used to freeze settings that
+     * reinterpret stored amounts, such as the organization's currency.
+     */
+    public boolean existsForOrganization(Long organizationId) {
+        return count("organization.id = ?1", organizationId) > 0;
+    }
+
+    /**
      * Find a transaction by ID, scoped to current organization.
      */
     public Transaction findByIdScoped(Long id) {

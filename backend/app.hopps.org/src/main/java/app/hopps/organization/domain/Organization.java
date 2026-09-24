@@ -13,6 +13,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -87,6 +88,17 @@ public class Organization extends PanacheEntity {
 
     @Schema(description = "Whether uploaded documents should be automatically analyzed by AI", examples = "true")
     private boolean autoAnalyzeDocuments = true;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 3)
+    @Schema(description = "Currency the organization keeps its books in; every amount is shown in it. Can only be changed while the organization has no transactions.", examples = "EUR")
+    private Currency currency = Currency.EUR;
+
+    @Transient
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Schema(description = "Whether the currency is fixed because transactions exist. Only filled for the caller's own organization (GET/PUT /organization/my).", examples = "false", nullable = true)
+    private Boolean currencyLocked;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -275,6 +287,22 @@ public class Organization extends PanacheEntity {
 
     public void setAutoAnalyzeDocuments(boolean autoAnalyzeDocuments) {
         this.autoAnalyzeDocuments = autoAnalyzeDocuments;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
+
+    public Boolean getCurrencyLocked() {
+        return currencyLocked;
+    }
+
+    public void setCurrencyLocked(Boolean currencyLocked) {
+        this.currencyLocked = currencyLocked;
     }
 
     public Instant getCreatedAt() {

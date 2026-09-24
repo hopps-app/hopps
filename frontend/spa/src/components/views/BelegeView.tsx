@@ -53,6 +53,7 @@ import {
     documentKeys,
 } from '@/hooks/queries/useDocuments';
 import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useDocumentEvents } from '@/hooks/useDocumentEvents';
@@ -84,11 +85,6 @@ function canReanalyzeDocument(doc: DocumentResponse): boolean {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtCurrency(amount: number | null | undefined): string {
-    if (amount == null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-}
 
 function fmtDate(date: Date | string | null | undefined): string {
     if (!date) return '—';
@@ -292,6 +288,7 @@ function ReceiptDataRow({
 // the transaction in this drawer instead of being navigated to the receipts page. The component is self-contained
 // (driven only by the `doc` prop and the callbacks), so reusing it needs no view-level state from BelegeView.
 export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+    const { format, symbol } = useCurrency();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -734,7 +731,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                         className="text-[13px] font-bold tabular-nums"
                                                         style={{ color: (b.amount ?? 0) >= 0 ? '#1F7A50' : '#B12C4C' }}
                                                     >
-                                                        {fmtCurrency(b.amount)}
+                                                        {format(b.amount)}
                                                     </div>
                                                 </div>
                                                 <div className="min-w-0">
@@ -792,7 +789,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     />
                                     <div className="grid grid-cols-2 gap-3">
                                         <InputField
-                                            label={`${t('receipts.review.amount')} (€)`}
+                                            label={`${t('receipts.review.amount')} (${symbol})`}
                                             value={amount}
                                             onChange={setAmount}
                                             type="text"
@@ -894,8 +891,8 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                 applyLabel={t('receipts.review.applySuggestion')}
                                             />
                                             <ReceiptDataRow
-                                                label={`${t('receipts.review.amount')} (€)`}
-                                                value={aiAmount ? fmtCurrency(Number(aiAmount)) : null}
+                                                label={`${t('receipts.review.amount')} (${symbol})`}
+                                                value={aiAmount ? format(Number(aiAmount)) : null}
                                                 canApply={!fieldsDisabled && !!aiAmount && aiAmount !== amount}
                                                 onApply={() => setAmount(aiAmount!)}
                                                 applyLabel={t('receipts.review.applySuggestion')}
@@ -1084,6 +1081,7 @@ function DocumentRow({
     bulkSelected: boolean;
     onToggleBulk: () => void;
 }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const status = getDocumentReviewStatus(doc);
     const amount = doc.total != null ? Number(doc.total) : null;
@@ -1151,7 +1149,7 @@ function DocumentRow({
 
             {/* Amount, signed by document direction */}
             <span className="font-bold tabular-nums text-[13.5px]" style={{ color: amount != null ? (outgoing ? '#1F7A50' : '#B12C4C') : '#9A9AA3' }}>
-                {amount != null ? `${outgoing ? '+' : '−'}${fmtCurrency(Math.abs(amount))}` : '—'}
+                {amount != null ? `${outgoing ? '+' : '−'}${format(Math.abs(amount))}` : '—'}
             </span>
 
             {/* Status */}
