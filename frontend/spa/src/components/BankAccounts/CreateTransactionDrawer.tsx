@@ -1,6 +1,6 @@
 import { BankTransactionResponse, TransactionCreateRequest } from '@hopps/api-client';
-import { X, Check, ArrowDownRight, ArrowUpRight, Landmark, Plus } from 'lucide-react';
-import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
+import { Check, ArrowDownRight, ArrowUpRight, Landmark, Plus } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
@@ -9,6 +9,8 @@ import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGr
 import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
+import { TagInput } from '@/components/Transactions/TagInput';
+import { CloseButton } from '@/components/ui/CloseButton';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import TextField from '@/components/ui/TextField';
 import { useAddBankTransactionMatch } from '@/hooks/queries/useBankAccounts';
@@ -76,11 +78,8 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const [bommelId, setBommelId] = useState('');
     const [privatelyPaid, setPrivatelyPaid] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
-    const [tagInput, setTagInput] = useState('');
     const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [amountError, setAmountError] = useState(false);
-
-    const tagInputRef = useRef<HTMLInputElement>(null);
 
     // Prefill the form from the bank movement whenever the drawer opens in bank-linked mode (same field mapping as
     // creating a receipt from a bank transaction: purpose → name, amount → total, booking date → date, counterparty).
@@ -113,7 +112,6 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         setBommelId('');
         setPrivatelyPaid(false);
         setTags([]);
-        setTagInput('');
         setCategoryValues({});
         setAmountError(false);
     }
@@ -121,22 +119,6 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     function handleClose() {
         reset();
         onClose();
-    }
-
-    function addTag() {
-        const v = tagInput.trim();
-        if (v && !tags.includes(v)) setTags((prev) => [...prev, v]);
-        setTagInput('');
-    }
-
-    function handleTagKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addTag();
-        }
-        if (e.key === 'Backspace' && !tagInput && tags.length) {
-            setTags((prev) => prev.slice(0, -1));
-        }
     }
 
     function buildPayload(): TransactionCreateRequest | null {
@@ -258,8 +240,8 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                 style={{
                     width: 460,
                     maxWidth: '100vw',
-                    background: 'var(--background-secondary)',
-                    boxShadow: '0 12px 40px rgba(20,20,40,.16)',
+                    background: 'var(--drawer-bg)',
+                    boxShadow: 'var(--shadow-lg)',
                     fontFamily: FONT,
                 }}
             >
@@ -273,12 +255,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             {bankMode ? t('konten.createTx.subtitle') : t('transactions.create.subtitle')}
                         </p>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="w-9 h-9 flex items-center justify-center rounded-full border border-border-soft text-muted-foreground hover:text-foreground hover:border-purple-300 transition-colors"
-                    >
-                        <X size={17} />
-                    </button>
+                    <CloseButton onClick={handleClose} />
                 </div>
 
                 {/* Scrollable body */}
@@ -286,7 +263,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     {/* Where this transaction came from. Without it the drawer hides the very movement it is meant to
                         cover, so there is no way to tell how much still needs to be booked. */}
                     {bankMode && bankTx && (
-                        <div className="rounded-[12px] border border-border-soft bg-[var(--surface-sunken)] px-3.5 py-3">
+                        <div className="rounded-[12px] border border-border-soft bg-[var(--background-secondary)] px-3.5 py-3">
                             <div className="flex items-center gap-1.5">
                                 <Landmark size={13} className="text-purple-700" />
                                 <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-purple-700">{t('konten.createTx.origin')}</span>
@@ -353,7 +330,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                         className="flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
                                         style={{
                                             borderColor: active ? activeColor.border : 'var(--border-soft)',
-                                            background: active ? activeColor.bg : 'var(--surface-sunken)',
+                                            background: active ? activeColor.bg : 'var(--background-secondary)',
                                         }}
                                     >
                                         <span
@@ -459,7 +436,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             className="w-full flex items-center gap-3 p-3 rounded-[12px] border-2 transition-all text-left"
                             style={{
                                 borderColor: privatelyPaid ? 'var(--primary)' : 'var(--border-soft)',
-                                background: privatelyPaid ? 'var(--accent-surface)' : 'var(--surface-sunken)',
+                                background: privatelyPaid ? 'var(--accent-surface)' : 'var(--background-secondary)',
                             }}
                         >
                             <span
@@ -488,46 +465,16 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                     {/* Tags */}
                     <div>
                         <label className={labelCls}>{t('transactions.create.tags')}</label>
-                        <div
-                            className="flex flex-wrap gap-1.5 rounded-[10px] border border-border-soft bg-[var(--background-secondary)] p-2 cursor-text focus-within:ring-2 focus-within:ring-[var(--accent-surface)] focus-within:border-primary transition-colors"
-                            onClick={() => tagInputRef.current?.focus()}
-                        >
-                            {tags.map((tag) => (
-                                <span
-                                    key={tag}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12.5px] font-semibold"
-                                    style={{ background: 'var(--accent-surface)', color: 'var(--purple-700)' }}
-                                >
-                                    {tag}
-                                    <button
-                                        type="button"
-                                        onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
-                                        className="hover:text-[var(--negative)] transition-colors"
-                                    >
-                                        <X size={11} strokeWidth={2.5} />
-                                    </button>
-                                </span>
-                            ))}
-                            <input
-                                ref={tagInputRef}
-                                type="text"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={handleTagKeyDown}
-                                onBlur={addTag}
-                                placeholder={tags.length === 0 ? t('transactions.create.tagsPlaceholder') : ''}
-                                className="flex-1 min-w-[120px] text-[13.5px] text-foreground placeholder:text-[var(--ink-faint)] bg-transparent outline-none py-0.5"
-                            />
-                        </div>
+                        <TagInput value={tags} onChange={setTags} placeholder={t('transactions.create.tagsPlaceholder')} />
                     </div>
                 </form>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-border-soft flex items-center gap-2" style={{ background: 'var(--background-secondary)' }}>
+                <div className="px-6 py-4 border-t border-border-soft flex items-center gap-2" style={{ background: 'var(--drawer-bg)' }}>
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-5 py-2.5 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors"
+                        className="px-5 py-2.5 rounded-[var(--btn-radius)] text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--background-secondary)] transition-colors"
                     >
                         {t('transactions.create.cancel')}
                     </button>
@@ -539,7 +486,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                 type="button"
                                 onClick={() => submit(false)}
                                 disabled={isBusy}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors disabled:opacity-50"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[var(--btn-radius)] text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors disabled:opacity-50"
                             >
                                 {isBusy ? '…' : t('konten.createTx.saveDraft')}
                             </button>
@@ -549,7 +496,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                                     type="button"
                                     onClick={() => submit(true)}
                                     disabled={isBusy || !canConfirm}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[var(--btn-radius)] text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                     style={{ background: 'var(--banner-gradient)' }}
                                 >
                                     <Check size={15} strokeWidth={2.5} />
@@ -562,7 +509,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                             form="create-tx-form"
                             type="submit"
                             disabled={createMutation.isPending}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[var(--btn-radius)] text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                             style={{ background: 'var(--banner-gradient)' }}
                         >
                             <Plus size={15} strokeWidth={2.5} />

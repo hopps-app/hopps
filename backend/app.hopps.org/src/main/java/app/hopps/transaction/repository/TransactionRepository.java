@@ -2,6 +2,7 @@ package app.hopps.transaction.repository;
 
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
+import app.hopps.transaction.domain.TransactionDisplayStatus;
 import app.hopps.transaction.domain.TransactionStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
@@ -12,6 +13,7 @@ import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -103,6 +105,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Instant endDate,
             List<Long> bommelIds,
             TransactionStatus status,
+            List<TransactionDisplayStatus> displayStatuses,
             Boolean privatelyPaid,
             Boolean detached,
             List<String> categoryValues,
@@ -157,6 +160,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             query.append(" and status = :status");
             params.put("status", status);
         }
+        appendDisplayStatusFilter(query, params, displayStatuses, "");
 
         // Privately paid filter
         if (privatelyPaid != null) {
@@ -182,6 +186,63 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             return new BigDecimal(normalized);
         } catch (NumberFormatException e) {
             return null;
+        }
+    }
+
+    // Signed bank coverage of one transaction, as in BankTransactionMatchService#getCoveredAmountForTransaction: every
+    // allocation counts in the direction of the movement it comes from, so opposite movements net out.
+    private static final String SIGNED_COVERAGE = "SUM(CASE WHEN m.bankTransaction.amount < 0 THEN -m.matchedAmount ELSE m.matchedAmount END)";
+
+    /**
+     * Appends the filter for the derived display status (see {@link TransactionDisplayStatus}); several statuses OR
+     * together. Coverage is compared with the transaction's total, so it is read from the matches with a grouped
+     * id-subquery, like the category filter and for the same reason: Panache's implicit-entity queries have no alias to
+     * correlate a subquery with, and {@code id} inside it would bind to the match. Nothing is added when no status is
+     * requested or when all four are, since that excludes nothing.
+     *
+     * @param prefix
+     *            {@code ""} for Panache find/count (implicit entity) or {@code "t."} for the aliased aggregate JPQL
+     */
+    // Package-private so the clause building can be unit-tested without standing up a database.
+    static void appendDisplayStatusFilter(StringBuilder query, Map<String, Object> params,
+            List<TransactionDisplayStatus> displayStatuses, String prefix) {
+        if (displayStatuses == null || displayStatuses.isEmpty()) {
+            return;
+        }
+        EnumSet<TransactionDisplayStatus> wanted = EnumSet.copyOf(displayStatuses);
+        if (wanted.size() == TransactionDisplayStatus.values().length) {
+            return;
+        }
+
+        String matched = "SELECT m.transaction.id FROM BankTransactionMatch m GROUP BY m.transaction.id, m.transaction.total";
+        // Ids whose net coverage is not zero, i.e. at least one movement is effectively linked.
+        String linkedIds = "SELECT m.transaction.id FROM BankTransactionMatch m GROUP BY m.transaction.id HAVING "
+                + SIGNED_COVERAGE + " <> 0";
+        String total = "COALESCE(m.transaction.total, 0)";
+
+        List<String> clauses = new ArrayList<>();
+        if (wanted.contains(TransactionDisplayStatus.DRAFT)) {
+            clauses.add("(" + prefix + "status = :dsDraft AND " + prefix + "id NOT IN (" + linkedIds + "))");
+        }
+        if (wanted.contains(TransactionDisplayStatus.PARTIAL)) {
+            clauses.add("(" + prefix + "status = :dsDraft AND " + prefix + "id IN (" + matched + " HAVING "
+                    + SIGNED_COVERAGE + " <> 0 AND " + SIGNED_COVERAGE + " <> " + total + "))");
+        }
+        if (wanted.contains(TransactionDisplayStatus.LINKED)) {
+            clauses.add("(" + prefix + "status = :dsDraft AND " + prefix + "id IN (" + matched + " HAVING "
+                    + SIGNED_COVERAGE + " <> 0 AND " + SIGNED_COVERAGE + " = " + total + "))");
+        }
+        if (wanted.contains(TransactionDisplayStatus.CONFIRMED)) {
+            clauses.add("(" + prefix + "status = :dsConfirmed)");
+        }
+
+        query.append(" and (").append(String.join(" or ", clauses)).append(")");
+        // Bind only what the clauses use; Hibernate rejects a parameter the query does not name.
+        if (wanted.size() > 1 || !wanted.contains(TransactionDisplayStatus.CONFIRMED)) {
+            params.put("dsDraft", TransactionStatus.DRAFT);
+        }
+        if (wanted.contains(TransactionDisplayStatus.CONFIRMED)) {
+            params.put("dsConfirmed", TransactionStatus.CONFIRMED);
         }
     }
 
@@ -254,6 +315,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Instant endDate,
             List<Long> bommelIds,
             TransactionStatus status,
+            List<TransactionDisplayStatus> displayStatuses,
             Boolean privatelyPaid,
             Boolean detached,
             List<String> categoryValues) {
@@ -301,6 +363,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             query.append(" and status = :status");
             params.put("status", status);
         }
+        appendDisplayStatusFilter(query, params, displayStatuses, "");
 
         if (privatelyPaid != null) {
             query.append(" and privatelyPaid = :privatelyPaid");
@@ -323,6 +386,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             Instant endDate,
             List<Long> bommelIds,
             TransactionStatus status,
+            List<TransactionDisplayStatus> displayStatuses,
             Boolean privatelyPaid,
             Boolean detached,
             List<String> categoryValues) {
@@ -365,6 +429,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             where.append(" and t.status = :status");
             params.put("status", status);
         }
+        appendDisplayStatusFilter(where, params, displayStatuses, "t.");
         if (privatelyPaid != null) {
             where.append(" and t.privatelyPaid = :privatelyPaid");
             params.put("privatelyPaid", privatelyPaid);

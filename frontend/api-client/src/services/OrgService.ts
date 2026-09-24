@@ -4960,6 +4960,7 @@ export class Client {
      * @param bommelId (optional) Filter by bommel ID(s); repeatable and combined with OR
      * @param categoryValue (optional) Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND
      * @param detached (optional) Filter unassigned transactions (no bommel)
+     * @param displayStatus (optional) Filter by derived display status; repeatable and combined with OR. DRAFT: nothing linked, PARTIAL: bank movements cover only part of the amount, LINKED: covered exactly but not confirmed, CONFIRMED
      * @param endDate (optional) Filter transactions until this date (ISO format: YYYY-MM-DD)
      * @param page (optional) Page index (0-based)
      * @param privatelyPaid (optional) Filter by privately paid flag
@@ -4971,7 +4972,7 @@ export class Client {
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return List of transactions
      */
-    transactionsAll(bommelId: number[] | undefined, categoryValue: string[] | undefined, detached: boolean | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, sortBy: string | undefined, sortDir: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
+    transactionsAll(bommelId: number[] | undefined, categoryValue: string[] | undefined, detached: boolean | undefined, displayStatus: TransactionDisplayStatus[] | undefined, endDate: string | undefined, page: number | undefined, privatelyPaid: boolean | undefined, search: string | undefined, size: number | undefined, sortBy: string | undefined, sortDir: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionResponse[]> {
         let url_ = this.baseUrl + "/transactions?";
         if (bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' cannot be null.");
@@ -4985,6 +4986,10 @@ export class Client {
             throw new globalThis.Error("The parameter 'detached' cannot be null.");
         else if (detached !== undefined)
             url_ += "detached=" + encodeURIComponent("" + detached) + "&";
+        if (displayStatus === null)
+            throw new globalThis.Error("The parameter 'displayStatus' cannot be null.");
+        else if (displayStatus !== undefined)
+            displayStatus && displayStatus.forEach(item => { url_ += "displayStatus=" + encodeURIComponent("" + item) + "&"; });
         if (endDate === null)
             throw new globalThis.Error("The parameter 'endDate' cannot be null.");
         else if (endDate !== undefined)
@@ -5127,6 +5132,7 @@ export class Client {
      * @param bommelId (optional) Filter by bommel ID(s); repeatable and combined with OR
      * @param categoryValue (optional) Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND
      * @param detached (optional) Filter unassigned transactions (no bommel)
+     * @param displayStatus (optional) Filter by derived display status; repeatable and combined with OR. DRAFT: nothing linked, PARTIAL: bank movements cover only part of the amount, LINKED: covered exactly but not confirmed, CONFIRMED
      * @param endDate (optional) Filter transactions until this date (ISO format: YYYY-MM-DD)
      * @param privatelyPaid (optional) Filter by privately paid flag
      * @param search (optional) Search in name and counterparty; a numeric term also matches the amount
@@ -5134,7 +5140,7 @@ export class Client {
      * @param status (optional) Filter by status (DRAFT or CONFIRMED)
      * @return Aggregated totals
      */
-    aggregate2(bommelId: number[] | undefined, categoryValue: string[] | undefined, detached: boolean | undefined, endDate: string | undefined, privatelyPaid: boolean | undefined, search: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionAggregateResponse> {
+    aggregate2(bommelId: number[] | undefined, categoryValue: string[] | undefined, detached: boolean | undefined, displayStatus: TransactionDisplayStatus[] | undefined, endDate: string | undefined, privatelyPaid: boolean | undefined, search: string | undefined, startDate: string | undefined, status: TransactionStatus | undefined): Promise<TransactionAggregateResponse> {
         let url_ = this.baseUrl + "/transactions/aggregate?";
         if (bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' cannot be null.");
@@ -5148,6 +5154,10 @@ export class Client {
             throw new globalThis.Error("The parameter 'detached' cannot be null.");
         else if (detached !== undefined)
             url_ += "detached=" + encodeURIComponent("" + detached) + "&";
+        if (displayStatus === null)
+            throw new globalThis.Error("The parameter 'displayStatus' cannot be null.");
+        else if (displayStatus !== undefined)
+            displayStatus && displayStatus.forEach(item => { url_ += "displayStatus=" + encodeURIComponent("" + item) + "&"; });
         if (endDate === null)
             throw new globalThis.Error("The parameter 'endDate' cannot be null.");
         else if (endDate !== undefined)
@@ -10636,6 +10646,8 @@ export interface ITransactionCreateRequest {
 
     [key: string]: any;
 }
+
+export type TransactionDisplayStatus = "DRAFT" | "PARTIAL" | "LINKED" | "CONFIRMED";
 
 export class TransactionResponse implements ITransactionResponse {
     id?: number;

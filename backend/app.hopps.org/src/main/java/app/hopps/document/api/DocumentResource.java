@@ -11,6 +11,7 @@ import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -80,6 +81,9 @@ public class DocumentResource {
 
     @Inject
     SecurityIdentity securityIdentity;
+
+    @Inject
+    TransactionAuditor transactionAuditor;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -484,6 +488,7 @@ public class DocumentResource {
         // and records the organization on the other side.
         transaction.setCounterparty(document.getSender());
         transactionRepository.persist(transaction);
+        transactionAuditor.created(transaction);
 
         document.setTransaction(transaction);
         document.setDocumentStatus(DocumentStatus.CONFIRMED);

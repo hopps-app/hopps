@@ -64,14 +64,14 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
     });
 
     return (
-        <div className="flex flex-col gap-2 sm:col-span-2">
-            <label className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--ink-faint)]">{t('transactions.filters.categoryGroups')}</label>
+        <div className="flex flex-col gap-[7px]">
+            <span className="text-[12px] font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]">{t('transactions.filters.categoryGroups')}</span>
 
             <div className="flex flex-col items-start gap-2.5">
                 {cards.map((card) => (
                     <span
                         key={card.groupId}
-                        className="inline-flex max-w-full items-center gap-2 rounded-xl bg-[var(--accent-surface)] px-3 py-1.5 text-[13px] font-semibold text-purple-700"
+                        className="inline-flex max-w-full items-center gap-2 rounded-[var(--btn-radius)] border border-[color:color-mix(in_oklch,var(--primary)_28%,var(--background-secondary))] bg-[var(--accent-surface)] py-1.5 pl-3 pr-2 text-[13px] font-semibold text-purple-700"
                     >
                         <span className="truncate">
                             {card.name} : {card.values.join(', ')}
@@ -86,10 +86,10 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                                     .reverse()
                                     .forEach(onRemoveRow);
                             }}
-                            className="shrink-0 text-primary transition-colors hover:text-[var(--negative)]"
+                            className="shrink-0 transition-colors hover:text-[var(--negative)]"
                             aria-label={t('transactions.filters.removeCategoryGroup')}
                         >
-                            <X className="h-3.5 w-3.5" />
+                            <X className="h-3.5 w-3.5" strokeWidth={2.5} />
                         </button>
                     </span>
                 ))}
@@ -164,7 +164,7 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                     <button
                         type="button"
                         onClick={onAddRow}
-                        className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-dashed border-purple-300 px-3.5 text-[13.5px] font-semibold text-purple-700 transition-colors hover:bg-[var(--accent-surface)]"
+                        className="inline-flex items-center gap-[7px] rounded-[var(--btn-radius)] border-[1.5px] border-dashed border-[color:color-mix(in_oklch,var(--primary)_40%,var(--background-secondary))] px-3.5 py-[9px] text-[13.5px] font-bold text-purple-700 transition-colors hover:bg-[var(--accent-surface)]"
                     >
                         <Plus className="h-4 w-4" />
                         {t('transactions.filters.addCategoryGroup')}

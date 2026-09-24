@@ -36,22 +36,22 @@ const CategoryGroupFields: FC<CategoryGroupFieldsProps> = ({ bommelId, values, o
         <div className="flex flex-col gap-3 border-t border-border-soft pt-4">
             <div className="flex items-center gap-1.5">
                 <Tag className="h-3.5 w-3.5 text-purple-700" />
-                <span className="text-[11px] font-bold uppercase tracking-[0.07em] text-purple-700">{t('categoryGroups.fields.eyebrow')}</span>
+                <span className="text-[12px] font-bold uppercase tracking-[0.07em] text-purple-700">{t('categoryGroups.fields.eyebrow')}</span>
             </div>
             {applicable.map((group) => {
                 const groupId = group.id as number;
                 const value = values[groupId];
                 const warn = !!group.required && (value == null || value.trim() === '');
                 return (
-                    <div key={groupId} className="grid gap-1.5">
-                        <label className="flex items-center gap-2 text-sm font-medium text-[var(--font-color)]">
+                    <div key={groupId} className="grid gap-[7px]">
+                        <label className="flex items-center gap-2 text-[12px] font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]">
                             {group.name}
                             {group.required ? (
-                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[var(--warning-surface)] text-[var(--warning)]">
+                                <span className="text-[10.5px] font-bold normal-case tracking-normal px-2 py-0.5 rounded-full bg-[var(--warning-surface)] text-[var(--warning)]">
                                     {t('categoryGroups.required')}
                                 </span>
                             ) : (
-                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[var(--surface-track)] text-muted-foreground">
+                                <span className="text-[10.5px] font-bold normal-case tracking-normal px-2 py-0.5 rounded-full bg-[var(--surface-track)] text-muted-foreground">
                                     {t('categoryGroups.optional')}
                                 </span>
                             )}
