@@ -37,7 +37,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -79,9 +78,6 @@ public class OrganizationResource {
 
     @Inject
     JsonWebToken jwt;
-
-    @ConfigProperty(name = "app.hopps.org.auth.provider")
-    String authProvider;
 
     @GET
     @Path("{slug}")
@@ -312,14 +308,7 @@ public class OrganizationResource {
     @APIResponse(responseCode = "201", description = "Organization created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "409", description = "Email or slug already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
-    @APIResponse(responseCode = "403", description = "Registration is disabled because accounts are managed by an external identity provider (Authentik)")
     public Response create(NewOrganizationInput input) {
-        // With Authentik the partner owns the accounts, so there is no founder account for hopps to create. Refuse
-        // before validating, so this public endpoint does not reveal which emails or slugs exist.
-        if ("authentik".equals(authProvider)) {
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-
         Organization organization = input.toOrganization();
         Member owner = input.toOwner();
 

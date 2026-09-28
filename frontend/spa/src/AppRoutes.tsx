@@ -9,7 +9,6 @@ import NotFoundView from '@/components/views/NotFoundView';
 import AuthGuard from '@/guards/AuthGuard';
 import AuthLayout from '@/layouts/default/AuthLayout';
 import DefaultLayout from '@/layouts/default/DefaultLayout.tsx';
-import { isSelfRegistrationEnabled } from '@/services/auth/auth.config.ts';
 
 // Eagerly loaded - these are needed immediately
 
@@ -42,19 +41,16 @@ export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<HomeView />} />
-            {/* Without self-registration (accounts owned by an external identity provider) /register is a 404. */}
-            {isSelfRegistrationEnabled && (
-                <Route element={<DefaultLayout />}>
-                    <Route
-                        path="/register"
-                        element={
-                            <LazyRoute>
-                                <RegisterOrganizationView />
-                            </LazyRoute>
-                        }
-                    />
-                </Route>
-            )}
+            <Route element={<DefaultLayout />}>
+                <Route
+                    path="/register"
+                    element={
+                        <LazyRoute>
+                            <RegisterOrganizationView />
+                        </LazyRoute>
+                    }
+                />
+            </Route>
 
             {/* Public legal pages (Impressum / Datenschutzerklärung) — operator-configurable */}
             <Route

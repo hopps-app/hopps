@@ -14,9 +14,10 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 /**
  * The slice of Authentik's REST API (<a href="https://api.goauthentik.io/">reference</a>) that
- * {@link AuthentikIdentityProvisioningService} needs: finding, creating and deleting users, and a recovery email or
- * link in place of Keycloak's invitation email. There is no official Authentik client for Java (only Go, Python, Rust
- * and TypeScript), hence this hand-written slice instead of a pulled-in SDK like {@code keycloak-admin-client}.
+ * {@link AuthentikIdentityProvisioningService} needs: finding, creating and deleting users, setting a password, and a
+ * recovery email or link in place of Keycloak's invitation email. There is no official Authentik client for Java (only
+ * Go, Python, Rust and TypeScript), hence this hand-written slice instead of a pulled-in SDK like
+ * {@code keycloak-admin-client}.
  */
 @Path("/api/v3/core")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -36,6 +37,11 @@ public interface AuthentikApi {
     @POST
     @Path("/users/")
     AuthentikUser createUser(AuthentikUserRequest request);
+
+    /** Sets the password of an account. Used for a founder, who picks theirs while registering the organization. */
+    @POST
+    @Path("/users/{id}/set_password/")
+    void setPassword(@PathParam("id") long id, AuthentikPasswordRequest request);
 
     /**
      * Sends the email stage twice because Authentik moved it: older versions (e.g. 2024.12) read it from the query

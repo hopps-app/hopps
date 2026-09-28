@@ -20,8 +20,8 @@ public interface IdentityProvisioningService {
      * @param newPassword
      *            the password the founder chose
      *
-     * @throws UnsupportedOperationException
-     *             if the provider's accounts belong to someone else (Authentik), where registration is disabled
+     * @throws jakarta.ws.rs.WebApplicationException
+     *             if the account cannot be created, e.g. 409 because the provider already has one for that email
      */
     void createOwner(Member owner, String newPassword);
 

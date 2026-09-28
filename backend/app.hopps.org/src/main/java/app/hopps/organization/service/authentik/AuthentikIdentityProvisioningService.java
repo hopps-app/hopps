@@ -6,23 +6,27 @@ import app.hopps.organization.service.IdentityProvisioningService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Typed;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.ClientErrorException;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
- * Provisions member accounts in a partner's Authentik instead of hopps's own Keycloak. Used when
+ * Provisions member accounts in an Authentik instead of hopps's own Keycloak. Used when
  * {@code app.hopps.org.auth.provider=authentik}, see
  * {@link app.hopps.organization.service.IdentityProvisioningServiceProducer}.
  * <p>
- * The partner owns the accounts: it creates them for its people, who log in to hopps with them directly. hopps
- * therefore never registers founders ({@link #createOwner} is not supported) and assigns no roles or groups in
- * Authentik; the only roles hopps checks ({@code admin}) matter on its own hosted deployment alone. What remains is
- * inviting a person into an organization, which links their existing account or creates one if they have none yet.
+ * Behaves like the Keycloak implementation: registering an organization creates the founder's account, inviting a
+ * person links their existing account or creates one if they have none yet. Whether people may register organizations
+ * at all is not decided here but by the tenancy mode of the installation. hopps assigns no roles or groups in
+ * Authentik; the only roles hopps checks ({@code admin}) matter on its own hosted deployment alone.
  * <p>
  * <b>Subject mode:</b> the {@code uuid} this service captures from Authentik is persisted as
  * {@link Member#getKeycloakId()} and must equal the OIDC {@code sub} claim a login later presents. That only holds if
@@ -47,9 +51,44 @@ public class AuthentikIdentityProvisioningService implements IdentityProvisionin
     @ConfigProperty(name = "app.hopps.org.auth.invitation.lifespan-seconds")
     long invitationLifespanSeconds;
 
+    /**
+     * Creates the founder's account with the password they picked while registering the organization. Sets
+     * {@code keycloakId} and {@code status} on the given member as a side effect.
+     * <p>
+     * An existing account for that email is never touched: registration is anonymous, so linking it or setting its
+     * password would hand the account to whoever typed in the address. The request fails with 409 instead, like it does
+     * with Keycloak. Someone who already has an account logs in and creates their organization from there.
+     *
+     * @throws ClientErrorException
+     *             (409 Conflict) if Authentik already has an account for that email
+     */
     @Override
     public void createOwner(Member user, String newPassword) {
-        throw new UnsupportedOperationException("Registration is disabled: accounts are managed in Authentik");
+        if (newPassword == null || newPassword.isEmpty()) {
+            throw new IllegalArgumentException("New password cannot be null or empty");
+        }
+        if (findByEmail(user.getEmail()) != null) {
+            throw new ClientErrorException(Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("conflictingFields", Set.of("email")))
+                    .build());
+        }
+
+        AuthentikUser created = api.createUser(toUserRequest(user));
+        try {
+            api.setPassword(created.pk(), new AuthentikPasswordRequest(newPassword));
+        } catch (RuntimeException e) {
+            // Most commonly Authentik's password policy rejecting it. Without a password the account is of no use, and
+            // leaving it behind would block the next attempt with a conflict.
+            LOG.warn("Could not set the password of the new Authentik account for {}, removing the account again",
+                    user.getEmail());
+            deleteUser(created.uuid());
+            throw e;
+        }
+
+        // Persist the stable Authentik user id (uuid) so the member is linked by id, not by the mutable email.
+        user.setKeycloakId(created.uuid());
+        // The founder picked their password in the registration form, so the account is usable immediately.
+        user.setStatus(MemberStatus.ACTIVE);
     }
 
     /**
@@ -97,21 +136,21 @@ public class AuthentikIdentityProvisioningService implements IdentityProvisionin
     }
 
     /**
-     * Deletes an Authentik user again. Used to undo an invitation when persisting the member afterwards fails, so a
-     * failed request does not leave a stray account behind. Failures are logged, not thrown: the caller is already
-     * handling an error and the original one is the interesting one.
+     * Deletes an Authentik user again. Used to undo an invitation or registration that failed after the account was
+     * created, so a failed request does not leave a stray account behind. Failures are logged, not thrown: the caller
+     * is already handling an error and the original one is the interesting one.
      */
     @Override
     public void deleteUser(String identityId) {
         try {
             AuthentikUser found = findByUuid(identityId);
             if (found == null) {
-                LOG.warn("Could not remove Authentik user {} after a failed invitation: no longer found", identityId);
+                LOG.warn("Could not remove Authentik user {} again: no longer found", identityId);
                 return;
             }
             api.deleteUser(found.pk());
         } catch (Exception e) {
-            LOG.warn("Could not remove Authentik user {} after a failed invitation", identityId, e);
+            LOG.warn("Could not remove Authentik user {} again", identityId, e);
         }
     }
 

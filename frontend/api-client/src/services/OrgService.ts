@@ -4148,10 +4148,6 @@ export class Client {
             result400 = ValidationResult.fromJS(resultData400);
             return throwException("Validation of fields failed", status, _responseText, _headers, result400);
             });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            return throwException("Registration is disabled because accounts are managed by an external identity provider (Authentik)", status, _responseText, _headers);
-            });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
             return throwException("Email or slug already exists", status, _responseText, _headers);
