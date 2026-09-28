@@ -10,6 +10,7 @@ import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransac
 import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
+import { CloseButton } from '@/components/ui/CloseButton';
 import {
     useBankTransaction,
     useAddBankTransactionMatch,
@@ -137,6 +138,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                 undefined, // bommelId
                 undefined, // categoryValue
                 undefined, // detached
+                undefined, // displayStatus
                 undefined, // endDate
                 0, // page
                 undefined, // privatelyPaid
@@ -169,6 +171,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                 undefined, // bommelId
                 undefined, // categoryValue
                 undefined, // detached
+                undefined, // displayStatus
                 undefined, // endDate
                 0, // page
                 undefined, // privatelyPaid
@@ -342,24 +345,18 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
             </div>
 
             {/* Drawer */}
-            <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-50 flex flex-col shadow-2xl">
+            <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[var(--drawer-bg)] dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-50 flex flex-col shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('konten.drawer.title')}</div>
-                    <button
-                        type="button"
-                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        onClick={onClose}
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
+                    <CloseButton onClick={onClose} />
                 </div>
 
                 {/* Scrollable body */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="px-6 py-5 flex flex-col gap-5">
                         {/* Bank transaction summary */}
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
                             <div className="flex items-start justify-between gap-3">
                                 <BookingMini tx={bankTx} />
                                 <SignedAmount amount={bankTx.amount} currency={bankTx.currency ?? 'EUR'} size="base" />
@@ -479,7 +476,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                             <div
                                 className={cn(
                                     'rounded-xl px-4 py-3 flex items-center justify-between gap-3 text-sm',
-                                    isFullyCovered ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-gray-50 dark:bg-gray-800'
+                                    isFullyCovered ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-white dark:bg-gray-800'
                                 )}
                             >
                                 <div className="flex flex-col gap-0.5">
@@ -513,7 +510,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                             </div>
 
                             {/* Search transactions by amount (pre-filled) or name/counterparty */}
-                            <div className="flex items-center gap-2 px-3 py-2 mb-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                            <div className="flex items-center gap-2 px-3 py-2 mb-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                                 <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                 <input
                                     type="text"

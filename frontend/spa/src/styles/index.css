@@ -108,6 +108,23 @@
         --warning: #B47C18;
         --warning-surface: #FBF1DD;
         --warning-border: #E4C876;
+        /* Draft transactions (Entwurf) */
+        --info: #2F6FC4;
+        --info-surface: #E7EFFA;
+        /* hopps "Klar" design system: ground of the detail drawers (white cards and fields sit on it), card/field/chip
+           radii, shadows, motion, drawer width. */
+        --drawer-bg: #F8F8FA;
+        --r-card: 18px;
+        --r-md: 14px;
+        --r-sm: 10px;
+        --shadow-sm: 0 1px 2px rgba(20, 20, 40, 0.05);
+        --shadow-md: 0 1px 2px rgba(20, 20, 40, 0.05), 0 6px 22px rgba(20, 20, 40, 0.05);
+        --shadow-lg: 0 12px 40px rgba(20, 20, 40, 0.16);
+        --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --dur-fast: 0.12s;
+        --dur-mid: 0.2s;
+        --dur-slow: 0.28s;
+        --drawer-w: 520px;
         --radius: 8px;
         --radius-l: 16px;
         --font: 16px;
@@ -190,6 +207,12 @@
         --warning: #E4B04F;
         --warning-surface: #3A2C12;
         --warning-border: #6E5626;
+        --info: #6FA6EC;
+        --info-surface: #182B45;
+        --drawer-bg: var(--purple-50);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+        --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 26px rgba(0, 0, 0, 0.35);
+        --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
         --radius: 8px;
         --radius-l: 16px;
         --font: 16px;

@@ -1,5 +1,5 @@
 import { Check, Pencil, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
@@ -18,6 +18,8 @@ interface Props {
     currency?: string;
     pending?: boolean;
     onSave: (value: number) => void;
+    /** `card` is the larger pill / round icon button used on the transaction drawer's bank cards; `compact` the small chip. */
+    variant?: 'compact' | 'card';
 }
 
 /**
@@ -25,7 +27,7 @@ interface Props {
  * for a transaction; the full amount reads muted, a partial amount is highlighted. Clicking opens a tiny number input.
  * Shared by both link directions (transaction detail and the bank-transaction match drawer).
  */
-export function MatchAllocationControl({ amount, max, currency = 'EUR', pending, onSave }: Props) {
+export function MatchAllocationControl({ amount, max, currency = 'EUR', pending, onSave, variant = 'compact' }: Props) {
     const { t } = useTranslation();
     const [editing, setEditing] = useState(false);
     const [text, setText] = useState('');
@@ -82,7 +84,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
                     onClick={save}
                     disabled={pending}
                     title={t('common.save')}
-                    className="w-6 h-6 flex items-center justify-center rounded-full text-[var(--positive)] hover:bg-[var(--positive-surface)] disabled:opacity-50"
+                    className="w-6 h-6 flex items-center justify-center rounded-[var(--btn-radius)] text-[var(--positive)] hover:bg-[var(--positive-surface)] disabled:opacity-50"
                 >
                     <Check size={13} />
                 </button>
@@ -90,11 +92,39 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
                     type="button"
                     onClick={cancel}
                     title={t('common.cancel')}
-                    className="w-6 h-6 flex items-center justify-center rounded-full text-muted-foreground hover:bg-[var(--surface-sunken)]"
+                    className="w-6 h-6 flex items-center justify-center rounded-[var(--btn-radius)] text-muted-foreground hover:bg-[var(--surface-sunken)]"
                 >
                     <X size={13} />
                 </button>
             </span>
+        );
+    }
+
+    if (variant === 'card') {
+        const open = (e: MouseEvent) => {
+            e.stopPropagation();
+            start();
+        };
+        // A partial allocation surfaces the used amount as a pill; a full one is just a round pencil button.
+        return isPartial ? (
+            <button
+                type="button"
+                onClick={open}
+                title={t('transactions.detail.editUsedAmount')}
+                className="inline-flex flex-shrink-0 items-center gap-[7px] rounded-full bg-[var(--warning-surface)] px-2.5 py-[5px] text-[12.5px] font-bold tabular-nums text-[var(--warning)] transition-opacity hover:opacity-80"
+            >
+                {t('transactions.detail.usedAmount', { amount: fmtCurrency(amount, currency) })}
+                <Pencil size={13} />
+            </button>
+        ) : (
+            <button
+                type="button"
+                onClick={open}
+                title={t('transactions.detail.editUsedAmount')}
+                className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground"
+            >
+                <Pencil size={15} />
+            </button>
         );
     }
 

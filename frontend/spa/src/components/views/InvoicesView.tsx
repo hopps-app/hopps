@@ -23,6 +23,7 @@ async function getInvoices(): Promise<InvoicesTableData[]> {
             undefined, // bommelId
             undefined, // categoryValue
             undefined, // detached
+            undefined, // displayStatus
             undefined, // endDate
             page, // page
             undefined, // privatelyPaid
