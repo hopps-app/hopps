@@ -12,7 +12,7 @@ type AuthState = {
     organizationError: boolean;
     /** Installation facts (tenancy mode, pending setup); null until loaded, see useInstance() for the fallback. */
     instance: InstanceInfo | null;
-    keycloakReachable: boolean | null;
+    identityProviderReachable: boolean | null;
     backendReachable: boolean | null;
 };
 
@@ -23,7 +23,7 @@ type Actions = {
     setOrganization: (organisation: Organization | null) => void;
     setOrganizationError: (error: boolean) => void;
     setInstance: (instance: InstanceInfo | null) => void;
-    setKeycloakReachable: (value: boolean | null) => void;
+    setIdentityProviderReachable: (value: boolean | null) => void;
     setBackendReachable: (value: boolean | null) => void;
 };
 
@@ -35,7 +35,7 @@ export const useStore = create<AuthState & Actions>()(
         organization: null,
         organizationError: false,
         instance: null,
-        keycloakReachable: null,
+        identityProviderReachable: null,
         backendReachable: null,
         setIsAuthenticated: (value: boolean) => set({ isAuthenticated: value }),
         setIsInitialized: (value: boolean) => set({ isInitialized: value }),
@@ -43,7 +43,7 @@ export const useStore = create<AuthState & Actions>()(
         setOrganization: (organization: Organization | null) => set({ organization }),
         setOrganizationError: (organizationError: boolean) => set({ organizationError }),
         setInstance: (instance: InstanceInfo | null) => set({ instance }),
-        setKeycloakReachable: (value: boolean | null) => set({ keycloakReachable: value }),
+        setIdentityProviderReachable: (value: boolean | null) => set({ identityProviderReachable: value }),
         setBackendReachable: (value: boolean | null) => set({ backendReachable: value }),
     }))
 );

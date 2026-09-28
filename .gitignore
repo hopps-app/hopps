@@ -195,7 +195,9 @@ $RECYCLE.BIN/
 *.drawio.bkp
 
 # helm
-./charts/hopps/charts
+# Dependency archives fetched by `helm dependency update`.
+# A leading "./" makes a gitignore pattern match nothing, so this used to be a no-op.
+charts/hopps/charts/
 
 # unencrypted secrets
 *decrypted.env

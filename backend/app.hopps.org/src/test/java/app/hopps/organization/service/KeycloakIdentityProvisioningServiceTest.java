@@ -19,12 +19,12 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-class CreateUserInKeycloakTest {
+class KeycloakIdentityProvisioningServiceTest {
 
     // Caveat: Keycloak Dev Container will be reused and keep its state
 
     @Inject
-    CreateUserInKeycloak delegate;
+    KeycloakIdentityProvisioningService delegate;
 
     @Inject
     Keycloak keycloak;
@@ -42,7 +42,7 @@ class CreateUserInKeycloakTest {
     String memberRole;
 
     @Test
-    void createUserInKeycloak() {
+    void createOwner() {
         UsersResource usersResource = keycloak.realm(realmName).users();
 
         Member newUser = new Member();
@@ -55,7 +55,7 @@ class CreateUserInKeycloakTest {
         // Quarkus creates "alice" and "bob" users for us while testing
         assertThat(usersResource.searchByFirstName("Foo", true), hasSize(0));
 
-        delegate.createUserInKeycloak(newUser, "testPassword");
+        delegate.createOwner(newUser, "testPassword");
         assertThat(usersResource.searchByFirstName("Foo", true), hasSize(1));
 
         var createdUsers = usersResource.searchByEmail(newUser.getEmail(), true);
@@ -84,7 +84,7 @@ class CreateUserInKeycloakTest {
     }
 
     @Test
-    void createUserInKeycloakMarksTheFounderActive() {
+    void createOwnerMarksTheFounderActive() {
         Member founder = new Member();
         founder.setFirstName("Active");
         founder.setLastName("Founder");
@@ -93,7 +93,7 @@ class CreateUserInKeycloakTest {
         UsersResource usersResource = keycloak.realm(realmName).users();
         removeTestUser(usersResource, founder);
 
-        delegate.createUserInKeycloak(founder, "testPassword");
+        delegate.createOwner(founder, "testPassword");
 
         // They picked a password during registration, so they can log in right away.
         assertEquals(MemberStatus.ACTIVE, founder.getStatus());
@@ -102,7 +102,7 @@ class CreateUserInKeycloakTest {
     }
 
     @Test
-    void inviteUserCreatesAnAccountWithoutCredentials() {
+    void inviteMemberCreatesAnAccountWithoutCredentials() {
         UsersResource usersResource = keycloak.realm(realmName).users();
 
         Member invited = new Member();
@@ -112,7 +112,7 @@ class CreateUserInKeycloakTest {
 
         removeTestUser(usersResource, invited);
 
-        boolean userCreated = delegate.inviteUser(invited, memberRole);
+        boolean userCreated = delegate.inviteMember(invited, memberRole);
 
         assertTrue(userCreated);
         var createdUsers = usersResource.searchByEmail(invited.getEmail(), true);
@@ -141,7 +141,7 @@ class CreateUserInKeycloakTest {
     }
 
     @Test
-    void inviteUserLinksAnExistingAccountInsteadOfFailing() {
+    void inviteMemberLinksAnExistingAccountInsteadOfFailing() {
         UsersResource usersResource = keycloak.realm(realmName).users();
 
         Member existing = new Member();
@@ -151,7 +151,7 @@ class CreateUserInKeycloakTest {
 
         removeTestUser(usersResource, existing);
 
-        delegate.inviteUser(existing, memberRole);
+        delegate.inviteMember(existing, memberRole);
         String firstKeycloakId = existing.getKeycloakId();
 
         // A second invitation for the same email — e.g. the person was invited to another organization before.
@@ -160,7 +160,7 @@ class CreateUserInKeycloakTest {
         sameEmail.setLastName("There");
         sameEmail.setEmail("already.there@bar.com");
 
-        boolean userCreated = delegate.inviteUser(sameEmail, memberRole);
+        boolean userCreated = delegate.inviteMember(sameEmail, memberRole);
 
         assertFalse(userCreated);
         assertEquals(firstKeycloakId, sameEmail.getKeycloakId());
@@ -179,7 +179,7 @@ class CreateUserInKeycloakTest {
         throwaway.setEmail("throw.away@bar.com");
 
         removeTestUser(usersResource, throwaway);
-        delegate.inviteUser(throwaway, memberRole);
+        delegate.inviteMember(throwaway, memberRole);
         assertThat(usersResource.searchByEmail(throwaway.getEmail(), true), hasSize(1));
 
         delegate.deleteUser(throwaway.getKeycloakId());
@@ -197,7 +197,7 @@ class CreateUserInKeycloakTest {
         kevin.setEmail("kevin@example.com");
 
         // when
-        assertDoesNotThrow(() -> delegate.createUserInKeycloak(kevin, newPassword));
+        assertDoesNotThrow(() -> delegate.createOwner(kevin, newPassword));
     }
 
     private static void removeTestUser(UsersResource usersResource, Member newUser) {

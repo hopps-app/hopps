@@ -14,7 +14,7 @@ function renderHome(instance: InstanceInfo) {
         instance,
         isInitialized: true,
         isAuthenticated: false,
-        keycloakReachable: true,
+        identityProviderReachable: true,
         backendReachable: true,
     });
     renderWithProviders(<HomeView />);

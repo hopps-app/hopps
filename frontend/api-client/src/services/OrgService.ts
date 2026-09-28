@@ -4825,7 +4825,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
+            return throwException("The current user may not manage members", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -4841,6 +4841,117 @@ export class Client {
             });
         }
         return Promise.resolve<Member>(null as any);
+    }
+
+    /**
+     * Remove a member from my organization
+     * @param memberId Id of the member to remove
+     * @return Member removed
+     */
+    removeOrganizationMember(memberId: number): Promise<void> {
+        let url_ = this.baseUrl + "/organization/my/members/{memberId}";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveOrganizationMember(_response);
+        });
+    }
+
+    protected processRemoveOrganizationMember(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("The current user may not manage members", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("No member with that id in the current user\'s organization", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The member to remove is the current user or the owner", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Get my permissions in my organization
+     * @return The current user's permissions
+     */
+    getMyPermissions(): Promise<Permission[]> {
+        let url_ = this.baseUrl + "/organization/my/permissions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyPermissions(_response);
+        });
+    }
+
+    protected processGetMyPermissions(response: Response): Promise<Permission[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(item);
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("User has no organization", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Permission[]>(null as any);
     }
 
     /**
@@ -9704,7 +9815,8 @@ export class Member implements IMember {
     position?: string;
     /** Whether the member can log in, and how far their invitation got */
     readonly status!: MemberStatus;
-    organizations?: Organization[];
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    readonly setupLink?: string;
 
     [key: string]: any;
 
@@ -9729,11 +9841,7 @@ export class Member implements IMember {
             this.email = _data["email"];
             this.position = _data["position"];
             (this as any).status = _data["status"];
-            if (Array.isArray(_data["organizations"])) {
-                this.organizations = [] as any;
-                for (let item of _data["organizations"])
-                    this.organizations!.push(Organization.fromJS(item));
-            }
+            (this as any).setupLink = _data["setupLink"];
         }
     }
 
@@ -9756,11 +9864,7 @@ export class Member implements IMember {
         data["email"] = this.email;
         data["position"] = this.position;
         data["status"] = this.status;
-        if (Array.isArray(this.organizations)) {
-            data["organizations"] = [];
-            for (let item of this.organizations)
-                data["organizations"].push(item ? item.toJSON() : undefined as any);
-        }
+        data["setupLink"] = this.setupLink;
         return data;
     }
 
@@ -9784,7 +9888,8 @@ export interface IMember {
     position?: string;
     /** Whether the member can log in, and how far their invitation got */
     status: MemberStatus;
-    organizations?: Organization[];
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    setupLink?: string;
 
     [key: string]: any;
 }
@@ -10144,7 +10249,6 @@ export class Organization implements IOrganization {
     type!: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
-    members?: Member[];
     website?: string;
     profilePicture?: string;
     foundingDate?: Date;
@@ -10166,6 +10270,7 @@ export class Organization implements IOrganization {
     deletedAt?: Date;
     /** Whether a logo has been uploaded for this organization */
     hasLogo?: boolean;
+    members?: Member[];
 
     [key: string]: any;
 
@@ -10190,11 +10295,6 @@ export class Organization implements IOrganization {
             this.type = _data["type"];
             this.address = _data["address"] ? Address.fromJS(_data["address"]) : undefined as any;
             this.rootBommel = _data["rootBommel"] ? Bommel.fromJS(_data["rootBommel"]) : undefined as any;
-            if (Array.isArray(_data["members"])) {
-                this.members = [] as any;
-                for (let item of _data["members"])
-                    this.members!.push(Member.fromJS(item));
-            }
             this.website = _data["website"];
             this.profilePicture = _data["profilePicture"];
             this.foundingDate = _data["foundingDate"] ? new Date(_data["foundingDate"].toString()) : undefined as any;
@@ -10210,6 +10310,11 @@ export class Organization implements IOrganization {
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.deletedAt = _data["deletedAt"] ? new Date(_data["deletedAt"].toString()) : undefined as any;
             this.hasLogo = _data["hasLogo"];
+            if (Array.isArray(_data["members"])) {
+                this.members = [] as any;
+                for (let item of _data["members"])
+                    this.members!.push(Member.fromJS(item));
+            }
         }
     }
 
@@ -10232,11 +10337,6 @@ export class Organization implements IOrganization {
         data["type"] = this.type;
         data["address"] = this.address ? this.address.toJSON() : undefined as any;
         data["rootBommel"] = this.rootBommel ? this.rootBommel.toJSON() : undefined as any;
-        if (Array.isArray(this.members)) {
-            data["members"] = [];
-            for (let item of this.members)
-                data["members"].push(item ? item.toJSON() : undefined as any);
-        }
         data["website"] = this.website;
         data["profilePicture"] = this.profilePicture;
         data["foundingDate"] = this.foundingDate ? formatDate(this.foundingDate) : undefined as any;
@@ -10252,6 +10352,11 @@ export class Organization implements IOrganization {
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["deletedAt"] = this.deletedAt ? this.deletedAt.toISOString() : undefined as any;
         data["hasLogo"] = this.hasLogo;
+        if (Array.isArray(this.members)) {
+            data["members"] = [];
+            for (let item of this.members)
+                data["members"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 
@@ -10271,7 +10376,6 @@ export interface IOrganization {
     type: OrganizationType;
     address?: Address;
     rootBommel?: Bommel;
-    members?: Member[];
     website?: string;
     profilePicture?: string;
     foundingDate?: Date;
@@ -10293,6 +10397,7 @@ export interface IOrganization {
     deletedAt?: Date;
     /** Whether a logo has been uploaded for this organization */
     hasLogo?: boolean;
+    members?: Member[];
 
     [key: string]: any;
 }
@@ -10613,6 +10718,8 @@ export interface IPagedValuesResponse {
 
     [key: string]: any;
 }
+
+export type Permission = "MANAGE_MEMBERS";
 
 /** Pending group state to preview the re-draft impact */
 export class ReopenImpactRequest implements IReopenImpactRequest {

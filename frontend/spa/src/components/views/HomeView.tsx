@@ -12,7 +12,7 @@ import { useStore } from '@/store/store.ts';
 
 function HomeView() {
     const { t } = useTranslation();
-    const { isAuthenticated, isInitialized, keycloakReachable, backendReachable } = useStore();
+    const { isAuthenticated, isInitialized, identityProviderReachable, backendReachable } = useStore();
     const { tenancy, setupRequired, organizationName } = useInstance();
     const navigate = useNavigate();
 
@@ -44,8 +44,8 @@ function HomeView() {
         authService.login(`${window.location.origin}/dashboard`);
     };
 
-    const loginDisabled = keycloakReachable === false;
-    const registerDisabled = keycloakReachable === false || backendReachable === false;
+    const loginDisabled = identityProviderReachable === false;
+    const registerDisabled = identityProviderReachable === false || backendReachable === false;
 
     return (
         <div className="flex flex-col min-h-screen">

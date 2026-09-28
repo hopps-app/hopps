@@ -2,6 +2,7 @@ package app.hopps.organization.service;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.MemberStatus;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.domain.OrganizationType;
@@ -10,6 +11,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.ForbiddenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +38,7 @@ class OrganizationMemberServiceTest {
     OrganizationMemberService organizationMemberService;
 
     @InjectMock
-    CreateUserInKeycloak keycloakService;
+    IdentityProvisioningService identityProvisioningService;
 
     @InjectMock
     PersistMemberDelegate persistenceDelegate;
@@ -46,6 +48,7 @@ class OrganizationMemberServiceTest {
 
     private Organization testOrganization;
     private Member testMember;
+    private Member owner;
 
     @BeforeEach
     void setUp() {
@@ -59,6 +62,12 @@ class OrganizationMemberServiceTest {
         testMember.setFirstName("Invited");
         testMember.setLastName("Person");
 
+        owner = new Member();
+        owner.setEmail("owner@example.com");
+        owner.setFirstName("Owning");
+        owner.setLastName("Person");
+        owner.addOrganization(testOrganization, Role.OWNER);
+
         when(memberRepository.findByEmail(anyString())).thenReturn(null);
     }
 
@@ -69,7 +78,7 @@ class OrganizationMemberServiceTest {
             member.setKeycloakId(KEYCLOAK_ID);
             member.setStatus(MemberStatus.INVITED);
             return userCreated;
-        }).when(keycloakService).inviteUser(any(), anyString());
+        }).when(identityProvisioningService).inviteMember(any(), anyString());
     }
 
     @Test
@@ -78,29 +87,29 @@ class OrganizationMemberServiceTest {
         stubSuccessfulInvite(true);
         doNothing().when(persistenceDelegate).persistMember(any(), any());
 
-        Member added = organizationMemberService.addMember(testOrganization, testMember);
+        Member added = organizationMemberService.addMember(testOrganization, testMember, owner);
 
         assertEquals(MemberStatus.INVITED, added.getStatus());
         assertEquals(KEYCLOAK_ID, added.getKeycloakId());
         verify(persistenceDelegate, times(1)).persistMember(testMember, testOrganization);
-        verify(keycloakService, never()).deleteUser(anyString());
+        verify(identityProvisioningService, never()).deleteUser(anyString());
     }
 
     @Test
-    @DisplayName("should remove the Keycloak account again when persisting the member fails")
+    @DisplayName("should remove the identity provider account again when persisting the member fails")
     void shouldRollBackKeycloakUserOnPersistenceFailure() {
         stubSuccessfulInvite(true);
         doThrow(new IllegalStateException("database is down")).when(persistenceDelegate)
                 .persistMember(any(), any());
 
         assertThrows(IllegalStateException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
 
-        verify(keycloakService, times(1)).deleteUser(KEYCLOAK_ID);
+        verify(identityProvisioningService, times(1)).deleteUser(KEYCLOAK_ID);
     }
 
     @Test
-    @DisplayName("should keep a pre-existing Keycloak account when persisting the member fails")
+    @DisplayName("should keep a pre-existing identity provider account when persisting the member fails")
     void shouldNotDeleteLinkedAccountOnPersistenceFailure() {
         // The account belonged to someone before this request — it must survive our failure.
         stubSuccessfulInvite(false);
@@ -108,32 +117,48 @@ class OrganizationMemberServiceTest {
                 .persistMember(any(), any());
 
         assertThrows(IllegalStateException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
 
-        verify(keycloakService, never()).deleteUser(anyString());
+        verify(identityProvisioningService, never()).deleteUser(anyString());
     }
 
     @Test
-    @DisplayName("should reject a duplicate email before touching Keycloak")
+    @DisplayName("should reject a duplicate email before touching the identity provider")
     void shouldRejectDuplicateEmail() {
         when(memberRepository.findByEmail(eq("invited@example.com"))).thenReturn(new Member());
 
         assertThrows(NonUniqueConstraintViolation.NonUniqueConstraintViolationException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
 
-        verify(keycloakService, never()).inviteUser(any(), anyString());
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
         verify(persistenceDelegate, never()).persistMember(any(), any());
     }
 
     @Test
-    @DisplayName("should reject an invalid member before touching Keycloak")
+    @DisplayName("should reject an invalid member before touching the identity provider")
     void shouldRejectInvalidMember() {
         testMember.setEmail("not-an-email");
 
         assertThrows(ConstraintViolationException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember));
+                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
 
-        verify(keycloakService, never()).inviteUser(any(), anyString());
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
+        verify(persistenceDelegate, never()).persistMember(any(), any());
+    }
+
+    @Test
+    @DisplayName("should reject adding a member when the caller may not manage members")
+    void shouldRejectAddMemberWithoutPermission() {
+        Member nonOwner = new Member();
+        nonOwner.setEmail("admin@example.com");
+        nonOwner.setFirstName("Regular");
+        nonOwner.setLastName("Admin");
+        nonOwner.addOrganization(testOrganization, Role.ADMIN);
+
+        assertThrows(ForbiddenException.class,
+                () -> organizationMemberService.addMember(testOrganization, testMember, nonOwner));
+
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
         verify(persistenceDelegate, never()).persistMember(any(), any());
     }
 }

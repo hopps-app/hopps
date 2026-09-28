@@ -3,6 +3,7 @@ package app.hopps.organization.service;
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.MemberStatus;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Typed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -18,10 +19,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Used when {@code app.hopps.org.auth.provider=keycloak}, the default. See {@link IdentityProvisioningServiceProducer}.
+ */
+@Typed(KeycloakIdentityProvisioningService.class)
 @ApplicationScoped
-public class CreateUserInKeycloak {
+public class KeycloakIdentityProvisioningService implements IdentityProvisioningService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CreateUserInKeycloak.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KeycloakIdentityProvisioningService.class);
 
     private static final String UPDATE_PASSWORD_ACTION = "UPDATE_PASSWORD";
     private static final String VERIFY_EMAIL_ACTION = "VERIFY_EMAIL";
@@ -44,7 +49,8 @@ public class CreateUserInKeycloak {
     @ConfigProperty(name = "app.hopps.org.auth.invitation.lifespan-seconds")
     int invitationLifespanSeconds;
 
-    public void createUserInKeycloak(Member user, String newPassword) {
+    @Override
+    public void createOwner(Member user, String newPassword) {
 
         if (newPassword == null || newPassword.isEmpty()) {
             throw new IllegalArgumentException("New password cannot be null or empty");
@@ -85,8 +91,8 @@ public class CreateUserInKeycloak {
      * chosen by, or passed through, hopps.
      * <p>
      * Sets {@code keycloakId} and {@code status} on the given member as a side effect, exactly like
-     * {@link #createUserInKeycloak(Member, String)} does for the founder. The status says whether the invitation email
-     * went out: {@link MemberStatus#INVITED} if it did, {@link MemberStatus#INVITATION_FAILED} if it did not.
+     * {@link #createOwner(Member, String)} does for the founder. The status says whether the invitation email went out:
+     * {@link MemberStatus#INVITED} if it did, {@link MemberStatus#INVITATION_FAILED} if it did not.
      *
      * @param user
      *            the member to provision; its email becomes the Keycloak username
@@ -96,7 +102,8 @@ public class CreateUserInKeycloak {
      * @return whether this call created the account. False when an account for that email already existed and was
      *         linked instead — only an account we created ourselves may be removed again if persisting fails.
      */
-    public boolean inviteUser(Member user, String roleName) {
+    @Override
+    public boolean inviteMember(Member user, String roleName) {
         RealmResource realmResource = keycloak.realm(realmName);
         UsersResource usersResource = realmResource.users();
         RoleRepresentation role = ensureRealmRole(realmResource, roleName);
@@ -139,6 +146,7 @@ public class CreateUserInKeycloak {
      * failed request does not leave a stray account behind. Failures are logged, not thrown: the caller is already
      * handling an error and the original one is the interesting one.
      */
+    @Override
     public void deleteUser(String keycloakId) {
         try (Response response = keycloak.realm(realmName).users().delete(keycloakId)) {
             if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {

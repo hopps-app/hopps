@@ -10,7 +10,7 @@ public record NewMemberInput(String firstName, String lastName, String email, St
 
     /**
      * Converts the input to a Member entity. The Keycloak id stays null here and is filled in by
-     * {@code CreateUserInKeycloak#inviteUser} once the account has been provisioned.
+     * {@code IdentityProvisioningService#inviteMember} once the account has been provisioned.
      *
      * @return a new Member entity populated with the input data
      */

@@ -3,6 +3,7 @@ package app.hopps.organization.service;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
@@ -48,8 +49,6 @@ public class PersistOrganizationDelegate {
             tenancyService.assertSignUpAllowed();
         }
 
-        owner.addOrganization(organization);
-
         Bommel rootBommel = new Bommel();
         rootBommel.setName(organization.getName());
         rootBommel.setParent(null);
@@ -57,11 +56,18 @@ public class PersistOrganizationDelegate {
         rootBommel.setEmoji(Bommel.DEFAULT_ROOT_BOMMEL_EMOJI);
         rootBommel.setResponsibleMember(owner);
 
-        organization.addMember(owner);
         organization.setRootBommel(rootBommel);
 
+        // Order matters, and the three entities reference each other in a cycle: Member cascades PERSIST to
+        // MemberOrganization, which needs the organization to exist; Organization cascades PERSIST to its root bommel,
+        // whose responsibleMember is not cascaded and so needs the member to exist. Persisting both ends first and
+        // linking them afterwards breaks the cycle - the membership row is written when the transaction flushes,
+        // through the cascade on the now-managed member.
         memberRepository.persist(owner);
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
+
+        owner.addOrganization(organization, Role.OWNER);
+        organization.addMember(owner, Role.OWNER);
     }
 }
