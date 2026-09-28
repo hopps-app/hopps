@@ -32,7 +32,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - **Auth:** Keycloak (OAuth2/OIDC), Quarkus OIDC + Keycloak Admin Client
 - **Storage:** AWS S3 (LocalStack lokal)
 - **Realtime:** Quarkus WebSockets Next (Live-Benachrichtigungen bei Dokumentänderungen)
-- **AI/ML:** LangChain4j mit OpenAI, Azure Document AI
+- **AI/ML:** LangChain4j mit Azure OpenAI (EU-Region, DSGVO), Azure Document AI
 
 ### Microservices
 
@@ -252,7 +252,9 @@ Hinweis: Der `zugferd`-Service ist nicht Teil dieses Compose-Files. Weitere Comp
 ```bash
 HOPPS_AZURE_DOCUMENT_AI_ENDPOINT
 HOPPS_AZURE_DOCUMENT_AI_KEY
-QUARKUS_LANGCHAIN4J_OPENAI_API_KEY
+HOPPS_AZURE_OPENAI_RESOURCE_NAME
+HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME
+HOPPS_AZURE_OPENAI_KEY
 ```
 
 ### Authentik als Identity Provider lokal testen
@@ -395,6 +397,28 @@ größeren Slices (organization, document, bankimport, statistics). `shared/` en
 - **Service READMEs:** Spezifische Setup-Anleitungen
 - **Architektur:** `/architecture/architecture.drawio`
 - **Frontend:** `frontend/FRONTEND_REFACTORING_PLAN.md`
+- **Wissensdatenbank (Produkt/Vertrieb):** `docs/wissensdatenbank/` – siehe nächster Abschnitt
+
+## Wissensdatenbank & Kundenanfragen
+
+**Wenn ein Anforderungsdokument, Fragebogen, eine User-Story-Liste oder Interview-Fragen eines
+Vereins/Verbands/Interessenten übergeben werden** (typisch: PDF/Word aus OneDrive
+`General - Hopps/01_Produkt/Interviews/`), oder gefragt wird „Kann Hopps X?":
+
+1. Skill **`anforderungen-beantworten`** (`.claude/skills/anforderungen-beantworten/SKILL.md`) nutzen.
+2. Fakten aus **`docs/wissensdatenbank/`** nehmen – Einstieg `README.md`:
+   - `02-funktionsumfang.md` – Feature-Katalog mit Status (✅ 🟡 🔜 💡 ❌ ❓) und Code-Belegen
+   - `03-technik-hosting-datenschutz.md` – Hosting-Orte, Sub-Dienstleister, SSO, Self-Hosting, Aufbewahrung
+   - `06-glossar.md` – Kundensprache → Hopps-Begriffe (z. B. Anlass → Bommel, Quittung → Beleg)
+   - `07-antwort-leitfaden.md` – Aufbau des Antwortdokuments (docx, Ablage im OneDrive)
+3. Wesentliche Aussagen im Code gegenprüfen, offene Punkte (❓: Preise, SLA, Zusagen) beim User klären.
+4. Danach Wissensdatenbank anonymisiert ergänzen (FAQ, Glossar, Wunschliste in Roadmap).
+
+**Regeln:**
+- Das Repo ist **öffentlich** → keine Kundennamen mit Gesprächsinhalten, Angebote, Personendaten
+  in `docs/wissensdatenbank/`. Kundenspezifische Antworten nur im OneDrive.
+- **Bei Feature-Änderungen** (neue Endpoints, Rollen, Exporte, Sprachen, Währungen …) die betroffene
+  Zeile in `docs/wissensdatenbank/02-funktionsumfang.md` im selben PR aktualisieren (Status + Beleg + Stand-Datum).
 
 ## Wichtige Hinweise für AI-Assistenten
 

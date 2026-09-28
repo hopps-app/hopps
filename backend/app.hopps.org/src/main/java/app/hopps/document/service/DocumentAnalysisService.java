@@ -226,7 +226,7 @@ public class DocumentAnalysisService {
             String message = current.getMessage();
             if (message != null) {
                 if (message.contains("insufficient_quota") || message.contains("exceeded your current quota")) {
-                    return "AI service quota exceeded. Please check your OpenAI plan and billing details.";
+                    return "AI service quota exceeded. Please check your Azure OpenAI quota and billing details.";
                 }
                 if (message.contains("rate_limit_exceeded")) {
                     return "AI service rate limit reached. Please try again later.";

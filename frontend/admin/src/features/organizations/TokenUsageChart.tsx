@@ -6,8 +6,8 @@ import type { AiService, TokenUsage } from './types';
 /** Fixed identity → hue mapping. Colours follow the service, never its rank or size.
     Both hues are Klar tokens and validated CVD-separable (ΔE 64.6). */
 const SERVICE: Record<AiService, { label: string; color: string }> = {
-    openai: { label: 'OpenAI', color: 'var(--pp)' },
-    azure: { label: 'Azure AI', color: 'var(--pos)' },
+    'azure-openai': { label: 'Azure OpenAI', color: 'var(--pp)' },
+    'azure-document-ai': { label: 'Azure Document AI', color: 'var(--pos)' },
 };
 
 /** Stacked bar + legend for per-service AI token usage. */
@@ -15,7 +15,7 @@ export default function TokenUsageChart({ usage }: { usage: TokenUsage }) {
     const { t } = useTranslation();
 
     // Fixed order so a service keeps its colour and position regardless of size.
-    const order: AiService[] = ['openai', 'azure'];
+    const order: AiService[] = ['azure-openai', 'azure-document-ai'];
     const parts = order.map((svc) => ({ svc, value: usage.services[svc] ?? 0 })).filter((p) => p.value > 0);
 
     const total = usage.total || parts.reduce((a, p) => a + p.value, 0) || 1;

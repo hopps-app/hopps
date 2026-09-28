@@ -35,7 +35,7 @@ class ZugFerdServiceTest {
         assertEquals(BigDecimal.valueOf(571.04), documentData.total());
         assertEquals("RE-20170509/505", documentData.documentId());
         assertEquals("", documentData.currencyCode());
-        // Tags should be present (empty if OPENAI_API_KEY not set)
+        // Tags should be present (empty if HOPPS_AZURE_OPENAI_KEY not set)
         assertNotNull(documentData.tags());
     }
 }

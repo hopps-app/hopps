@@ -293,7 +293,7 @@
                 <version>${surefire-plugin.version}</version>
                 <configuration>
                     <argLine>@{argLine} --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
-                    <!-- Exclude integration tests that require external services (e.g., OpenAI API) -->
+                    <!-- Exclude integration tests that require external services (e.g., Azure OpenAI) -->
                     <excludedGroups>integration</excludedGroups>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
