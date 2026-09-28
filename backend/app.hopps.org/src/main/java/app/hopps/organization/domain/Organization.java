@@ -2,6 +2,8 @@ package app.hopps.organization.domain;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.MemberOrganization;
+import app.hopps.member.domain.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
@@ -11,7 +13,8 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,8 +26,11 @@ import org.hibernate.annotations.SQLRestriction;
 import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Schema(name = "Organization", description = "An example of a Hopps Organization, i.e. Verein")
@@ -54,9 +60,14 @@ public class Organization extends PanacheEntity {
     @Schema(examples = "null")
     private Bommel rootBommel;
 
-    @ManyToMany(mappedBy = "organizations", cascade = CascadeType.PERSIST)
-    @Schema(examples = "[]")
-    private Set<Member> members = new HashSet<>();
+    /**
+     * The inverse, non-owning side of {@link Member#getOrganizations()} — {@link Member} is what persists new
+     * memberships, this side exists so a freshly built {@link Organization} can carry its members in memory (e.g. for
+     * serializing the response right after creation) and so an existing one can list them back out.
+     */
+    @OneToMany(mappedBy = "organization", fetch = FetchType.LAZY)
+    @Schema(hidden = true)
+    private List<MemberOrganization> memberships = new ArrayList<>();
 
     @Schema(examples = "https://raketenfreunde.tld")
     private URL website;
@@ -194,15 +205,18 @@ public class Organization extends PanacheEntity {
     }
 
     public Set<Member> getMembers() {
-        return members;
+        return memberships.stream()
+                .map(MemberOrganization::getMember)
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
-    public void setMembers(Set<Member> members) {
-        this.members = members;
-    }
-
-    public void addMember(Member member) {
-        this.members.add(member);
+    /**
+     * In-memory bookkeeping only — {@link Member#addOrganization(Organization, Role)} is what actually persists the
+     * membership. Called alongside it (with the same role) so a freshly built organization already lists its members
+     * before it is ever read back from the database.
+     */
+    public void addMember(Member member, Role role) {
+        this.memberships.add(new MemberOrganization(member, this, role));
     }
 
     public Bommel getRootBommel() {

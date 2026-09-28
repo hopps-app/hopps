@@ -420,6 +420,11 @@ frontend:
   envFrom: []
   #  - configMapRef:
   #      name: name
+  # The frontend reads its login and API configuration from these. Expected:
+  # VITE_OIDC_PROVIDER_URL (issuer, for Keycloak <url>/realms/<realm>),
+  # VITE_OIDC_CLIENT_ID, VITE_API_ORG_URL. Optional: VITE_OIDC_SCOPE.
+  # VITE_KEYCLOAK_URL, VITE_KEYCLOAK_REALM and VITE_KEYCLOAK_CLIENT_ID are no
+  # longer read.
   envVars: []
   #- name: ENV_VAR
   #  value: value

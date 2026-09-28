@@ -1,6 +1,7 @@
 package app.hopps.organization.domain;
 
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.repository.OrganizationRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
@@ -155,10 +156,12 @@ class OrganizationTests {
         kevin.setEmail("pinking777@gmail.com");
 
         // when
-        kegelclub.getMembers().add(kevin);
+        kevin.addOrganization(kegelclub, Role.OWNER);
+        kegelclub.addMember(kevin, Role.OWNER);
 
         QuarkusTransaction.begin();
         organizationRepository.persist(kegelclub);
+        memberRepository.persist(kevin);
         QuarkusTransaction.commit();
 
         // then

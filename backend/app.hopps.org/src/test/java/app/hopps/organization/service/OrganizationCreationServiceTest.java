@@ -31,7 +31,7 @@ class OrganizationCreationServiceTest {
     CreationValidationDelegate validationDelegate;
 
     @InjectMock
-    CreateUserInKeycloak keycloakService;
+    IdentityProvisioningService identityProvisioningService;
 
     @InjectMock
     PersistOrganizationDelegate persistenceDelegate;
@@ -59,7 +59,7 @@ class OrganizationCreationServiceTest {
         // given
         doNothing().when(validationDelegate).validateWithValidator(any(), any());
         doNothing().when(validationDelegate).validateUniqueness(any(), any());
-        doNothing().when(keycloakService).createUserInKeycloak(any(), any());
+        doNothing().when(identityProvisioningService).createOwner(any(), any());
         doNothing().when(persistenceDelegate).persistOrg(any(), any());
 
         // when
@@ -68,7 +68,7 @@ class OrganizationCreationServiceTest {
         // then
         verify(validationDelegate, times(1)).validateWithValidator(testOrganization, testOwner);
         verify(validationDelegate, times(1)).validateUniqueness(testOrganization, testOwner);
-        verify(keycloakService, times(1)).createUserInKeycloak(testOwner, TEST_PASSWORD);
+        verify(identityProvisioningService, times(1)).createOwner(testOwner, TEST_PASSWORD);
         verify(persistenceDelegate, times(1)).persistOrg(testOrganization, testOwner);
     }
 
@@ -86,7 +86,7 @@ class OrganizationCreationServiceTest {
 
         verify(validationDelegate, times(1)).validateWithValidator(testOrganization, testOwner);
         verify(validationDelegate, never()).validateUniqueness(any(), any());
-        verify(keycloakService, never()).createUserInKeycloak(any(), any());
+        verify(identityProvisioningService, never()).createOwner(any(), any());
         verify(persistenceDelegate, never()).persistOrg(any(), any());
     }
 
@@ -105,7 +105,7 @@ class OrganizationCreationServiceTest {
 
         verify(validationDelegate, times(1)).validateWithValidator(testOrganization, testOwner);
         verify(validationDelegate, times(1)).validateUniqueness(testOrganization, testOwner);
-        verify(keycloakService, never()).createUserInKeycloak(any(), any());
+        verify(identityProvisioningService, never()).createOwner(any(), any());
         verify(persistenceDelegate, never()).persistOrg(any(), any());
     }
 
@@ -115,17 +115,17 @@ class OrganizationCreationServiceTest {
         // given
         doNothing().when(validationDelegate).validateWithValidator(any(), any());
         doNothing().when(validationDelegate).validateUniqueness(any(), any());
-        doNothing().when(keycloakService).createUserInKeycloak(any(), any());
+        doNothing().when(identityProvisioningService).createOwner(any(), any());
         doNothing().when(persistenceDelegate).persistOrg(any(), any());
 
         // when
         organizationCreationService.createOrganization(testOrganization, testOwner, TEST_PASSWORD);
 
         // then - verify order using inOrder
-        var inOrder = org.mockito.Mockito.inOrder(validationDelegate, keycloakService, persistenceDelegate);
+        var inOrder = org.mockito.Mockito.inOrder(validationDelegate, identityProvisioningService, persistenceDelegate);
         inOrder.verify(validationDelegate).validateWithValidator(testOrganization, testOwner);
         inOrder.verify(validationDelegate).validateUniqueness(testOrganization, testOwner);
-        inOrder.verify(keycloakService).createUserInKeycloak(testOwner, TEST_PASSWORD);
+        inOrder.verify(identityProvisioningService).createOwner(testOwner, TEST_PASSWORD);
         inOrder.verify(persistenceDelegate).persistOrg(testOrganization, testOwner);
     }
 }

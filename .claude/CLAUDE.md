@@ -96,7 +96,7 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 - **Grid:** AG Grid 32.3
 - **Charts:** Recharts 2.15
 - **i18n:** i18next 23.16 + react-i18next 15
-- **Auth:** Keycloak-js 24.0
+- **Auth:** oidc-client-ts (Keycloak und Authentik über denselben OIDC-Login)
 
 **Features:**
 - Drag-and-drop File Upload (react-dropzone)

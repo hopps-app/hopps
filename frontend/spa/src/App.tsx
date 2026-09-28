@@ -49,7 +49,7 @@ function App() {
 
                 await connectivityService.checkAll();
 
-                const { keycloakReachable, backendReachable } = useStore.getState();
+                const { identityProviderReachable, backendReachable } = useStore.getState();
 
                 if (backendReachable) {
                     // Needed before login: decides whether the start page offers sign-up, the initial setup, or
@@ -57,7 +57,7 @@ function App() {
                     useStore.getState().setInstance(await fetchInstanceInfo());
                 }
 
-                if (keycloakReachable) {
+                if (identityProviderReachable) {
                     const success = await authService.init();
                     if (success && authService.isAuthenticated() && backendReachable) {
                         await loadUserOrganisation();

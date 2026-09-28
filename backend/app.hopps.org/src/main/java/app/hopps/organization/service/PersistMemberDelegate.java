@@ -1,6 +1,7 @@
 package app.hopps.organization.service;
 
 import app.hopps.member.domain.Member;
+import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
@@ -29,9 +30,7 @@ public class PersistMemberDelegate {
      * method on {@code this} would not trigger the interceptor.
      * <p>
      * The organization the caller hands in was read before this transaction began and is therefore detached from its
-     * session — as are the members already in it. Since {@code Organization#members} cascades {@code PERSIST}, wiring
-     * the new member into that detached collection would make the flush try to persist those existing members again
-     * ("detached entity passed to persist"). So the organization is re-read here, inside the transaction.
+     * session. So it is re-read here, inside the transaction, before the new membership is wired in.
      */
     @Transactional
     public void persistMember(@Valid Member member, Organization organization) {
@@ -40,8 +39,8 @@ public class PersistMemberDelegate {
             throw new NotFoundException("Organization " + organization.getId() + " no longer exists");
         }
 
-        member.addOrganization(attached);
-        attached.addMember(member);
+        member.addOrganization(attached, Role.ADMIN);
+        attached.addMember(member, Role.ADMIN);
         memberRepository.persist(member);
     }
 }
