@@ -27,8 +27,9 @@ docker compose up -d
 
 This runs the bundled Keycloak, the default. Open the SPA at the
 `PUBLIC_SPA_URL` from your `.env` (default <http://localhost:8080>) and click
-**Register organization**. The first registration creates both the
-organization and its owner account in Keycloak.
+**Start initial setup**. This creates your association and its first
+administrator account in Keycloak. Once that is done the start page only
+offers the login; see [Single-tenant mode](#single-tenant-mode).
 
 To use an existing Authentik instead, see [A](#a-an-existing-authentik).
 
@@ -183,6 +184,34 @@ your provider in `.env`; the realm import applies it on the first start.
 goes where, how to get the provider's logo onto the button, the pitfalls around
 issuer and logout, and a throwaway Authentik you can test against locally.
 
+## Single-tenant mode
+
+A self-hosted installation serves exactly one association, so the stack runs
+with `HOPPS_TENANCY_MODE=single` by default. Compared to the hosted SaaS
+(`multi`) this means:
+
+- **One organization, created once.** The registration form is the initial
+  setup. As soon as the organization exists it is closed for good: the start
+  page only shows the login, `/register` redirects home, and the API answers
+  `403` (`SETUP_COMPLETE`) to further sign-ups.
+- **Access by invitation only.** Someone who can log in - through a password
+  account or an [external identity provider](#identity-provider) -
+  but is not a member of the organization sees *No access* with a logout
+  button. They cannot create an organization of their own. A member with
+  administrator rights invites them under *Settings → Association → Add member*;
+  Keycloak sends the invitation mail (caught by `mailpit` until you configure
+  SMTP). If a Keycloak account for that email already exists (typical for
+  identity-provider logins), the invitation links it instead of creating one.
+- **The SaaS admin API is off.** Everything under `/admin` (estate overview,
+  impersonation) answers `404`. The separate admin app is not part of this stack.
+
+The org service refuses to start with `HOPPS_TENANCY_MODE=single` while the
+database holds more than one organization, so a multi-tenant database cannot be
+switched over by accident. Switching from `single` to `multi` is always possible.
+
+The SPA reads the mode from the backend (`GET /instance`); there is nothing to
+configure on the frontend.
+
 ## File storage
 
 Uploaded files (receipts, logos, bank import files) go to the `org_storage`
@@ -203,17 +232,18 @@ MinIO first (`mc mirror`), keeping their paths.
 ZUGFeRD/XRechnung e-invoices are always read automatically by `zugferd`. Every
 other receipt (photos, scans, plain PDFs) needs `az-document-ai`, which is off
 by default because it sends the receipts to Azure Document Intelligence and
-OpenAI. Without it those receipts are marked for manual entry.
+Azure OpenAI. Without it those receipts are marked for manual entry.
 
 To enable it, append `:docker-compose.document-ai.yaml` to `COMPOSE_FILE` in
 `.env` and fill in block D (`HOPPS_AZURE_DOCUMENT_AI_ENDPOINT`,
-`HOPPS_AZURE_DOCUMENT_AI_KEY`) and `OPENAI_API_KEY`. These are the operator's
-own accounts.
+`HOPPS_AZURE_DOCUMENT_AI_KEY`) and the Azure OpenAI keys
+(`HOPPS_AZURE_OPENAI_RESOURCE_NAME`, `HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME`,
+`HOPPS_AZURE_OPENAI_KEY`). These are the operator's own accounts.
 
-`zugferd` also uses `OPENAI_API_KEY`, to suggest tags for e-invoices. Left
+`zugferd` also uses the Azure OpenAI keys, to suggest tags for e-invoices. Left
 empty, e-invoices are still read, just without tags. Note that `zugferd` still
-attempts the OpenAI call in that case, so the invoice data is sent in a request
-OpenAI then rejects.
+attempts the Azure OpenAI call in that case, so the invoice data is sent in a
+request Azure then rejects.
 
 ## Versions
 

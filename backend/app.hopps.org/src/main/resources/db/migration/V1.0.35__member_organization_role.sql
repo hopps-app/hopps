@@ -1,4 +1,4 @@
--- Role moves from being bommel-scoped (member_role, added in V1.0.31) to organization-scoped, directly on the
+-- Role moves from being bommel-scoped (member_role, added in V1.0.33) to organization-scoped, directly on the
 -- membership row (member_verein). A bommel-level override can still be added later as a separate, more specific grant
 -- layered on top of this organization-wide default — see AccessService — without touching this column again.
 alter table member_verein

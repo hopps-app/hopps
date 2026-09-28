@@ -15,6 +15,7 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentFileService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
@@ -63,6 +64,9 @@ public class BankTransactionReceiptService {
 
     @Inject
     BankTransactionMatchService matchService;
+
+    @Inject
+    TransactionAuditor transactionAuditor;
 
     @Inject
     Event<DocumentCreatedEvent> documentCreatedEvent;
@@ -140,6 +144,7 @@ public class BankTransactionReceiptService {
             transaction.setCounterparty(null);
         }
         transactionRepository.persist(transaction);
+        transactionAuditor.created(transaction);
 
         // 3. Wire up the relationships.
         document.setTransaction(transaction);

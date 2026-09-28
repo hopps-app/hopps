@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import Button from '@/components/ui/Button.tsx';
+import { useInstance } from '@/hooks/use-instance';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store';
@@ -11,10 +12,14 @@ function Header() {
     const navigate = useNavigate();
     const location = useLocation();
     const { isAuthenticated } = useStore();
+    const { tenancy, setupRequired } = useInstance();
 
     // On the registration page the auth buttons are redundant — the page itself is
     // the register action, and a "log in instead" link sits below the form.
     const isRegisterPage = location.pathname === '/register';
+    // A single-tenant installation has no sign-up, only the one-time initial setup.
+    const showRegister = tenancy !== 'single' || setupRequired;
+    const registerLabel = tenancy === 'single' ? t('home.setup') : t('header.register');
 
     const onClickLogin = () => {
         authService.login(`${window.location.origin}/dashboard`);
@@ -44,7 +49,7 @@ function Header() {
                                 <Button variant="link" className="px-0" onClick={onClickLogin}>
                                     {t('header.login')}
                                 </Button>
-                                <Button onClick={onClickRegister}>{t('header.register')}</Button>
+                                {showRegister && <Button onClick={onClickRegister}>{registerLabel}</Button>}
                             </div>
                         )
                     )}

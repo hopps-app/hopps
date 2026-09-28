@@ -25,6 +25,7 @@ public class OrganizationContext {
     SecurityUtils securityUtils;
 
     private Organization cachedOrganization;
+    private Member cachedMember;
     private boolean organizationResolved = false;
 
     /**
@@ -35,6 +36,16 @@ public class OrganizationContext {
             resolveOrganization();
         }
         return cachedOrganization;
+    }
+
+    /**
+     * Returns the member behind the current request, or null if there is none (anonymous, or no member for the login).
+     */
+    public Member getCurrentMember() {
+        if (!organizationResolved) {
+            resolveOrganization();
+        }
+        return cachedMember;
     }
 
     /**
@@ -57,6 +68,7 @@ public class OrganizationContext {
         if (member == null) {
             return;
         }
+        cachedMember = member;
 
         // Requests that only ever scope by organization never touch SecurityUtils, so this path has to record the
         // login too — otherwise someone who only visits, say, the transactions page would stay INVITED forever.

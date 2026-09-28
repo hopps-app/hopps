@@ -40,6 +40,7 @@ export function useYearTotals(organizationId: number | undefined) {
                     undefined, // bommelId — the KPIs always cover the whole organization
                     undefined, // categoryValue
                     undefined, // detached
+                    undefined, // displayStatus
                     range.endDate,
                     undefined, // privatelyPaid
                     undefined, // search
@@ -87,11 +88,12 @@ export function useIncomeExpenseSeries(organizationId: number | undefined, bomme
         queryKey: ['dashboard', 'income-expense', organizationId, bommelKey, range.startDate, range.endDate],
         queryFn: async () => {
             const [totals, transactions] = await Promise.all([
-                apiService.orgService.aggregate2(bommelIds, undefined, undefined, range.endDate, undefined, undefined, range.startDate, undefined),
+                apiService.orgService.aggregate2(bommelIds, undefined, undefined, undefined, range.endDate, undefined, undefined, range.startDate, undefined),
                 apiService.orgService.transactionsAll(
                     bommelIds,
                     undefined, // categoryValue
                     undefined, // detached
+                    undefined, // displayStatus
                     range.endDate,
                     undefined, // page
                     undefined, // privatelyPaid

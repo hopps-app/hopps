@@ -23,6 +23,8 @@ function ProfileSettingsView() {
             { label: t('profile.lang.english'), value: 'en' },
             { label: t('profile.lang.german'), value: 'de' },
             { label: t('profile.lang.ukrainian'), value: 'uk' },
+            { label: t('profile.lang.italian'), value: 'it' },
+            { label: t('profile.lang.french'), value: 'fr' },
         ],
         [t]
     );

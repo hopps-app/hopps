@@ -21,7 +21,13 @@ import jakarta.persistence.Table;
 @Table(name = "member_verein")
 public class MemberOrganization extends PanacheEntity {
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    /**
+     * Eager on purpose: {@link app.hopps.organization.domain.Organization#getMembers()} derives the organization's
+     * members from these rows and is serialized into API responses, so the members have to be real entities rather than
+     * proxies by the time the session closes. With the {@code @ManyToMany} this replaced, initializing the collection
+     * loaded the members outright; keeping that means loading them with the membership.
+     */
+    @ManyToOne(optional = false)
     @JoinColumn(name = "member_id")
     private Member member;
 

@@ -68,6 +68,9 @@ services:
       QUARKUS_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/org
 
+      # -- tenancy: one association per installation (see .env.example)
+      HOPPS_TENANCY_MODE: ${HOPPS_TENANCY_MODE:-single}
+
       # -- authentication against the external OIDC provider
       # Discovery may use an address only the container can reach (OIDC_INTERNAL_URL);
       # the issuer inside the tokens is the public one the browser used, so it is
@@ -97,9 +100,6 @@ services:
       # -- e-invoice reader. Other receipts are marked for manual entry unless
       # docker-compose.document-ai.yaml is enabled.
       HOPPS_ZUGFERD_SERVICE_URL: http://zugferd:8080
-    # Back this volume up together with postgres_data.
-    volumes:
-      - org_storage:/var/lib/hopps/storage
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
       interval: 10s
@@ -107,14 +107,19 @@ services:
       retries: 30
       start_period: 40s
 
+    # Back this volume up together with postgres_data.
+    volumes:
+      - org_storage:/var/lib/hopps/storage
+
   zugferd:
     image: ghcr.io/hopps-app/hopps/zugferd:${TAG:-967}
     restart: unless-stopped
     expose:
       - "8080"
     environment:
-      # Optional: suggests tags for e-invoices.
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      HOPPS_AZURE_OPENAI_RESOURCE_NAME: ${HOPPS_AZURE_OPENAI_RESOURCE_NAME}
+      HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME: ${HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME:-gpt-4o-mini}
+      HOPPS_AZURE_OPENAI_KEY: ${HOPPS_AZURE_OPENAI_KEY}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
       interval: 10s

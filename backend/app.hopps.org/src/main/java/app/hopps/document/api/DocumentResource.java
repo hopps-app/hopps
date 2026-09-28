@@ -9,7 +9,9 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentFileService;
 import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
+import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -31,7 +33,6 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -80,6 +81,9 @@ public class DocumentResource {
 
     @Inject
     SecurityIdentity securityIdentity;
+
+    @Inject
+    TransactionAuditor transactionAuditor;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -337,12 +341,13 @@ public class DocumentResource {
         }
 
         try {
-            var inputStream = fileService.downloadFile(document.getFileKey());
-            return Response.ok(inputStream)
+            // The stream is handed to JAX-RS, which closes it once the entity has been written.
+            var storedFile = fileService.downloadFile(document.getFileKey());
+            return Response.ok(storedFile.content())
                     .header("Content-Disposition", "attachment; filename=\"" + document.getFileName() + "\"")
                     .header("Content-Type", document.getFileContentType())
                     .build();
-        } catch (NoSuchKeyException e) {
+        } catch (StoredFileNotFoundException e) {
             // The DB record exists but the stored object is gone (e.g. ephemeral local storage was reset). Return a
             // clean 404 instead of leaking a 500 with internal storage details.
             LOG.warn("File missing in storage for document {}: key={}", id, document.getFileKey());
@@ -483,6 +488,7 @@ public class DocumentResource {
         // and records the organization on the other side.
         transaction.setCounterparty(document.getSender());
         transactionRepository.persist(transaction);
+        transactionAuditor.created(transaction);
 
         document.setTransaction(transaction);
         document.setDocumentStatus(DocumentStatus.CONFIRMED);

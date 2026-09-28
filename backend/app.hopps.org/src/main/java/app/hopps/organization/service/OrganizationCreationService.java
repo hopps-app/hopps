@@ -8,6 +8,7 @@ import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
+import app.hopps.shared.tenancy.TenancyService;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -54,8 +55,16 @@ public class OrganizationCreationService {
     @Inject
     BommelRepository bommelRepository;
 
+    @Inject
+    TenancyService tenancyService;
+
     /**
      * Creates a new organization with its owner.
+     * <p>
+     * On a single-tenant installation this is the initial setup and only allowed once; afterwards it fails with 403
+     * ({@code SETUP_COMPLETE}). The check runs here, before the Keycloak user is provisioned, and again under a lock
+     * inside the persisting transaction, so two concurrent setup requests cannot both get through.
+     * </p>
      *
      * @param organization
      *            The organization to create
@@ -70,10 +79,15 @@ public class OrganizationCreationService {
      *             if email or slug already exists
      * @throws jakarta.ws.rs.WebApplicationException
      *             if the identity provider account cannot be created
+     * @throws jakarta.ws.rs.ForbiddenException
+     *             if the single-tenant installation already has its organization
      */
     public void createOrganization(Organization organization, Member owner, String newPassword) {
         LOG.info("Starting organization creation: name={}, slug={}, owner={}",
                 organization.getName(), organization.getSlug(), owner.getEmail());
+
+        // Step 0: On a single-tenant installation, sign-up is only the one-time initial setup
+        tenancyService.assertSignUpAllowed();
 
         // Step 1: Validate constraints using Jakarta Bean Validation
         LOG.debug("Validating constraints for organization and owner");
@@ -107,10 +121,15 @@ public class OrganizationCreationService {
      *             if the slug already exists
      * @throws ClientErrorException
      *             (409 Conflict) if the user is already assigned to an organization
+     * @throws jakarta.ws.rs.ForbiddenException
+     *             (403, {@code SINGLE_TENANT}) on a single-tenant installation, where nobody creates organizations of
+     *             their own — access is granted by invitation only
      */
     @Transactional
     public Organization createOrganizationForCurrentUser(Organization organization, String keycloakId, String email,
             String firstName, String lastName) {
+        tenancyService.assertMultiTenant();
+
         if (keycloakId == null || keycloakId.isBlank()) {
             throw new ClientErrorException("Missing user identity", Response.Status.UNAUTHORIZED);
         }
@@ -136,8 +155,6 @@ public class OrganizationCreationService {
         validationDelegate.validateWithValidator(organization, member);
         validationDelegate.validateSlugUnique(organization);
 
-        member.addOrganization(organization, Role.OWNER);
-
         Bommel rootBommel = new Bommel();
         rootBommel.setName(organization.getName());
         rootBommel.setParent(null);
@@ -145,14 +162,18 @@ public class OrganizationCreationService {
         rootBommel.setEmoji(Bommel.DEFAULT_ROOT_BOMMEL_EMOJI);
         rootBommel.setResponsibleMember(member);
 
-        organization.addMember(member, Role.OWNER);
         organization.setRootBommel(rootBommel);
 
+        // Link the membership only once both ends exist - see PersistOrganizationDelegate#persistOrg for why the
+        // references form a cycle that persisting first and linking afterwards untangles.
         if (newMember) {
             memberRepository.persist(member);
         }
         organizationRepository.persist(organization);
         bommelRepository.persist(rootBommel);
+
+        member.addOrganization(organization, Role.OWNER);
+        organization.addMember(member, Role.OWNER);
 
         LOG.info("Created organization {} ({}) for existing user {}", organization.getName(), organization.getSlug(),
                 keycloakId);

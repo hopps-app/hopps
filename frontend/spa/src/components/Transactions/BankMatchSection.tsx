@@ -1,64 +1,41 @@
 import { BankTransactionResponse, TransactionResponse } from '@hopps/api-client';
-import { Link2, Unlink, ExternalLink, FileText, Landmark, Loader2, Search, X } from 'lucide-react';
+import { Link2, ExternalLink, Landmark, Loader2, Unlink } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
+import { BankTransactionPicker } from '@/components/Transactions/BankTransactionPicker';
+import { Eyebrow } from '@/components/Transactions/Eyebrow';
+import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
     useBankTransactionsForTransaction,
-    useBankTransactionSearch,
     useAddBankTransactionMatch,
     useRemoveBankTransactionMatch,
     useUpdateBankTransactionMatchAmount,
 } from '@/hooks/queries/useBankAccounts';
 import { useReopenTransaction } from '@/hooks/queries/useTransactions';
 import { cn } from '@/lib/utils';
-import { parseAllocationAmount } from '@/utils/parseAmount';
 
-function fmtCurrency(amount: number | undefined): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-}
-
-function fmtDate(date: Date | string | undefined): string {
-    if (!date) return '—';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-// Shows a bank transaction's amount. If it is already partially matched, the still-open (uncovered) amount
-// is shown below the actual amount.
-function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmount?: number }) {
-    const { t } = useTranslation();
-    const total = amount ?? 0;
-    // matchedAmount is the SIGNED net coverage; the still-open amount is |total − matched|.
-    const matched = matchedAmount ?? 0;
-    const open = Math.abs(total - matched);
-    const partiallyMatched = matched !== 0 && open > 0.005;
-
-    return (
-        <span className="flex flex-col items-end flex-shrink-0 leading-tight">
-            <span className="text-[13px] font-bold tabular-nums" style={{ color: total >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
-                {fmtCurrency(total)}
-            </span>
-            {partiallyMatched && (
-                <span className="text-[11px] font-semibold text-[var(--warning)] tabular-nums">
-                    {t('transactions.detail.openAmount', { amount: fmtCurrency(open) })}
-                </span>
-            )}
-        </span>
-    );
-}
+// Round icon button used on the linked-movement cards.
+const ICON_BTN =
+    'grid h-10 w-10 flex-shrink-0 place-items-center rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground';
 
 /**
  * Reconciliation section for linking bank transactions to a transaction record. Shared between the transaction
  * detail drawer and the receipt review drawer so bank transactions can be assigned in either place.
  */
-export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse; currentTotal?: number | null }) {
+export function BankMatchSection({
+    tx,
+    currentTotal,
+    className = 'px-6 py-5',
+}: {
+    tx: TransactionResponse;
+    currentTotal?: number | null;
+    /** Spacing of the section wrapper; the transaction drawer places it itself. */
+    className?: string;
+}) {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const { data: linked, isLoading } = useBankTransactionsForTransaction(tx.id);
     const addMatch = useAddBankTransactionMatch();
     const removeMatch = useRemoveBankTransactionMatch();
@@ -69,26 +46,8 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
     // confirmation, because unlinking it also reopens the transaction (back to draft).
     const [unlinkPending, setUnlinkPending] = useState<BankTransactionResponse | null>(null);
     const [pickerOpen, setPickerOpen] = useState(false);
-    const [search, setSearch] = useState('');
-    // Optional partial "amount used" applied to the next linked bank transaction (rarely needed — splitting a
-    // collective transfer). Empty means the full amount.
-    const [linkAmount, setLinkAmount] = useState('');
-    const { data: results, isFetching } = useBankTransactionSearch(search, pickerOpen);
-
-    // The purpose ("Verwendungszweck") is often long, so it is hidden by default; the user can reveal it per candidate
-    // to check the assignment (e.g. that the reference contains the invoice number). Tracks which rows are expanded.
-    const [purposeShown, setPurposeShown] = useState<Set<number>>(new Set());
-    const togglePurpose = (id: number) =>
-        setPurposeShown((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
-            return next;
-        });
-
+    // Portion of the movement currently selected in the picker (0 without a selection), previewed in the summary tile.
+    const [preview, setPreview] = useState(0);
     const linkedIds = new Set((linked ?? []).map((b) => b.id));
 
     // Amount reconciliation from the transaction's side — the mirror of the bank-transaction drawer: how much of this
@@ -111,47 +70,43 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
         const alloc = b.allocatedAmount ?? Math.abs(amt);
         return s + txSign * alloc;
     }, 0);
-    const remaining = txTotal - assignedSum;
-    const isFullyAssigned = Math.abs(remaining) <= 0.005; // float tolerance
 
-    // Pre-fill the search with the amount that is still open (not the full total), so the matching bank movements for
-    // the remaining portion surface immediately. German decimal comma matches what the user sees; the backend also
-    // accepts a dot. Empty once the transaction is fully covered.
-    const openForSearch = Math.abs(remaining);
-    const openAmountStr = openForSearch > 0.005 ? openForSearch.toFixed(2).replace('.', ',') : '';
+    // Summary tile, in magnitudes so an expense and an income read the same. Without an amount yet (a draft whose amount
+    // is still to be filled from a linked bank movement) nothing can be open or in surplus.
+    const total = Math.abs(txTotal);
+    const assigned = Math.abs(assignedSum);
+    const rest = txTotal !== 0 ? Math.max(0, total - assigned) : 0;
+    // Covered (or over-covered): nothing left to link, so the link button goes away.
+    const covered = txTotal !== 0 && rest <= 0.005;
+    // While a movement is selected in the picker the tile already shows what "Verknüpfen" would assign.
+    const shown = assigned + preview;
+    const shownRest = txTotal !== 0 ? Math.max(0, total - shown) : 0;
+    const shownSurplus = txTotal !== 0 ? Math.max(0, shown - total) : 0;
+    // Assigned reads green once it matches the amount exactly, gold while it is below and red above.
+    const assignedColor =
+        shown <= 0.005
+            ? 'var(--ink-faint)'
+            : txTotal === 0 || Math.abs(shown - total) <= 0.005
+              ? 'var(--positive)'
+              : shown < total
+                ? 'var(--warning)'
+                : 'var(--negative)';
+    const summary: { key: string; label: string; value: number; color: string }[] = [
+        { key: 'total', label: t('transactions.detail.reconcileTotal'), value: total, color: 'var(--foreground)' },
+        { key: 'assigned', label: t('transactions.detail.reconcileAssigned'), value: shown, color: assignedColor },
+        ...(shownRest > 0.005 && shown > 0 ? [{ key: 'open', label: t('transactions.detail.reconcileOpen'), value: shownRest, color: 'var(--warning)' }] : []),
+        ...(shownSurplus > 0.005 ? [{ key: 'surplus', label: t('transactions.detail.reconcileSurplus'), value: shownSurplus, color: 'var(--negative)' }] : []),
+    ];
 
-    // Order the picker so the bank transaction whose booking date is the closest ON/AFTER the receipt (transaction)
-    // date is at the top — that is the most likely match (the money usually leaves the account on or shortly after the
-    // receipt date). Dates before the receipt date follow (nearest first); entries without a date go last.
-    const refDate = tx.transactionTime ? new Date(tx.transactionTime).getTime() : null;
-    const candidates = (results ?? [])
-        .filter((b) => !linkedIds.has(b.id))
-        .map((b) => {
-            const d = b.bookingDate ? new Date(b.bookingDate).getTime() : null;
-            const delta = d != null && refDate != null ? d - refDate : null;
-            // Movements running the other way stay selectable
-            const wrongDirection = Math.sign(b.amount ?? 0) !== 0 && Math.sign(b.amount ?? 0) !== txSign ? 1 : 0;
-            return { b, wrongDirection, group: delta == null ? 2 : delta >= 0 ? 0 : 1, dist: delta == null ? 0 : Math.abs(delta) };
-        })
-        .sort((x, y) => x.wrongDirection - y.wrongDirection || x.group - y.group || x.dist - y.dist)
-        .map((x) => x.b);
-
-    function openPicker() {
-        setSearch(openAmountStr);
-        setPickerOpen(true);
+    async function link(bankTxId: number, amount: number | undefined) {
+        if (!tx.id) return;
+        await addMatch.mutateAsync({ bankTxId, transactionId: tx.id, amount });
+        closePicker();
     }
 
-    async function link(bankTxId: number, bankAmount: number) {
-        if (!tx.id) return;
-        // Apply the optional amount only when it is positive and at most this movement's own amount (a match can't use
-        // more of a movement than it holds); otherwise link the default amount.
-        const parsed = parseAllocationAmount(linkAmount);
-        const cap = Math.abs(bankAmount);
-        const amount = parsed != null && parsed > 0 && parsed <= cap + 0.005 ? parsed : undefined;
-        await addMatch.mutateAsync({ bankTxId, transactionId: tx.id, amount });
+    function closePicker() {
         setPickerOpen(false);
-        setSearch('');
-        setLinkAmount('');
+        setPreview(0);
     }
 
     async function updateAmount(bankTxId: number, amount: number) {
@@ -190,257 +145,120 @@ export function BankMatchSection({ tx, currentTotal }: { tx: TransactionResponse
     }
 
     return (
-        <div className="px-6 py-5">
-            <div className="flex items-center gap-2 mb-3">
-                <Link2 size={15} className="text-purple-700" />
-                <span className="text-[14px] font-bold text-foreground">{t('transactions.detail.payment')}</span>
-            </div>
+        <div className={className}>
+            <Eyebrow icon={<Link2 size={14} />} className="mb-[11px]">
+                {t('transactions.detail.payment')}
+            </Eyebrow>
 
-            {/* Always-visible coverage indicator: how much of this transaction still needs to be covered by bank
-                movements — shown even before anything is linked, so the open amount is never hidden (regardless of
-                confirm status, mirroring the transactions table). */}
-            {txTotal !== 0 &&
-                (() => {
-                    // Three states: fully covered (green), still open (amber), or over-covered when the linked
-                    // movements exceed the transaction amount (red).
-                    const overCovered = !isFullyAssigned && Math.abs(assignedSum) > Math.abs(txTotal);
-                    const bg = isFullyAssigned ? 'var(--positive-surface)' : overCovered ? 'var(--negative-surface)' : 'var(--warning-surface)';
-                    const color = isFullyAssigned ? 'var(--positive)' : overCovered ? 'var(--negative)' : 'var(--warning)';
-                    return (
-                        <div className="flex items-center justify-between gap-2 mb-3 px-3 py-2 rounded-[10px]" style={{ background: bg }}>
-                            <span className="text-[12px] font-semibold" style={{ color }}>
-                                {isFullyAssigned
-                                    ? t('transactions.detail.fullyCovered')
-                                    : overCovered
-                                      ? t('transactions.detail.overCovered', { amount: fmtCurrency(Math.abs(remaining)) })
-                                      : t('transactions.detail.stillToCover', { amount: fmtCurrency(Math.abs(remaining)) })}
-                            </span>
-                            {isFullyAssigned && <span className="text-[13px] font-bold text-[var(--positive)]">✓</span>}
+            <div className="flex flex-col gap-[11px]">
+                {/* Sums: amount, what the linked movements cover, and what is still open or left over. There is no
+                    separate coverage badge — the status badge already says whether the transaction is covered. */}
+                <div
+                    className="grid gap-3 rounded-[var(--r-card)] px-4 py-[13px]"
+                    style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))`, background: 'var(--surface-track)' }}
+                >
+                    {summary.map((col) => (
+                        <div key={col.key} className="min-w-0">
+                            <div className="truncate text-[12.5px] font-semibold text-muted-foreground">{col.label}</div>
+                            <div className="mt-[3px] text-[16px] font-extrabold tabular-nums" style={{ color: col.color }}>
+                                {fmtCurrency(col.value)}
+                            </div>
                         </div>
-                    );
-                })()}
-
-            {isLoading ? (
-                <div className="flex items-center gap-2 p-3 text-[13px] text-muted-foreground">
-                    <Loader2 size={14} className="animate-spin" />
-                    {t('transactions.detail.bankLoading')}
+                    ))}
                 </div>
-            ) : linked && linked.length > 0 ? (
-                <>
-                    <div className="space-y-2">
-                        {linked.map((b) => (
+
+                {isLoading ? (
+                    <div className="flex items-center gap-2 p-3 text-[13px] text-muted-foreground">
+                        <Loader2 size={14} className="animate-spin" />
+                        {t('transactions.detail.bankLoading')}
+                    </div>
+                ) : (
+                    (linked ?? []).map((b) => {
+                        const amount = b.amount ?? 0;
+                        return (
                             <div
                                 key={b.id}
-                                className="flex flex-col gap-2 p-3 rounded-[10px] border border-border-soft"
-                                style={{ background: 'var(--surface-sunken)' }}
+                                className="rounded-[var(--r-card)] border border-border-soft px-[15px] py-[13px]"
+                                style={{ background: 'var(--background-secondary)' }}
                             >
-                                {/* Row 1: icon + counterparty/date span the full width so long names wrap cleanly instead
-                                    of being squeezed into a tiny column by the amount/controls. */}
-                                <button
-                                    type="button"
-                                    onClick={() => window.open(`/bank-accounts?bankTx=${b.id}`, '_blank', 'noopener,noreferrer')}
-                                    title={t('transactions.detail.openBankTransaction')}
-                                    className="flex items-start gap-3 min-w-0 text-left group"
-                                >
+                                <div className="flex items-start gap-3">
                                     <span
-                                        className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
-                                        style={{ background: 'var(--positive-surface)' }}
+                                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[var(--r-sm)]"
+                                        style={{ background: 'var(--positive-surface)', color: 'var(--positive)' }}
                                     >
-                                        <Landmark size={16} className="text-[var(--positive)]" />
+                                        <Landmark size={17} />
                                     </span>
-                                    <span className="flex flex-col min-w-0 flex-1">
-                                        {/* overflow-wrap:anywhere forces a break inside very long tokens (e.g. "Siemens-Betriebskrankenkasse") */}
-                                        <span className="text-[13px] font-bold text-foreground break-words [overflow-wrap:anywhere]">
-                                            {b.counterpartyName || b.purpose || '—'}
-                                        </span>
-                                        <span className="text-[12px] text-muted-foreground break-words">
+                                    <span className="flex min-w-0 flex-1 flex-col">
+                                        <span className="truncate text-[14px] font-bold text-foreground">{b.counterpartyName || b.purpose || '—'}</span>
+                                        <span className="mt-px text-[12.5px] text-muted-foreground">
                                             {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
                                         </span>
                                     </span>
-                                    <ExternalLink
-                                        size={15}
-                                        className="text-[var(--ink-faint)] group-hover:text-purple-700 transition-colors flex-shrink-0 mt-0.5"
-                                    />
-                                </button>
-                                {/* Row 2: amount + allocation ("verwendet") + unlink, aligned under the title. */}
-                                <div className="flex items-center justify-between gap-2 pl-12">
-                                    <span
-                                        className="text-[13px] font-bold tabular-nums"
-                                        style={{ color: (b.amount ?? 0) >= 0 ? 'var(--positive)' : 'var(--negative)' }}
+                                    <button
+                                        type="button"
+                                        onClick={() => window.open(`/bank-accounts?bankTx=${b.id}`, '_blank', 'noopener,noreferrer')}
+                                        title={t('transactions.detail.openBankTransaction')}
+                                        className={ICON_BTN}
                                     >
-                                        {fmtCurrency(b.amount)}
+                                        <ExternalLink size={16} />
+                                    </button>
+                                </div>
+                                <div className="mt-2.5 flex flex-wrap items-center gap-[9px]">
+                                    <span
+                                        className="text-[15px] font-extrabold tabular-nums"
+                                        style={{ color: amount >= 0 ? 'var(--positive)' : 'var(--negative)' }}
+                                    >
+                                        {amount >= 0 ? '+ ' : '– '}
+                                        {fmtCurrency(Math.abs(amount))}
                                     </span>
-                                    <div className="flex items-center gap-2">
-                                        <MatchAllocationControl
-                                            amount={b.allocatedAmount ?? Math.abs(b.amount ?? 0)}
-                                            max={Math.abs(b.amount ?? 0)}
-                                            pending={updateMatchAmount.isPending}
-                                            onSave={(v) => updateAmount(b.id!, v)}
-                                        />
-                                        <button
-                                            onClick={() => requestUnlink(b)}
-                                            disabled={removeMatch.isPending}
-                                            title={t('transactions.detail.unlink')}
-                                            className="w-8 h-8 flex items-center justify-center rounded-full border border-border-soft text-muted-foreground hover:text-[var(--negative)] hover:border-[var(--negative-border)] transition-colors flex-shrink-0 disabled:opacity-50"
-                                        >
-                                            <Unlink size={14} />
-                                        </button>
-                                    </div>
+                                    <div className="flex-1" />
+                                    <MatchAllocationControl
+                                        variant="card"
+                                        amount={b.allocatedAmount ?? Math.abs(amount)}
+                                        max={Math.abs(amount)}
+                                        pending={updateMatchAmount.isPending}
+                                        onSave={(v) => updateAmount(b.id!, v)}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => requestUnlink(b)}
+                                        disabled={removeMatch.isPending}
+                                        title={t('transactions.detail.unlink')}
+                                        className={cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)] disabled:opacity-50')}
+                                    >
+                                        <Unlink size={15} />
+                                    </button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        );
+                    })
+                )}
 
-                    {/* Difference summary — mirrors the bank-transaction drawer so the user sees how much bank-movement
-                        amount still needs to be assigned to reach this transaction's total. */}
-                    <div
-                        className="mt-3 rounded-[10px] px-4 py-3 flex items-center justify-between gap-3"
-                        style={{ background: isFullyAssigned ? 'var(--positive-surface)' : 'var(--surface-sunken)' }}
-                    >
-                        <span className="flex flex-col gap-0.5">
-                            <span className="text-[11px] font-semibold text-muted-foreground">{t('transactions.detail.reconcileTotal')}</span>
-                            <span className="text-[13px] font-bold tabular-nums text-foreground">{fmtCurrency(Math.abs(txTotal))}</span>
-                        </span>
-                        <span className="flex flex-col gap-0.5 text-right">
-                            <span className="text-[11px] font-semibold text-muted-foreground">{t('transactions.detail.reconcileAssigned')}</span>
-                            <span className="text-[13px] font-bold tabular-nums" style={{ color: 'var(--positive)' }}>
-                                {fmtCurrency(Math.abs(assignedSum))}
-                            </span>
-                        </span>
-                        <span className="flex flex-col gap-0.5 text-right">
-                            <span className="text-[11px] font-semibold text-muted-foreground">
-                                {isFullyAssigned ? t('transactions.detail.reconcileFull') : t('transactions.detail.reconcileRemaining')}
-                            </span>
-                            <span className="text-[13px] font-bold tabular-nums" style={{ color: isFullyAssigned ? 'var(--positive)' : 'var(--warning)' }}>
-                                {isFullyAssigned ? '✓' : fmtCurrency(Math.abs(remaining))}
-                            </span>
-                        </span>
-                    </div>
-                </>
-            ) : (
-                <div className="flex items-start gap-3 p-3 rounded-[10px] mb-2" style={{ background: 'var(--accent-surface)' }}>
-                    <Unlink size={15} className="text-purple-700 mt-0.5 flex-shrink-0" />
-                    <p className="text-[13px] text-purple-700 font-medium">{t('transactions.detail.notLinked')}</p>
-                </div>
-            )}
-
-            {/* Link picker */}
-            {pickerOpen ? (
-                <div className="mt-3 rounded-[12px] border border-border-soft overflow-hidden">
-                    <div className="flex items-center gap-2 px-3 py-2 border-b border-border-soft" style={{ background: 'var(--surface-sunken)' }}>
-                        <Search size={14} className="text-[var(--ink-faint)]" />
-                        <input
-                            autoFocus
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder={t('transactions.detail.bankSearchPlaceholder')}
-                            className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-[var(--ink-faint)] outline-none"
-                        />
-                        <button onClick={() => setPickerOpen(false)} className="text-[var(--ink-faint)] hover:text-foreground transition-colors">
-                            <X size={15} />
+                {/* Link picker */}
+                {pickerOpen ? (
+                    <BankTransactionPicker
+                        txTotal={txTotal}
+                        txDate={tx.transactionTime}
+                        open={rest}
+                        linkedIds={linkedIds}
+                        pending={addMatch.isPending}
+                        onLink={link}
+                        onPreview={setPreview}
+                        onClose={closePicker}
+                    />
+                ) : (
+                    !covered && (
+                        <button
+                            type="button"
+                            onClick={() => setPickerOpen(true)}
+                            className="inline-flex h-[42px] w-full items-center justify-center gap-2 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] text-[14.5px] font-bold text-foreground transition-colors hover:bg-[var(--surface-sunken)]"
+                        >
+                            <Link2 size={16} />
+                            {t('transactions.detail.linkBankTransaction')}
                         </button>
-                    </div>
-                    {/* Optional partial amount — rarely needed (splitting a collective transfer). Empty = full amount. */}
-                    <div className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-[var(--surface-track)]">
-                        <span className="text-[11px] text-[var(--ink-faint)]">{t('transactions.detail.partialAmountLabel')}</span>
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            value={linkAmount}
-                            onChange={(e) => setLinkAmount(e.target.value)}
-                            placeholder={t('transactions.detail.partialAmountPlaceholder')}
-                            className="w-24 px-1.5 py-0.5 text-[12px] text-right tabular-nums rounded-md border border-border-soft outline-none focus:border-purple-300"
-                        />
-                    </div>
-                    <div className="max-h-64 overflow-y-auto">
-                        {isFetching ? (
-                            <div className="flex items-center gap-2 px-3 py-4 text-[13px] text-muted-foreground">
-                                <Loader2 size={14} className="animate-spin" />
-                                {t('transactions.detail.bankLoading')}
-                            </div>
-                        ) : candidates.length === 0 ? (
-                            <p className="px-3 py-4 text-[13px] text-[var(--ink-faint)] text-center">{t('transactions.detail.bankNoResults')}</p>
-                        ) : (
-                            candidates.map((b) => {
-                                const showPurpose = b.id != null && purposeShown.has(b.id);
-                                return (
-                                    <div key={b.id} className="border-b border-[var(--surface-track)] last:border-b-0">
-                                        <div className="w-full flex items-center gap-2 pl-3 pr-2 hover:bg-[var(--accent-surface)] transition-colors">
-                                            <button
-                                                onClick={() => link(b.id!, b.amount ?? 0)}
-                                                disabled={addMatch.isPending}
-                                                className="flex items-center gap-3 min-w-0 flex-1 py-2.5 text-left disabled:opacity-50"
-                                            >
-                                                <span
-                                                    className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
-                                                    style={{ background: 'var(--surface-track)' }}
-                                                >
-                                                    <Landmark size={15} className="text-muted-foreground" />
-                                                </span>
-                                                <span className="flex flex-col min-w-0 flex-1">
-                                                    <span className="text-[13px] font-bold text-foreground truncate">
-                                                        {b.counterpartyName || b.purpose || '—'}
-                                                    </span>
-                                                    <span className="text-[12px] text-muted-foreground">
-                                                        {fmtDate(b.bookingDate)} · {b.bankAccountName ?? '—'}
-                                                    </span>
-                                                </span>
-                                                <BankTxAmount amount={b.amount} matchedAmount={b.matchedAmount} />
-                                            </button>
-                                            {b.purpose && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => togglePurpose(b.id!)}
-                                                    aria-expanded={showPurpose}
-                                                    title={showPurpose ? t('transactions.detail.hidePurpose') : t('transactions.detail.showPurpose')}
-                                                    className={cn(
-                                                        'w-7 h-7 flex items-center justify-center rounded-full border transition-colors flex-shrink-0',
-                                                        showPurpose
-                                                            ? 'border-purple-300 text-purple-700 bg-[var(--accent-surface)]'
-                                                            : 'border-border-soft text-[var(--ink-faint)] hover:text-purple-700 hover:border-purple-300'
-                                                    )}
-                                                >
-                                                    <FileText size={13} />
-                                                </button>
-                                            )}
-                                        </div>
-                                        {showPurpose && b.purpose && (
-                                            <div className="px-3 pb-2.5">
-                                                <p
-                                                    className="text-[12px] text-muted-foreground whitespace-pre-wrap break-words rounded-[8px] px-2.5 py-2"
-                                                    style={{ background: 'var(--surface-sunken)' }}
-                                                >
-                                                    <span className="font-semibold text-muted-foreground">{t('transactions.detail.purpose')}: </span>
-                                                    {b.purpose}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </div>
-            ) : (
-                <button
-                    onClick={openPicker}
-                    className="mt-2 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full text-[13.5px] font-bold border border-border-soft text-purple-700 hover:bg-[var(--accent-surface)] hover:border-purple-300 transition-colors"
-                >
-                    <Link2 size={14} />
-                    {t('transactions.detail.linkBankTransaction')}
-                </button>
-            )}
-
-            {/* Hint to manage matches from the bank side */}
-            {tx.id && (
-                <button
-                    onClick={() => navigate('/bank-accounts')}
-                    className="mt-2 w-full text-[12px] text-[var(--ink-faint)] hover:text-purple-700 transition-colors text-center"
-                >
-                    {t('transactions.detail.openBankAccounts')}
-                </button>
-            )}
+                    )
+                )}
+            </div>
 
             {/* Unlinking a bank match from a confirmed transaction that this would leave uncovered: confirm, then reopen. */}
             <ConfirmDialog

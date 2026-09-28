@@ -75,7 +75,7 @@ public class AdminOrganizationRepository implements PanacheRepository<Organizati
             return Map.of();
         }
         List<Object[]> rows = entityManager.createQuery(
-                "select o.id, max(m.lastSeenAt) from Organization o join o.members m "
+                "select o.id, max(m.member.lastSeenAt) from Organization o join o.memberships m "
                         + "where o.id in :ids group by o.id",
                 Object[].class)
                 .setParameter("ids", organizationIds)
