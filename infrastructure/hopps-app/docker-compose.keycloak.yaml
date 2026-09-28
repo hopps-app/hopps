@@ -18,13 +18,12 @@ services:
       keycloak:
         condition: service_healthy
     environment:
-      VITE_KEYCLOAK_URL: ${PUBLIC_KEYCLOAK_URL}
-      VITE_KEYCLOAK_REALM: quarkus
-      VITE_KEYCLOAK_CLIENT_ID: quarkus-app
-      # Empty on purpose: a leftover value would send the SPA to another provider
-      # than the one the backend accepts tokens from.
-      VITE_OIDC_PROVIDER_URL: ""
-      VITE_OIDC_CLIENT_ID: ""
+      # Set here rather than taken from OIDC_* in .env: a leftover value would send
+      # the SPA to another provider than the one the backend accepts tokens from.
+      VITE_OIDC_PROVIDER_URL: ${PUBLIC_KEYCLOAK_URL}/realms/quarkus
+      VITE_OIDC_CLIENT_ID: quarkus-app
+      # No offline_access: with Keycloak it would turn every login into an offline session.
+      VITE_OIDC_SCOPE: openid profile email
 
   org:
     depends_on:

@@ -1037,7 +1037,7 @@
         }
     },
     "connectivity": {
-        "keycloak": {
+        "identityProvider": {
             "title": "Authentifizierungsserver nicht erreichbar",
             "description": "Der Anmeldeserver ist derzeit nicht erreichbar. Anmeldung und Registrierung sind vorübergehend nicht möglich."
         },

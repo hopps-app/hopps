@@ -1273,7 +1273,7 @@
         }
     },
     "connectivity": {
-        "keycloak": {
+        "identityProvider": {
             "title": "Authentication server unreachable",
             "description": "The login server is currently unreachable. Login and registration are temporarily unavailable."
         },

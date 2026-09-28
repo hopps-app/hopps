@@ -63,9 +63,9 @@ function App() {
 
                 await connectivityService.checkAll();
 
-                const { keycloakReachable, backendReachable } = useStore.getState();
+                const { identityProviderReachable, backendReachable } = useStore.getState();
 
-                if (keycloakReachable) {
+                if (identityProviderReachable) {
                     const success = await authService.init();
                     if (success && authService.isAuthenticated() && backendReachable) {
                         await loadUserOrganisation();

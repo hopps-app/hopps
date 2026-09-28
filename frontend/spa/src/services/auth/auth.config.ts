@@ -1,16 +1,15 @@
 /**
- * Issuer URL of a generic OpenID Connect provider, e.g. an Authentik application
- * (`https://auth.example.org/application/o/hopps/`). Set it for deployments that run without Keycloak because their
- * accounts live in the partner's own identity provider: the SPA then logs in there directly. Unset (the default), the
- * SPA logs in through Keycloak.
+ * Issuer URL of the OpenID Connect provider the SPA logs in at, exactly as its discovery document reports it: for
+ * Keycloak the realm (`https://id.example.org/realms/hopps`), for Authentik the application
+ * (`https://auth.example.org/application/o/hopps/`).
  */
 export const oidcProviderUrl: string | undefined = import.meta.env.VITE_OIDC_PROVIDER_URL?.trim() || undefined;
 
-/** Client id of the SPA at that provider. Only read when {@link oidcProviderUrl} is set. */
+/** Client id of the SPA at that provider. */
 export const oidcClientId: string | undefined = import.meta.env.VITE_OIDC_CLIENT_ID?.trim() || undefined;
 
 /**
- * Registering an organization creates the founder's account, which hopps can only do in its own Keycloak. With an
- * external provider the partner owns the accounts, and people start from an existing login instead.
+ * Scopes to request. The default suits Keycloak. Authentik additionally needs `offline_access`, without which it
+ * issues no refresh token; with Keycloak that scope would turn every login into an offline session.
  */
-export const isSelfRegistrationEnabled = oidcProviderUrl === undefined;
+export const oidcScope: string = import.meta.env.VITE_OIDC_SCOPE?.trim() || 'openid profile email';

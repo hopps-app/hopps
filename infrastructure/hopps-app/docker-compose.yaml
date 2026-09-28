@@ -41,6 +41,8 @@ services:
       # -- login at the external OIDC provider (the browser talks to it directly)
       VITE_OIDC_PROVIDER_URL: ${PUBLIC_OIDC_ISSUER_URL:-}
       VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      # Authentik only issues a refresh token when offline_access is requested.
+      VITE_OIDC_SCOPE: ${OIDC_SCOPE:-openid profile email offline_access}
       # Impressum / Datenschutzerklärung. Either link an external page here, or
       # mount your own content via the volume below. See legal/README.md.
       HOPPS_IMPRINT_URL: ${HOPPS_IMPRINT_URL:-}

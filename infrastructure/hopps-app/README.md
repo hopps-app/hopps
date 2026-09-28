@@ -94,14 +94,15 @@ COMPOSE_FILE=docker-compose.yaml
 
 No Keycloak runs then: the core stack talks to your Authentik directly.
 
-For organizations whose people already have accounts in an Authentik (e.g.
-Kollicloud). Hopps keeps no accounts of its own: people log in with their
-Authentik account, and inviting someone into an organization links their
-existing account or creates one in Authentik.
+For installations whose accounts live in an Authentik (e.g. Kollicloud). Hopps
+keeps no accounts of its own: people log in with their Authentik account, and
+inviting someone into an organization links their existing account or creates
+one in Authentik.
 
-**Registering an organization is switched off** in this mode, since Hopps
-cannot create the founder's account in someone else's Authentik. Organizations
-are not created through the SPA.
+Registering an organization works like with Keycloak: it creates the founder's
+account in Authentik, with the password from the registration form. If
+Authentik already has an account for that email, the registration is refused;
+that person logs in and creates their organization from there.
 
 In Authentik:
 
@@ -116,8 +117,8 @@ In Authentik:
 2. Create an **Application** for that provider. Its issuer (from
    `.well-known/openid-configuration`, trailing slash included) goes into
    `PUBLIC_OIDC_ISSUER_URL`, the provider's client ID into `OIDC_CLIENT_ID`.
-3. Create a **service account** allowed to view, create and delete users, and an
-   API token for it. That goes into `AUTHENTIK_API_TOKEN`, Authentik's base URL
+3. Create a **service account** allowed to view, create and delete users and to
+   set their passwords, and an API token for it. That goes into `AUTHENTIK_API_TOKEN`, Authentik's base URL
    into `AUTHENTIK_URL`.
 4. For invitations of people without an account: give the brand a **recovery
    flow** whose Authentication is *No requirement*. Optionally put the UUID of
@@ -146,6 +147,16 @@ Both lines are needed: the variable tells the backend where accounts live, the
 overlay runs the Keycloak it talks to. People register
 organizations themselves, and invitations create Keycloak accounts.
 
+The SPA logs in at Keycloak like at any other OpenID Connect provider. The
+overlay sets its issuer (`<PUBLIC_KEYCLOAK_URL>/realms/quarkus`) and client for
+you.
+
+> **Upgrading:** the frontend no longer reads `VITE_KEYCLOAK_URL`,
+> `VITE_KEYCLOAK_REALM` and `VITE_KEYCLOAK_CLIENT_ID`. If you set them yourself
+> (own compose file, Helm values), replace them with
+> `VITE_OIDC_PROVIDER_URL=<keycloak url>/realms/<realm>` and
+> `VITE_OIDC_CLIENT_ID=<client id>`. Without them the SPA does not start.
+
 The Keycloak realm is imported only on the very first start (existing realms are
 left alone). If you change `PUBLIC_SPA_URL` afterwards, update the `quarkus-app`
 client's redirect URIs and web origins in the Keycloak admin console as well.
@@ -163,8 +174,7 @@ Keycloak can in turn broker logins to any OpenID Connect provider — Authentik,
 Entra ID, Google Workspace, another Keycloak — so people sign in with an account
 they already have. The login page then shows an extra button next to the
 password form, and the first sign-in creates the matching Keycloak account
-automatically. Unlike option A, the accounts live in Keycloak and registration
-stays on.
+automatically. Unlike option A, the accounts live in Keycloak.
 
 It is off by default. Switch it on with `IDP_ENABLED=true` plus the endpoints of
 your provider in `.env`; the realm import applies it on the first start.

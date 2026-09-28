@@ -10,13 +10,10 @@ function fetchWithTimeout(url: string, options?: RequestInit): Promise<Response>
     return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId));
 }
 
-async function checkKeycloak(): Promise<boolean> {
+async function checkIdentityProvider(): Promise<boolean> {
     try {
-        // The discovery document of whichever provider the SPA logs in with (see auth.config.ts).
-        const issuer = oidcProviderUrl
-            ? oidcProviderUrl.replace(/\/+$/, '')
-            : `${import.meta.env.VITE_KEYCLOAK_URL}/realms/${import.meta.env.VITE_KEYCLOAK_REALM}`;
-        const url = `${issuer}/.well-known/openid-configuration`;
+        // The discovery document of the provider the SPA logs in with (see auth.config.ts).
+        const url = `${oidcProviderUrl?.replace(/\/+$/, '')}/.well-known/openid-configuration`;
 
         const response = await fetchWithTimeout(url);
         return response.ok;
@@ -38,11 +35,11 @@ async function checkBackend(): Promise<boolean> {
 }
 
 async function checkAll(): Promise<void> {
-    const [keycloakOk, backendOk] = await Promise.all([checkKeycloak(), checkBackend()]);
+    const [identityProviderOk, backendOk] = await Promise.all([checkIdentityProvider(), checkBackend()]);
 
-    useStore.getState().setKeycloakReachable(keycloakOk);
+    useStore.getState().setIdentityProviderReachable(identityProviderOk);
     useStore.getState().setBackendReachable(backendOk);
 }
 
-const connectivityService = { checkKeycloak, checkBackend, checkAll };
+const connectivityService = { checkIdentityProvider, checkBackend, checkAll };
 export default connectivityService;

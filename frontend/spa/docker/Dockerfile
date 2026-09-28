@@ -5,14 +5,12 @@ FROM node:22-slim
 ENV VITE_TITLE="VITE_TITLE_VALUE"
 ENV VITE_GENERAL_DATE_FORMAT="VITE_GENERAL_DATE_FORMAT_VALUE"
 ENV VITE_GENERAL_CURRENCY_SYMBOL_AFTER="VITE_GENERAL_CURRENCY_SYMBOL_AFTER_VALUE"
-ENV VITE_KEYCLOAK_URL="VITE_KEYCLOAK_URL_VALUE"
-ENV VITE_KEYCLOAK_REALM="VITE_KEYCLOAK_REALM_VALUE"
-ENV VITE_KEYCLOAK_CLIENT_ID="VITE_KEYCLOAK_CLIENT_ID_VALUE"
+ENV VITE_OIDC_PROVIDER_URL="VITE_OIDC_PROVIDER_URL_VALUE"
+ENV VITE_OIDC_CLIENT_ID="VITE_OIDC_CLIENT_ID_VALUE"
 ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
 ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
-# VITE_OIDC_PROVIDER_URL / VITE_OIDC_CLIENT_ID are optional and deliberately have no
-# default here: set them to log in at an external OIDC provider (e.g. Authentik)
-# instead of Keycloak. Left unset, replaceEnvs.sh blanks them and Keycloak is used.
+# VITE_OIDC_SCOPE is optional and deliberately has no default here: left unset,
+# replaceEnvs.sh blanks it and the SPA requests "openid profile email".
 
 # Legal pages (Impressum / Datenschutzerklärung) are configured at runtime, not
 # baked in. Link an external page with HOPPS_IMPRINT_URL / HOPPS_PRIVACY_URL, or

@@ -9,10 +9,10 @@ interface AuthGuardProps {
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-    const { isInitialized, isAuthenticated, keycloakReachable } = useStore();
+    const { isInitialized, isAuthenticated, identityProviderReachable } = useStore();
     const location = useLocation();
 
-    const shouldLogin = isInitialized && keycloakReachable !== false && !isAuthenticated;
+    const shouldLogin = isInitialized && identityProviderReachable !== false && !isAuthenticated;
 
     useEffect(() => {
         if (!shouldLogin) {
@@ -27,7 +27,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         return null;
     }
 
-    if (keycloakReachable === false) {
+    if (identityProviderReachable === false) {
         return <Navigate to="/" replace />;
     }
 

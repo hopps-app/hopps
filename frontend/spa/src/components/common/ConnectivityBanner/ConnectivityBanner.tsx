@@ -23,15 +23,17 @@ function WarningBanner({ title, description }: { title: string; description: str
 
 export function ConnectivityBanner() {
     const { t } = useTranslation();
-    const { keycloakReachable, backendReachable } = useStore();
+    const { identityProviderReachable, backendReachable } = useStore();
 
-    if (keycloakReachable !== false && backendReachable !== false) {
+    if (identityProviderReachable !== false && backendReachable !== false) {
         return null;
     }
 
     return (
         <div className="w-full max-w-xl mb-4">
-            {keycloakReachable === false && <WarningBanner title={t('connectivity.keycloak.title')} description={t('connectivity.keycloak.description')} />}
+            {identityProviderReachable === false && (
+                <WarningBanner title={t('connectivity.identityProvider.title')} description={t('connectivity.identityProvider.description')} />
+            )}
             {backendReachable === false && <WarningBanner title={t('connectivity.backend.title')} description={t('connectivity.backend.description')} />}
         </div>
     );
