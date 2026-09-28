@@ -18,6 +18,15 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-fin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-fin)
 
+## Deployment
+
+| Was | Wo |
+|---|---|
+| Helm-Chart (Quellen) | [charts/hopps](charts/hopps) |
+| Helm-Chart (veröffentlichte Versionen) | [ghcr.io/hopps-app/hopps/hopps](https://github.com/hopps-app/hopps/pkgs/container/hopps%2Fhopps) |
+| Alle Pakete (Charts und Images) | [Packages](https://github.com/orgs/hopps-app/packages?repo_name=hopps) |
+| Docker Compose (Self-Hosting) | [infrastructure/hopps-app](infrastructure/hopps-app) |
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
