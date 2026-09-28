@@ -1,0 +1,132 @@
+name: release
+
+# Keeps a "chore(main): release x.y.z" PR open that collects the changelog from the conventional commit titles on main.
+# Merging that PR creates the vX.Y.Z tag and the GitHub release, then builds every image with that version.
+#
+# Alongside the changelog, Claude drafts upgrade notes for operators (config, migrations, deployment) as a comment on
+# the release PR. That comment can be edited before merging; on release its text is put at the top of the release notes.
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
+  # to start the image workflows for the new tag
+  actions: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      pr: ${{ steps.release.outputs.pr }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build-images:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      # A tag pushed with GITHUB_TOKEN does not trigger other workflows, so start them explicitly on the tag.
+      # They derive the image version from the tag, exactly as on a manually pushed vX.Y.Z tag.
+      - name: Build images for ${{ needs.release-please.outputs.tag_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          for workflow in backend.yml frontend.yml admin.yml keycloak.yml; do
+            gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref "$TAG"
+          done
+
+  draft-upgrade-notes:
+    needs: release-please
+    if: needs.release-please.outputs.pr && needs.release-please.outputs.release_created != 'true'
+    runs-on: ubuntu-latest
+    # a newer push to main replaces the draft anyway
+    concurrency:
+      group: draft-upgrade-notes
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    env:
+      PR_NUMBER: ${{ fromJSON(needs.release-please.outputs.pr).number }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Find the previous release
+        id: base
+        run: |
+          # before the first vX.Y.Z tag, start where release-please starts
+          BASE=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || jq -r '."bootstrap-sha"' release-please-config.json)
+          echo "ref=$BASE" >> "$GITHUB_OUTPUT"
+
+      - name: Draft upgrade notes
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: >-
+            Follow .github/release-notes/upgrade-notes.md to write the upgrade notes for the range
+            ${{ steps.base.outputs.ref }}..HEAD.
+          # the schema is where user-facing release notes would be added later, next to upgradeNotes
+          claude_args: >-
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Bash(git log:*),Bash(git diff:*),Bash(git show:*)"
+            --json-schema '{"type":"object","properties":{"upgradeNotes":{"type":"string"}},"required":["upgradeNotes"]}'
+
+      - name: Post the draft on the release PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ steps.base.outputs.ref }}
+          NOTES: ${{ fromJSON(steps.claude.outputs.structured_output).upgradeNotes }}
+        run: |
+          {
+            echo '<!-- upgrade-notes:start -->'
+            echo '## Upgrade notes'
+            echo
+            echo "$NOTES"
+            echo '<!-- upgrade-notes:end -->'
+            echo
+            echo '---'
+            echo "_Drafted by Claude from the changes since \`$BASE\`. Edit the part above the line if needed: it is put at the top of the release notes when this PR is merged. A new push to main regenerates it._"
+          } > comment.md
+          ID=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate --jq '.[] | select(.body | startswith("<!-- upgrade-notes:start -->")) | .id' | head -n1)
+          if [ -n "$ID" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$ID" -F body=@comment.md > /dev/null
+          else
+            gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          fi
+
+  publish-upgrade-notes:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Put the upgrade notes at the top of the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          # the merged release PR is the one that contains this commit
+          PR=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')
+          [ -n "$PR" ] || { echo "No release PR found for $GITHUB_SHA, leaving the release notes as they are"; exit 0; }
+          gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate --jq '.[] | select(.body | startswith("<!-- upgrade-notes:start -->")) | .body' > comment.md
+          # only the part between the markers, without the explanation below it
+          sed -n '/<!-- upgrade-notes:start -->/,/<!-- upgrade-notes:end -->/p' comment.md | sed '1d;$d' > notes.md
+          [ -s notes.md ] || { echo "No upgrade notes on #$PR, leaving the release notes as they are"; exit 0; }
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body > changelog.md
+          { cat notes.md; echo; cat changelog.md; } > release.md
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file release.md

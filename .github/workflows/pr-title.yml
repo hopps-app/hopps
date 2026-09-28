@@ -1,0 +1,19 @@
+name: pr-title
+
+# PRs are squash-merged with the PR title as commit message, and release-please builds the version bump and the
+# changelog from those titles. So they have to follow Conventional Commits: "feat(storage): ...", "fix: ...".
+
+on:
+  pull_request_target:
+    types: [ opened, edited, reopened, synchronize ]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
