@@ -1,4 +1,4 @@
-import type { TransactionStatus } from '@hopps/api-client';
+import type { TransactionDisplayStatus, TransactionStatus } from '@hopps/api-client';
 import { TransactionCreateRequest, TransactionResponse, TransactionUpdateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -15,6 +15,8 @@ export interface TransactionFilters {
     // Filter by one or more bommels (OR). Empty/undefined = no bommel restriction.
     bommelIds?: number[];
     status?: TransactionStatus;
+    // Derived display statuses (Entwurf, Teilverknüpft, Verknüpft, Bestätigt), combined with OR. Empty/undefined = no restriction.
+    displayStatuses?: TransactionDisplayStatus[];
     privatelyPaid?: boolean;
     detached?: boolean;
     // Active category-group value filters: groupId → the value a transaction must carry for that group. Multiple
@@ -54,6 +56,7 @@ export const transactionKeys = {
                 endDate: filters.endDate,
                 bommelIds: filters.bommelIds,
                 status: filters.status,
+                displayStatuses: filters.displayStatuses,
                 privatelyPaid: filters.privatelyPaid,
                 detached: filters.detached,
                 categoryValues: filters.categoryValues,
@@ -69,6 +72,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
                 filters.bommelIds,
                 encodeCategoryValues(filters.categoryValues),
                 filters.detached,
+                filters.displayStatuses,
                 filters.endDate,
                 filters.page ?? 0,
                 filters.privatelyPaid,
@@ -94,6 +98,7 @@ export function useTransactionAggregate(filters: TransactionFilters = {}) {
                 filters.bommelIds,
                 encodeCategoryValues(filters.categoryValues),
                 filters.detached,
+                filters.displayStatuses,
                 filters.endDate,
                 filters.privatelyPaid,
                 filters.search,

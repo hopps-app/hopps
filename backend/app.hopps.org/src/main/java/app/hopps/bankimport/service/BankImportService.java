@@ -7,6 +7,7 @@ import app.hopps.bankimport.domain.BankImportStatus;
 import app.hopps.bankimport.parser.Mt940Parser;
 import app.hopps.bankimport.repository.BankImportRepository;
 import app.hopps.bankimport.repository.BankTransactionRepository;
+import app.hopps.shared.infrastructure.storage.StorageKeys;
 import app.hopps.shared.security.OrganizationContext;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -90,6 +91,10 @@ public class BankImportService {
             throw new BadRequestException("An identical file is already queued or processing for this account");
         }
 
+        // Bound the display name before the file goes to storage, so a name that does not fit the column cannot fail
+        // the insert afterwards and leave the stored file orphaned.
+        String displayName = StorageKeys.displayName(fileName, ImportFileStorageService.DEFAULT_FILE_NAME);
+
         Long orgId = organizationContext.getCurrentOrganizationId();
         String s3Key = fileStorage.storeImportFile(orgId, fileName, content, contentType);
 
@@ -98,7 +103,7 @@ public class BankImportService {
         job.setBankAccount(account);
         job.setSchema(schema);
         job.setFileType(fileType);
-        job.setFileName(fileName);
+        job.setFileName(displayName);
         job.setFileSize(fileSize);
         job.setFileSha256(sha256);
         job.setS3FileKey(s3Key);

@@ -30,9 +30,9 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - **Datenbank:** PostgreSQL 16 mit Flyway Migrations
 - **ORM:** Hibernate mit Panache
 - **Auth:** Keycloak (OAuth2/OIDC), Quarkus OIDC + Keycloak Admin Client
-- **Storage:** AWS S3 (LocalStack lokal)
+- **Storage:** umschaltbar über `hopps.storage.type` — `s3` (AWS S3 / MinIO / LocalStack) oder `local` (Verzeichnis auf einem Volume)
 - **Realtime:** Quarkus WebSockets Next (Live-Benachrichtigungen bei Dokumentänderungen)
-- **AI/ML:** LangChain4j mit OpenAI, Azure Document AI
+- **AI/ML:** LangChain4j mit Azure OpenAI (EU-Region, DSGVO), Azure Document AI
 
 ### Microservices
 
@@ -64,7 +64,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 **Features:**
 - Keycloak User Provisioning
 - Tenancy-Modus (`hopps.tenancy.mode` / `HOPPS_TENANCY_MODE`, Package `shared/tenancy`): `multi` (SaaS, Default) oder `single` (Self-Hosting, genau eine Organisation: einmalige Ersteinrichtung über `POST /organization`, danach `403 SETUP_COMPLETE`; `POST /organization/my` → `403 SINGLE_TENANT`; `/admin/*` → `404`). Öffentlicher Endpoint `GET /instance` liefert Modus, `setupRequired` und Org-Name an das SPA. Eingeloggte Konten ohne Mitgliedschaft bekommen `403 NO_ORGANIZATION_ACCESS` (früher 404).
-- S3 Dokumentenspeicherung
+- Dokumentenspeicherung über `FileStorage` (`shared/infrastructure/storage`), wahlweise S3 oder lokales Verzeichnis
 - Bank-CSV-Import mit konfigurierbaren Schemata und Transaktions-Matching
 - WebSocket-Live-Benachrichtigungen
 
@@ -244,15 +244,23 @@ frontend/api-client/
 - `az-document-ai` - Document Analysis (8100)
 - `postgres` - PostgreSQL 16 (`postgres:16-alpine`, 5432)
 - `keycloak` - offizielles Keycloak (`quay.io/keycloak/keycloak:26.4.7`, 8092)
-- `localstack` - AWS S3 Mock (4566)
+- `minio` - S3-kompatibler Objektspeicher (9000/9001, nur localhost)
 
-Hinweis: Der `zugferd`-Service ist nicht Teil dieses Compose-Files. Weitere Compose-Setups: `docker-compose-infra-only.yaml`, `docker-compose.authentik.yaml`.
+Hinweis: Der `zugferd`-Service ist nicht Teil dieses Compose-Files. Weitere Compose-Setups: `docker-compose-infra-only.yaml`, `docker-compose.authentik.yaml`, `docker-compose.local-storage.yaml` (ersetzt MinIO durch ein lokales Volume).
+
+**Storage-Backend umschalten:** Im Dev-Mode und in Tests startet Quarkus für S3 automatisch LocalStack
+(Dev Services, Testcontainers). Mit `HOPPS_STORAGE_TYPE=local` werden Dateien stattdessen unter
+`HOPPS_STORAGE_LOCAL_ROOT` abgelegt; dann zusätzlich `QUARKUS_S3_DEVSERVICES_ENABLED=false` setzen, damit
+kein LocalStack-Container mehr hochgefahren wird. Die Testsuite läuft bereits auf `local`; nur
+`S3FileStorageTest` schaltet per Profil auf S3 zurück.
 
 **Benötigte Umgebungsvariablen:**
 ```bash
 HOPPS_AZURE_DOCUMENT_AI_ENDPOINT
 HOPPS_AZURE_DOCUMENT_AI_KEY
-QUARKUS_LANGCHAIN4J_OPENAI_API_KEY
+HOPPS_AZURE_OPENAI_RESOURCE_NAME
+HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME
+HOPPS_AZURE_OPENAI_KEY
 ```
 
 ### Authentik als Identity Provider lokal testen
@@ -312,8 +320,17 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - **Container Registry:** ghcr.io/hopps-app/hopps
 - **Weitere Workflows:** SonarQube-, Dependency-Track-Analyse, `helm-release.yaml`, `claude-code-review.yml`
 
+### Releases (release-please)
+- Eine Version für die gesamte App: Tag `vX.Y.Z` → alle Images (`org`, `az-document-ai`, `zugferd`, `frontend`, `admin`, `hopps-keycloak`) bekommen den Tag `X.Y.Z`. Wird u. a. vom Co-op-Cloud-Recipe (Kollicloud) konsumiert.
+- `release.yml` hält einen PR `chore(main): release X.Y.Z` offen (Changelog aus den Commit-Titeln). **Merge dieses PRs = Release:** Tag + GitHub Release werden erstellt, danach startet `release.yml` die Image-Workflows per `workflow_dispatch` auf dem Tag (ein mit `GITHUB_TOKEN` erstellter Tag triggert keine anderen Workflows).
+- PR-Titel müssen Conventional Commits folgen (`feat(scope): ...`, `fix: ...`, `feat!:` für Breaking Changes), geprüft durch `pr-title.yml`. `feat` → Minor, `fix` → Patch.
+- Breaking Changes an Konfiguration/Env-Vars im Squash-Commit mit `BREAKING CHANGE: ...` im Body markieren (→ eigener Abschnitt im Changelog, Major-Bump).
+- **Upgrade Notes für Betreiber:** Bei jedem Update des Release-PRs entwirft Claude (`claude-code-action`, Secret `CLAUDE_CODE_OAUTH_TOKEN`) Hinweise zu Konfiguration, Migrationen und Deployment und postet sie als Kommentar am Release-PR. Der Kommentar kann vor dem Merge bearbeitet werden; beim Release wird der Teil zwischen den Markern oben in die GitHub Release Notes gesetzt. Anweisungen: `.github/release-notes/upgrade-notes.md`. Nutzerseitige Release Notes (i18n, "What's new" im SPA) sind noch nicht umgesetzt; das JSON-Schema im Workflow ist die Stelle, um sie zu ergänzen.
+- Builds auf `main` behalten die Run-Number-Tags (Dev-Deployment in `hopps.cloud`). Der Helm-Chart wird weiterhin separat versioniert.
+- Konfiguration: `release-please-config.json`, `.release-please-manifest.json`.
+
 ### Kubernetes/Helm
-**Chart:** `/charts/hopps` (Version 0.2.10)
+**Chart:** `/charts/hopps` (Version 0.3.0)
 **Dependencies:** KeycloakX (codecentric, v7.0.1), PostgreSQL (bitnami, v16.4.5)
 
 #### WICHTIG: Chart-Änderungen für das `hopps.cloud`-Repo verfügbar machen
@@ -395,6 +412,28 @@ größeren Slices (organization, document, bankimport, statistics). `shared/` en
 - **Service READMEs:** Spezifische Setup-Anleitungen
 - **Architektur:** `/architecture/architecture.drawio`
 - **Frontend:** `frontend/FRONTEND_REFACTORING_PLAN.md`
+- **Wissensdatenbank (Produkt/Vertrieb):** `docs/wissensdatenbank/` – siehe nächster Abschnitt
+
+## Wissensdatenbank & Kundenanfragen
+
+**Wenn ein Anforderungsdokument, Fragebogen, eine User-Story-Liste oder Interview-Fragen eines
+Vereins/Verbands/Interessenten übergeben werden** (typisch: PDF/Word aus OneDrive
+`General - Hopps/01_Produkt/Interviews/`), oder gefragt wird „Kann Hopps X?":
+
+1. Skill **`anforderungen-beantworten`** (`.claude/skills/anforderungen-beantworten/SKILL.md`) nutzen.
+2. Fakten aus **`docs/wissensdatenbank/`** nehmen – Einstieg `README.md`:
+   - `02-funktionsumfang.md` – Feature-Katalog mit Status (✅ 🟡 🔜 💡 ❌ ❓) und Code-Belegen
+   - `03-technik-hosting-datenschutz.md` – Hosting-Orte, Sub-Dienstleister, SSO, Self-Hosting, Aufbewahrung
+   - `06-glossar.md` – Kundensprache → Hopps-Begriffe (z. B. Anlass → Bommel, Quittung → Beleg)
+   - `07-antwort-leitfaden.md` – Aufbau des Antwortdokuments (docx, Ablage im OneDrive)
+3. Wesentliche Aussagen im Code gegenprüfen, offene Punkte (❓: Preise, SLA, Zusagen) beim User klären.
+4. Danach Wissensdatenbank anonymisiert ergänzen (FAQ, Glossar, Wunschliste in Roadmap).
+
+**Regeln:**
+- Das Repo ist **öffentlich** → keine Kundennamen mit Gesprächsinhalten, Angebote, Personendaten
+  in `docs/wissensdatenbank/`. Kundenspezifische Antworten nur im OneDrive.
+- **Bei Feature-Änderungen** (neue Endpoints, Rollen, Exporte, Sprachen, Währungen …) die betroffene
+  Zeile in `docs/wissensdatenbank/02-funktionsumfang.md` im selben PR aktualisieren (Status + Beleg + Stand-Datum).
 
 ## Wichtige Hinweise für AI-Assistenten
 

@@ -14,12 +14,10 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -52,13 +50,7 @@ class DocumentResourceTest {
     TestdataBootstrapper testdataBootstrapper;
 
     @Inject
-    S3Client s3Client;
-
-    @Inject
     EntityManager entityManager;
-
-    @ConfigProperty(name = "bucket.name")
-    String bucketName;
 
     private static final String SENDER_NAME = "Appointmed GmbH";
 
@@ -89,6 +81,25 @@ class DocumentResourceTest {
                 .body("fileName", equalTo("ZUGFeRD.pdf"))
                 .body("fileContentType", equalTo("application/pdf"))
                 .body("analysisStatus", equalTo(AnalysisStatus.PENDING.name()));
+    }
+
+    @Test
+    void shouldAcceptFileNamesLongerThanTheColumn() {
+        InputStream zugferdInputStream = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(zugferdInputStream);
+        String fileName = "a".repeat(300) + ".pdf";
+
+        // Document.fileName is varchar(255); the name is truncated instead of failing the insert after the file has
+        // already been written to storage.
+        given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", fileName, zugferdInputStream, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode())
+                .body("fileName", hasLength(255))
+                .body("fileName", endsWith(".pdf"));
     }
 
     @Test

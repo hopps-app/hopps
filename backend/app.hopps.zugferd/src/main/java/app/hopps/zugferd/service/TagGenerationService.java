@@ -14,8 +14,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 /**
- * Service for generating AI-powered tags for ZugFerd invoices. Uses LangChain4j and OpenAI GPT-4o-mini to generate
- * German language tags.
+ * Service for generating AI-powered tags for ZugFerd invoices. Uses LangChain4j and Azure OpenAI (gpt-4o-mini
+ * deployment, EU region) to generate German language tags.
  */
 @ApplicationScoped
 public class TagGenerationService {

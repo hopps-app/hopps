@@ -85,10 +85,10 @@ function mapMembers(members: AdminOrganizationDetail['members']): OrgMember[] {
 /** MOCK — no per-org AI metering backend exists. Deterministic stand-in until it does. */
 function mockTokenUsage(id: number): TokenUsage | null {
     const table: Record<number, TokenUsage | null> = {
-        1: { total: 184320, services: { openai: 142000, azure: 42320 } },
-        2: { total: 12800, services: { openai: 12800 } },
+        1: { total: 184320, services: { 'azure-openai': 142000, 'azure-document-ai': 42320 } },
+        2: { total: 12800, services: { 'azure-openai': 12800 } },
         3: null,
-        4: { total: 61440, services: { openai: 38000, azure: 23440 } },
+        4: { total: 61440, services: { 'azure-openai': 38000, 'azure-document-ai': 23440 } },
     };
     return table[id] ?? null;
 }

@@ -9,6 +9,8 @@ import app.hopps.document.domain.DocumentChangedEvent;
 import app.hopps.document.domain.ExtractionSource;
 import app.hopps.document.domain.TagSource;
 import app.hopps.document.repository.DocumentRepository;
+import app.hopps.shared.infrastructure.storage.FileStorage;
+import app.hopps.shared.infrastructure.storage.StoredFile;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
@@ -16,8 +18,6 @@ import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -45,7 +45,7 @@ public class DocumentAnalysisService {
     DocumentRepository documentRepository;
 
     @Inject
-    StorageService storageService;
+    FileStorage fileStorage;
 
     @Inject
     DocumentDataApplier dataApplier;
@@ -107,9 +107,8 @@ public class DocumentAnalysisService {
             // Try ZugFerd first for PDF files
             if (document.isPdf()) {
                 LOG.debug("Attempting ZugFerd extraction for document: id={}", documentId);
-                try (ResponseInputStream<GetObjectResponse> fileStream = storageService
-                        .downloadFile(document.getFileKey())) {
-                    data = zugFerdClient.scanDocument(fileStream, documentId);
+                try (StoredFile file = fileStorage.get(document.getFileKey())) {
+                    data = zugFerdClient.scanDocument(file.content(), documentId);
                     source = ExtractionSource.ZUGFERD;
                     LOG.info("ZugFerd extraction successful: id={}", documentId);
                 } catch (Exception e) {
@@ -122,9 +121,8 @@ public class DocumentAnalysisService {
             // Fallback to AI analysis
             if (data == null) {
                 LOG.debug("Attempting AI analysis for document: id={}", documentId);
-                try (ResponseInputStream<GetObjectResponse> fileStream = storageService
-                        .downloadFile(document.getFileKey())) {
-                    data = documentAiClient.scanDocument(fileStream, documentId);
+                try (StoredFile file = fileStorage.get(document.getFileKey())) {
+                    data = documentAiClient.scanDocument(file.content(), documentId);
                     source = ExtractionSource.AI;
                     LOG.info("AI analysis successful: id={}", documentId);
                 } catch (Exception e) {
@@ -226,7 +224,7 @@ public class DocumentAnalysisService {
             String message = current.getMessage();
             if (message != null) {
                 if (message.contains("insufficient_quota") || message.contains("exceeded your current quota")) {
-                    return "AI service quota exceeded. Please check your OpenAI plan and billing details.";
+                    return "AI service quota exceeded. Please check your Azure OpenAI quota and billing details.";
                 }
                 if (message.contains("rate_limit_exceeded")) {
                     return "AI service rate limit reached. Please try again later.";

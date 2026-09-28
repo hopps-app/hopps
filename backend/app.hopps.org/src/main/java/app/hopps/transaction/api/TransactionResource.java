@@ -1,5 +1,6 @@
 package app.hopps.transaction.api;
 
+import app.hopps.audit.domain.AuditAction;
 import app.hopps.bankimport.service.BankTransactionMatchService;
 import app.hopps.category.service.CategoryGroupService;
 import app.hopps.document.domain.Document;
@@ -13,9 +14,11 @@ import app.hopps.transaction.api.dto.TransactionAggregateResponse;
 import app.hopps.transaction.api.dto.TransactionCreateRequest;
 import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.api.dto.TransactionUpdateRequest;
+import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionChangedEvent;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
+import app.hopps.transaction.domain.TransactionDisplayStatus;
 import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
 import io.quarkus.panache.common.Page;
@@ -66,6 +69,9 @@ public class TransactionResource {
     SecurityIdentity securityIdentity;
 
     @Inject
+    TransactionAuditor transactionAuditor;
+
+    @Inject
     TransactionCreateConverter createConverter;
 
     @Inject
@@ -98,6 +104,7 @@ public class TransactionResource {
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
             @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
+            @QueryParam("displayStatus") @Parameter(description = "Filter by derived display status; repeatable and combined with OR. DRAFT: nothing linked, PARTIAL: bank movements cover only part of the amount, LINKED: covered exactly but not confirmed, CONFIRMED") List<TransactionDisplayStatus> displayStatuses,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
             @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues,
@@ -126,6 +133,7 @@ public class TransactionResource {
                 endInstant,
                 bommelIds,
                 status,
+                displayStatuses,
                 privatelyPaid,
                 detached,
                 categoryValues,
@@ -151,6 +159,7 @@ public class TransactionResource {
             @QueryParam("endDate") @Parameter(description = "Filter transactions until this date (ISO format: YYYY-MM-DD)") String endDate,
             @QueryParam("bommelId") @Parameter(description = "Filter by bommel ID(s); repeatable and combined with OR") List<Long> bommelIds,
             @QueryParam("status") @Parameter(description = "Filter by status (DRAFT or CONFIRMED)") TransactionStatus status,
+            @QueryParam("displayStatus") @Parameter(description = "Filter by derived display status; repeatable and combined with OR. DRAFT: nothing linked, PARTIAL: bank movements cover only part of the amount, LINKED: covered exactly but not confirmed, CONFIRMED") List<TransactionDisplayStatus> displayStatuses,
             @QueryParam("privatelyPaid") @Parameter(description = "Filter by privately paid flag") Boolean privatelyPaid,
             @QueryParam("detached") @Parameter(description = "Filter unassigned transactions (no bommel)") Boolean detached,
             @QueryParam("categoryValue") @Parameter(description = "Filter by category-group value(s), each as 'groupId:value'; repeatable and combined with AND") List<String> categoryValues) {
@@ -165,9 +174,9 @@ public class TransactionResource {
         }
 
         BigDecimal[] sums = transactionRepository.aggregate(search, startInstant, endInstant, bommelIds, status,
-                privatelyPaid, detached, categoryValues);
+                displayStatuses, privatelyPaid, detached, categoryValues);
         long count = transactionRepository.countFiltered(search, startInstant, endInstant, bommelIds, status,
-                privatelyPaid, detached, categoryValues);
+                displayStatuses, privatelyPaid, detached, categoryValues);
         return new TransactionAggregateResponse(sums[0], sums[1], count);
     }
 
@@ -222,6 +231,7 @@ public class TransactionResource {
 
         // Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before building the response.
         transactionRepository.persistAndFlush(transaction);
+        transactionAuditor.created(transaction);
         LOG.info("Transaction created: id={}", transaction.getId());
 
         return Response.status(Response.Status.CREATED)
@@ -245,7 +255,9 @@ public class TransactionResource {
         }
 
         BigDecimal previousTotal = transaction.getTotal();
+        Map<String, Object> before = transactionAuditor.snapshot(transaction);
         updateConverter.applyUpdateRequestToTransaction(transaction, request);
+        transactionAuditor.updated(transaction, before);
 
         // If the amount changed, refresh any bank-transaction match snapshot so a partially covered bank transaction
         // no longer stays FULLY_MATCHED (and the still-open amount reappears in the list).
@@ -293,7 +305,9 @@ public class TransactionResource {
             }
         }
 
+        TransactionStatus previousStatus = transaction.getStatus();
         transaction.setStatus(TransactionStatus.CONFIRMED);
+        transactionAuditor.statusChanged(transaction, previousStatus, AuditAction.CONFIRM);
 
         // Keep the linked receipt (Beleg) in sync: confirming the bookkeeping transaction also confirms its document,
         // so it no longer lingers in the "needs manual review" state.
@@ -377,7 +391,9 @@ public class TransactionResource {
             throw new NotFoundException("Transaction not found");
         }
 
+        TransactionStatus previousStatus = transaction.getStatus();
         transaction.setStatus(TransactionStatus.DRAFT);
+        transactionAuditor.statusChanged(transaction, previousStatus, AuditAction.REOPEN);
 
         // Mirror the document back to a reviewable state so it isn't shown as confirmed while its transaction is a
         // draft.
