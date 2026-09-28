@@ -288,20 +288,26 @@ org:
     - name: cache
       mountPath: /tmp
 
-postgresqlOrg:
-  enabled: true
-  nameOverride: org-postgresql
-  auth:
-    database: org
-  # use bitnami legacy repository (https://news.broadcom.com/app-dev/broadcom-introduces-bitnami-secure-images-for-production-ready-containerized-applications)
-  image:
-    repository: bitnamilegacy/postgresql
-  volumePermissions:
-    image:
-      repository: bitnamilegacy/os-shell
-  metrics:
-    image:
-      repository: bitnamilegacy/postgres-exporter
+# PostgreSQL is not part of this chart. Point the org service at a database you
+# run yourself, through org.envVars or org.envFrom:
+#
+#   org:
+#     envVars:
+#       - name: quarkus.datasource.jdbc.url
+#         value: jdbc:postgresql://your-postgres:5432/org?sslmode=require
+#       - name: quarkus.datasource.username
+#         valueFrom:
+#           secretKeyRef: { name: org-db-secret, key: username }
+#       - name: quarkus.datasource.password
+#         valueFrom:
+#           secretKeyRef: { name: org-db-secret, key: password }
+#
+# Up to 0.3.x the chart bundled Bitnami's postgresql subchart. It was dropped in
+# 0.4.0: since Broadcom moved the free Bitnami catalog, version-pinned tags exist
+# only under bitnamilegacy/*, which receives no further updates, so the bundled
+# database shipped a frozen image. Operators are better served by a PostgreSQL
+# they patch themselves - a managed instance, the CloudNativePG operator (what
+# hopps.cloud uses), or a plain container as in infrastructure/hopps-app.
 
 zugferd:
   replicaCount: 1
