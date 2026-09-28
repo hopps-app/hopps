@@ -2,7 +2,7 @@
 
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
-import { de, enUS, uk } from 'date-fns/locale';
+import { de, enUS, fr, it, uk } from 'date-fns/locale';
 import * as _ from 'lodash';
 import { X } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -40,6 +40,10 @@ export function DatePicker({ date, onSelect, placeholder, className, disabled, l
                 return de;
             case 'uk':
                 return uk;
+            case 'it':
+                return it;
+            case 'fr':
+                return fr;
             default:
                 return enUS;
         }

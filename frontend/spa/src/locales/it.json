@@ -1,0 +1,1404 @@
+{
+    "legal": {
+        "imprint": "Note legali",
+        "privacy": "Privacy",
+        "backHome": "Torna alla home",
+        "notConfigured": "Nessuna pagina di questo tipo è stata configurata per questa istanza.",
+        "loadError": "Impossibile caricare il contenuto."
+    },
+    "categoryGroups": {
+        "title": "Categorie",
+        "subtitle": "I gruppi di categorie classificano le transazioni — a seconda del bommel selezionato.",
+        "addButton": "Nuovo gruppo",
+        "hint": "Un gruppo si applica a un bommel quando è assegnato a quel bommel o a uno dei suoi genitori. Senza assegnazione non si applica a nessun bommel — assegna il bommel radice per applicarlo a tutti.",
+        "required": "Obbligatorio",
+        "optional": "facoltativo",
+        "emptyState": {
+            "title": "Ancora nessun gruppo di categorie",
+            "description": "Crea un gruppo per classificare le transazioni secondo i tuoi criteri."
+        },
+        "card": {
+            "appliesTo": "Si applica a",
+            "allBommel": "Tutti i bommel",
+            "noBommel": "Nessun bommel",
+            "valueCount": "{{count}} valori"
+        },
+        "delete": {
+            "title": "Elimina gruppo di categorie",
+            "description": "\"{{group}}\" verrà eliminato.",
+            "descriptionLinked": "\"{{group}}\" verrà eliminato. Il suo valore verrà rimosso completamente da {{count}} transazioni collegate (bozze e confermate).",
+            "confirm": "Elimina",
+            "loading": "Verifica dei collegamenti …"
+        },
+        "modal": {
+            "createTitle": "Nuovo gruppo di categorie",
+            "editTitle": "Modifica gruppo di categorie",
+            "subtitle": "Imposta il nome, il flag obbligatorio, i bommel assegnati e i possibili valori.",
+            "name": "Nome del gruppo",
+            "namePlaceholder": "es. Centro di costo",
+            "required": "Obbligatorio",
+            "requiredHint": "Deve essere compilato per i bommel corrispondenti prima che una transazione possa essere confermata.",
+            "bommel": "Si applica ai bommel",
+            "bommelHint": "Nessuna selezione = non si applica a nessun bommel. Assegna il bommel radice per applicarlo a tutti.",
+            "bommelPlaceholder": "Seleziona bommel …",
+            "bommelSelected": "{{count}} bommel selezionati",
+            "values": "Valori possibili",
+            "valuePlaceholder": "Aggiungi un valore …",
+            "addValue": "Aggiungi",
+            "noValues": "Ancora nessun valore."
+        },
+        "toast": {
+            "created": "Gruppo di categorie creato",
+            "updated": "Gruppo di categorie salvato",
+            "deleted": "Gruppo di categorie eliminato",
+            "error": "Azione non riuscita"
+        },
+        "reopen": {
+            "title": "Transazioni confermate interessate",
+            "description": "{{count}} transazioni già confermate sotto questi bommel non hanno ancora un valore per il gruppo obbligatorio \"{{group}}\". Reimpostarle come bozza per poter aggiungere la categoria?",
+            "keep": "No, salva solo il gruppo",
+            "confirm": "Sì, reimposta come bozza"
+        },
+        "fields": {
+            "eyebrow": "Gruppi di categorie",
+            "valuePlaceholder": "— seleziona —",
+            "noValues": "Nessun valore trovato",
+            "missing": "Compila: {{groups}}"
+        }
+    },
+    "banner": {
+        "text1": "Prova hopps gratuitamente per 14",
+        "text2": "giorni"
+    },
+    "common": {
+        "refresh": "Aggiorna",
+        "upload": "Carica",
+        "addNew": "Aggiungi nuovo",
+        "close": "Chiudi",
+        "expand": "Espandi",
+        "collapse": "Comprimi",
+        "search": "Cerca",
+        "noItems": "Nessun elemento da mostrare",
+        "noResults": "Nessun risultato",
+        "goBack": "Indietro",
+        "cancel": "Annulla",
+        "save": "Salva",
+        "edit": "Modifica",
+        "delete": "Elimina",
+        "loading": "Caricamento...",
+        "validationError": "Compila tutti i campi obbligatori",
+        "unsavedChangesWarning": "Hai modifiche non salvate. Sei sicuro di voler lasciare questa pagina?",
+        "next": "Avanti",
+        "confirm": "Conferma"
+    },
+    "notFound": {
+        "title": "404 - Pagina non trovata",
+        "description": "La pagina che stai cercando non esiste.",
+        "goHome": "Vai alla Dashboard"
+    },
+    "errors": {
+        "boundary": {
+            "title": "Qualcosa è andato storto",
+            "description": "Si è verificato un errore imprevisto. Riprova o contatta l'assistenza.",
+            "tryAgain": "Riprova",
+            "goHome": "Vai alla Dashboard"
+        },
+        "api": {
+            "networkError": "Impossibile connettersi al server. Controlla la tua connessione.",
+            "serverError": "Il server ha riscontrato un errore. Riprova più tardi.",
+            "notFound": "La risorsa richiesta non è stata trovata.",
+            "unauthorized": "La tua sessione è scaduta. Effettua di nuovo l'accesso.",
+            "forbidden": "Non hai i permessi per eseguire questa azione.",
+            "conflict": "Si è verificato un conflitto. La risorsa potrebbe essere stata modificata.",
+            "badRequest": "La richiesta non è valida. Controlla i dati inseriti.",
+            "unknown": "Si è verificato un errore imprevisto. Riprova.",
+            "timeout": "La richiesta è scaduta. Riprova.",
+            "retry": "Riprova",
+            "retryDescription": "Clicca per riprovare l'operazione fallita."
+        },
+        "network": {
+            "title": "Connessione persa",
+            "description": "Impossibile raggiungere il server. Controlla la tua connessione a internet.",
+            "retry": "Riprova",
+            "retrying": "Nuovo tentativo..."
+        }
+    },
+    "validation": {
+        "required": "Questo campo è obbligatorio",
+        "email": "Inserisci un indirizzo email valido",
+        "passwordMin": "La password deve contenere almeno 8 caratteri",
+        "passwordMatch": "Le password non corrispondono",
+        "organizationNameRequired": "Il nome dell'organizzazione è obbligatorio",
+        "firstNameRequired": "Il nome è obbligatorio",
+        "lastNameRequired": "Il cognome è obbligatorio",
+        "invalidFileType": "Tipo di file non valido",
+        "passwordStrength": {
+            "label": "Livello di sicurezza della password",
+            "weak": "Debole",
+            "fair": "Discreta",
+            "good": "Buona",
+            "strong": "Forte"
+        }
+    },
+    "header": {
+        "home": "Home",
+        "logout": "Esci",
+        "login": "Accedi",
+        "register": "Registrati"
+    },
+    "home": {
+        "title": "La contabilità resa semplice",
+        "subtitle": "hopps è un software di contabilità gratuito e open source pensato per le associazioni. Gestisci finanze, ricevute e spese in modo semplice ed efficiente.",
+        "register": "Registra organizzazione",
+        "login": "Accedi"
+    },
+    "invoiceUpload": {
+        "title": "Carica nuova fattura",
+        "assign": "Assegna a",
+        "chooseFile": "Scegli file",
+        "upload": "Carica",
+        "uploadFailed": "Caricamento della fattura non riuscito",
+        "uploadSuccess": "Fattura caricata con successo",
+        "dragDrop": "Trascina i file qui",
+        "fileType": "File PDF o JPG",
+        "dragFile": "Rilascia i file qui...",
+        "fileTooLarge": "Il file è troppo grande, dimensione massima 5MB",
+        "invalidFileType": "Tipo di file non supportato. Carica file PDF, JPEG o PNG.",
+        "totalTooLarge": "La dimensione totale dei file supera il limite di 20MB.",
+        "maxFilesExceeded": "Sono consentiti al massimo 10 file.",
+        "selectBommel": "Seleziona bommel",
+        "privately": "Pagato privatamente",
+        "invoice": "Fattura",
+        "receipt": "Ricevuta",
+        "docType": "Tipo di transazione",
+        "pdfNavigation": {
+            "previousPage": "Pagina precedente",
+            "nextPage": "Pagina successiva",
+            "pageIndicator": "{{current}} / {{total}}"
+        }
+    },
+    "invoices": {
+        "loadFailed": "Caricamento delle fatture non riuscito",
+        "noInvoices": "Nessuna fattura da mostrare",
+        "assignPopover": {
+            "assign": "Assegna",
+            "reassign": "Riassegna",
+            "noBommels": "Nessun bommel disponibile",
+            "newBommel": "nuovo Bommel",
+            "successAssign": "Assegnazione riuscita!",
+            "failedAssign": "Assegnazione del bommel non riuscita!"
+        },
+        "summary": {
+            "totalFirstPart": "Totale",
+            "invoicesPart": "fatture per un importo di"
+        },
+        "table": {
+            "newInvoice": "nuova Fattura",
+            "date": "Data",
+            "bommel": "Bommel",
+            "amount": "Importo",
+            "name": "Nome"
+        }
+    },
+    "organization": {
+        "registration": {
+            "failed": "Registrazione dell'organizzazione non riuscita",
+            "emailAlreadyRegistered": "Questo indirizzo email è già registrato",
+            "organizationAlreadyExists": "Esiste già un'organizzazione con questo nome",
+            "emailAndOrganizationAlreadyExist": "Questo indirizzo email e questo nome dell'organizzazione sono già in uso",
+            "header": "Registra organizzazione",
+            "subtitle": "Crea la tua organizzazione e il tuo account per iniziare.",
+            "alreadyHaveAccount": "Hai già un account?",
+            "loginInstead": "Accedi",
+            "success": "Organizzazione creata con successo",
+            "successHeading": "La tua organizzazione è stata registrata con successo.",
+            "organizationName": "Nome dell'organizzazione",
+            "firstName": "Nome",
+            "lastName": "Cognome",
+            "email": "Indirizzo email",
+            "password": "Password",
+            "confirmPassword": "Conferma password"
+        },
+        "settings": {
+            "error": "Caricamento della struttura dell'organizzazione non riuscito",
+            "saveError": "Salvataggio dell'impostazione non riuscito",
+            "saved": "Impostazioni salvate con successo",
+            "structure": "Struttura"
+        },
+        "structure": {
+            "quickSearch": "Ricerca rapida",
+            "edit": "Modifica",
+            "done": "Fatto",
+            "treeView": "Vista ad albero",
+            "tableView": "Vista tabella",
+            "noData": "Nessun dato disponibile",
+            "addItems": "Aggiungi elementi alla struttura della tua organizzazione",
+            "transactionsLabel": "Transazioni",
+            "subBommelsLabel": "Sotto-Bommel",
+            "editName": "Modifica nome",
+            "deleteBommel": "Elimina Bommel",
+            "addChild": "Aggiungi elemento figlio",
+            "saveName": "Salva",
+            "cancelEdit": "Annulla",
+            "validation": {
+                "nameRequired": "Il nome del bommel è obbligatorio",
+                "nameMaxLength": "Il nome non può superare i 255 caratteri"
+            },
+            "editModeHint": "Trascina e rilascia i bommel nella vista tabella, oppure usa il pulsante di spostamento nella vista ad albero",
+            "moveBommel": "Sposta Bommel",
+            "includeDrafts": "Includi bozze",
+            "aggregate": "Incl. sotto-bommel",
+            "details": {
+                "title": "Dettagli",
+                "selectBommel": "Seleziona un Bommel per vedere i dettagli",
+                "total": "Totale",
+                "income": "Entrate",
+                "expenses": "Uscite",
+                "transactions": "Transazioni",
+                "subBommels": "Sotto-Bommel",
+                "toReceipts": "Alle ricevute",
+                "toTransactions": "Alle transazioni",
+                "hideDetails": "Nascondi dettagli",
+                "showDetails": "Mostra dettagli",
+                "bommelNotFound": "Bommel non trovato",
+                "bommelNotFoundDescription": "Il Bommel che stai cercando non esiste o è stato eliminato.",
+                "backToStructure": "Torna alla struttura"
+            },
+            "deleteDialog": {
+                "title": "Elimina Bommel",
+                "description": "Sei sicuro di voler eliminare '{{name}}'?",
+                "hasTransactionsWarning": "Questo Bommel ha transazioni collegate. Devi scegliere come gestirle.",
+                "hasChildrenWarning": "Questo Bommel ha {{count}} Bommel figlio/i. Eliminandolo verranno eliminati anche tutti gli elementi figli e le loro transazioni collegate.",
+                "transactionHandlingLabel": "Come devono essere gestite le transazioni collegate?",
+                "unlinkOption": "Scollega le transazioni",
+                "unlinkDescription": "Le transazioni rimarranno ma non saranno collegate a nessun Bommel",
+                "reassignOption": "Riassegna a un altro Bommel",
+                "reassignDescription": "Scegli un altro Bommel a cui assegnare queste transazioni",
+                "comingSoon": "(Prossimamente)",
+                "confirm": "Sì, elimina",
+                "cancel": "Annulla"
+            },
+            "moveDialog": {
+                "title": "Sposta Bommel",
+                "description": "Seleziona un nuovo genitore per '{{name}}':",
+                "noTargets": "Nessun Bommel di destinazione valido disponibile",
+                "confirm": "Sposta"
+            },
+            "dragDrop": "Spostabile",
+            "dragDropHint": "I bommel possono ora essere spostati tramite trascinamento",
+            "centerTree": "Centra",
+            "addSibling": "Aggiungi Bommel",
+            "editRoot": "Modifica bommel radice",
+            "rootCannotDelete": "Il bommel radice non può essere eliminato",
+            "toast": {
+                "createSuccess": "Bommel creato con successo",
+                "createError": "Creazione del Bommel non riuscita",
+                "updateSuccess": "Bommel aggiornato con successo",
+                "updateError": "Aggiornamento del Bommel non riuscito",
+                "deleteSuccess": "Bommel eliminato con successo",
+                "deleteError": "Eliminazione del Bommel non riuscita",
+                "moveSuccess": "Bommel spostato con successo",
+                "moveError": "Spostamento del Bommel non riuscito",
+                "createChildSuccess": "Bommel figlio creato con successo",
+                "createChildError": "Creazione del Bommel figlio non riuscita"
+            },
+            "demoMode": "Mostra dati dimostrativi",
+            "demoBanner": "Stai visualizzando dati di esempio a scopo orientativo. Questi dati sono in sola lettura."
+        },
+        "details": {
+            "title": "Dettagli dell'organizzazione",
+            "description": "Gestisci le informazioni di base della tua organizzazione",
+            "name": "Nome dell'organizzazione",
+            "slug": "Slug",
+            "type": "Tipo di organizzazione",
+            "website": "Sito web",
+            "street": "Via",
+            "number": "Numero civico",
+            "city": "Città",
+            "plz": "Codice postale",
+            "additionalLine": "Riga di indirizzo aggiuntiva",
+            "address": "Indirizzo",
+            "foundingDate": "Data di fondazione",
+            "registrationCourt": "Tribunale di registrazione",
+            "registrationNumber": "Numero di registrazione",
+            "country": "Paese",
+            "taxNumber": "Codice fiscale",
+            "email": "Email",
+            "phoneNumber": "Numero di telefono",
+            "typeEV": "Associazione registrata (e.V.)",
+            "typeGGmbH": "Società a responsabilità limitata senza scopo di lucro (gGmbH)",
+            "typeStiftung": "Fondazione (Stiftung)",
+            "typeEG": "Cooperativa senza scopo di lucro (eG)",
+            "typeGUG": "Società imprenditoriale senza scopo di lucro (gUG)",
+            "typeAndere": "Altro",
+            "nameRequired": "Il nome dell'organizzazione è obbligatorio",
+            "foundingDateFormat": "Inserisci la data nel formato GG.MM.AAAA",
+            "contactInfo": "Informazioni di contatto",
+            "legalInfo": "Informazioni legali",
+            "generalInfo": "Informazioni generali",
+            "saveSuccess": "Dettagli dell'organizzazione salvati con successo",
+            "saveError": "Salvataggio dei dettagli dell'organizzazione non riuscito",
+            "loadError": "Caricamento dei dettagli dell'organizzazione non riuscito",
+            "placeholder": {
+                "name": "es. Associazione Esempio",
+                "street": "es. Via Roma",
+                "number": "es. 12",
+                "plz": "es. 12345",
+                "city": "es. Milano",
+                "foundingDate": "GG.MM.AAAA",
+                "registrationCourt": "es. Tribunale di Milano",
+                "registrationNumber": "es. VR 12345",
+                "taxNumber": "es. 12/345/67890",
+                "website": "https://esempio.com",
+                "email": "es. info@associazione.org",
+                "phoneNumber": "es. +39 123 4567890",
+                "additionalLine": "facoltativo"
+            },
+            "legalInfoNote": "Dettagli tratti dal tuo estratto del registro delle associazioni e dall'attestato di esenzione fiscale.",
+            "contactInfoNote": "Come i membri e i donatori possono contattare la tua organizzazione.",
+            "unsavedChanges_one": "{{count}} modifica non salvata",
+            "unsavedChanges_other": "{{count}} modifiche non salvate",
+            "discard": "Scarta",
+            "saveChanges": "Salva modifiche",
+            "logo": {
+                "title": "Logo dell'organizzazione",
+                "note": "PNG, JPG o SVG, almeno 256 px",
+                "alt": "Logo dell'organizzazione",
+                "upload": "Carica logo",
+                "replace": "Sostituisci logo",
+                "errorType": "Come logo sono consentiti solo file PNG, JPG o SVG.",
+                "errorTooLarge": "Il logo non può superare i 2 MB.",
+                "errorTooSmall": "Il logo deve essere largo e alto almeno 256 px.",
+                "errorGeneric": "Impossibile caricare il logo.",
+                "pending": "{{name}} – applicato al salvataggio"
+            },
+            "users": {
+                "title": "Personale",
+                "note": "Chi è autorizzato a lavorare in hopps per la tua organizzazione.",
+                "name": "Nome",
+                "position": "Ruolo",
+                "email": "Email",
+                "empty": "Ancora nessun utente.",
+                "status": {
+                    "title": "Stato",
+                    "NO_ACCESS": "Nessun accesso",
+                    "INVITED": "Invitato",
+                    "INVITATION_FAILED": "Invito non riuscito",
+                    "ACTIVE": "Attivo"
+                },
+                "add": {
+                    "button": "Aggiungi utente",
+                    "title": "Aggiungi utente",
+                    "subtitle": "Chi dovrebbe poter lavorare in hopps per la tua organizzazione?",
+                    "firstName": "Nome",
+                    "lastName": "Cognome",
+                    "firstNamePlaceholder": "es. Anna",
+                    "lastNamePlaceholder": "es. Rossi",
+                    "position": "Ruolo",
+                    "positionPlaceholder": "es. Presidente, Tesoriere",
+                    "firstNameRequired": "Il nome è obbligatorio",
+                    "lastNameRequired": "Il cognome è obbligatorio",
+                    "emailInvalid": "Inserisci un indirizzo email valido",
+                    "submit": "Aggiungi",
+                    "success": "Utente aggiunto",
+                    "duplicate": "Questo indirizzo email è già in uso.",
+                    "error": "Impossibile aggiungere l'utente."
+                }
+            }
+        },
+        "noOrganization": {
+            "title": "Nessuna organizzazione trovata",
+            "message": "Non hai accesso a nessuna organizzazione oppure l'organizzazione non esiste.",
+            "suggestion": "Contatta il tuo amministratore oppure esci e riprova con un account diverso."
+        },
+        "buttons": {
+            "addNew": "Aggiungi nuovo"
+        },
+        "create": {
+            "title": "Crea organizzazione",
+            "description": "Hai effettuato l'accesso ma non hai ancora un'organizzazione. Creane una per iniziare.",
+            "nameLabel": "Nome dell'organizzazione",
+            "namePlaceholder": "es. La Mia Associazione e.V.",
+            "submit": "Crea organizzazione",
+            "error": "Impossibile creare l'organizzazione. Riprova.",
+            "slugConflict": "Esiste già un'organizzazione con questo nome. Scegli un nome diverso."
+        }
+    },
+    "organizationTree": {
+        "createNode": "Aggiungi nuovo"
+    },
+    "profile": {
+        "language": "Lingua",
+        "theme": "Tema",
+        "themes": {
+            "light": "Chiaro",
+            "dark": "Scuro"
+        },
+        "lang": {
+            "english": "Inglese",
+            "german": "Tedesco",
+            "ukrainian": "Ucraino",
+            "italian": "Italiano",
+            "french": "Francese"
+        }
+    },
+    "settings": {
+        "menu": {
+            "account": "Il mio account",
+            "invoices": "Fatture",
+            "organization": "Organizzazione",
+            "ngoDetails": "Dettagli dell'organizzazione",
+            "profile": "Profilo"
+        }
+    },
+    "settingsPage": {
+        "menu": "Menu"
+    },
+    "reports": {
+        "title": "Report",
+        "subtitle": "Analizza le transazioni per valore del gruppo di categorie in un intervallo di date.",
+        "group": "Gruppo di categorie",
+        "selectGroup": "Seleziona un gruppo di categorie …",
+        "from": "Da (data della transazione)",
+        "to": "A (data della transazione)",
+        "bommel": "Bommel",
+        "export": "Esporta CSV",
+        "total": "Totale",
+        "table": {
+            "value": "Valore",
+            "count": "Conteggio",
+            "income": "Entrate",
+            "expense": "Uscite",
+            "net": "Netto"
+        },
+        "emptyNoGroup": {
+            "title": "Scegli un gruppo di categorie",
+            "description": "Seleziona un gruppo di categorie qui sopra per vedere il report."
+        },
+        "emptyNoData": {
+            "title": "Nessun dato",
+            "description": "Non ci sono transazioni per questo gruppo di categorie e intervallo di date."
+        },
+        "error": {
+            "title": "Impossibile caricare il report",
+            "description": "Riprova più tardi."
+        }
+    },
+    "menu": {
+        "dashboard": "Dashboard",
+        "receipts": "Ricevute",
+        "upload-receipt": "Carica ricevuta",
+        "all-receipt": "Tutte le ricevute",
+        "expense": "Uscita",
+        "intake": "Entrata",
+        "structure": "Struttura Bommel",
+        "bankAccounts": "Conti",
+        "transactions": "Transazioni",
+        "reports": "Report",
+        "admin": "Amministrazione",
+        "ngo-details": "Dettagli Ngo",
+        "categories": "Categorie",
+        "collapse": "Comprimi",
+        "expand": "Espandi",
+        "openMenu": "Apri menu",
+        "navigation": "Navigazione"
+    },
+    "transactions": {
+        "title": "Transazioni",
+        "subtitle": "{{count}} transazioni · {{income}} entrate · {{expense}} uscite",
+        "new": "Registra transazione",
+        "columns": {
+            "transaction": "Transazione",
+            "category": "Categoria",
+            "bommel": "Bommel",
+            "date": "Data",
+            "status": "Stato",
+            "amount": "Importo",
+            "createdAt": "Creata"
+        },
+        "status": {
+            "all": "Tutte",
+            "confirmed": "Confermata",
+            "draft": "Bozza",
+            "drafts": "Bozze"
+        },
+        "filters": {
+            "search": "Cerca…",
+            "category": "Categoria",
+            "bommel": "Bommel",
+            "area": "Ambito",
+            "from": "Da",
+            "to": "A",
+            "privatelyPaid": "Pagato privatamente",
+            "detached": "Non collegata",
+            "reset": "Reimposta filtri",
+            "allCategories": "Tutte le categorie",
+            "allBommels": "Tutti i bommel",
+            "allAreas": "Tutti gli ambiti",
+            "advancedFilters": "Altri filtri",
+            "categoryGroups": "Gruppi di categorie",
+            "addCategoryGroup": "Gruppo di categorie",
+            "removeCategoryGroup": "Rimuovi",
+            "filter": "Filtra",
+            "selectGroup": "Seleziona gruppo …",
+            "selectValue": "Seleziona valore …",
+            "searchGroup": "Cerca gruppo",
+            "noGroups": "Nessun gruppo trovato"
+        },
+        "unassigned": "Non assegnata",
+        "openToCover": "aperto: {{amount}}",
+        "overCovered": "sovracoperto: {{amount}}",
+        "fullyCovered": "✓ coperto",
+        "income": "Entrate",
+        "expense": "Uscite",
+        "noResults": "Nessuna transazione trovata",
+        "noResultsDesc": "Modifica i filtri o registra una nuova transazione.",
+        "detail": {
+            "title": "Transazione",
+            "editTitle": "Modifica transazione",
+            "category": "Categoria",
+            "bommel": "Bommel",
+            "area": "Ambito",
+            "date": "Data",
+            "direction": "Direzione",
+            "privatelyPaid": "Pagato privatamente",
+            "receipt": "Ricevuta collegata",
+            "noReceipt": "Nessuna ricevuta collegata",
+            "payment": "Pagamento e riconciliazione",
+            "notLinked": "Non ancora collegata",
+            "openBankTransaction": "Vai alla transazione bancaria",
+            "cash": "Pagamento in contanti",
+            "delete": "Elimina",
+            "edit": "Modifica",
+            "confirm": "Conferma",
+            "reopen": "Riporta a bozza",
+            "save": "Salva",
+            "cancel": "Annulla",
+            "yes": "Sì",
+            "no": "No",
+            "openReceipt": "Apri ricevuta",
+            "bankLoading": "Caricamento delle transazioni bancarie …",
+            "bankSearchPlaceholder": "Cerca transazione bancaria …",
+            "bankNoResults": "Nessuna transazione bancaria corrispondente trovata",
+            "purpose": "Causale",
+            "showPurpose": "Mostra causale",
+            "hidePurpose": "Nascondi causale",
+            "linkBankTransaction": "Collega transazione bancaria",
+            "unlink": "Rimuovi collegamento",
+            "unlinkReopen": {
+                "title": "Scollegare e riportare a bozza?",
+                "description": "Questa transazione è confermata e completamente coperta. Rimuovendo questo collegamento bancario non sarà più completamente coperta, quindi verrà riportata a bozza.",
+                "confirm": "Scollega e imposta a bozza"
+            },
+            "openBankAccounts": "Gestisci nei conti bancari",
+            "deleteConfirmTitle": "Eliminare la transazione?",
+            "deleteConfirmText": "Questa transazione verrà eliminata definitivamente. Questa azione non può essere annullata.",
+            "openAmount": "aperto: {{amount}}",
+            "usedAmount": "utilizzato: {{amount}}",
+            "editUsedAmount": "Modifica importo utilizzato",
+            "partialAmountLabel": "Importo parziale (facoltativo)",
+            "partialAmountPlaceholder": "importo totale",
+            "reconcileTotal": "Importo",
+            "reconcileAssigned": "Assegnato",
+            "reconcileRemaining": "Differenza",
+            "reconcileFull": "Completamente assegnato",
+            "fullyCovered": "Completamente coperto",
+            "stillToCover": "Ancora da coprire: {{amount}}",
+            "overCovered": "Sovracoperto: {{amount}}",
+            "saveDraft": "Salva come bozza"
+        },
+        "create": {
+            "title": "Nuova transazione",
+            "subtitle": "Registra un'uscita o un'entrata",
+            "direction": "Direzione",
+            "expense": "Uscita",
+            "income": "Entrata",
+            "name": "Descrizione",
+            "namePlaceholder": "es. Materiale per ufficio",
+            "amount": "Importo (€)",
+            "amountPlaceholder": "0,00",
+            "date": "Data",
+            "sender": "Mittente / Fornitore",
+            "issuer": "Emittente",
+            "recipient": "Destinatario",
+            "senderPlaceholder": "es. Amazon GmbH",
+            "category": "Categoria",
+            "bommel": "Ambito (Bommel)",
+            "area": "Sfera",
+            "privatelyPaid": "Pagato privatamente",
+            "privatelyPaidHint": "Ho pagato questo importo di tasca mia",
+            "privatelyReceived": "Ricevuto privatamente",
+            "privatelyReceivedHint": "Qualcuno ha ricevuto questo importo privatamente",
+            "tags": "Tag",
+            "tagsPlaceholder": "Digita un tag e premi Invio",
+            "save": "Salva",
+            "cancel": "Annulla",
+            "errorAmount": "Inserisci un importo"
+        },
+        "sort": {
+            "label": "Ordina per",
+            "createdAt": "Creata",
+            "updatedAt": "Ultima modifica",
+            "transactionTime": "Data della transazione",
+            "total": "Importo",
+            "ascending": "Crescente",
+            "descending": "Decrescente"
+        },
+        "confirmBlockers": {
+            "title": "Ancora necessario per confermare:",
+            "amount": "Importo",
+            "date": "Data",
+            "counterparty": "Destinatario/Emittente",
+            "name": "Descrizione",
+            "bommel": "Ambito (Bommel)",
+            "coverage": "Copertura tramite transazioni bancarie"
+        },
+        "bulk": {
+            "selectAll": "Seleziona tutte in questa pagina",
+            "selectRow": "Seleziona transazione",
+            "selectedCount": "{{n}} selezionate",
+            "clear": "Cancella selezione",
+            "delete": "Elimina",
+            "confirmTitle": "Eliminare le transazioni selezionate?",
+            "confirmDesc": "Vuoi davvero eliminare le transazioni selezionate ({{n}})? Questa operazione non può essere annullata."
+        },
+        "linked": "Collegata",
+        "notLinked": "Non collegata"
+    },
+    "datePicker": {
+        "selectDate": "Seleziona data"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "incomeExpenseChart": "Entrate e uscite",
+        "income": "Entrate",
+        "expenses": "Uscite",
+        "filterLabel": "Intervallo di tempo",
+        "bommelFilter": "Bommel",
+        "resetFilter": "Reimposta",
+        "openReceipts": {
+            "title_one": "{{count}} ricevuta in sospeso",
+            "title_other": "{{count}} ricevute in sospeso",
+            "description_one": "Non è ancora collegata a un movimento.",
+            "description_other": "Non sono ancora collegate a un movimento.",
+            "action": "Rivedi ora"
+        },
+        "kpi": {
+            "balance": "Saldo del conto",
+            "available": "Attualmente disponibile",
+            "noAccount": "Nessun conto ancora collegato",
+            "income": "Entrate totali {{year}}",
+            "expenses": "Uscite totali {{year}}",
+            "noTransactions": "Nessun movimento ancora",
+            "noComparison": "Nessun valore di confronto dall'anno scorso",
+            "changeUp": "↑ {{percent}} % in più rispetto allo stesso periodo dell'anno scorso",
+            "changeDown": "↓ {{percent}} % in meno rispetto allo stesso periodo dell'anno scorso",
+            "changeFlat": "Invariato rispetto allo stesso periodo dell'anno scorso"
+        },
+        "bommelSelect": {
+            "label": "Seleziona bommel",
+            "all": "Tutti i bommel",
+            "search": "Cerca bommel",
+            "empty": "Nessun bommel trovato"
+        },
+        "periodSelect": {
+            "label": "Seleziona periodo",
+            "options": {
+                "ytd": "Quest'anno",
+                "quarter": "Questo trimestre",
+                "last6Months": "Ultimi 6 mesi",
+                "last12Months": "Ultimi 12 mesi",
+                "previousYear": "Anno precedente"
+            }
+        },
+        "chart": {
+            "tableCaption": "Entrate e uscite per mese",
+            "month": "Mese"
+        },
+        "loadError": "Caricamento dei dati del grafico non riuscito",
+        "noData": "Nessun dato disponibile",
+        "noDataHint": "Carica la tua prima ricevuta per vedere qui i dati di entrate e uscite.",
+        "uploadFirst": "Carica ricevuta",
+        "timeRange": "Visualizzazione dei dati dal {{startDate}} al {{endDate}}",
+        "allBommels": "Tutti i Bommel",
+        "startDate": "Da",
+        "endDate": "A"
+    },
+    "categories": {
+        "title": "Categorie",
+        "addButton": "Aggiungi categoria",
+        "searchInput": {
+            "placeholder": "Cerca"
+        },
+        "dialog": {
+            "creation": {
+                "title": "Crea nuova categoria",
+                "description": "Inserisci i dettagli della nuova categoria."
+            },
+            "deletion": {
+                "title": "Elimina questa categoria",
+                "description_1": "Sei sicuro di voler eliminare questa categoria?",
+                "description_2": "Le ricevute assegnate a questa categoria verranno riassegnate alla categoria 'sconosciuta'."
+            },
+            "update": {
+                "title": "Modifica categoria",
+                "description": "Modifica i dettagli della categoria."
+            }
+        },
+        "form": {
+            "name": "Nome",
+            "description": "Descrizione",
+            "error": {
+                "name": "Questo campo non può essere vuoto.",
+                "nameMaxLength": "Il nome non può superare i 127 caratteri.",
+                "duplicate": "Esiste già una categoria con questo nome.",
+                "categoryCreated": "Si è verificato un errore.",
+                "categoryDeleted": "Eliminazione della categoria non riuscita."
+            },
+            "success": {
+                "categoryCreated": "Categoria creata con successo",
+                "categoryUpdated": "Categoria aggiornata con successo",
+                "categoryDeleted": "Categoria eliminata con successo",
+                "creationError": ""
+            }
+        },
+        "table": {
+            "noDescription": "Nessuna descrizione"
+        },
+        "emptyState": {
+            "title": "Ancora nessuna categoria",
+            "description": "Crea la tua prima categoria per organizzare ricevute e transazioni.",
+            "noSearchResults": "Nessuna categoria corrisponde alla tua ricerca."
+        }
+    },
+    "dialogWrapper": {
+        "save": "Salva",
+        "cancel": "Annulla",
+        "no": "No",
+        "yes": "Sì"
+    },
+    "receipts": {
+        "draft": "Bozza",
+        "unassigned": "Non assegnata",
+        "documentLinked": "Documento allegato",
+        "downloadDocument": "Scarica documento",
+        "downloadFailed": "Download del documento non riuscito",
+        "noDocument": "Nessun documento",
+        "dueDate": "Scadenza il",
+        "empty": "Nessuna ricevuta trovata",
+        "searchPlaceholder": "Cerca (nome, mittente, importo) …",
+        "searchClear": "Cancella ricerca",
+        "noSearchResults": "Nessuna ricevuta trovata per \"{{search}}\"",
+        "newReceipt": "Nuova ricevuta",
+        "statusBadge": {
+            "draft": "Bozza",
+            "saved": "Salvata"
+        },
+        "table": {
+            "issuer": "Emittente",
+            "date": "Data",
+            "project": "Bommel",
+            "category": "Categoria",
+            "status": "Stato",
+            "paid": "Pagata",
+            "amount": "Importo",
+            "purpose": "Causale",
+            "reference": "Riferimento"
+        },
+        "paidLabel": {
+            "yes": "Sì",
+            "no": "No"
+        },
+        "emptyState": {
+            "title": "Ancora nessuna ricevuta caricata",
+            "description": "Qui puoi filtrare e gestire le ricevute",
+            "action": "Carica la prima ricevuta"
+        },
+        "status": {
+            "pending": "In attesa",
+            "analyzing": "Analisi in corso",
+            "ready": "Da revisionare",
+            "confirmed": "Confermata",
+            "failed": "Inserimento manuale"
+        },
+        "statusDescription": {
+            "pending": "Ricevuta caricata – l'analisi sta per iniziare.",
+            "confirmed": "Ricevuta revisionata e confermata – la transazione collegata è stata creata."
+        },
+        "filters": {
+            "searchReceipt": "Cerca ricevuta",
+            "searchPlaceholder": "Cerca",
+            "receiptDate": "Data della ricevuta",
+            "startDate": "Ricevute da",
+            "endDate": "Ricevute fino a",
+            "bommel": "Bommel",
+            "category": "Categoria",
+            "type": "Tipo di ricevuta",
+            "income": "Entrata",
+            "expense": "Uscita",
+            "selectStatus": "Seleziona stato",
+            "status": "Stato",
+            "all": "Tutte",
+            "drafts": "Bozze",
+            "unassigned": "Non assegnate",
+            "displayType": "Tipo di visualizzazione",
+            "displayAll": "Espandi tutto",
+            "reset": "Reimposta",
+            "noResults": "Nessun risultato",
+            "area": "Ambito",
+            "allAreas": "Seleziona ambito",
+            "allCategories": "Seleziona categoria",
+            "showFilters": "Filtri"
+        },
+        "upload": {
+            "sectionTitle": "Carica ricevute",
+            "expand": "Espandi area di caricamento",
+            "collapse": "Comprimi area di caricamento",
+            "tooLargeTitle": "File troppo grande",
+            "tooLargeDescription": "{{files}} supera la dimensione massima di {{max}} MB e non è stato caricato.",
+            "invalidTypeTitle": "Tipo di file non supportato",
+            "invalidTypeDescription": "{{files}} ha un tipo non supportato. Consentiti: PDF, PNG e JPEG.",
+            "dropzone": "Trascina i file qui o clicca per selezionarli",
+            "dropzoneActive": "Rilascia per caricare",
+            "hint": "PDF, PNG o JPEG fino a 10 MB",
+            "uploading": "Caricamento…",
+            "analyzeLabel": "Analisi automatica (IA)",
+            "progress": "{{done}} di {{total}} caricati",
+            "itemUploading": "Caricamento …",
+            "itemDone": "Caricata",
+            "itemError": "Non riuscito",
+            "itemErrorDuplicate": "Duplicato – già registrato",
+            "viewExisting": "Visualizza ricevuta",
+            "analysis": {
+                "aiWarning": "I dati riconosciuti dall'IA potrebbero contenere errori. Controlla tutti i campi prima di salvare.",
+                "pending": "L'analisi sta per iniziare …",
+                "analyzing": "Analisi della ricevuta in corso …",
+                "completed": "Analisi completata",
+                "completedDescription": "Controlla i dati riconosciuti e correggili se necessario.",
+                "extractedViaZugferd": "Dati tratti dalla fattura ZUGFeRD",
+                "extractedViaDocumentAI": "Dati riconosciuti tramite analisi IA",
+                "failed": "Analisi automatica non possibile – inserisci i dati manualmente",
+                "serviceUnavailable": "Servizio di analisi non disponibile al momento – inserisci i dati manualmente",
+                "pollingTimeout": "L'analisi sta richiedendo più tempo del previsto. Puoi inserire i dati manualmente in qualsiasi momento.",
+                "errorDetail": "Dettagli: {{error}}",
+                "retry": "Riavvia analisi",
+                "retryFailed": "Impossibile riavviare l'analisi. Riprova più tardi."
+            },
+            "duplicate": "Questa ricevuta è già stata caricata.",
+            "uploadFailed": "Caricamento della ricevuta non riuscito."
+        },
+        "areas": {
+            "ideell": "Ambito senza scopo di lucro",
+            "zweckbetrieb": "Attività di scopo",
+            "vermoegensverwaltung": "Gestione patrimoniale",
+            "wirtschaftlich": "Attività commerciale",
+            "unknown": "Sconosciuto"
+        },
+        "types": {
+            "income": "Entrata",
+            "expense": "Uscita"
+        },
+        "pagination": {
+            "page": "Pagina",
+            "previous": "Precedente",
+            "next": "Successiva"
+        },
+        "deleteDialog": {
+            "title": "Elimina ricevuta",
+            "description": "Sei sicuro di voler eliminare '{{name}}' ({{amount}})?",
+            "warning": "Questa azione non può essere annullata. La ricevuta verrà eliminata definitivamente.",
+            "confirm": "Sì, elimina",
+            "error": "Eliminazione della ricevuta non riuscita",
+            "success": "Ricevuta eliminata con successo",
+            "optionTransactionOnly": "Viene rimosso solo il movimento. La ricevuta viene conservata e torna in revisione.",
+            "optionWithReceipt": "Il movimento e la ricevuta vengono eliminati definitivamente, incluso il file caricato.",
+            "confirmTransactionOnly": "Elimina solo la transazione",
+            "confirmWithReceipt": "Elimina con la ricevuta",
+            "successTransactionOnly": "Transazione eliminata - la ricevuta è di nuovo in attesa di revisione",
+            "successWithReceipt": "Ricevuta e transazione eliminate",
+            "descriptionNoName": "Sei sicuro di voler eliminare questa transazione ({{amount}})?"
+        },
+        "title": "Ricevute",
+        "subtitle": "{{count}} ricevute non revisionate",
+        "reanalyzeAll": "Rianalizza ricevute",
+        "reanalyzeStarted": "Rianalisi avviata per {{count}} ricevuta/e.",
+        "columns": {
+            "document": "Documento",
+            "date": "Data",
+            "amount": "Importo",
+            "status": "Stato",
+            "actions": "Azioni",
+            "createdAt": "Creata"
+        },
+        "review": {
+            "title": "Revisiona ricevuta",
+            "confirm": "Conferma come transazione",
+            "confirmHint": "Crea una transazione in BOZZA a partire dai dati della ricevuta",
+            "reanalyze": "Rianalizza",
+            "delete": "Elimina ricevuta",
+            "deleteConfirmText": "La ricevuta e qualsiasi transazione creata da essa verranno eliminate definitivamente.",
+            "name": "Descrizione",
+            "amount": "Importo",
+            "date": "Data",
+            "sender": "Fornitore",
+            "recipient": "Destinatario",
+            "bommel": "Ambito (Bommel)",
+            "privatelyPaid": "Pagato privatamente",
+            "analysisResult": "Analisi IA",
+            "manualEdit": "Modifica manualmente",
+            "save": "Salva",
+            "cancel": "Annulla",
+            "alreadyConfirmed": "Già confermata — la transazione è stata creata",
+            "analyzing": "Analisi della ricevuta in corso …",
+            "analyzingHint": "I dati rilevati compaiono automaticamente. Puoi già compilare i campi manualmente.",
+            "completed": "Analisi completata",
+            "completedHint": "Controlla i dati rilevati e correggili se necessario.",
+            "failedTitle": "Analisi non riuscita",
+            "failedHint": "Inserisci i dati manualmente o riavvia l'analisi.",
+            "serviceUnavailableTitle": "Servizio di analisi non disponibile",
+            "serviceUnavailableHint": "Al momento non è stato possibile analizzare automaticamente la ricevuta. Puoi compilare tutti i campi manualmente e inserire la ricevuta in qualsiasi momento.",
+            "linkedTransaction": "Transazione collegata",
+            "openTransaction": "Vai alla transazione",
+            "bankReconcileTitle": "Creata da una transazione bancaria",
+            "bankReconcileHint": "La transazione è già precompilata con i dati bancari. Controlla la ricevuta e applica i valori rilevati dove necessario.",
+            "aiSuggestion": "Ricevuta",
+            "applySuggestion": "Applica",
+            "tabTransaction": "Transazione",
+            "tabReceipt": "Ricevuta",
+            "linkedBankTx": "Transazione bancaria collegata",
+            "counterparty": "Destinatario",
+            "purpose": "Causale",
+            "extractedBy": "Rilevato da {{source}}",
+            "noReceiptDataTitle": "Nessun dato della ricevuta",
+            "noReceiptDataHint": "Nessun dato è stato estratto automaticamente dalla ricevuta. Puoi inserire i valori manualmente nella scheda \"Transazione\".",
+            "saveDraft": "Salva come bozza",
+            "finalize": "Conferma",
+            "createTransaction": "Crea transazione"
+        },
+        "filter": {
+            "all": "Tutte",
+            "unreviewed": "Non revisionate",
+            "confirmed": "Confermate"
+        },
+        "noUnreviewed": "Tutte le ricevute sono state revisionate",
+        "noUnreviewedDesc": "Carica nuove ricevute per revisionarle.",
+        "deleteConfirm": "Eliminare davvero questa ricevuta?",
+        "analysisUnavailable": {
+            "title": "Servizio di analisi non disponibile",
+            "description": "Al momento non è stato possibile analizzare automaticamente la ricevuta. Puoi comunque inserire tutte le informazioni manualmente in qualsiasi momento."
+        },
+        "preview": {
+            "loading": "Caricamento della ricevuta …",
+            "error": "Impossibile caricare l'anteprima.",
+            "missingTitle": "File non più disponibile",
+            "missingHint": "Il file caricato non è più presente nell'archivio. Carica di nuovo la ricevuta.",
+            "reupload": "Trascina qui la ricevuta o clicca per caricarla di nuovo",
+            "reuploadDrop": "Rilascia qui la ricevuta …",
+            "reuploading": "Caricamento …",
+            "unsupported": "Nessuna anteprima disponibile per questo tipo di file.",
+            "openNewTab": "Apri in una nuova scheda",
+            "download": "Scarica"
+        },
+        "direction": {
+            "label": "Tipo di documento",
+            "incoming": "Uscita",
+            "incomingHint": "Denaro speso",
+            "outgoing": "Entrata",
+            "outgoingHint": "Denaro ricevuto"
+        },
+        "sort": {
+            "label": "Ordina per",
+            "createdAt": "Creata",
+            "updatedAt": "Ultima modifica",
+            "transactionTime": "Data della ricevuta",
+            "total": "Importo",
+            "ascending": "Crescente",
+            "descending": "Decrescente"
+        },
+        "bulk": {
+            "selectAll": "Seleziona tutte",
+            "selectRow": "Seleziona ricevuta",
+            "selectedCount": "{{n}} selezionate",
+            "clear": "Cancella selezione",
+            "delete": "Elimina",
+            "confirmTitle": "Eliminare le ricevute selezionate?",
+            "confirmDesc": "Vuoi davvero eliminare le ricevute selezionate ({{n}})? Questa operazione non può essere annullata."
+        }
+    },
+    "bommel": {
+        "empty": "Nessun Bommel trovato",
+        "select": "Seleziona Bommel"
+    },
+    "bankAccounts": {
+        "title": "Conti bancari",
+        "subtitle": "Gestisci i tuoi conti bancari e importa gli estratti conto.",
+        "newAccount": "Nuovo conto",
+        "manageSchemas": "Gestisci schemi",
+        "notFound": "Conto bancario non trovato",
+        "card": {
+            "schema": "Schema"
+        },
+        "emptyState": {
+            "title": "Ancora nessun conto bancario",
+            "description": "Aggiungi il tuo primo conto bancario per iniziare a importare gli estratti conto."
+        },
+        "form": {
+            "createTitle": "Crea conto bancario",
+            "editTitle": "Modifica conto bancario",
+            "name": "Nome del conto",
+            "namePlaceholder": "es. Conto dell'associazione",
+            "iban": "IBAN",
+            "bic": "BIC",
+            "bankName": "Nome della banca",
+            "currency": "Valuta",
+            "currencyPlaceholder": "Seleziona valuta",
+            "openingBalance": "Saldo iniziale",
+            "openingBalanceDate": "Data del saldo iniziale",
+            "color": "Colore (hex)",
+            "colorPicker": "Scegli un colore",
+            "defaultSchema": "Schema predefinito",
+            "defaultSchemaPlaceholder": "Seleziona schema",
+            "noSchema": "Nessuno schema",
+            "description": "Descrizione",
+            "validation": {
+                "nameRequired": "Il nome del conto è obbligatorio",
+                "currencyRequired": "La valuta è obbligatoria",
+                "colorInvalid": "Colore non valido. Usa il formato #RRGGBB",
+                "ibanRequired": "L'IBAN è obbligatorio",
+                "ibanTooShort": "L'IBAN deve contenere almeno 15 caratteri",
+                "ibanTooLong": "L'IBAN non può superare i 34 caratteri",
+                "ibanInvalidFormat": "Formato IBAN non valido (es. DE89370400440532013000)",
+                "bicTooLong": "Il BIC non può superare gli 11 caratteri",
+                "openingBalanceDateRequired": "La data del saldo iniziale è obbligatoria quando è indicato un saldo",
+                "openingBalanceRequired": "Il saldo iniziale è obbligatorio quando è indicata una data",
+                "duplicateIban": "Esiste già un conto con questo IBAN nella tua organizzazione"
+            }
+        },
+        "table": {
+            "bookingDate": "Data di registrazione",
+            "counterpartyName": "Controparte",
+            "purpose": "Causale",
+            "amount": "Importo",
+            "status": "Stato"
+        },
+        "transactions": {
+            "title": "Transazioni",
+            "empty": "Ancora nessuna transazione",
+            "export": "Esporta"
+        },
+        "toast": {
+            "createSuccess": "Conto bancario creato con successo",
+            "createError": "Creazione del conto bancario non riuscita",
+            "updateSuccess": "Conto bancario aggiornato con successo",
+            "updateError": "Aggiornamento del conto bancario non riuscito",
+            "archiveSuccess": "Conto bancario archiviato",
+            "archiveError": "Archiviazione del conto bancario non riuscita",
+            "restoreSuccess": "Conto bancario ripristinato",
+            "restoreError": "Ripristino del conto bancario non riuscito"
+        }
+    },
+    "bankImport": {
+        "title": "Importa estratto conto",
+        "startImport": "Importa",
+        "status": {
+            "QUEUED": "In coda",
+            "PROCESSING": "In elaborazione",
+            "COMPLETED": "Completato",
+            "PARTIAL": "Importato parzialmente",
+            "FAILED": "Non riuscito",
+            "UNKNOWN": "Sconosciuto"
+        },
+        "wizard": {
+            "stepFile": "File",
+            "stepSchema": "Schema",
+            "stepConfirm": "Conferma",
+            "stepProgress": "Avanzamento",
+            "stepResult": "Risultato",
+            "fileTitle": "Carica file CSV",
+            "fileDrop": "Trascina il file qui o clicca per selezionarlo",
+            "fileDropHint": "Formati supportati: .csv, .txt",
+            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps rileva automaticamente il formato — nessuna configurazione necessaria.",
+            "mt940Detected": "MT940 rilevato · {{count}} transazioni trovate · nessuno schema necessario",
+            "showMore": "di più",
+            "showLess": "di meno",
+            "detecting": "Rilevamento del formato…",
+            "noFormatDetected": "Impossibile rilevare automaticamente il formato. Seleziona uno schema qui sotto.",
+            "formatDetected": "Formato rilevato: {{schema}} · Conto {{account}} · {{lines}} righe lette",
+            "schemaRequired": "Seleziona uno schema di importazione",
+            "schemaLabelChange": "Schema (rilevato automaticamente – modifica se necessario)",
+            "importBtn": "Importa {{count}} transazioni",
+            "duplicateRow": "Duplicato",
+            "duplicateHint_one": "{{count}} transazione esistente verrà saltata",
+            "duplicateHint_other": "{{count}} transazioni esistenti verranno saltate",
+            "fileDropReplace": "Clicca o trascina di nuovo per sostituire il file",
+            "schemaTitle": "Seleziona schema di importazione",
+            "schemaSelect": "Schema",
+            "schemaPlaceholder": "Seleziona uno schema",
+            "schemaGroupOrg": "I miei schemi",
+            "schemaGroupTemplates": "Modelli",
+            "previewButton": "Mostra anteprima",
+            "previewError": "Caricamento dell'anteprima non riuscito",
+            "confirmTitle": "Conferma importazione",
+            "startImport": "Avvia importazione"
+        },
+        "preview": {
+            "encoding": "Codifica",
+            "delimiter": "Delimitatore",
+            "totalLines": "Righe totali"
+        },
+        "confirm": {
+            "schema": "Schema",
+            "encoding": "Codifica",
+            "totalLines": "Righe totali",
+            "account": "Conto"
+        },
+        "progress": {
+            "processing": "Elaborazione dell'importazione...",
+            "rows": "{{imported}} di {{total}} righe importate"
+        },
+        "result": {
+            "success": "Importazione completata con successo!",
+            "partial": "Importazione completata parzialmente",
+            "failed": "Importazione non riuscita",
+            "imported": "Righe importate",
+            "duplicates": "Duplicati",
+            "errors": "Errori",
+            "backToAccount": "Torna al conto",
+            "viewTransactions": "Visualizza transazioni"
+        },
+        "history": {
+            "title": "Cronologia delle importazioni",
+            "empty": "Ancora nessuna importazione",
+            "fileName": "Nome del file",
+            "status": "Stato",
+            "progress": "Avanzamento",
+            "imported": "Importate",
+            "duplicates": "Duplicati",
+            "errors": "Errori",
+            "finishedAt": "Terminata",
+            "actions": "Azioni"
+        },
+        "rollback": {
+            "title": "Annullare l'importazione?",
+            "button": "Annulla importazione",
+            "confirm": "Sei sicuro di voler annullare questa importazione? Tutte le transazioni importate verranno eliminate."
+        },
+        "toast": {
+            "rollbackSuccess": "Importazione annullata con successo",
+            "rollbackError": "Annullamento dell'importazione non riuscito"
+        }
+    },
+    "bankSchema": {
+        "title": "Schemi di importazione",
+        "subtitle": "Definisci gli schemi di importazione CSV per le diverse banche.",
+        "newSchema": "Nuovo schema",
+        "showArchived": "Mostra archiviati",
+        "hideArchived": "Nascondi archiviati",
+        "archived": "Archiviato",
+        "systemTemplate": "Modello di sistema",
+        "systemTemplates": "Modelli di sistema",
+        "archive": "Archivia",
+        "restore": "Ripristina",
+        "deleteTitle": "Eliminare lo schema?",
+        "deleteConfirm": "Sei sicuro di voler eliminare lo schema '{{name}}'?",
+        "card": {
+            "delimiter": "Delimitatore"
+        },
+        "emptyState": {
+            "title": "Ancora nessuno schema",
+            "description": "Crea uno schema di importazione per la tua banca per iniziare a importare gli estratti conto."
+        },
+        "amountStrategy": {
+            "SIGNED_SINGLE_COLUMN": "Singola colonna con segno",
+            "DEBIT_CREDIT_COLUMNS": "Colonne dare/avere",
+            "AMOUNT_PLUS_TYPE_COLUMN": "Importo + colonna tipo"
+        },
+        "form": {
+            "createTitle": "Nuovo schema di importazione",
+            "editTitle": "Modifica schema",
+            "startFromTemplate": "Parti da un modello",
+            "templatePlaceholder": "Seleziona un modello...",
+            "name": "Nome",
+            "bankIdentifier": "Identificativo della banca",
+            "delimiter": "Delimitatore",
+            "encoding": "Codifica",
+            "skipLines": "Salta righe",
+            "hasHeader": "Ha intestazione",
+            "hasHeaderLabel": "La prima riga è l'intestazione",
+            "dateFormat": "Formato data",
+            "decimalSeparator": "Separatore decimale",
+            "thousandSeparator": "Separatore delle migliaia",
+            "amountStrategy": "Strategia per gli importi",
+            "amountTypePositiveValues": "Valori di tipo positivo",
+            "amountTypePositiveValuesHint": "Valori separati da virgola che indicano una transazione in avere",
+            "columnMappings": "Mappature delle colonne",
+            "addMapping": "Aggiungi mappatura",
+            "noMappings": "Ancora nessuna mappatura delle colonne",
+            "mapping": "Mappatura",
+            "targetField": "Campo di destinazione",
+            "targetFieldPlaceholder": "Seleziona campo",
+            "sourceColumnIndex": "Indice della colonna di origine",
+            "sourceColumnName": "Nome della colonna di origine",
+            "transform": "Trasformazione",
+            "removeMapping": "Rimuovi mappatura",
+            "validation": {
+                "nameRequired": "Il nome dello schema è obbligatorio"
+            }
+        },
+        "toast": {
+            "createSuccess": "Schema creato con successo",
+            "createError": "Creazione dello schema non riuscita",
+            "updateSuccess": "Schema aggiornato con successo",
+            "updateError": "Aggiornamento dello schema non riuscito",
+            "deleteSuccess": "Schema eliminato con successo",
+            "deleteError": "Eliminazione dello schema non riuscita",
+            "archiveSuccess": "Schema archiviato",
+            "archiveError": "Archiviazione dello schema non riuscita",
+            "restoreSuccess": "Schema ripristinato",
+            "restoreError": "Ripristino dello schema non riuscito"
+        }
+    },
+    "connectivity": {
+        "keycloak": {
+            "title": "Server di autenticazione non raggiungibile",
+            "description": "Il server di accesso non è al momento raggiungibile. L'accesso e la registrazione sono temporaneamente non disponibili."
+        },
+        "backend": {
+            "title": "Server backend non raggiungibile",
+            "description": "Il server backend non è al momento raggiungibile. Alcune funzionalità sono temporaneamente non disponibili."
+        },
+        "buttonDisabledHint": "Questa azione non è disponibile perché un servizio necessario non è raggiungibile."
+    },
+    "konten": {
+        "title": "Conti",
+        "subtitle": "Conti bancari — tutti i fondi dell'associazione in un unico posto.",
+        "balance": "Saldo",
+        "open": "aperto",
+        "allMatched": "riconciliato",
+        "addAccount": "Aggiungi conto bancario",
+        "accounts": "Conti",
+        "accountsExpand": "Mostra dettagli",
+        "accountsCollapse": "Nascondi dettagli",
+        "importAction": "Importa transazioni",
+        "import": "Importa",
+        "assign": "Assegna",
+        "noTransactions": "Nessuna transazione trovata.",
+        "unknownCounterparty": "Sconosciuta",
+        "tabs": {
+            "abgleich": "Riconciliazione",
+            "importe": "Importazioni"
+        },
+        "status": {
+            "open": "Aperta",
+            "matched": "Abbinata",
+            "partial": "Parziale",
+            "ignored": "Ignorata"
+        },
+        "filter": {
+            "all": "Tutte",
+            "open": "Aperte",
+            "matched": "Abbinate",
+            "ignored": "Ignorate",
+            "searchPlaceholder": "Cerca (controparte, causale, importo) …",
+            "clearSearch": "Cancella ricerca",
+            "filters": "Filtri",
+            "dateFrom": "Data da",
+            "dateTo": "Data a",
+            "minAmount": "Importo minimo",
+            "maxAmount": "Importo massimo",
+            "clearAll": "Cancella filtri",
+            "noResults": "Nessuna transazione corrisponde alla ricerca/al filtro corrente"
+        },
+        "abgleich": {
+            "allClear": "Tutto riconciliato",
+            "allClearDesc": "Ogni transazione bancaria è abbinata a una registrazione.",
+            "openSingular": "transazione non ancora abbinata",
+            "openPlural": "transazioni non ancora abbinate",
+            "matched": "abbinata",
+            "openDesc": "Assegna le transazioni aperte qui sotto o crea una registrazione da esse.",
+            "openBookings": "Transazioni bancarie aperte",
+            "noData": "Ancora nessuna transazione",
+            "noDataDesc": "Importa un estratto conto per iniziare la riconciliazione."
+        },
+        "table": {
+            "date": "Data",
+            "counterparty": "Controparte / Causale",
+            "amount": "Importo",
+            "status": "Stato"
+        },
+        "pagination": {
+            "page": "Pagina {{page}}",
+            "pageOf": "Pagina {{page}} di {{total}}"
+        },
+        "imports": {
+            "title": "Cronologia delle importazioni",
+            "subtitle": "Tieni traccia di quali estratti conto sono stati importati e quando.",
+            "account": "Conto",
+            "file": "File",
+            "imported": "Importate",
+            "duplicates": "Duplicati",
+            "matched": "Abbinate",
+            "newImport": "Nuova importazione",
+            "empty": "Ancora nessuna importazione",
+            "emptyDesc": "Importa un estratto conto per popolare la cronologia.",
+            "actions": "Azioni",
+            "delete": "Elimina importazione",
+            "deleteTitle": "Eliminare l'importazione?",
+            "deleteConfirm_one": "L'importazione <strong>\"{{file}}\"</strong> e la <strong>transazione</strong> da essa creata verranno eliminate. Le ricevute caricate e le registrazioni contabili vengono conservate.",
+            "deleteConfirm_other": "L'importazione <strong>\"{{file}}\"</strong> e le <strong>{{count}} transazioni</strong> da essa create verranno eliminate. Le ricevute caricate e le registrazioni contabili vengono conservate.",
+            "deleteMatchedWarning_one": "Nota: <strong>1 di queste transazioni</strong> è collegata a una registrazione contabile — tale collegamento verrà rimosso.",
+            "deleteMatchedWarning_other": "Nota: <strong>{{count}} di queste transazioni</strong> sono collegate a registrazioni contabili — tali collegamenti verranno rimossi."
+        },
+        "empty": {
+            "title": "Ancora nessun conto bancario",
+            "desc": "Aggiungi il tuo primo conto bancario per iniziare a importare gli estratti conto."
+        },
+        "form": {
+            "subtitle": "Dati anagrafici del conto",
+            "bankPlaceholder": "es. Sparkasse",
+            "create": "Crea"
+        },
+        "drawer": {
+            "title": "Assegna transazione bancaria",
+            "linked": "Già collegata",
+            "selectTx": "Seleziona la transazione corrispondente",
+            "multiSelect": "È possibile la selezione multipla",
+            "noOpenTx": "Nessuna transazione aperta corrisponde. Controlla l'elenco delle tue transazioni.",
+            "exactMatch": "corrispondenza esatta",
+            "unlink": "Rimuovi collegamento",
+            "openTransaction": "Vai alla transazione",
+            "openTransactionNewTab": "Apri la transazione in una nuova scheda",
+            "bankAmount": "Importo",
+            "covered": "Coperto",
+            "remaining": "Differenza",
+            "fullyCovered": "Completamente coperto",
+            "usedAmountHint": "Importo utilizzato (predefinito: importo totale)",
+            "ignore": "Ignora",
+            "unignore": "Non ignorare più",
+            "assign": "Assegna",
+            "uploadReceipt": "Carica una ricevuta",
+            "uploadReceiptHint": "Trascina qui una ricevuta o clicca – una transazione viene creata e collegata automaticamente",
+            "uploadReceiptDrop": "Rilascia qui la ricevuta …",
+            "uploadReceiptBusy": "Caricamento della ricevuta …",
+            "createTransaction": "Crea transazione senza ricevuta",
+            "createTransactionHint": "Precompilata dalla transazione bancaria – nessuna ricevuta collegata",
+            "txSearchPlaceholder": "Cerca per importo o nome…",
+            "showReceipt": "Mostra ricevuta",
+            "hideReceipt": "Nascondi ricevuta"
+        },
+        "openAmount": "aperto: {{amount}}",
+        "createTx": {
+            "title": "Transazione da transazione bancaria",
+            "subtitle": "Precompilata dalla transazione bancaria – collegata automaticamente",
+            "saveDraft": "Salva come bozza",
+            "saveConfirm": "Salva e conferma",
+            "confirmBlocked": "Mancano ancora alcuni campi obbligatori per confermare (nome, controparte, data, importo).",
+            "origin": "Da questa transazione bancaria",
+            "openBefore": "Ancora aperto",
+            "openAfter": "Aperto in seguito",
+            "coversExactly": "Copre esattamente il resto",
+            "shouldBeIncome": "Questa transazione bancaria è un'entrata. Scegli “Entrata”.",
+            "shouldBeExpense": "Questa transazione bancaria è un'uscita. Scegli “Uscita”."
+        }
+    }
+}

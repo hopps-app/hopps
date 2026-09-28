@@ -453,7 +453,9 @@
         "lang": {
             "english": "Englisch",
             "german": "Deutsch",
-            "ukrainian": "Ukrainisch"
+            "ukrainian": "Ukrainisch",
+            "italian": "Italienisch",
+            "french": "Französisch"
         }
     },
     "settings": {

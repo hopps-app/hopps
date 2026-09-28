@@ -1,0 +1,31 @@
+# Overlay that stores uploaded files (receipts, logos, bank import files) on a local Docker volume
+# instead of MinIO. Use it for single-node installs that do not want to run an object store:
+#
+#   docker compose -f docker-compose.yaml -f docker-compose.local-storage.yaml up -d
+#
+# The files then live in the named volume `hopps-app_org_storage` and MUST be included in your backups
+# the same way `minio_data` would be - see README.md.
+#
+# Note that this only works with a single `org` replica: a local directory is not shared between containers.
+
+services:
+  org:
+    environment:
+      HOPPS_STORAGE_TYPE: local
+      HOPPS_STORAGE_LOCAL_ROOT: /var/lib/hopps/storage
+    volumes:
+      - org_storage:/var/lib/hopps/storage
+    depends_on:
+      # MinIO is disabled below, so org must not wait for it to become healthy.
+      minio:
+        condition: service_started
+        required: false
+
+  # Moving MinIO into an unused profile keeps it out of this setup without touching the base file.
+  # `docker compose --profile s3 ...` would bring it back.
+  minio:
+    profiles:
+      - s3
+
+volumes:
+  org_storage:
