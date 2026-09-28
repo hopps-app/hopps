@@ -59,12 +59,13 @@ export type OrgMember = {
     hasAccount: boolean;
 };
 
-/** AI providers Hopps can bill usage against. `services` on TokenUsage keys off these. */
-export type AiService = 'openai' | 'azure';
+/** AI services Hopps can bill usage against. `services` on TokenUsage keys off these.
+    Both run on Azure in the EU: the LLM for tagging and the OCR for extraction. */
+export type AiService = 'azure-openai' | 'azure-document-ai';
 
 /**
  * Per-organization AI token usage. MOCK ONLY — Hopps has no per-org metering today
- * (only OpenAI's global account quota). Structured now so a real metering backend
+ * (only the global Azure subscription quota). Structured now so a real metering backend
  * can populate it later without changing the view.
  */
 export type TokenUsage = {

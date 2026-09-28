@@ -105,7 +105,9 @@ services:
     environment:
       HOPPS_AZURE_DOCUMENT_AI_ENDPOINT: ${HOPPS_AZURE_DOCUMENT_AI_ENDPOINT}
       HOPPS_AZURE_DOCUMENT_AI_KEY: ${HOPPS_AZURE_DOCUMENT_AI_KEY}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      HOPPS_AZURE_OPENAI_RESOURCE_NAME: ${HOPPS_AZURE_OPENAI_RESOURCE_NAME}
+      HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME: ${HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME:-gpt-4o-mini}
+      HOPPS_AZURE_OPENAI_KEY: ${HOPPS_AZURE_OPENAI_KEY}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
       interval: 10s
@@ -119,7 +121,9 @@ services:
     expose:
       - "8080"
     environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      HOPPS_AZURE_OPENAI_RESOURCE_NAME: ${HOPPS_AZURE_OPENAI_RESOURCE_NAME}
+      HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME: ${HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME:-gpt-4o-mini}
+      HOPPS_AZURE_OPENAI_KEY: ${HOPPS_AZURE_OPENAI_KEY}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9000/q/health/ready || exit 1"]
       interval: 10s

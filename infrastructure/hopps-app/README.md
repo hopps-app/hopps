@@ -118,8 +118,10 @@ issuer and logout, and a throwaway Authentik you can test against locally.
 
 `az-document-ai` will not start without
 `HOPPS_AZURE_DOCUMENT_AI_ENDPOINT` and `HOPPS_AZURE_DOCUMENT_AI_KEY`
-(Azure Document Intelligence). `OPENAI_API_KEY` is used by `az-document-ai` and
-`zugferd` for field extraction. Both are the operator's own accounts.
+(Azure Document Intelligence). `HOPPS_AZURE_OPENAI_RESOURCE_NAME`,
+`HOPPS_AZURE_OPENAI_DEPLOYMENT_NAME` and `HOPPS_AZURE_OPENAI_KEY` are used by
+`az-document-ai` and `zugferd` to generate document tags — an Azure OpenAI
+resource in the EU, not `api.openai.com`. Both are the operator's own accounts.
 
 ## Versions
 

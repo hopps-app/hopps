@@ -76,7 +76,8 @@ public class AzureAiService {
             if (isQuotaExceededError(e)) {
                 LOG.error("AI service quota exceeded during tag generation for document '{}': {}", documentName,
                         e.getMessage());
-                throw new OcrException("AI service quota exceeded. Please check your OpenAI plan and billing details.");
+                throw new OcrException(
+                        "AI service quota exceeded. Please check your Azure OpenAI quota and billing details.");
             }
             LOG.warn("Failed to generate tags for document '{}': {}", documentName, e.getMessage());
             return Collections.emptyList();
