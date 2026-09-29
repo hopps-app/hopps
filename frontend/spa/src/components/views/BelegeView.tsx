@@ -39,6 +39,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
+import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import {
@@ -65,6 +66,16 @@ import { useStore } from '@/store/store';
 import { getDuplicateDocumentId } from '@/utils/errorUtils';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
+
+type ReceiptStatus = 'unreviewed' | 'confirmed';
+
+const receiptStatus = (doc: DocumentResponse): ReceiptStatus => (doc.documentStatus === 'CONFIRMED' ? 'confirmed' : 'unreviewed');
+
+// Status filter segments, same look as the transactions page.
+const RECEIPT_STATUS_SEGMENTS: { id: ReceiptStatus; labelKey: string; color: string; tint: string }[] = [
+    { id: 'unreviewed', labelKey: 'receipts.filter.unreviewed', color: 'var(--purple-700)', tint: 'var(--accent-surface)' },
+    { id: 'confirmed', labelKey: 'receipts.filter.confirmed', color: 'var(--positive)', tint: 'var(--positive-surface)' },
+];
 
 // Shared column layout for the documents table header and rows (must stay in sync).
 // Beleg | Datum | Erstellt am | Betrag | Status | Chevron
@@ -1462,7 +1473,8 @@ export function BelegeView() {
     const { t } = useTranslation();
     usePageTitle(t('receipts.title'));
 
-    const [filter, setFilter] = usePersistedState<'unreviewed' | 'all' | 'confirmed'>('hopps.belege.filter', 'unreviewed');
+    // Selected status segments; empty means every receipt. New storage key: the old one held a single tab id.
+    const [statusFilter, setStatusFilter] = usePersistedState<ReceiptStatus[]>('hopps.belege.statusFilter', ['unreviewed']);
     const [sortBy, setSortBy] = usePersistedState<'createdAt' | 'updatedAt' | 'transactionTime' | 'total'>('hopps.belege.sortBy', 'createdAt');
     const [sortDir, setSortDir] = usePersistedState<'asc' | 'desc'>('hopps.belege.sortDir', 'desc');
     const [selectedDoc, setSelectedDoc] = useState<DocumentResponse | null>(null);
@@ -1560,8 +1572,7 @@ export function BelegeView() {
     })();
 
     const filtered = docs.filter((doc) => {
-        if (filter === 'unreviewed' && doc.documentStatus === 'CONFIRMED') return false;
-        if (filter === 'confirmed' && doc.documentStatus !== 'CONFIRMED') return false;
+        if (statusFilter.length > 0 && !statusFilter.includes(receiptStatus(doc))) return false;
         if (searchTerm) {
             const matchesText =
                 (doc.name ?? '').toLowerCase().includes(searchTerm) ||
@@ -1632,7 +1643,10 @@ export function BelegeView() {
         }
     };
 
-    const unreviewedCount = docs.filter((d) => d.documentStatus !== 'CONFIRMED').length;
+    const unreviewedCount = docs.filter((d) => receiptStatus(d) === 'unreviewed').length;
+    const statusCounts: Record<ReceiptStatus, number> = { unreviewed: unreviewedCount, confirmed: docs.length - unreviewedCount };
+    const toggleStatus = (id: ReceiptStatus) => setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+    const onlyUnreviewed = statusFilter.length === 1 && statusFilter[0] === 'unreviewed';
 
     return (
         <div className="flex flex-col w-full" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
@@ -1653,31 +1667,12 @@ export function BelegeView() {
 
             {/* Filter tabs + bulk re-analyze action */}
             <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <div className="flex items-center gap-1 flex-wrap">
-                    {(['unreviewed', 'confirmed', 'all'] as const).map((f) => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className="px-4 py-1.5 rounded-full font-bold transition-all"
-                            style={{
-                                fontSize: 13.5,
-                                color: filter === f ? '#FFFFFF' : '#6B6B76',
-                                background: filter === f ? 'linear-gradient(100deg,#7E3FB4,#9955CC)' : '#FFFFFF',
-                                border: filter === f ? 'none' : '1px solid #E9E9EE',
-                            }}
-                        >
-                            {t(`receipts.filter.${f}`)}
-                            {f === 'unreviewed' && unreviewedCount > 0 && (
-                                <span
-                                    className="ml-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold"
-                                    style={{ background: filter === f ? 'rgba(255,255,255,.25)' : '#F3EAFB', color: filter === f ? 'white' : '#7E3FB4' }}
-                                >
-                                    {unreviewedCount}
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </div>
+                <StatusSegments
+                    ariaLabel={t('transactions.columns.status')}
+                    segments={RECEIPT_STATUS_SEGMENTS.map((seg) => ({ ...seg, label: t(seg.labelKey), count: statusCounts[seg.id] }))}
+                    selected={statusFilter}
+                    onToggle={toggleStatus}
+                />
 
                 {/* Right side: re-analyze action + search, pushed to the far right, aligned with the tabs. */}
                 <div className="ml-auto flex items-center gap-2">
@@ -1754,15 +1749,11 @@ export function BelegeView() {
                             <FileText size={26} className="text-[#9955CC]" />
                         </div>
                         <p className="font-bold text-[#1B1B1F]" style={{ fontSize: 16 }}>
-                            {searchTerm
-                                ? t('receipts.noSearchResults', { search })
-                                : filter === 'unreviewed'
-                                  ? t('receipts.noUnreviewed')
-                                  : t('transactions.noResults')}
+                            {searchTerm ? t('receipts.noSearchResults', { search }) : onlyUnreviewed ? t('receipts.noUnreviewed') : t('transactions.noResults')}
                         </p>
                         {!searchTerm && (
                             <p className="mt-1 text-[13.5px] text-[#6B6B76]">
-                                {filter === 'unreviewed' ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
+                                {onlyUnreviewed ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
                             </p>
                         )}
                     </div>

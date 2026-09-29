@@ -1,6 +1,6 @@
 import { TransactionDisplayStatus, TransactionResponse } from '@hopps/api-client';
 import { ChevronLeft, ChevronRight, X, Plus, Search, FileText, Trash2, Check, Minus, Filter, Wallet, Unlink } from 'lucide-react';
-import { Fragment, useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -17,6 +17,7 @@ import { TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
+import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument } from '@/hooks/queries/useDocuments';
 import {
@@ -551,56 +552,12 @@ export function TransactionenView() {
                         />
                     </div>
 
-                    {/* Status filter: independent toggles, no "all" segment — nothing selected shows every row. A hairline
-                        between the segments reads as one filter group rather than a tab row. */}
-                    <div
-                        role="group"
-                        aria-label={t('transactions.columns.status')}
-                        className="inline-flex h-11 items-center gap-0.5 p-1"
-                        style={{ background: 'var(--surface-track)', borderRadius: 12 }}
-                    >
-                        {STATUS_SEGMENTS.map((seg, index) => {
-                            const on = statusFilter.includes(seg.id);
-                            return (
-                                <Fragment key={seg.id}>
-                                    {index > 0 && (
-                                        <span
-                                            aria-hidden="true"
-                                            className="mx-0.5 my-[7px] w-px self-stretch"
-                                            style={{ background: 'color-mix(in oklch, var(--muted-foreground) 18%, transparent)' }}
-                                        />
-                                    )}
-                                    <button
-                                        type="button"
-                                        aria-pressed={on}
-                                        onClick={() => toggleStatus(seg.id)}
-                                        className="inline-flex h-9 items-center gap-[7px] px-4 font-bold transition-colors"
-                                        style={{
-                                            fontSize: 13.5,
-                                            borderRadius: 'var(--btn-radius)',
-                                            color: on ? 'var(--foreground)' : 'var(--muted-foreground)',
-                                            background: on ? 'var(--background-secondary)' : 'transparent',
-                                            boxShadow: on ? 'var(--shadow-sm)' : 'none',
-                                        }}
-                                    >
-                                        {t(seg.labelKey)}
-                                        <span
-                                            className="grid place-items-center rounded-full px-[5px] font-extrabold"
-                                            style={{
-                                                minWidth: 20,
-                                                height: 20,
-                                                fontSize: 11.5,
-                                                background: on ? seg.tint : 'color-mix(in oklch, var(--surface-track) 60%, var(--background-secondary))',
-                                                color: on ? seg.color : 'var(--muted-foreground)',
-                                            }}
-                                        >
-                                            {statusCounts[seg.id]}
-                                        </span>
-                                    </button>
-                                </Fragment>
-                            );
-                        })}
-                    </div>
+                    <StatusSegments
+                        ariaLabel={t('transactions.columns.status')}
+                        segments={STATUS_SEGMENTS.map((seg) => ({ ...seg, label: t(seg.labelKey), count: statusCounts[seg.id] }))}
+                        selected={statusFilter}
+                        onToggle={toggleStatus}
+                    />
 
                     {/* Advanced filter toggle */}
                     <button
