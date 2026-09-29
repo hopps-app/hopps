@@ -7,6 +7,7 @@ import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.service.BankAccountService;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -73,6 +74,7 @@ public class BankAccountResource {
     @APIResponse(responseCode = "201", description = "Bank account created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
     @APIResponse(responseCode = "400", description = "Invalid input (e.g. duplicate IBAN, invalid IBAN format)")
     @APIResponse(responseCode = "401", description = "User not logged in")
+    @Transactional
     public Response createBankAccount(@Valid BankAccountCreateRequest request) {
         BankAccount account = bankAccountService.create(request);
         LOG.info("Bank account created: id={}, iban={}", account.getId(), account.getIban());
@@ -88,6 +90,7 @@ public class BankAccountResource {
     @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @Transactional
     public BankAccountResponse updateBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id,
             @Valid BankAccountUpdateRequest request) {
@@ -114,6 +117,7 @@ public class BankAccountResource {
     @APIResponse(responseCode = "200", description = "Bank account restored", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @Transactional
     public BankAccountResponse restoreBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.restore(id);
