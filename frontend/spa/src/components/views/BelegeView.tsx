@@ -6,13 +6,10 @@ import {
     X,
     Trash2,
     Check,
-    Minus,
     RefreshCw,
-    ChevronRight,
     ChevronDown,
     Sparkles,
     AlertCircle,
-    Clock,
     Loader2,
     ArrowUpRight,
     ArrowDownRight,
@@ -34,10 +31,14 @@ import { LoadingState } from '@/components/common/LoadingState';
 import InvoiceUploadFormBommelSelector, { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { HIDE_BOMMEL_QUERY } from '@/components/Transactions/layout';
+import { DataTable, DataTableEmpty, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
+import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
@@ -55,6 +56,7 @@ import {
     documentKeys,
 } from '@/hooks/queries/useDocuments';
 import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useDocumentEvents } from '@/hooks/useDocumentEvents';
@@ -73,13 +75,15 @@ const receiptStatus = (doc: DocumentResponse): ReceiptStatus => (doc.documentSta
 
 // Status filter segments, same look as the transactions page.
 const RECEIPT_STATUS_SEGMENTS: { id: ReceiptStatus; labelKey: string; color: string; tint: string }[] = [
-    { id: 'unreviewed', labelKey: 'receipts.filter.unreviewed', color: 'var(--purple-700)', tint: 'var(--accent-surface)' },
+    { id: 'unreviewed', labelKey: 'receipts.filter.unreviewed', color: 'var(--info)', tint: 'var(--info-surface)' },
     { id: 'confirmed', labelKey: 'receipts.filter.confirmed', color: 'var(--positive)', tint: 'var(--positive-surface)' },
 ];
 
-// Shared column layout for the documents table header and rows (must stay in sync).
-// Beleg | Datum | Erstellt am | Betrag | Status | Chevron
-const DOC_GRID = '40px minmax(0,2.3fr) 1fr 1fr 1fr 1.1fr 40px';
+// Shared column layout for the documents table header and rows (must stay in sync), same order as the transactions
+// table. Checkbox | Beleg | Bommel | Datum | Erstellt am | Status | Betrag
+const DOC_GRID = '20px minmax(0,2.3fr) 1.2fr 0.9fr 0.9fr 1.1fr 1.1fr';
+// Narrow screens drop the Bommel column, like the transactions table.
+const DOC_GRID_NARROW = '20px minmax(0,2.3fr) 0.9fr 0.9fr 1.1fr 1.1fr';
 
 // Stable marker set by the backend when the AI analysis service was unreachable (mirrors
 // DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
@@ -128,26 +132,25 @@ function initialBommelId(entityBommelId?: number | null): string {
 
 type ReviewStatus = ReturnType<typeof getDocumentReviewStatus>;
 
+// Tone and hint per review status, in the colours of the transaction statuses: green is done, blue is open and waiting
+// for the user (like Entwurf), gold asks the user to check the AI values, grey is still being processed. Failed and skipped both ask the user to fill in the
+// values; the hint says why.
+const REVIEW_STATUS_STYLE: Record<ReviewStatus, { tone: BadgeTone; labelKey: string; hintKey?: string }> = {
+    pending: { tone: 'neutral', labelKey: 'receipts.status.pending' },
+    analyzing: { tone: 'neutral', labelKey: 'receipts.status.analyzing' },
+    ready: { tone: 'warn', labelKey: 'receipts.status.ready', hintKey: 'receipts.status.hint.ready' },
+    confirmed: { tone: 'pos', labelKey: 'receipts.status.confirmed' },
+    failed: { tone: 'info', labelKey: 'receipts.status.failed', hintKey: 'receipts.status.hint.failed' },
+    skipped: { tone: 'info', labelKey: 'receipts.status.failed', hintKey: 'receipts.status.hint.skipped' },
+};
+
 function StatusBadge({ status }: { status: ReviewStatus }) {
     const { t } = useTranslation();
-
-    const styles: Record<ReviewStatus, { bg: string; color: string; icon: React.ReactNode }> = {
-        pending: { bg: '#F1F1F4', color: '#6B6B76', icon: <Clock size={11} /> },
-        analyzing: { bg: '#EDF4FF', color: '#2563EB', icon: <Loader2 size={11} className="animate-spin" /> },
-        ready: { bg: '#FBF1DD', color: '#B47C18', icon: <Sparkles size={11} /> },
-        confirmed: { bg: '#E7F4EC', color: '#1F7A50', icon: <Check size={11} strokeWidth={2.5} /> },
-        failed: { bg: '#F3EAFB', color: '#7E3FB4', icon: <PencilLine size={11} /> },
-    };
-
-    const s = styles[status];
+    const { tone, labelKey, hintKey } = REVIEW_STATUS_STYLE[status];
     return (
-        <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold whitespace-nowrap"
-            style={{ background: s.bg, color: s.color, fontFamily: FONT }}
-        >
-            {s.icon}
-            {t(`receipts.status.${status}`)}
-        </span>
+        <HintTooltip content={hintKey ? t(hintKey) : null}>
+            <Badge tone={tone}>{t(labelKey)}</Badge>
+        </HintTooltip>
     );
 }
 
@@ -934,7 +937,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             </div>
                                             <p className="text-[14px] font-semibold text-[#1B1B1F]">{t('receipts.review.noReceiptDataTitle')}</p>
                                             <p className="text-[13px] text-[#6B6B76] max-w-xs">{t('receipts.review.noReceiptDataHint')}</p>
-                                            {(status === 'failed' || status === 'ready') && (
+                                            {(status === 'failed' || status === 'ready' || status === 'skipped') && (
                                                 <button
                                                     type="button"
                                                     onClick={() => doc.id && reanalyzeMutation.mutate(doc.id)}
@@ -1034,7 +1037,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                         >
                                             {updateMutation.isPending && !confirmMutation.isPending ? '…' : t('receipts.review.save')}
                                         </BaseButton>
-                                        {(status === 'failed' || status === 'ready') && (
+                                        {(status === 'failed' || status === 'ready' || status === 'skipped') && (
                                             <BaseButton
                                                 variant="ghost"
                                                 size="sm"
@@ -1080,97 +1083,70 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
 
 function DocumentRow({
     doc,
+    bommelName,
     onClick,
     selected,
     bulkSelected,
     onToggleBulk,
 }: {
     doc: DocumentResponse;
+    bommelName: string | undefined;
     onClick: () => void;
     selected: boolean;
     bulkSelected: boolean;
     onToggleBulk: () => void;
 }) {
     const { t } = useTranslation();
+    const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
     const status = getDocumentReviewStatus(doc);
     const amount = doc.total != null ? Number(doc.total) : null;
     const outgoing = doc.direction === 'OUTGOING';
-    const highlighted = selected || bulkSelected;
 
     return (
-        <button
-            onClick={onClick}
-            className="w-full grid items-center text-left border-b border-[#E9E9EE] last:border-b-0 transition-colors"
-            style={{
-                gridTemplateColumns: DOC_GRID,
-                padding: '13px 20px',
-                background: highlighted ? '#F3EAFB' : undefined,
-                fontFamily: FONT,
-            }}
-            onMouseEnter={(e) => {
-                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '#F8F8FA';
-            }}
-            onMouseLeave={(e) => {
-                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '';
-            }}
-        >
-            {/* Bulk-select checkbox — stops propagation so ticking a row doesn't open the drawer */}
-            <span
-                role="checkbox"
-                aria-checked={bulkSelected}
-                aria-label={t('receipts.bulk.selectRow')}
-                tabIndex={0}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleBulk();
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === ' ' || e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onToggleBulk();
-                    }
-                }}
-                className={cn(
-                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                    bulkSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
-                )}
-            >
-                {bulkSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-            </span>
+        <DataTableRow columns={hideBommel ? DOC_GRID_NARROW : DOC_GRID} highlighted={selected || bulkSelected} onClick={onClick}>
+            <RowCheckbox checked={bulkSelected} onToggle={onToggleBulk} ariaLabel={t('receipts.bulk.selectRow')} />
 
             {/* Document name */}
-            <span className="flex items-center gap-3 min-w-0 pr-4">
-                <span className="w-9 h-9 flex items-center justify-center rounded-[10px] flex-shrink-0 text-base" style={{ background: '#F3EAFB' }}>
+            <span className="flex items-center gap-3 min-w-0">
+                <span className="w-9 h-9 flex items-center justify-center rounded-[10px] flex-shrink-0 text-base" style={{ background: 'var(--accent-surface)' }}>
                     {fileIcon(doc.fileContentType)}
                 </span>
                 <span className="flex flex-col min-w-0">
-                    <span className="font-bold text-[13.5px] text-[#1B1B1F] truncate leading-snug">{doc.name || doc.fileName || '—'}</span>
-                    {doc.senderName && <span className="text-[12px] text-[#6B6B76] truncate leading-snug">{doc.senderName}</span>}
+                    <span className="font-bold text-[14px] text-foreground truncate leading-snug">{doc.name || doc.fileName || '—'}</span>
+                    <span className="text-[12px] text-muted-foreground truncate leading-snug">{doc.senderName ?? ''}</span>
                 </span>
             </span>
 
+            {/* Bommel, stays empty when the receipt has none */}
+            {!hideBommel && (
+                <span className="min-w-0">
+                    {bommelName && (
+                        <span className="block truncate text-[13.5px] text-muted-foreground" title={bommelName}>
+                            {bommelName}
+                        </span>
+                    )}
+                </span>
+            )}
+
             {/* Date */}
-            <span className="text-[13px] text-[#6B6B76] tabular-nums">{fmtDate(doc.transactionTime)}</span>
+            <span className="text-[13.5px] text-muted-foreground whitespace-nowrap tabular-nums">{fmtDate(doc.transactionTime)}</span>
 
             {/* Created at */}
-            <span className="text-[13px] text-[#9A9AA3] tabular-nums">{fmtDate(doc.createdAt)}</span>
-
-            {/* Amount, signed by document direction */}
-            <span className="font-bold tabular-nums text-[13.5px]" style={{ color: amount != null ? (outgoing ? '#1F7A50' : '#B12C4C') : '#9A9AA3' }}>
-                {amount != null ? `${outgoing ? '+' : '−'}${fmtCurrency(Math.abs(amount))}` : '—'}
-            </span>
+            <span className="text-[13px] text-[var(--ink-faint)] whitespace-nowrap tabular-nums">{fmtDate(doc.createdAt)}</span>
 
             {/* Status */}
-            <span>
+            <span className="flex items-center">
                 <StatusBadge status={status} />
             </span>
 
-            {/* Arrow */}
-            <span className="flex justify-end text-[#C0C0CC]">
-                <ChevronRight size={16} />
+            {/* Amount, signed by document direction */}
+            <span
+                className="text-right font-bold tabular-nums whitespace-nowrap"
+                style={{ fontSize: 14.5, color: amount == null ? 'var(--ink-faint)' : outgoing ? 'var(--positive)' : 'var(--negative)' }}
+            >
+                {amount != null ? `${outgoing ? '+' : '–'} ${fmtCurrency(Math.abs(amount))}` : '—'}
             </span>
-        </button>
+        </DataTableRow>
     );
 }
 
@@ -1495,6 +1471,25 @@ export function BelegeView() {
     // visibility and which documents the bulk action targets — already-analyzed receipts are left untouched.
     const reanalyzable = docs.filter(canReanalyzeDocument);
 
+    // Selected receipts that can be analyzed again: not confirmed, with a file, and not already being analyzed. Unlike
+    // the "re-analyze all" action this includes receipts whose analysis succeeded, the same as the button in the drawer.
+    const reanalyzableSelected = docs.filter(
+        (d) =>
+            d.id != null &&
+            selectedIds.has(d.id) &&
+            d.documentStatus !== 'CONFIRMED' &&
+            !!d.fileName &&
+            d.analysisStatus !== 'PENDING' &&
+            d.analysisStatus !== 'ANALYZING'
+    );
+
+    async function handleReanalyzeSelected() {
+        const ids = reanalyzableSelected.map((d) => d.id).filter((id): id is number => id != null);
+        if (ids.length === 0) return;
+        const count = await reanalyzeDocuments.mutateAsync(ids);
+        showSuccess(t('receipts.reanalyzeStarted', { count }));
+    }
+
     async function handleReanalyzeAll() {
         const ids = reanalyzable.map((d) => d.id).filter((id): id is number => id != null);
         if (ids.length === 0) return;
@@ -1504,7 +1499,10 @@ export function BelegeView() {
 
     // Load the organization's bommels so the detail view's bommel select is populated.
     const { organization } = useStore();
-    const bommelCount = useBommelsStore((s) => s.allBommels.length);
+    const allBommels = useBommelsStore((s) => s.allBommels);
+    const bommelCount = allBommels.length;
+    const bommelNames = new Map(allBommels.map((b) => [b.id, b.name]));
+    const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
     useEffect(() => {
         if (organization?.id && bommelCount === 0) {
@@ -1679,34 +1677,38 @@ export function BelegeView() {
                     {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
                     {reanalyzable.length > 0 && (
                         <button
+                            type="button"
                             onClick={handleReanalyzeAll}
                             disabled={reanalyzeDocuments.isPending}
-                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13.5px] font-bold border border-[#E0E0E6] text-[#7E3FB4] bg-white hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors disabled:opacity-50"
+                            className="inline-flex h-11 items-center gap-[7px] whitespace-nowrap rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[13.5px] font-semibold text-muted-foreground transition-colors hover:border-purple-300 hover:text-foreground disabled:opacity-50"
                         >
-                            <RefreshCw size={14} className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
+                            <RefreshCw size={15} className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
                             {t('receipts.reanalyzeAll')}
-                            <span className="ml-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-bold" style={{ background: '#F3EAFB', color: '#7E3FB4' }}>
+                            <span
+                                className="grid place-items-center rounded-full px-[5px] text-[11.5px] font-extrabold text-purple-700"
+                                style={{ minWidth: 20, height: 20, background: 'var(--accent-surface)' }}
+                            >
                                 {reanalyzable.length}
                             </span>
                         </button>
                     )}
 
-                    {/* Search — same height as the tabs, far right */}
+                    {/* Search, same look as on the transactions page */}
                     <div className="relative w-64 max-w-full">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9AA5] pointer-events-none" />
+                        <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-faint)] pointer-events-none" />
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder={t('receipts.searchPlaceholder')}
-                            className="w-full rounded-full border border-[#E9E9EE] bg-white py-1.5 pl-9 pr-9 text-[13.5px] text-[#1B1B1F] placeholder:text-[#9A9AA5] outline-none transition-colors focus:border-[#C7A2E3]"
+                            className="h-11 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] pl-[38px] pr-9 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]"
                         />
                         {search && (
                             <button
                                 type="button"
                                 onClick={() => setSearch('')}
                                 aria-label={t('receipts.searchClear')}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9A9AA5] transition-colors hover:text-[#1B1B1F]"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ink-faint)] transition-colors hover:text-foreground"
                             >
                                 <X size={15} />
                             </button>
@@ -1717,23 +1719,27 @@ export function BelegeView() {
 
             {/* Bulk selection toolbar */}
             {selectedIds.size > 0 && (
-                <div className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5" style={{ background: '#F8F5FC', borderColor: '#E4D3F2' }}>
-                    <span className="text-[13.5px] font-bold text-[#1B1B1F]">{t('receipts.bulk.selectedCount', { n: selectedIds.size })}</span>
-                    <button type="button" onClick={clearSelection} className="text-[13px] font-semibold text-[#6B6B76] hover:text-[#1B1B1F] transition-colors">
-                        {t('receipts.bulk.clear')}
-                    </button>
-                    <div className="flex-1" />
-                    <button
-                        type="button"
-                        onClick={() => setBulkDeleteOpen(true)}
-                        disabled={bulkDelete.isPending}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                        style={{ background: '#B12C4C' }}
+                <BulkActionBar
+                    className="mb-3"
+                    label={t('receipts.bulk.selectedCount', { n: selectedIds.size })}
+                    clearLabel={t('receipts.bulk.clear')}
+                    onClear={clearSelection}
+                >
+                    <BaseButton
+                        variant="outline"
+                        size="sm"
+                        onClick={handleReanalyzeSelected}
+                        disabled={reanalyzableSelected.length === 0 || reanalyzeDocuments.isPending}
+                        className="gap-1.5 font-bold bg-[var(--background-secondary)]"
                     >
-                        <Trash2 size={14} />
+                        <RefreshCw className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
+                        {t('receipts.bulk.reanalyze', { n: reanalyzableSelected.length })}
+                    </BaseButton>
+                    <BaseButton variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)} disabled={bulkDelete.isPending} className="gap-1.5 font-bold">
+                        <Trash2 />
                         {t('receipts.bulk.delete')}
-                    </button>
-                </div>
+                    </BaseButton>
+                </BulkActionBar>
             )}
 
             {/* Document list */}
@@ -1741,99 +1747,58 @@ export function BelegeView() {
                 {isLoading ? (
                     <LoadingState className="py-12" />
                 ) : filtered.length === 0 ? (
-                    <div
-                        className="flex flex-col items-center justify-center py-20 text-center rounded-[18px] border border-[#E9E9EE]"
-                        style={{ background: '#FFFFFF' }}
-                    >
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: '#F3EAFB' }}>
-                            <FileText size={26} className="text-[#9955CC]" />
-                        </div>
-                        <p className="font-bold text-[#1B1B1F]" style={{ fontSize: 16 }}>
-                            {searchTerm ? t('receipts.noSearchResults', { search }) : onlyUnreviewed ? t('receipts.noUnreviewed') : t('transactions.noResults')}
-                        </p>
-                        {!searchTerm && (
-                            <p className="mt-1 text-[13.5px] text-[#6B6B76]">
-                                {onlyUnreviewed ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
-                            </p>
-                        )}
-                    </div>
+                    <DataTableEmpty
+                        title={searchTerm ? t('receipts.noSearchResults', { search }) : onlyUnreviewed ? t('receipts.noUnreviewed') : t('transactions.noResults')}
+                        description={searchTerm ? undefined : onlyUnreviewed ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
+                    />
                 ) : (
-                    <div
-                        className="rounded-[18px] border border-[#E9E9EE] overflow-hidden"
-                        style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
-                    >
-                        {/* Table header */}
-                        <div
-                            className="grid items-center border-b border-[#E9E9EE]"
-                            style={{
-                                gridTemplateColumns: DOC_GRID,
-                                padding: '10px 20px',
-                                background: '#F8F8FA',
-                                fontFamily: FONT,
-                            }}
-                        >
+                    <DataTable>
+                        <DataTableHeader columns={hideBommel ? DOC_GRID_NARROW : DOC_GRID}>
                             {/* Select-all checkbox (current list) */}
-                            <span
-                                role="checkbox"
-                                aria-checked={allPageSelected ? 'true' : somePageSelected ? 'mixed' : 'false'}
-                                aria-label={t('receipts.bulk.selectAll')}
-                                tabIndex={0}
-                                onClick={toggleSelectAll}
-                                onKeyDown={(e) => {
-                                    if (e.key === ' ' || e.key === 'Enter') {
-                                        e.preventDefault();
-                                        toggleSelectAll();
-                                    }
-                                }}
-                                className={cn(
-                                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                                    allPageSelected || somePageSelected ? 'bg-[#7E3FB4] border-[#7E3FB4]' : 'border-[#C0C0CC] hover:border-[#9955CC]'
-                                )}
-                            >
-                                {allPageSelected ? (
-                                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                                ) : somePageSelected ? (
-                                    <Minus className="w-3 h-3 text-white" strokeWidth={3} />
-                                ) : null}
-                            </span>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                                {t('receipts.columns.document')}
-                            </span>
+                            <RowCheckbox
+                                checked={allPageSelected ? true : somePageSelected ? 'mixed' : false}
+                                onToggle={toggleSelectAll}
+                                ariaLabel={t('receipts.bulk.selectAll')}
+                            />
+                            <HeaderCell>{t('receipts.columns.document')}</HeaderCell>
+                            {!hideBommel && <HeaderCell>{t('transactions.columns.bommel')}</HeaderCell>}
                             <SortHeader
                                 label={t('receipts.columns.date')}
                                 active={sortBy === 'transactionTime'}
                                 direction={sortDir}
                                 onClick={() => handleSort('transactionTime')}
+                                variant="klar"
                             />
                             <SortHeader
                                 label={t('receipts.columns.createdAt')}
                                 active={sortBy === 'createdAt'}
                                 direction={sortDir}
                                 onClick={() => handleSort('createdAt')}
+                                variant="klar"
                             />
+                            <HeaderCell>{t('receipts.columns.status')}</HeaderCell>
                             <SortHeader
                                 label={t('receipts.columns.amount')}
                                 active={sortBy === 'total'}
                                 direction={sortDir}
                                 onClick={() => handleSort('total')}
+                                align="right"
+                                variant="klar"
                             />
-                            <span style={{ fontSize: 11, fontWeight: 700, color: '#9A9AA3', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
-                                {t('receipts.columns.status')}
-                            </span>
-                            <span />
-                        </div>
+                        </DataTableHeader>
 
                         {sorted.map((doc) => (
                             <DocumentRow
                                 key={doc.id}
                                 doc={doc}
+                                bommelName={doc.bommelId != null ? bommelNames.get(doc.bommelId) : undefined}
                                 onClick={() => setSelectedDoc(doc)}
                                 selected={selectedDoc?.id === doc.id}
                                 bulkSelected={doc.id != null && selectedIds.has(doc.id)}
                                 onToggleBulk={() => doc.id != null && toggleSelect(doc.id)}
                             />
                         ))}
-                    </div>
+                    </DataTable>
                 )}
             </div>
 

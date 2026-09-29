@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 
 import { FONT, TX_GRID, TX_GRID_GAP, TX_GRID_NARROW } from './layout';
 
+import { ARROW_COLUMN } from '@/components/ui/DataTable';
+
 import { Skeleton } from '@/components/Dashboard/SectionState';
 
 // Placeholders in the shape of the real thing, not a spinner: the table, the detail drawer and the
@@ -11,7 +13,7 @@ import { Skeleton } from '@/components/Dashboard/SectionState';
 /** Table placeholder. Reads the same column template as the header and the rows, so the columns line up. */
 export function TableSkeleton({ hideBommel }: { hideBommel: boolean }) {
     const { t } = useTranslation();
-    const columns = { gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID, columnGap: TX_GRID_GAP, fontFamily: FONT };
+    const columns = { gridTemplateColumns: `${hideBommel ? TX_GRID_NARROW : TX_GRID} ${ARROW_COLUMN}`, columnGap: TX_GRID_GAP, fontFamily: FONT };
 
     return (
         <div

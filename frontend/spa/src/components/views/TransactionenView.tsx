@@ -1,5 +1,5 @@
 import { TransactionDisplayStatus, TransactionResponse } from '@hopps/api-client';
-import { ChevronLeft, ChevronRight, X, Plus, Search, FileText, Trash2, Check, Minus, Filter, Wallet, Unlink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Plus, Search, FileText, Trash2,  Filter, Wallet, Unlink } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -10,12 +10,14 @@ import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboa
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
-import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_GAP, TX_GRID_NARROW } from '@/components/Transactions/layout';
+import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
 import { StatusBadge } from '@/components/Transactions/StatusBadge';
 import { TransactionDrawer } from '@/components/Transactions/TransactionDrawer';
 import { TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
+import { DataTable, DataTableEmpty, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
@@ -31,7 +33,6 @@ import {
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { usePersistedState } from '@/hooks/usePersistedState';
-import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
@@ -50,15 +51,6 @@ import { useStore } from '@/store/store';
 
 // Small heavy uppercase label above a filter control.
 const FILTER_LABEL = 'text-[12px] font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]';
-
-// Table column header text (static columns; the sortable ones use SortHeader's `klar` variant, which matches this).
-const HEADER_CELL = {
-    fontSize: 12,
-    fontWeight: 700,
-    color: 'var(--muted-foreground)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-} as const;
 
 // The status segments. Independently toggleable; none selected means every row. Colour of the count badge while the
 // segment is on, the same colours as the status badge in the rows.
@@ -118,50 +110,10 @@ function TransactionRow({
         .join(', ');
     const amount = tx.total ? Number(tx.total) : 0;
     const incoming = amount >= 0;
-    const highlighted = selected || bulkSelected;
 
     return (
-        <button
-            onClick={onClick}
-            className={cn('w-full grid items-center text-left border-b border-border-soft last:border-b-0 transition-colors')}
-            style={{
-                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
-                columnGap: TX_GRID_GAP,
-                padding: '14px 20px',
-                background: highlighted ? 'var(--accent-surface)' : undefined,
-                fontFamily: FONT,
-            }}
-            onMouseEnter={(e) => {
-                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-sunken)';
-            }}
-            onMouseLeave={(e) => {
-                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '';
-            }}
-        >
-            {/* Bulk-select checkbox — stops propagation so ticking a row doesn't open the drawer */}
-            <span
-                role="checkbox"
-                aria-checked={bulkSelected}
-                aria-label={t('transactions.bulk.selectRow')}
-                tabIndex={0}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleBulk();
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === ' ' || e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onToggleBulk();
-                    }
-                }}
-                className={cn(
-                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                    bulkSelected ? 'bg-primary border-primary' : 'border-[var(--border-strong)] hover:border-primary'
-                )}
-            >
-                {bulkSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-            </span>
+        <DataTableRow columns={hideBommel ? TX_GRID_NARROW : TX_GRID} highlighted={selected || bulkSelected} onClick={onClick}>
+            <RowCheckbox checked={bulkSelected} onToggle={onToggleBulk} ariaLabel={t('transactions.bulk.selectRow')} />
 
             {/* Transaktion */}
             <span className="flex items-center gap-3 min-w-0">
@@ -216,7 +168,7 @@ function TransactionRow({
             >
                 {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
             </span>
-        </button>
+        </DataTableRow>
     );
 }
 
@@ -705,30 +657,23 @@ export function TransactionenView() {
 
                 {/* Bulk selection toolbar */}
                 {selectedIds.size > 0 && (
-                    <div
-                        className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1"
-                        style={{ background: 'var(--accent-surface)', borderColor: 'var(--purple-200)' }}
+                    <BulkActionBar
+                        className="mt-1"
+                        label={t('transactions.bulk.selectedCount', { n: selectedIds.size })}
+                        clearLabel={t('transactions.bulk.clear')}
+                        onClear={clearSelection}
                     >
-                        <span className="text-[13.5px] font-bold text-foreground">{t('transactions.bulk.selectedCount', { n: selectedIds.size })}</span>
-                        <button
-                            type="button"
-                            onClick={clearSelection}
-                            className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            {t('transactions.bulk.clear')}
-                        </button>
-                        <div className="flex-1" />
-                        <button
-                            type="button"
+                        <BaseButton
+                            variant="destructive"
+                            size="sm"
                             onClick={() => setBulkDeleteOpen(true)}
                             disabled={bulkDelete.isPending}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--btn-radius)] text-[13.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                            style={{ background: 'var(--negative-solid)' }}
+                            className="gap-1.5 font-bold"
                         >
-                            <Trash2 size={14} />
+                            <Trash2 />
                             {t('transactions.bulk.delete')}
-                        </button>
-                    </div>
+                        </BaseButton>
+                    </BulkActionBar>
                 )}
             </div>
 
@@ -737,65 +682,22 @@ export function TransactionenView() {
                 {isLoading ? (
                     <TableSkeleton hideBommel={hideBommel} />
                 ) : transactions.length === 0 ? (
-                    <div
-                        className="flex flex-col items-center justify-center py-20 text-center rounded-[var(--r-card)] border border-border-soft"
-                        style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-sm)' }}
-                    >
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: 'var(--accent-surface)' }}>
-                            <FileText size={26} className="text-primary" />
-                        </div>
-                        <p className="font-bold text-foreground" style={{ fontSize: 16 }}>
-                            {t('transactions.noResults')}
-                        </p>
-                        <p className="mt-1 text-[13.5px] text-muted-foreground">{t('transactions.noResultsDesc')}</p>
-                    </div>
+                    <DataTableEmpty title={t('transactions.noResults')} description={t('transactions.noResultsDesc')} />
                 ) : (
-                    <div
-                        className="rounded-[var(--r-card)] border border-border-soft overflow-hidden"
-                        style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
-                    >
-                        {/* Table header */}
-                        <div
-                            className="grid items-center border-b border-border-soft"
-                            style={{
-                                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
-                                columnGap: TX_GRID_GAP,
-                                padding: '12px 20px',
-                                fontFamily: FONT,
-                            }}
-                        >
+                    <DataTable>
+                        <DataTableHeader columns={hideBommel ? TX_GRID_NARROW : TX_GRID}>
                             {/* Select-all checkbox (current page) */}
-                            <span
-                                role="checkbox"
-                                aria-checked={allPageSelected ? 'true' : somePageSelected ? 'mixed' : 'false'}
-                                aria-label={t('transactions.bulk.selectAll')}
-                                tabIndex={0}
-                                onClick={toggleSelectAll}
-                                onKeyDown={(e) => {
-                                    if (e.key === ' ' || e.key === 'Enter') {
-                                        e.preventDefault();
-                                        toggleSelectAll();
-                                    }
-                                }}
-                                className={cn(
-                                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                                    allPageSelected || somePageSelected ? 'bg-primary border-primary' : 'border-[var(--border-strong)] hover:border-primary'
-                                )}
-                            >
-                                {allPageSelected ? (
-                                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                                ) : somePageSelected ? (
-                                    <Minus className="w-3 h-3 text-white" strokeWidth={3} />
-                                ) : null}
-                            </span>
+                            <RowCheckbox
+                                checked={allPageSelected ? true : somePageSelected ? 'mixed' : false}
+                                onToggle={toggleSelectAll}
+                                ariaLabel={t('transactions.bulk.selectAll')}
+                            />
                             {[
                                 t('transactions.columns.transaction'),
                                 t('transactions.columns.category'),
                                 ...(hideBommel ? [] : [t('transactions.columns.bommel')]),
                             ].map((col) => (
-                                <span key={col} style={HEADER_CELL}>
-                                    {col}
-                                </span>
+                                <HeaderCell key={col}>{col}</HeaderCell>
                             ))}
                             <SortHeader
                                 label={t('transactions.columns.date')}
@@ -811,7 +713,7 @@ export function TransactionenView() {
                                 onClick={() => handleSort('createdAt')}
                                 variant="klar"
                             />
-                            <span style={HEADER_CELL}>{t('transactions.columns.status')}</span>
+                            <HeaderCell>{t('transactions.columns.status')}</HeaderCell>
                             <SortHeader
                                 label={t('transactions.columns.amount')}
                                 active={sortBy === 'total'}
@@ -820,7 +722,7 @@ export function TransactionenView() {
                                 align="right"
                                 variant="klar"
                             />
-                        </div>
+                        </DataTableHeader>
 
                         {transactions.map((tx) => (
                             <TransactionRow
@@ -832,7 +734,7 @@ export function TransactionenView() {
                                 onToggleBulk={() => tx.id != null && toggleSelect(tx.id)}
                             />
                         ))}
-                    </div>
+                    </DataTable>
                 )}
             </div>
 

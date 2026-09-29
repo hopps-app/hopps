@@ -833,9 +833,14 @@
         "status": {
             "pending": "In attesa",
             "analyzing": "Analisi in corso",
-            "ready": "Da revisionare",
+            "ready": "Da verificare",
             "confirmed": "Confermata",
-            "failed": "Inserimento manuale"
+            "failed": "Da compilare manualmente",
+            "hint": {
+                "ready": "L'IA ha estratto i valori. Verificali e confermali.",
+                "failed": "L'analisi non è riuscita. Inserisci tu i valori.",
+                "skipped": "La ricevuta non è stata analizzata. Inserisci tu i valori."
+            }
         },
         "statusDescription": {
             "pending": "Ricevuta caricata – l'analisi sta per iniziare.",
@@ -1036,6 +1041,7 @@
             "selectRow": "Seleziona ricevuta",
             "selectedCount": "{{n}} selezionate",
             "clear": "Cancella selezione",
+            "reanalyze": "Rianalizza ({{n}})",
             "delete": "Elimina",
             "confirmTitle": "Eliminare le ricevute selezionate?",
             "confirmDesc": "Vuoi davvero eliminare le ricevute selezionate ({{n}})? Questa operazione non può essere annullata."

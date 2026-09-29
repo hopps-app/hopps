@@ -753,9 +753,14 @@
         "status": {
             "pending": "Ausstehend",
             "analyzing": "Wird analysiert",
-            "ready": "Prüfen",
+            "ready": "Zu prüfen",
             "confirmed": "Bestätigt",
-            "failed": "Manuelle Eingabe"
+            "failed": "Manuell ausfüllen",
+            "hint": {
+                "ready": "Die KI hat die Werte ausgelesen. Bitte prüfen und bestätigen.",
+                "failed": "Die Analyse ist fehlgeschlagen. Bitte die Werte selbst eintragen.",
+                "skipped": "Der Beleg wurde nicht analysiert. Bitte die Werte selbst eintragen."
+            }
         },
         "statusDescription": {
             "pending": "Beleg hochgeladen – die Analyse startet gleich.",
@@ -956,6 +961,7 @@
             "selectRow": "Beleg auswählen",
             "selectedCount": "{{n}} ausgewählt",
             "clear": "Auswahl aufheben",
+            "reanalyze": "Neu analysieren ({{n}})",
             "delete": "Löschen",
             "confirmTitle": "Ausgewählte Belege löschen?",
             "confirmDesc": "Möchtest du die ausgewählten Belege ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."

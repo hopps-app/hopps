@@ -156,10 +156,12 @@ export function useReanalyzeDocuments() {
 }
 
 // Derive a human-readable "review status" from documentStatus + analysisStatus
-export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'analyzing' | 'ready' | 'confirmed' | 'failed' {
+export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'analyzing' | 'ready' | 'confirmed' | 'failed' | 'skipped' {
     if (doc.documentStatus === 'CONFIRMED') return 'confirmed';
     if (doc.analysisStatus === 'FAILED' || doc.documentStatus === 'FAILED') return 'failed';
     if (doc.analysisStatus === 'ANALYZING' || doc.analysisStatus === 'PENDING') return 'analyzing';
-    if (doc.analysisStatus === 'COMPLETED' || doc.analysisStatus === 'SKIPPED') return 'ready';
+    if (doc.analysisStatus === 'COMPLETED') return 'ready';
+    // Not analyzed (analysis switched off, or created from a bank transaction): nothing was extracted to check.
+    if (doc.analysisStatus === 'SKIPPED') return 'skipped';
     return 'pending';
 }

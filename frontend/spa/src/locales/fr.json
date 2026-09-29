@@ -835,7 +835,12 @@
             "analyzing": "Analyse en cours",
             "ready": "À vérifier",
             "confirmed": "Confirmé",
-            "failed": "Saisie manuelle"
+            "failed": "À remplir manuellement",
+            "hint": {
+                "ready": "L'IA a extrait les valeurs. Veuillez les vérifier et les confirmer.",
+                "failed": "L'analyse a échoué. Veuillez saisir les valeurs vous-même.",
+                "skipped": "Le reçu n'a pas été analysé. Veuillez saisir les valeurs vous-même."
+            }
         },
         "statusDescription": {
             "pending": "Reçu téléversé – l'analyse va bientôt commencer.",
@@ -1036,6 +1041,7 @@
             "selectRow": "Sélectionner le reçu",
             "selectedCount": "{{n}} sélectionnés",
             "clear": "Effacer la sélection",
+            "reanalyze": "Réanalyser ({{n}})",
             "delete": "Supprimer",
             "confirmTitle": "Supprimer les reçus sélectionnés ?",
             "confirmDesc": "Voulez-vous vraiment supprimer les reçus sélectionnés ({{n}}) ? Cette action est irréversible."

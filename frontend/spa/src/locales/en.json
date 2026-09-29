@@ -866,9 +866,14 @@
         "status": {
             "pending": "Pending",
             "analyzing": "Analyzing",
-            "ready": "Review",
+            "ready": "To review",
             "confirmed": "Confirmed",
-            "failed": "Manual entry"
+            "failed": "Fill in manually",
+            "hint": {
+                "ready": "The AI has read out the values. Please check and confirm them.",
+                "failed": "The analysis failed. Please enter the values yourself.",
+                "skipped": "The receipt was not analyzed. Please enter the values yourself."
+            }
         },
         "statusDescription": {
             "pending": "Receipt uploaded – analysis is about to start.",
@@ -1069,6 +1074,7 @@
             "selectRow": "Select receipt",
             "selectedCount": "{{n}} selected",
             "clear": "Clear selection",
+            "reanalyze": "Re-analyze ({{n}})",
             "delete": "Delete",
             "confirmTitle": "Delete selected receipts?",
             "confirmDesc": "Do you really want to delete the selected receipts ({{n}})? This cannot be undone."
