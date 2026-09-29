@@ -5,5 +5,7 @@ package app.hopps.audit.domain;
  * to, so one entity's history is a single query.
  */
 public enum AuditEntityType {
-    TRANSACTION
+    TRANSACTION,
+    /** A receipt (Beleg). */
+    DOCUMENT
 }

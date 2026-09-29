@@ -11,6 +11,7 @@ import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.document.audit.DocumentAuditor;
 import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
@@ -34,6 +35,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -84,6 +86,9 @@ public class DocumentResource {
 
     @Inject
     TransactionAuditor transactionAuditor;
+
+    @Inject
+    DocumentAuditor documentAuditor;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -138,6 +143,7 @@ public class DocumentResource {
         // Persist document. Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before the response.
         document.setDocumentStatus(DocumentStatus.UPLOADED);
         documentRepository.persistAndFlush(document);
+        documentAuditor.created(document);
         LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
 
         // Fire event to trigger async analysis after transaction commits (only if requested)
@@ -204,6 +210,8 @@ public class DocumentResource {
         if (document == null) {
             throw new NotFoundException("Document not found");
         }
+
+        Map<String, Object> before = documentAuditor.snapshot(document);
 
         // Track if any fields were manually modified
         boolean modified = false;
@@ -278,6 +286,7 @@ public class DocumentResource {
             document.setExtractionSource(ExtractionSource.MANUAL);
         }
 
+        documentAuditor.updated(document, before);
         notifyChanged(document);
         LOG.info("Document updated: id={}", document.getId());
         return DocumentResponse.from(document);
@@ -295,6 +304,8 @@ public class DocumentResource {
         if (document == null) {
             throw new NotFoundException("Document not found");
         }
+
+        documentAuditor.deleted(document);
 
         // Delete associated transaction first (due to foreign key constraint)
         Transaction transaction = transactionRepository.findByDocumentId(id);
@@ -381,8 +392,10 @@ public class DocumentResource {
                     Response.Status.UNSUPPORTED_MEDIA_TYPE);
         }
 
+        Map<String, Object> before = documentAuditor.snapshot(document);
         String oldKey = document.getFileKey();
         fileService.handleFileUpload(document, file);
+        documentAuditor.fileReplaced(document, before);
         if (oldKey != null && !oldKey.equals(document.getFileKey())) {
             fileService.deleteFile(oldKey);
         }
@@ -425,6 +438,7 @@ public class DocumentResource {
 
         // Fire event to trigger async analysis after transaction commits
         documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
+        documentAuditor.reanalyzeRequested(document);
 
         LOG.info("Re-analysis triggered: id={}", id);
         return DocumentResponse.from(document);
@@ -454,8 +468,10 @@ public class DocumentResource {
         // second one — the user has reconciled the values onto the existing transaction; just mark the document
         // reviewed.
         if (document.getTransaction() != null) {
+            DocumentStatus previousStatus = document.getDocumentStatus();
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
             document.setReviewedBy(principal);
+            documentAuditor.confirmed(document, previousStatus);
             notifyChanged(document);
             LOG.info("Document confirmed (existing transaction kept): id={}, transactionId={}", document.getId(),
                     document.getTransactionId());
@@ -491,7 +507,9 @@ public class DocumentResource {
         transactionAuditor.created(transaction);
 
         document.setTransaction(transaction);
+        DocumentStatus previousStatus = document.getDocumentStatus();
         document.setDocumentStatus(DocumentStatus.CONFIRMED);
+        documentAuditor.confirmed(document, previousStatus);
         document.setReviewedBy(principal);
 
         notifyChanged(document);

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import app.hopps.audit.domain.AuditAction;
+import app.hopps.audit.domain.AuditEntityType;
 import app.hopps.audit.domain.AuditLog;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import app.hopps.transaction.api.TransactionResource;
@@ -51,7 +52,8 @@ class TransactionAuditTest {
 
     @Transactional
     List<AuditLog> auditOf(Long transactionId) {
-        return AuditLog.list("entityId = ?1 order by id", transactionId);
+        return AuditLog.list("entityType = ?1 and entityId = ?2 order by id", AuditEntityType.TRANSACTION,
+                transactionId);
     }
 
     private Long createTransaction(String name, String total) {
