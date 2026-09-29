@@ -1,6 +1,7 @@
-import { ArrowDownRight, ArrowUpRight, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 
+import { DIRECTION_ICONS } from '@/components/Transactions/TxIcon';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { cn } from '@/lib/utils';
 
@@ -24,10 +25,10 @@ export function Field({ label, children }: { label: ReactNode; children: ReactNo
     );
 }
 
-// Direction options of the edit forms: an expense leaves the account (up), an income arrives (down).
+// Direction options of the edit forms; the arrows come from DIRECTION_ICONS so they match the rest of the app.
 export const DIRECTIONS = [
-    { id: 'expense', Icon: ArrowUpRight, ink: 'var(--negative)', tint: 'var(--negative-surface)' },
-    { id: 'income', Icon: ArrowDownRight, ink: 'var(--positive)', tint: 'var(--positive-surface)' },
+    { id: 'expense', Icon: DIRECTION_ICONS.expense, ink: 'var(--negative)', tint: 'var(--negative-surface)' },
+    { id: 'income', Icon: DIRECTION_ICONS.income, ink: 'var(--positive)', tint: 'var(--positive-surface)' },
 ] as const;
 
 export type DirectionId = (typeof DIRECTIONS)[number]['id'];

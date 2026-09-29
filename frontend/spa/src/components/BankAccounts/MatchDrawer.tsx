@@ -1,6 +1,6 @@
 import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FilePlus, FileText, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
+import { Check, ExternalLink, FilePlus, FileText, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransac
 import { fmtCurrency, fmtDate } from '@/components/BankAccounts/format';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
+import { DIRECTION_ICONS } from '@/components/Transactions/TxIcon';
 import { CloseButton } from '@/components/ui/CloseButton';
 import {
     useBankTransaction,
@@ -60,7 +61,7 @@ function HoppsTxMini({ tx }: { tx: TransactionResponse }) {
                     isIncoming ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
                 )}
             >
-                {isIncoming ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                {isIncoming ? <DIRECTION_ICONS.income className="w-5 h-5" /> : <DIRECTION_ICONS.expense className="w-5 h-5" />}
             </div>
             <div className="min-w-0 flex-1">
                 <div className="text-sm font-bold truncate">{tx.name || '—'}</div>
