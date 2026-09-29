@@ -1033,7 +1033,9 @@
             "discardTitle": "Abandonner les modifications ?",
             "discardText": "Vos corrections sur ce reçu ne sont pas encore enregistrées.",
             "discardConfirm": "Abandonner",
-            "keepEditing": "Continuer la modification"
+            "keepEditing": "Continuer la modification",
+            "saveSuccess": "Reçu enregistré",
+            "saveError": "Le reçu n'a pas pu être enregistré"
         },
         "filter": {
             "all": "Tous",

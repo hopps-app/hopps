@@ -953,7 +953,9 @@
             "discardTitle": "Änderungen verwerfen?",
             "discardText": "Deine Korrekturen an diesem Beleg sind noch nicht gespeichert.",
             "discardConfirm": "Verwerfen",
-            "keepEditing": "Weiter bearbeiten"
+            "keepEditing": "Weiter bearbeiten",
+            "saveSuccess": "Beleg gespeichert",
+            "saveError": "Beleg konnte nicht gespeichert werden"
         },
         "filter": {
             "all": "Alle",

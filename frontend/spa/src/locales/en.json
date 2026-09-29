@@ -1066,7 +1066,9 @@
             "discardTitle": "Discard changes?",
             "discardText": "Your corrections to this receipt are not saved yet.",
             "discardConfirm": "Discard",
-            "keepEditing": "Keep editing"
+            "keepEditing": "Keep editing",
+            "saveSuccess": "Receipt saved",
+            "saveError": "Receipt could not be saved"
         },
         "filter": {
             "all": "All",

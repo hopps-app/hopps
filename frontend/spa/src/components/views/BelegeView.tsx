@@ -254,6 +254,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     const reanalyzeMutation = useReanalyzeDocument();
     const updateTransaction = useUpdateTransaction();
     const confirmTransaction = useConfirmTransaction();
+    const { showSuccess, showError } = useToast();
 
     // Live document: polls while the AI analysis is still running so results appear automatically.
     const { data: liveDoc } = useDocument(docProp?.id);
@@ -454,16 +455,26 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
         });
     }
 
-    // Save the values without confirming, then close.
+    // Save the values without confirming. The drawer stays open; only the close button closes it. The saved values become
+    // the new reference, so the "unsaved" hint goes away.
     async function handleSave() {
         if (!doc?.id) return;
-        if (isBankReconcile && linkedTransactionId) {
-            await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
-        } else {
-            // Attach the id onto the DocumentUpdateRequest instance (a spread would drop the class shape).
-            await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
+        const saved: ReviewForm = { name, amount, date, senderName, bommelId, privatelyPaid, direction, categoryValues };
+        try {
+            if (isBankReconcile && linkedTransactionId) {
+                await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
+                setBaseline(saved);
+            } else {
+                // Attach the id onto the DocumentUpdateRequest instance (a spread would drop the class shape).
+                await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
+                // A receipt without a transaction has nowhere to keep category values; they are stored when the
+                // transaction is created. Until then they still count as unsaved.
+                setBaseline((b) => ({ ...saved, categoryValues: b?.categoryValues ?? {} }));
+            }
+            showSuccess(t('receipts.review.saveSuccess'));
+        } catch {
+            showError(t('receipts.review.saveError'));
         }
-        onClose();
     }
 
     // Confirm the receipt: creates the (draft) transaction from it, or for a bank-origin receipt keeps the existing one.

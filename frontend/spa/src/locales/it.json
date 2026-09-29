@@ -1033,7 +1033,9 @@
             "discardTitle": "Annullare le modifiche?",
             "discardText": "Le tue correzioni a questa ricevuta non sono ancora salvate.",
             "discardConfirm": "Annulla modifiche",
-            "keepEditing": "Continua a modificare"
+            "keepEditing": "Continua a modificare",
+            "saveSuccess": "Ricevuta salvata",
+            "saveError": "Impossibile salvare la ricevuta"
         },
         "filter": {
             "all": "Tutte",
