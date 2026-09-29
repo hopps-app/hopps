@@ -1,5 +1,5 @@
 import { TransactionUpdateRequest } from '@hopps/api-client';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFor
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
+import { DirectionCards, Field, footerBtn, inputCls, outlineBtn } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
 import { FONT } from '@/components/Transactions/layout';
@@ -34,30 +35,6 @@ import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
-// Field label above an input: small, heavy, uppercase.
-const labelCls = 'text-[12px] font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]';
-const inputCls =
-    'h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[14px] text-foreground placeholder:text-muted-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
-
-// Footer buttons. Height and type size follow the design system's default button.
-const footerBtn = 'h-[42px] gap-2 rounded-[var(--btn-radius)] px-5 text-[14.5px] font-bold';
-const outlineBtn = 'border border-border-soft text-foreground hover:bg-[var(--background-secondary)]';
-
-function Field({ label, children }: { label: ReactNode; children: ReactNode }) {
-    return (
-        <div className="flex min-w-0 flex-col gap-[7px]">
-            <span className={labelCls}>{label}</span>
-            {children}
-        </div>
-    );
-}
-
-// Direction options of the edit form: an expense leaves the account (up), an income arrives (down).
-const DIRECTIONS = [
-    { id: 'expense', Icon: ArrowUpRight, ink: 'var(--negative)', tint: 'var(--negative-surface)' },
-    { id: 'income', Icon: ArrowDownRight, ink: 'var(--positive)', tint: 'var(--positive-surface)' },
-] as const;
-
 /**
  * Detail drawer of a transaction: read view with the reconciliation of linked bank movements, and an edit form.
  * A transaction stays editable and deletable in every status.
@@ -78,9 +55,9 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
-    const drawerRootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
-    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels, drawerRootBommel?.id), [allBommels, drawerRootBommel?.id]);
+    // Without a root id the tree keeps the root bommel itself, so a transaction can be booked on the whole organization.
+    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels), [allBommels]);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
 
@@ -375,8 +352,8 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
 
                         {/* Master data */}
                         <div
-                            className="mt-[22px] rounded-[var(--r-card)] border border-border-soft px-[18px] py-1.5"
-                            style={{ background: 'var(--background-secondary)' }}
+                            className="mt-[22px] rounded-[var(--r-card)] px-[18px] py-1.5"
+                            style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
                         >
                             {detailRows.map(([label, value]) => (
                                 <div key={label} className="flex items-center justify-between gap-4 border-b border-border-soft py-[13px] last:border-b-0">
@@ -393,8 +370,8 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     {t('transactions.detail.receipt')}
                                 </Eyebrow>
                                 <div
-                                    className="flex items-center gap-[13px] rounded-[var(--r-card)] border border-border-soft px-[15px] py-3"
-                                    style={{ background: 'var(--background-secondary)' }}
+                                    className="flex items-center gap-[13px] rounded-[var(--r-card)] px-[15px] py-3"
+                                    style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
                                 >
                                     <span
                                         className="flex-shrink-0 rounded-full px-[11px] py-[7px] text-[12px] font-extrabold tracking-[0.03em]"
@@ -423,33 +400,13 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="flex flex-col gap-4">
                             {/* Direction */}
-                            <div className="grid grid-cols-2 gap-2.5">
-                                {DIRECTIONS.map(({ id, Icon, ink, tint }) => {
-                                    const on = kind === id;
-                                    return (
-                                        <button
-                                            key={id}
-                                            type="button"
-                                            onClick={() => setKind(id)}
-                                            className="flex items-center gap-[11px] rounded-[var(--r-md)] border-[1.5px] px-3.5 py-[11px] text-left transition-colors"
-                                            style={{ borderColor: on ? ink : 'var(--border-soft)', background: on ? tint : 'var(--background-secondary)' }}
-                                        >
-                                            <span
-                                                className="grid h-[34px] w-[34px] flex-shrink-0 place-items-center rounded-full"
-                                                style={{
-                                                    background: on ? 'var(--background-secondary)' : 'var(--surface-sunken)',
-                                                    color: on ? ink : 'var(--ink-faint)',
-                                                }}
-                                            >
-                                                <Icon size={17} />
-                                            </span>
-                                            <span className="text-[15px] font-extrabold" style={{ color: on ? ink : 'var(--muted-foreground)' }}>
-                                                {t(`transactions.create.${id}`)}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <DirectionCards
+                                value={kind}
+                                onChange={setKind}
+                                labels={{ expense: t('transactions.create.expense'), income: t('transactions.create.income') }}
+                                hints={{ expense: t('receipts.direction.incomingHint'), income: t('receipts.direction.outgoingHint') }}
+                                ariaLabel={t('transactions.create.direction')}
+                            />
 
                             {/* Amount + Date */}
                             <div className="grid grid-cols-2 gap-3.5">
@@ -492,6 +449,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     emptyLabel={t('invoiceUpload.selectBommel')}
                                     onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
                                     triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
+                                    matchTriggerWidth
                                 />
                             </Field>
 
