@@ -712,7 +712,22 @@
             "confirmDesc": "Do you really want to delete the selected transactions ({{n}})? This cannot be undone."
         },
         "linked": "Linked",
-        "notLinked": "Not linked"
+        "notLinked": "Not linked",
+        "toast": {
+            "createError": "Transaction could not be created",
+            "saveError": "Transaction could not be saved",
+            "confirmError": "Transaction could not be confirmed",
+            "reopenError": "Transaction could not be reopened",
+            "deleteError": "Transaction could not be deleted",
+            "created": "Transaction created",
+            "saved": "Transaction saved",
+            "confirmed": "Transaction confirmed",
+            "reopened": "Transaction reopened",
+            "deleted": "Transaction deleted",
+            "bulkDeleted": "{{count}} transaction(s) deleted",
+            "bulkDeletePartial": "{{done}} transaction(s) deleted, {{failed}} failed",
+            "bulkDeleteFailed": "Transactions could not be deleted"
+        }
     },
     "datePicker": {
         "selectDate": "Select date"
@@ -1066,9 +1081,7 @@
             "discardTitle": "Discard changes?",
             "discardText": "Your corrections to this receipt are not saved yet.",
             "discardConfirm": "Discard",
-            "keepEditing": "Keep editing",
-            "saveSuccess": "Receipt saved",
-            "saveError": "Receipt could not be saved"
+            "keepEditing": "Keep editing"
         },
         "filter": {
             "all": "All",
@@ -1119,6 +1132,21 @@
             "delete": "Delete",
             "confirmTitle": "Delete selected receipts?",
             "confirmDesc": "Do you really want to delete the selected receipts ({{n}})? This cannot be undone."
+        },
+        "toast": {
+            "reuploadError": "File could not be replaced",
+            "createTransactionError": "Transaction could not be created",
+            "saveError": "Receipt could not be saved",
+            "deleteError": "Receipt could not be deleted",
+            "reanalyzeError": "Analysis could not be started",
+            "saved": "Receipt saved",
+            "transactionCreated": "Transaction created",
+            "receiptConfirmed": "Receipt confirmed",
+            "deleted": "Receipt deleted",
+            "reanalyzeStarted": "Re-analysis started",
+            "bulkDeleted": "{{count}} receipt(s) deleted",
+            "bulkDeletePartial": "{{done}} receipt(s) deleted, {{failed}} failed",
+            "bulkDeleteFailed": "Receipts could not be deleted"
         }
     },
     "bommel": {
@@ -1183,14 +1211,14 @@
             "export": "Export"
         },
         "toast": {
-            "createSuccess": "Bank account created successfully",
-            "createError": "Failed to create bank account",
-            "updateSuccess": "Bank account updated successfully",
-            "updateError": "Failed to update bank account",
+            "createSuccess": "Bank account created",
+            "createError": "Bank account could not be created",
+            "updateSuccess": "Bank account saved",
+            "updateError": "Bank account could not be saved",
             "archiveSuccess": "Bank account archived",
-            "archiveError": "Failed to archive bank account",
+            "archiveError": "Bank account could not be archived",
             "restoreSuccess": "Bank account restored",
-            "restoreError": "Failed to restore bank account"
+            "restoreError": "Bank account could not be restored"
         }
     },
     "bankImport": {
@@ -1280,8 +1308,9 @@
             "confirm": "Are you sure you want to roll back this import? All imported transactions will be deleted."
         },
         "toast": {
-            "rollbackSuccess": "Import rolled back successfully",
-            "rollbackError": "Failed to roll back import"
+            "rollbackSuccess": "Import rolled back",
+            "rollbackError": "Import could not be rolled back",
+            "startError": "Import could not be started"
         }
     },
     "bankSchema": {
@@ -1342,16 +1371,16 @@
             }
         },
         "toast": {
-            "createSuccess": "Schema created successfully",
-            "createError": "Failed to create schema",
-            "updateSuccess": "Schema updated successfully",
-            "updateError": "Failed to update schema",
-            "deleteSuccess": "Schema deleted successfully",
-            "deleteError": "Failed to delete schema",
+            "createSuccess": "Schema created",
+            "createError": "Schema could not be created",
+            "updateSuccess": "Schema saved",
+            "updateError": "Schema could not be saved",
+            "deleteSuccess": "Schema deleted",
+            "deleteError": "Schema could not be deleted",
             "archiveSuccess": "Schema archived",
-            "archiveError": "Failed to archive schema",
+            "archiveError": "Schema could not be archived",
             "restoreSuccess": "Schema restored",
-            "restoreError": "Failed to restore schema"
+            "restoreError": "Schema could not be restored"
         }
     },
     "connectivity": {
@@ -1495,6 +1524,18 @@
             "coversExactly": "Covers the rest exactly",
             "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
             "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
+        }
+    },
+    "bankMatch": {
+        "toast": {
+            "linkError": "Bank transaction could not be linked",
+            "amountError": "Amount could not be changed",
+            "unlinkError": "Link could not be removed",
+            "ignoreError": "Bank transaction could not be ignored",
+            "linked": "Bank transaction linked",
+            "ignored": "Bank transaction ignored",
+            "unignored": "Bank transaction restored",
+            "unignoreError": "Bank transaction could not be restored"
         }
     }
 }

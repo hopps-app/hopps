@@ -104,17 +104,17 @@
             "goHome": "Zum Dashboard"
         },
         "api": {
-            "networkError": "Verbindung zum Server nicht möglich. Bitte prüfen Sie Ihre Internetverbindung.",
-            "serverError": "Der Server hat einen Fehler festgestellt. Bitte versuchen Sie es später erneut.",
-            "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
-            "unauthorized": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
-            "forbidden": "Sie haben keine Berechtigung für diese Aktion.",
-            "conflict": "Ein Konflikt ist aufgetreten. Die Ressource wurde möglicherweise geändert.",
-            "badRequest": "Die Anfrage war ungültig. Bitte überprüfen Sie Ihre Eingabe.",
-            "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-            "timeout": "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.",
+            "networkError": "Keine Verbindung zum Server. Bitte prüfe deine Internetverbindung.",
+            "serverError": "Auf dem Server ist ein Fehler aufgetreten. Bitte versuche es später erneut.",
+            "notFound": "Der Eintrag wurde nicht gefunden.",
+            "unauthorized": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+            "forbidden": "Du hast keine Berechtigung für diese Aktion.",
+            "conflict": "Der Eintrag wurde inzwischen geändert. Bitte lade die Seite neu.",
+            "badRequest": "Die Eingaben sind ungültig. Bitte prüfe sie.",
+            "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+            "timeout": "Die Anfrage hat zu lange gedauert. Bitte versuche es erneut.",
             "retry": "Erneut versuchen",
-            "retryDescription": "Klicken Sie, um den fehlgeschlagenen Vorgang zu wiederholen."
+            "retryDescription": "Klicke, um den Vorgang zu wiederholen."
         },
         "network": {
             "title": "Verbindung verloren",
@@ -711,7 +711,22 @@
             "confirmDesc": "Möchtest du die ausgewählten Transaktionen ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
         },
         "linked": "Verknüpft",
-        "notLinked": "Nicht verknüpft"
+        "notLinked": "Nicht verknüpft",
+        "toast": {
+            "createError": "Transaktion konnte nicht erstellt werden",
+            "saveError": "Transaktion konnte nicht gespeichert werden",
+            "confirmError": "Transaktion konnte nicht bestätigt werden",
+            "reopenError": "Transaktion konnte nicht wieder geöffnet werden",
+            "deleteError": "Transaktion konnte nicht gelöscht werden",
+            "created": "Transaktion erstellt",
+            "saved": "Transaktion gespeichert",
+            "confirmed": "Transaktion bestätigt",
+            "reopened": "Transaktion wieder geöffnet",
+            "deleted": "Transaktion gelöscht",
+            "bulkDeleted": "{{count}} Transaktion(en) gelöscht",
+            "bulkDeletePartial": "{{done}} Transaktion(en) gelöscht, {{failed}} fehlgeschlagen",
+            "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden"
+        }
     },
     "receipts": {
         "draft": "Entwurf",
@@ -953,9 +968,7 @@
             "discardTitle": "Änderungen verwerfen?",
             "discardText": "Deine Korrekturen an diesem Beleg sind noch nicht gespeichert.",
             "discardConfirm": "Verwerfen",
-            "keepEditing": "Weiter bearbeiten",
-            "saveSuccess": "Beleg gespeichert",
-            "saveError": "Beleg konnte nicht gespeichert werden"
+            "keepEditing": "Weiter bearbeiten"
         },
         "filter": {
             "all": "Alle",
@@ -1006,6 +1019,21 @@
             "delete": "Löschen",
             "confirmTitle": "Ausgewählte Belege löschen?",
             "confirmDesc": "Möchtest du die ausgewählten Belege ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
+        },
+        "toast": {
+            "reuploadError": "Datei konnte nicht ersetzt werden",
+            "createTransactionError": "Transaktion konnte nicht erstellt werden",
+            "saveError": "Beleg konnte nicht gespeichert werden",
+            "deleteError": "Beleg konnte nicht gelöscht werden",
+            "reanalyzeError": "Analyse konnte nicht gestartet werden",
+            "saved": "Beleg gespeichert",
+            "transactionCreated": "Transaktion erstellt",
+            "receiptConfirmed": "Beleg bestätigt",
+            "deleted": "Beleg gelöscht",
+            "reanalyzeStarted": "Erneute Analyse gestartet",
+            "bulkDeleted": "{{count}} Beleg(e) gelöscht",
+            "bulkDeletePartial": "{{done}} Beleg(e) gelöscht, {{failed}} fehlgeschlagen",
+            "bulkDeleteFailed": "Belege konnten nicht gelöscht werden"
         }
     },
     "bommel": {
@@ -1193,14 +1221,14 @@
             "export": "Exportieren"
         },
         "toast": {
-            "createSuccess": "Bankkonto erfolgreich erstellt",
-            "createError": "Fehler beim Erstellen des Bankkontos",
-            "updateSuccess": "Bankkonto erfolgreich aktualisiert",
-            "updateError": "Fehler beim Aktualisieren des Bankkontos",
+            "createSuccess": "Bankkonto erstellt",
+            "createError": "Bankkonto konnte nicht erstellt werden",
+            "updateSuccess": "Bankkonto gespeichert",
+            "updateError": "Bankkonto konnte nicht gespeichert werden",
             "archiveSuccess": "Bankkonto archiviert",
-            "archiveError": "Fehler beim Archivieren des Bankkontos",
+            "archiveError": "Bankkonto konnte nicht archiviert werden",
             "restoreSuccess": "Bankkonto wiederhergestellt",
-            "restoreError": "Fehler beim Wiederherstellen des Bankkontos"
+            "restoreError": "Bankkonto konnte nicht wiederhergestellt werden"
         }
     },
     "bankImport": {
@@ -1290,8 +1318,9 @@
             "confirm": "Möchten Sie diesen Import wirklich rückgängig machen? Alle importierten Transaktionen werden gelöscht."
         },
         "toast": {
-            "rollbackSuccess": "Import erfolgreich rückgängig gemacht",
-            "rollbackError": "Fehler beim Rückgängigmachen des Imports"
+            "rollbackSuccess": "Import rückgängig gemacht",
+            "rollbackError": "Import konnte nicht rückgängig gemacht werden",
+            "startError": "Import konnte nicht gestartet werden"
         }
     },
     "bankSchema": {
@@ -1352,16 +1381,16 @@
             }
         },
         "toast": {
-            "createSuccess": "Schema erfolgreich erstellt",
-            "createError": "Fehler beim Erstellen des Schemas",
-            "updateSuccess": "Schema erfolgreich aktualisiert",
-            "updateError": "Fehler beim Aktualisieren des Schemas",
-            "deleteSuccess": "Schema erfolgreich gelöscht",
-            "deleteError": "Fehler beim Löschen des Schemas",
+            "createSuccess": "Schema erstellt",
+            "createError": "Schema konnte nicht erstellt werden",
+            "updateSuccess": "Schema gespeichert",
+            "updateError": "Schema konnte nicht gespeichert werden",
+            "deleteSuccess": "Schema gelöscht",
+            "deleteError": "Schema konnte nicht gelöscht werden",
             "archiveSuccess": "Schema archiviert",
-            "archiveError": "Fehler beim Archivieren des Schemas",
+            "archiveError": "Schema konnte nicht archiviert werden",
             "restoreSuccess": "Schema wiederhergestellt",
-            "restoreError": "Fehler beim Wiederherstellen des Schemas"
+            "restoreError": "Schema konnte nicht wiederhergestellt werden"
         }
     },
     "konten": {
@@ -1494,6 +1523,18 @@
             "coversExactly": "Deckt den Rest genau",
             "shouldBeIncome": "Diese Banktransaktion ist eine Einnahme. Bitte „Einnahme\" wählen.",
             "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
+        }
+    },
+    "bankMatch": {
+        "toast": {
+            "linkError": "Bankumsatz konnte nicht verknüpft werden",
+            "amountError": "Betrag konnte nicht geändert werden",
+            "unlinkError": "Verknüpfung konnte nicht gelöst werden",
+            "ignoreError": "Bankumsatz konnte nicht ignoriert werden",
+            "linked": "Bankumsatz verknüpft",
+            "ignored": "Bankumsatz ignoriert",
+            "unignored": "Bankumsatz wieder aufgenommen",
+            "unignoreError": "Bankumsatz konnte nicht wieder aufgenommen werden"
         }
     }
 }

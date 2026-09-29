@@ -61,7 +61,8 @@ export function useDocument(id: number | undefined, options?: { poll?: boolean }
     });
 }
 
-export function useUploadDocument() {
+/** `toastErrors: false` for callers that show each failed file themselves (e.g. the upload rows on the receipts page). */
+export function useUploadDocument({ toastErrors = true }: { toastErrors?: boolean } = {}) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ file, analyze, direction }: { file: File; analyze: boolean; direction: DocumentDirection }) =>
@@ -69,7 +70,8 @@ export function useUploadDocument() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
         },
-        onError: showUploadError,
+        // Defining onError (even a no-op) also keeps the global error toast away.
+        onError: toastErrors ? showUploadError : () => {},
     });
 }
 
@@ -80,6 +82,7 @@ export function useUploadDocument() {
 export function useReuploadDocumentFile() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.reuploadError' },
         mutationFn: ({ id, file }: { id: number; file: File }) => apiService.orgService.filePOST(id, true, { data: file, fileName: file.name }),
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
@@ -91,6 +94,7 @@ export function useReuploadDocumentFile() {
 export function useConfirmDocument() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.createTransactionError' },
         mutationFn: (id: number) => apiService.orgService.confirm(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
@@ -106,6 +110,7 @@ export function useConfirmDocument() {
 export function useUpdateDocument() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.saveError' },
         mutationFn: ({ id, ...body }: Parameters<typeof apiService.orgService.documentsPATCH>[1] & { id: number }) =>
             apiService.orgService.documentsPATCH(id, body as Parameters<typeof apiService.orgService.documentsPATCH>[1]),
         onSuccess: (_data, vars) => {
@@ -115,9 +120,11 @@ export function useUpdateDocument() {
     });
 }
 
-export function useDeleteDocument() {
+/** `silent` for bulk deletes, which report one summary instead of an error per item. */
+export function useDeleteDocument({ silent = false }: { silent?: boolean } = {}) {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: silent ? { silent: true } : { errorMessage: 'receipts.toast.deleteError' },
         mutationFn: (id: number) => apiService.orgService.documentsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
@@ -131,6 +138,7 @@ export function useDeleteDocument() {
 export function useReanalyzeDocument() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.reanalyzeError' },
         mutationFn: (id: number) => apiService.orgService.reanalyze(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });

@@ -32,6 +32,7 @@ import {
 } from '@/hooks/queries/useTransactions';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { useToast } from '@/hooks/use-toast';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -177,6 +178,7 @@ function TransactionRow({
 export function TransactionenView() {
     const { t } = useTranslation();
     usePageTitle(t('transactions.title'));
+    const { showSuccess, showWarning, showError } = useToast();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
 
     const [search, setSearch] = usePersistedState<string>('hopps.transactions.search', '');
@@ -201,8 +203,8 @@ export function TransactionenView() {
     const [createOpen, setCreateOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-    const bulkDelete = useDeleteTransaction();
-    const deleteDocumentBulk = useDeleteDocument();
+    const bulkDelete = useDeleteTransaction({ silent: true });
+    const deleteDocumentBulk = useDeleteDocument({ silent: true });
     const PAGE_SIZE = 30;
 
     // Open a specific transaction when navigated to with ?id= (e.g. from a linked receipt)
@@ -375,13 +377,19 @@ export function TransactionenView() {
     const handleBulkDelete = async (withReceipts: boolean) => {
         const ids = Array.from(selectedIds);
         // allSettled so one failed delete doesn't abort the rest; the list refetches via query invalidation.
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
             ids.map((id) => {
                 const documentId = withReceipts ? selectedDocumentIds.get(id) : null;
                 // Deleting the document removes its transaction too, so rows with a receipt need only that one call.
                 return documentId != null ? deleteDocumentBulk.mutateAsync(documentId) : bulkDelete.mutateAsync(id);
             })
         );
+        const failed = results.filter((r) => r.status === 'rejected').length;
+        const done = results.length - failed;
+        // One summary instead of a toast per transaction.
+        if (failed === 0) showSuccess(t('transactions.toast.bulkDeleted', { count: done }));
+        else if (done === 0) showError(t('transactions.toast.bulkDeleteFailed'));
+        else showWarning(t('transactions.toast.bulkDeletePartial', { done, failed }));
         if (selectedTxId != null && selectedIds.has(selectedTxId)) setSelectedTxId(null);
         clearSelection();
         setBulkDeleteOpen(false);

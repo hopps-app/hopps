@@ -254,7 +254,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     const reanalyzeMutation = useReanalyzeDocument();
     const updateTransaction = useUpdateTransaction();
     const confirmTransaction = useConfirmTransaction();
-    const { showSuccess, showError } = useToast();
+    const { showSuccess, showInfo } = useToast();
 
     // Live document: polls while the AI analysis is still running so results appear automatically.
     const { data: liveDoc } = useDocument(docProp?.id);
@@ -471,9 +471,9 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                 // transaction is created. Until then they still count as unsaved.
                 setBaseline((b) => ({ ...saved, categoryValues: b?.categoryValues ?? {} }));
             }
-            showSuccess(t('receipts.review.saveSuccess'));
+            showSuccess(t('receipts.toast.saved'));
         } catch {
-            showError(t('receipts.review.saveError'));
+            // Shown by the global mutation error handler.
         }
     }
 
@@ -482,16 +482,23 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // can be linked.
     async function handleCreateTransaction() {
         if (!doc?.id) return;
-        if (isBankReconcile && linkedTransactionId) {
-            await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
-            await confirmMutation.mutateAsync(doc.id);
-        } else {
-            await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
-            const confirmed = await confirmMutation.mutateAsync(doc.id);
-            // The document itself has no category values; they go onto the transaction created from it.
-            if (confirmed.transactionId != null && Object.keys(categoryValues).length > 0) {
-                await updateTransaction.mutateAsync({ id: confirmed.transactionId, data: new TransactionUpdateRequest({ categoryValues }) });
+        try {
+            if (isBankReconcile && linkedTransactionId) {
+                await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
+                await confirmMutation.mutateAsync(doc.id);
+                showSuccess(t('receipts.toast.receiptConfirmed'));
+            } else {
+                await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
+                const confirmed = await confirmMutation.mutateAsync(doc.id);
+                // The document itself has no category values; they go onto the transaction created from it.
+                if (confirmed.transactionId != null && Object.keys(categoryValues).length > 0) {
+                    await updateTransaction.mutateAsync({ id: confirmed.transactionId, data: new TransactionUpdateRequest({ categoryValues }) });
+                }
+                showSuccess(t('receipts.toast.transactionCreated'));
             }
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
         }
         setDetailTab('transaction');
     }
@@ -499,12 +506,24 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // Confirm the linked draft transaction from the read view (same rule as in the transaction drawer).
     async function handleConfirmTransaction() {
         if (!linkedTransactionId) return;
-        await confirmTransaction.mutateAsync(linkedTransactionId);
+        try {
+            await confirmTransaction.mutateAsync(linkedTransactionId);
+            showSuccess(t('transactions.toast.confirmed'));
+        } catch {
+            // Shown by the global mutation error handler.
+        }
     }
 
     async function handleDelete() {
         if (!doc?.id) return;
-        await deleteMutation.mutateAsync(doc.id);
+        try {
+            await deleteMutation.mutateAsync(doc.id);
+        } catch {
+            // Shown by the global mutation error handler.
+            setConfirmDeleteOpen(false);
+            return;
+        }
+        showSuccess(t('receipts.toast.deleted'));
         setConfirmDeleteOpen(false);
         onDeleted();
         onClose();
@@ -960,7 +979,9 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                 <BaseButton
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => doc.id && reanalyzeMutation.mutate(doc.id)}
+                                    onClick={() =>
+                                        doc.id && reanalyzeMutation.mutate(doc.id, { onSuccess: () => showInfo(t('receipts.toast.reanalyzeStarted')) })
+                                    }
                                     disabled={reanalyzeMutation.isPending}
                                     aria-label={t('receipts.review.reanalyze')}
                                     title={t('receipts.review.reanalyze')}
@@ -1173,7 +1194,7 @@ function rejectionErrorKind(rejection: FileRejection): UploadErrorKind {
 function UploadZone({ onUploaded }: { onUploaded: () => void }) {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const uploadMutation = useUploadDocument();
+    const uploadMutation = useUploadDocument({ toastErrors: false });
     // Remembered per browser, so the choice survives reloads.
     const [analyze, setAnalyze] = usePersistedState<boolean>('hopps.belege.autoAnalyze', true);
     const [items, setItems] = useState<UploadItem[]>([]);
@@ -1531,14 +1552,14 @@ export function BelegeView() {
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [search, setSearch] = useState('');
-    const bulkDelete = useDeleteDocument();
+    const bulkDelete = useDeleteDocument({ silent: true });
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
 
     const docs = (allDocs ?? []) as DocumentResponse[];
 
     const queryClient = useQueryClient();
-    const { showWarning, showSuccess } = useToast();
+    const { showWarning, showInfo, showSuccess, showError } = useToast();
     const reanalyzeDocuments = useReanalyzeDocuments();
 
     // Receipts that can be (re-)analyzed: previously failed or never analyzed. Drives both the button's
@@ -1561,14 +1582,14 @@ export function BelegeView() {
         const ids = reanalyzableSelected.map((d) => d.id).filter((id): id is number => id != null);
         if (ids.length === 0) return;
         const count = await reanalyzeDocuments.mutateAsync(ids);
-        showSuccess(t('receipts.reanalyzeStarted', { count }));
+        showInfo(t('receipts.reanalyzeStarted', { count }));
     }
 
     async function handleReanalyzeAll() {
         const ids = reanalyzable.map((d) => d.id).filter((id): id is number => id != null);
         if (ids.length === 0) return;
         const count = await reanalyzeDocuments.mutateAsync(ids);
-        showSuccess(t('receipts.reanalyzeStarted', { count }));
+        showInfo(t('receipts.reanalyzeStarted', { count }));
     }
 
     // Load the organization's bommels so the detail view's bommel select is populated.
@@ -1699,7 +1720,13 @@ export function BelegeView() {
     const handleBulkDelete = async () => {
         const ids = Array.from(selectedIds);
         // allSettled so one failed delete doesn't abort the rest; the list refetches via query invalidation.
-        await Promise.allSettled(ids.map((id) => bulkDelete.mutateAsync(id)));
+        const results = await Promise.allSettled(ids.map((id) => bulkDelete.mutateAsync(id)));
+        const failed = results.filter((r) => r.status === 'rejected').length;
+        const done = results.length - failed;
+        // One summary instead of a toast per receipt.
+        if (failed === 0) showSuccess(t('receipts.toast.bulkDeleted', { count: done }));
+        else if (done === 0) showError(t('receipts.toast.bulkDeleteFailed'));
+        else showWarning(t('receipts.toast.bulkDeletePartial', { done, failed }));
         if (selectedDoc?.id != null && selectedIds.has(selectedDoc.id)) setSelectedDoc(null);
         clearSelection();
         setBulkDeleteOpen(false);

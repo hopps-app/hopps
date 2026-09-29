@@ -81,7 +81,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const { data: categoryGroups = [] } = useCategoryGroups();
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
 
     // A transaction always opens in the read view; the edit form only appears after "Bearbeiten". Reset it whenever a
     // different transaction is opened.
@@ -147,7 +147,13 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
 
     async function handleSave() {
         // Draft save: required category groups are not enforced here (only at confirm), like the other fields.
-        await persistEdits();
+        try {
+            await persistEdits();
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.saved'));
         setEditMode(false);
         // Return to the transactions table instead of the read-only detail view — collapse the drawer.
         onClose();
@@ -158,8 +164,14 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     async function handleSaveAndConfirm() {
         if (!tx?.id) return;
         if (!categoriesComplete()) return;
-        await persistEdits();
-        await confirmMutation.mutateAsync(tx.id);
+        try {
+            await persistEdits();
+            await confirmMutation.mutateAsync(tx.id);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.confirmed'));
         // Close the drawer and go back to the transactions list instead of showing the read-only detail view.
         setEditMode(false);
         onClose();
@@ -168,11 +180,18 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     // Deleting the document takes its transaction with it, so "with receipt" is a single call to the document endpoint.
     async function handleDelete(withReceipt: boolean) {
         if (!txId) return;
-        if (withReceipt && tx?.documentId != null) {
-            await deleteDocumentMutation.mutateAsync(tx.documentId);
-        } else {
-            await deleteMutation.mutateAsync(txId);
+        try {
+            if (withReceipt && tx?.documentId != null) {
+                await deleteDocumentMutation.mutateAsync(tx.documentId);
+            } else {
+                await deleteMutation.mutateAsync(txId);
+            }
+        } catch {
+            // Shown by the global mutation error handler.
+            setConfirmDeleteOpen(false);
+            return;
         }
+        showSuccess(t('transactions.toast.deleted'));
         setConfirmDeleteOpen(false);
         onDeleted();
         onClose();
@@ -180,14 +199,26 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
 
     async function handleConfirm() {
         if (!tx?.id) return;
-        await confirmMutation.mutateAsync(tx.id);
+        try {
+            await confirmMutation.mutateAsync(tx.id);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.confirmed'));
         // Back to the list after confirming, rather than staying in the detail view.
         onClose();
     }
 
     async function handleReopen() {
         if (!tx?.id) return;
-        await reopenMutation.mutateAsync(tx.id);
+        try {
+            await reopenMutation.mutateAsync(tx.id);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.reopened'));
     }
 
     const amount = tx?.total ? Number(tx.total) : 0;

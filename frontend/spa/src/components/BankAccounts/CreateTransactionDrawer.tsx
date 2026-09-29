@@ -52,7 +52,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const createMutation = useCreateTransaction();
     const addMatch = useAddBankTransactionMatch();
     const confirmMutation = useConfirmTransaction();
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
     const { data: categoryGroups = [] } = useCategoryGroups();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
@@ -159,13 +159,20 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         const payload = buildPayload();
         if (!payload) return;
 
-        const created = await createMutation.mutateAsync(payload);
-        if (bankTx?.id && created?.id) {
-            await addMatch.mutateAsync({ bankTxId: bankTx.id, transactionId: created.id });
-            if (confirm) {
-                await confirmMutation.mutateAsync(created.id);
+        let created;
+        try {
+            created = await createMutation.mutateAsync(payload);
+            if (bankTx?.id && created?.id) {
+                await addMatch.mutateAsync({ bankTxId: bankTx.id, transactionId: created.id });
+                if (confirm) {
+                    await confirmMutation.mutateAsync(created.id);
+                }
             }
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
         }
+        showSuccess(t(confirm && bankTx?.id ? 'transactions.toast.confirmed' : 'transactions.toast.created'));
         onCreated?.(created?.id);
         handleClose();
     }

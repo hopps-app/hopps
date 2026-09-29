@@ -22,6 +22,7 @@ import {
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { useDocument } from '@/hooks/queries/useDocuments';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 import { parseAllocationAmount } from '@/utils/parseAmount';
@@ -94,6 +95,7 @@ interface MatchDrawerProps {
 
 export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawerProps) {
     const { t } = useTranslation();
+    const { showSuccess } = useToast();
     const navigate = useNavigate();
     const [sel, setSel] = useState<Set<number>>(new Set());
     // Optional per-transaction "amount used" typed at link time (raw input). Only present for rows the user edited;
@@ -192,6 +194,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
     const { data: matchAllocs } = useBankTransactionMatches(bankTxId);
     const ignoreTx = useIgnoreBankTransaction();
     const unignoreTx = useMutation({
+        meta: { errorMessage: 'bankMatch.toast.unignoreError' },
         mutationFn: (id: number) => apiService.orgService.ignoreDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
@@ -301,13 +304,20 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
     };
 
     const handleAssign = async () => {
-        for (const txId of sel) {
-            const tx = txById.get(txId);
-            // Without an explicit amount the backend allocates the movement's full amount. When the movement is already
-            // partly used, send the open-remainder allocation instead so the new match fills only the open difference.
-            const amount = overrideAlloc(txId) ?? (movementPartlyUsed && tx ? defaultAlloc(tx) : undefined);
-            await addMatch.mutateAsync({ bankTxId, transactionId: txId, amount: amount ?? undefined });
+        try {
+            for (const txId of sel) {
+                const tx = txById.get(txId);
+                // Without an explicit amount the backend allocates the movement's full amount. When the movement is
+                // already partly used, send the open-remainder allocation instead so the new match fills only the open
+                // difference.
+                const amount = overrideAlloc(txId) ?? (movementPartlyUsed && tx ? defaultAlloc(tx) : undefined);
+                await addMatch.mutateAsync({ bankTxId, transactionId: txId, amount: amount ?? undefined });
+            }
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
         }
+        showSuccess(t('bankMatch.toast.linked'));
         setSel(new Set());
         setAmounts(new Map());
         onClose();
@@ -322,7 +332,13 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
     };
 
     const handleIgnore = async () => {
-        await ignoreTx.mutateAsync(bankTxId);
+        try {
+            await ignoreTx.mutateAsync(bankTxId);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('bankMatch.toast.ignored'));
         onClose();
     };
 
@@ -637,7 +653,13 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                             type="button"
                             className="px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
                             onClick={async () => {
-                                await unignoreTx.mutateAsync(bankTxId);
+                                try {
+                                    await unignoreTx.mutateAsync(bankTxId);
+                                } catch {
+                                    // Shown by the global mutation error handler.
+                                    return;
+                                }
+                                showSuccess(t('bankMatch.toast.unignored'));
                                 onClose();
                             }}
                             disabled={unignoreTx.isPending}

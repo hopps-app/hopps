@@ -679,7 +679,22 @@
             "confirmDesc": "Vuoi davvero eliminare le transazioni selezionate ({{n}})? Questa operazione non può essere annullata."
         },
         "linked": "Collegata",
-        "notLinked": "Non collegata"
+        "notLinked": "Non collegata",
+        "toast": {
+            "createError": "Impossibile creare la transazione",
+            "saveError": "Impossibile salvare la transazione",
+            "confirmError": "Impossibile confermare la transazione",
+            "reopenError": "Impossibile riaprire la transazione",
+            "deleteError": "Impossibile eliminare la transazione",
+            "created": "Transazione creata",
+            "saved": "Transazione salvata",
+            "confirmed": "Transazione confermata",
+            "reopened": "Transazione riaperta",
+            "deleted": "Transazione eliminata",
+            "bulkDeleted": "{{count}} transazione/i eliminata/e",
+            "bulkDeletePartial": "{{done}} transazione/i eliminata/e, {{failed}} non riuscita/e",
+            "bulkDeleteFailed": "Impossibile eliminare le transazioni"
+        }
     },
     "datePicker": {
         "selectDate": "Seleziona data"
@@ -1033,9 +1048,7 @@
             "discardTitle": "Annullare le modifiche?",
             "discardText": "Le tue correzioni a questa ricevuta non sono ancora salvate.",
             "discardConfirm": "Annulla modifiche",
-            "keepEditing": "Continua a modificare",
-            "saveSuccess": "Ricevuta salvata",
-            "saveError": "Impossibile salvare la ricevuta"
+            "keepEditing": "Continua a modificare"
         },
         "filter": {
             "all": "Tutte",
@@ -1086,6 +1099,21 @@
             "delete": "Elimina",
             "confirmTitle": "Eliminare le ricevute selezionate?",
             "confirmDesc": "Vuoi davvero eliminare le ricevute selezionate ({{n}})? Questa operazione non può essere annullata."
+        },
+        "toast": {
+            "reuploadError": "Impossibile sostituire il file",
+            "createTransactionError": "Impossibile creare la transazione",
+            "saveError": "Impossibile salvare la ricevuta",
+            "deleteError": "Impossibile eliminare la ricevuta",
+            "reanalyzeError": "Impossibile avviare l'analisi",
+            "saved": "Ricevuta salvata",
+            "transactionCreated": "Transazione creata",
+            "receiptConfirmed": "Ricevuta confermata",
+            "deleted": "Ricevuta eliminata",
+            "reanalyzeStarted": "Nuova analisi avviata",
+            "bulkDeleted": "{{count}} ricevuta/e eliminata/e",
+            "bulkDeletePartial": "{{done}} ricevuta/e eliminata/e, {{failed}} non riuscita/e",
+            "bulkDeleteFailed": "Impossibile eliminare le ricevute"
         }
     },
     "bommel": {
@@ -1150,14 +1178,14 @@
             "export": "Esporta"
         },
         "toast": {
-            "createSuccess": "Conto bancario creato con successo",
-            "createError": "Creazione del conto bancario non riuscita",
-            "updateSuccess": "Conto bancario aggiornato con successo",
-            "updateError": "Aggiornamento del conto bancario non riuscito",
+            "createSuccess": "Conto bancario creato",
+            "createError": "Impossibile creare il conto bancario",
+            "updateSuccess": "Conto bancario salvato",
+            "updateError": "Impossibile salvare il conto bancario",
             "archiveSuccess": "Conto bancario archiviato",
-            "archiveError": "Archiviazione del conto bancario non riuscita",
+            "archiveError": "Impossibile archiviare il conto bancario",
             "restoreSuccess": "Conto bancario ripristinato",
-            "restoreError": "Ripristino del conto bancario non riuscito"
+            "restoreError": "Impossibile ripristinare il conto bancario"
         }
     },
     "bankImport": {
@@ -1247,8 +1275,9 @@
             "confirm": "Sei sicuro di voler annullare questa importazione? Tutte le transazioni importate verranno eliminate."
         },
         "toast": {
-            "rollbackSuccess": "Importazione annullata con successo",
-            "rollbackError": "Annullamento dell'importazione non riuscito"
+            "rollbackSuccess": "Importazione annullata",
+            "rollbackError": "Impossibile annullare l'importazione",
+            "startError": "Impossibile avviare l'importazione"
         }
     },
     "bankSchema": {
@@ -1309,16 +1338,16 @@
             }
         },
         "toast": {
-            "createSuccess": "Schema creato con successo",
-            "createError": "Creazione dello schema non riuscita",
-            "updateSuccess": "Schema aggiornato con successo",
-            "updateError": "Aggiornamento dello schema non riuscito",
-            "deleteSuccess": "Schema eliminato con successo",
-            "deleteError": "Eliminazione dello schema non riuscita",
+            "createSuccess": "Schema creato",
+            "createError": "Impossibile creare lo schema",
+            "updateSuccess": "Schema salvato",
+            "updateError": "Impossibile salvare lo schema",
+            "deleteSuccess": "Schema eliminato",
+            "deleteError": "Impossibile eliminare lo schema",
             "archiveSuccess": "Schema archiviato",
-            "archiveError": "Archiviazione dello schema non riuscita",
+            "archiveError": "Impossibile archiviare lo schema",
             "restoreSuccess": "Schema ripristinato",
-            "restoreError": "Ripristino dello schema non riuscito"
+            "restoreError": "Impossibile ripristinare lo schema"
         }
     },
     "connectivity": {
@@ -1462,6 +1491,18 @@
             "coversExactly": "Copre esattamente il resto",
             "shouldBeIncome": "Questa transazione bancaria è un'entrata. Scegli “Entrata”.",
             "shouldBeExpense": "Questa transazione bancaria è un'uscita. Scegli “Uscita”."
+        }
+    },
+    "bankMatch": {
+        "toast": {
+            "linkError": "Impossibile collegare il movimento bancario",
+            "amountError": "Impossibile modificare l'importo",
+            "unlinkError": "Impossibile rimuovere il collegamento",
+            "ignoreError": "Impossibile ignorare il movimento bancario",
+            "linked": "Movimento bancario collegato",
+            "ignored": "Movimento bancario ignorato",
+            "unignored": "Movimento bancario ripristinato",
+            "unignoreError": "Impossibile ripristinare il movimento bancario"
         }
     }
 }
