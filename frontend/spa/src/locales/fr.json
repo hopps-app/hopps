@@ -875,20 +875,14 @@
             "sectionTitle": "Téléverser des reçus",
             "expand": "Développer la zone de téléversement",
             "collapse": "Réduire la zone de téléversement",
-            "tooLargeTitle": "Fichier trop volumineux",
-            "tooLargeDescription": "{{files}} dépasse la taille maximale de {{max}} Mo et n'a pas été téléversé.",
-            "invalidTypeTitle": "Type de fichier non pris en charge",
-            "invalidTypeDescription": "{{files}} a un type non pris en charge. Autorisés : PDF, PNG et JPEG.",
             "dropzone": "Déposez les fichiers ici ou cliquez pour les sélectionner",
             "dropzoneActive": "Relâchez pour téléverser",
             "hint": "PDF, PNG ou JPEG jusqu'à 10 Mo",
-            "uploading": "Téléversement…",
-            "analyzeLabel": "Analyse automatique (IA)",
+            "analyzeLabel": "Lire automatiquement les reçus au téléversement",
             "progress": "{{done}} sur {{total}} téléversés",
             "itemUploading": "Téléversement …",
             "itemDone": "Téléversé",
-            "itemError": "Échec",
-            "itemErrorDuplicate": "Doublon – déjà comptabilisé",
+            "itemErrorDuplicate": "Fichier déjà présent",
             "viewExisting": "Voir le reçu",
             "analysis": {
                 "aiWarning": "Les données reconnues par l'IA peuvent contenir des erreurs. Veuillez vérifier tous les champs avant d'enregistrer.",
@@ -906,7 +900,21 @@
                 "retryFailed": "L'analyse n'a pas pu être relancée. Veuillez réessayer plus tard."
             },
             "duplicate": "Ce reçu a déjà été téléversé.",
-            "uploadFailed": "Échec du téléversement du reçu."
+            "uploadFailed": "Échec du téléversement du reçu.",
+            "failedCount": "{{count}} fichier(s) non téléversé(s)",
+            "remove": "Retirer",
+            "removeAll": "Tout retirer",
+            "errors": {
+                "tooLarge": "Trop volumineux (max. {{max}} Mo)",
+                "invalidType": "Type de fichier non pris en charge",
+                "unauthorized": "Session expirée, veuillez vous reconnecter",
+                "network": "Pas de connexion au serveur",
+                "server": "Erreur serveur, veuillez réessayer plus tard",
+                "unknown": "Échec"
+            },
+            "dropzoneMore": "Déposez d'autres reçus ici",
+            "chooseFiles": "Téléverser des reçus",
+            "analyzeHint": "Un modèle d'IA d'analyse de documents lit l'émetteur, la date et le montant sur le reçu. Les valeurs sont préremplies comme brouillon et prêtes à être vérifiées."
         },
         "areas": {
             "ideell": "Sphère désintéressée",

@@ -795,20 +795,14 @@
             "sectionTitle": "Belege hochladen",
             "expand": "Hochladebereich ausklappen",
             "collapse": "Hochladebereich einklappen",
-            "tooLargeTitle": "Datei zu groß",
-            "tooLargeDescription": "{{files}} überschreitet die maximale Größe von {{max}} MB und wurde nicht hochgeladen.",
-            "invalidTypeTitle": "Dateityp nicht unterstützt",
-            "invalidTypeDescription": "{{files}} hat einen nicht unterstützten Typ. Erlaubt sind PDF, PNG und JPEG.",
             "dropzone": "Dateien hier ablegen oder klicken zum Auswählen",
             "dropzoneActive": "Loslassen zum Hochladen",
             "hint": "PDF, PNG oder JPEG bis 10 MB",
-            "uploading": "Wird hochgeladen…",
-            "analyzeLabel": "Automatisch analysieren (KI)",
+            "analyzeLabel": "Beim Hochladen automatisch auslesen",
             "progress": "{{done}} von {{total}} hochgeladen",
             "itemUploading": "Wird hochgeladen …",
             "itemDone": "Hochgeladen",
-            "itemError": "Fehlgeschlagen",
-            "itemErrorDuplicate": "Doppelt – bereits verbucht",
+            "itemErrorDuplicate": "Datei bereits vorhanden",
             "viewExisting": "Beleg anzeigen",
             "analysis": {
                 "aiWarning": "Die per KI erkannten Daten können Fehler enthalten. Bitte prüfe alle Felder vor dem Speichern.",
@@ -826,7 +820,21 @@
                 "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuche es später erneut."
             },
             "duplicate": "Dieser Beleg wurde bereits hochgeladen.",
-            "uploadFailed": "Fehler beim Hochladen des Belegs."
+            "uploadFailed": "Fehler beim Hochladen des Belegs.",
+            "failedCount": "{{count}} Datei(en) nicht hochgeladen",
+            "remove": "Entfernen",
+            "removeAll": "Alle entfernen",
+            "errors": {
+                "tooLarge": "Zu groß (max. {{max}} MB)",
+                "invalidType": "Dateityp nicht unterstützt",
+                "unauthorized": "Sitzung abgelaufen, bitte neu anmelden",
+                "network": "Keine Verbindung zum Server",
+                "server": "Serverfehler, bitte später erneut versuchen",
+                "unknown": "Fehlgeschlagen"
+            },
+            "dropzoneMore": "Weitere Belege hierher ziehen",
+            "chooseFiles": "Belege hochladen",
+            "analyzeHint": "Ein KI-Modell zur Dokumentenanalyse liest Absender, Datum und Betrag aus dem Beleg. Die Werte werden als Entwurf vorbefüllt und stehen zur Prüfung bereit."
         },
         "areas": {
             "ideell": "Ideeller Bereich",

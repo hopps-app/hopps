@@ -2,9 +2,8 @@ import { useTranslation } from 'react-i18next';
 
 import { FONT, TX_GRID, TX_GRID_GAP, TX_GRID_NARROW } from './layout';
 
-import { ARROW_COLUMN } from '@/components/ui/DataTable';
-
 import { Skeleton } from '@/components/Dashboard/SectionState';
+import { ARROW_COLUMN } from '@/components/ui/DataTable';
 
 // Placeholders in the shape of the real thing, not a spinner: the table, the detail drawer and the
 // whole page keep their layout while the data arrives, so nothing jumps once it does. Same primitive

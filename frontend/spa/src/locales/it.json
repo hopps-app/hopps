@@ -875,20 +875,14 @@
             "sectionTitle": "Carica ricevute",
             "expand": "Espandi area di caricamento",
             "collapse": "Comprimi area di caricamento",
-            "tooLargeTitle": "File troppo grande",
-            "tooLargeDescription": "{{files}} supera la dimensione massima di {{max}} MB e non è stato caricato.",
-            "invalidTypeTitle": "Tipo di file non supportato",
-            "invalidTypeDescription": "{{files}} ha un tipo non supportato. Consentiti: PDF, PNG e JPEG.",
             "dropzone": "Trascina i file qui o clicca per selezionarli",
             "dropzoneActive": "Rilascia per caricare",
             "hint": "PDF, PNG o JPEG fino a 10 MB",
-            "uploading": "Caricamento…",
-            "analyzeLabel": "Analisi automatica (IA)",
+            "analyzeLabel": "Leggi automaticamente le ricevute al caricamento",
             "progress": "{{done}} di {{total}} caricati",
             "itemUploading": "Caricamento …",
             "itemDone": "Caricata",
-            "itemError": "Non riuscito",
-            "itemErrorDuplicate": "Duplicato – già registrato",
+            "itemErrorDuplicate": "File già presente",
             "viewExisting": "Visualizza ricevuta",
             "analysis": {
                 "aiWarning": "I dati riconosciuti dall'IA potrebbero contenere errori. Controlla tutti i campi prima di salvare.",
@@ -906,7 +900,21 @@
                 "retryFailed": "Impossibile riavviare l'analisi. Riprova più tardi."
             },
             "duplicate": "Questa ricevuta è già stata caricata.",
-            "uploadFailed": "Caricamento della ricevuta non riuscito."
+            "uploadFailed": "Caricamento della ricevuta non riuscito.",
+            "failedCount": "{{count}} file non caricati",
+            "remove": "Rimuovi",
+            "removeAll": "Rimuovi tutti",
+            "errors": {
+                "tooLarge": "Troppo grande (max. {{max}} MB)",
+                "invalidType": "Tipo di file non supportato",
+                "unauthorized": "Sessione scaduta, accedi di nuovo",
+                "network": "Nessuna connessione al server",
+                "server": "Errore del server, riprova più tardi",
+                "unknown": "Non riuscito"
+            },
+            "dropzoneMore": "Trascina qui altre ricevute",
+            "chooseFiles": "Carica ricevute",
+            "analyzeHint": "Un modello di IA per l'analisi dei documenti legge mittente, data e importo dalla ricevuta. I valori vengono precompilati come bozza e sono pronti per la verifica."
         },
         "areas": {
             "ideell": "Ambito senza scopo di lucro",

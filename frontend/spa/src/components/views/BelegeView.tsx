@@ -31,14 +31,16 @@ import { LoadingState } from '@/components/common/LoadingState';
 import InvoiceUploadFormBommelSelector, { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
+import { HIDE_BOMMEL_QUERY } from '@/components/Transactions/layout';
+import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { HintTooltip } from '@/components/ui/HintTooltip';
-import { BaseButton } from '@/components/ui/shadecn/BaseButton';
-import { HIDE_BOMMEL_QUERY } from '@/components/Transactions/layout';
 import { DataTable, DataTableEmpty, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
-import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
+import { HintTooltip } from '@/components/ui/HintTooltip';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { BaseSwitch } from '@/components/ui/shadecn/BaseSwitch';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
@@ -65,7 +67,7 @@ import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
-import { getDuplicateDocumentId } from '@/utils/errorUtils';
+import { getDuplicateDocumentId, getErrorStatus, isNetworkError } from '@/utils/errorUtils';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
@@ -1108,7 +1110,10 @@ function DocumentRow({
 
             {/* Document name */}
             <span className="flex items-center gap-3 min-w-0">
-                <span className="w-9 h-9 flex items-center justify-center rounded-[10px] flex-shrink-0 text-base" style={{ background: 'var(--accent-surface)' }}>
+                <span
+                    className="w-9 h-9 flex items-center justify-center rounded-[10px] flex-shrink-0 text-base"
+                    style={{ background: 'var(--accent-surface)' }}
+                >
                     {fileIcon(doc.fileContentType)}
                 </span>
                 <span className="flex flex-col min-w-0">
@@ -1158,21 +1163,60 @@ function DocumentRow({
 const MAX_UPLOAD_MB = 10;
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
+// Why an upload failed. The first two are caught in the browser before anything is sent.
+type UploadErrorKind = 'tooLarge' | 'invalidType' | 'unauthorized' | 'network' | 'server' | 'unknown';
+
 type UploadItem = {
     key: string;
     name: string;
-    status: 'uploading' | 'done' | 'error';
-    // When the upload failed because the file was already uploaded (409 duplicate), the id of the existing document so
-    // the row can link straight to it.
+    size: number;
+    status: 'uploading' | 'done' | 'duplicate' | 'error';
+    errorKind?: UploadErrorKind;
+    // For a duplicate (409), the id of the existing document so the row can link to it.
     duplicateOfId?: number;
 };
 
+// How long finished rows stay visible after the last upload of a batch settled. Duplicates a bit longer, so there is
+// time to follow the link to the existing receipt.
+const FINISHED_ROW_MS = 3000;
+const DUPLICATE_ROW_MS = 4000;
+
+const ACCEPTED_TYPES = { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] };
+
+function fmtFileSize(bytes: number, locale: string): string {
+    if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    return `${(bytes / 1024 / 1024).toLocaleString(locale, { maximumFractionDigits: 1 })} MB`;
+}
+
+function uploadErrorKind(error: unknown): UploadErrorKind {
+    if (isNetworkError(error)) return 'network';
+    const status = getErrorStatus(error);
+    if (status === 401 || status === 403) return 'unauthorized';
+    if (status === 413) return 'tooLarge';
+    if (status === 415) return 'invalidType';
+    if (status != null && status >= 500) return 'server';
+    return 'unknown';
+}
+
+function rejectionErrorKind(rejection: FileRejection): UploadErrorKind {
+    const code = rejection.errors[0]?.code;
+    if (code === 'file-too-large') return 'tooLarge';
+    if (code === 'file-invalid-type') return 'invalidType';
+    return 'unknown';
+}
+
+/**
+ * Upload area of the receipts page. Idle it shows the dropzone and the analyze toggle. While files upload only their
+ * rows are shown; files dropped meanwhile join the running batch. Once the batch has settled, a compact dropzone sits
+ * above the rows; uploaded rows disappear after {@link FINISHED_ROW_MS} and duplicates after {@link DUPLICATE_ROW_MS}, failed rows stay until the user
+ * removes them, so they can see which file failed and why. The analysis itself runs afterwards and shows in the table.
+ */
 function UploadZone({ onUploaded }: { onUploaded: () => void }) {
-    const { t } = useTranslation();
-    const { showWarning } = useToast();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const uploadMutation = useUploadDocument();
-    const [analyze, setAnalyze] = useState(true);
+    // Remembered per browser, so the choice survives reloads.
+    const [analyze, setAnalyze] = usePersistedState<boolean>('hopps.belege.autoAnalyze', true);
     const [items, setItems] = useState<UploadItem[]>([]);
     // Whether the upload area is collapsed to a slim bar, so the document list gets more room. The
     // component stays mounted while collapsed, so in-progress uploads keep running. The choice is remembered.
@@ -1194,16 +1238,15 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
             if (acceptedFiles.length === 0) return;
+            // Opens the panel so the rows are visible, also when the files were dropped onto the collapsed bar.
+            expand();
             const batch = acceptedFiles.map((file, i) => ({ key: `${Date.now()}-${i}-${file.name}`, file }));
-            // Start a fresh batch: keep rows still uploading, drop finished/failed ones from earlier drops.
-            setItems((prev) => [
-                ...prev.filter((it) => it.status === 'uploading'),
-                ...batch.map(({ key, file }) => ({ key, name: file.name, status: 'uploading' as const })),
-            ]);
+            // New files join whatever is still listed: running uploads and failed rows the user has not removed yet.
+            setItems((prev) => [...prev, ...batch.map(({ key, file }) => ({ key, name: file.name, size: file.size, status: 'uploading' as const }))]);
 
-            // Each file goes up in its own request. As each one settles, its row flips to done/error and the document
-            // list is refreshed right away — so results show up one by one instead of all at once at the end. One
-            // failing upload does not abort the others. Direction is chosen later in the detail view, not at upload.
+            // Each file goes up in its own request. As each one settles, its row flips and the document list is
+            // refreshed right away, so results show up one by one. One failing upload does not abort the others.
+            // Direction is chosen later in the detail view, not at upload.
             batch.forEach(({ key, file }) => {
                 uploadMutation
                     .mutateAsync({ file, analyze, direction: 'INCOMING' })
@@ -1212,66 +1255,86 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                         onUploaded();
                     })
                     .catch((error) => {
-                        // A 409 duplicate carries the existing document's id — keep it so the row can link to it.
                         const duplicateOfId = getDuplicateDocumentId(error);
-                        setItems((prev) => prev.map((it) => (it.key === key ? { ...it, status: 'error', duplicateOfId } : it)));
+                        setItems((prev) =>
+                            prev.map((it) =>
+                                it.key !== key
+                                    ? it
+                                    : duplicateOfId != null
+                                      ? { ...it, status: 'duplicate', duplicateOfId }
+                                      : { ...it, status: 'error', errorKind: uploadErrorKind(error) }
+                            )
+                        );
                     });
             });
         },
-        [uploadMutation, analyze, onUploaded]
+        [uploadMutation, analyze, onUploaded, expand]
     );
 
-    // Files the dropzone rejected (too large, or an unsupported type) never reach onDrop — surface a clear
-    // warning so the upload doesn't just silently drop them.
+    // Files the dropzone rejected (too large, or an unsupported type) never reach onDrop; they get a failed row too.
     const onDropRejected = useCallback(
         (rejections: FileRejection[]) => {
-            const tooLarge = rejections.filter((r) => r.errors.some((e) => e.code === 'file-too-large')).map((r) => r.file.name);
-            const wrongType = rejections.filter((r) => r.errors.some((e) => e.code === 'file-invalid-type')).map((r) => r.file.name);
-            if (tooLarge.length > 0) {
-                showWarning(t('receipts.upload.tooLargeTitle'), {
-                    description: t('receipts.upload.tooLargeDescription', { files: tooLarge.join(', '), max: MAX_UPLOAD_MB }),
-                });
-            }
-            if (wrongType.length > 0) {
-                showWarning(t('receipts.upload.invalidTypeTitle'), {
-                    description: t('receipts.upload.invalidTypeDescription', { files: wrongType.join(', ') }),
-                });
-            }
+            expand();
+            setItems((prev) => [
+                ...prev,
+                ...rejections.map((r, i) => ({
+                    key: `${Date.now()}-rejected-${i}-${r.file.name}`,
+                    name: r.file.name,
+                    size: r.file.size,
+                    status: 'error' as const,
+                    errorKind: rejectionErrorKind(r),
+                })),
+            ]);
         },
-        [showWarning, t]
+        [expand]
     );
+
+    const isUploading = items.some((it) => it.status === 'uploading');
+
+    // Once nothing is uploading any more, finished rows go away after a short moment. A new upload starting in the
+    // meantime cancels the timers, so a batch is only cleared once all of it has settled. Keyed on `hasFinished` rather
+    // than `items`, so dropping the uploaded rows does not restart the duplicate timer.
+    const hasFinished = items.some((it) => it.status === 'done' || it.status === 'duplicate');
+    useEffect(() => {
+        if (isUploading || !hasFinished) return;
+        const drop = (status: UploadItem['status']) => setItems((prev) => prev.filter((it) => it.status !== status));
+        const doneTimer = setTimeout(() => drop('done'), FINISHED_ROW_MS);
+        const duplicateTimer = setTimeout(() => drop('duplicate'), DUPLICATE_ROW_MS);
+        return () => {
+            clearTimeout(doneTimer);
+            clearTimeout(duplicateTimer);
+        };
+    }, [isUploading, hasFinished]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         onDropRejected,
-        accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
+        accept: ACCEPTED_TYPES,
         maxSize: MAX_UPLOAD_BYTES,
         multiple: true,
     });
 
-    // A second drop target wrapping the collapsed bar so files can be dropped without expanding first. Dropping here
-    // opens the panel and then hands the files to the same uploader — as if they had been dropped into the expanded
-    // dropzone. Click is disabled (noClick) so clicking the bar still toggles collapse instead of opening a file dialog.
-    const collapsedDropzone = useDropzone({
-        onDrop: (accepted) => {
-            expand();
-            onDrop(accepted);
-        },
-        onDropRejected: (rejections) => {
-            expand();
-            onDropRejected(rejections);
-        },
-        accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
+    // Drop target around the whole card while the dropzone itself is not shown: when collapsed, and while uploading
+    // (files dropped then join the running batch). Click is disabled (noClick) so clicking the bar still toggles
+    // collapse instead of opening a file dialog.
+    const passiveDropzone = useDropzone({
+        onDrop,
+        onDropRejected,
+        accept: ACCEPTED_TYPES,
         maxSize: MAX_UPLOAD_BYTES,
         multiple: true,
         noClick: true,
         noKeyboard: true,
     });
+    const passive = collapsed || isUploading;
+    const dragOverPassive = passive && passiveDropzone.isDragActive;
 
-    const isUploading = items.some((it) => it.status === 'uploading');
-    const doneCount = items.filter((it) => it.status === 'done').length;
-    // A file is being dragged over the collapsed bar (its own drop target). Drives the highlight + subtitle hint.
-    const dragOverCollapsed = collapsed && collapsedDropzone.isDragActive;
+    const uploadCount = items.filter((it) => it.status !== 'error').length;
+    const settledCount = items.filter((it) => it.status === 'done' || it.status === 'duplicate').length;
+    const errorCount = items.filter((it) => it.status === 'error').length;
+
+    const removeItem = (key: string) => setItems((prev) => prev.filter((it) => it.key !== key));
+    const removeErrors = () => setItems((prev) => prev.filter((it) => it.status !== 'error'));
 
     const header = (
         <button
@@ -1288,12 +1351,12 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                 <span className="text-[14px] font-bold text-[#1B1B1F]" style={{ fontFamily: FONT }}>
                     {t('receipts.upload.sectionTitle')}
                 </span>
-                {collapsed && (
+                {(collapsed || dragOverPassive) && (
                     <span className="text-[12px] text-[#9A9AA3] truncate" style={{ fontFamily: FONT }}>
-                        {dragOverCollapsed
+                        {dragOverPassive
                             ? t('receipts.upload.dropzoneActive')
                             : isUploading
-                              ? t('receipts.upload.progress', { done: doneCount, total: items.length })
+                              ? t('receipts.upload.progress', { done: settledCount, total: uploadCount })
                               : t('receipts.upload.hint')}
                     </span>
                 )}
@@ -1302,142 +1365,194 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         </button>
     );
 
-    return (
-        <div
-            className="rounded-[18px] border border-[#E9E9EE] px-5 py-4"
-            style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
-        >
-            {/* Collapsible header — click to fold the upload area away. While collapsed the whole bar is also a drop
-                target: dropping files here expands the panel and uploads them, exactly like the open dropzone. Click is
-                disabled on this drop target (noClick), so a plain click still toggles collapse. */}
-            {collapsed ? (
-                <div
-                    {...collapsedDropzone.getRootProps()}
-                    className={cn(
-                        '-mx-2 -my-1 px-2 py-1 rounded-[12px] transition-colors',
-                        dragOverCollapsed && 'bg-[#F3EAFB] ring-2 ring-inset ring-[#9955CC]'
-                    )}
-                >
-                    <input {...collapsedDropzone.getInputProps()} />
-                    {header}
-                </div>
-            ) : (
-                header
-            )}
+    // Three states, as in the design handoff: idle (large dropzone + analyze toggle), uploading (file rows only) and
+    // settled with rows left (compact dropzone on top, rows below, toggle still hidden).
+    const card = (
+        <>
+            {header}
 
             {!collapsed && (
-                <div className="mt-4">
-                    <div
-                        {...getRootProps()}
-                        className={cn(
-                            'flex flex-col items-center justify-center gap-3 rounded-[14px] border-2 border-dashed py-10 px-6 cursor-pointer transition-all',
-                            isDragActive ? 'border-[#9955CC] bg-[#F3EAFB]' : 'border-[#E0E0E6] hover:border-[#C7A2E3] hover:bg-[#FAFAFA]'
-                        )}
-                    >
-                        <input {...getInputProps()} />
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: isDragActive ? '#E0C8F5' : '#F3EAFB' }}>
-                            {isUploading ? <Loader2 size={26} className="text-[#7E3FB4] animate-spin" /> : <Upload size={26} className="text-[#7E3FB4]" />}
+                <div className="mt-4 flex flex-col gap-3">
+                    {items.length > 0 && !isUploading && (
+                        <div
+                            {...getRootProps()}
+                            className={cn(
+                                'flex items-center gap-3 rounded-[14px] border-2 border-dashed py-2.5 pl-3.5 pr-3 cursor-pointer transition-all',
+                                isDragActive ? 'border-[#9955CC] bg-[#F3EAFB]' : 'border-[#E0E0E6] hover:border-[#C7A2E3] hover:bg-[#FAFAFA]'
+                            )}
+                        >
+                            <input {...getInputProps()} />
+                            <span className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
+                                <Upload size={17} className="text-[#7E3FB4]" />
+                            </span>
+                            <span className="flex-1 min-w-0 truncate text-[14px] font-bold text-foreground" style={{ fontFamily: FONT }}>
+                                {isDragActive ? t('receipts.upload.dropzoneActive') : t('receipts.upload.dropzoneMore')}
+                            </span>
+                            <BaseButton type="button" variant="tonal" size="sm" className="font-bold">
+                                {t('receipts.upload.chooseFiles')}
+                            </BaseButton>
                         </div>
-                        <div className="text-center">
-                            <p className="font-bold text-[15px] text-[#1B1B1F]" style={{ fontFamily: FONT }}>
-                                {isUploading
-                                    ? t('receipts.upload.uploading')
-                                    : isDragActive
-                                      ? t('receipts.upload.dropzoneActive')
-                                      : t('receipts.upload.dropzone')}
-                            </p>
-                            {!isUploading && (
+                    )}
+
+                    {items.length === 0 && (
+                        <div
+                            {...getRootProps()}
+                            className={cn(
+                                'flex flex-col items-center justify-center gap-3 rounded-[14px] border-2 border-dashed py-10 px-6 cursor-pointer transition-all',
+                                isDragActive ? 'border-[#9955CC] bg-[#F3EAFB]' : 'border-[#E0E0E6] hover:border-[#C7A2E3] hover:bg-[#FAFAFA]'
+                            )}
+                        >
+                            <input {...getInputProps()} />
+                            <div
+                                className="w-14 h-14 rounded-full flex items-center justify-center"
+                                style={{ background: isDragActive ? '#E0C8F5' : '#F3EAFB' }}
+                            >
+                                <Upload size={26} className="text-[#7E3FB4]" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-bold text-[15px] text-[#1B1B1F]" style={{ fontFamily: FONT }}>
+                                    {isDragActive ? t('receipts.upload.dropzoneActive') : t('receipts.upload.dropzone')}
+                                </p>
                                 <p className="mt-1 text-[13px] text-[#9A9AA3]" style={{ fontFamily: FONT }}>
                                     {t('receipts.upload.hint')}
                                 </p>
-                            )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Per-file upload progress — updates row by row as each individual request settles. */}
+                    {/* One row per file: running uploads, for a short moment the finished ones, failed ones until removed. */}
                     {items.length > 0 && (
-                        <div className="mt-3 space-y-1.5">
-                            {isUploading && (
-                                <p className="px-1 text-[12px] font-semibold text-[#6B6B76]">
-                                    {t('receipts.upload.progress', { done: doneCount, total: items.length })}
-                                </p>
+                        <div className="flex flex-col gap-1.5">
+                            {!isUploading && errorCount > 1 && (
+                                <div className="flex items-center justify-between px-1">
+                                    <p className="text-[12px] font-semibold text-muted-foreground">{t('receipts.upload.failedCount', { count: errorCount })}</p>
+                                    <button type="button" onClick={removeErrors} className="text-[12px] font-bold text-purple-700 hover:text-purple-900">
+                                        {t('receipts.upload.removeAll')}
+                                    </button>
+                                </div>
                             )}
                             {items.map((it) => {
-                                const isDuplicate = it.status === 'error' && it.duplicateOfId != null;
-                                const label =
-                                    it.status === 'uploading'
-                                        ? 'itemUploading'
-                                        : it.status === 'done'
-                                          ? 'itemDone'
-                                          : isDuplicate
-                                            ? 'itemErrorDuplicate'
-                                            : 'itemError';
-                                const color = it.status === 'error' ? '#B12C4C' : it.status === 'done' ? '#1F7A50' : '#9A9AA3';
+                                const failed = it.status === 'error';
                                 return (
                                     <div
                                         key={it.key}
-                                        className="flex items-center gap-2.5 px-3 py-2 rounded-[10px] border border-[#E9E9EE]"
-                                        style={{ background: '#F8F8FA' }}
+                                        role={failed ? 'alert' : undefined}
+                                        className="flex items-center gap-3 rounded-[12px] border px-3.5 py-[9px]"
+                                        style={{
+                                            borderColor: failed ? 'color-mix(in oklch, var(--negative) 28%, transparent)' : 'var(--border-soft)',
+                                            background: failed ? 'var(--negative-surface)' : 'var(--surface-sunken)',
+                                        }}
                                     >
-                                        <span className="flex-shrink-0">
-                                            {it.status === 'uploading' && <Loader2 size={15} className="text-[#7E3FB4] animate-spin" />}
-                                            {it.status === 'done' && (
-                                                <span
-                                                    className="w-[18px] h-[18px] rounded-full flex items-center justify-center"
-                                                    style={{ background: '#E7F4EC' }}
-                                                >
-                                                    <Check size={12} strokeWidth={2.5} className="text-[#1F7A50]" />
+                                        <span
+                                            className="w-[26px] h-[26px] rounded-full flex items-center justify-center flex-shrink-0"
+                                            style={{
+                                                background: failed
+                                                    ? undefined
+                                                    : it.status === 'done'
+                                                      ? 'var(--positive-surface)'
+                                                      : it.status === 'duplicate'
+                                                        ? 'var(--warning-surface)'
+                                                        : 'var(--accent-surface)',
+                                            }}
+                                        >
+                                            {it.status === 'uploading' && <Loader2 size={14} className="text-purple-700 animate-spin" />}
+                                            {it.status === 'done' && <Check size={14} strokeWidth={2.5} className="text-[var(--positive)]" />}
+                                            {it.status === 'duplicate' && <AlertCircle size={14} className="text-[var(--warning)]" />}
+                                            {failed && <AlertCircle size={14} className="text-[var(--negative)]" />}
+                                        </span>
+                                        <span className="flex-1 min-w-0 truncate text-[14px] font-semibold text-foreground">{it.name}</span>
+                                        <span className="flex-shrink-0 flex items-center gap-3 text-[13px] font-bold">
+                                            {it.status === 'uploading' && <span className="text-muted-foreground">{t('receipts.upload.itemUploading')}</span>}
+                                            {it.status === 'done' && <span className="text-[var(--positive)]">{t('receipts.upload.itemDone')}</span>}
+                                            {it.status === 'duplicate' && (
+                                                <>
+                                                    <span className="text-[var(--warning)]">{t('receipts.upload.itemErrorDuplicate')}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigate(`/receipts?id=${it.duplicateOfId}`)}
+                                                        className="inline-flex items-center gap-1 text-purple-700 hover:underline"
+                                                    >
+                                                        <ExternalLink size={12} />
+                                                        {t('receipts.upload.viewExisting')}
+                                                    </button>
+                                                </>
+                                            )}
+                                            {failed && (
+                                                <span className="text-[12.5px] font-semibold text-[var(--negative)]">
+                                                    {t(`receipts.upload.errors.${it.errorKind ?? 'unknown'}`, { max: MAX_UPLOAD_MB })}
+                                                    {/* The size only helps when it is the reason. */}
+                                                    {it.errorKind === 'tooLarge' && (
+                                                        <>
+                                                            {' · '}
+                                                            <span className="tabular-nums">{fmtFileSize(it.size, i18n.language)}</span>
+                                                        </>
+                                                    )}
                                                 </span>
                                             )}
-                                            {it.status === 'error' && <AlertCircle size={16} className="text-[#B12C4C]" />}
-                                        </span>
-                                        <span className="flex-1 min-w-0 truncate text-[13px] text-[#1B1B1F]">{it.name}</span>
-                                        {isDuplicate ? (
-                                            <span className="flex-shrink-0 flex items-center gap-2">
-                                                <span className="text-[12px] font-semibold" style={{ color }}>
-                                                    {t('receipts.upload.itemErrorDuplicate')}
-                                                </span>
-                                                <button
+                                            {failed && (
+                                                <BaseButton
                                                     type="button"
-                                                    onClick={() => navigate(`/receipts?id=${it.duplicateOfId}`)}
-                                                    className="inline-flex items-center gap-1 text-[12px] font-bold text-[#7E3FB4] hover:underline"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => removeItem(it.key)}
+                                                    aria-label={t('receipts.upload.remove')}
+                                                    title={t('receipts.upload.remove')}
+                                                    className="h-7 w-7 text-[var(--negative)] hover:bg-[var(--background-secondary)] hover:text-[var(--negative)]"
                                                 >
-                                                    <ExternalLink size={12} />
-                                                    {t('receipts.upload.viewExisting')}
-                                                </button>
-                                            </span>
-                                        ) : (
-                                            <span className="flex-shrink-0 text-[12px] font-semibold" style={{ color }}>
-                                                {t(`receipts.upload.${label}`)}
-                                            </span>
-                                        )}
+                                                    <X />
+                                                </BaseButton>
+                                            )}
+                                        </span>
                                     </div>
                                 );
                             })}
                         </div>
                     )}
 
-                    {/* AI analyze toggle */}
-                    <button
-                        type="button"
-                        onClick={() => setAnalyze((v) => !v)}
-                        className="mt-3 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] border transition-all"
-                        style={{
-                            borderColor: analyze ? '#9955CC' : '#E9E9EE',
-                            background: analyze ? '#F3EAFB' : '#F8F8FA',
-                        }}
-                    >
-                        <span
-                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
-                            style={{ background: analyze ? '#E0C8F5' : '#EBEBF0' }}
+                    {/* AI analyze toggle: only in the idle state. What the analysis does is explained in the info tooltip. */}
+                    {items.length === 0 && (
+                        <div
+                            className="flex items-center gap-3 rounded-2xl border px-4 py-3 transition-colors"
+                            style={{
+                                borderColor: analyze ? 'color-mix(in oklch, var(--primary) 32%, transparent)' : 'var(--border-soft)',
+                                background: analyze ? 'var(--accent-surface)' : 'var(--surface-sunken)',
+                                fontFamily: FONT,
+                            }}
                         >
-                            {analyze ? <Check size={14} strokeWidth={2.5} color="#7E3FB4" /> : <Sparkles size={14} color="#9A9AA3" />}
-                        </span>
-                        <span className="text-[13.5px] font-semibold" style={{ color: analyze ? '#7E3FB4' : '#6B6B76', fontFamily: FONT }}>
-                            {t('receipts.upload.analyzeLabel')}
-                        </span>
-                    </button>
+                            <BaseSwitch id="receipts-auto-analyze" checked={analyze} onCheckedChange={setAnalyze} />
+                            <label
+                                htmlFor="receipts-auto-analyze"
+                                className={cn('cursor-pointer text-[14px] font-extrabold', analyze ? 'text-purple-700' : 'text-foreground')}
+                            >
+                                {t('receipts.upload.analyzeLabel')}
+                            </label>
+                            <InfoTooltip
+                                content={t('receipts.upload.analyzeHint')}
+                                label={t('receipts.upload.analyzeHint')}
+                                className="text-muted-foreground hover:text-foreground"
+                            />
+                        </div>
+                    )}
                 </div>
+            )}
+        </>
+    );
+
+    return (
+        <div
+            className="rounded-[18px] border border-[#E9E9EE] px-5 py-4"
+            style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
+        >
+            {passive ? (
+                <div
+                    {...passiveDropzone.getRootProps()}
+                    className={cn('-mx-2 -my-1 px-2 py-1 rounded-[12px] transition-colors', dragOverPassive && 'bg-[#F3EAFB] ring-2 ring-inset ring-[#9955CC]')}
+                >
+                    <input {...passiveDropzone.getInputProps()} />
+                    {card}
+                </div>
+            ) : (
+                card
             )}
         </div>
     );
@@ -1735,7 +1850,13 @@ export function BelegeView() {
                         <RefreshCw className={reanalyzeDocuments.isPending ? 'animate-spin' : ''} />
                         {t('receipts.bulk.reanalyze', { n: reanalyzableSelected.length })}
                     </BaseButton>
-                    <BaseButton variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)} disabled={bulkDelete.isPending} className="gap-1.5 font-bold">
+                    <BaseButton
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setBulkDeleteOpen(true)}
+                        disabled={bulkDelete.isPending}
+                        className="gap-1.5 font-bold"
+                    >
                         <Trash2 />
                         {t('receipts.bulk.delete')}
                     </BaseButton>
@@ -1748,7 +1869,9 @@ export function BelegeView() {
                     <LoadingState className="py-12" />
                 ) : filtered.length === 0 ? (
                     <DataTableEmpty
-                        title={searchTerm ? t('receipts.noSearchResults', { search }) : onlyUnreviewed ? t('receipts.noUnreviewed') : t('transactions.noResults')}
+                        title={
+                            searchTerm ? t('receipts.noSearchResults', { search }) : onlyUnreviewed ? t('receipts.noUnreviewed') : t('transactions.noResults')
+                        }
                         description={searchTerm ? undefined : onlyUnreviewed ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
                     />
                 ) : (

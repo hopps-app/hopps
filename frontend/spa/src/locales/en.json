@@ -908,20 +908,14 @@
             "sectionTitle": "Upload receipts",
             "expand": "Expand upload area",
             "collapse": "Collapse upload area",
-            "tooLargeTitle": "File too large",
-            "tooLargeDescription": "{{files}} exceeds the maximum size of {{max}} MB and was not uploaded.",
-            "invalidTypeTitle": "Unsupported file type",
-            "invalidTypeDescription": "{{files}} has an unsupported type. Allowed: PDF, PNG and JPEG.",
             "dropzone": "Drop files here or click to select",
             "dropzoneActive": "Release to upload",
             "hint": "PDF, PNG or JPEG up to 10 MB",
-            "uploading": "Uploading…",
-            "analyzeLabel": "Auto-analyze (AI)",
+            "analyzeLabel": "Read receipts automatically on upload",
             "progress": "{{done}} of {{total}} uploaded",
             "itemUploading": "Uploading …",
             "itemDone": "Uploaded",
-            "itemError": "Failed",
-            "itemErrorDuplicate": "Duplicate – already booked",
+            "itemErrorDuplicate": "File already exists",
             "viewExisting": "View receipt",
             "analysis": {
                 "aiWarning": "The data recognized by the AI may contain errors. Please check all fields before saving.",
@@ -939,7 +933,21 @@
                 "retryFailed": "The analysis could not be restarted. Please try again later."
             },
             "duplicate": "This receipt has already been uploaded.",
-            "uploadFailed": "Failed to upload the receipt."
+            "uploadFailed": "Failed to upload the receipt.",
+            "failedCount": "{{count}} file(s) not uploaded",
+            "remove": "Remove",
+            "removeAll": "Remove all",
+            "errors": {
+                "tooLarge": "Too large (max. {{max}} MB)",
+                "invalidType": "File type not supported",
+                "unauthorized": "Session expired, please sign in again",
+                "network": "No connection to the server",
+                "server": "Server error, please try again later",
+                "unknown": "Failed"
+            },
+            "dropzoneMore": "Drop more receipts here",
+            "chooseFiles": "Upload receipts",
+            "analyzeHint": "An AI document analysis model reads the sender, date and amount from the receipt. The values are prefilled as a draft and ready for review."
         },
         "areas": {
             "ideell": "Non-profit area",
