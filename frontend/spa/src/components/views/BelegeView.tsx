@@ -467,9 +467,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
             } else {
                 // Attach the id onto the DocumentUpdateRequest instance (a spread would drop the class shape).
                 await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
-                // A receipt without a transaction has nowhere to keep category values; they are stored when the
-                // transaction is created. Until then they still count as unsaved.
-                setBaseline((b) => ({ ...saved, categoryValues: b?.categoryValues ?? {} }));
+                setBaseline(saved);
             }
             showSuccess(t('receipts.toast.saved'));
         } catch {
@@ -489,11 +487,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                 showSuccess(t('receipts.toast.receiptConfirmed'));
             } else {
                 await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
-                const confirmed = await confirmMutation.mutateAsync(doc.id);
-                // The document itself has no category values; they go onto the transaction created from it.
-                if (confirmed.transactionId != null && Object.keys(categoryValues).length > 0) {
-                    await updateTransaction.mutateAsync({ id: confirmed.transactionId, data: new TransactionUpdateRequest({ categoryValues }) });
-                }
+                await confirmMutation.mutateAsync(doc.id);
                 showSuccess(t('receipts.toast.transactionCreated'));
             }
         } catch {
@@ -784,19 +778,23 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                         <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
                                     </div>
 
-                                    {/* Category groups (applicable to the selected bommel); draws its own divider and heading. */}
-                                    <CategoryGroupFields
-                                        bommelId={bommelId ? Number(bommelId) : null}
-                                        values={categoryValues}
-                                        onChange={(groupId, value) => {
-                                            setCategoryValues((prev) => {
-                                                const next = { ...prev };
-                                                if (value == null || value === '') delete next[groupId];
-                                                else next[groupId] = value;
-                                                return next;
-                                            });
-                                        }}
-                                    />
+                                    {/* Category groups belong to the transaction, not to the receipt: only shown once the receipt
+                                        has one (created from a bank movement). Otherwise they are set on the transaction after
+                                        "Transaktion erstellen". Draws its own divider and heading. */}
+                                    {isBankReconcile && (
+                                        <CategoryGroupFields
+                                            bommelId={bommelId ? Number(bommelId) : null}
+                                            values={categoryValues}
+                                            onChange={(groupId, value) => {
+                                                setCategoryValues((prev) => {
+                                                    const next = { ...prev };
+                                                    if (value == null || value === '') delete next[groupId];
+                                                    else next[groupId] = value;
+                                                    return next;
+                                                });
+                                            }}
+                                        />
+                                    )}
 
                                     {/* Bank matching. Needs a transaction; a privately paid receipt has no bank movement. */}
                                     {!privatelyPaid &&
