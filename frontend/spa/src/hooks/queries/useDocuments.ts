@@ -1,4 +1,4 @@
-import { DocumentDirection, DocumentResponse } from '@hopps/api-client';
+import { DocumentConfirmRequest, DocumentDirection, DocumentResponse } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from 'i18next';
 
@@ -95,8 +95,10 @@ export function useConfirmDocument() {
     const queryClient = useQueryClient();
     return useMutation({
         meta: { errorMessage: 'receipts.toast.createTransactionError' },
-        mutationFn: (id: number) => apiService.orgService.confirm(id),
-        onSuccess: (_data, id) => {
+        // categoryValues (groupId → value) are stored on the created transaction; required groups must be filled.
+        mutationFn: ({ id, categoryValues }: { id: number; categoryValues?: Record<number, string> }) =>
+            apiService.orgService.confirm(id, new DocumentConfirmRequest({ categoryValues })),
+        onSuccess: (_data, { id }) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
             // Refetch the single document too, so a drawer kept open picks up the freshly linked transactionId
             // (the receipt then switches into the editable reconcile mode instead of closing).

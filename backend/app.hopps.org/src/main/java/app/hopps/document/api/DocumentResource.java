@@ -2,6 +2,8 @@ package app.hopps.document.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.category.service.CategoryGroupService;
+import app.hopps.document.api.dto.DocumentConfirmRequest;
 import app.hopps.document.api.dto.DocumentResponse;
 import app.hopps.document.api.dto.DocumentUpdateRequest;
 import app.hopps.document.domain.*;
@@ -89,6 +91,9 @@ public class DocumentResource {
 
     @Inject
     DocumentAuditor documentAuditor;
+
+    @Inject
+    CategoryGroupService categoryGroupService;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -448,12 +453,14 @@ public class DocumentResource {
     @Path("/{id}/confirm")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data.")
+    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data. Optionally stores category-group values on the transaction; every required group applicable to its bommel must have a value.")
     @APIResponse(responseCode = "200", description = "Document confirmed and transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
     @APIResponse(responseCode = "404", description = "Document not found")
+    @APIResponse(responseCode = "400", description = "Invalid category value, or a required category group has no value")
     @APIResponse(responseCode = "409", description = "Document already confirmed")
     public DocumentResponse confirmDocument(
-            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+            @PathParam("id") @Parameter(description = "Document ID") Long id,
+            @Parameter(description = "Optional category-group values for the transaction") DocumentConfirmRequest request) {
         Document document = documentRepository.findByIdScoped(id);
         if (document == null) {
             throw new NotFoundException("Document not found");
@@ -468,6 +475,7 @@ public class DocumentResource {
         // second one — the user has reconciled the values onto the existing transaction; just mark the document
         // reviewed.
         if (document.getTransaction() != null) {
+            applyCategoryValues(document.getTransaction(), request);
             DocumentStatus previousStatus = document.getDocumentStatus();
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
             document.setReviewedBy(principal);
@@ -503,6 +511,7 @@ public class DocumentResource {
         // The document's sender is the counterparty; the entity places it on the side matching the direction
         // and records the organization on the other side.
         transaction.setCounterparty(document.getSender());
+        applyCategoryValues(transaction, request);
         transactionRepository.persist(transaction);
         transactionAuditor.created(transaction);
 
@@ -515,6 +524,20 @@ public class DocumentResource {
         notifyChanged(document);
         LOG.info("Document confirmed: id={}, transactionId={}", document.getId(), transaction.getId());
         return DocumentResponse.from(document);
+    }
+
+    /**
+     * Stores the given category values on the transaction and rejects the confirmation when a required group of its
+     * bommel is still empty, so a receipt can only be confirmed with complete categories.
+     */
+    private void applyCategoryValues(Transaction transaction, DocumentConfirmRequest request) {
+        if (request != null) {
+            categoryGroupService.validateAndApply(transaction, request.categoryValues());
+        }
+        List<String> missing = categoryGroupService.missingRequiredGroups(transaction);
+        if (!missing.isEmpty()) {
+            throw new BadRequestException("Missing required category group(s): " + String.join(", ", missing));
+        }
     }
 
     /**

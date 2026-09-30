@@ -254,7 +254,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     const reanalyzeMutation = useReanalyzeDocument();
     const updateTransaction = useUpdateTransaction();
     const confirmTransaction = useConfirmTransaction();
-    const { showSuccess, showInfo } = useToast();
+    const { showSuccess, showInfo, showError } = useToast();
 
     // Live document: polls while the AI analysis is still running so results appear automatically.
     const { data: liveDoc } = useDocument(docProp?.id);
@@ -480,14 +480,19 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // can be linked.
     async function handleCreateTransaction() {
         if (!doc?.id) return;
+        // Required category groups of the chosen bommel must be filled before the transaction is created.
+        if (formMissingGroups.length > 0) {
+            showError(t('categoryGroups.fields.missing', { groups: formMissingGroups.map((g) => g.name).join(', ') }));
+            return;
+        }
         try {
             if (isBankReconcile && linkedTransactionId) {
                 await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
-                await confirmMutation.mutateAsync(doc.id);
+                await confirmMutation.mutateAsync({ id: doc.id, categoryValues });
                 showSuccess(t('receipts.toast.receiptConfirmed'));
             } else {
                 await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
-                await confirmMutation.mutateAsync(doc.id);
+                await confirmMutation.mutateAsync({ id: doc.id, categoryValues });
                 showSuccess(t('receipts.toast.transactionCreated'));
             }
         } catch {
@@ -528,6 +533,9 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
         if (dirty && !locked) setConfirmDiscardOpen(true);
         else onClose();
     }
+
+    // Required category groups of the form's bommel that still have no value; they block "Transaktion erstellen".
+    const formMissingGroups = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(reviewAllBommels), categoryValues);
 
     const busy = updateMutation.isPending || confirmMutation.isPending || updateTransaction.isPending || confirmTransaction.isPending;
 
@@ -778,10 +786,10 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                         <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
                                     </div>
 
-                                    {/* Category groups belong to the transaction, not to the receipt: only shown once the receipt
-                                        has one (created from a bank movement). Otherwise they are set on the transaction after
-                                        "Transaktion erstellen". Draws its own divider and heading. */}
-                                    {isBankReconcile && (
+                                    {/* Category groups belong to the transaction. Filtered by the chosen bommel; required ones
+                                        must be filled before the receipt can be confirmed. For a receipt without transaction the
+                                        values are sent along when it is confirmed. Draws its own divider and heading. */}
+                                    {
                                         <CategoryGroupFields
                                             bommelId={bommelId ? Number(bommelId) : null}
                                             values={categoryValues}
@@ -794,7 +802,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                 });
                                             }}
                                         />
-                                    )}
+                                    }
 
                                     {/* Bank matching. Needs a transaction; a privately paid receipt has no bank movement. */}
                                     {!privatelyPaid &&
@@ -1015,14 +1023,30 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             ? '…'
                                             : t('receipts.review.save')}
                                     </BaseButton>
-                                    <BaseButton variant="default" onClick={handleCreateTransaction} disabled={busy} className={footerBtn}>
-                                        <Check size={16} strokeWidth={2.5} />
-                                        {confirmMutation.isPending
-                                            ? '…'
-                                            : isBankReconcile
-                                              ? t('receipts.review.confirmReceipt')
-                                              : t('receipts.review.createTransaction')}
-                                    </BaseButton>
+                                    <HintTooltip
+                                        content={
+                                            formMissingGroups.length > 0 ? (
+                                                <>
+                                                    <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
+                                                    <span className="mt-0.5 block">{formMissingGroups.map((g) => g.name).join(', ')}</span>
+                                                </>
+                                            ) : null
+                                        }
+                                    >
+                                        <BaseButton
+                                            variant="default"
+                                            onClick={handleCreateTransaction}
+                                            disabled={busy || formMissingGroups.length > 0}
+                                            className={footerBtn}
+                                        >
+                                            <Check size={16} strokeWidth={2.5} />
+                                            {confirmMutation.isPending
+                                                ? '…'
+                                                : isBankReconcile
+                                                  ? t('receipts.review.confirmReceipt')
+                                                  : t('receipts.review.createTransaction')}
+                                        </BaseButton>
+                                    </HintTooltip>
                                 </>
                             )}
                         </div>

@@ -3621,16 +3621,20 @@ export class Client {
      * @param id Document ID
      * @return Document confirmed and transaction created
      */
-    confirm(id: number): Promise<DocumentResponse> {
+    confirm(id: number, body: DocumentConfirmRequest): Promise<DocumentResponse> {
         let url_ = this.baseUrl + "/documents/{id}/confirm";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
+        const content_ = JSON.stringify(body);
+
         let options_: RequestInit = {
+            body: content_,
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -3649,6 +3653,10 @@ export class Client {
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = DocumentResponse.fromJS(resultData200);
             return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid category value, or a required category group has no value", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -8616,6 +8624,73 @@ export interface IDashboardResponse {
 }
 
 export type DetectionType = "ORG" | "TEMPLATE" | "NONE";
+
+export class DocumentConfirmRequest implements IDocumentConfirmRequest {
+    categoryValues?: { [key: string]: string; };
+
+    [key: string]: any;
+
+    constructor(data?: IDocumentConfirmRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (_data["categoryValues"]) {
+                this.categoryValues = {} as any;
+                for (let key in _data["categoryValues"]) {
+                    if (_data["categoryValues"].hasOwnProperty(key))
+                        (this.categoryValues as any)![key] = _data["categoryValues"][key];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): DocumentConfirmRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DocumentConfirmRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (this.categoryValues) {
+            data["categoryValues"] = {};
+            for (let key in this.categoryValues) {
+                if (this.categoryValues.hasOwnProperty(key))
+                    (data["categoryValues"] as any)[key] = (this.categoryValues as any)[key];
+            }
+        }
+        return data;
+    }
+
+    clone(): DocumentConfirmRequest {
+        const json = this.toJSON();
+        let result = new DocumentConfirmRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDocumentConfirmRequest {
+    categoryValues?: { [key: string]: string; };
+
+    [key: string]: any;
+}
 
 export type DocumentDirection = "INCOMING" | "OUTGOING";
 
