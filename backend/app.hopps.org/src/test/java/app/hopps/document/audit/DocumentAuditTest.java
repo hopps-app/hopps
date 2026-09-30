@@ -131,6 +131,7 @@ class DocumentAuditTest {
         Long id = upload();
 
         Integer transactionId = given()
+                .contentType(MediaType.APPLICATION_JSON)
                 .when()
                 .post("/{id}/confirm", id)
                 .then()
