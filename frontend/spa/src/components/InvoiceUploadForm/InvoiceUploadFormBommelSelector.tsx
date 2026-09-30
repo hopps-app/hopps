@@ -41,7 +41,7 @@ export function getLastBommelId(): number | null {
 }
 
 /** Persists the bommel choice — a positive id, or an empty string to remember an explicitly cleared field. */
-function cacheBommelChoice(id: number | null | undefined): void {
+export function cacheBommelChoice(id: number | null | undefined): void {
     try {
         localStorage.setItem(LAST_BOMMEL_KEY, id != null && id > 0 ? String(id) : '');
     } catch {

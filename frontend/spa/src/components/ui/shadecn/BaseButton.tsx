@@ -14,6 +14,8 @@ const buttonVariants = cva(
                 destructive: 'bg-destructive text-destructive-foreground font-medium hover:bg-destructive/90',
                 secondary:
                     'bg-[var(--purple-100)] text-[var(--color-black)] border border-[var(--purple-300)] hover:bg-[var(--purple-200)] hover:border-[var(--purple-400)]',
+                // Light purple, no border (design system "tonal"): secondary actions inside a purple-tinted context.
+                tonal: 'bg-[var(--purple-100)] text-purple-700 hover:bg-[var(--purple-200)]',
                 outline:
                     'text-[#666666] border border-[#CBC6D4] bg-background shadow-card hover:border-[var(--purple-500)] hover:text-primary hover:shadow-card-hover',
                 ghost: 'hover:bg-accent hover:text-accent-foreground',

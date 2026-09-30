@@ -120,6 +120,7 @@ export function useCreateTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.createError' },
         mutationFn: (data: TransactionCreateRequest) => apiService.orgService.transactionsPOST(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -131,6 +132,7 @@ export function useUpdateTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.saveError' },
         mutationFn: ({ id, data }: { id: number; data: TransactionUpdateRequest }) => apiService.orgService.transactionsPATCH(id, data),
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -143,6 +145,7 @@ export function useConfirmTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.confirmError' },
         mutationFn: (id: number) => apiService.orgService.confirm2(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -157,6 +160,7 @@ export function useReopenTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.reopenError' },
         mutationFn: (id: number) => apiService.orgService.reopen(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -167,10 +171,12 @@ export function useReopenTransaction() {
     });
 }
 
-export function useDeleteTransaction() {
+/** `silent` for bulk deletes, which report one summary instead of an error per item. */
+export function useDeleteTransaction({ silent = false }: { silent?: boolean } = {}) {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: silent ? { silent: true } : { errorMessage: 'transactions.toast.deleteError' },
         mutationFn: (id: number) => apiService.orgService.transactionsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });

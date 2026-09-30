@@ -2,6 +2,8 @@ package app.hopps.document.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.category.service.CategoryGroupService;
+import app.hopps.document.api.dto.DocumentConfirmRequest;
 import app.hopps.document.api.dto.DocumentResponse;
 import app.hopps.document.api.dto.DocumentUpdateRequest;
 import app.hopps.document.domain.*;
@@ -11,6 +13,7 @@ import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.document.audit.DocumentAuditor;
 import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
@@ -34,6 +37,7 @@ import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -84,6 +88,12 @@ public class DocumentResource {
 
     @Inject
     TransactionAuditor transactionAuditor;
+
+    @Inject
+    DocumentAuditor documentAuditor;
+
+    @Inject
+    CategoryGroupService categoryGroupService;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -138,6 +148,7 @@ public class DocumentResource {
         // Persist document. Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before the response.
         document.setDocumentStatus(DocumentStatus.UPLOADED);
         documentRepository.persistAndFlush(document);
+        documentAuditor.created(document);
         LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
 
         // Fire event to trigger async analysis after transaction commits (only if requested)
@@ -204,6 +215,8 @@ public class DocumentResource {
         if (document == null) {
             throw new NotFoundException("Document not found");
         }
+
+        Map<String, Object> before = documentAuditor.snapshot(document);
 
         // Track if any fields were manually modified
         boolean modified = false;
@@ -278,6 +291,7 @@ public class DocumentResource {
             document.setExtractionSource(ExtractionSource.MANUAL);
         }
 
+        documentAuditor.updated(document, before);
         notifyChanged(document);
         LOG.info("Document updated: id={}", document.getId());
         return DocumentResponse.from(document);
@@ -295,6 +309,8 @@ public class DocumentResource {
         if (document == null) {
             throw new NotFoundException("Document not found");
         }
+
+        documentAuditor.deleted(document);
 
         // Delete associated transaction first (due to foreign key constraint)
         Transaction transaction = transactionRepository.findByDocumentId(id);
@@ -381,8 +397,10 @@ public class DocumentResource {
                     Response.Status.UNSUPPORTED_MEDIA_TYPE);
         }
 
+        Map<String, Object> before = documentAuditor.snapshot(document);
         String oldKey = document.getFileKey();
         fileService.handleFileUpload(document, file);
+        documentAuditor.fileReplaced(document, before);
         if (oldKey != null && !oldKey.equals(document.getFileKey())) {
             fileService.deleteFile(oldKey);
         }
@@ -425,6 +443,7 @@ public class DocumentResource {
 
         // Fire event to trigger async analysis after transaction commits
         documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
+        documentAuditor.reanalyzeRequested(document);
 
         LOG.info("Re-analysis triggered: id={}", id);
         return DocumentResponse.from(document);
@@ -434,12 +453,14 @@ public class DocumentResource {
     @Path("/{id}/confirm")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data.")
+    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data. Optionally stores category-group values on the transaction; every required group applicable to its bommel must have a value.")
     @APIResponse(responseCode = "200", description = "Document confirmed and transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
     @APIResponse(responseCode = "404", description = "Document not found")
+    @APIResponse(responseCode = "400", description = "Invalid category value, or a required category group has no value")
     @APIResponse(responseCode = "409", description = "Document already confirmed")
     public DocumentResponse confirmDocument(
-            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+            @PathParam("id") @Parameter(description = "Document ID") Long id,
+            @Parameter(description = "Optional category-group values for the transaction") DocumentConfirmRequest request) {
         Document document = documentRepository.findByIdScoped(id);
         if (document == null) {
             throw new NotFoundException("Document not found");
@@ -454,8 +475,11 @@ public class DocumentResource {
         // second one — the user has reconciled the values onto the existing transaction; just mark the document
         // reviewed.
         if (document.getTransaction() != null) {
+            applyCategoryValues(document.getTransaction(), request);
+            DocumentStatus previousStatus = document.getDocumentStatus();
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
             document.setReviewedBy(principal);
+            documentAuditor.confirmed(document, previousStatus);
             notifyChanged(document);
             LOG.info("Document confirmed (existing transaction kept): id={}, transactionId={}", document.getId(),
                     document.getTransactionId());
@@ -487,16 +511,33 @@ public class DocumentResource {
         // The document's sender is the counterparty; the entity places it on the side matching the direction
         // and records the organization on the other side.
         transaction.setCounterparty(document.getSender());
+        applyCategoryValues(transaction, request);
         transactionRepository.persist(transaction);
         transactionAuditor.created(transaction);
 
         document.setTransaction(transaction);
+        DocumentStatus previousStatus = document.getDocumentStatus();
         document.setDocumentStatus(DocumentStatus.CONFIRMED);
+        documentAuditor.confirmed(document, previousStatus);
         document.setReviewedBy(principal);
 
         notifyChanged(document);
         LOG.info("Document confirmed: id={}, transactionId={}", document.getId(), transaction.getId());
         return DocumentResponse.from(document);
+    }
+
+    /**
+     * Stores the given category values on the transaction and rejects the confirmation when a required group of its
+     * bommel is still empty, so a receipt can only be confirmed with complete categories.
+     */
+    private void applyCategoryValues(Transaction transaction, DocumentConfirmRequest request) {
+        if (request != null) {
+            categoryGroupService.validateAndApply(transaction, request.categoryValues());
+        }
+        List<String> missing = categoryGroupService.missingRequiredGroups(transaction);
+        if (!missing.isEmpty()) {
+            throw new BadRequestException("Missing required category group(s): " + String.join(", ", missing));
+        }
     }
 
     /**

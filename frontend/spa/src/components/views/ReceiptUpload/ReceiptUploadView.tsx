@@ -1,5 +1,5 @@
 import type { AnalysisStatus } from '@hopps/api-client';
-import { OrganizationInput, TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
+import { DocumentConfirmRequest, OrganizationInput, TransactionCreateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Download } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -521,7 +521,7 @@ function ReceiptUploadView() {
 
             // Update transaction and confirm it
             await apiService.orgService.transactionsPATCH(transactionId, new TransactionUpdateRequest(payload));
-            await apiService.orgService.confirm(transactionId);
+            await apiService.orgService.confirm(transactionId, new DocumentConfirmRequest({ categoryValues }));
 
             showSuccess(t('receipts.upload.saveSuccess'));
             resetForm();

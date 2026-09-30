@@ -21,19 +21,21 @@ const ToastViewport = React.forwardRef<React.ElementRef<typeof ToastPrimitives.V
 );
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
+// Tinted by state, with text in the darker shade of the same colour and no border. Colours come from the theme tokens
+// so dark mode follows.
 const toastVariants = cva(
-    'group pointer-events-auto relative flex w-full items-center justify-between space-x-2 overflow-hidden rounded-md border p-4 pr-6 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-right-full data-[state=open]:sm:slide-in-from-right-full',
+    'group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-[var(--btn-radius)] py-3.5 pl-4 pr-10 shadow-[var(--shadow-md)] transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-right-full data-[state=open]:sm:slide-in-from-right-full',
     {
         variants: {
             variant: {
-                default: 'border rounded bg-white text-foreground',
-                success: 'border rounded bg-primary text-primary-foreground',
-                error: 'border rounded destructive group border-destructive bg-destructive text-destructive-foreground',
-                warning: 'border rounded bg-yellow-100 border-yellow-400 text-yellow-800',
+                success: 'bg-[var(--positive-surface)] text-[var(--positive)]',
+                error: 'bg-[var(--negative-surface)] text-[var(--negative)]',
+                warning: 'bg-[var(--warning-surface)] text-[var(--warning)]',
+                info: 'bg-[var(--info-surface)] text-[var(--info)]',
             },
         },
         defaultVariants: {
-            variant: 'default',
+            variant: 'info',
         },
     }
 );
@@ -65,7 +67,7 @@ const ToastClose = React.forwardRef<React.ElementRef<typeof ToastPrimitives.Clos
         <ToastPrimitives.Close
             ref={ref}
             className={cn(
-                'absolute right-1 top-1 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600',
+                'absolute right-2.5 top-2.5 rounded-[8px] p-1 text-current opacity-60 transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-current',
                 className
             )}
             toast-close=""
@@ -78,14 +80,18 @@ const ToastClose = React.forwardRef<React.ElementRef<typeof ToastPrimitives.Clos
 ToastClose.displayName = ToastPrimitives.Close.displayName;
 
 const ToastTitle = React.forwardRef<React.ElementRef<typeof ToastPrimitives.Title>, React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>>(
-    ({ className, ...props }, ref) => <ToastPrimitives.Title ref={ref} className={cn('text-sm font-semibold [&+div]:text-xs', className)} {...props} />
+    ({ className, ...props }, ref) => (
+        <ToastPrimitives.Title ref={ref} className={cn('text-[14px] font-bold leading-snug text-current', className)} {...props} />
+    )
 );
 ToastTitle.displayName = ToastPrimitives.Title.displayName;
 
 const ToastDescription = React.forwardRef<
     React.ElementRef<typeof ToastPrimitives.Description>,
     React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
->(({ className, ...props }, ref) => <ToastPrimitives.Description ref={ref} className={cn('text-sm opacity-90', className)} {...props} />);
+>(({ className, ...props }, ref) => (
+    <ToastPrimitives.Description ref={ref} className={cn('text-[13px] leading-snug text-current opacity-80', className)} {...props} />
+));
 ToastDescription.displayName = ToastPrimitives.Description.displayName;
 
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;

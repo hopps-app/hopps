@@ -3,7 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { cn } from '@/lib/utils';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
@@ -64,24 +64,14 @@ export function ConfirmDialog({
                     </div>
 
                     <div className="mt-6 flex items-center justify-end gap-2">
-                        <DialogPrimitive.Close
-                            className="px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors"
-                            disabled={loading}
-                        >
-                            {cancelLabel ?? t('common.cancel')}
+                        <DialogPrimitive.Close asChild>
+                            <BaseButton variant="ghost" size="sm" disabled={loading} className="font-bold text-muted-foreground">
+                                {cancelLabel ?? t('common.cancel')}
+                            </BaseButton>
                         </DialogPrimitive.Close>
-                        <button
-                            onClick={onConfirm}
-                            disabled={loading}
-                            className={cn(
-                                'inline-flex items-center justify-center px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50'
-                            )}
-                            style={{
-                                background: destructive ? 'var(--negative-solid)' : 'var(--banner-gradient)',
-                            }}
-                        >
+                        <BaseButton variant={destructive ? 'destructive' : 'default'} size="sm" onClick={onConfirm} disabled={loading} className="font-bold">
                             {loading ? '…' : (confirmLabel ?? t('common.confirm'))}
-                        </button>
+                        </BaseButton>
                     </div>
                 </DialogPrimitive.Content>
             </DialogPrimitive.Portal>

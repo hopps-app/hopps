@@ -1,5 +1,8 @@
 package app.hopps.document.service;
 
+import java.util.Map;
+
+import app.hopps.document.audit.DocumentAuditor;
 import app.hopps.document.client.DocumentAiClient;
 import app.hopps.document.client.DocumentData;
 import app.hopps.document.client.ZugFerdClient;
@@ -43,6 +46,9 @@ public class DocumentAnalysisService {
 
     @Inject
     DocumentRepository documentRepository;
+
+    @Inject
+    DocumentAuditor documentAuditor;
 
     @Inject
     FileStorage fileStorage;
@@ -99,6 +105,7 @@ public class DocumentAnalysisService {
 
         LOG.info("Starting document analysis: id={}, fileName={}", documentId, document.getFileName());
         document.setAnalysisStatus(AnalysisStatus.ANALYZING);
+        Map<String, Object> before = documentAuditor.snapshot(document);
 
         try {
             DocumentData data = null;
@@ -141,11 +148,13 @@ public class DocumentAnalysisService {
                 document.setAnalysisStatus(AnalysisStatus.COMPLETED);
                 LOG.info("Document analysis completed with no data extracted: id={}", documentId);
             }
+            documentAuditor.analyzed(document, before);
         } catch (Exception e) {
             LOG.error("Document analysis failed: id={}", documentId, e);
             document.setAnalysisStatus(AnalysisStatus.FAILED);
             document.setAnalysisError(
                     isServiceUnavailable(e) ? ANALYSIS_SERVICE_UNAVAILABLE : extractUserFriendlyError(e));
+            documentAuditor.analysisFailed(document);
         }
 
         fireChanged(document);

@@ -679,7 +679,22 @@
             "confirmDesc": "Voulez-vous vraiment supprimer les transactions sélectionnées ({{n}}) ? Cette action est irréversible."
         },
         "linked": "Lié",
-        "notLinked": "Non lié"
+        "notLinked": "Non lié",
+        "toast": {
+            "createError": "La transaction n'a pas pu être créée",
+            "saveError": "La transaction n'a pas pu être enregistrée",
+            "confirmError": "La transaction n'a pas pu être confirmée",
+            "reopenError": "La transaction n'a pas pu être rouverte",
+            "deleteError": "La transaction n'a pas pu être supprimée",
+            "created": "Transaction créée",
+            "saved": "Transaction enregistrée",
+            "confirmed": "Transaction confirmée",
+            "reopened": "Transaction rouverte",
+            "deleted": "Transaction supprimée",
+            "bulkDeleted": "{{count}} transaction(s) supprimée(s)",
+            "bulkDeletePartial": "{{done}} transaction(s) supprimée(s), {{failed}} en échec",
+            "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées"
+        }
     },
     "datePicker": {
         "selectDate": "Sélectionner une date"
@@ -835,7 +850,12 @@
             "analyzing": "Analyse en cours",
             "ready": "À vérifier",
             "confirmed": "Confirmé",
-            "failed": "Saisie manuelle"
+            "failed": "À remplir manuellement",
+            "hint": {
+                "ready": "L'IA a extrait les valeurs. Veuillez les vérifier et les confirmer.",
+                "failed": "L'analyse a échoué. Veuillez saisir les valeurs vous-même.",
+                "skipped": "Le reçu n'a pas été analysé. Veuillez saisir les valeurs vous-même."
+            }
         },
         "statusDescription": {
             "pending": "Reçu téléversé – l'analyse va bientôt commencer.",
@@ -870,20 +890,14 @@
             "sectionTitle": "Téléverser des reçus",
             "expand": "Développer la zone de téléversement",
             "collapse": "Réduire la zone de téléversement",
-            "tooLargeTitle": "Fichier trop volumineux",
-            "tooLargeDescription": "{{files}} dépasse la taille maximale de {{max}} Mo et n'a pas été téléversé.",
-            "invalidTypeTitle": "Type de fichier non pris en charge",
-            "invalidTypeDescription": "{{files}} a un type non pris en charge. Autorisés : PDF, PNG et JPEG.",
             "dropzone": "Déposez les fichiers ici ou cliquez pour les sélectionner",
             "dropzoneActive": "Relâchez pour téléverser",
             "hint": "PDF, PNG ou JPEG jusqu'à 10 Mo",
-            "uploading": "Téléversement…",
-            "analyzeLabel": "Analyse automatique (IA)",
+            "analyzeLabel": "Lire automatiquement les reçus au téléversement",
             "progress": "{{done}} sur {{total}} téléversés",
             "itemUploading": "Téléversement …",
             "itemDone": "Téléversé",
-            "itemError": "Échec",
-            "itemErrorDuplicate": "Doublon – déjà comptabilisé",
+            "itemErrorDuplicate": "Fichier déjà présent",
             "viewExisting": "Voir le reçu",
             "analysis": {
                 "aiWarning": "Les données reconnues par l'IA peuvent contenir des erreurs. Veuillez vérifier tous les champs avant d'enregistrer.",
@@ -901,7 +915,21 @@
                 "retryFailed": "L'analyse n'a pas pu être relancée. Veuillez réessayer plus tard."
             },
             "duplicate": "Ce reçu a déjà été téléversé.",
-            "uploadFailed": "Échec du téléversement du reçu."
+            "uploadFailed": "Échec du téléversement du reçu.",
+            "failedCount": "{{count}} fichier(s) non téléversé(s)",
+            "remove": "Retirer",
+            "removeAll": "Tout retirer",
+            "errors": {
+                "tooLarge": "Trop volumineux (max. {{max}} Mo)",
+                "invalidType": "Type de fichier non pris en charge",
+                "unauthorized": "Session expirée, veuillez vous reconnecter",
+                "network": "Pas de connexion au serveur",
+                "server": "Erreur serveur, veuillez réessayer plus tard",
+                "unknown": "Échec"
+            },
+            "dropzoneMore": "Déposez d'autres reçus ici",
+            "chooseFiles": "Téléverser des reçus",
+            "analyzeHint": "Un modèle d'IA d'analyse de documents lit l'émetteur, la date et le montant sur le reçu. Les valeurs sont préremplies comme brouillon et prêtes à être vérifiées."
         },
         "areas": {
             "ideell": "Sphère désintéressée",
@@ -952,7 +980,7 @@
             "confirmHint": "Crée une transaction en BROUILLON à partir des données du reçu",
             "reanalyze": "Réanalyser",
             "delete": "Supprimer le reçu",
-            "deleteConfirmText": "Le reçu et toute transaction créée à partir de celui-ci seront définitivement supprimés.",
+            "deleteConfirmText": "Le reçu et la transaction créée à partir de celui-ci, le cas échéant, seront supprimés définitivement.",
             "name": "Description",
             "amount": "Montant",
             "date": "Date",
@@ -989,7 +1017,38 @@
             "noReceiptDataHint": "Aucune donnée n'a été automatiquement extraite du reçu. Vous pouvez saisir les valeurs manuellement dans l'onglet « Transaction ».",
             "saveDraft": "Enregistrer comme brouillon",
             "finalize": "Confirmer",
-            "createTransaction": "Créer la transaction"
+            "createTransaction": "Créer la transaction",
+            "eyebrowView": "Reçu",
+            "unsaved": "Non enregistré",
+            "confirmReceipt": "Confirmer le reçu",
+            "confirmTransaction": "Confirmer la transaction",
+            "masterData": "Informations",
+            "tax": "TVA incluse",
+            "receiptDate": "Date du reçu",
+            "createdTransaction": "Transaction créée",
+            "noTransaction": "Il n'existe plus de transaction pour ce reçu.",
+            "paymentMatching": "Rapprochement des paiements",
+            "linkAfterCreate": "Une fois la transaction créée, vous pouvez associer ici des opérations bancaires.",
+            "uploadedOn": "Téléversé le {{date}}",
+            "fileInfo": "Fichier",
+            "fileName": "Nom du fichier",
+            "fileType": "Type de fichier",
+            "fileSize": "Taille",
+            "uploadedAt": "Téléversé le",
+            "uploadedBy": "Téléversé par",
+            "documentNumber": "Numéro du document",
+            "extraction": "Source des données",
+            "extractionSource": {
+                "ZUGFERD": "Facture électronique (ZUGFeRD)",
+                "AI": "Détecté par IA",
+                "MANUAL": "Saisi manuellement",
+                "NONE": "Non lu"
+            },
+            "extractedValues": "Valeurs détectées",
+            "discardTitle": "Abandonner les modifications ?",
+            "discardText": "Vos corrections sur ce reçu ne sont pas encore enregistrées.",
+            "discardConfirm": "Abandonner",
+            "keepEditing": "Continuer la modification"
         },
         "filter": {
             "all": "Tous",
@@ -1036,9 +1095,25 @@
             "selectRow": "Sélectionner le reçu",
             "selectedCount": "{{n}} sélectionnés",
             "clear": "Effacer la sélection",
+            "reanalyze": "Réanalyser ({{n}})",
             "delete": "Supprimer",
             "confirmTitle": "Supprimer les reçus sélectionnés ?",
             "confirmDesc": "Voulez-vous vraiment supprimer les reçus sélectionnés ({{n}}) ? Cette action est irréversible."
+        },
+        "toast": {
+            "reuploadError": "Le fichier n'a pas pu être remplacé",
+            "createTransactionError": "La transaction n'a pas pu être créée",
+            "saveError": "Le reçu n'a pas pu être enregistré",
+            "deleteError": "Le reçu n'a pas pu être supprimé",
+            "reanalyzeError": "L'analyse n'a pas pu être lancée",
+            "saved": "Reçu enregistré",
+            "transactionCreated": "Transaction créée",
+            "receiptConfirmed": "Reçu confirmé",
+            "deleted": "Reçu supprimé",
+            "reanalyzeStarted": "Nouvelle analyse lancée",
+            "bulkDeleted": "{{count}} reçu(s) supprimé(s)",
+            "bulkDeletePartial": "{{done}} reçu(s) supprimé(s), {{failed}} en échec",
+            "bulkDeleteFailed": "Les reçus n'ont pas pu être supprimés"
         }
     },
     "bommel": {
@@ -1103,14 +1178,14 @@
             "export": "Exporter"
         },
         "toast": {
-            "createSuccess": "Compte bancaire créé avec succès",
-            "createError": "Échec de la création du compte bancaire",
-            "updateSuccess": "Compte bancaire mis à jour avec succès",
-            "updateError": "Échec de la mise à jour du compte bancaire",
+            "createSuccess": "Compte bancaire créé",
+            "createError": "Le compte bancaire n'a pas pu être créé",
+            "updateSuccess": "Compte bancaire enregistré",
+            "updateError": "Le compte bancaire n'a pas pu être enregistré",
             "archiveSuccess": "Compte bancaire archivé",
-            "archiveError": "Échec de l'archivage du compte bancaire",
+            "archiveError": "Le compte bancaire n'a pas pu être archivé",
             "restoreSuccess": "Compte bancaire restauré",
-            "restoreError": "Échec de la restauration du compte bancaire"
+            "restoreError": "Le compte bancaire n'a pas pu être restauré"
         }
     },
     "bankImport": {
@@ -1200,8 +1275,9 @@
             "confirm": "Voulez-vous vraiment annuler cet import ? Toutes les transactions importées seront supprimées."
         },
         "toast": {
-            "rollbackSuccess": "Import annulé avec succès",
-            "rollbackError": "Échec de l'annulation de l'import"
+            "rollbackSuccess": "Import annulé",
+            "rollbackError": "L'import n'a pas pu être annulé",
+            "startError": "L'import n'a pas pu être lancé"
         }
     },
     "bankSchema": {
@@ -1262,16 +1338,16 @@
             }
         },
         "toast": {
-            "createSuccess": "Schéma créé avec succès",
-            "createError": "Échec de la création du schéma",
-            "updateSuccess": "Schéma mis à jour avec succès",
-            "updateError": "Échec de la mise à jour du schéma",
-            "deleteSuccess": "Schéma supprimé avec succès",
-            "deleteError": "Échec de la suppression du schéma",
+            "createSuccess": "Schéma créé",
+            "createError": "Le schéma n'a pas pu être créé",
+            "updateSuccess": "Schéma enregistré",
+            "updateError": "Le schéma n'a pas pu être enregistré",
+            "deleteSuccess": "Schéma supprimé",
+            "deleteError": "Le schéma n'a pas pu être supprimé",
             "archiveSuccess": "Schéma archivé",
-            "archiveError": "Échec de l'archivage du schéma",
+            "archiveError": "Le schéma n'a pas pu être archivé",
             "restoreSuccess": "Schéma restauré",
-            "restoreError": "Échec de la restauration du schéma"
+            "restoreError": "Le schéma n'a pas pu être restauré"
         }
     },
     "connectivity": {
@@ -1415,6 +1491,18 @@
             "coversExactly": "Couvre exactement le reste",
             "shouldBeIncome": "Cette transaction bancaire est une recette. Veuillez choisir « Recette ».",
             "shouldBeExpense": "Cette transaction bancaire est une dépense. Veuillez choisir « Dépense »."
+        }
+    },
+    "bankMatch": {
+        "toast": {
+            "linkError": "L'opération bancaire n'a pas pu être associée",
+            "amountError": "Le montant n'a pas pu être modifié",
+            "unlinkError": "L'association n'a pas pu être supprimée",
+            "ignoreError": "L'opération bancaire n'a pas pu être ignorée",
+            "linked": "Opération bancaire associée",
+            "ignored": "Opération bancaire ignorée",
+            "unignored": "Opération bancaire rétablie",
+            "unignoreError": "L'opération bancaire n'a pas pu être rétablie"
         }
     }
 }

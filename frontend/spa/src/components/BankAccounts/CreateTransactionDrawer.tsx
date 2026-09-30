@@ -1,5 +1,5 @@
 import { BankTransactionResponse, TransactionCreateRequest } from '@hopps/api-client';
-import { Check, ArrowDownRight, ArrowUpRight, Landmark, Plus } from 'lucide-react';
+import { Check, Landmark, Plus } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +10,7 @@ import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { TagInput } from '@/components/Transactions/TagInput';
+import { DIRECTION_ICONS } from '@/components/Transactions/TxIcon';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import TextField from '@/components/ui/TextField';
@@ -52,7 +53,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const createMutation = useCreateTransaction();
     const addMatch = useAddBankTransactionMatch();
     const confirmMutation = useConfirmTransaction();
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
     const { data: categoryGroups = [] } = useCategoryGroups();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
@@ -159,13 +160,20 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         const payload = buildPayload();
         if (!payload) return;
 
-        const created = await createMutation.mutateAsync(payload);
-        if (bankTx?.id && created?.id) {
-            await addMatch.mutateAsync({ bankTxId: bankTx.id, transactionId: created.id });
-            if (confirm) {
-                await confirmMutation.mutateAsync(created.id);
+        let created;
+        try {
+            created = await createMutation.mutateAsync(payload);
+            if (bankTx?.id && created?.id) {
+                await addMatch.mutateAsync({ bankTxId: bankTx.id, transactionId: created.id });
+                if (confirm) {
+                    await confirmMutation.mutateAsync(created.id);
+                }
             }
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
         }
+        showSuccess(t(confirm && bankTx?.id ? 'transactions.toast.confirmed' : 'transactions.toast.created'));
         onCreated?.(created?.id);
         handleClose();
     }
@@ -307,7 +315,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
                         <div className="grid grid-cols-2 gap-2">
                             {(['expense', 'income'] as const).map((d) => {
                                 const active = direction === d;
-                                const Icon = d === 'expense' ? ArrowDownRight : ArrowUpRight;
+                                const Icon = DIRECTION_ICONS[d];
                                 const activeColor =
                                     d === 'expense'
                                         ? {

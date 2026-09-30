@@ -679,7 +679,22 @@
             "confirmDesc": "Vuoi davvero eliminare le transazioni selezionate ({{n}})? Questa operazione non può essere annullata."
         },
         "linked": "Collegata",
-        "notLinked": "Non collegata"
+        "notLinked": "Non collegata",
+        "toast": {
+            "createError": "Impossibile creare la transazione",
+            "saveError": "Impossibile salvare la transazione",
+            "confirmError": "Impossibile confermare la transazione",
+            "reopenError": "Impossibile riaprire la transazione",
+            "deleteError": "Impossibile eliminare la transazione",
+            "created": "Transazione creata",
+            "saved": "Transazione salvata",
+            "confirmed": "Transazione confermata",
+            "reopened": "Transazione riaperta",
+            "deleted": "Transazione eliminata",
+            "bulkDeleted": "{{count}} transazione/i eliminata/e",
+            "bulkDeletePartial": "{{done}} transazione/i eliminata/e, {{failed}} non riuscita/e",
+            "bulkDeleteFailed": "Impossibile eliminare le transazioni"
+        }
     },
     "datePicker": {
         "selectDate": "Seleziona data"
@@ -833,9 +848,14 @@
         "status": {
             "pending": "In attesa",
             "analyzing": "Analisi in corso",
-            "ready": "Da revisionare",
+            "ready": "Da verificare",
             "confirmed": "Confermata",
-            "failed": "Inserimento manuale"
+            "failed": "Da compilare manualmente",
+            "hint": {
+                "ready": "L'IA ha estratto i valori. Verificali e confermali.",
+                "failed": "L'analisi non è riuscita. Inserisci tu i valori.",
+                "skipped": "La ricevuta non è stata analizzata. Inserisci tu i valori."
+            }
         },
         "statusDescription": {
             "pending": "Ricevuta caricata – l'analisi sta per iniziare.",
@@ -870,20 +890,14 @@
             "sectionTitle": "Carica ricevute",
             "expand": "Espandi area di caricamento",
             "collapse": "Comprimi area di caricamento",
-            "tooLargeTitle": "File troppo grande",
-            "tooLargeDescription": "{{files}} supera la dimensione massima di {{max}} MB e non è stato caricato.",
-            "invalidTypeTitle": "Tipo di file non supportato",
-            "invalidTypeDescription": "{{files}} ha un tipo non supportato. Consentiti: PDF, PNG e JPEG.",
             "dropzone": "Trascina i file qui o clicca per selezionarli",
             "dropzoneActive": "Rilascia per caricare",
             "hint": "PDF, PNG o JPEG fino a 10 MB",
-            "uploading": "Caricamento…",
-            "analyzeLabel": "Analisi automatica (IA)",
+            "analyzeLabel": "Leggi automaticamente le ricevute al caricamento",
             "progress": "{{done}} di {{total}} caricati",
             "itemUploading": "Caricamento …",
             "itemDone": "Caricata",
-            "itemError": "Non riuscito",
-            "itemErrorDuplicate": "Duplicato – già registrato",
+            "itemErrorDuplicate": "File già presente",
             "viewExisting": "Visualizza ricevuta",
             "analysis": {
                 "aiWarning": "I dati riconosciuti dall'IA potrebbero contenere errori. Controlla tutti i campi prima di salvare.",
@@ -901,7 +915,21 @@
                 "retryFailed": "Impossibile riavviare l'analisi. Riprova più tardi."
             },
             "duplicate": "Questa ricevuta è già stata caricata.",
-            "uploadFailed": "Caricamento della ricevuta non riuscito."
+            "uploadFailed": "Caricamento della ricevuta non riuscito.",
+            "failedCount": "{{count}} file non caricati",
+            "remove": "Rimuovi",
+            "removeAll": "Rimuovi tutti",
+            "errors": {
+                "tooLarge": "Troppo grande (max. {{max}} MB)",
+                "invalidType": "Tipo di file non supportato",
+                "unauthorized": "Sessione scaduta, accedi di nuovo",
+                "network": "Nessuna connessione al server",
+                "server": "Errore del server, riprova più tardi",
+                "unknown": "Non riuscito"
+            },
+            "dropzoneMore": "Trascina qui altre ricevute",
+            "chooseFiles": "Carica ricevute",
+            "analyzeHint": "Un modello di IA per l'analisi dei documenti legge mittente, data e importo dalla ricevuta. I valori vengono precompilati come bozza e sono pronti per la verifica."
         },
         "areas": {
             "ideell": "Ambito senza scopo di lucro",
@@ -952,7 +980,7 @@
             "confirmHint": "Crea una transazione in BOZZA a partire dai dati della ricevuta",
             "reanalyze": "Rianalizza",
             "delete": "Elimina ricevuta",
-            "deleteConfirmText": "La ricevuta e qualsiasi transazione creata da essa verranno eliminate definitivamente.",
+            "deleteConfirmText": "La ricevuta e la transazione creata da essa, se presente, verranno eliminate definitivamente.",
             "name": "Descrizione",
             "amount": "Importo",
             "date": "Data",
@@ -989,7 +1017,38 @@
             "noReceiptDataHint": "Nessun dato è stato estratto automaticamente dalla ricevuta. Puoi inserire i valori manualmente nella scheda \"Transazione\".",
             "saveDraft": "Salva come bozza",
             "finalize": "Conferma",
-            "createTransaction": "Crea transazione"
+            "createTransaction": "Crea transazione",
+            "eyebrowView": "Ricevuta",
+            "unsaved": "Non salvato",
+            "confirmReceipt": "Conferma ricevuta",
+            "confirmTransaction": "Conferma transazione",
+            "masterData": "Dati",
+            "tax": "IVA inclusa",
+            "receiptDate": "Data della ricevuta",
+            "createdTransaction": "Transazione creata",
+            "noTransaction": "Per questa ricevuta non esiste più una transazione.",
+            "paymentMatching": "Riconciliazione pagamenti",
+            "linkAfterCreate": "Dopo aver creato la transazione puoi collegare qui i movimenti bancari.",
+            "uploadedOn": "Caricata il {{date}}",
+            "fileInfo": "File",
+            "fileName": "Nome del file",
+            "fileType": "Tipo di file",
+            "fileSize": "Dimensione",
+            "uploadedAt": "Caricata il",
+            "uploadedBy": "Caricata da",
+            "documentNumber": "Numero documento",
+            "extraction": "Origine dei dati",
+            "extractionSource": {
+                "ZUGFERD": "Fattura elettronica (ZUGFeRD)",
+                "AI": "Rilevato dall'IA",
+                "MANUAL": "Inserito manualmente",
+                "NONE": "Non letto"
+            },
+            "extractedValues": "Valori rilevati",
+            "discardTitle": "Annullare le modifiche?",
+            "discardText": "Le tue correzioni a questa ricevuta non sono ancora salvate.",
+            "discardConfirm": "Annulla modifiche",
+            "keepEditing": "Continua a modificare"
         },
         "filter": {
             "all": "Tutte",
@@ -1036,9 +1095,25 @@
             "selectRow": "Seleziona ricevuta",
             "selectedCount": "{{n}} selezionate",
             "clear": "Cancella selezione",
+            "reanalyze": "Rianalizza ({{n}})",
             "delete": "Elimina",
             "confirmTitle": "Eliminare le ricevute selezionate?",
             "confirmDesc": "Vuoi davvero eliminare le ricevute selezionate ({{n}})? Questa operazione non può essere annullata."
+        },
+        "toast": {
+            "reuploadError": "Impossibile sostituire il file",
+            "createTransactionError": "Impossibile creare la transazione",
+            "saveError": "Impossibile salvare la ricevuta",
+            "deleteError": "Impossibile eliminare la ricevuta",
+            "reanalyzeError": "Impossibile avviare l'analisi",
+            "saved": "Ricevuta salvata",
+            "transactionCreated": "Transazione creata",
+            "receiptConfirmed": "Ricevuta confermata",
+            "deleted": "Ricevuta eliminata",
+            "reanalyzeStarted": "Nuova analisi avviata",
+            "bulkDeleted": "{{count}} ricevuta/e eliminata/e",
+            "bulkDeletePartial": "{{done}} ricevuta/e eliminata/e, {{failed}} non riuscita/e",
+            "bulkDeleteFailed": "Impossibile eliminare le ricevute"
         }
     },
     "bommel": {
@@ -1103,14 +1178,14 @@
             "export": "Esporta"
         },
         "toast": {
-            "createSuccess": "Conto bancario creato con successo",
-            "createError": "Creazione del conto bancario non riuscita",
-            "updateSuccess": "Conto bancario aggiornato con successo",
-            "updateError": "Aggiornamento del conto bancario non riuscito",
+            "createSuccess": "Conto bancario creato",
+            "createError": "Impossibile creare il conto bancario",
+            "updateSuccess": "Conto bancario salvato",
+            "updateError": "Impossibile salvare il conto bancario",
             "archiveSuccess": "Conto bancario archiviato",
-            "archiveError": "Archiviazione del conto bancario non riuscita",
+            "archiveError": "Impossibile archiviare il conto bancario",
             "restoreSuccess": "Conto bancario ripristinato",
-            "restoreError": "Ripristino del conto bancario non riuscito"
+            "restoreError": "Impossibile ripristinare il conto bancario"
         }
     },
     "bankImport": {
@@ -1200,8 +1275,9 @@
             "confirm": "Sei sicuro di voler annullare questa importazione? Tutte le transazioni importate verranno eliminate."
         },
         "toast": {
-            "rollbackSuccess": "Importazione annullata con successo",
-            "rollbackError": "Annullamento dell'importazione non riuscito"
+            "rollbackSuccess": "Importazione annullata",
+            "rollbackError": "Impossibile annullare l'importazione",
+            "startError": "Impossibile avviare l'importazione"
         }
     },
     "bankSchema": {
@@ -1262,16 +1338,16 @@
             }
         },
         "toast": {
-            "createSuccess": "Schema creato con successo",
-            "createError": "Creazione dello schema non riuscita",
-            "updateSuccess": "Schema aggiornato con successo",
-            "updateError": "Aggiornamento dello schema non riuscito",
-            "deleteSuccess": "Schema eliminato con successo",
-            "deleteError": "Eliminazione dello schema non riuscita",
+            "createSuccess": "Schema creato",
+            "createError": "Impossibile creare lo schema",
+            "updateSuccess": "Schema salvato",
+            "updateError": "Impossibile salvare lo schema",
+            "deleteSuccess": "Schema eliminato",
+            "deleteError": "Impossibile eliminare lo schema",
             "archiveSuccess": "Schema archiviato",
-            "archiveError": "Archiviazione dello schema non riuscita",
+            "archiveError": "Impossibile archiviare lo schema",
             "restoreSuccess": "Schema ripristinato",
-            "restoreError": "Ripristino dello schema non riuscito"
+            "restoreError": "Impossibile ripristinare lo schema"
         }
     },
     "connectivity": {
@@ -1415,6 +1491,18 @@
             "coversExactly": "Copre esattamente il resto",
             "shouldBeIncome": "Questa transazione bancaria è un'entrata. Scegli “Entrata”.",
             "shouldBeExpense": "Questa transazione bancaria è un'uscita. Scegli “Uscita”."
+        }
+    },
+    "bankMatch": {
+        "toast": {
+            "linkError": "Impossibile collegare il movimento bancario",
+            "amountError": "Impossibile modificare l'importo",
+            "unlinkError": "Impossibile rimuovere il collegamento",
+            "ignoreError": "Impossibile ignorare il movimento bancario",
+            "linked": "Movimento bancario collegato",
+            "ignored": "Movimento bancario ignorato",
+            "unignored": "Movimento bancario ripristinato",
+            "unignoreError": "Impossibile ripristinare il movimento bancario"
         }
     }
 }

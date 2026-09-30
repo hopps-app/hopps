@@ -178,8 +178,8 @@ export function BankMatchSection({
                         return (
                             <div
                                 key={b.id}
-                                className="rounded-[var(--r-card)] border border-border-soft px-[15px] py-[13px]"
-                                style={{ background: 'var(--background-secondary)' }}
+                                className="rounded-[var(--r-card)] px-[15px] py-[13px]"
+                                style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
                             >
                                 <div className="flex items-start gap-3">
                                     <span
