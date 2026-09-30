@@ -20,7 +20,13 @@
   "packages": {
     ".": {
       "package-name": "hopps",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        { "type": "generic", "path": "infrastructure/hopps-app/.env.example" },
+        { "type": "generic", "path": "infrastructure/hopps-app/docker-compose.yaml" },
+        { "type": "generic", "path": "infrastructure/hopps-app/docker-compose.keycloak.yaml" },
+        { "type": "generic", "path": "infrastructure/hopps-app/docker-compose.document-ai.yaml" }
+      ]
     }
   }
 }

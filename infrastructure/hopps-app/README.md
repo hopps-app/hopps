@@ -247,9 +247,11 @@ request Azure then rejects.
 
 ## Versions
 
-`TAG` pins `org`, `az-document-ai` and `zugferd` — they are released together
-and share one number. `FRONTEND_TAG` and `KEYCLOAK_TAG` are numbered separately.
-There is no `latest` tag; always pin explicitly.
+`TAG` pins every Hopps image (`frontend`, `org`, `zugferd`, `az-document-ai`,
+`hopps-keycloak`). They are released together as `vX.Y.Z` and all carry the tag
+`X.Y.Z`. There is no `latest` tag; always pin explicitly. Before raising `TAG`,
+read the upgrade notes of every release in between on the
+[releases page](https://github.com/hopps-app/hopps/releases).
 
 ## Backups
 

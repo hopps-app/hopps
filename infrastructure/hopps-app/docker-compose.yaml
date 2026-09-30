@@ -26,7 +26,7 @@ services:
 
   # ---------------------------------------------------------------- frontend --
   frontend:
-    image: ghcr.io/hopps-app/hopps/frontend:${FRONTEND_TAG:-1168}
+    image: ghcr.io/hopps-app/hopps/frontend:${TAG:-2.0.0} # x-release-please-version
     restart: unless-stopped
     ports:
       - "${SPA_PORT:-8080}:8080"
@@ -55,7 +55,7 @@ services:
 
   # ---------------------------------------------------------------- backend ---
   org:
-    image: ghcr.io/hopps-app/hopps/org:${TAG:-967}
+    image: ghcr.io/hopps-app/hopps/org:${TAG:-2.0.0} # x-release-please-version
     restart: unless-stopped
     ports:
       - "${ORG_PORT:-8101}:8080"
@@ -112,7 +112,7 @@ services:
       - org_storage:/var/lib/hopps/storage
 
   zugferd:
-    image: ghcr.io/hopps-app/hopps/zugferd:${TAG:-967}
+    image: ghcr.io/hopps-app/hopps/zugferd:${TAG:-2.0.0} # x-release-please-version
     restart: unless-stopped
     expose:
       - "8080"
