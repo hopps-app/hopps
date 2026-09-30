@@ -138,8 +138,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # Created on the first start with an empty volume. The Keycloak overlay
-      # creates its own database.
+      # Created on the first start with an empty volume.
       POSTGRES_DB: org
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
