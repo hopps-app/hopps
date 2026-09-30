@@ -17,12 +17,12 @@ services:
     image: postgres:16-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql:ro
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: org
 
 volumes:
   postgres_data:

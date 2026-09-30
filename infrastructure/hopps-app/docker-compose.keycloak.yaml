@@ -44,6 +44,25 @@ services:
       # Where the link in Keycloak's invitation email lands after the password is set.
       HOPPS_SPA_URL: ${PUBLIC_SPA_URL}/
 
+  # Creates Keycloak's database if it is missing, then exits. Runs on every start,
+  # so Keycloak can also be added to an existing installation.
+  keycloak-db:
+    image: postgres:16-alpine
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: postgres
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'keycloak'" | grep -q 1 || psql -c "CREATE DATABASE keycloak"
+
   keycloak:
     # Keycloak plus the Hopps login theme the realm refers to.
     image: ghcr.io/hopps-app/hopps/hopps-keycloak:${TAG:-2.0.0} # x-release-please-version
@@ -62,8 +81,8 @@ services:
     ports:
       - "${KEYCLOAK_PORT:-8092}:8080"
     depends_on:
-      postgres:
-        condition: service_healthy
+      keycloak-db:
+        condition: service_completed_successfully
     environment:
       - KC_DB=postgres
       - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
