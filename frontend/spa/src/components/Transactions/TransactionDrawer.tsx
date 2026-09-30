@@ -95,7 +95,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
         const total = tx.total != null ? Number(tx.total) : 0;
         setKind(total < 0 ? 'expense' : 'income');
         setName(tx.name ?? '');
-        setAmountStr(tx.total != null ? String(Math.abs(total)) : '');
+        setAmountStr(tx.total != null ? Math.abs(total).toFixed(2).replace('.', ',') : '');
         setDate(tx.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : '');
         setSenderName(tx.senderName ?? '');
         // Keep the transaction's own bommel; if it has none, default to the last picked one (batch assignment).
