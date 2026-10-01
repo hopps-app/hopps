@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/hopps-app/hopps/compare/v2.0.0...v2.1.0) (2026-10-01)
+
+
+### Features
+
+* **organization:** configurable currency (EUR/CHF), locked after first transaction ([#819](https://github.com/hopps-app/hopps/issues/819)) ([679645c](https://github.com/hopps-app/hopps/commit/679645c84ee3691cfdd41a00499b6a5630be8e28))
+
 ## [2.0.0](https://github.com/hopps-app/hopps/compare/v1.0.0...v2.0.0) (2026-09-30)
 
 
