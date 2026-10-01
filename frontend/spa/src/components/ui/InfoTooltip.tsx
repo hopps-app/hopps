@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils';
 
 /**
  * Info icon that explains something in a dark speech bubble on hover or focus. The bubble is portalled, so a parent's
- * overflow does not clip it. The icon takes the colour of its surroundings unless `className` sets one.
+ * overflow does not clip it, and it sits above dialogs (z-[101]) and popovers (z-[110]). The icon takes the colour of its
+ * surroundings unless `className` sets one.
  */
 export function InfoTooltip({
     content,
@@ -37,7 +38,7 @@ export function InfoTooltip({
                 <TooltipContent
                     side="top"
                     align={align}
-                    className="z-[60] max-w-[280px] rounded-[10px] bg-[#1B1B1F] px-3.5 py-2.5 text-[12.5px] font-medium leading-snug text-white"
+                    className="z-[120] max-w-[280px] rounded-[10px] bg-[#1B1B1F] px-3.5 py-2.5 text-[12.5px] font-medium leading-snug text-white"
                 >
                     {content}
                 </TooltipContent>
