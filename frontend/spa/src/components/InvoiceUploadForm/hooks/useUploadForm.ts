@@ -1,11 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { DocumentResponse } from '@hopps/api-client';
 import { isEqual } from 'lodash';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileWithPath } from 'react-dropzone';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import { InvoiceUploadType } from '@/components/InvoiceUploadForm/types';
 import { useToast } from '@/hooks/use-toast.ts';
 import apiService from '@/services/ApiService.ts';
@@ -15,6 +17,7 @@ const POLL_INTERVAL = 2000;
 
 export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
     const { showError, showSuccess, showWarning } = useToast();
+    const queryClient = useQueryClient();
 
     const [selectedFiles, setSelectedFiles] = useState<FileWithPath[]>([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -227,6 +230,9 @@ export function useUploadForm({ onUploadInvoiceChange }: InvoiceUploadType) {
                         })
                     )
                 );
+
+                // A first receipt completes the setup step for receipts.
+                void queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
 
                 // Store uploaded documents
                 setUploadedDocuments(uploadResults);

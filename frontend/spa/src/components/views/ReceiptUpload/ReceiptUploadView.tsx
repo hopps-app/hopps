@@ -9,6 +9,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ReceiptFormActions, ReceiptFormFields } from './components';
 import { useReceiptForm } from './hooks';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
 import { getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import InvoiceUploadFormDropzone from '@/components/InvoiceUploadForm/InvoiceUploadFormDropzone';
@@ -365,6 +366,8 @@ function ReceiptUploadView() {
                     data: selected,
                     fileName: selected.name,
                 });
+                // A first receipt completes the setup step for receipts.
+                void queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
                 showSuccess(t('receipts.upload.uploadSuccess'));
 
                 // Track document and transaction IDs

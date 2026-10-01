@@ -19,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
+
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
 export const bankAccountKeys = {
@@ -312,6 +314,7 @@ export function useStartImport() {
         mutationFn: ({ accountId, file, schemaId }: { accountId: number; file: File; schemaId?: number }) =>
             apiService.orgService.importsPOST(accountId, schemaId, { data: file, fileName: file.name }),
         onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(variables.accountId) });
         },
     });
@@ -326,6 +329,7 @@ export function useRollbackImport() {
         mutationFn: ({ importId, accountId }: { importId: number; accountId: number }) =>
             apiService.orgService.importsDELETE(importId).then(() => ({ accountId })),
         onSuccess: ({ accountId }) => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(accountId) });
             // The rollback deletes the import's bank transactions and their matches, so every list that shows them
             // goes stale: the reconciliation feeds, the account balances (computed from the transactions) and the

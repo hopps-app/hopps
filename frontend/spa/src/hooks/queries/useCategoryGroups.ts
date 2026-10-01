@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import apiService from '@/services/ApiService';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
+
 export const categoryGroupKeys = {
     all: ['category-groups'] as const,
     lists: () => [...categoryGroupKeys.all, 'list'] as const,
@@ -74,6 +76,7 @@ export function useCreateCategoryGroup() {
     return useMutation({
         mutationFn: (body: CategoryGroupCreateRequest) => apiService.orgService.categoryGroupsPOST(body),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
         },
@@ -96,6 +99,7 @@ export function useDeleteCategoryGroup() {
     return useMutation({
         mutationFn: (id: number) => apiService.orgService.categoryGroupsDELETE(id),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
         },

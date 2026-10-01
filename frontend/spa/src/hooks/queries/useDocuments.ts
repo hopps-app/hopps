@@ -6,6 +6,8 @@ import { toast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { getErrorStatus, getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
+
 /**
  * Shows a toast for a failed document/receipt upload. A 409 means the identical file was already uploaded before, so we
  * surface that precisely instead of the generic conflict message. Defining onError also suppresses the global mutation
@@ -68,6 +70,7 @@ export function useUploadDocument({ toastErrors = true }: { toastErrors?: boolea
         mutationFn: ({ file, analyze, direction }: { file: File; analyze: boolean; direction: DocumentDirection }) =>
             apiService.orgService.documentsPOST(analyze, direction, { data: file, fileName: file.name }),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
         },
         // Defining onError (even a no-op) also keeps the global error toast away.

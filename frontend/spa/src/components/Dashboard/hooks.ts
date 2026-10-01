@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 
 import { DateRange, currentYearToDate, monthKeysInRange, sameRangeLastYear } from './periods';
 
+import { SETUP_PROGRESS_KEY } from './setupProgressKey';
+
 import apiService from '@/services/ApiService';
 
 export type MonthlyPoint = {
@@ -95,7 +97,7 @@ export type SetupProgress = {
  */
 export function useSetupProgress(organizationId: number | undefined) {
     return useQuery({
-        queryKey: ['dashboard', 'setup-progress', organizationId],
+        queryKey: [...SETUP_PROGRESS_KEY, organizationId],
         queryFn: async (): Promise<SetupProgress> => {
             const [groups, documents, accounts] = await Promise.all([
                 apiService.orgService.categoryGroupsAll(undefined),
@@ -115,6 +117,8 @@ export function useSetupProgress(organizationId: number | undefined) {
         },
         enabled: organizationId != null,
         refetchOnMount: 'always',
+        // Not covered by the 5-minute default: returning to the tab should show a step done elsewhere right away.
+        staleTime: 0,
     });
 }
 
