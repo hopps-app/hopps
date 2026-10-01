@@ -582,7 +582,9 @@
         "collapse": "Collapse",
         "expand": "Expand",
         "openMenu": "Open menu",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "setup": "Setup",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transactions",
@@ -840,7 +842,33 @@
         "timeRange": "Showing data from {{startDate}} to {{endDate}}",
         "allBommels": "All Bommels",
         "startDate": "From",
-        "endDate": "To"
+        "endDate": "To",
+        "setup": {
+            "title": "Get started with hopps",
+            "subtitle": "Four steps and your bookkeeping is ready to go.",
+            "done": "done",
+            "dismiss": "Hide",
+            "progress": "{{done}} of {{total}} steps done",
+            "stepDone": "Done",
+            "steps": {
+                "bommel": {
+                    "title": "Set up bommel structure",
+                    "text": "Departments, projects or events"
+                },
+                "categories": {
+                    "title": "Define categories",
+                    "text": "From a template or your own"
+                },
+                "receipt": {
+                    "title": "Upload a receipt",
+                    "text": "Invoice, receipt or till slip"
+                },
+                "bankImport": {
+                    "title": "Import a bank statement",
+                    "text": "Create a bank account and upload a CSV"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Categories",

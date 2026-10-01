@@ -549,7 +549,9 @@
         "collapse": "Réduire",
         "expand": "Développer",
         "openMenu": "Ouvrir le menu",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "setup": "Configuration",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transactions",
@@ -807,7 +809,33 @@
         "timeRange": "Affichage des données du {{startDate}} au {{endDate}}",
         "allBommels": "Tous les bommels",
         "startDate": "Du",
-        "endDate": "Au"
+        "endDate": "Au",
+        "setup": {
+            "title": "Lancez-vous avec hopps",
+            "subtitle": "Quatre étapes et votre comptabilité est prête.",
+            "done": "terminé",
+            "dismiss": "Masquer",
+            "progress": "{{done}} étapes sur {{total}} terminées",
+            "stepDone": "Terminé",
+            "steps": {
+                "bommel": {
+                    "title": "Créer la structure de bommels",
+                    "text": "Sections, projets ou événements"
+                },
+                "categories": {
+                    "title": "Définir les catégories",
+                    "text": "À partir d'un modèle ou les vôtres"
+                },
+                "receipt": {
+                    "title": "Téléverser un justificatif",
+                    "text": "Facture, reçu ou ticket de caisse"
+                },
+                "bankImport": {
+                    "title": "Importer un relevé",
+                    "text": "Créer un compte bancaire et téléverser un CSV"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Catégories",

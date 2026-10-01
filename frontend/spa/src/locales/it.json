@@ -549,7 +549,9 @@
         "collapse": "Comprimi",
         "expand": "Espandi",
         "openMenu": "Apri menu",
-        "navigation": "Navigazione"
+        "navigation": "Navigazione",
+        "setup": "Configurazione",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transazioni",
@@ -807,7 +809,33 @@
         "timeRange": "Visualizzazione dei dati dal {{startDate}} al {{endDate}}",
         "allBommels": "Tutti i Bommel",
         "startDate": "Da",
-        "endDate": "A"
+        "endDate": "A",
+        "setup": {
+            "title": "Inizia con hopps",
+            "subtitle": "Quattro passi e la tua contabilità è pronta.",
+            "done": "completati",
+            "dismiss": "Nascondi",
+            "progress": "{{done}} passi su {{total}} completati",
+            "stepDone": "Completato",
+            "steps": {
+                "bommel": {
+                    "title": "Crea la struttura dei bommel",
+                    "text": "Reparti, progetti o eventi"
+                },
+                "categories": {
+                    "title": "Definisci le categorie",
+                    "text": "Da un modello o tue"
+                },
+                "receipt": {
+                    "title": "Carica un giustificativo",
+                    "text": "Fattura, ricevuta o scontrino"
+                },
+                "bankImport": {
+                    "title": "Importa un estratto conto",
+                    "text": "Crea un conto bancario e carica un CSV"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Categorie",

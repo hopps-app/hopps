@@ -581,7 +581,9 @@
         "collapse": "Einklappen",
         "expand": "Ausklappen",
         "openMenu": "Menü öffnen",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "setup": "Einrichtung",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transaktionen",
@@ -1156,7 +1158,33 @@
         "timeRange": "Zeige Daten von {{startDate}} bis {{endDate}}",
         "allBommels": "Alle Bommels",
         "startDate": "Von",
-        "endDate": "Bis"
+        "endDate": "Bis",
+        "setup": {
+            "title": "Leg jetzt mit hopps los",
+            "subtitle": "In vier Schritten ist eure Buchhaltung startklar.",
+            "done": "erledigt",
+            "dismiss": "Ausblenden",
+            "progress": "{{done}} von {{total}} Schritten erledigt",
+            "stepDone": "Erledigt",
+            "steps": {
+                "bommel": {
+                    "title": "Bommelstruktur anlegen",
+                    "text": "Abteilungen, Projekte oder Veranstaltungen"
+                },
+                "categories": {
+                    "title": "Kategorien festlegen",
+                    "text": "Aus einer Vorlage oder eigene"
+                },
+                "receipt": {
+                    "title": "Beleg hochladen",
+                    "text": "Rechnung, Quittung oder Kassenbon"
+                },
+                "bankImport": {
+                    "title": "Kontoauszug importieren",
+                    "text": "Bankkonto anlegen und CSV hochladen"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Kategorien",
