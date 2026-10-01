@@ -136,6 +136,8 @@ export function useDeleteDocument({ silent = false }: { silent?: boolean } = {})
             // Deleting a document also deletes its transaction, which may unmatch a bank transaction.
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+            // Deleting the last receipt reopens the "Beleg hochladen" setup step.
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
         },
     });
 }
