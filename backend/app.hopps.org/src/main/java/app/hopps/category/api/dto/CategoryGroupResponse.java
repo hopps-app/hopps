@@ -15,13 +15,15 @@ public record CategoryGroupResponse(
         String name,
         boolean required,
         List<Long> bommelIds,
-        long valueCount) {
+        long valueCount,
+        @Schema(description = "The template this group was copied from, or null for a group created by hand") Long templateId) {
 
     public static CategoryGroupResponse from(CategoryGroup group, long valueCount) {
         List<Long> bommelIds = group.getBommels()
                 .stream()
                 .map(b -> b.id)
                 .toList();
-        return new CategoryGroupResponse(group.getId(), group.getName(), group.isRequired(), bommelIds, valueCount);
+        return new CategoryGroupResponse(group.getId(), group.getName(), group.isRequired(), bommelIds, valueCount,
+                group.getTemplateId());
     }
 }
