@@ -18,7 +18,7 @@ services:
       HOPPS_DOCUMENT_AI_SERVICE_URL: http://az-document-ai:8080
 
   az-document-ai:
-    image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-967}
+    image: ghcr.io/hopps-app/hopps/az-document-ai:${TAG:-2.0.0} # x-release-please-version
     restart: unless-stopped
     expose:
       - "8080"
