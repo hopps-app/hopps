@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatAmount, amountColorClass } from '@/components/Receipts/helpers/receiptHelpers';
 import { Receipt } from '@/components/Receipts/types';
 import Emoji from '@/components/ui/Emoji';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 
 type ReceiptRowProps = {
@@ -22,6 +23,7 @@ const statusStyles: Record<Receipt['status'], string> = {
 
 const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, onDelete }) => {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const navigate = useNavigate();
     const expandRef = useRef<HTMLDivElement>(null);
 
@@ -165,7 +167,9 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                 </div>
 
                 {/* Amount */}
-                <span className={cn('text-sm font-semibold tabular-nums text-right', amountColorClass(receipt.amount))}>{formatAmount(receipt.amount)}</span>
+                <span className={cn('text-sm font-semibold tabular-nums text-right', amountColorClass(receipt.amount))}>
+                    {formatAmount(receipt.amount, format)}
+                </span>
 
                 {/* Actions */}
                 <div className="flex justify-end" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
@@ -223,7 +227,9 @@ const ReceiptRow: FC<ReceiptRowProps> = memo(({ receipt, isExpanded, onToggle, o
                         </div>
                     </div>
                     <div className="text-right shrink-0">
-                        <span className={cn('text-sm font-semibold tabular-nums', amountColorClass(receipt.amount))}>{formatAmount(receipt.amount)}</span>
+                        <span className={cn('text-sm font-semibold tabular-nums', amountColorClass(receipt.amount))}>
+                            {formatAmount(receipt.amount, format)}
+                        </span>
                         <div className="mt-1 flex items-center justify-end gap-1">
                             <span
                                 className={cn(

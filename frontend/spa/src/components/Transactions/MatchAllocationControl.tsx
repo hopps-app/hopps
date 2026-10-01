@@ -2,12 +2,9 @@ import { Check, Pencil, X } from 'lucide-react';
 import { useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 import { parseAllocationAmount } from '@/utils/parseAmount';
-
-function fmtCurrency(amount: number, currency = 'EUR'): string {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-}
 
 interface Props {
     /** Current allocated (used) amount — a positive magnitude. */
@@ -27,7 +24,8 @@ interface Props {
  * for a transaction; the full amount reads muted, a partial amount is highlighted. Clicking opens a tiny number input.
  * Shared by both link directions (transaction detail and the bank-transaction match drawer).
  */
-export function MatchAllocationControl({ amount, max, currency = 'EUR', pending, onSave, variant = 'compact' }: Props) {
+export function MatchAllocationControl({ amount, max, currency, pending, onSave, variant = 'compact' }: Props) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const [editing, setEditing] = useState(false);
     const [text, setText] = useState('');
@@ -113,7 +111,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
                 title={t('transactions.detail.editUsedAmount')}
                 className="inline-flex flex-shrink-0 items-center gap-[7px] rounded-full bg-[var(--warning-surface)] px-2.5 py-[5px] text-[12.5px] font-bold tabular-nums text-[var(--warning)] transition-opacity hover:opacity-80"
             >
-                {t('transactions.detail.usedAmount', { amount: fmtCurrency(amount, currency) })}
+                {t('transactions.detail.usedAmount', { amount: format(amount, { currency }) })}
                 <Pencil size={13} />
             </button>
         ) : (
@@ -145,7 +143,7 @@ export function MatchAllocationControl({ amount, max, currency = 'EUR', pending,
         >
             {/* Full amount: just a subtle pencil — the amount is already shown next to it. Partial: surface the used
                 amount so the split is visible at a glance. */}
-            {isPartial && <span>{t('transactions.detail.usedAmount', { amount: fmtCurrency(amount, currency) })}</span>}
+            {isPartial && <span>{t('transactions.detail.usedAmount', { amount: format(amount, { currency }) })}</span>}
             <Pencil size={11} />
         </button>
     );

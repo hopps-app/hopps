@@ -6,21 +6,19 @@ import BommelMultiSelector from '@/components/CategoryGroups/BommelMultiSelector
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { useCategoryGroups, useCategoryGroupReport } from '@/hooks/queries/useCategoryGroups';
+import { useCurrency } from '@/hooks/use-currency';
 import { usePageTitle } from '@/hooks/use-page-title';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
 const num = (v: unknown): number => (v == null ? 0 : Number(v));
 
-function fmtCurrency(value: number): string {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
-}
-
 /**
  * Reports view: aggregate transaction totals by the values of a chosen category group over a transaction-date range.
  * Each value's income, expense and net sum is shown, with overall totals and a CSV export.
  */
 export function ReportsView() {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     usePageTitle(t('reports.title'));
 
@@ -134,9 +132,9 @@ export function ReportsView() {
                     <div className="rounded-[16px] border border-[#E9E9EE] bg-white overflow-hidden">
                         {/* summary cards */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#E9E9EE]">
-                            <SummaryCell label={t('reports.table.income')} value={fmtCurrency(totals.income)} color="#1F7A50" />
-                            <SummaryCell label={t('reports.table.expense')} value={fmtCurrency(totals.expense)} color="#B12C4C" />
-                            <SummaryCell label={t('reports.table.net')} value={fmtCurrency(totals.net)} color={totals.net >= 0 ? '#1F7A50' : '#B12C4C'} />
+                            <SummaryCell label={t('reports.table.income')} value={format(totals.income)} color="#1F7A50" />
+                            <SummaryCell label={t('reports.table.expense')} value={format(totals.expense)} color="#B12C4C" />
+                            <SummaryCell label={t('reports.table.net')} value={format(totals.net)} color={totals.net >= 0 ? '#1F7A50' : '#B12C4C'} />
                             <SummaryCell label={t('reports.table.count')} value={String(totals.count)} color="#1B1B1F" />
                         </div>
 
@@ -163,16 +161,16 @@ export function ReportsView() {
                                                 <td className="px-4 py-2.5 font-semibold text-[#1B1B1F]">{r.value}</td>
                                                 <td className="px-4 py-2.5 text-right tabular-nums text-[#6B6B76]">{r.count}</td>
                                                 <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: num(r.income) ? '#1F7A50' : '#9A9AA3' }}>
-                                                    {fmtCurrency(num(r.income))}
+                                                    {format(num(r.income))}
                                                 </td>
                                                 <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: num(r.expense) ? '#B12C4C' : '#9A9AA3' }}>
-                                                    {fmtCurrency(num(r.expense))}
+                                                    {format(num(r.expense))}
                                                 </td>
                                                 <td
                                                     className="px-4 py-2.5 text-right tabular-nums font-bold"
                                                     style={{ color: net >= 0 ? '#1F7A50' : '#B12C4C' }}
                                                 >
-                                                    {fmtCurrency(net)}
+                                                    {format(net)}
                                                 </td>
                                             </tr>
                                         );
@@ -187,10 +185,10 @@ export function ReportsView() {
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-right tabular-nums font-bold text-[#1B1B1F]">{totals.count}</td>
-                                        <td className="px-4 py-3 text-right tabular-nums font-bold text-[#1F7A50]">{fmtCurrency(totals.income)}</td>
-                                        <td className="px-4 py-3 text-right tabular-nums font-bold text-[#B12C4C]">{fmtCurrency(totals.expense)}</td>
+                                        <td className="px-4 py-3 text-right tabular-nums font-bold text-[#1F7A50]">{format(totals.income)}</td>
+                                        <td className="px-4 py-3 text-right tabular-nums font-bold text-[#B12C4C]">{format(totals.expense)}</td>
                                         <td className="px-4 py-3 text-right tabular-nums font-bold" style={{ color: totals.net >= 0 ? '#1F7A50' : '#B12C4C' }}>
-                                            {fmtCurrency(totals.net)}
+                                            {format(totals.net)}
                                         </td>
                                     </tr>
                                 </tfoot>

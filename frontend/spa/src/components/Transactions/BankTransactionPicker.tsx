@@ -3,9 +3,10 @@ import { Check, ChevronUp, FileText, Landmark, Link2, Loader2, Search } from 'lu
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
+import { fmtDate } from '@/components/Transactions/format';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useBankTransactionSearch } from '@/hooks/queries/useBankAccounts';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 import { parseAllocationAmount } from '@/utils/parseAmount';
 
@@ -18,6 +19,7 @@ const fmtInput = (n: number) => n.toFixed(2).replace('.', ',');
 // A bank movement's amount. If it is already partially matched, the still-open amount is shown below it.
 function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmount?: number }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const total = amount ?? 0;
     // matchedAmount is the SIGNED net coverage; the still-open amount is |total - matched|.
     const matched = matchedAmount ?? 0;
@@ -27,11 +29,11 @@ function BankTxAmount({ amount, matchedAmount }: { amount?: number; matchedAmoun
     return (
         <span className="flex flex-shrink-0 flex-col items-end leading-tight">
             <span className="text-[14.5px] font-extrabold tabular-nums" style={{ color: total >= 0 ? 'var(--positive)' : 'var(--negative)' }}>
-                {fmtCurrency(total)}
+                {format(total)}
             </span>
             {partiallyMatched && (
                 <span className="text-[11px] font-semibold tabular-nums text-[var(--warning)]">
-                    {t('transactions.detail.openAmount', { amount: fmtCurrency(open) })}
+                    {t('transactions.detail.openAmount', { amount: format(open) })}
                 </span>
             )}
         </span>
@@ -61,6 +63,7 @@ interface BankTransactionPickerProps {
  */
 export function BankTransactionPicker({ txTotal, txDate, open, linkedIds, pending, onLink, onPreview, onClose }: BankTransactionPickerProps) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const [search, setSearch] = useState('');
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [useText, setUseText] = useState('');
@@ -314,7 +317,7 @@ export function BankTransactionPicker({ txTotal, txDate, open, linkedIds, pendin
                     </div>
                     {useValid && useValue != null && useValue < selectedMag - EPS && (
                         <div className="mt-1.5 text-[12.5px] tabular-nums text-muted-foreground">
-                            {t('transactions.detail.partialAmountOf', { used: fmtCurrency(useValue), total: fmtCurrency(selectedMag) })}
+                            {t('transactions.detail.partialAmountOf', { used: format(useValue), total: format(selectedMag) })}
                         </div>
                     )}
                 </div>

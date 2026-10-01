@@ -26,6 +26,14 @@ function Select(props: SelectProps) {
     const { value, items, onValueChanged, label, placeholder, className, error, required, disabled, ...otherProps } = props;
     const [id] = useState(_.uniqueId('select-'));
     const errorId = `${id}-error`;
+    // Radix mirrors a programmatic `value` change into a hidden native <select> and reports the outcome through
+    // onValueChange. When the matching <option> is not registered yet (e.g. right after react-hook-form's reset()),
+    // the native select falls back to "" and Radix would clear the field. Items never carry an empty value, so an
+    // empty string can only be that artefact and is ignored.
+    const handleValueChange = (next: string) => {
+        if (next === '') return;
+        onValueChanged?.(next);
+    };
     return (
         <div className={`grid w-full items-center gap-1.5 ${className}`}>
             {label && (
@@ -33,7 +41,7 @@ function Select(props: SelectProps) {
                     {label}
                 </Label>
             )}
-            <BaseSelect name={id} value={value} onValueChange={(value: string) => onValueChanged?.(value)} disabled={disabled} {...otherProps}>
+            <BaseSelect name={id} value={value} onValueChange={handleValueChange} disabled={disabled} {...otherProps}>
                 <SelectTrigger
                     id={id}
                     error={!!error}

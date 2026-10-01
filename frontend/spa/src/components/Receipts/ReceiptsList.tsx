@@ -13,6 +13,7 @@ import { Receipt, ReceiptFiltersState } from '@/components/Receipts/types';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { useDeleteDocument } from '@/hooks/queries/useDocuments';
 import { transactionToReceipt, useDeleteTransaction, useTransactions } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useToast } from '@/hooks/use-toast';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
@@ -23,6 +24,7 @@ type ReceiptsListProps = {
 
 const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const { showError, showSuccess } = useToast();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const [page, setPage] = useState(0);
@@ -241,7 +243,7 @@ const ReceiptsList: FC<ReceiptsListProps> = ({ filters }) => {
             <DeleteTransactionDialog
                 open={!!deleteTarget}
                 transactionName={deleteTarget?.issuer || ''}
-                transactionAmount={deleteTarget ? formatAmount(deleteTarget.amount) : ''}
+                transactionAmount={deleteTarget ? formatAmount(deleteTarget.amount, format) : ''}
                 hasReceipt={deleteTarget?.documentId != null}
                 onDeleteTransactionOnly={handleDeleteTransactionOnly}
                 onDeleteWithReceipt={handleDeleteWithReceipt}

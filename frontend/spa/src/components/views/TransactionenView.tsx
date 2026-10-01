@@ -9,7 +9,7 @@ import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
-import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
+import { fmtDate } from '@/components/Transactions/format';
 import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_GAP, TX_GRID_NARROW } from '@/components/Transactions/layout';
 import { StatusBadge } from '@/components/Transactions/StatusBadge';
 import { TransactionDrawer } from '@/components/Transactions/TransactionDrawer';
@@ -27,6 +27,7 @@ import {
     TransactionSortBy,
     SortDirection,
 } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { usePersistedState } from '@/hooks/usePersistedState';
@@ -110,6 +111,7 @@ function TransactionRow({
     onToggleBulk: () => void;
 }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
     const categoryText = (tx.categoryValues ?? [])
         .map((c) => c.value)
@@ -213,7 +215,7 @@ function TransactionRow({
                 className="text-right font-bold tabular-nums whitespace-nowrap"
                 style={{ fontSize: 14.5, color: incoming ? 'var(--positive)' : 'var(--negative)' }}
             >
-                {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
+                {incoming ? '+' : '–'} {format(Math.abs(amount))}
             </span>
         </button>
     );
@@ -223,6 +225,7 @@ function TransactionRow({
 
 export function TransactionenView() {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     usePageTitle(t('transactions.title'));
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
 
@@ -514,8 +517,8 @@ export function TransactionenView() {
                     <p className="mt-1 text-[14.5px] text-muted-foreground">
                         {t('transactions.subtitle', {
                             count: totalCount,
-                            income: fmtCurrency(totalIncome),
-                            expense: fmtCurrency(totalExpense),
+                            income: format(totalIncome),
+                            expense: format(totalExpense),
                         })}
                     </p>
                 </div>

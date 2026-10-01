@@ -13,9 +13,10 @@ export function getStatusTranslationKey(status: Receipt['status']): string {
     }
 }
 
-export function formatAmount(amount: number): string {
+/** Signed amount for the receipt lists; `format` comes from useCurrency() so the organization's currency is used. */
+export function formatAmount(amount: number, format: (value: number) => string): string {
     const sign = amount < 0 ? '' : '+';
-    return `${sign}${amount.toFixed(2)} €`;
+    return `${sign}${format(amount)}`;
 }
 
 export function amountColorClass(amount: number): string {

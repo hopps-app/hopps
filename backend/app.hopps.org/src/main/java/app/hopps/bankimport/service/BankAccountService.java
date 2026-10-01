@@ -86,9 +86,7 @@ public class BankAccountService {
         account.setBic(request.bic());
         account.setBankName(request.bankName());
         account.setAccountHolder(request.accountHolder());
-        if (request.currency() != null) {
-            account.setCurrency(request.currency());
-        }
+        account.setCurrency(request.currency() != null ? request.currency() : organization.getCurrency().name());
         account.setOpeningBalance(request.openingBalance());
         account.setOpeningBalanceDate(request.openingBalanceDate());
         validateOpeningBalancePair(account.getOpeningBalance(), account.getOpeningBalanceDate());
