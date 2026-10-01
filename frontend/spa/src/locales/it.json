@@ -8,9 +8,8 @@
     },
     "categoryGroups": {
         "title": "Categorie",
-        "subtitle": "I gruppi di categorie classificano le transazioni — a seconda del bommel selezionato.",
         "addButton": "Nuovo gruppo",
-        "hint": "Un gruppo si applica a un bommel quando è assegnato a quel bommel o a uno dei suoi genitori. Senza assegnazione non si applica a nessun bommel — assegna il bommel radice per applicarlo a tutti.",
+        "hint": "Un gruppo vale per i bommel che scegli e automaticamente per tutti i bommel sottostanti. Esempio: se lo assegni a «Giovani», vale anche per «Giovani U12». Per tutta l'organizzazione scegli il bommel più in alto.",
         "required": "Obbligatorio",
         "optional": "facoltativo",
         "emptyState": {
@@ -21,7 +20,10 @@
             "appliesTo": "Si applica a",
             "allBommel": "Tutti i bommel",
             "noBommel": "Nessun bommel",
-            "valueCount": "{{count}} valori"
+            "values": "Categorie",
+            "addValue": "Categoria",
+            "valueCount_one": "{{count}} categoria",
+            "valueCount_other": "{{count}} categorie"
         },
         "delete": {
             "title": "Elimina gruppo di categorie",
@@ -33,19 +35,27 @@
         "modal": {
             "createTitle": "Nuovo gruppo di categorie",
             "editTitle": "Modifica gruppo di categorie",
-            "subtitle": "Imposta il nome, il flag obbligatorio, i bommel assegnati e i possibili valori.",
+            "subtitle": "Imposta nome, obbligatorietà, bommel assegnati e categorie.",
             "name": "Nome del gruppo",
             "namePlaceholder": "es. Centro di costo",
             "required": "Obbligatorio",
             "requiredHint": "Deve essere compilato per i bommel corrispondenti prima che una transazione possa essere confermata.",
             "bommel": "Si applica ai bommel",
-            "bommelHint": "Nessuna selezione = non si applica a nessun bommel. Assegna il bommel radice per applicarlo a tutti.",
-            "bommelPlaceholder": "Seleziona bommel …",
-            "bommelSelected": "{{count}} bommel selezionati",
-            "values": "Valori possibili",
-            "valuePlaceholder": "Aggiungi un valore …",
+            "bommelHint": "Selezione multipla possibile. Per tutti i bommel scegli il bommel radice.",
+            "values": "Categorie",
+            "valuePlaceholder": "Aggiungi categoria …",
             "addValue": "Aggiungi",
-            "noValues": "Ancora nessun valore."
+            "noValues": "Ancora nessuna categoria.",
+            "templateTitle": "Usa modello",
+            "templateSubtitle": "Scegli uno o più bommel a cui si applica il gruppo. Tutto il resto puoi mantenerlo o modificarlo.",
+            "bommelSearch": "Cerca bommel …",
+            "bommelOpen": "Apri elenco",
+            "bommelClose": "Chiudi elenco",
+            "bommelRoot": "Radice",
+            "bommelNone": "Nessun bommel trovato.",
+            "remove": "Rimuovi {{name}}",
+            "fromTemplate": "Parti da un modello",
+            "noTemplate": "Nessun modello"
         },
         "toast": {
             "created": "Gruppo di categorie creato",
@@ -64,6 +74,22 @@
             "valuePlaceholder": "— seleziona —",
             "noValues": "Nessun valore trovato",
             "missing": "Compila: {{groups}}"
+        },
+        "setup": {
+            "title": "Configura le categorie",
+            "subtitle": "Usa uno dei nostri modelli o crea categorie tue.",
+            "templateEyebrow": "Modello",
+            "previewEyebrow": "Verrà creato",
+            "noTemplate": "Nessun modello",
+            "noTemplateSub": "Crea categorie tue",
+            "applyTemplate": "Usa modello",
+            "createGroup": "Crea gruppo",
+            "footnote": "In seguito puoi aggiungere o eliminare categorie o cambiare l'obbligatorietà in qualsiasi momento.",
+            "moreValues": "+{{count}} altre",
+            "noTemplatesTitle": "Crea il tuo primo gruppo di categorie",
+            "noTemplatesText": "Le categorie ti aiutano a classificare le transazioni, ad esempio per centro di costo o sfera fiscale.",
+            "ownGroupTitle": "Il tuo gruppo di categorie",
+            "ownGroupText": "Ancora nessuna categoria, le crei tu."
         }
     },
     "banner": {

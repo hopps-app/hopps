@@ -8,9 +8,8 @@
     },
     "categoryGroups": {
         "title": "Categories",
-        "subtitle": "Category groups classify transactions — depending on the selected bommel.",
         "addButton": "New group",
-        "hint": "A group applies to a bommel when it is assigned to that bommel or one of its parents. With no assignment it applies to no bommel — assign the root bommel to apply to all.",
+        "hint": "A group applies to the bommels you choose and automatically to every bommel below them. Example: if you assign it to \"Youth\", it also applies to \"Youth U12\". For the whole organization, choose the top bommel.",
         "required": "Required",
         "optional": "optional",
         "emptyState": {
@@ -21,7 +20,10 @@
             "appliesTo": "Applies to",
             "allBommel": "All bommels",
             "noBommel": "No bommel",
-            "valueCount": "{{count}} values"
+            "values": "Categories",
+            "addValue": "Category",
+            "valueCount_one": "{{count}} category",
+            "valueCount_other": "{{count}} categories"
         },
         "delete": {
             "title": "Delete category group",
@@ -33,19 +35,27 @@
         "modal": {
             "createTitle": "New category group",
             "editTitle": "Edit category group",
-            "subtitle": "Set the name, required flag, assigned bommels and possible values.",
+            "subtitle": "Set the name, required flag, assigned bommels and categories.",
             "name": "Group name",
             "namePlaceholder": "e.g. Cost center",
             "required": "Required",
             "requiredHint": "Must be filled for matching bommels before a transaction can be confirmed.",
             "bommel": "Applies to bommels",
-            "bommelHint": "No selection = applies to no bommel. Assign the root bommel to apply to all.",
-            "bommelPlaceholder": "Select bommels …",
-            "bommelSelected": "{{count}} bommels selected",
-            "values": "Possible values",
-            "valuePlaceholder": "Add a value …",
+            "bommelHint": "Multiple selection possible. Choose the root bommel for all bommels.",
+            "values": "Categories",
+            "valuePlaceholder": "Add category …",
             "addValue": "Add",
-            "noValues": "No values yet."
+            "noValues": "No categories yet.",
+            "templateTitle": "Use template",
+            "templateSubtitle": "Choose one or more bommels the group applies to. You can keep or adjust everything else.",
+            "bommelSearch": "Search bommels …",
+            "bommelOpen": "Open list",
+            "bommelClose": "Close list",
+            "bommelRoot": "Root",
+            "bommelNone": "No bommel found.",
+            "remove": "Remove {{name}}",
+            "fromTemplate": "Start from template",
+            "noTemplate": "No template"
         },
         "toast": {
             "created": "Category group created",
@@ -64,6 +74,22 @@
             "valuePlaceholder": "Please select",
             "noValues": "No values found",
             "missing": "Please fill in: {{groups}}"
+        },
+        "setup": {
+            "title": "Set up categories",
+            "subtitle": "Use one of our templates or create your own categories.",
+            "templateEyebrow": "Template",
+            "previewEyebrow": "This will be created",
+            "noTemplate": "No template",
+            "noTemplateSub": "Create your own categories",
+            "applyTemplate": "Use template",
+            "createGroup": "Create group",
+            "footnote": "You can add or delete categories or toggle the required flag at any time afterwards.",
+            "moreValues": "+{{count}} more",
+            "noTemplatesTitle": "Create your first category group",
+            "noTemplatesText": "Categories let you classify transactions, for example by cost center or tax sphere.",
+            "ownGroupTitle": "Your own category group",
+            "ownGroupText": "No categories yet, you create them yourself."
         }
     },
     "banner": {

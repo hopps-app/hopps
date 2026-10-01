@@ -6,6 +6,7 @@ import BommelMultiSelector from '@/components/CategoryGroups/BommelMultiSelector
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { useCategoryGroups, useCategoryGroupReport } from '@/hooks/queries/useCategoryGroups';
+import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
@@ -23,6 +24,7 @@ function fmtCurrency(value: number): string {
 export function ReportsView() {
     const { t } = useTranslation();
     usePageTitle(t('reports.title'));
+    useEnsureBommels();
 
     const { data: groups = [], isLoading: groupsLoading } = useCategoryGroups();
     const [groupId, setGroupId] = useState<number | undefined>(undefined);

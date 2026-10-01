@@ -8,9 +8,8 @@
     },
     "categoryGroups": {
         "title": "Kategorien",
-        "subtitle": "Kategoriegruppen ordnen Transaktionen ein – kontextabhängig vom gewählten Bommel.",
         "addButton": "Neue Gruppe",
-        "hint": "Eine Gruppe gilt für einen Bommel, wenn sie ihm oder einem übergeordneten Bommel zugeordnet ist. Ohne Zuordnung gilt sie für keinen Bommel – für alle Bommel den Root-Bommel auswählen.",
+        "hint": "Eine Gruppe gilt für die Bommel, die du auswählst, und automatisch für alle Bommel darunter. Beispiel: Ordnest du sie „Jugend“ zu, gilt sie auch für „Jugend U12“. Für die ganze Organisation wähle den obersten Bommel.",
         "required": "Pflicht",
         "optional": "optional",
         "emptyState": {
@@ -21,7 +20,10 @@
             "appliesTo": "Gilt für",
             "allBommel": "Alle Bommel",
             "noBommel": "Keine Bommel",
-            "valueCount": "{{count}} Werte"
+            "values": "Kategorien",
+            "addValue": "Kategorie",
+            "valueCount_one": "{{count}} Kategorie",
+            "valueCount_other": "{{count}} Kategorien"
         },
         "delete": {
             "title": "Kategoriegruppe löschen",
@@ -33,19 +35,27 @@
         "modal": {
             "createTitle": "Neue Kategoriegruppe",
             "editTitle": "Kategoriegruppe bearbeiten",
-            "subtitle": "Name, Pflicht, zugeordnete Bommel und mögliche Werte festlegen.",
+            "subtitle": "Name, Pflicht, zugeordnete Bommel und Kategorien festlegen.",
             "name": "Name der Gruppe",
             "namePlaceholder": "z. B. Kostenstelle",
             "required": "Pflichtfeld",
             "requiredHint": "Muss bei passenden Bommeln ausgefüllt werden, bevor bestätigt werden kann.",
             "bommel": "Gilt für Bommel",
-            "bommelHint": "Keine Auswahl = gilt für keinen Bommel. Für alle Bommel den Root-Bommel wählen.",
-            "bommelPlaceholder": "Bommel auswählen …",
-            "bommelSelected": "{{count}} Bommel ausgewählt",
-            "values": "Mögliche Werte",
-            "valuePlaceholder": "Wert hinzufügen …",
+            "bommelHint": "Mehrfachauswahl möglich. Für alle Bommel den Root-Bommel wählen.",
+            "values": "Kategorien",
+            "valuePlaceholder": "Kategorie hinzufügen …",
             "addValue": "Hinzufügen",
-            "noValues": "Noch keine Werte angelegt."
+            "noValues": "Noch keine Kategorien angelegt.",
+            "templateTitle": "Vorlage übernehmen",
+            "templateSubtitle": "Wähle einen oder mehrere Bommel, für die die Gruppe gilt. Alles andere kannst du so übernehmen oder anpassen.",
+            "bommelSearch": "Bommel suchen …",
+            "bommelOpen": "Liste öffnen",
+            "bommelClose": "Liste schließen",
+            "bommelRoot": "Root",
+            "bommelNone": "Kein Bommel gefunden.",
+            "remove": "{{name}} entfernen",
+            "fromTemplate": "Aus Vorlage übernehmen",
+            "noTemplate": "Keine Vorlage"
         },
         "toast": {
             "created": "Kategoriegruppe angelegt",
@@ -64,6 +74,22 @@
             "valuePlaceholder": "Bitte wählen",
             "noValues": "Keine Werte gefunden",
             "missing": "Bitte ausfüllen: {{groups}}"
+        },
+        "setup": {
+            "title": "Kategorien einrichten",
+            "subtitle": "Nutze eine unserer Vorlagen oder lege eigene Kategorien an.",
+            "templateEyebrow": "Vorlage",
+            "previewEyebrow": "Das wird angelegt",
+            "noTemplate": "Keine Vorlage",
+            "noTemplateSub": "Eigene Kategorien selbst anlegen",
+            "applyTemplate": "Vorlage übernehmen",
+            "createGroup": "Gruppe anlegen",
+            "footnote": "Du kannst danach jederzeit Kategorien hinzufügen, löschen oder das Pflichtfeld umschalten.",
+            "moreValues": "+{{count}} weitere",
+            "noTemplatesTitle": "Lege deine erste Kategoriegruppe an",
+            "noTemplatesText": "Mit Kategorien ordnest du Transaktionen ein, zum Beispiel nach Kostenstelle oder steuerlicher Sphäre.",
+            "ownGroupTitle": "Eigene Kategoriegruppe",
+            "ownGroupText": "Noch keine Kategorien, du legst sie selbst an."
         }
     },
     "banner": {

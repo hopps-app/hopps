@@ -17,6 +17,23 @@ export function useCategoryGroups() {
     });
 }
 
+/** Templates the organization can start a group from (maintained in the admin app), with a short value preview. */
+export function useCategoryGroupTemplates() {
+    return useQuery({
+        queryKey: [...categoryGroupKeys.all, 'templates'],
+        queryFn: () => apiService.orgService.listCategoryGroupTemplates(),
+    });
+}
+
+/** One template with all of its values, to pre-fill the group dialog. */
+export function useCategoryGroupTemplate(templateId: number | undefined) {
+    return useQuery({
+        queryKey: [...categoryGroupKeys.all, 'templates', templateId ?? 0],
+        queryFn: () => apiService.orgService.getCategoryGroupTemplate(templateId as number),
+        enabled: !!templateId,
+    });
+}
+
 /**
  * Searchable, paginated values of a single group — the source for the value picker. Kept small (server-side search)
  * so it scales to very large value sets (e.g. a whole SKR04 chart of accounts).

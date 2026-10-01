@@ -46,7 +46,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 |---|---|---|---|
 | Kategoriegruppen mit Werten | ✅ | Pro Organisation frei definierbar, Pflichtfeld-Option | BE `/category-groups`, SPA `/admin/categories` |
 | Kategorien Bommeln zuordnen (mit Vererbung) | ✅ | Zuordnung vererbt sich auf Unter-Bommel | Migration `V1.0.22__category_groups.sql` |
-| Kategorie-Vorlagen (zum Kopieren) | 🟡 | Hopps pflegt Vorlagen (Gruppenname, Werte, Pflichtfeld) zentral im Admin-Bereich. Eine Vorlage befüllt den normalen Anlegen-Dialog, Bommel wählt der Verein selbst, danach ist die Gruppe frei änderbar. Auswahl im SPA noch nicht umgesetzt (Stand 2026-10-01) | BE `template/`, `GET /category-groups/templates[/{id}]`, Admin `/templates`, Migration `V1.0.36__templates.sql` |
+| Kategorie-Vorlagen (zum Kopieren) | ✅ | Hopps pflegt Vorlagen (Gruppenname, Kategorien, Pflichtfeld) zentral im Admin-Bereich. Ein neuer Verein wählt auf der leeren Kategorien-Seite eine Vorlage, später jederzeit über „Aus Vorlage übernehmen“ im Gruppen-Dialog. Die Vorlage befüllt den Dialog, Bommel wählt der Verein selbst, danach ist die Gruppe frei änderbar (Stand 2026-10-01) | BE `template/`, `GET /category-groups/templates[/{id}]`, Admin `/templates`, SPA `components/CategoryGroups/CategoryGroupSetup.tsx` |
 | Kontenrahmen (SKR49, Kontenplan) | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
 
 ## 4. Transaktionen, Bank & Buchhaltung
