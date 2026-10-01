@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
@@ -200,7 +201,7 @@ export default function AppRoutes() {
                 <Route
                     path="/admin/categories"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<CategoryGroupsSkeleton />}>
                             <CategoryGroupsView />
                         </LazyRoute>
                     }

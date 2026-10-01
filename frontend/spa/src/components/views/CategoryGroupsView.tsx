@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import CategoryGroupCard from '@/components/CategoryGroups/CategoryGroupCard';
 import CategoryGroupModal from '@/components/CategoryGroups/CategoryGroupModal';
 import CategoryGroupSetup from '@/components/CategoryGroups/CategoryGroupSetup';
+import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { rootBommel } from '@/components/CategoryGroups/helpers';
-import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { useCategoryGroups, useCategoryGroupTemplates, useCategoryGroupUsage, useDeleteCategoryGroup } from '@/hooks/queries/useCategoryGroups';
@@ -61,10 +61,9 @@ function CategoryGroupsView() {
 
     return (
         <div className="flex flex-col gap-4 h-full">
+            {/* A skeleton instead of a spinner while it is not yet known whether to show the setup or the overview. */}
             {isLoading || templatesLoading ? (
-                <div className="py-12">
-                    <LoadingState size="lg" />
-                </div>
+                <CategoryGroupsSkeleton />
             ) : isSetup ? (
                 <>
                     <PageHeader title={t('categoryGroups.setup.title')} subtitle={t('categoryGroups.setup.subtitle')} />
