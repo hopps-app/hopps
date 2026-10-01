@@ -521,14 +521,14 @@
         "from": "From (transaction date)",
         "to": "To (transaction date)",
         "bommel": "Bommel",
-        "export": "Export CSV",
         "total": "Total",
         "table": {
             "value": "Value",
             "count": "Count",
             "income": "Income",
             "expense": "Expenses",
-            "net": "Net"
+            "net": "Net",
+            "distribution": "Distribution"
         },
         "emptyNoGroup": {
             "title": "Choose a category group",
@@ -541,7 +541,28 @@
         "error": {
             "title": "Report could not be loaded",
             "description": "Please try again later."
-        }
+        },
+        "setup": {
+            "title": "Nothing to report yet",
+            "text": "Reports are built from your categories and the receipts and transactions assigned to them. You can add bommels at any time later.",
+            "action": "Create categories",
+            "period": "Period",
+            "sampleTitle": "Sample report",
+            "previewLabel": "Sample preview",
+            "spheres": {
+                "ideal": "Non-profit activities",
+                "purpose": "Purpose-related business",
+                "assets": "Asset management",
+                "business": "Commercial business"
+            }
+        },
+        "allGroupBommels": "All bommels of the group",
+        "noGroupBommels": "No bommel is assigned to this group.",
+        "until": "to",
+        "exportCsv": "Export CSV",
+        "periodHint": "This uses the transaction date, the \"Date\" column under Transactions. Not the upload date or the bank booking date.",
+        "bookings_one": "{{count}} transaction",
+        "bookings_other": "{{count}} transactions"
     },
     "menu": {
         "dashboard": "Dashboard",

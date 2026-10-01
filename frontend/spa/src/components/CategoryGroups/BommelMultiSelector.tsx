@@ -11,6 +11,11 @@ type BommelMultiSelectorProps = {
     value: number[];
     onChange: (ids: number[]) => void;
     disabled?: boolean;
+    /** Only these bommels can be picked (e.g. those a category group applies to); omit for all. */
+    allowedIds?: Set<number>;
+    placeholder?: string;
+    /** Shown in the list when nothing can be picked. */
+    emptyText?: string;
 };
 
 type Row = { bommel: Bommel; depth: number };
@@ -40,14 +45,21 @@ function treeRows(bommels: Bommel[]): Row[] {
  * Multi-select for bommels (category group dialog, reports filter): a search field that opens the bommel tree with
  * checkboxes, and the chosen bommels as removable chips below it. An empty selection means no bommel.
  */
-const BommelMultiSelector: FC<BommelMultiSelectorProps> = ({ value, onChange, disabled }) => {
+const BommelMultiSelector: FC<BommelMultiSelectorProps> = ({ value, onChange, disabled, allowedIds, placeholder, emptyText }) => {
     const { t } = useTranslation();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const ref = useRef<HTMLDivElement>(null);
 
-    const rows = useMemo(() => treeRows(allBommels), [allBommels]);
+    const rows = useMemo(() => {
+        const all = treeRows(allBommels);
+        if (!allowedIds) return all;
+        const allowed = all.filter((r) => r.bommel.id != null && allowedIds.has(r.bommel.id));
+        // Indent relative to the highest allowed bommel, so a restricted list does not start deep inside.
+        const minDepth = Math.min(...allowed.map((r) => r.depth));
+        return allowed.map((r) => ({ ...r, depth: r.depth - minDepth }));
+    }, [allBommels, allowedIds]);
     const visible = useMemo(() => {
         const q = query.trim().toLowerCase();
         return q ? rows.filter((r) => (r.bommel.name ?? '').toLowerCase().includes(q)) : rows;
@@ -91,7 +103,7 @@ const BommelMultiSelector: FC<BommelMultiSelectorProps> = ({ value, onChange, di
                                 setOpen(false);
                             }
                         }}
-                        placeholder={t('categoryGroups.modal.bommelSearch')}
+                        placeholder={placeholder ?? t('categoryGroups.modal.bommelSearch')}
                         className="min-w-0 flex-1 border-none bg-transparent text-sm text-gray-800 outline-none placeholder:text-muted dark:text-gray-100"
                     />
                     <button
@@ -130,14 +142,14 @@ const BommelMultiSelector: FC<BommelMultiSelectorProps> = ({ value, onChange, di
                                     </span>
                                     {bommel.emoji && <Emoji emoji={bommel.emoji} className="text-sm" />}
                                     {bommel.name}
-                                    {depth === 0 && (
+                                    {bommel.parent?.id == null && (
                                         <span className="text-[11.5px] font-semibold text-[var(--ink-faint)]">{t('categoryGroups.modal.bommelRoot')}</span>
                                     )}
                                 </button>
                             );
                         })}
                         {visible.length === 0 && (
-                            <div className="px-[9px] py-2 text-[13.5px] text-[var(--ink-faint)]">{t('categoryGroups.modal.bommelNone')}</div>
+                            <div className="px-[9px] py-2 text-[13.5px] text-[var(--ink-faint)]">{rows.length === 0 && emptyText ? emptyText : t('categoryGroups.modal.bommelNone')}</div>
                         )}
                     </div>
                 )}

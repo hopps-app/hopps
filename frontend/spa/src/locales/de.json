@@ -520,14 +520,14 @@
         "from": "Von (Transaktionsdatum)",
         "to": "Bis (Transaktionsdatum)",
         "bommel": "Bommel",
-        "export": "CSV exportieren",
         "total": "Gesamt",
         "table": {
             "value": "Wert",
             "count": "Anzahl",
             "income": "Einnahmen",
             "expense": "Ausgaben",
-            "net": "Saldo"
+            "net": "Saldo",
+            "distribution": "Verteilung"
         },
         "emptyNoGroup": {
             "title": "Kategoriegruppe wählen",
@@ -540,7 +540,28 @@
         "error": {
             "title": "Bericht konnte nicht geladen werden",
             "description": "Bitte versuchen Sie es später erneut."
-        }
+        },
+        "setup": {
+            "title": "Noch nichts auszuwerten",
+            "text": "Berichte entstehen aus euren Kategorien und den zugeordneten Belegen bzw. Transaktionen. Bommel könnt ihr später jederzeit ergänzen.",
+            "action": "Kategorien anlegen",
+            "period": "Zeitraum",
+            "sampleTitle": "Beispielauswertung",
+            "previewLabel": "Beispielvorschau",
+            "spheres": {
+                "ideal": "Ideeller Bereich",
+                "purpose": "Zweckbetrieb",
+                "assets": "Vermögensverwaltung",
+                "business": "Wirtschaftl. Geschäftsbetrieb"
+            }
+        },
+        "allGroupBommels": "Alle Bommel der Gruppe",
+        "noGroupBommels": "Dieser Gruppe ist kein Bommel zugeordnet.",
+        "until": "bis",
+        "exportCsv": "CSV exportieren",
+        "periodHint": "Maßgeblich ist das Datum der Transaktion, also die Spalte „Datum“ unter Transaktionen. Nicht das Upload- oder Buchungsdatum der Bank.",
+        "bookings_one": "{{count}} Transaktion",
+        "bookings_other": "{{count}} Transaktionen"
     },
     "menu": {
         "dashboard": "Dashboard",

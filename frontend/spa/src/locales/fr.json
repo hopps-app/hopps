@@ -488,14 +488,14 @@
         "from": "Du (date de transaction)",
         "to": "Au (date de transaction)",
         "bommel": "Bommel",
-        "export": "Exporter en CSV",
         "total": "Total",
         "table": {
             "value": "Valeur",
             "count": "Nombre",
             "income": "Recettes",
             "expense": "Dépenses",
-            "net": "Net"
+            "net": "Net",
+            "distribution": "Répartition"
         },
         "emptyNoGroup": {
             "title": "Choisissez un groupe de catégories",
@@ -508,7 +508,28 @@
         "error": {
             "title": "Le rapport n'a pas pu être chargé",
             "description": "Veuillez réessayer plus tard."
-        }
+        },
+        "setup": {
+            "title": "Rien à analyser pour le moment",
+            "text": "Les rapports reposent sur vos catégories et les justificatifs et transactions qui leur sont attribués. Vous pourrez ajouter des bommels à tout moment.",
+            "action": "Créer des catégories",
+            "period": "Période",
+            "sampleTitle": "Exemple de rapport",
+            "previewLabel": "Aperçu exemple",
+            "spheres": {
+                "ideal": "Activité non lucrative",
+                "purpose": "Activité liée au but",
+                "assets": "Gestion du patrimoine",
+                "business": "Activité commerciale"
+            }
+        },
+        "allGroupBommels": "Tous les bommels du groupe",
+        "noGroupBommels": "Aucun bommel n'est attribué à ce groupe.",
+        "until": "au",
+        "exportCsv": "Exporter en CSV",
+        "periodHint": "C'est la date de la transaction qui compte, la colonne « Date » sous Transactions. Pas la date de téléversement ni la date de comptabilisation bancaire.",
+        "bookings_one": "{{count}} transaction",
+        "bookings_other": "{{count}} transactions"
     },
     "menu": {
         "dashboard": "Tableau de bord",

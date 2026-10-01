@@ -488,14 +488,14 @@
         "from": "Da (data della transazione)",
         "to": "A (data della transazione)",
         "bommel": "Bommel",
-        "export": "Esporta CSV",
         "total": "Totale",
         "table": {
             "value": "Valore",
             "count": "Conteggio",
             "income": "Entrate",
             "expense": "Uscite",
-            "net": "Netto"
+            "net": "Netto",
+            "distribution": "Distribuzione"
         },
         "emptyNoGroup": {
             "title": "Scegli un gruppo di categorie",
@@ -508,7 +508,28 @@
         "error": {
             "title": "Impossibile caricare il report",
             "description": "Riprova più tardi."
-        }
+        },
+        "setup": {
+            "title": "Ancora niente da analizzare",
+            "text": "I report nascono dalle tue categorie e dai giustificativi e transazioni assegnati. I bommel si possono aggiungere in qualsiasi momento.",
+            "action": "Crea categorie",
+            "period": "Periodo",
+            "sampleTitle": "Report di esempio",
+            "previewLabel": "Anteprima di esempio",
+            "spheres": {
+                "ideal": "Attività istituzionale",
+                "purpose": "Attività strumentale",
+                "assets": "Gestione patrimoniale",
+                "business": "Attività commerciale"
+            }
+        },
+        "allGroupBommels": "Tutti i bommel del gruppo",
+        "noGroupBommels": "A questo gruppo non è assegnato alcun bommel.",
+        "until": "al",
+        "exportCsv": "Esporta CSV",
+        "periodHint": "Conta la data della transazione, cioè la colonna «Data» in Transazioni. Non la data di caricamento né la data contabile della banca.",
+        "bookings_one": "{{count}} transazione",
+        "bookings_other": "{{count}} transazioni"
     },
     "menu": {
         "dashboard": "Dashboard",
