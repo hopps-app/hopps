@@ -1,4 +1,4 @@
-import { Building2, LayoutDashboard } from 'lucide-react';
+import { Building2, LayoutDashboard, LayoutTemplate } from 'lucide-react';
 
 import type { MenuItem } from './types';
 
@@ -17,5 +17,12 @@ export const menuConfig: MenuItem[] = [
         icon: 'IdCard',
         lucideIcon: Building2,
         path: '/organizations',
+    },
+    {
+        id: 'templates',
+        label: 'menu.templates',
+        icon: 'Copy',
+        lucideIcon: LayoutTemplate,
+        path: '/templates',
     },
 ];
