@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { KontenSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
+import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
@@ -150,7 +151,7 @@ export default function AppRoutes() {
                 <Route
                     path="/reports"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ReportsSkeleton />}>
                             <ReportsView />
                         </LazyRoute>
                     }

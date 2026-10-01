@@ -8,8 +8,8 @@ import { TableEmptyState } from '@/components/common';
 import Button from '@/components/ui/Button';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import Select from '@/components/ui/Select';
+import { ReportResultSkeleton, ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { ReportsSetup } from '@/components/Reports/ReportsSetup';
-import { LoadingState } from '@/components/common/LoadingState/LoadingState';
 import { useCategoryGroups, useCategoryGroupReport } from '@/hooks/queries/useCategoryGroups';
 import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
@@ -103,8 +103,13 @@ export function ReportsView() {
         URL.revokeObjectURL(url);
     }
 
+    // Until the groups are known it is unclear whether the setup or the report applies, so show the page shape.
+    if (groupsLoading) {
+        return <ReportsSkeleton />;
+    }
+
     // First use: without a category group there is nothing to group the report by yet.
-    if (!groupsLoading && groups.length === 0) {
+    if (groups.length === 0) {
         return (
             <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT }}>
                 <ReportsHeader />
@@ -171,18 +176,12 @@ export function ReportsView() {
 
             {/* Results */}
             <div className="flex-1 min-h-0 mt-4">
-                {groupsLoading ? (
-                    <div className="py-12">
-                        <LoadingState size="lg" />
-                    </div>
-                ) : !groupId ? (
+                {!groupId ? (
                     <div className={EMPTY_CARD}>
                         <TableEmptyState icon={Tag} title={t('reports.emptyNoGroup.title')} text={t('reports.emptyNoGroup.description')} />
                     </div>
                 ) : isLoading ? (
-                    <div className="py-12">
-                        <LoadingState size="lg" />
-                    </div>
+                    <ReportResultSkeleton />
                 ) : isError ? (
                     <div className={EMPTY_CARD}>
                         <TableEmptyState icon={AlertTriangle} title={t('reports.error.title')} text={t('reports.error.description')} />
