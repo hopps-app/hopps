@@ -65,9 +65,10 @@
         },
         "reopen": {
             "title": "Bestätigte Transaktionen betroffen",
-            "description": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
             "keep": "Nein, nur Gruppe speichern",
-            "confirm": "Ja, auf Entwurf zurücksetzen"
+            "confirm": "Ja, auf Entwurf zurücksetzen",
+            "description_one": "{{count}} bereits bestätigte Transaktion unter diesen Bommeln hat noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
+            "description_other": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?"
         },
         "fields": {
             "eyebrow": "Kategoriegruppen",

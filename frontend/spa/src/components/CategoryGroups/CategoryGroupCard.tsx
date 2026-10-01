@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { RequiredBadge } from './CategoryGroupSetup';
 
+import Emoji from '@/components/ui/Emoji';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
@@ -29,7 +30,6 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
     const valueCount = group.valueCount ?? 0;
     const shown = (values?.items ?? []).slice(0, MAX_CHIPS);
     const bommelIds = group.bommelIds ?? [];
-    const bommelName = (id: number) => allBommels.find((b) => b.id === id)?.name ?? `#${id}`;
 
     return (
         <div className="flex flex-col gap-3.5 rounded-[var(--r-card)] border border-[var(--border-soft)] bg-[var(--background-secondary)] px-5 py-[18px]">
@@ -71,19 +71,23 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                 {bommelIds.length === 0 ? (
                     <div className="text-sm text-[var(--muted)]">{t('categoryGroups.card.noBommel')}</div>
                 ) : rootId != null && bommelIds.includes(rootId) ? (
-                    <span className="inline-flex rounded-full bg-[var(--accent-surface)] px-2.5 py-1 dark:border dark:border-[var(--purple-300)] dark:bg-[var(--accent-surface-strong)] text-[12.5px] font-bold text-purple-700">
+                    <span className="inline-flex rounded-[var(--r-sm)] bg-[var(--accent-surface)] px-2.5 py-1 dark:border dark:border-[var(--purple-300)] dark:bg-[var(--accent-surface-strong)] text-[12.5px] font-bold text-purple-700">
                         {t('categoryGroups.card.allBommel')}
                     </span>
                 ) : (
                     <div className="flex flex-wrap gap-[7px]">
-                        {bommelIds.map((id) => (
-                            <span
-                                key={id}
-                                className="inline-flex rounded-full bg-[var(--accent-surface)] px-2.5 py-1 dark:border dark:border-[var(--purple-300)] dark:bg-[var(--accent-surface-strong)] text-[12.5px] font-bold text-purple-700"
-                            >
-                                {bommelName(id)}
-                            </span>
-                        ))}
+                        {bommelIds.map((id) => {
+                            const bommel = allBommels.find((b) => b.id === id);
+                            return (
+                                <span
+                                    key={id}
+                                    className="inline-flex items-center gap-1.5 rounded-[var(--r-sm)] bg-[var(--accent-surface)] px-2.5 py-1 dark:border dark:border-[var(--purple-300)] dark:bg-[var(--accent-surface-strong)] text-[12.5px] font-bold text-purple-700"
+                                >
+                                    {bommel?.emoji && <Emoji emoji={bommel.emoji} className="text-sm" />}
+                                    {bommel?.name ?? `#${id}`}
+                                </span>
+                            );
+                        })}
                     </div>
                 )}
             </div>

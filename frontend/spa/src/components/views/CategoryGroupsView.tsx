@@ -99,7 +99,7 @@ function CategoryGroupsView() {
                         <button
                             type="button"
                             onClick={openCreate}
-                            className="flex min-h-[180px] flex-col items-center justify-center gap-2.5 rounded-[var(--r-card)] border-[1.5px] border-dashed border-[var(--border-soft)] text-[13.5px] font-bold text-purple-700 transition-colors hover:bg-[var(--accent-surface)]"
+                            className="flex min-h-[180px] flex-col items-center justify-center gap-2.5 rounded-[var(--r-card)] border-2 border-dashed border-[#E0E0E6] bg-[var(--surface-sunken)] text-[13.5px] font-bold text-purple-700 transition-colors hover:border-[var(--primary)] hover:bg-[var(--accent-surface)] dark:border-gray-700"
                         >
                             <Plus size={22} />
                             {t('categoryGroups.addButton')}

@@ -65,9 +65,10 @@
         },
         "reopen": {
             "title": "Confirmed transactions affected",
-            "description": "{{count}} already-confirmed transactions under these bommels have no value for the required group \"{{group}}\" yet. Reset them to draft so the category can be added?",
             "keep": "No, just save the group",
-            "confirm": "Yes, reset to draft"
+            "confirm": "Yes, reset to draft",
+            "description_one": "{{count}} already-confirmed transaction under these bommels has no value for the required group \"{{group}}\" yet. Reset it to draft so the category can be added?",
+            "description_other": "{{count}} already-confirmed transactions under these bommels have no value for the required group \"{{group}}\" yet. Reset them to draft so the category can be added?"
         },
         "fields": {
             "eyebrow": "Category groups",

@@ -65,9 +65,10 @@
         },
         "reopen": {
             "title": "Transazioni confermate interessate",
-            "description": "{{count}} transazioni già confermate sotto questi bommel non hanno ancora un valore per il gruppo obbligatorio \"{{group}}\". Reimpostarle come bozza per poter aggiungere la categoria?",
             "keep": "No, salva solo il gruppo",
-            "confirm": "Sì, reimposta come bozza"
+            "confirm": "Sì, reimposta come bozza",
+            "description_one": "{{count}} transazione già confermata sotto questi bommel non ha ancora un valore per il gruppo obbligatorio \"{{group}}\". Reimpostarla come bozza per poter aggiungere la categoria?",
+            "description_other": "{{count}} transazioni già confermate sotto questi bommel non hanno ancora un valore per il gruppo obbligatorio \"{{group}}\". Reimpostarle come bozza per poter aggiungere la categoria?"
         },
         "fields": {
             "eyebrow": "Gruppi di categorie",

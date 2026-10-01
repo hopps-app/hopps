@@ -65,9 +65,10 @@
         },
         "reopen": {
             "title": "Transactions confirmées concernées",
-            "description": "{{count}} transactions déjà confirmées sous ces bommels n'ont pas encore de valeur pour le groupe obligatoire « {{group}} ». Les remettre en brouillon afin d'ajouter la catégorie ?",
             "keep": "Non, enregistrer uniquement le groupe",
-            "confirm": "Oui, remettre en brouillon"
+            "confirm": "Oui, remettre en brouillon",
+            "description_one": "{{count}} transaction déjà confirmée sous ces bommels n'a pas encore de valeur pour le groupe obligatoire « {{group}} ». La remettre en brouillon afin d'ajouter la catégorie ?",
+            "description_other": "{{count}} transactions déjà confirmées sous ces bommels n'ont pas encore de valeur pour le groupe obligatoire « {{group}} ». Les remettre en brouillon afin d'ajouter la catégorie ?"
         },
         "fields": {
             "eyebrow": "Groupes de catégories",
