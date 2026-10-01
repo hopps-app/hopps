@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { KontenSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
@@ -159,7 +160,7 @@ export default function AppRoutes() {
                 <Route
                     path="/bank-accounts"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<KontenSkeleton />}>
                             <KontenView />
                         </LazyRoute>
                     }

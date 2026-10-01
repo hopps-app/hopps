@@ -63,7 +63,8 @@ interface BankAccountDrawerProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     account?: BankAccountResponse;
-    onSuccess?: () => void;
+    /** Called after saving, with the saved account (e.g. to select a newly created one). */
+    onSuccess?: (account: BankAccountResponse) => void;
 }
 
 export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: BankAccountDrawerProps) {
@@ -115,12 +116,9 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
         const openingBalanceDate = values.openingBalanceDate ? new Date(values.openingBalanceDate) : undefined;
         const payload = { ...values, currency: 'EUR', openingBalanceDate };
         try {
-            if (isEdit && account?.id) {
-                await updateMutation.mutateAsync({ id: account.id, data: payload });
-            } else {
-                await createMutation.mutateAsync(payload);
-            }
-            onSuccess?.();
+            const saved =
+                isEdit && account?.id ? await updateMutation.mutateAsync({ id: account.id, data: payload }) : await createMutation.mutateAsync(payload);
+            onSuccess?.(saved);
         } catch (err) {
             if (ApiException.isApiException(err) && err.status === 409) {
                 setError('iban', { message: t('bankAccounts.form.validation.duplicateIban') });

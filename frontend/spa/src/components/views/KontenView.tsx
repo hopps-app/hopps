@@ -26,10 +26,13 @@ import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
-import { LoadingState } from '@/components/common/LoadingState';
+import { KontenSkeleton, KontenTableSkeleton } from '@/components/BankAccounts/KontenSkeleton';
+import { NextStepCard, TableEmptyState } from '@/components/common';
+import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
+import { StatusToggleGroup, type StatusToggle } from '@/components/ui/StatusToggleGroup';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
     useBankAccounts,
@@ -326,7 +329,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
     }, [page, totalPages]);
 
     if (openAgg.isLoading || feed.isLoading) {
-        return <LoadingState className="py-12" />;
+        return <KontenTableSkeleton />;
     }
 
     const allReconciled = openCount === 0 && matchedCount > 0 && !filters.hasAnyFilter;
@@ -339,7 +342,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
             {/* Status banner — hidden while filtering, since the celebratory/onboarding copy describes the overall
                 reconciliation state, not the filtered subset. */}
-            {!filters.hasAnyFilter && (
+            {!filters.hasAnyFilter && !noData && (
                 <div
                     className={cn(
                         'flex items-center gap-4 rounded-2xl p-4',
@@ -474,35 +477,24 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
             {/* No open booking matches the active search/filter */}
             {noFilterMatch && (
-                <div
-                    className={cn(
-                        cardShadow,
-                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
-                    )}
-                >
-                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <Search className="w-7 h-7 text-muted-foreground" />
-                    </div>
-                    <p className="font-semibold text-base">{t('konten.filter.noResults')}</p>
-                    <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
-                        {t('konten.filter.clearAll')}
-                    </button>
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700')}>
+                    <TableEmptyState
+                        icon={Search}
+                        title={t('konten.empty.noMatchTitle')}
+                        text={t('konten.empty.noMatchText')}
+                        action={
+                            <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
+                                {t('konten.filter.clearAll')}
+                            </button>
+                        }
+                    />
                 </div>
             )}
 
             {/* Empty state when there are no bank transactions at all */}
             {noData && (
-                <div
-                    className={cn(
-                        cardShadow,
-                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
-                    )}
-                >
-                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <Unlink className="w-7 h-7 text-muted-foreground" />
-                    </div>
-                    <p className="font-semibold text-base">{t('konten.abgleich.noData')}</p>
-                    <p className="text-sm text-muted-foreground max-w-sm">{t('konten.abgleich.noDataDesc')}</p>
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700')}>
+                    <TableEmptyState icon={Unlink} title={t('konten.abgleich.noData')} text={t('konten.abgleich.noDataDesc')} />
                 </div>
             )}
         </div>
@@ -511,7 +503,14 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
 // ─── Account Tab ──────────────────────────────────────────────────────────────
 
-type StatusFilter = 'ALL' | 'UNMATCHED' | 'FULLY_MATCHED' | 'IGNORED';
+/** Status toggles of an account tab; "Offen" covers unmatched and partially matched movements. */
+type AccountStatus = 'OPEN' | 'FULLY_MATCHED' | 'IGNORED';
+
+const ACCOUNT_STATUS_API: Record<AccountStatus, string> = {
+    OPEN: 'UNMATCHED,PARTIALLY_MATCHED',
+    FULLY_MATCHED: 'FULLY_MATCHED',
+    IGNORED: 'IGNORED',
+};
 
 const PAGE_SIZE = 50;
 
@@ -529,7 +528,9 @@ function AccountTab({
     onImport: (accountId: number) => void;
 }) {
     const { t } = useTranslation();
-    const [statusFilter, setStatusFilter] = usePersistedState<StatusFilter>('hopps.konten.account.statusFilter', 'ALL');
+    // Independent toggles like on the Transaktionen page; nothing selected shows every movement. Like there, the tab always
+    // starts on the actionable rows ("Offen"), so the choice is not persisted.
+    const [statusFilter, setStatusFilter] = useState<AccountStatus[]>(['OPEN']);
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
@@ -542,8 +543,16 @@ function AccountTab({
         setPage(0);
     }, [search, minAmount, maxAmount, dateFrom, dateTo]);
 
-    // "Offen" covers everything not yet fully matched (unmatched + partially matched).
-    const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter === 'UNMATCHED' ? 'UNMATCHED,PARTIALLY_MATCHED' : statusFilter;
+    const apiStatus = statusFilter.length > 0 ? statusFilter.map((s) => ACCOUNT_STATUS_API[s]).join(',') : undefined;
+    const toggleStatus = (id: AccountStatus) => {
+        setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+        setPage(0);
+    };
+    // Toggle counts under the active search/column filters, like the tab counts on the Transaktionen page.
+    const accountId = String(account.id);
+    const { data: countOpen } = useBankTransactionAggregate(accountId, ACCOUNT_STATUS_API.OPEN, true, filters.filter);
+    const { data: countMatched } = useBankTransactionAggregate(accountId, ACCOUNT_STATUS_API.FULLY_MATCHED, true, filters.filter);
+    const { data: countIgnored } = useBankTransactionAggregate(accountId, ACCOUNT_STATUS_API.IGNORED, true, filters.filter);
     const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus, sortBy, sortDir, filters.filter);
 
     // Toggle direction when re-clicking the active column, otherwise switch column and default to descending.
@@ -560,11 +569,10 @@ function AccountTab({
 
     const filtered = transactions;
 
-    const statusFilters: { key: StatusFilter; label: string }[] = [
-        { key: 'ALL', label: t('konten.filter.all') },
-        { key: 'UNMATCHED', label: t('konten.filter.open') },
-        { key: 'FULLY_MATCHED', label: t('konten.filter.matched') },
-        { key: 'IGNORED', label: t('konten.filter.ignored') },
+    const statusToggles: StatusToggle<AccountStatus>[] = [
+        { id: 'OPEN', label: t('konten.filter.open'), count: countOpen?.count ?? 0, color: 'var(--warning)', tint: 'var(--warning-surface)' },
+        { id: 'FULLY_MATCHED', label: t('konten.filter.matched'), count: countMatched?.count ?? 0, color: 'var(--positive)', tint: 'var(--positive-surface)' },
+        { id: 'IGNORED', label: t('konten.filter.ignored'), count: countIgnored?.count ?? 0, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
     ];
 
     return (
@@ -579,23 +587,8 @@ function AccountTab({
                         </span>
                     )}
                 </span>
-                <div className="ml-auto flex rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 gap-0.5">
-                    {statusFilters.map((f) => (
-                        <button
-                            key={f.key}
-                            type="button"
-                            onClick={() => {
-                                setStatusFilter(f.key);
-                                setPage(0);
-                            }}
-                            className={cn(
-                                'px-3 py-1 rounded-lg text-sm font-medium transition-colors',
-                                statusFilter === f.key ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
+                <div className="ml-auto">
+                    <StatusToggleGroup label={t('konten.table.status')} items={statusToggles} selected={statusFilter} onToggle={toggleStatus} />
                 </div>
             </div>
 
@@ -612,20 +605,22 @@ function AccountTab({
             </div>
 
             {isLoading ? (
-                <LoadingState className="py-8" />
+                <KontenTableSkeleton />
             ) : filtered.length === 0 ? (
-                <div
-                    className={cn(
-                        cardShadow,
-                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2'
-                    )}
-                >
-                    <Landmark className="w-8 h-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">{filters.hasAnyFilter ? t('konten.filter.noResults') : t('konten.noTransactions')}</p>
-                    {filters.hasAnyFilter && (
-                        <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
-                            {t('konten.filter.clearAll')}
-                        </button>
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700')}>
+                    {filters.hasAnyFilter ? (
+                        <TableEmptyState
+                            icon={Search}
+                            title={t('konten.empty.noMatchTitle')}
+                            text={t('konten.empty.noMatchText')}
+                            action={
+                                <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
+                                    {t('konten.filter.clearAll')}
+                                </button>
+                            }
+                        />
+                    ) : (
+                        <TableEmptyState icon={Landmark} title={t('konten.empty.noTransactionsTitle')} text={t('konten.empty.noTransactionsText')} />
                     )}
                 </div>
             ) : (
@@ -791,7 +786,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
         QUEUED: 'bg-gray-100 text-gray-600',
     };
 
-    if (isLoading) return <LoadingState className="py-12" />;
+    if (isLoading) return <KontenTableSkeleton rows={4} />;
 
     return (
         <div>
@@ -803,15 +798,8 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
             </div>
 
             {allImports.length === 0 ? (
-                <div
-                    className={cn(
-                        cardShadow,
-                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2'
-                    )}
-                >
-                    <Sheet className="w-8 h-8 text-muted-foreground" />
-                    <p className="font-semibold">{t('konten.imports.empty')}</p>
-                    <p className="text-sm text-muted-foreground">{t('konten.imports.emptyDesc')}</p>
+                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700')}>
+                    <TableEmptyState icon={Sheet} title={t('konten.imports.empty')} text={t('konten.imports.emptyDesc')} />
                 </div>
             ) : (
                 <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
@@ -997,7 +985,7 @@ export function KontenView() {
     ];
 
     if (isLoading) {
-        return <LoadingState className="py-12" />;
+        return <KontenSkeleton />;
     }
 
     return (
@@ -1010,103 +998,121 @@ export function KontenView() {
                 </div>
             </div>
 
-            {/* Bank accounts — collapsed to compact pills by default, expandable to the full cards. The header mirrors
-                the collapsible upload panel on the Belege page: icon box + title, then a compact expand/collapse chip.
-                When there are no accounts yet the section is forced open so the "add account" card is shown right away. */}
-            <div className="flex flex-col gap-3">
-                {/* Header + collapse toggle — only meaningful once at least one account exists. */}
-                {accounts.length > 0 && (
-                    <div className="flex items-center gap-3">
-                        <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
-                            <Landmark className="w-[18px] h-[18px]" />
-                        </span>
-                        <span className="text-sm font-bold text-foreground">
-                            {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
-                        </span>
-                        {/* The toggle is a compact chip rather than the whole header row: on a wide page a full-width
-                            button puts the chevron far from the label it belongs to, so both live in one pill here. */}
-                        <button
-                            type="button"
-                            onClick={() => setAccountsExpanded((v) => !v)}
-                            aria-expanded={accountsExpanded}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:text-primary hover:bg-primary/10 transition-colors"
-                        >
-                            {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
-                            <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', accountsExpanded && 'rotate-180')} />
-                        </button>
-                    </div>
-                )}
-
-                {/* Collapsed: compact pills only (the add button lives in the expanded cards view) */}
-                {accounts.length > 0 && !accountsExpanded && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {accounts.map((a) => (
-                            <AccountPill
-                                key={a.id}
-                                account={a}
-                                openCount={openCountByAccount[String(a.id)] ?? 0}
-                                onClick={() => {
-                                    setTab(String(a.id));
-                                    setAccountsExpanded(true);
-                                }}
-                            />
-                        ))}
-                    </div>
-                )}
-
-                {/* Expanded: full account cards (always shown while there are no accounts, so the add card is visible) */}
-                {(accountsExpanded || accounts.length === 0) && (
-                    <div className="flex flex-wrap gap-4">
-                        {accounts.map((a) => (
-                            <AccountCard
-                                key={a.id}
-                                account={a}
-                                openCount={openCountByAccount[String(a.id)] ?? 0}
-                                onClick={() => setTab(String(a.id))}
-                                onEdit={(e) => {
-                                    e.stopPropagation();
-                                    setDrawerAccount(a);
-                                }}
-                                onImport={(e) => {
-                                    e.stopPropagation();
-                                    setImportAccountId(a.id!);
-                                }}
-                            />
-                        ))}
-                        <AddAccountCard onClick={() => setDrawerAccount('new')} />
-                    </div>
-                )}
-            </div>
-
-            {/* Segmented tab bar. Import now lives next to the filter bar inside each account's own tab, where the
-                target account is always unambiguous — no cross-account picker needed. */}
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex gap-0.5 rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 w-fit flex-wrap">
-                    {tabs.map((t_) => (
-                        <button
-                            key={t_.id}
-                            type="button"
-                            onClick={() => setTab(t_.id)}
-                            className={cn(
-                                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-sm font-medium transition-colors whitespace-nowrap',
-                                tab === t_.id ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            {t_.label}
-                            {t_.badge !== undefined && (
-                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
-                                    {t_.badge}
+            {/* First use: without an account nothing else can happen yet (imports always belong to an account), so the page
+                shows only the next step instead of empty tabs. */}
+            {accounts.length === 0 ? (
+                <NextStepCard
+                    icon={Landmark}
+                    title={t('konten.firstAccount.title')}
+                    text={t('konten.firstAccount.text')}
+                    action={
+                        <Button size="sm" className="h-10" onClick={() => setDrawerAccount('new')}>
+                            <Plus />
+                            {t('konten.firstAccount.action')}
+                        </Button>
+                    }
+                />
+            ) : (
+                <>
+                    {/* Bank accounts — collapsed to compact pills by default, expandable to the full cards. The header mirrors
+                    the collapsible upload panel on the Belege page: icon box + title, then a compact expand/collapse chip.
+                    When there are no accounts yet the section is forced open so the "add account" card is shown right away. */}
+                    <div className="flex flex-col gap-3">
+                        {/* Header + collapse toggle — only meaningful once at least one account exists. */}
+                        {accounts.length > 0 && (
+                            <div className="flex items-center gap-3">
+                                <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
+                                    <Landmark className="w-[18px] h-[18px]" />
                                 </span>
-                            )}
-                        </button>
-                    ))}
-                </div>
-            </div>
+                                <span className="text-sm font-bold text-foreground">
+                                    {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
+                                </span>
+                                {/* The toggle is a compact chip rather than the whole header row: on a wide page a full-width
+                                button puts the chevron far from the label it belongs to, so both live in one pill here. */}
+                                <button
+                                    type="button"
+                                    onClick={() => setAccountsExpanded((v) => !v)}
+                                    aria-expanded={accountsExpanded}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:text-primary hover:bg-primary/10 transition-colors"
+                                >
+                                    {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
+                                    <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', accountsExpanded && 'rotate-180')} />
+                                </button>
+                            </div>
+                        )}
 
-            {/* Tab content */}
-            {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
-            {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} onImport={setImportAccountId} />}
-            {tab === 'importe' && <ImporteTab accounts={accounts} />}
+                        {/* Collapsed: compact pills only (the add button lives in the expanded cards view) */}
+                        {accounts.length > 0 && !accountsExpanded && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {accounts.map((a) => (
+                                    <AccountPill
+                                        key={a.id}
+                                        account={a}
+                                        openCount={openCountByAccount[String(a.id)] ?? 0}
+                                        onClick={() => {
+                                            setTab(String(a.id));
+                                            setAccountsExpanded(true);
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Expanded: full account cards (always shown while there are no accounts, so the add card is visible) */}
+                        {(accountsExpanded || accounts.length === 0) && (
+                            <div className="flex flex-wrap gap-4">
+                                {accounts.map((a) => (
+                                    <AccountCard
+                                        key={a.id}
+                                        account={a}
+                                        openCount={openCountByAccount[String(a.id)] ?? 0}
+                                        onClick={() => setTab(String(a.id))}
+                                        onEdit={(e) => {
+                                            e.stopPropagation();
+                                            setDrawerAccount(a);
+                                        }}
+                                        onImport={(e) => {
+                                            e.stopPropagation();
+                                            setImportAccountId(a.id!);
+                                        }}
+                                    />
+                                ))}
+                                <AddAccountCard onClick={() => setDrawerAccount('new')} />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Segmented tab bar. Import now lives next to the filter bar inside each account's own tab, where the
+                    target account is always unambiguous — no cross-account picker needed. */}
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <div className="flex gap-0.5 rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 w-fit flex-wrap">
+                            {tabs.map((t_) => (
+                                <button
+                                    key={t_.id}
+                                    type="button"
+                                    onClick={() => setTab(t_.id)}
+                                    className={cn(
+                                        'flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-sm font-medium transition-colors whitespace-nowrap',
+                                        tab === t_.id ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                                    )}
+                                >
+                                    {t_.label}
+                                    {t_.badge !== undefined && (
+                                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                                            {t_.badge}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Tab content */}
+                    {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
+                    {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} onImport={setImportAccountId} />}
+                    {tab === 'importe' && <ImporteTab accounts={accounts} />}
+                </>
+            )}
 
             {/* Match drawer */}
             {matchDrawerBankTxId !== null && (
@@ -1124,7 +1130,9 @@ export function KontenView() {
                     if (!open) setDrawerAccount(null);
                 }}
                 account={drawerAccount !== 'new' ? (drawerAccount ?? undefined) : undefined}
-                onSuccess={() => {
+                onSuccess={(saved) => {
+                    // The first account opens on its own tab, where importing statements is the next step.
+                    if (accounts.length === 0 && saved.id != null) setTab(String(saved.id));
                     refetch();
                     setDrawerAccount(null);
                 }}
