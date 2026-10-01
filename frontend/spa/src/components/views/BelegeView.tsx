@@ -26,7 +26,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
-import { LoadingState } from '@/components/common/LoadingState';
+import { LoadingState, TableEmptyState } from '@/components/common';
 import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { cacheBommelChoice, getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
@@ -40,7 +40,7 @@ import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { DataTable, DataTableEmpty, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
+import { DataTable, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
@@ -1769,6 +1769,14 @@ export function BelegeView() {
     const toggleStatus = (id: ReceiptStatus) => setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
     const onlyUnreviewed = statusFilter.length === 1 && statusFilter[0] === 'unreviewed';
 
+    // Empty table: nothing uploaded yet, everything on only "Zu prüfen" selected and all reviewed, or the search/filter finds nothing.
+    const emptyState =
+        docs.length === 0
+            ? { title: t('receipts.empty.firstTitle'), text: t('receipts.empty.firstText') }
+            : !searchTerm && onlyUnreviewed
+              ? { title: t('receipts.noUnreviewed'), text: t('receipts.noUnreviewedDesc') }
+              : { title: t('receipts.empty.noMatchTitle'), text: t('receipts.empty.noMatchText') };
+
     return (
         <div className="flex flex-col w-full" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
             {/* Header */}
@@ -1875,13 +1883,6 @@ export function BelegeView() {
             <div>
                 {isLoading ? (
                     <LoadingState className="py-12" />
-                ) : filtered.length === 0 ? (
-                    <DataTableEmpty
-                        title={
-                            searchTerm ? t('receipts.noSearchResults', { search }) : onlyUnreviewed ? t('receipts.noUnreviewed') : t('transactions.noResults')
-                        }
-                        description={searchTerm ? undefined : onlyUnreviewed ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
-                    />
                 ) : (
                     <DataTable>
                         <DataTableHeader columns={hideBommel ? DOC_GRID_NARROW : DOC_GRID}>
@@ -1918,6 +1919,7 @@ export function BelegeView() {
                             />
                         </DataTableHeader>
 
+                        {sorted.length === 0 && <TableEmptyState icon={FileText} {...emptyState} />}
                         {sorted.map((doc) => (
                             <DocumentRow
                                 key={doc.id}

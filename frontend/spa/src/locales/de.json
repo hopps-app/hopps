@@ -752,6 +752,12 @@
             "bulkDeleted": "{{count}} Transaktion(en) gelöscht",
             "bulkDeletePartial": "{{done}} Transaktion(en) gelöscht, {{failed}} fehlgeschlagen",
             "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden"
+    },
+        "empty": {
+            "firstTitle": "Noch keine Transaktionen",
+            "firstText": "Transaktionen entstehen aus geprüften Belegen und importierten Kontoumsätzen. Du kannst auch oben eine Transaktion erfassen.",
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Passe deine Suche an oder wähle einen anderen Filter."
         }
     },
     "receipts": {
@@ -762,7 +768,12 @@
         "downloadFailed": "Dokument konnte nicht heruntergeladen werden",
         "noDocument": "Kein Dokument",
         "dueDate": "Fällig am",
-        "empty": "Keine Belege gefunden",
+        "empty": {
+            "firstTitle": "Noch keine Belege",
+            "firstText": "Rechnungen, Quittungen und Kassenbons landen hier. Lade oben deinen ersten Beleg hoch.",
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Passe deine Suche an oder wähle einen anderen Filter."
+        },
         "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
         "searchClear": "Suche löschen",
         "noSearchResults": "Keine Belege für „{{search}}\" gefunden",
@@ -1432,7 +1443,6 @@
         "importAction": "Umsätze importieren",
         "import": "Importieren",
         "assign": "Zuordnen",
-        "noTransactions": "Keine Umsätze gefunden.",
         "unknownCounterparty": "Unbekannt",
         "tabs": {
             "abgleich": "Abgleich",
@@ -1445,7 +1455,6 @@
             "ignored": "Ignoriert"
         },
         "filter": {
-            "all": "Alle",
             "open": "Offen",
             "matched": "Zugeordnet",
             "ignored": "Ignoriert",
@@ -1456,8 +1465,7 @@
             "dateTo": "Datum bis",
             "minAmount": "Betrag min.",
             "maxAmount": "Betrag max.",
-            "clearAll": "Filter zurücksetzen",
-            "noResults": "Keine Transaktionen für die aktuelle Suche/Filter"
+            "clearAll": "Filter zurücksetzen"
         },
         "abgleich": {
             "allClear": "Alles abgeglichen",
@@ -1482,7 +1490,7 @@
         },
         "imports": {
             "title": "Import-Historie",
-            "subtitle": "Nachvollziehbar: welche Kontoauszüge wann importiert wurden.",
+            "subtitle": "Hier siehst du, welche Kontoauszüge wann und für welches Konto importiert wurden.",
             "account": "Konto",
             "file": "Datei",
             "imported": "Importiert",
@@ -1500,8 +1508,10 @@
             "deleteMatchedWarning_other": "Achtung: <strong>{{count}} dieser Umsätze</strong> sind Buchungen zugeordnet – diese Zuordnungen gehen verloren."
         },
         "empty": {
-            "title": "Noch keine Bankkonten",
-            "desc": "Füge dein erstes Bankkonto hinzu, um Kontoauszüge zu importieren."
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Passe deine Suche an oder wähle einen anderen Filter.",
+            "noTransactionsTitle": "Noch keine Umsätze",
+            "noTransactionsText": "Importiere einen Kontoauszug, um die Umsätze dieses Kontos abzugleichen."
         },
         "form": {
             "subtitle": "Stammdaten des Kontos",
@@ -1549,6 +1559,11 @@
             "coversExactly": "Deckt den Rest genau",
             "shouldBeIncome": "Diese Banktransaktion ist eine Einnahme. Bitte „Einnahme\" wählen.",
             "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
+        },
+        "firstAccount": {
+            "title": "Lege zuerst ein Bankkonto an",
+            "text": "Kontoauszüge werden immer einem Konto zugeordnet. Sobald ein Konto angelegt ist, kannst du Umsätze importieren und abgleichen.",
+            "action": "Bankkonto hinzufügen"
         }
     },
     "bankMatch": {

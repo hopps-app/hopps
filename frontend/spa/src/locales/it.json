@@ -720,6 +720,12 @@
             "bulkDeleted": "{{count}} transazione/i eliminata/e",
             "bulkDeletePartial": "{{done}} transazione/i eliminata/e, {{failed}} non riuscita/e",
             "bulkDeleteFailed": "Impossibile eliminare le transazioni"
+    },
+        "empty": {
+            "firstTitle": "Ancora nessuna transazione",
+            "firstText": "Le transazioni nascono dai giustificativi verificati e dai movimenti bancari importati. Puoi anche registrare una transazione qui sopra.",
+            "noMatchTitle": "Nessun risultato",
+            "noMatchText": "Modifica la ricerca o scegli un altro filtro."
         }
     },
     "datePicker": {
@@ -842,7 +848,12 @@
         "downloadFailed": "Download del documento non riuscito",
         "noDocument": "Nessun documento",
         "dueDate": "Scadenza il",
-        "empty": "Nessuna ricevuta trovata",
+        "empty": {
+            "firstTitle": "Ancora nessun giustificativo",
+            "firstText": "Fatture, ricevute e scontrini arrivano qui. Carica il tuo primo giustificativo qui sopra.",
+            "noMatchTitle": "Nessun risultato",
+            "noMatchText": "Modifica la ricerca o scegli un altro filtro."
+        },
         "searchPlaceholder": "Cerca (nome, mittente, importo) …",
         "searchClear": "Cancella ricerca",
         "noSearchResults": "Nessuna ricevuta trovata per \"{{search}}\"",
@@ -1400,7 +1411,6 @@
         "importAction": "Importa transazioni",
         "import": "Importa",
         "assign": "Assegna",
-        "noTransactions": "Nessuna transazione trovata.",
         "unknownCounterparty": "Sconosciuta",
         "tabs": {
             "abgleich": "Riconciliazione",
@@ -1413,7 +1423,6 @@
             "ignored": "Ignorata"
         },
         "filter": {
-            "all": "Tutte",
             "open": "Aperte",
             "matched": "Abbinate",
             "ignored": "Ignorate",
@@ -1424,8 +1433,7 @@
             "dateTo": "Data a",
             "minAmount": "Importo minimo",
             "maxAmount": "Importo massimo",
-            "clearAll": "Cancella filtri",
-            "noResults": "Nessuna transazione corrisponde alla ricerca/al filtro corrente"
+            "clearAll": "Cancella filtri"
         },
         "abgleich": {
             "allClear": "Tutto riconciliato",
@@ -1450,7 +1458,7 @@
         },
         "imports": {
             "title": "Cronologia delle importazioni",
-            "subtitle": "Tieni traccia di quali estratti conto sono stati importati e quando.",
+            "subtitle": "Qui vedi quali estratti conto sono stati importati, quando e per quale conto.",
             "account": "Conto",
             "file": "File",
             "imported": "Importate",
@@ -1468,8 +1476,10 @@
             "deleteMatchedWarning_other": "Nota: <strong>{{count}} di queste transazioni</strong> sono collegate a registrazioni contabili — tali collegamenti verranno rimossi."
         },
         "empty": {
-            "title": "Ancora nessun conto bancario",
-            "desc": "Aggiungi il tuo primo conto bancario per iniziare a importare gli estratti conto."
+            "noMatchTitle": "Nessun risultato",
+            "noMatchText": "Modifica la ricerca o scegli un altro filtro.",
+            "noTransactionsTitle": "Ancora nessun movimento",
+            "noTransactionsText": "Importa un estratto conto per riconciliare i movimenti di questo conto."
         },
         "form": {
             "subtitle": "Dati anagrafici del conto",
@@ -1517,6 +1527,11 @@
             "coversExactly": "Copre esattamente il resto",
             "shouldBeIncome": "Questa transazione bancaria è un'entrata. Scegli “Entrata”.",
             "shouldBeExpense": "Questa transazione bancaria è un'uscita. Scegli “Uscita”."
+        },
+        "firstAccount": {
+            "title": "Crea prima un conto bancario",
+            "text": "Gli estratti conto appartengono sempre a un conto. Una volta creato un conto, puoi importare e riconciliare i movimenti.",
+            "action": "Aggiungi conto bancario"
         }
     },
     "bankMatch": {

@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
+import { TableEmptyState } from '@/components/common';
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/CategoryGroups/TransactionCategoryFilter';
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
@@ -16,7 +17,7 @@ import { TransactionDrawer } from '@/components/Transactions/TransactionDrawer';
 import { TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
-import { DataTable, DataTableEmpty, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
+import { DataTable, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
@@ -277,6 +278,8 @@ export function TransactionenView() {
     // Count and income/expense sums across all pages (a single page cannot provide them). Refetches on filter change,
     // not on paging.
     const { data: aggregate } = useTransactionAggregate(filters);
+    // Without any filter: tells "no transaction exists yet" apart from "the filters find nothing" for the empty table.
+    const { data: totalAggregate } = useTransactionAggregate({});
     // Tab counts: the same filters as the list minus the status tab itself, so each tab reports how many
     // rows it would show under the filters that are actually active.
     const countFilters: TransactionFilters = {
@@ -689,8 +692,6 @@ export function TransactionenView() {
             <div>
                 {isLoading ? (
                     <TableSkeleton hideBommel={hideBommel} />
-                ) : transactions.length === 0 ? (
-                    <DataTableEmpty title={t('transactions.noResults')} description={t('transactions.noResultsDesc')} />
                 ) : (
                     <DataTable>
                         <DataTableHeader columns={hideBommel ? TX_GRID_NARROW : TX_GRID}>
@@ -732,6 +733,12 @@ export function TransactionenView() {
                             />
                         </DataTableHeader>
 
+                        {transactions.length === 0 &&
+                            (totalAggregate?.count === 0 ? (
+                                <TableEmptyState icon={FileText} title={t('transactions.empty.firstTitle')} text={t('transactions.empty.firstText')} />
+                            ) : (
+                                <TableEmptyState icon={FileText} title={t('transactions.empty.noMatchTitle')} text={t('transactions.empty.noMatchText')} />
+                            ))}
                         {transactions.map((tx) => (
                             <TransactionRow
                                 key={tx.id}

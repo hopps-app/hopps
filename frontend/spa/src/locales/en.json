@@ -753,6 +753,12 @@
             "bulkDeleted": "{{count}} transaction(s) deleted",
             "bulkDeletePartial": "{{done}} transaction(s) deleted, {{failed}} failed",
             "bulkDeleteFailed": "Transactions could not be deleted"
+    },
+        "empty": {
+            "firstTitle": "No transactions yet",
+            "firstText": "Transactions come from reviewed receipts and imported bank transactions. You can also record a transaction above.",
+            "noMatchTitle": "Nothing found",
+            "noMatchText": "Adjust your search or choose another filter."
         }
     },
     "datePicker": {
@@ -875,7 +881,12 @@
         "downloadFailed": "Failed to download document",
         "noDocument": "No document",
         "dueDate": "Due on",
-        "empty": "No receipts found",
+        "empty": {
+            "firstTitle": "No receipts yet",
+            "firstText": "Invoices, receipts and till slips end up here. Upload your first receipt above.",
+            "noMatchTitle": "Nothing found",
+            "noMatchText": "Adjust your search or choose another filter."
+        },
         "searchPlaceholder": "Search (name, sender, amount) …",
         "searchClear": "Clear search",
         "noSearchResults": "No receipts found for \"{{search}}\"",
@@ -1433,7 +1444,6 @@
         "importAction": "Import transactions",
         "import": "Import",
         "assign": "Assign",
-        "noTransactions": "No transactions found.",
         "unknownCounterparty": "Unknown",
         "tabs": {
             "abgleich": "Reconciliation",
@@ -1446,7 +1456,6 @@
             "ignored": "Ignored"
         },
         "filter": {
-            "all": "All",
             "open": "Open",
             "matched": "Matched",
             "ignored": "Ignored",
@@ -1457,8 +1466,7 @@
             "dateTo": "Date to",
             "minAmount": "Min amount",
             "maxAmount": "Max amount",
-            "clearAll": "Clear filters",
-            "noResults": "No transactions match the current search/filter"
+            "clearAll": "Clear filters"
         },
         "abgleich": {
             "allClear": "All reconciled",
@@ -1483,7 +1491,7 @@
         },
         "imports": {
             "title": "Import history",
-            "subtitle": "Track which bank statements were imported and when.",
+            "subtitle": "See which bank statements were imported, when, and for which account.",
             "account": "Account",
             "file": "File",
             "imported": "Imported",
@@ -1501,8 +1509,10 @@
             "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed."
         },
         "empty": {
-            "title": "No bank accounts yet",
-            "desc": "Add your first bank account to start importing bank statements."
+            "noMatchTitle": "Nothing found",
+            "noMatchText": "Adjust your search or choose another filter.",
+            "noTransactionsTitle": "No bank transactions yet",
+            "noTransactionsText": "Import a bank statement to reconcile this account's transactions."
         },
         "form": {
             "subtitle": "Account master data",
@@ -1550,6 +1560,11 @@
             "coversExactly": "Covers the rest exactly",
             "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
             "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
+        },
+        "firstAccount": {
+            "title": "Create a bank account first",
+            "text": "Bank statements always belong to an account. Once an account exists, you can import and reconcile transactions.",
+            "action": "Add bank account"
         }
     },
     "bankMatch": {

@@ -720,6 +720,12 @@
             "bulkDeleted": "{{count}} transaction(s) supprimée(s)",
             "bulkDeletePartial": "{{done}} transaction(s) supprimée(s), {{failed}} en échec",
             "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées"
+    },
+        "empty": {
+            "firstTitle": "Aucune transaction pour le moment",
+            "firstText": "Les transactions proviennent des justificatifs vérifiés et des opérations bancaires importées. Vous pouvez aussi saisir une transaction ci-dessus.",
+            "noMatchTitle": "Aucun résultat",
+            "noMatchText": "Modifiez votre recherche ou choisissez un autre filtre."
         }
     },
     "datePicker": {
@@ -842,7 +848,12 @@
         "downloadFailed": "Échec du téléchargement du document",
         "noDocument": "Aucun document",
         "dueDate": "Échéance le",
-        "empty": "Aucun reçu trouvé",
+        "empty": {
+            "firstTitle": "Aucun justificatif pour le moment",
+            "firstText": "Factures, reçus et tickets de caisse arrivent ici. Téléversez votre premier justificatif ci-dessus.",
+            "noMatchTitle": "Aucun résultat",
+            "noMatchText": "Modifiez votre recherche ou choisissez un autre filtre."
+        },
         "searchPlaceholder": "Rechercher (nom, expéditeur, montant) …",
         "searchClear": "Effacer la recherche",
         "noSearchResults": "Aucun reçu trouvé pour « {{search}} »",
@@ -1400,7 +1411,6 @@
         "importAction": "Importer des transactions",
         "import": "Importer",
         "assign": "Affecter",
-        "noTransactions": "Aucune transaction trouvée.",
         "unknownCounterparty": "Inconnue",
         "tabs": {
             "abgleich": "Rapprochement",
@@ -1413,7 +1423,6 @@
             "ignored": "Ignoré"
         },
         "filter": {
-            "all": "Tous",
             "open": "Ouverts",
             "matched": "Rapprochés",
             "ignored": "Ignorés",
@@ -1424,8 +1433,7 @@
             "dateTo": "Date de fin",
             "minAmount": "Montant min.",
             "maxAmount": "Montant max.",
-            "clearAll": "Réinitialiser les filtres",
-            "noResults": "Aucune transaction ne correspond à la recherche/au filtre actuel"
+            "clearAll": "Réinitialiser les filtres"
         },
         "abgleich": {
             "allClear": "Tout est rapproché",
@@ -1450,7 +1458,7 @@
         },
         "imports": {
             "title": "Historique des imports",
-            "subtitle": "Suivez quels relevés bancaires ont été importés et quand.",
+            "subtitle": "Voyez quels relevés bancaires ont été importés, quand et pour quel compte.",
             "account": "Compte",
             "file": "Fichier",
             "imported": "Importées",
@@ -1468,8 +1476,10 @@
             "deleteMatchedWarning_other": "Remarque : <strong>{{count}} de ces transactions</strong> sont liées à des écritures comptables — ces liens seront supprimés."
         },
         "empty": {
-            "title": "Aucun compte bancaire pour le moment",
-            "desc": "Ajoutez votre premier compte bancaire pour commencer à importer des relevés bancaires."
+            "noMatchTitle": "Aucun résultat",
+            "noMatchText": "Modifiez votre recherche ou choisissez un autre filtre.",
+            "noTransactionsTitle": "Aucune opération pour le moment",
+            "noTransactionsText": "Importez un relevé bancaire pour rapprocher les opérations de ce compte."
         },
         "form": {
             "subtitle": "Données de base du compte",
@@ -1517,6 +1527,11 @@
             "coversExactly": "Couvre exactement le reste",
             "shouldBeIncome": "Cette transaction bancaire est une recette. Veuillez choisir « Recette ».",
             "shouldBeExpense": "Cette transaction bancaire est une dépense. Veuillez choisir « Dépense »."
+        },
+        "firstAccount": {
+            "title": "Créez d'abord un compte bancaire",
+            "text": "Les relevés bancaires sont toujours rattachés à un compte. Dès qu’un compte existe, vous pouvez importer et rapprocher les opérations.",
+            "action": "Ajouter un compte bancaire"
         }
     },
     "bankMatch": {
