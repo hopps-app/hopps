@@ -445,6 +445,334 @@ export class Client {
     }
 
     /**
+     * List templates
+     * @param type (optional) Only templates of this type
+     * @return Templates
+     */
+    listAdminTemplates(type: TemplateType | undefined): Promise<TemplateSummaryResponse[]> {
+        let url_ = this.baseUrl + "/admin/templates?";
+        if (type === null)
+            throw new globalThis.Error("The parameter 'type' cannot be null.");
+        else if (type !== undefined)
+            url_ += "type=" + encodeURIComponent("" + type) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListAdminTemplates(_response);
+        });
+    }
+
+    protected processListAdminTemplates(response: Response): Promise<TemplateSummaryResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TemplateSummaryResponse.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TemplateSummaryResponse[]>(null as any);
+    }
+
+    /**
+     * Create a category group template
+     * @return Template created
+     */
+    createAdminCategoryGroupTemplate(body: CategoryGroupTemplateRequest): Promise<CategoryGroupTemplateResponse> {
+        let url_ = this.baseUrl + "/admin/templates/category-groups";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateAdminCategoryGroupTemplate(_response);
+        });
+    }
+
+    protected processCreateAdminCategoryGroupTemplate(response: Response): Promise<CategoryGroupTemplateResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = CategoryGroupTemplateResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupTemplateResponse>(null as any);
+    }
+
+    /**
+     * Update a category group template
+     * @param id The template id
+     * @return Template updated
+     */
+    updateAdminCategoryGroupTemplate(id: number, body: CategoryGroupTemplateRequest): Promise<CategoryGroupTemplateResponse> {
+        let url_ = this.baseUrl + "/admin/templates/category-groups/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateAdminCategoryGroupTemplate(_response);
+        });
+    }
+
+    protected processUpdateAdminCategoryGroupTemplate(response: Response): Promise<CategoryGroupTemplateResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupTemplateResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Template not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupTemplateResponse>(null as any);
+    }
+
+    /**
+     * Get a category group template
+     * @param id The template id
+     * @return Template
+     */
+    getAdminCategoryGroupTemplate(id: number): Promise<CategoryGroupTemplateResponse> {
+        let url_ = this.baseUrl + "/admin/templates/category-groups/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAdminCategoryGroupTemplate(_response);
+        });
+    }
+
+    protected processGetAdminCategoryGroupTemplate(response: Response): Promise<CategoryGroupTemplateResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupTemplateResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Template not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupTemplateResponse>(null as any);
+    }
+
+    /**
+     * Reorder templates
+     * @return Order saved
+     */
+    reorderAdminTemplates(body: TemplateOrderRequest): Promise<void> {
+        let url_ = this.baseUrl + "/admin/templates/order";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReorderAdminTemplates(_response);
+        });
+    }
+
+    protected processReorderAdminTemplates(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid input", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Delete a template
+     * @param id The template id
+     * @return Template deleted
+     */
+    deleteAdminTemplate(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/admin/templates/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteAdminTemplate(_response);
+        });
+    }
+
+    protected processDeleteAdminTemplate(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Template not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * List bank CSV schemas
      * @param includeArchived (optional) Include archived schemas
      * @return List of schemas
@@ -2910,6 +3238,121 @@ export class Client {
             });
         }
         return Promise.resolve<ReopenImpactResponse>(null as any);
+    }
+
+    /**
+     * List category group templates
+     * @return Templates
+     */
+    listCategoryGroupTemplates(): Promise<CategoryGroupTemplateOption[]> {
+        let url_ = this.baseUrl + "/category-groups/templates";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListCategoryGroupTemplates(_response);
+        });
+    }
+
+    protected processListCategoryGroupTemplates(response: Response): Promise<CategoryGroupTemplateOption[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CategoryGroupTemplateOption.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not part of an organization", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupTemplateOption[]>(null as any);
+    }
+
+    /**
+     * Get a category group template
+     * @param templateId The template id
+     * @return Template
+     */
+    getCategoryGroupTemplate(templateId: number): Promise<CategoryGroupTemplateDetail> {
+        let url_ = this.baseUrl + "/category-groups/templates/{templateId}";
+        if (templateId === undefined || templateId === null)
+            throw new globalThis.Error("The parameter 'templateId' must be defined.");
+        url_ = url_.replace("{templateId}", encodeURIComponent("" + templateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCategoryGroupTemplate(_response);
+        });
+    }
+
+    protected processGetCategoryGroupTemplate(response: Response): Promise<CategoryGroupTemplateDetail> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupTemplateDetail.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not part of an organization", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Template not found or not active", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupTemplateDetail>(null as any);
     }
 
     /**
@@ -7596,6 +8039,8 @@ export class CategoryGroupCreateRequest implements ICategoryGroupCreateRequest {
     values?: string[];
     /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
     reopenAffectedTransactions?: boolean;
+    /** The template the dialog was pre-filled from, if any. Only recorded as the group's origin. */
+    templateId?: number;
 
     [key: string]: any;
 
@@ -7627,6 +8072,7 @@ export class CategoryGroupCreateRequest implements ICategoryGroupCreateRequest {
                     this.values!.push(item);
             }
             this.reopenAffectedTransactions = _data["reopenAffectedTransactions"];
+            this.templateId = _data["templateId"];
         }
     }
 
@@ -7656,6 +8102,7 @@ export class CategoryGroupCreateRequest implements ICategoryGroupCreateRequest {
                 data["values"].push(item);
         }
         data["reopenAffectedTransactions"] = this.reopenAffectedTransactions;
+        data["templateId"] = this.templateId;
         return data;
     }
 
@@ -7679,6 +8126,8 @@ export interface ICategoryGroupCreateRequest {
     values?: string[];
     /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
     reopenAffectedTransactions?: boolean;
+    /** The template the dialog was pre-filled from, if any. Only recorded as the group's origin. */
+    templateId?: number;
 
     [key: string]: any;
 }
@@ -7848,6 +8297,8 @@ export class CategoryGroupResponse implements ICategoryGroupResponse {
     required?: boolean;
     bommelIds?: number[];
     valueCount?: number;
+    /** The template this group was copied from, or null for a group created by hand */
+    templateId?: number;
 
     [key: string]: any;
 
@@ -7875,6 +8326,7 @@ export class CategoryGroupResponse implements ICategoryGroupResponse {
                     this.bommelIds!.push(item);
             }
             this.valueCount = _data["valueCount"];
+            this.templateId = _data["templateId"];
         }
     }
 
@@ -7900,6 +8352,7 @@ export class CategoryGroupResponse implements ICategoryGroupResponse {
                 data["bommelIds"].push(item);
         }
         data["valueCount"] = this.valueCount;
+        data["templateId"] = this.templateId;
         return data;
     }
 
@@ -7918,6 +8371,376 @@ export interface ICategoryGroupResponse {
     required?: boolean;
     bommelIds?: number[];
     valueCount?: number;
+    /** The template this group was copied from, or null for a group created by hand */
+    templateId?: number;
+
+    [key: string]: any;
+}
+
+/** A category group template with all of its values, to pre-fill the create dialog */
+export class CategoryGroupTemplateDetail implements ICategoryGroupTemplateDetail {
+    id?: number;
+    name?: string;
+    description?: string;
+    required?: boolean;
+    values?: string[];
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupTemplateDetail) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupTemplateDetail {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupTemplateDetail();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["required"] = this.required;
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item);
+        }
+        return data;
+    }
+
+    clone(): CategoryGroupTemplateDetail {
+        const json = this.toJSON();
+        let result = new CategoryGroupTemplateDetail();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category group template with all of its values, to pre-fill the create dialog */
+export interface ICategoryGroupTemplateDetail {
+    id?: number;
+    name?: string;
+    description?: string;
+    required?: boolean;
+    values?: string[];
+
+    [key: string]: any;
+}
+
+/** A template the organization can add as a category group */
+export class CategoryGroupTemplateOption implements ICategoryGroupTemplateOption {
+    id?: number;
+    name?: string;
+    description?: string;
+    required?: boolean;
+    valueCount?: number;
+    /** The first few values, as a preview */
+    previewValues?: string[];
+    /** Id of a group the organization already created from this template, or null if it was never used */
+    addedGroupId?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupTemplateOption) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.required = _data["required"];
+            this.valueCount = _data["valueCount"];
+            if (Array.isArray(_data["previewValues"])) {
+                this.previewValues = [] as any;
+                for (let item of _data["previewValues"])
+                    this.previewValues!.push(item);
+            }
+            this.addedGroupId = _data["addedGroupId"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupTemplateOption {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupTemplateOption();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["required"] = this.required;
+        data["valueCount"] = this.valueCount;
+        if (Array.isArray(this.previewValues)) {
+            data["previewValues"] = [];
+            for (let item of this.previewValues)
+                data["previewValues"].push(item);
+        }
+        data["addedGroupId"] = this.addedGroupId;
+        return data;
+    }
+
+    clone(): CategoryGroupTemplateOption {
+        const json = this.toJSON();
+        let result = new CategoryGroupTemplateOption();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A template the organization can add as a category group */
+export interface ICategoryGroupTemplateOption {
+    id?: number;
+    name?: string;
+    description?: string;
+    required?: boolean;
+    valueCount?: number;
+    /** The first few values, as a preview */
+    previewValues?: string[];
+    /** Id of a group the organization already created from this template, or null if it was never used */
+    addedGroupId?: number;
+
+    [key: string]: any;
+}
+
+/** Input for creating or updating a category group template */
+export class CategoryGroupTemplateRequest implements ICategoryGroupTemplateRequest {
+    /** Name the group gets when an organization adds it */
+    name!: string;
+    /** Short explanation shown to organizations when they pick a template */
+    description?: string;
+    /** Whether organizations can pick this template */
+    active?: boolean;
+    /** Whether the created group is mandatory before a transaction can be confirmed */
+    required?: boolean;
+    /** The values, in order. Blanks are skipped, duplicates are removed. */
+    values?: string[];
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupTemplateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.active = _data["active"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupTemplateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupTemplateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["active"] = this.active;
+        data["required"] = this.required;
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item);
+        }
+        return data;
+    }
+
+    clone(): CategoryGroupTemplateRequest {
+        const json = this.toJSON();
+        let result = new CategoryGroupTemplateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Input for creating or updating a category group template */
+export interface ICategoryGroupTemplateRequest {
+    /** Name the group gets when an organization adds it */
+    name: string;
+    /** Short explanation shown to organizations when they pick a template */
+    description?: string;
+    /** Whether organizations can pick this template */
+    active?: boolean;
+    /** Whether the created group is mandatory before a transaction can be confirmed */
+    required?: boolean;
+    /** The values, in order. Blanks are skipped, duplicates are removed. */
+    values?: string[];
+
+    [key: string]: any;
+}
+
+/** A category group template with all of its values, for editing in the admin app */
+export class CategoryGroupTemplateResponse implements ICategoryGroupTemplateResponse {
+    id?: number;
+    name?: string;
+    description?: string;
+    active?: boolean;
+    sortIndex?: number;
+    required?: boolean;
+    values?: string[];
+    /** Number of organizations that currently hold a copy of this template */
+    usageCount?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupTemplateResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.active = _data["active"];
+            this.sortIndex = _data["sortIndex"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(item);
+            }
+            this.usageCount = _data["usageCount"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupTemplateResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupTemplateResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["active"] = this.active;
+        data["sortIndex"] = this.sortIndex;
+        data["required"] = this.required;
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item);
+        }
+        data["usageCount"] = this.usageCount;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : undefined as any;
+        return data;
+    }
+
+    clone(): CategoryGroupTemplateResponse {
+        const json = this.toJSON();
+        let result = new CategoryGroupTemplateResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category group template with all of its values, for editing in the admin app */
+export interface ICategoryGroupTemplateResponse {
+    id?: number;
+    name?: string;
+    description?: string;
+    active?: boolean;
+    sortIndex?: number;
+    required?: boolean;
+    values?: string[];
+    /** Number of organizations that currently hold a copy of this template */
+    usageCount?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
 
     [key: string]: any;
 }
@@ -10577,6 +11400,175 @@ export interface ISchemaDetectionResult {
 
     [key: string]: any;
 }
+
+/** Template ids in their new order, first to last */
+export class TemplateOrderRequest implements ITemplateOrderRequest {
+    /** Template ids in their new order. Templates not listed keep their position after the listed ones. */
+    ids!: number[];
+
+    [key: string]: any;
+
+    constructor(data?: ITemplateOrderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.ids = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["ids"])) {
+                this.ids = [] as any;
+                for (let item of _data["ids"])
+                    this.ids!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): TemplateOrderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemplateOrderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.ids)) {
+            data["ids"] = [];
+            for (let item of this.ids)
+                data["ids"].push(item);
+        }
+        return data;
+    }
+
+    clone(): TemplateOrderRequest {
+        const json = this.toJSON();
+        let result = new TemplateOrderRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Template ids in their new order, first to last */
+export interface ITemplateOrderRequest {
+    /** Template ids in their new order. Templates not listed keep their position after the listed ones. */
+    ids: number[];
+
+    [key: string]: any;
+}
+
+/** A template as shown in the admin list */
+export class TemplateSummaryResponse implements ITemplateSummaryResponse {
+    id?: number;
+    type!: TemplateType;
+    name?: string;
+    description?: string;
+    active?: boolean;
+    sortIndex?: number;
+    /** Number of items in the template (values for a category group template) */
+    itemCount?: number;
+    /** Number of organizations that currently hold a copy of this template */
+    usageCount?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: ITemplateSummaryResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.type = _data["type"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.active = _data["active"];
+            this.sortIndex = _data["sortIndex"];
+            this.itemCount = _data["itemCount"];
+            this.usageCount = _data["usageCount"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): TemplateSummaryResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemplateSummaryResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["type"] = this.type;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["active"] = this.active;
+        data["sortIndex"] = this.sortIndex;
+        data["itemCount"] = this.itemCount;
+        data["usageCount"] = this.usageCount;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : undefined as any;
+        return data;
+    }
+
+    clone(): TemplateSummaryResponse {
+        const json = this.toJSON();
+        let result = new TemplateSummaryResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A template as shown in the admin list */
+export interface ITemplateSummaryResponse {
+    id?: number;
+    type: TemplateType;
+    name?: string;
+    description?: string;
+    active?: boolean;
+    sortIndex?: number;
+    /** Number of items in the template (values for a category group template) */
+    itemCount?: number;
+    /** Number of organizations that currently hold a copy of this template */
+    usageCount?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    [key: string]: any;
+}
+
+export type TemplateType = "CATEGORY_GROUP";
 
 export class TransactionAggregateResponse implements ITransactionAggregateResponse {
     sumIncome?: number;
