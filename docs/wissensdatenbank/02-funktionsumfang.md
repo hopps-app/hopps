@@ -57,6 +57,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Sphären (ideeller Bereich, Zweckbetrieb …) | ✅ | Deutsches Gemeinnützigkeitsrecht | BE `TransactionArea` |
 | Bank-Import CSV mit Schema-Editor | ✅ | Delimiter, Encoding, Formate konfigurierbar | BE `bankimport/`, SPA `/bank-accounts`, `/bank-schemas` |
 | Bank-Import MT940 | ✅ | – | BE `bankimport/` |
+| Währungsprüfung beim Import | ✅ | Vor dem Import (Stand 2026-10-04): Beträge in anderer Währung als das Konto (oder gemischte Währungen) werden abgelehnt. Keine Prüfung, ob die Datei zum Konto (IBAN) passt | BE `bankimport/service/ImportFileCheckService.java`, SPA `BankAccounts/ImportWizard.tsx` |
 | Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst | BE `BankTransactionMatch` |
 | Automatischer Kontoabruf (FinTS/EBICS) | ❌ | – | – |
 | Doppelte Buchführung / EÜR / Jahresabschluss | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
@@ -111,7 +112,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Ukrainisch | 🟡 | ca. ⅓ übersetzt | SPA `locales/uk.json` |
 | Französisch, Italienisch | ❌ / 💡 | Reine Übersetzungsarbeit (~1.260 Keys) + Realm-Locales; Keycloak bringt fr/it-Standardtexte mit | – |
 | Währungsfeld an Beleg/Transaktion | 🟡 | `currencyCode` wird gespeichert (KI-Extraktion) | BE `Document`, `Transaction` |
-| Andere Währung als EUR (z. B. CHF) in der Oberfläche | ❌ / 💡 | UI formatiert fest mit `EUR`/`de-DE`; Bankkonto-Default EUR; keine Umrechnung, Summen ignorieren Währung | SPA `BelegeView.tsx`, `TransactionenView.tsx`, `ReportsView.tsx` … |
+| Andere Währung als EUR (z. B. CHF) in der Oberfläche | 🟡 | Stand 2026-10-04: Buchhaltungswährung pro Organisation wählbar (EUR oder CHF), gesperrt sobald Transaktionen oder Bankkonten existieren; alle Beträge werden in dieser Währung angezeigt. Bankkonten werden immer in der Währung der Organisation geführt: CH/LI-IBANs nur in CHF-Organisationen, alle anderen nur in EUR-Organisationen. Konten in Fremdwährung (z. B. Euro-Konto bei einer Schweizer Bank) werden noch nicht unterstützt, es gibt keine Umrechnung | BE `organization/domain/Currency.java`, `bankimport/service/IbanCurrencies.java`, SPA `hooks/use-currency.ts` |
 | Länderspezifika ausserhalb DE (Rechtsformen, Steuer, Kontenplan) | ❌ | Fachlich auf Deutschland ausgerichtet | – |
 
 ## 10. Mobile
