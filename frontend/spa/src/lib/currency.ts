@@ -70,3 +70,13 @@ export function formatCompactCurrency(value: number, currency: string, locale: s
     }
     return `${value.toLocaleString(locale, { maximumFractionDigits: 0 })}${suffix}`;
 }
+
+/**
+ * The currency an account with this IBAN is kept in: CHF for Swiss and Liechtenstein IBANs, EUR for every other.
+ * Accounts are kept in the organization's currency, so an IBAN whose currency differs cannot be added yet (no
+ * conversion). Mirrors app.hopps.bankimport.service.IbanCurrencies in the backend.
+ */
+export function currencyForIban(iban: string | null | undefined): CurrencyCode {
+    const country = iban?.replace(/\s+/g, '').slice(0, 2).toUpperCase() ?? '';
+    return country === 'CH' || country === 'LI' ? 'CHF' : 'EUR';
+}

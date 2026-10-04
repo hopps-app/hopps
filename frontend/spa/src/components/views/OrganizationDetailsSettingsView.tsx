@@ -22,6 +22,7 @@ import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import { SUPPORTED_CURRENCIES, organizationCurrency } from '@/lib/currency';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
+import { getErrorBody } from '@/utils/errorUtils';
 
 /** Design system: "Klar" — see the hopps design system tokens (colors.css / typography.css). */
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
@@ -553,7 +554,7 @@ function OrganizationDetailsSettingsView() {
                 console.error('Failed to save organization details:', error);
                 // A transaction was created (by someone else) since this page loaded: explain, and reload the
                 // organization so the select shows up as locked.
-                const currencyLockedByNow = ApiException.isApiException(error) && error.status === 409 && error.result?.code === 'CURRENCY_LOCKED';
+                const currencyLockedByNow = ApiException.isApiException(error) && error.status === 409 && getErrorBody(error)?.code === 'CURRENCY_LOCKED';
                 toast({
                     title: t(currencyLockedByNow ? 'organization.details.currencyLockedError' : 'organization.details.saveError'),
                     variant: 'error',
