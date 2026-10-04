@@ -70,3 +70,29 @@ export function formatCompactCurrency(value: number, currency: string, locale: s
     }
     return `${value.toLocaleString(locale, { maximumFractionDigits: 0 })}${suffix}`;
 }
+
+/** Countries paying in Swiss francs; organizations there keep their books in CHF. */
+const FRANC_COUNTRIES = ['CH', 'LI'];
+
+/** The euro area; organizations there keep their books in EUR. */
+const EURO_COUNTRIES = ['AT', 'BE', 'BG', 'CY', 'DE', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PT', 'SI', 'SK'];
+
+/**
+ * Countries an organization can be registered in: the euro area plus Switzerland and Liechtenstein. Mirrors
+ * app.hopps.organization.domain.Currency in the backend.
+ */
+export const SUPPORTED_COUNTRIES: readonly string[] = [...EURO_COUNTRIES, ...FRANC_COUNTRIES];
+
+/** CHF for Switzerland and Liechtenstein, EUR for every other country. */
+export function currencyForCountry(country: string | null | undefined): CurrencyCode {
+    return FRANC_COUNTRIES.includes(country?.trim().toUpperCase() ?? '') ? 'CHF' : 'EUR';
+}
+
+/**
+ * The currency an account with this IBAN is kept in: CHF for Swiss and Liechtenstein IBANs, EUR for every other (the
+ * first two letters are the country). Accounts are kept in the organization's currency, so an IBAN whose currency
+ * differs cannot be added yet (no conversion). Mirrors app.hopps.bankimport.service.IbanCurrencies in the backend.
+ */
+export function currencyForIban(iban: string | null | undefined): CurrencyCode {
+    return currencyForCountry(iban?.replace(/\s+/g, '').slice(0, 2));
+}

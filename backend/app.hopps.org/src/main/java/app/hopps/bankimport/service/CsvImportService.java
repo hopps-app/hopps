@@ -213,7 +213,7 @@ public class CsvImportService {
         return set;
     }
 
-    private static String decode(byte[] bytes, String encoding) {
+    static String decode(byte[] bytes, String encoding) {
         Charset charset = Charset.forName(encoding);
         return EncodingDetector.decodeStrict(bytes, charset);
     }

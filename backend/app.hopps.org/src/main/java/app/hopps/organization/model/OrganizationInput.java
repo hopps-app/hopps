@@ -47,6 +47,9 @@ public record OrganizationInput(String name,
         }
         if (currency != null) {
             org.setCurrency(currency);
+        } else if (country != null) {
+            // Registration only asks for the country; the currency follows from it.
+            org.setCurrency(Currency.forCountry(country));
         }
         return org;
     }

@@ -40,7 +40,7 @@ describe('OrganizationDetailsSettingsView – currency', () => {
         await waitFor(() => expect(currencySelect()).toHaveTextContent('Swiss franc (CHF)'));
         expect(currencySelect()).toBeEnabled();
         expect(screen.queryByTestId('currency-locked-note')).not.toBeInTheDocument();
-        expect(screen.getByText(/can only be changed while no transaction has been created yet/i)).toBeInTheDocument();
+        expect(screen.getByText(/can only be changed while no transaction and no bank account exist yet/i)).toBeInTheDocument();
     });
 
     it('locks the currency and explains why once transactions exist', async () => {
@@ -51,7 +51,7 @@ describe('OrganizationDetailsSettingsView – currency', () => {
         expect(currencySelect()).toHaveTextContent('Euro (€)');
         const note = screen.getByTestId('currency-locked-note');
         expect(note).toHaveTextContent(/can no longer be changed/i);
-        expect(note).toHaveTextContent(/delete all transactions first or contact support/i);
+        expect(note).toHaveTextContent(/please contact support/i);
     });
 
     it('falls back to euro when the organization carries no currency yet', async () => {

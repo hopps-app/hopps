@@ -58,9 +58,9 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
     const { data: categoryGroups = [] } = useCategoryGroups();
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
-    const rootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
-    const bommelItems = useMemo(() => flattenBommelTree(allBommels, rootBommel?.id), [allBommels, rootBommel?.id]);
+    // Without a root id the tree keeps the root bommel itself, so a transaction can be booked on the whole organization.
+    const bommelItems = useMemo(() => flattenBommelTree(allBommels), [allBommels]);
     const bankMode = !!bankTx;
 
     // The bommel store is populated on-demand per view; the Konten view doesn't load it, so ensure it's fetched when

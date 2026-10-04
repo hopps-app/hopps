@@ -1,5 +1,6 @@
 package app.hopps.organization.service;
 
+import app.hopps.bankimport.repository.BankAccountRepository;
 import app.hopps.organization.domain.Currency;
 import app.hopps.organization.domain.Organization;
 import app.hopps.transaction.repository.TransactionRepository;
@@ -7,8 +8,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 /**
- * Guards the organization's currency: it is free to change until the first transaction exists, because every stored
- * amount is interpreted in that currency and re-labelling existing bookings would falsify them.
+ * Guards the organization's currency: it is free to change until the first transaction or bank account exists, because
+ * every stored amount is interpreted in that currency and re-labelling existing bookings would falsify them. Bank
+ * accounts are kept in the organization's currency, so they freeze it too.
  */
 @ApplicationScoped
 public class OrganizationCurrencyService {
@@ -16,16 +18,20 @@ public class OrganizationCurrencyService {
     @Inject
     TransactionRepository transactionRepository;
 
+    @Inject
+    BankAccountRepository bankAccountRepository;
+
     /**
-     * True once the organization has at least one transaction, i.e. the currency may no longer be changed.
+     * True once the organization has a transaction or a bank account, i.e. the currency may no longer be changed.
      */
     public boolean isCurrencyLocked(Organization organization) {
-        return transactionRepository.existsForOrganization(organization.getId());
+        return transactionRepository.existsForOrganization(organization.getId())
+                || bankAccountRepository.existsForOrganization(organization.getId());
     }
 
     /**
-     * Applies a new currency, or throws {@link CurrencyLockedException} if transactions already exist. Re-submitting
-     * the current currency is always allowed, so a full-form save never fails on an unchanged value.
+     * Applies a new currency, or throws {@link CurrencyLockedException} if transactions or bank accounts already exist.
+     * Re-submitting the current currency is always allowed, so a full-form save never fails on an unchanged value.
      */
     public void changeCurrency(Organization organization, Currency currency) {
         if (currency == null || currency == organization.getCurrency()) {

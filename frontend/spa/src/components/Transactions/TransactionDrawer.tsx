@@ -80,9 +80,9 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
-    const drawerRootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
-    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels, drawerRootBommel?.id), [allBommels, drawerRootBommel?.id]);
+    // Without a root id the tree keeps the root bommel itself, so a transaction can be booked on the whole organization.
+    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels), [allBommels]);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
 
@@ -468,7 +468,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                             className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
                                             style={{ color: amountColor }}
                                         />
-                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">€</span>
+                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">{symbol}</span>
                                     </div>
                                 </Field>
                                 <Field label={t('transactions.detail.date')}>

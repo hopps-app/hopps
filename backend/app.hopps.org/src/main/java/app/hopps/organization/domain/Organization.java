@@ -103,12 +103,12 @@ public class Organization extends PanacheEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 3)
-    @Schema(description = "Currency the organization keeps its books in; every amount is shown in it. Can only be changed while the organization has no transactions.", examples = "EUR")
+    @Schema(description = "Currency the organization keeps its books in; every amount is shown in it. Can only be changed while the organization has no transactions and no bank accounts; bank accounts are kept in it.", examples = "EUR")
     private Currency currency = Currency.EUR;
 
     @Transient
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Schema(description = "Whether the currency is fixed because transactions exist. Only filled for the caller's own organization (GET/PUT /organization/my).", examples = "false", nullable = true)
+    @Schema(description = "Whether the currency is fixed because transactions or bank accounts exist. Only filled for the caller's own organization (GET/PUT /organization/my).", examples = "false", nullable = true)
     private Boolean currencyLocked;
 
     @CreationTimestamp
