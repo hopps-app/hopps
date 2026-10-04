@@ -468,7 +468,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                             className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
                                             style={{ color: amountColor }}
                                         />
-                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">€</span>
+                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">{symbol}</span>
                                     </div>
                                 </Field>
                                 <Field label={t('transactions.detail.date')}>
