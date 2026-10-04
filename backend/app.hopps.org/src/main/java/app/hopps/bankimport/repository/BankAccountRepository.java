@@ -35,6 +35,14 @@ public class BankAccountRepository implements PanacheRepository<BankAccount> {
     }
 
     /**
+     * Whether the organization has any bank account, archived ones included. Freezes the organization's currency, which
+     * every account is kept in.
+     */
+    public boolean existsForOrganization(Long organizationId) {
+        return count("organization.id = ?1", organizationId) > 0;
+    }
+
+    /**
      * Returns true if the current org has a bank account with the given IBAN (excluding archived). Used to prevent
      * duplicate IBAN entries within the same organization.
      */

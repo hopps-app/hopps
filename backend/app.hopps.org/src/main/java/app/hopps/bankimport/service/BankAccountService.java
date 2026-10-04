@@ -86,7 +86,13 @@ public class BankAccountService {
         account.setBic(request.bic());
         account.setBankName(request.bankName());
         account.setAccountHolder(request.accountHolder());
-        account.setCurrency(request.currency() != null ? request.currency() : organization.getCurrency().name());
+        // Accounts are kept in the organization's currency (no conversion yet), and the IBAN has to fit it.
+        String currency = organization.getCurrency().name();
+        if (request.currency() != null && !request.currency().equals(currency)) {
+            throw new BadRequestException("Bank accounts are kept in the organization's currency " + currency);
+        }
+        validateIbanFitsCurrency(normalizedIban, currency);
+        account.setCurrency(currency);
         account.setOpeningBalance(request.openingBalance());
         account.setOpeningBalanceDate(request.openingBalanceDate());
         validateOpeningBalancePair(account.getOpeningBalance(), account.getOpeningBalanceDate());
@@ -110,6 +116,9 @@ public class BankAccountService {
                     && bankAccountRepository.existsByIban(normalizedIban, id)) {
                 throw new BadRequestException("A bank account with this IBAN already exists in this organization");
             }
+            if (!normalizedIban.equals(account.getIban())) {
+                validateIbanFitsCurrency(normalizedIban, account.getCurrency());
+            }
             account.setIban(normalizedIban);
         }
         if (request.name() != null) {
@@ -124,8 +133,9 @@ public class BankAccountService {
         if (request.accountHolder() != null) {
             account.setAccountHolder(request.accountHolder());
         }
-        if (request.currency() != null) {
-            account.setCurrency(request.currency());
+        // The currency follows the organization; re-sending the current one (a full-form save) is fine.
+        if (request.currency() != null && !request.currency().equals(account.getCurrency())) {
+            throw new BadRequestException("The currency of a bank account cannot be changed");
         }
         if (request.openingBalance() != null) {
             account.setOpeningBalance(request.openingBalance());
@@ -202,6 +212,15 @@ public class BankAccountService {
             throw new BadRequestException("CSV schema does not belong to current organization");
         }
         return schema;
+    }
+
+    private static void validateIbanFitsCurrency(String iban, String currency) {
+        String ibanCurrency = IbanCurrencies.currencyOf(iban);
+        if (!ibanCurrency.equals(currency)) {
+            throw new BadRequestException("An account with a " + iban.substring(0, 2) + " IBAN is kept in "
+                    + ibanCurrency + ", but the organization uses " + currency
+                    + "; accounts in another currency are not supported yet");
+        }
     }
 
     private void validateIban(String iban) {

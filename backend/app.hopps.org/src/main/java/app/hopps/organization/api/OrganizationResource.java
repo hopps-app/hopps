@@ -126,12 +126,12 @@ public class OrganizationResource {
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update my organization", description = "Updates the details of the current user's organization. Fields like name, address, website, and type can be changed. The currency can only be changed while the organization has no transactions; afterwards a different currency is rejected with 409 and code CURRENCY_LOCKED.")
+    @Operation(summary = "Update my organization", description = "Updates the details of the current user's organization. Fields like name, address, website, and type can be changed. The currency can only be changed while the organization has no transactions and no bank accounts; afterwards a different currency is rejected with 409 and code CURRENCY_LOCKED.")
     @APIResponse(responseCode = "200", description = "Organization updated successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Organization not found for user")
-    @APIResponse(responseCode = "409", description = "Currency change rejected because transactions exist (code "
+    @APIResponse(responseCode = "409", description = "Currency change rejected because transactions or bank accounts exist (code "
             + CurrencyLockedException.CODE + ")")
     public Response updateMyOrganization(@Context SecurityContext securityContext, OrganizationInput input) {
         Organization organization = securityUtils.getUserOrganization(securityContext);

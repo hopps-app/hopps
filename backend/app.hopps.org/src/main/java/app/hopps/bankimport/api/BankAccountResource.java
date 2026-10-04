@@ -7,6 +7,7 @@ import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.service.BankAccountService;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -68,6 +69,7 @@ public class BankAccountResource {
         return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
     }
 
+    @Transactional
     @POST
     @Operation(summary = "Create a bank account", description = "Creates a new bank account. If bommelId is omitted, the account is attached to the organization's root bommel.")
     @APIResponse(responseCode = "201", description = "Bank account created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
@@ -81,6 +83,8 @@ public class BankAccountResource {
                 .build();
     }
 
+    // One transaction for the change and the response, which reads lazy associations (bommel name).
+    @Transactional
     @PATCH
     @Path("/{id}")
     @Operation(summary = "Update a bank account", description = "Partial update — only non-null fields are applied (PATCH semantics).")
@@ -108,6 +112,7 @@ public class BankAccountResource {
         LOG.info("Bank account archived: id={}", id);
     }
 
+    @Transactional
     @POST
     @Path("/{id}/restore")
     @Operation(summary = "Restore an archived bank account", description = "Sets archived=false on a previously archived account.")
