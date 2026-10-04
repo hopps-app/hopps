@@ -10164,7 +10164,7 @@ export interface IOrganizationStatistics {
 }
 
 /** Legal form of an organization */
-export type OrganizationType = "EINGETRAGENER_VEREIN" | "GEMEINNUETZIGE_GMBH" | "STIFTUNG" | "GEMEINNUETZIGE_GENOSSENSCHAFT" | "GEMEINNUETZIGE_UG" | "ANDERE";
+export type OrganizationType = "EINGETRAGENER_VEREIN" | "GEMEINNUETZIGE_GMBH" | "STIFTUNG" | "GEMEINNUETZIGE_GENOSSENSCHAFT" | "GEMEINNUETZIGE_UG" | "VEREIN" | "ANDERE";
 
 export class OwnerInput implements IOwnerInput {
     email?: string;
