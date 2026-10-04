@@ -55,9 +55,15 @@ public class BankImportService {
     @Inject
     SecurityIdentity securityIdentity;
 
+    @Inject
+    ImportFileCheckService importFileCheckService;
+
     /**
      * Reads the uploaded file, validates the request, archives the original to S3 and enqueues a {@link BankImport}
      * record in {@code QUEUED} state. The worker will pick it up within a few seconds.
+     *
+     * @throws BankImportRejectedException
+     *             if the file's amounts are not in the account's currency
      */
     @Transactional
     public BankImport enqueueImport(Long bankAccountId, Long schemaId, String fileName, long fileSize,
@@ -90,6 +96,9 @@ public class BankImportService {
         if (importRepository.existsActiveBySha(bankAccountId, sha256)) {
             throw new BadRequestException("An identical file is already queued or processing for this account");
         }
+
+        // Last chance to stop a file in the wrong currency: once queued, the worker imports it unattended.
+        importFileCheckService.verify(account, content, fileType, schema);
 
         // Bound the display name before the file goes to storage, so a name that does not fit the column cannot fail
         // the insert afterwards and leave the stored file orphaned.

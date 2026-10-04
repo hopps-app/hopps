@@ -171,7 +171,7 @@ public class Mt940ImportService {
         job.setFinishedAt(Instant.now());
     }
 
-    private static String decodeWithFallback(byte[] bytes) {
+    static String decodeWithFallback(byte[] bytes) {
         try {
             Charset charset = EncodingDetector.detect(bytes);
             return EncodingDetector.decodeStrict(bytes, charset);
