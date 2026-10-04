@@ -20,6 +20,7 @@ import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import { SUPPORTED_CURRENCIES, organizationCurrency } from '@/lib/currency';
+import { organizationTypeLabelKey, organizationTypesForCountry } from '@/lib/organizationTypes';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
 import { getErrorBody } from '@/utils/errorUtils';
@@ -274,19 +275,6 @@ function OrganizationDetailsSettingsView() {
     const setOrganization = useStore((state) => state.setOrganization);
     const queryClient = useQueryClient();
 
-    // Order mirrors app.hopps.organization.domain.OrganizationType — most common legal form first, fallback last.
-    const typeOptions = useMemo(
-        () => [
-            { label: t('organization.details.typeEV'), value: 'EINGETRAGENER_VEREIN' },
-            { label: t('organization.details.typeGGmbH'), value: 'GEMEINNUETZIGE_GMBH' },
-            { label: t('organization.details.typeStiftung'), value: 'STIFTUNG' },
-            { label: t('organization.details.typeEG'), value: 'GEMEINNUETZIGE_GENOSSENSCHAFT' },
-            { label: t('organization.details.typeGUG'), value: 'GEMEINNUETZIGE_UG' },
-            { label: t('organization.details.typeAndere'), value: 'ANDERE' },
-        ],
-        [t]
-    );
-
     // Same order as app.hopps.organization.domain.Currency; euro first because it is the default.
     const currencyOptions = useMemo(() => SUPPORTED_CURRENCIES.map((code) => ({ label: t(`organization.details.currency${code}`), value: code })), [t]);
     // The backend reports whether transactions exist; once they do, the currency select is read-only.
@@ -327,6 +315,8 @@ function OrganizationDetailsSettingsView() {
         handleSubmit,
         reset,
         control,
+        watch,
+        setValue,
         formState: { errors, isSubmitting, isDirty, dirtyFields },
     } = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -349,6 +339,13 @@ function OrganizationDetailsSettingsView() {
             phoneNumber: '',
         },
     });
+
+    // The legal forms depend on the country (an e.V. only exists in Germany), most common one first.
+    const watchedCountry = watch('country');
+    const typeOptions = useMemo(
+        () => organizationTypesForCountry(watchedCountry).map((type) => ({ label: t(organizationTypeLabelKey(type)), value: type })),
+        [watchedCountry, t]
+    );
 
     // A logo picked but not yet uploaded. It counts towards the unsaved changes and goes up on submit.
     const [pendingLogo, setPendingLogo] = useState<File | null>(null);
@@ -689,7 +686,14 @@ function OrganizationDetailsSettingsView() {
                                                 label={t('organization.details.country')}
                                                 items={countryOptions}
                                                 value={field.value}
-                                                onValueChanged={field.onChange}
+                                                onValueChanged={(country) => {
+                                                    field.onChange(country);
+                                                    // Keep the legal form valid for the new country.
+                                                    const allowed = organizationTypesForCountry(country);
+                                                    if (!allowed.includes(watch('type') as OrganizationType)) {
+                                                        setValue('type', allowed[0], { shouldDirty: true });
+                                                    }
+                                                }}
                                             />
                                         )}
                                     />

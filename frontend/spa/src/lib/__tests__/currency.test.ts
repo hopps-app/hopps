@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { currencySymbol, formatCompactCurrency, formatCurrency, isSupportedCurrency, organizationCurrency, currencyForIban } from '../currency';
+import {
+    currencySymbol,
+    formatCompactCurrency,
+    formatCurrency,
+    isSupportedCurrency,
+    organizationCurrency,
+    currencyForCountry,
+    currencyForIban,
+    SUPPORTED_COUNTRIES,
+} from '../currency';
 
 // Intl separates amount and currency symbol with a no-break space; normalise it for the assertions.
 const normalise = (value: string) => value.replace(/\s/g, ' ');
@@ -93,5 +102,22 @@ describe('currencyForIban', () => {
         expect(currencyForIban('DE89370400440532013000')).toBe('EUR');
         expect(currencyForIban('GB29NWBK60161331926819')).toBe('EUR');
         expect(currencyForIban('')).toBe('EUR');
+    });
+});
+
+describe('currencyForCountry', () => {
+    it('keeps Swiss and Liechtenstein organizations in francs, all others in euros', () => {
+        expect(currencyForCountry('CH')).toBe('CHF');
+        expect(currencyForCountry('li')).toBe('CHF');
+        expect(currencyForCountry('DE')).toBe('EUR');
+        expect(currencyForCountry('AT')).toBe('EUR');
+        expect(currencyForCountry(undefined)).toBe('EUR');
+    });
+
+    it('offers the euro area plus Switzerland and Liechtenstein', () => {
+        expect(SUPPORTED_COUNTRIES).toContain('DE');
+        expect(SUPPORTED_COUNTRIES).toContain('CH');
+        expect(SUPPORTED_COUNTRIES).not.toContain('US');
+        expect(SUPPORTED_COUNTRIES).toHaveLength(23);
     });
 });

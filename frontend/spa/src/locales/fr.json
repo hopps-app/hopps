@@ -202,6 +202,13 @@
     },
     "organization": {
         "registration": {
+            "organizationEmail": "E-mail de l'organisation (facultatif)",
+            "step": "Étape {{current}} sur {{total}}",
+            "stepOrganization": "Organisation",
+            "stepAdmin": "Administrateur",
+            "country": "Pays",
+            "legalForm": "Forme juridique",
+            "currencyInfo": "Devise comptable : {{currency}}. Elle découle du pays et peut être modifiée plus tard dans les paramètres tant qu'aucun compte bancaire ni aucune transaction n'existe.",
             "failed": "Échec de l'enregistrement de l'organisation",
             "emailAlreadyRegistered": "Cette adresse e-mail est déjà enregistrée",
             "organizationAlreadyExists": "Une organisation portant ce nom existe déjà",
@@ -306,6 +313,7 @@
             "demoBanner": "Vous consultez des données d'exemple à titre d'orientation. Ces données sont en lecture seule."
         },
         "details": {
+            "typeVerein": "Association",
             "title": "Détails de l'organisation",
             "description": "Gérez les informations de base de votre organisation",
             "name": "Nom de l'organisation",
