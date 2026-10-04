@@ -49,7 +49,12 @@ public class SchemaDetectionService {
             "sparkasse-camt-v8", Set.of(
                     "auftragskonto", "buchungstag", "valutadatum", "buchungstext",
                     "verwendungszweck", "glaeubiger id", "mandatsreferenz",
-                    "betrag", "waehrung"));
+                    "betrag", "waehrung"),
+            // Umsatz-CSV (18 columns)
+            "umsatz-csv-18", Set.of(
+                    "iban auftragskonto", "bankname auftragskonto", "name zahlungsbeteiligter",
+                    "iban zahlungsbeteiligter", "saldo nach buchung", "buchungstag", "valutadatum",
+                    "buchungstext", "verwendungszweck", "betrag", "waehrung"));
 
     /**
      * Sparkasse CAMT v2 and v8 have identical headers. We prefer v8 (recommended) when both score equally. The

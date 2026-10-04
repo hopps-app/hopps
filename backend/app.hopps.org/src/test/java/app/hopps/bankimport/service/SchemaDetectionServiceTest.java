@@ -59,6 +59,60 @@ class SchemaDetectionServiceTest {
         assertEquals("sparkasse-mt940", result.templateId());
     }
 
+    /** Header of the Umsatz-CSV (18 columns). */
+    private static final List<String> CSV18_HEADERS = List.of(
+            "Bezeichnung Auftragskonto", "IBAN Auftragskonto", "BIC Auftragskonto", "Bankname Auftragskonto",
+            "Buchungstag", "Valutadatum", "Name Zahlungsbeteiligter", "IBAN Zahlungsbeteiligter",
+            "BIC (SWIFT-Code) Zahlungsbeteiligter", "Buchungstext", "Verwendungszweck", "Betrag", "Waehrung",
+            "Saldo nach Buchung", "Bemerkung", "Gekennzeichneter Umsatz", "Glaeubiger ID", "Mandatsreferenz");
+
+    @Test
+    void detectsCsv18ForOnlineBankingHeaders() {
+        SchemaDetectionResult result = service.detect(CSV18_HEADERS);
+
+        assertEquals(SchemaDetectionResult.DetectionType.TEMPLATE, result.type());
+        assertEquals("umsatz-csv-18", result.templateId());
+    }
+
+    @Test
+    void csv18TemplateMapsColumnsToTheRightHeaders() {
+        var template = new SystemTemplateService().requireById("umsatz-csv-18");
+
+        assertEquals("UTF-8", template.encoding());
+        assertEquals("dd.MM.yyyy", template.dateFormat());
+        assertEquals(CSV18_HEADERS.size(), 18);
+
+        var expected = java.util.Map.of(
+                app.hopps.bankimport.domain.BankFieldType.BOOKING_DATE, "Buchungstag",
+                app.hopps.bankimport.domain.BankFieldType.VALUE_DATE, "Valutadatum",
+                app.hopps.bankimport.domain.BankFieldType.COUNTERPARTY_NAME, "Name Zahlungsbeteiligter",
+                app.hopps.bankimport.domain.BankFieldType.COUNTERPARTY_IBAN, "IBAN Zahlungsbeteiligter",
+                app.hopps.bankimport.domain.BankFieldType.TRANSACTION_TYPE, "Buchungstext",
+                app.hopps.bankimport.domain.BankFieldType.PURPOSE, "Verwendungszweck",
+                app.hopps.bankimport.domain.BankFieldType.AMOUNT, "Betrag",
+                app.hopps.bankimport.domain.BankFieldType.CURRENCY, "Waehrung",
+                app.hopps.bankimport.domain.BankFieldType.CREDITOR_ID, "Glaeubiger ID",
+                app.hopps.bankimport.domain.BankFieldType.MANDATE_REFERENCE, "Mandatsreferenz");
+
+        for (var mapping : template.columnMappings()) {
+            String header = expected.get(mapping.targetField());
+            if (header != null) {
+                assertEquals(header, CSV18_HEADERS.get(mapping.sourceColumnIndex()),
+                        "wrong column index for " + mapping.targetField());
+            }
+        }
+    }
+
+    @Test
+    void csv18TemplateDateFormatParsesFourDigitYears() {
+        var template = new SystemTemplateService().requireById("umsatz-csv-18");
+
+        var date = java.time.LocalDate.parse("17.09.2026",
+                java.time.format.DateTimeFormatter.ofPattern(template.dateFormat()));
+
+        assertEquals(java.time.LocalDate.of(2026, 9, 17), date);
+    }
+
     @Test
     void returnsNoneForUnrelatedHeaders() {
         SchemaDetectionResult result = service.detect(List.of("foo", "bar", "baz"));

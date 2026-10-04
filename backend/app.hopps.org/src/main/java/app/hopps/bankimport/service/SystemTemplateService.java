@@ -30,6 +30,7 @@ public class SystemTemplateService {
         register(buildSparkasseMt940());
         register(buildSparkasseCamtV2());
         register(buildSparkasseCamtV8());
+        register(buildUmsatzCsv18());
     }
 
     public List<BankCsvSchemaTemplateResponse> list() {
@@ -124,6 +125,46 @@ public class SystemTemplateService {
                 0,
                 true,
                 "dd.MM.yy",
+                ",",
+                null,
+                AmountStrategy.SIGNED_SINGLE_COLUMN,
+                List.of(),
+                mappings);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Umsatz-CSV (18 columns, account columns up front, 4-digit years, UTF-8)
+    // -------------------------------------------------------------------------------------------
+    private BankCsvSchemaTemplateResponse buildUmsatzCsv18() {
+        // Column layout (0-based): 0=Bezeichnung Auftragskonto, 1=IBAN Auftragskonto, 2=BIC Auftragskonto,
+        // 3=Bankname Auftragskonto, 4=Buchungstag, 5=Valutadatum, 6=Name Zahlungsbeteiligter,
+        // 7=IBAN Zahlungsbeteiligter, 8=BIC Zahlungsbeteiligter, 9=Buchungstext, 10=Verwendungszweck, 11=Betrag,
+        // 12=Waehrung, 13=Saldo nach Buchung, 14=Bemerkung, 15=Gekennzeichneter Umsatz, 16=Glaeubiger ID,
+        // 17=Mandatsreferenz
+        List<BankCsvColumnMappingDto> mappings = List.of(
+                map(BankFieldType.BOOKING_DATE, 4),
+                map(BankFieldType.VALUE_DATE, 5),
+                map(BankFieldType.COUNTERPARTY_NAME, 6),
+                map(BankFieldType.COUNTERPARTY_IBAN, 7),
+                map(BankFieldType.COUNTERPARTY_BIC, 8),
+                map(BankFieldType.TRANSACTION_TYPE, 9),
+                map(BankFieldType.PURPOSE, 10),
+                map(BankFieldType.AMOUNT, 11),
+                map(BankFieldType.CURRENCY, 12),
+                map(BankFieldType.CREDITOR_ID, 16),
+                map(BankFieldType.MANDATE_REFERENCE, 17));
+
+        return new BankCsvSchemaTemplateResponse(
+                "umsatz-csv-18",
+                "Umsatz-CSV (18 Spalten)",
+                null,
+                "Umsatz-Export mit Kontospalten vorn (Bezeichnung/IBAN/BIC/Bankname Auftragskonto), vierstelligen Jahreszahlen und UTF-8.",
+                ";",
+                "\"",
+                "UTF-8",
+                0,
+                true,
+                "dd.MM.yyyy",
                 ",",
                 null,
                 AmountStrategy.SIGNED_SINGLE_COLUMN,
