@@ -12,9 +12,9 @@ import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
 import { useInstance } from '@/hooks/use-instance';
 import { useToast } from '@/hooks/use-toast.ts';
-import apiService from '@/services/ApiService.ts';
 import { DEFAULT_ORGANIZATION_FIELDS, organizationFieldErrors, type OrganizationFieldValues } from '@/lib/organizationTypes';
 import { cn } from '@/lib/utils';
+import apiService from '@/services/ApiService.ts';
 
 type FormFields = {
     firstName: string;

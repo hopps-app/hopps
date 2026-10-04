@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 
 import { OrganizationFields } from '@/components/Forms/OrganizationFields/OrganizationFields';
 import Button from '@/components/ui/Button';
+import { DEFAULT_ORGANIZATION_FIELDS, organizationFieldErrors, type OrganizationFieldValues } from '@/lib/organizationTypes';
 import apiService from '@/services/ApiService';
 import authService from '@/services/auth/auth.service';
 import { useStore } from '@/store/store';
 import { getErrorStatus } from '@/utils/errorUtils';
-import { DEFAULT_ORGANIZATION_FIELDS, organizationFieldErrors, type OrganizationFieldValues } from '@/lib/organizationTypes';
 
 /** Turns an organization name into a URL-safe slug (lowercase, ascii, hyphen-separated). */
 function createSlug(input: string): string {

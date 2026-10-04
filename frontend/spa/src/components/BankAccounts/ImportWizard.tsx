@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
+import { isCurrencyMismatch, previewCurrencies } from '@/components/BankAccounts/importCurrency';
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import Progress from '@/components/ui/Progress';
@@ -22,7 +23,6 @@ import {
     bankAccountKeys,
     bankImportKeys,
 } from '@/hooks/queries/useBankAccounts';
-import { isCurrencyMismatch, previewCurrencies } from '@/components/BankAccounts/importCurrency';
 import { cn } from '@/lib/utils';
 import { getErrorBody, getErrorStatus } from '@/utils/errorUtils';
 
