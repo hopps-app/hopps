@@ -70,6 +70,9 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
     }, [detection, isMt940, schemaId]);
 
     // Poll import progress
+    // TODO: polling (and the list refresh below) lives in this component, so closing the dialog while the import still
+    // runs stops it; the bank transaction lists then stay stale for up to the 5-minute staleTime. Move the watch to the
+    // page hosting the wizard (KontenView) when the bank page is refactored.
     const { data: importStatus } = useBankImport(importId);
     useEffect(() => {
         if (state === 'importing' && importStatus?.status && ['COMPLETED', 'PARTIAL', 'FAILED'].includes(importStatus.status)) {
