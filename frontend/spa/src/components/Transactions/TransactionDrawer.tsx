@@ -80,9 +80,9 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
-    const drawerRootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
-    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels, drawerRootBommel?.id), [allBommels, drawerRootBommel?.id]);
+    // Without a root id the tree keeps the root bommel itself, so a transaction can be booked on the whole organization.
+    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels), [allBommels]);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
 
