@@ -1178,6 +1178,9 @@ type UploadItem = {
     duplicateOfId?: number;
 };
 
+// How long the upload card stays outlined after the setup step pointed to it.
+const HIGHLIGHT_MS = 2500;
+
 // How long finished rows stay visible after the last upload of a batch settled. Duplicates a bit longer, so there is
 // time to follow the link to the existing receipt.
 const FINISHED_ROW_MS = 3000;
@@ -1213,7 +1216,15 @@ function rejectionErrorKind(rejection: FileRejection): UploadErrorKind {
  * above the rows; uploaded rows disappear after {@link FINISHED_ROW_MS} and duplicates after {@link DUPLICATE_ROW_MS}, failed rows stay until the user
  * removes them, so they can see which file failed and why. The analysis itself runs afterwards and shows in the table.
  */
-function UploadZone({ onUploaded }: { onUploaded: () => void }) {
+function UploadZone({
+    onUploaded,
+    highlightRequested,
+    onHighlightHandled,
+}: {
+    onUploaded: () => void;
+    highlightRequested: boolean;
+    onHighlightHandled: () => void;
+}) {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const uploadMutation = useUploadDocument({ toastErrors: false });
@@ -1315,6 +1326,20 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         maxSize: MAX_UPLOAD_BYTES,
         multiple: true,
     });
+
+    // Setup step "Belege hochladen": expand the panel and outline it briefly, so it is clear where files go.
+    const [highlighted, setHighlighted] = useState(false);
+    useEffect(() => {
+        if (!highlightRequested) return;
+        expand();
+        setHighlighted(true);
+        onHighlightHandled();
+    }, [highlightRequested, expand, onHighlightHandled]);
+    useEffect(() => {
+        if (!highlighted) return;
+        const timer = setTimeout(() => setHighlighted(false), HIGHLIGHT_MS);
+        return () => clearTimeout(timer);
+    }, [highlighted]);
 
     // Drop target around the whole card while the dropzone itself is not shown: when collapsed, and while uploading
     // (files dropped then join the running batch). Click is disabled (noClick) so clicking the bar still toggles
@@ -1542,8 +1567,16 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
 
     return (
         <div
-            className="rounded-[18px] border border-[#E9E9EE] px-5 py-4"
-            style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
+            className={cn(
+                'rounded-[18px] border px-5 py-4 transition-[border-color,box-shadow] duration-700',
+                highlighted ? 'border-[#9955CC]' : 'border-[#E9E9EE]'
+            )}
+            style={{
+                background: '#FFFFFF',
+                boxShadow: highlighted
+                    ? '0 0 0 4px color-mix(in oklch, #9955CC 25%, transparent), 0 6px 22px rgba(20,20,40,.05)'
+                    : '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)',
+            }}
         >
             {passive ? (
                 <div
@@ -1668,6 +1701,22 @@ export function BelegeView() {
         if (found) setSelectedDoc(found);
     }, [idParam, allDocs, deepLinkedDoc]);
 
+    // ?upload=1 (setup step "Belege hochladen") scrolls to the upload area and outlines it once.
+    const uploadZoneRef = useRef<HTMLDivElement>(null);
+    const uploadRequested = searchParams.get('upload') === '1';
+    useEffect(() => {
+        if (uploadRequested) uploadZoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, [uploadRequested]);
+    const clearUploadParam = useCallback(() => {
+        setSearchParams(
+            (prev) => {
+                prev.delete('upload');
+                return prev;
+            },
+            { replace: true }
+        );
+    }, [setSearchParams]);
+
     const closeDrawer = () => {
         setSelectedDoc(null);
         if (searchParams.has('id')) {
@@ -1790,8 +1839,8 @@ export function BelegeView() {
             </div>
 
             {/* Upload zone */}
-            <div className="mb-4">
-                <UploadZone onUploaded={() => refetch()} />
+            <div ref={uploadZoneRef} className="mb-4">
+                <UploadZone onUploaded={() => refetch()} highlightRequested={uploadRequested} onHighlightHandled={clearUploadParam} />
             </div>
 
             {/* Filter tabs + bulk re-analyze action */}

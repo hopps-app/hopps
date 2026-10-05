@@ -26,7 +26,8 @@ export function useSetupSteps(organizationId: number | undefined) {
         // The root bommel always exists; the step is done once there is something below it. Opens straight in edit mode.
         { key: 'bommel', icon: Network, path: '/structure?edit=1', done: allBommels.length > 1 },
         { key: 'categories', icon: Tag, path: '/admin/categories', done: progress.categories },
-        { key: 'receipt', icon: Upload, path: '/receipts', done: progress.receipt },
+        // Points to the upload area on the receipts page.
+        { key: 'receipt', icon: Upload, path: '/receipts?upload=1', done: progress.receipt },
         { key: 'bankImport', icon: Sheet, path: '/bank-accounts', done: progress.bankImport },
     ];
     const doneCount = steps.filter((s) => s.done).length;
