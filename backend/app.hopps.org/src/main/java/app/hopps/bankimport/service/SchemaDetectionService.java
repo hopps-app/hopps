@@ -50,7 +50,7 @@ public class SchemaDetectionService {
                     "auftragskonto", "buchungstag", "valutadatum", "buchungstext",
                     "verwendungszweck", "glaeubiger id", "mandatsreferenz",
                     "betrag", "waehrung"),
-            // Umsatz-CSV (18 columns)
+            // Volksbanken / Raiffeisenbanken (Atruvia) Umsatz-CSV (18 columns)
             "umsatz-csv-18", Set.of(
                     "iban auftragskonto", "bankname auftragskonto", "name zahlungsbeteiligter",
                     "iban zahlungsbeteiligter", "saldo nach buchung", "buchungstag", "valutadatum",

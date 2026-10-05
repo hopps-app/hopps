@@ -56,6 +56,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Transaktionen (Einnahmen/Ausgaben) | ✅ | Mit/ohne Beleg, Status `DRAFT`/`CONFIRMED` | BE `transaction/`, SPA `/transactions` |
 | Sphären (ideeller Bereich, Zweckbetrieb …) | ✅ | Deutsches Gemeinnützigkeitsrecht | BE `TransactionArea` |
 | Bank-Import CSV mit Schema-Editor | ✅ | Delimiter, Encoding, Formate konfigurierbar | BE `bankimport/`, SPA `/bank-accounts`, `/bank-schemas` |
+| Bank-Import Vorlagen (automatische Erkennung) | ✅ | Sparkasse (MT940, CAMT.052 v2/v8), Volksbanken / Raiffeisenbanken Umsatz-CSV (18 Spalten, Atruvia-Banken inkl. Deutsche Skatbank) | BE `SystemTemplateService`, `SchemaDetectionService` (Stand 2026-10-05) |
 | Bank-Import MT940 | ✅ | – | BE `bankimport/` |
 | Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst | BE `BankTransactionMatch` |
 | Automatischer Kontoabruf (FinTS/EBICS) | ❌ | – | – |

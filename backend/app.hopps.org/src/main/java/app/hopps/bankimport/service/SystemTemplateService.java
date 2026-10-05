@@ -133,7 +133,8 @@ public class SystemTemplateService {
     }
 
     // -------------------------------------------------------------------------------------------
-    // Umsatz-CSV (18 columns, account columns up front, 4-digit years, UTF-8)
+    // Volksbanken / Raiffeisenbanken (Atruvia) Umsatz-CSV (18 columns, account columns up front, 4-digit years, UTF-8
+    // with BOM)
     // -------------------------------------------------------------------------------------------
     private BankCsvSchemaTemplateResponse buildUmsatzCsv18() {
         // Column layout (0-based): 0=Bezeichnung Auftragskonto, 1=IBAN Auftragskonto, 2=BIC Auftragskonto,
@@ -151,14 +152,15 @@ public class SystemTemplateService {
                 map(BankFieldType.PURPOSE, 10),
                 map(BankFieldType.AMOUNT, 11),
                 map(BankFieldType.CURRENCY, 12),
+                map(BankFieldType.BALANCE_AFTER, 13),
                 map(BankFieldType.CREDITOR_ID, 16),
                 map(BankFieldType.MANDATE_REFERENCE, 17));
 
         return new BankCsvSchemaTemplateResponse(
                 "umsatz-csv-18",
-                "Umsatz-CSV (18 Spalten)",
-                null,
-                "Umsatz-Export mit Kontospalten vorn (Bezeichnung/IBAN/BIC/Bankname Auftragskonto), vierstelligen Jahreszahlen und UTF-8.",
+                "Volksbanken / Raiffeisenbanken Umsatz-CSV (18 Spalten)",
+                "Volksbanken / Raiffeisenbanken",
+                "Umsatz-Export aus dem Online-Banking der genossenschaftlichen Banken (Atruvia), z. B. Volksbanken, Raiffeisenbanken, Deutsche Skatbank. Kontospalten vorn (Bezeichnung/IBAN/BIC/Bankname Auftragskonto), vierstellige Jahreszahlen, UTF-8.",
                 ";",
                 "\"",
                 "UTF-8",
@@ -166,7 +168,7 @@ public class SystemTemplateService {
                 true,
                 "dd.MM.yyyy",
                 ",",
-                null,
+                ".",
                 AmountStrategy.SIGNED_SINGLE_COLUMN,
                 List.of(),
                 mappings);

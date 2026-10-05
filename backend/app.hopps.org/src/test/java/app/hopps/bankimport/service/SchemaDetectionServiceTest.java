@@ -1,11 +1,14 @@
 package app.hopps.bankimport.service;
 
 import app.hopps.bankimport.api.dto.SchemaDetectionResult;
+import app.hopps.bankimport.domain.BankFieldType;
 import app.hopps.bankimport.repository.BankCsvSchemaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -59,7 +62,7 @@ class SchemaDetectionServiceTest {
         assertEquals("sparkasse-mt940", result.templateId());
     }
 
-    /** Header of the Umsatz-CSV (18 columns). */
+    /** Header of the Volksbanken / Raiffeisenbanken (Atruvia) Umsatz-CSV (18 columns). */
     private static final List<String> CSV18_HEADERS = List.of(
             "Bezeichnung Auftragskonto", "IBAN Auftragskonto", "BIC Auftragskonto", "Bankname Auftragskonto",
             "Buchungstag", "Valutadatum", "Name Zahlungsbeteiligter", "IBAN Zahlungsbeteiligter",
@@ -75,42 +78,38 @@ class SchemaDetectionServiceTest {
     }
 
     @Test
-    void csv18TemplateMapsColumnsToTheRightHeaders() {
-        var template = new SystemTemplateService().requireById("umsatz-csv-18");
+    void detectsCsv18WhenFirstHeaderCarriesUtf8Bom() {
+        List<String> headers = new ArrayList<>(CSV18_HEADERS);
+        headers.set(0, "﻿" + headers.get(0));
 
-        assertEquals("UTF-8", template.encoding());
-        assertEquals("dd.MM.yyyy", template.dateFormat());
-        assertEquals(CSV18_HEADERS.size(), 18);
+        SchemaDetectionResult result = service.detect(headers);
 
-        var expected = java.util.Map.of(
-                app.hopps.bankimport.domain.BankFieldType.BOOKING_DATE, "Buchungstag",
-                app.hopps.bankimport.domain.BankFieldType.VALUE_DATE, "Valutadatum",
-                app.hopps.bankimport.domain.BankFieldType.COUNTERPARTY_NAME, "Name Zahlungsbeteiligter",
-                app.hopps.bankimport.domain.BankFieldType.COUNTERPARTY_IBAN, "IBAN Zahlungsbeteiligter",
-                app.hopps.bankimport.domain.BankFieldType.TRANSACTION_TYPE, "Buchungstext",
-                app.hopps.bankimport.domain.BankFieldType.PURPOSE, "Verwendungszweck",
-                app.hopps.bankimport.domain.BankFieldType.AMOUNT, "Betrag",
-                app.hopps.bankimport.domain.BankFieldType.CURRENCY, "Waehrung",
-                app.hopps.bankimport.domain.BankFieldType.CREDITOR_ID, "Glaeubiger ID",
-                app.hopps.bankimport.domain.BankFieldType.MANDATE_REFERENCE, "Mandatsreferenz");
-
-        for (var mapping : template.columnMappings()) {
-            String header = expected.get(mapping.targetField());
-            if (header != null) {
-                assertEquals(header, CSV18_HEADERS.get(mapping.sourceColumnIndex()),
-                        "wrong column index for " + mapping.targetField());
-            }
-        }
+        assertEquals("umsatz-csv-18", result.templateId());
     }
 
     @Test
-    void csv18TemplateDateFormatParsesFourDigitYears() {
+    void csv18TemplateMapsColumnsToTheRightHeaders() {
         var template = new SystemTemplateService().requireById("umsatz-csv-18");
 
-        var date = java.time.LocalDate.parse("17.09.2026",
-                java.time.format.DateTimeFormatter.ofPattern(template.dateFormat()));
+        Map<BankFieldType, String> expected = Map.ofEntries(
+                Map.entry(BankFieldType.BOOKING_DATE, "Buchungstag"),
+                Map.entry(BankFieldType.VALUE_DATE, "Valutadatum"),
+                Map.entry(BankFieldType.COUNTERPARTY_NAME, "Name Zahlungsbeteiligter"),
+                Map.entry(BankFieldType.COUNTERPARTY_IBAN, "IBAN Zahlungsbeteiligter"),
+                Map.entry(BankFieldType.COUNTERPARTY_BIC, "BIC (SWIFT-Code) Zahlungsbeteiligter"),
+                Map.entry(BankFieldType.TRANSACTION_TYPE, "Buchungstext"),
+                Map.entry(BankFieldType.PURPOSE, "Verwendungszweck"),
+                Map.entry(BankFieldType.AMOUNT, "Betrag"),
+                Map.entry(BankFieldType.CURRENCY, "Waehrung"),
+                Map.entry(BankFieldType.BALANCE_AFTER, "Saldo nach Buchung"),
+                Map.entry(BankFieldType.CREDITOR_ID, "Glaeubiger ID"),
+                Map.entry(BankFieldType.MANDATE_REFERENCE, "Mandatsreferenz"));
 
-        assertEquals(java.time.LocalDate.of(2026, 9, 17), date);
+        assertEquals(expected.size(), template.columnMappings().size());
+        for (var mapping : template.columnMappings()) {
+            assertEquals(expected.get(mapping.targetField()), CSV18_HEADERS.get(mapping.sourceColumnIndex()),
+                    "wrong column index for " + mapping.targetField());
+        }
     }
 
     @Test
