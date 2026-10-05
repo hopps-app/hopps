@@ -1008,6 +1008,7 @@
         },
         "upload": {
             "sectionTitle": "Upload receipts",
+            "setupHint": "Upload here: drag your receipts in or choose files.",
             "expand": "Expand upload area",
             "collapse": "Collapse upload area",
             "dropzone": "Drop files here or click to select",

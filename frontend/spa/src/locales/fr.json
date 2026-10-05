@@ -975,6 +975,7 @@
         },
         "upload": {
             "sectionTitle": "Téléverser des reçus",
+            "setupHint": "Téléversez ici : glissez vos justificatifs ou choisissez des fichiers.",
             "expand": "Développer la zone de téléversement",
             "collapse": "Réduire la zone de téléversement",
             "dropzone": "Déposez les fichiers ici ou cliquez pour les sélectionner",

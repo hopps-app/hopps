@@ -869,6 +869,7 @@
         },
         "upload": {
             "sectionTitle": "Belege hochladen",
+            "setupHint": "Hier hochladen: Belege hineinziehen oder Dateien auswählen.",
             "expand": "Hochladebereich ausklappen",
             "collapse": "Hochladebereich einklappen",
             "dropzone": "Dateien hier ablegen oder klicken zum Auswählen",

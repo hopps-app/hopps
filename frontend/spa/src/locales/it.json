@@ -975,6 +975,7 @@
         },
         "upload": {
             "sectionTitle": "Carica ricevute",
+            "setupHint": "Carica qui: trascina le ricevute o scegli i file.",
             "expand": "Espandi area di caricamento",
             "collapse": "Comprimi area di caricamento",
             "dropzone": "Trascina i file qui o clicca per selezionarli",

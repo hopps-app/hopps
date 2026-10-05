@@ -1178,8 +1178,10 @@ type UploadItem = {
     duplicateOfId?: number;
 };
 
-// How long the upload card stays outlined after the setup step pointed to it.
-const HIGHLIGHT_MS = 2500;
+// How long the upload card stays outlined, with the hint bubble below it, after the setup step pointed to it.
+const HIGHLIGHT_MS = 5000;
+// Fade-out of the hint bubble before it unmounts.
+const HINT_FADE_MS = 300;
 
 // How long finished rows stay visible after the last upload of a batch settled. Duplicates a bit longer, so there is
 // time to follow the link to the existing receipt.
@@ -1327,19 +1329,21 @@ function UploadZone({
         multiple: true,
     });
 
-    // Setup step "Belege hochladen": expand the panel and outline it briefly, so it is clear where files go.
-    const [highlighted, setHighlighted] = useState(false);
+    // Setup step "Belege hochladen": expand the panel, outline it and show a hint bubble pointing at it for a few
+    // seconds, so it is clear where files go. 'leaving' keeps the bubble mounted while it fades out.
+    const [hint, setHint] = useState<'off' | 'on' | 'leaving'>('off');
+    const highlighted = hint === 'on';
     useEffect(() => {
         if (!highlightRequested) return;
         expand();
-        setHighlighted(true);
+        setHint('on');
         onHighlightHandled();
     }, [highlightRequested, expand, onHighlightHandled]);
     useEffect(() => {
-        if (!highlighted) return;
-        const timer = setTimeout(() => setHighlighted(false), HIGHLIGHT_MS);
+        if (hint === 'off') return;
+        const timer = setTimeout(() => setHint(hint === 'on' ? 'leaving' : 'off'), hint === 'on' ? HIGHLIGHT_MS : HINT_FADE_MS);
         return () => clearTimeout(timer);
-    }, [highlighted]);
+    }, [hint]);
 
     // Drop target around the whole card while the dropzone itself is not shown: when collapsed, and while uploading
     // (files dropped then join the running batch). Click is disabled (noClick) so clicking the bar still toggles
@@ -1568,7 +1572,7 @@ function UploadZone({
     return (
         <div
             className={cn(
-                'rounded-[18px] border px-5 py-4 transition-[border-color,box-shadow] duration-700',
+                'relative rounded-[18px] border px-5 py-4 transition-[border-color,box-shadow] duration-700',
                 highlighted ? 'border-[#9955CC]' : 'border-[#E9E9EE]'
             )}
             style={{
@@ -1588,6 +1592,23 @@ function UploadZone({
                 </div>
             ) : (
                 card
+            )}
+
+            {hint !== 'off' && (
+                <button
+                    type="button"
+                    role="status"
+                    onClick={() => setHint('leaving')}
+                    className={cn(
+                        'absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 rounded-xl px-4 py-2.5 text-left text-[13.5px] font-bold text-white shadow-lg',
+                        hint === 'on' ? 'animate-in fade-in slide-in-from-top-2 duration-300' : 'animate-out fade-out fill-mode-forwards duration-300'
+                    )}
+                    style={{ background: '#7E3FB4', fontFamily: FONT, width: 'max-content', maxWidth: 'min(360px, calc(100vw - 32px))' }}
+                >
+                    {/* Arrow pointing up at the upload card */}
+                    <span aria-hidden="true" className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45" style={{ background: '#7E3FB4' }} />
+                    {t('receipts.upload.setupHint')}
+                </button>
             )}
         </div>
     );
