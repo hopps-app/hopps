@@ -5,8 +5,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
+import { FONT } from '@/components/Transactions/layout';
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import Progress from '@/components/ui/Progress';
 import { BaseSelect, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/shadecn/BaseSelect';
 import {
@@ -43,7 +45,6 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
     // schemaId is "org:123" | "tpl:sparkasse-camt-v8" | "" (not yet chosen)
     const [schemaId, setSchemaId] = useState<string>('');
     const [importId, setImportId] = useState<number | null>(null);
-    const [showAllCols, setShowAllCols] = useState(false);
 
     const { data: account } = useBankAccount(accountId);
     const { data: schemas = [] } = useBankSchemas(false);
@@ -99,7 +100,6 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
         async (f: File) => {
             setState('previewing');
             setSchemaId('');
-            setShowAllCols(false);
             createdSchemaRef.current = null;
             try {
                 const result = await previewMutation.mutateAsync({ accountId, file: f });
@@ -231,9 +231,14 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
                 {/* Schema picker — always available for CSV so a confident-but-wrong auto-detection can be overridden */}
                 {!isMt940 && !isDetecting ? (
                     <div className="grid gap-1.5">
-                        <label className="text-sm font-medium">
-                            {detectionSucceeded ? t('bankImport.wizard.schemaLabelChange') : t('bankImport.wizard.schemaRequired')}
-                        </label>
+                        <div className="flex items-center gap-1.5">
+                            <label className="text-sm font-medium">
+                                {detectionSucceeded ? t('bankImport.wizard.schemaLabelChange') : t('bankImport.wizard.schemaRequired')}
+                            </label>
+                            {detectionSucceeded && (
+                                <InfoTooltip content={t('bankImport.wizard.schemaDetectedHint')} label={t('bankImport.wizard.schemaDetectedHintLabel')} />
+                            )}
+                        </div>
                         <BaseSelect value={schemaId} onValueChange={setSchemaId}>
                             <SelectTrigger>
                                 <SelectValue placeholder={t('bankImport.wizard.schemaPlaceholder')} />
@@ -272,84 +277,49 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
                     </div>
                 )}
 
-                {/* Sample rows table */}
+                {/* Sample rows table: all columns and all preview rows, scrollable in both directions. Styled like the
+                    transactions table (card, uppercase header, row lines). */}
                 {preview.sampleRows &&
                     preview.sampleRows.length > 0 &&
                     (() => {
-                        const MAX_COLS = 6;
-                        const allCols = preview.headerColumns ?? [];
-                        // CSV: sampleRows[0] is the header row duplicated — skip it
-                        const dataRows = !isMt940 ? preview.sampleRows.slice(1, 6) : preview.sampleRows.slice(0, 5);
-                        // Drop columns where every data row has the same value (e.g. own IBAN in AUFTRAGSKONTO)
-                        const interestingIndices = allCols
-                            .map((_, ci) => ci)
-                            .filter((ci) => {
-                                if (dataRows.length === 0) return true;
-                                const first = dataRows[0][ci] ?? '';
-                                return dataRows.some((r) => (r[ci] ?? '') !== first);
-                            });
-                        const visibleIndices = showAllCols ? interestingIndices : interestingIndices.slice(0, MAX_COLS);
-                        const hiddenCount = interestingIndices.length - visibleIndices.length;
+                        const columns = preview.headerColumns ?? [];
+                        // CSV: sampleRows[0] is the header row duplicated, so skip it
+                        const dataRows = !isMt940 ? preview.sampleRows.slice(1) : preview.sampleRows;
+                        const columnCount = Math.max(columns.length, ...dataRows.map((r) => r.length));
+                        const indices = Array.from({ length: columnCount }, (_, ci) => ci);
                         return (
                             <div
-                                className={cn(
-                                    'rounded-xl border border-gray-200 dark:border-gray-700 w-full',
-                                    showAllCols ? 'overflow-x-auto' : 'overflow-hidden'
-                                )}
+                                className="rounded-[var(--r-card)] border border-border-soft overflow-auto max-h-[340px] w-full"
+                                style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-sm)', fontFamily: FONT }}
                             >
-                                <table className={cn('text-[11px] border-collapse', showAllCols ? 'w-max' : 'w-full table-fixed')}>
-                                    <thead>
-                                        <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                                            {visibleIndices.map((ci) => (
+                                <table className="w-max min-w-full border-collapse text-[12.5px]">
+                                    <thead className="sticky top-0 z-10" style={{ background: 'var(--background-secondary)' }}>
+                                        <tr>
+                                            {indices.map((ci) => (
                                                 <th
                                                     key={ci}
-                                                    className={cn(
-                                                        'py-2 px-3 text-left font-semibold text-muted-foreground uppercase tracking-wide text-[10px]',
-                                                        showAllCols ? 'whitespace-nowrap' : 'truncate'
-                                                    )}
+                                                    className="whitespace-nowrap border-b border-border-soft px-4 py-3 text-left text-[12px] font-bold uppercase tracking-[0.04em] text-muted-foreground"
                                                 >
-                                                    {allCols[ci]}
+                                                    {columns[ci] ?? ''}
                                                 </th>
                                             ))}
-                                            {hiddenCount > 0 ? (
-                                                <th className="py-2 px-2 w-20 text-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowAllCols(true)}
-                                                        className="text-[10px] font-semibold text-primary hover:underline whitespace-nowrap"
-                                                    >
-                                                        +{hiddenCount} {t('bankImport.wizard.showMore')}
-                                                    </button>
-                                                </th>
-                                            ) : showAllCols && interestingIndices.length > MAX_COLS ? (
-                                                <th className="py-2 px-2 w-20 text-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowAllCols(false)}
-                                                        className="text-[10px] font-semibold text-muted-foreground hover:underline whitespace-nowrap"
-                                                    >
-                                                        {t('bankImport.wizard.showLess')}
-                                                    </button>
-                                                </th>
-                                            ) : null}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {dataRows.map((row, ri) => (
                                             <tr
                                                 key={ri}
-                                                className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50/60 dark:hover:bg-gray-800/40"
+                                                className="border-b border-border-soft last:border-b-0 hover:bg-[var(--surface-sunken)] transition-colors"
                                             >
-                                                {visibleIndices.map((ci) => (
+                                                {indices.map((ci) => (
                                                     <td
                                                         key={ci}
-                                                        className={cn('py-2 px-3', showAllCols ? 'whitespace-nowrap max-w-[200px] truncate' : 'truncate')}
+                                                        className="max-w-[240px] truncate whitespace-nowrap px-4 py-2.5 text-foreground"
                                                         title={row[ci] ?? ''}
                                                     >
                                                         {row[ci] ?? ''}
                                                     </td>
                                                 ))}
-                                                {hiddenCount > 0 && <td className="py-2 px-2 w-20 text-center text-muted-foreground opacity-30">…</td>}
                                             </tr>
                                         ))}
                                     </tbody>
