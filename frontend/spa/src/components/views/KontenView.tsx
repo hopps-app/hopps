@@ -32,7 +32,7 @@ import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
-import { StatusToggleGroup, type StatusToggle } from '@/components/ui/StatusToggleGroup';
+import { StatusSegments, type StatusSegment } from '@/components/ui/StatusSegments';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
     useBankAccounts,
@@ -569,7 +569,7 @@ function AccountTab({
 
     const filtered = transactions;
 
-    const statusToggles: StatusToggle<AccountStatus>[] = [
+    const statusSegments: StatusSegment<AccountStatus>[] = [
         { id: 'OPEN', label: t('konten.filter.open'), count: countOpen?.count ?? 0, color: 'var(--warning)', tint: 'var(--warning-surface)' },
         { id: 'FULLY_MATCHED', label: t('konten.filter.matched'), count: countMatched?.count ?? 0, color: 'var(--positive)', tint: 'var(--positive-surface)' },
         { id: 'IGNORED', label: t('konten.filter.ignored'), count: countIgnored?.count ?? 0, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
@@ -588,7 +588,7 @@ function AccountTab({
                     )}
                 </span>
                 <div className="ml-auto">
-                    <StatusToggleGroup label={t('konten.table.status')} items={statusToggles} selected={statusFilter} onToggle={toggleStatus} />
+                    <StatusSegments ariaLabel={t('konten.table.status')} segments={statusSegments} selected={statusFilter} onToggle={toggleStatus} />
                 </div>
             </div>
 
