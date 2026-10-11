@@ -1,19 +1,34 @@
-import { ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { RawNodeDatum } from 'react-d3-tree';
 import { useTranslation } from 'react-i18next';
 
-import { BommelCardProps, TreeNodeData } from '../types';
+import { BommelCardProps } from '../types';
 
 import { BommelCardEditForm } from './BommelCardEditForm';
 import { BommelCardStats } from './BommelCardStats';
 import { DeleteBommelDialog, DeleteTransactionHandling } from './DeleteBommelDialog';
 
 import Emoji from '@/components/ui/Emoji';
+import { cn } from '@/lib/utils';
+
+function countDescendants(node: BommelCardProps['node']): number {
+    return (node.children ?? []).reduce((sum, child) => sum + 1 + countDescendants(child), 0);
+}
+
+function cardShadow({ selected, isDraggedOver, isValidDropTarget }: Pick<BommelCardProps, 'selected' | 'isDraggedOver' | 'isValidDropTarget'>) {
+    if (isDraggedOver && isValidDropTarget) return 'shadow-[0_0_0_3px_var(--positive),var(--shadow-md)]';
+    if (isDraggedOver && isValidDropTarget === false) return 'shadow-[0_0_0_3px_var(--negative),var(--shadow-md)]';
+    if (selected) return 'shadow-[var(--shadow-selected)]';
+    return 'shadow-[var(--shadow-md)]';
+}
 
 export function BommelCard({
-    nodeDatum,
-    toggleNode,
+    node,
+    depth,
+    expanded,
+    fullWidth,
+    onToggle,
+    selected,
     onNodeClick,
     onEdit,
     onDelete,
@@ -25,70 +40,58 @@ export function BommelCard({
     isDraggedOver,
     isValidDropTarget,
     onDragStart,
-    onDragEnter,
-    onDragLeave,
 }: BommelCardProps) {
     const { t } = useTranslation();
-    const nodeId = nodeDatum.attributes?.id as number;
-    const total = (nodeDatum.attributes?.total as number) || 0;
-    const income = (nodeDatum.attributes?.income as number) || 0;
-    const expenses = (nodeDatum.attributes?.expenses as number) || 0;
-    const transactionsCount = (nodeDatum.attributes?.transactionsCount as number) || 0;
-    const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
-    const isRoot = !!nodeDatum.attributes?.isRoot;
-    const isLastSibling = !!nodeDatum.attributes?.isLastSibling;
-    const parentId = nodeDatum.attributes?.parentId as number;
+    const nodeId = node.attributes?.id as number;
+    const emoji = node.attributes?.emoji || '';
+    const total = node.attributes?.total || 0;
+    const income = node.attributes?.income || 0;
+    const expenses = node.attributes?.expenses || 0;
+    const transactionsCount = node.attributes?.transactionsCount || 0;
+    const hasChildren = !!node.children?.length;
+    const isRoot = depth === 0;
+    const parentId = node.attributes?.parentId as number;
 
     const [isEditing, setIsEditing] = useState(false);
-    const [editedName, setEditedName] = useState(nodeDatum.name);
-    const [editedEmoji, setEditedEmoji] = useState((nodeDatum.attributes?.emoji as string) || '');
+    const [editedName, setEditedName] = useState(node.name);
+    const [editedEmoji, setEditedEmoji] = useState(emoji);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-    const isCollapsed = (nodeDatum as RawNodeDatum & { __rd3t?: { collapsed?: boolean } }).__rd3t?.collapsed;
-    const didDragRef = useRef(false);
 
     // Auto-enter edit mode for newly created bommels
     useEffect(() => {
         if (autoEdit && editable && !isRoot && !isEditing) {
-            setEditedName(nodeDatum.name);
-            setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
+            setEditedName(node.name);
+            setEditedEmoji(emoji);
             setIsEditing(true);
         }
     }, [autoEdit]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleClick = () => {
-        if (didDragRef.current) {
-            didDragRef.current = false;
-            return;
+        if (!isEditing && onNodeClick && node.attributes) {
+            onNodeClick({ name: node.name, attributes: node.attributes });
         }
-        if (!isEditing && onNodeClick && nodeDatum.attributes) {
-            const nodeData: TreeNodeData = {
-                name: nodeDatum.name,
-                attributes: nodeDatum.attributes as TreeNodeData['attributes'],
-            };
-            onNodeClick(nodeData);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
         }
     };
 
     const handlePointerDown = (e: React.PointerEvent) => {
         if (!dragDropEnabled || isRoot || isEditing || !onDragStart) return;
+        // A finger on the card body scrolls the page; touch drags start from the grip handle only
+        if (e.pointerType === 'touch' && !(e.target as Element).closest('[data-drag-handle]')) return;
         e.stopPropagation();
-        didDragRef.current = false;
-        onDragStart(nodeId, nodeDatum.name, (nodeDatum.attributes?.emoji as string) || '', parentId, e.clientX, e.clientY);
-    };
-
-    const handlePointerEnter = () => {
-        if (onDragEnter) onDragEnter(nodeId);
-    };
-
-    const handlePointerLeave = () => {
-        if (onDragLeave) onDragLeave(nodeId);
+        onDragStart(nodeId, node.name, emoji, parentId, e.clientX, e.clientY);
     };
 
     const handleStartEdit = () => {
         if (editable) {
-            setEditedName(nodeDatum.name);
-            setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
+            setEditedName(node.name);
+            setEditedEmoji(emoji);
             setIsEditing(true);
         }
     };
@@ -98,7 +101,7 @@ export function BommelCard({
             return;
         }
         if (onEdit) {
-            const hasChanged = editedName !== nodeDatum.name || editedEmoji !== ((nodeDatum.attributes?.emoji as string) || '');
+            const hasChanged = editedName !== node.name || editedEmoji !== emoji;
             if (hasChanged) {
                 const success = await onEdit(nodeId, editedName.trim(), editedEmoji);
                 if (success) {
@@ -109,15 +112,15 @@ export function BommelCard({
             }
         } else {
             setIsEditing(false);
-            setEditedName(nodeDatum.name);
-            setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
+            setEditedName(node.name);
+            setEditedEmoji(emoji);
         }
     };
 
     const handleCancelEdit = () => {
         setIsEditing(false);
-        setEditedName(nodeDatum.name);
-        setEditedEmoji((nodeDatum.attributes?.emoji as string) || '');
+        setEditedName(node.name);
+        setEditedEmoji(emoji);
     };
 
     // Auto-save or cancel when leaving edit mode (clicking "Fertig")
@@ -132,10 +135,6 @@ export function BommelCard({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editable]);
-
-    const handleDeleteClick = () => {
-        setShowDeleteDialog(true);
-    };
 
     const deletingRef = useRef(false);
 
@@ -152,10 +151,6 @@ export function BommelCard({
         }
     };
 
-    const handleDeleteCancel = () => {
-        setShowDeleteDialog(false);
-    };
-
     const addingChildRef = useRef(false);
 
     const handleAddChild = async () => {
@@ -170,159 +165,132 @@ export function BommelCard({
         }
     };
 
-    const addingSiblingRef = useRef(false);
-
-    const handleAddSibling = async () => {
-        if (onAddChild && parentId !== undefined) {
-            if (addingSiblingRef.current) return;
-            addingSiblingRef.current = true;
-            try {
-                await onAddChild(parentId);
-            } finally {
-                addingSiblingRef.current = false;
-            }
-        }
-    };
-
-    // Build card CSS classes for drag states
-    const dragClasses = [
-        isBeingDragged ? 'is-being-dragged' : '',
-        isDraggedOver && isValidDropTarget ? 'is-valid-drop-target' : '',
-        isDraggedOver && isValidDropTarget === false ? 'is-invalid-drop-target' : '',
-    ]
-        .filter(Boolean)
-        .join(' ');
-
-    const cursorClass = dragDropEnabled && !isRoot ? 'cursor-grab' : 'cursor-pointer';
+    const showEditControls = editable && !dragDropEnabled && !isEditing;
+    const nameEditable = editable && !dragDropEnabled;
 
     return (
         <div
+            data-bommel-id={nodeId}
+            role="button"
+            tabIndex={0}
             onClick={handleClick}
+            onKeyDown={handleKeyDown}
             onPointerDown={handlePointerDown}
-            onPointerEnter={handlePointerEnter}
-            onPointerLeave={handlePointerLeave}
-            className={`w-full font-sans ${cursorClass}`}
-            style={dragDropEnabled ? { touchAction: 'none' } : undefined}
+            className={cn(
+                'relative text-left rounded-2xl border transition-[box-shadow,border-color,opacity] duration-150',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                fullWidth ? 'w-full' : isRoot ? 'w-[300px]' : depth === 1 ? 'w-[240px]' : 'w-[210px]',
+                depth >= 2 ? 'px-[13px] py-[11px]' : 'px-[15px] py-[13px]',
+                isRoot ? 'bg-purple-500 border-purple-500 text-white' : 'bg-background-secondary text-foreground',
+                !isRoot && (selected ? 'border-primary' : 'border-border-soft'),
+                isBeingDragged && 'opacity-40 border-2 border-dashed border-purple-400',
+                dragDropEnabled && !isRoot ? 'cursor-grab select-none [-webkit-touch-callout:none]' : 'cursor-pointer',
+                cardShadow({ selected, isDraggedOver, isValidDropTarget })
+            )}
         >
-            {/* Card */}
-            <div
-                className={`relative rounded-xl ${isEditing ? 'px-3 py-3' : 'px-3 py-2'} shadow-card transition-all bommel-card ${dragClasses} ${isRoot ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-white dark:bg-[var(--purple-100)] border border-border-soft'}`}
-            >
-                {/* Collapse toggle button */}
-                {hasChildren && (
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            toggleNode();
-                        }}
-                        className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white dark:bg-[var(--purple-100)] border-2 border-purple-500 dark:border-[var(--purple-400)] rounded-full w-6 h-6 flex items-center justify-center cursor-pointer z-10 transition-all collapse-button hover:bg-purple-50 dark:hover:bg-[var(--purple-200)]"
-                        aria-label={t('organization.structure.details.subBommels')}
-                        aria-expanded={!isCollapsed}
+            <div className="flex items-center gap-2.5 min-w-0">
+                {dragDropEnabled && !isRoot && (
+                    <span
+                        data-drag-handle
+                        className="-ml-1.5 flex-shrink-0 grid place-items-center w-6 h-[30px] rounded-md text-muted-foreground touch-none"
+                        aria-hidden="true"
                     >
-                        {isCollapsed ? (
-                            <ChevronRight className="w-3 h-3 text-purple-600" aria-hidden="true" />
-                        ) : (
-                            <ChevronDown className="w-3 h-3 text-purple-600" aria-hidden="true" />
+                        <GripVertical className="w-4 h-4" />
+                    </span>
+                )}
+                {isEditing ? (
+                    <BommelCardEditForm
+                        name={editedName}
+                        emoji={editedEmoji}
+                        onNameChange={setEditedName}
+                        onEmojiChange={setEditedEmoji}
+                        onSave={handleSaveName}
+                    />
+                ) : (
+                    <div
+                        className={cn('flex items-center gap-2.5 min-w-0 flex-1', nameEditable && 'cursor-text hover:opacity-80')}
+                        onClick={(e) => {
+                            if (nameEditable) {
+                                e.stopPropagation();
+                                handleStartEdit();
+                            }
+                        }}
+                    >
+                        {emoji && (
+                            <span className={cn('flex-shrink-0 leading-none text-center', isRoot ? 'text-[26px] w-[30px]' : 'text-[22px] w-[26px]')}>
+                                <Emoji emoji={emoji} />
+                            </span>
                         )}
-                    </button>
-                )}
-
-                {/* Delete button - top right corner (hidden in drag-drop mode) */}
-                {editable && !dragDropEnabled && !isEditing && !isRoot && (
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteClick();
-                        }}
-                        className="absolute -top-1.5 -right-1.5 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-400 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-red-100 dark:hover:bg-red-900 hover:border-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors z-10"
-                        title={t('organization.structure.deleteBommel')}
-                        aria-label={t('organization.structure.deleteBommel')}
-                    >
-                        <Trash2 className="w-2.5 h-2.5" aria-hidden="true" />
-                    </button>
-                )}
-
-                {/* Content: emoji + name or edit form */}
-                <div className="flex items-center gap-2 min-w-0">
-                    {isEditing ? (
-                        <BommelCardEditForm
-                            name={editedName}
-                            emoji={editedEmoji}
-                            onNameChange={setEditedName}
-                            onEmojiChange={setEditedEmoji}
-                            onSave={handleSaveName}
-                        />
-                    ) : (
-                        <div
-                            className={`flex items-center gap-2 min-w-0 flex-1 ${editable && !dragDropEnabled ? 'cursor-text hover:opacity-80' : ''}`}
-                            onClick={(e) => {
-                                if (editable && !dragDropEnabled) {
-                                    e.stopPropagation();
-                                    handleStartEdit();
-                                }
-                            }}
-                        >
-                            {nodeDatum.attributes?.emoji && (
-                                <div className="text-xl flex-shrink-0">
-                                    <Emoji emoji={nodeDatum.attributes.emoji as string} />
-                                </div>
+                        <div className="min-w-0 flex-1">
+                            <div className={cn('font-extrabold tracking-[-0.01em] truncate', isRoot ? 'text-[17px]' : 'text-[16px]')}>{node.name}</div>
+                            {isRoot && (
+                                <div className="text-[11.5px] font-semibold opacity-80">{t('bommel.subBommelCount', { count: countDescendants(node) })}</div>
                             )}
-                            <div
-                                className={`text-sm font-semibold overflow-hidden text-ellipsis whitespace-nowrap flex-1 min-w-0 ${isRoot ? 'text-white' : 'text-gray-800 dark:text-gray-100'}`}
-                            >
-                                {nodeDatum.name}
-                            </div>
                         </div>
-                    )}
-                </div>
-
-                {/* Financial Stats - Only show in view mode */}
-                {!editable && <BommelCardStats total={total} income={income} expenses={expenses} transactionsCount={transactionsCount} isRoot={isRoot} />}
-
-                {/* Add child button - bottom center, only when no children */}
-                {editable && !dragDropEnabled && !hasChildren && !isEditing && (
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddChild();
-                        }}
-                        className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 dark:hover:bg-green-900 hover:border-green-400 hover:text-green-700 dark:hover:text-green-300 z-20 transition-colors"
-                        title={t('organization.structure.addChild')}
-                        aria-label={t('organization.structure.addChild')}
-                    >
-                        <Plus className="w-3 h-3" aria-hidden="true" />
-                    </button>
+                    </div>
                 )}
 
-                {/* Sibling add button - right side, only on last child of each parent */}
-                {isLastSibling && editable && !dragDropEnabled && !isEditing && !isRoot && (
+                {hasChildren && !isEditing && (
                     <button
                         type="button"
                         onClick={(e) => {
                             e.stopPropagation();
-                            handleAddSibling();
+                            onToggle();
                         }}
-                        className="absolute -right-5 top-1/2 -translate-y-1/2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-500 rounded-full w-5 h-5 flex items-center justify-center cursor-pointer hover:bg-green-100 dark:hover:bg-green-900 hover:border-green-400 hover:text-green-700 dark:hover:text-green-300 z-20 transition-colors"
-                        title={t('organization.structure.addSibling')}
-                        aria-label={t('organization.structure.addSibling')}
+                        className={cn(
+                            'w-[26px] h-[26px] flex-shrink-0 rounded-full grid place-items-center text-inherit',
+                            'transition-transform duration-200 ease-[var(--ease-out)]',
+                            isRoot ? 'bg-white/20' : 'bg-[var(--surface-sunken)] border border-border-soft',
+                            !expanded && '-rotate-90'
+                        )}
+                        title={expanded ? t('bommel.collapse') : t('bommel.expand')}
+                        aria-label={expanded ? t('bommel.collapse') : t('bommel.expand')}
+                        aria-expanded={expanded}
                     >
-                        <Plus className="w-3 h-3" aria-hidden="true" />
+                        <ChevronDown className="w-[15px] h-[15px]" aria-hidden="true" />
                     </button>
                 )}
             </div>
 
-            {/* Delete confirmation dialog */}
+            <BommelCardStats total={total} income={income} expenses={expenses} isRoot={isRoot} />
+
+            {showEditControls && (
+                <div onClick={(e) => e.stopPropagation()}>
+                    <button
+                        type="button"
+                        onClick={handleAddChild}
+                        className={cn(
+                            'absolute -bottom-[13px] z-10 w-[26px] h-[26px] rounded-full grid place-items-center bg-background-secondary border-[1.5px] border-[var(--positive)] text-[var(--positive)] shadow-[var(--shadow-sm)]',
+                            // Vertical layout: sit on the rail where the new child will hang (20px in, see BommelBranch)
+                            fullWidth ? 'left-[7px]' : 'left-1/2 -translate-x-1/2'
+                        )}
+                        title={t('bommel.addChild')}
+                        aria-label={t('bommel.addChild')}
+                    >
+                        <Plus className="w-3.5 h-3.5" strokeWidth={2.4} aria-hidden="true" />
+                    </button>
+                    {!isRoot && (
+                        <button
+                            type="button"
+                            onClick={() => setShowDeleteDialog(true)}
+                            className="absolute -top-[11px] -right-[11px] z-10 w-[26px] h-[26px] rounded-full grid place-items-center bg-background-secondary border-[1.5px] border-[var(--negative)] text-[var(--negative)] shadow-[var(--shadow-sm)]"
+                            title={t('bommel.deleteBommel')}
+                            aria-label={t('bommel.deleteBommel')}
+                        >
+                            <Trash2 className="w-[13px] h-[13px]" aria-hidden="true" />
+                        </button>
+                    )}
+                </div>
+            )}
+
             <DeleteBommelDialog
                 open={showDeleteDialog}
-                bommelName={nodeDatum.name}
+                bommelName={node.name}
                 hasTransactions={transactionsCount > 0}
-                hasChildren={!!hasChildren}
-                childrenCount={nodeDatum.children?.length || 0}
+                hasChildren={hasChildren}
+                childrenCount={node.children?.length || 0}
                 onConfirm={handleDeleteConfirm}
-                onCancel={handleDeleteCancel}
+                onCancel={() => setShowDeleteDialog(false)}
             />
         </div>
     );

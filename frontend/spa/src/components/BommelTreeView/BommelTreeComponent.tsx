@@ -1,49 +1,89 @@
-import { Crosshair } from 'lucide-react';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import Tree, { CustomNodeElementProps } from 'react-d3-tree';
+import { Crosshair, Minus, Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { BommelCard, TreeStyles } from './components';
+import { BommelBranch, BommelCard, Connector } from './components';
 import { DragGhostOverlay } from './components/DragGhostOverlay';
-import { MoveBommelDialog } from './components/MoveBommelDialog';
 import { useBommelDragDrop } from './hooks/useBommelDragDrop';
+import { useDragAutoScroll } from './hooks/useDragAutoScroll';
+import { useElementSize } from './hooks/useElementSize';
 import { useTreeData } from './hooks/useTreeData';
-import { BommelTreeComponentProps } from './types';
+import { useTreeViewport } from './hooks/useTreeViewport';
+import { BommelTreeComponentProps, TreeNodeData } from './types';
 
 import { EmptyState } from '@/components/common/EmptyState';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { cn } from '@/lib/utils';
 
-const TREE_ZOOM = 0.9;
-const TREE_TOP_PADDING = 80;
+const NO_PATH: ReadonlySet<number> = new Set();
+
+/** Ids from `node` down to `targetId`, or null when the target is not in this subtree */
+function findPath(node: TreeNodeData, targetId: number): number[] | null {
+    const id = node.attributes?.id as number;
+    if (id === targetId) return [id];
+    for (const child of node.children ?? []) {
+        const rest = findPath(child, targetId);
+        if (rest) return [id, ...rest];
+    }
+    return null;
+}
+
+/** Below this the tree is drawn top-down with indented children instead of side by side */
+const VERTICAL_LAYOUT_QUERY = '(max-width: 767px)';
+/** Root and first level start expanded, deeper levels start collapsed */
+const DEFAULT_EXPANDED_DEPTH = 2;
 
 function BommelTreeComponent({
     tree,
     rootBommel,
     editable = false,
     dragDropEnabled = false,
+    selectedId,
     onNodeClick,
     onEdit,
     onDelete,
     onAddChild,
     onMove,
-    width = 800,
-    height,
+    onRequestEdit,
+    className,
 }: BommelTreeComponentProps) {
     const { t } = useTranslation();
-    const [, forceUpdate] = useState({});
-    const treeContainerRef = useRef<HTMLDivElement>(null);
-    const [containerSize, setContainerSize] = useState<{ width: number; height: number } | null>(null);
-    const [movingBommelId, setMovingBommelId] = useState<number | null>(null);
+    const vertical = useMediaQuery(VERTICAL_LAYOUT_QUERY);
+    const [treeRef, natural] = useElementSize<HTMLDivElement>();
+    // The outer element: drag auto-scroll needs it in both layouts, pan/zoom uses it as the canvas when horizontal
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [container, setContainer] = useState<HTMLDivElement | null>(null);
+    const attachContainer = useCallback((element: HTMLDivElement | null) => {
+        containerRef.current = element;
+        setContainer(element);
+    }, []);
+    const viewport = useTreeViewport({ canvas: vertical ? null : container, natural });
+    // Only nodes the user toggled are stored; everything else follows DEFAULT_EXPANDED_DEPTH
+    const [toggled, setToggled] = useState<Map<number, boolean>>(() => new Map());
     const [autoEditNodeId, setAutoEditNodeId] = useState<number | null>(null);
-    const [centerKey, setCenterKey] = useState(0);
 
-    const { dragState, startDrag, updateDrag, setHoverTarget, clearHoverTarget, endDrag, cancelDrag, hasPendingDrag } = useBommelDragDrop(tree);
+    const { dragState, startDrag, updateDrag, setHoverTarget, endDrag, cancelDrag, hasPendingDrag } = useBommelDragDrop(tree);
 
-    // Global pointermove/pointerup listeners for drag-drop
+    const hoverAt = useCallback(
+        (x: number, y: number) => {
+            const target = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-bommel-id]');
+            setHoverTarget(target ? Number(target.dataset.bommelId) : null);
+        },
+        [setHoverTarget]
+    );
+    const trackPointer = useDragAutoScroll(dragState.isDragging, containerRef, hoverAt, vertical ? undefined : viewport.panBy);
+
+    // Global pointer listeners for drag-drop. The drop target is looked up under the pointer rather than via
+    // pointerenter on the cards: during a touch drag the browser keeps sending events to the card the finger
+    // started on, so enter/leave never fire on the others (iOS in particular).
     useEffect(() => {
         if (!dragDropEnabled) return;
 
         const handlePointerMove = (e: PointerEvent) => {
+            if (!hasPendingDrag()) return;
             updateDrag(e.clientX, e.clientY);
+            trackPointer(e.clientX, e.clientY);
+            hoverAt(e.clientX, e.clientY);
         };
 
         const handlePointerUp = () => {
@@ -62,30 +102,16 @@ function BommelTreeComponent({
 
         window.addEventListener('pointermove', handlePointerMove);
         window.addEventListener('pointerup', handlePointerUp);
+        window.addEventListener('pointercancel', cancelDrag);
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
             window.removeEventListener('pointermove', handlePointerMove);
             window.removeEventListener('pointerup', handlePointerUp);
+            window.removeEventListener('pointercancel', cancelDrag);
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [dragDropEnabled, updateDrag, endDrag, cancelDrag, hasPendingDrag, onMove]);
-
-    // Measure the container so the centring effect below knows what it is centring into
-    useLayoutEffect(() => {
-        const container = treeContainerRef.current;
-        if (!container) return;
-
-        const observer = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height });
-            }
-        });
-        observer.observe(container);
-        setContainerSize({ width: container.clientWidth, height: container.clientHeight });
-
-        return () => observer.disconnect();
-    }, []);
+    }, [dragDropEnabled, updateDrag, trackPointer, hoverAt, endDrag, cancelDrag, hasPendingDrag, onMove]);
 
     // Clear autoEditNodeId after it has been consumed by the BommelCard
     useEffect(() => {
@@ -95,211 +121,165 @@ function BommelTreeComponent({
         }
     }, [autoEditNodeId]);
 
-    // Convert OrganizationTreeNodeModel[] to react-d3-tree format
     const treeData = useTreeData({ tree, rootBommel });
 
-    const depthFactor = editable ? 100 : 140;
+    const pathIds = useMemo(() => {
+        if (!treeData || selectedId == null) return NO_PATH;
+        const path = findPath(treeData, selectedId);
+        return path ? new Set(path) : NO_PATH;
+    }, [treeData, selectedId]);
 
-    // A container that has not been laid out yet reports 0 - fall back to the prop rather than centring on nothing
-    const layoutWidth = containerSize?.width || width;
-    const [translate, setTranslate] = useState({ x: layoutWidth / 2, y: TREE_TOP_PADDING });
+    const isExpanded = useCallback(
+        (node: TreeNodeData, depth: number) => toggled.get(node.attributes?.id as number) ?? depth < DEFAULT_EXPANDED_DEPTH,
+        [toggled]
+    );
 
-    // `translate` positions the ROOT node, but a lopsided tree (a deep subtree under one child) puts the
-    // tree's visual mass well off to one side of its root. Measure what was actually drawn and centre that
-    // instead. The bbox is in the <g>'s own coordinates, so it does not change when we move the <g> - this
-    // settles after one correction rather than feeding back on itself.
-    useLayoutEffect(() => {
-        const container = treeContainerRef.current;
-        if (!container || !containerSize || containerSize.width === 0) return;
-
-        const group = container.querySelector<SVGGraphicsElement>('g.rd3t-g');
-        if (!group) return;
-
-        const box = group.getBBox();
-        if (box.width === 0 && box.height === 0) return;
-
-        const contentHeight = box.height * TREE_ZOOM;
-        const next = {
-            x: containerSize.width / 2 - (box.x + box.width / 2) * TREE_ZOOM,
-            // Centre vertically too, but never push the root below a comfortable top padding
-            y: Math.max(TREE_TOP_PADDING, (containerSize.height - contentHeight) / 2) - box.y * TREE_ZOOM,
-        };
-
-        setTranslate((prev) => (Math.abs(prev.x - next.x) < 1 && Math.abs(prev.y - next.y) < 1 ? prev : next));
-    }, [containerSize, treeData, centerKey, editable]);
-
-    const movingBommel = movingBommelId !== null ? tree.find((n) => n.id === movingBommelId) : null;
-
-    const handleCenterTree = useCallback(() => {
-        setCenterKey((prev) => prev + 1);
+    const setExpanded = useCallback((nodeId: number, expanded: boolean) => {
+        setToggled((prev) => new Map(prev).set(nodeId, expanded));
     }, []);
-
-    const handleEdit = useCallback(
-        async (nodeId: number, newName: string, newEmoji?: string) => {
-            if (onEdit) {
-                const success = await onEdit(nodeId, newName, newEmoji);
-                if (success) {
-                    forceUpdate({});
-                }
-                return success;
-            }
-            return false;
-        },
-        [onEdit]
-    );
-
-    const handleDelete = useCallback(
-        async (nodeId: number) => {
-            if (onDelete) {
-                const success = await onDelete(nodeId);
-                if (success) {
-                    forceUpdate({});
-                }
-                return success;
-            }
-            return false;
-        },
-        [onDelete]
-    );
 
     const handleAddChild = useCallback(
         async (nodeId: number) => {
-            if (onAddChild) {
-                const result = await onAddChild(nodeId);
-                if (result) {
-                    forceUpdate({});
-                    if (typeof result === 'number') {
-                        setAutoEditNodeId(result);
-                    }
-                }
-                return result;
+            if (!onAddChild) return false;
+            // Open the parent so the new card (which starts in name edit) is visible
+            setExpanded(nodeId, true);
+            const result = await onAddChild(nodeId);
+            if (typeof result === 'number') {
+                setAutoEditNodeId(result);
             }
-            return false;
+            return result;
         },
-        [onAddChild]
+        [onAddChild, setExpanded]
     );
 
-    const handleMoveClick = useCallback((nodeId: number) => {
-        setMovingBommelId(nodeId);
-    }, []);
-
-    const handleMoveConfirm = useCallback(
-        async (newParentId: number) => {
-            if (onMove && movingBommelId !== null) {
-                const success = await onMove(movingBommelId, newParentId);
-                if (success) {
-                    forceUpdate({});
-                }
-            }
-            setMovingBommelId(null);
-        },
-        [onMove, movingBommelId]
-    );
-
-    const handleMoveCancel = useCallback(() => {
-        setMovingBommelId(null);
-    }, []);
-
-    const renderCustomNodeElement = useCallback(
-        ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
-            const nodeId = nodeDatum.attributes?.id as number;
-            const isBeingDragged = dragState.isDragging && dragState.draggedNodeId === nodeId;
-            const isDraggedOver = dragState.isDragging && dragState.hoverTargetId === nodeId;
-            const isValidDropTarget = dragState.isDragging && dragState.hoverTargetId === nodeId ? !dragState.invalidTargetIds.has(nodeId) : undefined;
-            const shouldAutoEdit = autoEditNodeId === nodeId;
+    const renderCard = useCallback(
+        (node: TreeNodeData, depth: number, expanded: boolean) => {
+            const nodeId = node.attributes?.id as number;
+            const isHoverTarget = dragState.isDragging && dragState.hoverTargetId === nodeId;
 
             return (
-                <g>
-                    <foreignObject
-                        x={editable ? -120 : -100}
-                        y={editable ? -38 : -45}
-                        width={editable ? 240 : 200}
-                        height={editable ? 76 : 90}
-                        style={{ overflow: 'visible' }}
-                    >
-                        <BommelCard
-                            nodeDatum={nodeDatum}
-                            toggleNode={toggleNode}
-                            onNodeClick={onNodeClick}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                            onAddChild={handleAddChild}
-                            onMove={onMove ? handleMoveClick : undefined}
-                            editable={editable}
-                            autoEdit={shouldAutoEdit}
-                            dragDropEnabled={dragDropEnabled}
-                            isBeingDragged={isBeingDragged}
-                            isDraggedOver={isDraggedOver}
-                            isValidDropTarget={isValidDropTarget}
-                            onDragStart={dragDropEnabled ? startDrag : undefined}
-                            onDragEnter={dragState.isDragging ? setHoverTarget : undefined}
-                            onDragLeave={dragState.isDragging ? clearHoverTarget : undefined}
-                        />
-                    </foreignObject>
-                </g>
+                <BommelCard
+                    node={node}
+                    depth={depth}
+                    expanded={expanded}
+                    fullWidth={vertical}
+                    onToggle={() => setExpanded(nodeId, !expanded)}
+                    selected={selectedId === nodeId}
+                    onNodeClick={onNodeClick}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onAddChild={handleAddChild}
+                    editable={editable}
+                    autoEdit={autoEditNodeId === nodeId}
+                    dragDropEnabled={dragDropEnabled}
+                    isBeingDragged={dragState.isDragging && dragState.draggedNodeId === nodeId}
+                    isDraggedOver={isHoverTarget}
+                    isValidDropTarget={isHoverTarget ? !dragState.invalidTargetIds.has(nodeId) : undefined}
+                    onDragStart={dragDropEnabled ? startDrag : undefined}
+                />
             );
         },
-        [
-            editable,
-            dragDropEnabled,
-            dragState,
-            autoEditNodeId,
-            handleEdit,
-            handleDelete,
-            handleAddChild,
-            handleMoveClick,
-            onNodeClick,
-            onMove,
-            startDrag,
-            setHoverTarget,
-            clearHoverTarget,
-        ]
+        [dragState, selectedId, onNodeClick, onEdit, onDelete, handleAddChild, editable, autoEditNodeId, dragDropEnabled, startDrag, setExpanded, vertical]
     );
 
     if (!treeData) {
-        return <EmptyState title={t('organization.structure.noData')} description={t('organization.structure.addItems')} />;
+        return <EmptyState title={t('bommel.noData')} description={t('bommel.addItems')} />;
     }
+
+    const rootId = treeData.attributes?.id as number;
+    const rootIsEmpty = !treeData.children?.length;
+    const canAddFirst = rootIsEmpty && !!onAddChild && (editable || !!onRequestEdit);
+
+    const layout = vertical ? 'vertical' : 'horizontal';
+    const content = rootIsEmpty ? (
+        <div className={cn('flex flex-col', !vertical && 'items-center')}>
+            {renderCard(treeData, 0, true)}
+            {canAddFirst && (
+                <>
+                    <Connector className={cn(vertical && 'ml-5')} />
+                    <button
+                        type="button"
+                        onClick={() => (editable ? handleAddChild(rootId) : onRequestEdit?.())}
+                        className={cn(
+                            'flex items-center justify-center gap-2 px-[15px] py-[18px] rounded-2xl border-2 border-dashed border-purple-500 bg-[var(--accent-surface)] text-purple-600 text-[14px] font-extrabold',
+                            vertical ? 'w-full' : 'w-[224px]'
+                        )}
+                    >
+                        <Plus className="w-[17px] h-[17px]" strokeWidth={2.4} aria-hidden="true" />
+                        {t('bommel.addSibling')}
+                    </button>
+                </>
+            )}
+        </div>
+    ) : (
+        <BommelBranch node={treeData} depth={0} layout={layout} pathIds={pathIds} isExpanded={isExpanded} renderCard={renderCard} />
+    );
+
+    const controlClass =
+        'w-8 h-8 grid place-items-center text-muted-foreground hover:text-foreground hover:bg-[var(--surface-sunken)] disabled:opacity-40 disabled:pointer-events-none';
 
     return (
         <div
-            ref={treeContainerRef}
-            className={`w-full h-full border border-border-soft shadow-card rounded-[30px] bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[var(--purple-50)] dark:to-[var(--purple-100)] relative ${dragState.isDragging ? 'select-none' : ''}`}
-            style={height ? { height } : undefined}
+            ref={attachContainer}
+            className={cn(
+                'relative font-hanken rounded-[18px] border border-border-soft bg-[var(--surface-sunken)]',
+                // Horizontal: a pan/zoom surface. `contain: size` keeps the tree out of the page's height calculation,
+                // so the canvas takes the height the page gives it (at least 420px) instead of growing with the tree.
+                vertical
+                    ? 'px-3 pt-4 pb-5'
+                    : cn('min-h-[420px] overflow-hidden [contain:size] touch-none select-none', viewport.isPanning ? 'cursor-grabbing' : 'cursor-grab'),
+                dragState.isDragging && 'select-none',
+                className
+            )}
+            {...(vertical ? {} : viewport.handlers)}
         >
-            {/* Center tree button */}
-            <button
-                type="button"
-                onClick={handleCenterTree}
-                className="absolute top-3 right-3 z-10 bg-white dark:bg-[var(--purple-100)] border border-gray-300 dark:border-gray-700 rounded-lg p-2 shadow-sm hover:bg-gray-50 dark:hover:bg-[var(--purple-200)] hover:shadow-md transition-all"
-                title={t('organization.structure.centerTree')}
-                aria-label={t('organization.structure.centerTree')}
-            >
-                <Crosshair className="w-4 h-4 text-gray-600 dark:text-gray-300" aria-hidden="true" />
-            </button>
+            {vertical ? (
+                content
+            ) : (
+                <>
+                    <div
+                        ref={treeRef}
+                        className="absolute left-0 top-0 w-max origin-top-left"
+                        // Hidden for the first frame, until the canvas and the tree have been measured and the fit is known
+                        style={{ transform: viewport.transform, visibility: viewport.ready ? undefined : 'hidden' }}
+                    >
+                        {content}
+                    </div>
 
-            <div className="w-full h-full overflow-hidden">
-                <Tree
-                    key={centerKey}
-                    data={treeData}
-                    orientation="vertical"
-                    translate={translate}
-                    pathFunc="step"
-                    nodeSize={{ x: editable ? 280 : 240, y: editable ? 116 : 140 }}
-                    renderCustomNodeElement={renderCustomNodeElement}
-                    separation={{ siblings: 1, nonSiblings: 1.2 }}
-                    zoom={TREE_ZOOM}
-                    scaleExtent={{ min: 0.3, max: 2 }}
-                    enableLegacyTransitions={false}
-                    collapsible={true}
-                    depthFactor={depthFactor}
-                    pathClassFunc={() => 'tree-link'}
-                    hasInteractiveNodes={dragDropEnabled}
-                    draggable={!dragState.isDragging}
-                />
-            </div>
-            <TreeStyles />
+                    <div className="absolute top-3 right-3 z-20 flex flex-col divide-y divide-border-soft overflow-hidden rounded-[10px] border border-border-soft bg-background-secondary shadow-[var(--shadow-sm)]">
+                        <button
+                            type="button"
+                            onClick={viewport.zoomIn}
+                            disabled={!viewport.canZoomIn}
+                            className={controlClass}
+                            title={t('bommel.zoomIn')}
+                            aria-label={t('bommel.zoomIn')}
+                        >
+                            <Plus className="w-4 h-4" aria-hidden="true" />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={viewport.zoomOut}
+                            disabled={!viewport.canZoomOut}
+                            className={controlClass}
+                            title={t('bommel.zoomOut')}
+                            aria-label={t('bommel.zoomOut')}
+                        >
+                            <Minus className="w-4 h-4" aria-hidden="true" />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={viewport.center}
+                            className={controlClass}
+                            title={t('bommel.centerTree')}
+                            aria-label={t('bommel.centerTree')}
+                        >
+                            <Crosshair className="w-4 h-4" aria-hidden="true" />
+                        </button>
+                    </div>
+                </>
+            )}
 
-            {/* Drag Ghost Overlay */}
             {dragState.isDragging && (
                 <DragGhostOverlay
                     name={dragState.draggedNodeName}
@@ -307,19 +287,6 @@ function BommelTreeComponent({
                     x={dragState.pointerX}
                     y={dragState.pointerY}
                     isValidTarget={dragState.hoverTargetId !== null ? !dragState.invalidTargetIds.has(dragState.hoverTargetId) : null}
-                />
-            )}
-
-            {/* Move Bommel Dialog */}
-            {movingBommel && (
-                <MoveBommelDialog
-                    open={movingBommelId !== null}
-                    bommelId={movingBommelId!}
-                    bommelName={movingBommel.text}
-                    currentParentId={movingBommel.parent}
-                    allBommels={tree}
-                    onConfirm={handleMoveConfirm}
-                    onCancel={handleMoveCancel}
                 />
             )}
         </div>

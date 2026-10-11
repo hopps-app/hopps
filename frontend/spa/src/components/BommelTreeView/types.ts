@@ -1,5 +1,4 @@
 import { Bommel } from '@hopps/api-client';
-import { RawNodeDatum } from 'react-d3-tree';
 
 export interface TreeNodeData {
     name: string;
@@ -12,34 +11,40 @@ export interface TreeNodeData {
         expenses?: number;
         transactionsCount?: number;
         isRoot?: boolean;
-        isLastSibling?: boolean;
         parentId?: number;
     };
     children?: TreeNodeData[];
 }
 
 export interface BommelTreeComponentProps {
-    tree: import('@/components/OrganizationStructureTree/OrganizationTreeNodeModel').OrganizationTreeNodeModel[];
+    tree: import('@/components/BommelTreeView/BommelTreeNodeModel').BommelTreeNodeModel[];
     rootBommel?: Bommel | null;
     editable?: boolean;
     dragDropEnabled?: boolean;
+    selectedId?: number | null;
     onNodeClick?: (nodeData: TreeNodeData) => void;
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
     onAddChild?: (nodeId: number) => Promise<number | boolean>;
     onMove?: (nodeId: number, newParentId: number) => Promise<boolean>;
-    width?: number;
-    height?: number;
+    /** Called from the "add Bommel" placeholder under an empty root while not in edit mode */
+    onRequestEdit?: () => void;
+    /** Extra classes for the canvas, e.g. `flex-1` to fill the page height */
+    className?: string;
 }
 
 export interface BommelCardProps {
-    nodeDatum: RawNodeDatum;
-    toggleNode: () => void;
+    node: TreeNodeData;
+    depth: number;
+    expanded: boolean;
+    /** Stretch to the container (vertical layout) instead of the fixed per-level widths */
+    fullWidth?: boolean;
+    onToggle: () => void;
+    selected?: boolean;
     onNodeClick?: (nodeData: TreeNodeData) => void;
     onEdit?: (nodeId: number, newName: string, newEmoji?: string) => Promise<boolean>;
     onDelete?: (nodeId: number) => Promise<boolean>;
     onAddChild?: (nodeId: number) => Promise<number | boolean>;
-    onMove?: (nodeId: number) => void;
     editable: boolean;
     autoEdit?: boolean;
     dragDropEnabled?: boolean;
@@ -47,15 +52,12 @@ export interface BommelCardProps {
     isDraggedOver?: boolean;
     isValidDropTarget?: boolean;
     onDragStart?: (nodeId: number, name: string, emoji: string, parentId: number, clientX: number, clientY: number) => void;
-    onDragEnter?: (nodeId: number) => void;
-    onDragLeave?: (nodeId: number) => void;
 }
 
 export interface BommelCardStatsProps {
     total: number;
     income: number;
     expenses: number;
-    transactionsCount: number;
     isRoot?: boolean;
 }
 

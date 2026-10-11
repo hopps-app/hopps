@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 
 interface DragState {
     isDragging: boolean;
@@ -31,7 +31,7 @@ const initialState: DragState = {
     invalidTargetIds: new Set(),
 };
 
-function getDescendantIds(parentId: number, allBommels: OrganizationTreeNodeModel[]): Set<number> {
+function getDescendantIds(parentId: number, allBommels: BommelTreeNodeModel[]): Set<number> {
     const ids = new Set<number>();
     const children = allBommels.filter((b) => b.parent === parentId);
     children.forEach((child) => {
@@ -42,7 +42,7 @@ function getDescendantIds(parentId: number, allBommels: OrganizationTreeNodeMode
     return ids;
 }
 
-export function useBommelDragDrop(allBommels: OrganizationTreeNodeModel[]) {
+export function useBommelDragDrop(allBommels: BommelTreeNodeModel[]) {
     const [dragState, setDragState] = useState<DragState>(initialState);
     const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
     const pendingDragRef = useRef<{ nodeId: number; name: string; emoji: string; parentId: number } | null>(null);
@@ -90,12 +90,8 @@ export function useBommelDragDrop(allBommels: OrganizationTreeNodeModel[]) {
         [allBommels]
     );
 
-    const setHoverTarget = useCallback((targetId: number) => {
-        setDragState((prev) => (prev.isDragging ? { ...prev, hoverTargetId: targetId } : prev));
-    }, []);
-
-    const clearHoverTarget = useCallback((targetId: number) => {
-        setDragState((prev) => (prev.isDragging && prev.hoverTargetId === targetId ? { ...prev, hoverTargetId: null } : prev));
+    const setHoverTarget = useCallback((targetId: number | null) => {
+        setDragState((prev) => (prev.isDragging && prev.hoverTargetId !== targetId ? { ...prev, hoverTargetId: targetId } : prev));
     }, []);
 
     const endDrag = useCallback((): DragResult | null => {
@@ -125,7 +121,6 @@ export function useBommelDragDrop(allBommels: OrganizationTreeNodeModel[]) {
         startDrag,
         updateDrag,
         setHoverTarget,
-        clearHoverTarget,
         endDrag,
         cancelDrag,
         hasPendingDrag,

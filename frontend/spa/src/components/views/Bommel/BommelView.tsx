@@ -4,19 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { BommelDetailsPanel } from './components';
-import { useOrganizationTree, useTreeCalculations, useStatistics, useDemoTree } from './hooks';
+import { useBommelTree, useTreeCalculations, useStatistics, useDemoTree } from './hooks';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
-import OrganizationTree from '@/components/OrganizationStructureTree/OrganizationTree';
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import Button from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Switch from '@/components/ui/Switch';
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 
-function OrganizationSettingsView() {
+function BommelView() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     usePageTitle(t('menu.structure'));
@@ -26,7 +24,7 @@ function OrganizationSettingsView() {
     const [isEditMode, setIsEditMode] = useState(() => searchParams.get('edit') === '1');
     const [isDragDropMode, setIsDragDropMode] = useState(false);
     const [isDemoMode, setIsDemoMode] = useState(false);
-    const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
+    const [selectedBommel, setSelectedBommel] = useState<BommelTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const initialSelectionDone = useRef(false);
@@ -39,16 +37,14 @@ function OrganizationSettingsView() {
         }
     }, [searchParams, setSearchParams]);
 
-    const isLargeScreen = useMediaQuery('(min-width: 1024px)');
-
     const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
 
-    const realTreeData = useOrganizationTree({ bommelStats });
+    const realTreeData = useBommelTree({ bommelStats });
     const demoTreeData = useDemoTree();
 
     // Select data source based on demo mode
     const activeData = isDemoMode ? demoTreeData : realTreeData;
-    const { isOrganizationError, isLoading, rootBommel, tree, createTreeNode, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } = activeData;
+    const { isOrganizationError, isLoading, rootBommel, tree, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } = activeData;
 
     const { countSubBommels } = useTreeCalculations(tree);
 
@@ -99,7 +95,7 @@ function OrganizationSettingsView() {
 
     // Update URL when Bommel is selected (by user click, not initial URL load)
     const selectBommelAndUpdateUrl = useCallback(
-        (node: OrganizationTreeNodeModel | null) => {
+        (node: BommelTreeNodeModel | null) => {
             setSelectedBommel(node);
             setBommelNotFound(false);
             if (node && !isDemoMode) {
@@ -109,14 +105,6 @@ function OrganizationSettingsView() {
             }
         },
         [setSearchParams, isDemoMode]
-    );
-
-    const handleBommelSelect = useCallback(
-        (nodeId: number) => {
-            const node = tree.find((n) => n.id === nodeId);
-            selectBommelAndUpdateUrl(node || null);
-        },
-        [tree, selectBommelAndUpdateUrl]
     );
 
     const handleNavigateToReceipts = useCallback(() => {
@@ -206,7 +194,7 @@ function OrganizationSettingsView() {
                         />
                     </svg>
                 </div>
-                <p className="text-destructive font-medium">{t('organization.settings.error')}</p>
+                <p className="text-destructive font-medium">{t('bommel.loadError')}</p>
                 <button
                     onClick={() => window.location.reload()}
                     className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted"
@@ -228,7 +216,7 @@ function OrganizationSettingsView() {
                 {isDemoMode && (
                     <div className="flex items-center gap-2 px-4 py-2.5 mb-4 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 text-sm">
                         <Info className="w-4 h-4 flex-shrink-0" />
-                        <span>{t('organization.structure.demoBanner')}</span>
+                        <span>{t('bommel.demoBanner')}</span>
                     </div>
                 )}
 
@@ -236,20 +224,16 @@ function OrganizationSettingsView() {
                     {/* Left Side - Structure Views */}
                     <div className={`${isSidebarOpen ? 'xl:col-span-3' : 'xl:col-span-1'} flex flex-col min-h-0`}>
                         <div className="flex items-center justify-end mb-4 flex-shrink-0">
-                            <div className="flex items-center gap-4">
-                                <Switch label={t('organization.structure.demoMode')} checked={isDemoMode} onCheckedChange={handleDemoModeChange} />
+                            <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+                                <Switch label={t('bommel.demoMode')} checked={isDemoMode} onCheckedChange={handleDemoModeChange} />
                                 {!isEditMode && !isDemoMode && (
                                     <>
                                         <Switch
-                                            label={t('organization.structure.includeDrafts')}
+                                            label={t('bommel.includeDrafts')}
                                             checked={statisticsOptions.includeDrafts}
                                             onCheckedChange={setIncludeDrafts}
                                         />
-                                        <Switch
-                                            label={t('organization.structure.aggregate')}
-                                            checked={statisticsOptions.aggregate}
-                                            onCheckedChange={setAggregate}
-                                        />
+                                        <Switch label={t('bommel.aggregate')} checked={statisticsOptions.aggregate} onCheckedChange={setAggregate} />
                                     </>
                                 )}
                                 {isEditMode && !isDemoMode && (
@@ -257,10 +241,10 @@ function OrganizationSettingsView() {
                                         {isDragDropMode && (
                                             <span className="text-sm text-blue-600 flex items-center gap-1.5">
                                                 <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                                                {t('organization.structure.dragDropHint')}
+                                                {t('bommel.dragDropHint')}
                                             </span>
                                         )}
-                                        <Switch label={t('organization.structure.dragDrop')} checked={isDragDropMode} onCheckedChange={setIsDragDropMode} />
+                                        <Switch label={t('bommel.dragDrop')} checked={isDragDropMode} onCheckedChange={setIsDragDropMode} />
                                     </>
                                 )}
                                 {!isDemoMode && (
@@ -273,17 +257,15 @@ function OrganizationSettingsView() {
                                             if (!newEditMode) setIsDragDropMode(false);
                                         }}
                                     >
-                                        {isEditMode ? t('organization.structure.done') : t('organization.structure.edit')}
+                                        {isEditMode ? t('bommel.done') : t('bommel.edit')}
                                     </Button>
                                 )}
                                 <button
                                     type="button"
                                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                                     className="hidden xl:flex items-center justify-center p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                    title={isSidebarOpen ? t('organization.structure.details.hideDetails') : t('organization.structure.details.showDetails')}
-                                    aria-label={
-                                        isSidebarOpen ? t('organization.structure.details.hideDetails') : t('organization.structure.details.showDetails')
-                                    }
+                                    title={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
+                                    aria-label={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
                                 >
                                     {isSidebarOpen ? (
                                         <PanelRightClose className="w-4 h-4 text-gray-600" />
@@ -294,33 +276,21 @@ function OrganizationSettingsView() {
                             </div>
                         </div>
 
-                        {isLargeScreen ? (
-                            <div className="flex-1 min-h-0">
-                                <BommelTreeComponent
-                                    key={`tree-${isDemoMode}-${statisticsOptions.includeDrafts}-${statisticsOptions.aggregate}`}
-                                    tree={tree}
-                                    rootBommel={rootBommel}
-                                    editable={isDemoMode ? false : isEditMode}
-                                    dragDropEnabled={isDemoMode ? false : isDragDropMode}
-                                    onNodeClick={handleTreeNodeClick}
-                                    onEdit={handleEdit}
-                                    onDelete={handleDelete}
-                                    onAddChild={handleAddChild}
-                                    onMove={handleMove}
-                                />
-                            </div>
-                        ) : (
-                            <OrganizationTree
-                                tree={tree}
-                                editable={isDemoMode ? false : isEditMode}
-                                selectable={true}
-                                createNode={createTreeNode}
-                                updateNode={updateTreeNode}
-                                deleteNode={deleteTreeNode}
-                                moveNode={moveTreeNode}
-                                onSelect={handleBommelSelect}
-                            />
-                        )}
+                        <BommelTreeComponent
+                            className="flex-1"
+                            key={`tree-${isDemoMode}`}
+                            tree={tree}
+                            rootBommel={rootBommel}
+                            editable={isDemoMode ? false : isEditMode}
+                            dragDropEnabled={isDemoMode ? false : isDragDropMode}
+                            selectedId={selectedBommel ? Number(selectedBommel.id) : null}
+                            onNodeClick={handleTreeNodeClick}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onAddChild={handleAddChild}
+                            onMove={handleMove}
+                            onRequestEdit={isDemoMode ? undefined : () => setIsEditMode(true)}
+                        />
                     </div>
 
                     {/* Right Side - Selected Bommel Details */}
@@ -333,13 +303,11 @@ function OrganizationSettingsView() {
                                             <AlertCircle className="h-6 w-6 text-destructive" />
                                         </div>
                                         <div>
-                                            <p className="text-destructive font-medium">{t('organization.structure.details.bommelNotFound')}</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                {t('organization.structure.details.bommelNotFoundDescription')}
-                                            </p>
+                                            <p className="text-destructive font-medium">{t('bommel.details.bommelNotFound')}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('bommel.details.bommelNotFoundDescription')}</p>
                                         </div>
                                         <Button variant="outline" onClick={() => setSearchParams({}, { replace: true })}>
-                                            {t('organization.structure.details.backToStructure')}
+                                            {t('bommel.details.backToStructure')}
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -359,4 +327,4 @@ function OrganizationSettingsView() {
     );
 }
 
-export default OrganizationSettingsView;
+export default BommelView;

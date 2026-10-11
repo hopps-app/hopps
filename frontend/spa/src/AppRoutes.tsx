@@ -22,7 +22,7 @@ const RegisterOrganizationView = lazy(() =>
 );
 const DashboardView = lazy(() => import('@/components/views/DashboardView'));
 const SettingsView = lazy(() => import('@/components/views/SettingsView'));
-const OrganizationSettingsView = lazy(() => import('./components/views/OrganizationSettings').then((module) => ({ default: module.OrganizationSettingsView })));
+const BommelView = lazy(() => import('./components/views/Bommel').then((module) => ({ default: module.BommelView })));
 const ReceiptUploadView = lazy(() => import('./components/views/ReceiptUpload').then((module) => ({ default: module.ReceiptUploadView })));
 const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
 const CategoryGroupsView = lazy(() => import('./components/views/CategoryGroupsView'));
@@ -106,7 +106,7 @@ export default function AppRoutes() {
                     path="/structure"
                     element={
                         <LazyRoute>
-                            <OrganizationSettingsView />
+                            <BommelView />
                         </LazyRoute>
                     }
                 />

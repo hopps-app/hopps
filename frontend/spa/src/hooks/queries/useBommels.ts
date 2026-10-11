@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
-import organizationTreeService from '@/services/OrganisationTreeService';
+import bommelTreeService from '@/services/BommelTreeService';
 
 export const bommelKeys = {
     all: ['bommels'] as const,
@@ -19,7 +19,7 @@ export const bommelKeys = {
 export function useRootBommel(organizationId: number | undefined) {
     return useQuery({
         queryKey: bommelKeys.root(organizationId ?? 0),
-        queryFn: () => organizationTreeService.ensureRootBommelCreated(organizationId!),
+        queryFn: () => bommelTreeService.ensureRootBommelCreated(organizationId!),
         enabled: !!organizationId,
     });
 }
@@ -27,7 +27,7 @@ export function useRootBommel(organizationId: number | undefined) {
 export function useBommels(organizationId: number | undefined) {
     return useQuery({
         queryKey: bommelKeys.listByOrg(organizationId ?? 0),
-        queryFn: () => organizationTreeService.getOrganizationBommels(organizationId!),
+        queryFn: () => bommelTreeService.getOrganizationBommels(organizationId!),
         enabled: !!organizationId,
     });
 }
@@ -35,7 +35,7 @@ export function useBommels(organizationId: number | undefined) {
 export function useBommelsByOrganization(organizationId: number | undefined) {
     return useQuery({
         queryKey: bommelKeys.listByOrg(organizationId ?? 0),
-        queryFn: () => organizationTreeService.getOrganizationBommels(organizationId!),
+        queryFn: () => bommelTreeService.getOrganizationBommels(organizationId!),
         enabled: !!organizationId,
     });
 }
@@ -49,10 +49,10 @@ export function useCreateBommel() {
         mutationFn: (data: { name: string; emoji?: string; parentId: number }) => apiService.orgService.bommelPOST(new Bommel(data)),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
-            showSuccess(t('organization.structure.saveName'));
+            showSuccess(t('bommel.saveName'));
         },
         onError: () => {
-            showError(t('organization.settings.saveError'));
+            showError(t('bommel.saveError'));
         },
     });
 }
@@ -68,10 +68,10 @@ export function useUpdateBommel() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             queryClient.invalidateQueries({ queryKey: bommelKeys.detail(variables.id) });
-            showSuccess(t('organization.structure.saveName'));
+            showSuccess(t('bommel.saveName'));
         },
         onError: () => {
-            showError(t('organization.settings.saveError'));
+            showError(t('bommel.saveError'));
         },
     });
 }
@@ -85,10 +85,10 @@ export function useDeleteBommel() {
         mutationFn: (id: number) => apiService.orgService.bommelDELETE(id, undefined),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
-            showSuccess(t('organization.structure.deleteBommel'));
+            showSuccess(t('bommel.deleteBommel'));
         },
         onError: () => {
-            showError(t('organization.settings.saveError'));
+            showError(t('bommel.saveError'));
         },
     });
 }

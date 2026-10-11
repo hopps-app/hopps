@@ -18,8 +18,8 @@ export function BommelCardActions({ onAddChild, onMove }: BommelCardActionsProps
                     onAddChild();
                 }}
                 className="bg-green-500/80 text-white border-none rounded p-1 cursor-pointer flex items-center hover:bg-green-600 transition-colors"
-                title={t('organization.structure.addChild')}
-                aria-label={t('organization.structure.addChild')}
+                title={t('bommel.addChild')}
+                aria-label={t('bommel.addChild')}
             >
                 <Plus className="w-3 h-3" aria-hidden="true" />
             </button>
@@ -31,8 +31,8 @@ export function BommelCardActions({ onAddChild, onMove }: BommelCardActionsProps
                         onMove();
                     }}
                     className="bg-blue-500/80 text-white border-none rounded p-1 cursor-pointer flex items-center hover:bg-blue-600 transition-colors"
-                    title={t('organization.structure.moveBommel')}
-                    aria-label={t('organization.structure.moveBommel')}
+                    title={t('bommel.moveBommel')}
+                    aria-label={t('bommel.moveBommel')}
                 >
                     <ArrowRight className="w-3 h-3" aria-hidden="true" />
                 </button>

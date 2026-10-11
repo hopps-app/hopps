@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Emoji from '@/components/ui/Emoji';
 
 interface BommelDetailsPanelProps {
-    selectedBommel: OrganizationTreeNodeModel | null;
+    selectedBommel: BommelTreeNodeModel | null;
     subBommelsCount: number;
     onNavigateToReceipts?: () => void;
     onNavigateToTransactions?: () => void;
@@ -18,7 +18,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
     if (!selectedBommel) {
         return (
             <Card className="sticky top-6 h-full bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)] border-border-soft shadow-card">
-                <CardContent className="py-12 text-center text-gray-500 dark:text-gray-400">{t('organization.structure.details.selectBommel')}</CardContent>
+                <CardContent className="py-12 text-center text-gray-500 dark:text-gray-400">{t('bommel.details.selectBommel')}</CardContent>
             </Card>
         );
     }
@@ -39,17 +39,17 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
             <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 border-b border-border-soft pb-4">
                     <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.income')}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('bommel.details.income')}</p>
                         <p className="text-xl text-green-600 dark:text-green-400">+{income.toLocaleString('de-DE')}€</p>
                     </div>
                     <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.expenses')}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('bommel.details.expenses')}</p>
                         <p className="text-xl text-red-600 dark:text-red-400">-{expenses.toLocaleString('de-DE')}€</p>
                     </div>
                 </div>
 
                 <div className="border-b border-border-soft pb-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.total')}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t('bommel.details.total')}</p>
                     <p className={`text-xl ${total >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {total >= 0 ? '+' : ''}
                         {total.toLocaleString('de-DE')}€
@@ -58,11 +58,11 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
 
                 <div className="space-y-2">
                     <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.transactions')}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bommel.details.transactions')}</span>
                         <span className="text-sm text-gray-900 dark:text-gray-100">{transactionsCount}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.subBommels')}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('bommel.details.subBommels')}</span>
                         <span className="text-sm text-gray-900 dark:text-gray-100">{subBommelsCount}</span>
                     </div>
                 </div>
@@ -71,12 +71,12 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                     <div className="flex flex-col gap-2">
                         {onNavigateToReceipts && (
                             <Button onClick={onNavigateToReceipts} className="w-full" variant="default">
-                                {t('organization.structure.details.toReceipts')}
+                                {t('bommel.details.toReceipts')}
                             </Button>
                         )}
                         {onNavigateToTransactions && (
                             <Button onClick={onNavigateToTransactions} className="w-full" variant="secondary">
-                                {t('organization.structure.details.toTransactions')}
+                                {t('bommel.details.toTransactions')}
                             </Button>
                         )}
                     </div>

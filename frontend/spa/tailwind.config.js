@@ -86,6 +86,8 @@ export default {
             },
             fontFamily: {
                 reddit: ['"Reddit Sans"', 'sans-serif'],
+                // hopps "Klar" design system font, used by the screens rebuilt from the design hand-offs
+                hanken: ['"Hanken Grotesk"', '"Reddit Sans"', 'sans-serif'],
             }
         },
     },

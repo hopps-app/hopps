@@ -1,13 +1,13 @@
 import { Bommel, IBommel, TreeSearchBommel } from '@hopps/api-client';
 import * as _ from 'lodash';
 
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel.ts';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import apiService from '@/services/ApiService.ts';
 
 // Emoji-mart id, rendered by the Emoji component. Users can change it in the structure editor.
 export const ROOT_BOMMEL_DEFAULT_EMOJI = 'house';
 
-export class OrganisationTreeService {
+export class BommelTreeService {
     async getOrganizationBommels(organizationId: number): Promise<Bommel[]> {
         const items = await apiService.orgService.bommelsAll(organizationId);
         const bommelsWithDepth: (IBommel & { depth: number })[] = [];
@@ -25,7 +25,7 @@ export class OrganisationTreeService {
         );
     }
 
-    bommelsToTreeNodes(bommels: Bommel[], rootBommelId?: number): OrganizationTreeNodeModel[] {
+    bommelsToTreeNodes(bommels: Bommel[], rootBommelId?: number): BommelTreeNodeModel[] {
         return bommels.map((bommel) => {
             const isRoot = bommel.id === rootBommelId;
             return this.bommelToTreeNode(bommel, bommel.parent?.id && bommel.parent.id !== rootBommelId ? bommel.parent.id : 0, isRoot);
@@ -33,7 +33,7 @@ export class OrganisationTreeService {
     }
 
     protected bommelToTreeNode(bommel: Bommel, parentId?: number, isRoot?: boolean) {
-        const node: OrganizationTreeNodeModel = {
+        const node: BommelTreeNodeModel = {
             id: bommel.id!,
             parent: parentId || 0,
             text: bommel.name ?? '',
@@ -75,5 +75,5 @@ export class OrganisationTreeService {
     }
 }
 
-const organizationTreeService = new OrganisationTreeService();
-export default organizationTreeService;
+const bommelTreeService = new BommelTreeService();
+export default bommelTreeService;

@@ -1,17 +1,16 @@
 import { Bommel, BommelStatistics, BommelStatisticsMap } from '@hopps/api-client';
 import { useMemo } from 'react';
 
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 
-export interface OrganizationTreeData {
+export interface BommelTreeData {
     isOrganizationError: boolean;
     isLoading: boolean;
     rootBommel: Bommel | null;
-    tree: OrganizationTreeNodeModel[];
-    createTreeNode: () => Promise<OrganizationTreeNodeModel | undefined>;
+    tree: BommelTreeNodeModel[];
     createChildBommel: (parentId: number) => Promise<number | boolean>;
-    updateTreeNode: (node: OrganizationTreeNodeModel) => Promise<boolean>;
-    moveTreeNode: (node: OrganizationTreeNodeModel) => Promise<boolean>;
+    updateTreeNode: (node: BommelTreeNodeModel) => Promise<boolean>;
+    moveTreeNode: (node: BommelTreeNodeModel) => Promise<boolean>;
     deleteTreeNode: (id: string | number) => Promise<boolean>;
 }
 
@@ -30,7 +29,7 @@ const DEMO_IDS = {
     WEIHNACHTSFEIER: -11,
 } as const;
 
-function buildDemoTree(): OrganizationTreeNodeModel[] {
+function buildDemoTree(): BommelTreeNodeModel[] {
     return [
         // Root node
         {
@@ -158,7 +157,7 @@ function buildDemoStatistics(): BommelStatisticsMap {
     return statsMap;
 }
 
-export function useDemoTree(): OrganizationTreeData & { bommelStats: BommelStatisticsMap } {
+export function useDemoTree(): BommelTreeData & { bommelStats: BommelStatisticsMap } {
     const tree = useMemo(() => buildDemoTree(), []);
     const rootBommel = useMemo(() => buildDemoRootBommel(), []);
     const bommelStats = useMemo(() => buildDemoStatistics(), []);
@@ -168,10 +167,9 @@ export function useDemoTree(): OrganizationTreeData & { bommelStats: BommelStati
         isLoading: false,
         rootBommel,
         tree,
-        createTreeNode: async (): Promise<OrganizationTreeNodeModel | undefined> => undefined,
         createChildBommel: async (_parentId: number): Promise<number | boolean> => false,
-        updateTreeNode: async (_node: OrganizationTreeNodeModel): Promise<boolean> => false,
-        moveTreeNode: async (_node: OrganizationTreeNodeModel): Promise<boolean> => false,
+        updateTreeNode: async (_node: BommelTreeNodeModel): Promise<boolean> => false,
+        moveTreeNode: async (_node: BommelTreeNodeModel): Promise<boolean> => false,
         deleteTreeNode: async (_id: string | number): Promise<boolean> => false,
         bommelStats,
     };

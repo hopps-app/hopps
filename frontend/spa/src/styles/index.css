@@ -120,6 +120,8 @@
         --shadow-sm: 0 1px 2px rgba(20, 20, 40, 0.05);
         --shadow-md: 0 1px 2px rgba(20, 20, 40, 0.05), 0 6px 22px rgba(20, 20, 40, 0.05);
         --shadow-lg: 0 12px 40px rgba(20, 20, 40, 0.16);
+        /* Selected Bommel card: a purple-tinted lift instead of a ring, so it reads on the pale tree canvas */
+        --shadow-selected: 0 1px 3px rgba(153, 85, 204, 0.14), 0 6px 18px rgba(153, 85, 204, 0.2);
         --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
         --dur-fast: 0.12s;
         --dur-mid: 0.2s;
@@ -213,6 +215,7 @@
         --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
         --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 26px rgba(0, 0, 0, 0.35);
         --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
+        --shadow-selected: 0 1px 4px rgba(0, 0, 0, 0.45), 0 6px 20px rgba(181, 130, 224, 0.24);
         --radius: 8px;
         --radius-l: 16px;
         --font: 16px;

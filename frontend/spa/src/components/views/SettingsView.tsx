@@ -7,7 +7,7 @@ import OrganizationDetailsSettingsView from './OrganizationDetailsSettingsView';
 
 import { MenuItem } from '@/components/SettingsPage/MenuItem.ts';
 import SettingsPage from '@/components/SettingsPage/SettingsPage.tsx';
-import { OrganizationSettingsView } from '@/components/views/OrganizationSettings';
+import { BommelView } from '@/components/views/Bommel';
 import ProfileSettingsView from '@/components/views/ProfileSettingsView.tsx';
 import languageService from '@/services/LanguageService.ts';
 
@@ -44,7 +44,7 @@ function SettingsView() {
         <SettingsPage menu={navigationItems} activeTab={activeTab} onActiveTabChanged={navigateTo}>
             {activeTab === 'profile' && <ProfileSettingsView />}
             {activeTab === 'ngo-details' && <OrganizationDetailsSettingsView />}
-            {activeTab === 'organization' && <OrganizationSettingsView />}
+            {activeTab === 'organization' && <BommelView />}
             {activeTab === 'invoices' && <InvoicesView />}
         </SettingsPage>
     );
