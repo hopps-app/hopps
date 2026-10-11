@@ -76,6 +76,24 @@ public class DocumentRepository implements PanacheRepository<Document> {
     }
 
     /**
+     * Finds the not yet confirmed receipts uploaded onto a bank transaction, within the current organization, oldest
+     * first.
+     *
+     * @param bankTxId
+     *            The bank transaction ID
+     *
+     * @return the receipts waiting to be confirmed for this bank transaction
+     */
+    public List<Document> findPendingForBankTransaction(Long bankTxId) {
+        Long orgId = organizationContext.getCurrentOrganizationId();
+        if (orgId == null) {
+            return List.of();
+        }
+        return find("pendingBankTransactionId = ?1 and organization.id = ?2 ORDER BY createdAt", bankTxId, orgId)
+                .list();
+    }
+
+    /**
      * Finds an existing document with the same file content hash in the current organization. Used to detect and reject
      * duplicate uploads of the same receipt file.
      *

@@ -202,6 +202,30 @@ public class BankTransactionResource {
         return Response.status(Response.Status.CREATED).entity(response).build();
     }
 
+    @GET
+    @Path("/{id}/receipts")
+    @Operation(summary = "List the pending receipts of a bank transaction", description = "Returns the receipts uploaded onto this bank transaction that are not confirmed yet. Confirming one creates its transaction and matches it to this bank transaction.")
+    @APIResponse(responseCode = "200", description = "Pending receipts, oldest first", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse[].class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank transaction not found")
+    public List<DocumentResponse> listPendingReceipts(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id) {
+        return receiptService.listPendingReceipts(id);
+    }
+
+    @DELETE
+    @Path("/{id}/receipts/{documentId}")
+    @Operation(summary = "Detach a pending receipt from a bank transaction", description = "Removes the pending link of a not yet confirmed receipt to this bank transaction. The receipt itself is kept.")
+    @APIResponse(responseCode = "204", description = "Receipt detached")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "No pending receipt with this id on the bank transaction")
+    public Response detachPendingReceipt(
+            @PathParam("id") @Parameter(description = "Bank transaction ID") Long id,
+            @PathParam("documentId") @Parameter(description = "Document ID of the pending receipt") Long documentId) {
+        receiptService.detachPendingReceipt(id, documentId);
+        return Response.noContent().build();
+    }
+
     @DELETE
     @Path("/{id}/matches/{transactionId}")
     @Operation(summary = "Unlink a bank transaction from a hopps transaction", description = "Removes a match between the bank transaction and the bookkeeping transaction.")

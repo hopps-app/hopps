@@ -171,14 +171,58 @@ public class BankTransactionReceiptService {
             return;
         }
         document.setPendingBankTransactionId(null);
-        if (pendingBankTransaction(bankTxId) == null) {
+        BankTransaction bankTx = pendingBankTransaction(bankTxId);
+        if (bankTx == null) {
             LOG.info("Pending bank transaction of receipt is gone or ignored, not matching: documentId={}, bankTxId={}",
                     document.getId(), bankTxId);
             return;
         }
-        matchService.addMatch(bankTxId, transaction.getId(), username);
+        matchService.addMatch(bankTxId, transaction.getId(), username, allocationForOpenRest(bankTx, transaction));
         LOG.info("Matched confirmed receipt to its bank transaction: documentId={}, transactionId={}, bankTxId={}",
                 document.getId(), transaction.getId(), bankTxId);
+    }
+
+    /**
+     * Lists the receipts uploaded onto a bank transaction that are not confirmed yet.
+     */
+    public List<DocumentResponse> listPendingReceipts(Long bankTxId) {
+        if (bankTransactionRepository.findByIdScoped(bankTxId) == null) {
+            throw new NotFoundException("Bank transaction not found");
+        }
+        return documentRepository.findPendingForBankTransaction(bankTxId).stream().map(DocumentResponse::from).toList();
+    }
+
+    /**
+     * Detaches a not yet confirmed receipt from the bank transaction it was uploaded onto. The receipt itself stays and
+     * can be confirmed like any other; it is just no longer matched to this bank transaction on confirm.
+     */
+    @Transactional
+    public void detachPendingReceipt(Long bankTxId, Long documentId) {
+        Document document = documentRepository.findByIdScoped(documentId);
+        if (document == null || !bankTxId.equals(document.getPendingBankTransactionId())) {
+            throw new NotFoundException("No pending receipt with this id on the bank transaction");
+        }
+        document.setPendingBankTransactionId(null);
+        documentChangedEvent.fire(new DocumentChangedEvent(document.getId(), document.getOrganization().getId()));
+    }
+
+    /**
+     * The allocation for a confirmed receipt's transaction: as much as it needs, but no more than what is still open on
+     * the bank transaction, so a second receipt on the same movement only takes the rest. Returns null (the default,
+     * full allocation) when that is not smaller than the default anyway, or nothing is open any more.
+     */
+    private BigDecimal allocationForOpenRest(BankTransaction bankTx, Transaction transaction) {
+        if (bankTx.getAmount() == null || transaction.getTotal() == null) {
+            return null;
+        }
+        BigDecimal magnitude = bankTx.getAmount().abs();
+        BigDecimal allocated = matchService.getAllocationsByTransactionForBankTransaction(bankTx.id)
+                .values()
+                .stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal open = magnitude.subtract(allocated);
+        BigDecimal defaultAllocation = transaction.getTotal().abs().min(magnitude);
+        return open.signum() > 0 && open.compareTo(defaultAllocation) < 0 ? open : null;
     }
 
     private BankTransaction pendingBankTransaction(Long bankTxId) {

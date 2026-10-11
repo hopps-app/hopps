@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -193,6 +194,87 @@ class BankTransactionReceiptTest {
                 .statusCode(200)
                 .body("status", is("IGNORED"))
                 .body("matchedTransactionIds", empty());
+    }
+
+    @Test
+    void secondReceiptOnlyTakesTheOpenRest() {
+        long first = uploadReceipt();
+        long second = uploadReceipt();
+        setTotal(first, "30.00");
+        setTotal(second, "40.00");
+
+        Integer firstTx = confirm(first);
+        Integer secondTx = confirm(second);
+
+        // -50.00 movement: the first receipt takes 30.00, the second only the 20.00 still open (not its 40.00).
+        given()
+                .when()
+                .get("/bank-transactions/{id}/matches", bankTxId)
+                .then()
+                .statusCode(200)
+                .body("find { it.transactionId == " + firstTx + " }.amount", is(30.0f))
+                .body("find { it.transactionId == " + secondTx + " }.amount", is(20.0f));
+
+        given()
+                .when()
+                .get("/bank-transactions/{id}", bankTxId)
+                .then()
+                .body("status", is("FULLY_MATCHED"));
+    }
+
+    @Test
+    void pendingReceiptsAreListedUntilConfirmedOrDetached() {
+        long confirmed = uploadReceipt();
+        long detached = uploadReceipt();
+        long pending = uploadReceipt();
+
+        given()
+                .when()
+                .get("/bank-transactions/{id}/receipts", bankTxId)
+                .then()
+                .statusCode(200)
+                .body("id", contains((int) confirmed, (int) detached, (int) pending));
+
+        confirm(confirmed);
+        given().when().delete("/bank-transactions/{id}/receipts/{docId}", bankTxId, detached).then().statusCode(204);
+
+        given()
+                .when()
+                .get("/bank-transactions/{id}/receipts", bankTxId)
+                .then()
+                .statusCode(200)
+                .body("id", contains((int) pending));
+
+        // The detached receipt is kept, just no longer pending on the bank transaction.
+        given()
+                .when()
+                .get("/documents/{id}", detached)
+                .then()
+                .statusCode(200)
+                .body("pendingBankTransactionId", nullValue());
+
+        // Detaching a receipt that is not pending on this bank transaction is a 404.
+        given().when().delete("/bank-transactions/{id}/receipts/{docId}", bankTxId, detached).then().statusCode(404);
+    }
+
+    private void setTotal(long documentId, String total) {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"total\": " + total + ", \"direction\": \"INCOMING\"}")
+                .when()
+                .patch("/documents/{id}", documentId)
+                .then()
+                .statusCode(200);
+    }
+
+    private Integer confirm(long documentId) {
+        return given()
+                .when()
+                .post("/documents/{id}/confirm", documentId)
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("transactionId");
     }
 
     private long uploadReceipt() {
