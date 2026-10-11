@@ -253,7 +253,7 @@ function BommelTreeComponent({
         <div
             ref={attachContainer}
             className={cn(
-                'relative font-hanken rounded-[18px] border border-border-soft bg-[var(--surface-sunken)]',
+                'relative font-hanken rounded-[18px] border border-border-soft bg-[var(--surface-sunken)] shadow-[var(--shadow-sm)]',
                 // Horizontal: a pan/zoom surface. `contain: size` keeps the tree out of the page's height calculation,
                 // so the canvas takes the height the page gives it (at least 420px) instead of growing with the tree.
                 vertical
