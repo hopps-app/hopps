@@ -1,27 +1,12 @@
 import { BankAccountResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import {
-    ArrowLeftRight,
-    Check,
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    ChevronUp,
-    Clock,
-    Edit,
-    Landmark,
-    Link2,
-    Plus,
-    Search,
-    Trash2,
-    Unlink,
-    Upload,
-} from 'lucide-react';
+import { ArrowLeftRight, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Landmark, Plus, Search, Trash2, Unlink, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
+import { BANK_STATUS_STYLE, BankStatusBadge, type BankTransactionStatusValue } from '@/components/BankAccounts/BankStatusBadge';
 import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
@@ -67,68 +52,15 @@ function AccountDot({ color }: { color?: string }) {
     return <span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color || 'var(--color-primary)' }} />;
 }
 
-function StatusPill({ status }: { status?: string }) {
-    const { t } = useTranslation();
-    if (status === 'FULLY_MATCHED') {
-        return (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                <Link2 className="w-3 h-3" />
-                {t('konten.status.matched')}
-            </span>
-        );
-    }
-    if (status === 'PARTIALLY_MATCHED') {
-        return (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                <Link2 className="w-3 h-3" />
-                {t('konten.status.partial')}
-            </span>
-        );
-    }
-    if (status === 'IGNORED') {
-        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">{t('konten.status.ignored')}</span>;
-    }
-    // UNMATCHED / default
-    return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-            <Clock className="w-3 h-3" />
-            {t('konten.status.open')}
-        </span>
-    );
-}
-
-function SignedAmount({
-    amount,
-    currency,
-    size = 'base',
-    matchedAmount,
-}: {
-    amount: number | undefined;
-    currency?: string;
-    size?: 'sm' | 'base' | 'lg';
-    matchedAmount?: number;
-}) {
+function SignedAmount({ amount, currency, size = 'base' }: { amount: number | undefined; currency?: string; size?: 'sm' | 'base' | 'lg' }) {
     const { format } = useCurrency();
-    const { t } = useTranslation();
     const total = amount ?? 0;
-    // matchedAmount is the SIGNED net coverage (income + / expense −); the still-open amount is |total − matched|, so
-    // an income transaction assigned to an expense movement does not reduce it.
-    const matched = matchedAmount ?? 0;
-    const open = Math.abs(total - matched);
-    const partiallyMatched = matched !== 0 && open > 0.005;
     const pos = total >= 0;
     const sizeClass = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-sm' : 'text-base';
     return (
-        <span className="inline-flex flex-col items-end leading-tight">
-            <span className={cn('font-bold tabular-nums whitespace-nowrap', sizeClass, pos ? 'text-emerald-600' : 'text-foreground')}>
-                {pos ? '+ ' : '– '}
-                {format(Math.abs(total), { currency })}
-            </span>
-            {partiallyMatched && (
-                <span className="text-[11px] font-semibold text-amber-600 tabular-nums whitespace-nowrap">
-                    {t('konten.openAmount', { amount: format(open, { currency }) })}
-                </span>
-            )}
+        <span className={cn('font-bold tabular-nums whitespace-nowrap', sizeClass, pos ? 'text-emerald-600' : 'text-foreground')}>
+            {pos ? '+ ' : '– '}
+            {format(Math.abs(total), { currency })}
         </span>
     );
 }
@@ -430,7 +362,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                                             {acct.name}
                                         </span>
                                     )}
-                                    <SignedAmount amount={tx.amount} currency={tx.currency} matchedAmount={tx.matchedAmount} />
+                                    <SignedAmount amount={tx.amount} currency={tx.currency} />
                                     <RowAction onClick={() => tx.id && onOpenDrawer(tx.id)}>{t('konten.assign')}</RowAction>
                                 </div>
                             );
@@ -503,13 +435,8 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
 // ─── Account Tab ──────────────────────────────────────────────────────────────
 
-// Status filter of the account tab. "Offen" covers everything not yet fully matched (unmatched + partially matched).
-type AccountStatus = 'OPEN' | 'FULLY_MATCHED' | 'IGNORED';
-const ACCOUNT_STATUS_API: Record<AccountStatus, string> = {
-    OPEN: 'UNMATCHED,PARTIALLY_MATCHED',
-    FULLY_MATCHED: 'FULLY_MATCHED',
-    IGNORED: 'IGNORED',
-};
+// Statuses of the account tab's filter, one toggle each, in this order.
+const ACCOUNT_STATUSES: BankTransactionStatusValue[] = ['UNMATCHED', 'PARTIALLY_MATCHED', 'FULLY_MATCHED', 'IGNORED'];
 
 const PAGE_SIZE = 50;
 
@@ -528,8 +455,9 @@ function AccountTab({
 }) {
     const { format } = useCurrency();
     const { t } = useTranslation();
-    // Several statuses can be selected; none selected shows every movement. Starts on "Offen", the worklist.
-    const [statuses, setStatuses] = usePersistedState<AccountStatus[]>('hopps.konten.account.statuses', ['OPEN']);
+    // Several statuses can be selected; none selected shows every movement. Starts on the worklist: Offen and
+    // Teilverknüpft.
+    const [statuses, setStatuses] = usePersistedState<BankTransactionStatusValue[]>('hopps.konten.account.bankStatuses', ['UNMATCHED', 'PARTIALLY_MATCHED']);
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
@@ -542,12 +470,19 @@ function AccountTab({
         setPage(0);
     }, [search, minAmount, maxAmount, dateFrom, dateTo]);
 
-    const apiStatus = statuses.length > 0 ? statuses.map((st) => ACCOUNT_STATUS_API[st]).join(',') : undefined;
+    const apiStatus = statuses.length > 0 ? statuses.join(',') : undefined;
     // Counts per status for the filter, following the other filters (search, amount, date).
     const accountIds = String(account.id);
-    const openAgg = useBankTransactionAggregate(accountIds, ACCOUNT_STATUS_API.OPEN, true, filters.filter);
-    const matchedAgg = useBankTransactionAggregate(accountIds, ACCOUNT_STATUS_API.FULLY_MATCHED, true, filters.filter);
-    const ignoredAgg = useBankTransactionAggregate(accountIds, ACCOUNT_STATUS_API.IGNORED, true, filters.filter);
+    const unmatchedAgg = useBankTransactionAggregate(accountIds, 'UNMATCHED', true, filters.filter);
+    const partialAgg = useBankTransactionAggregate(accountIds, 'PARTIALLY_MATCHED', true, filters.filter);
+    const matchedAgg = useBankTransactionAggregate(accountIds, 'FULLY_MATCHED', true, filters.filter);
+    const ignoredAgg = useBankTransactionAggregate(accountIds, 'IGNORED', true, filters.filter);
+    const statusCounts: Record<BankTransactionStatusValue, number> = {
+        UNMATCHED: unmatchedAgg.data?.count ?? 0,
+        PARTIALLY_MATCHED: partialAgg.data?.count ?? 0,
+        FULLY_MATCHED: matchedAgg.data?.count ?? 0,
+        IGNORED: ignoredAgg.data?.count ?? 0,
+    };
     const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus, sortBy, sortDir, filters.filter);
 
     // Toggle direction when re-clicking the active column, otherwise switch column and default to descending.
@@ -564,23 +499,13 @@ function AccountTab({
 
     const filtered = transactions;
 
-    const statusItems: StatusFilterItem<AccountStatus>[] = [
-        { id: 'OPEN', label: t('konten.filter.open'), count: openAgg.data?.count ?? 0, color: 'var(--warning)', tint: 'var(--warning-surface)' },
-        {
-            id: 'FULLY_MATCHED',
-            label: t('konten.filter.matched'),
-            count: matchedAgg.data?.count ?? 0,
-            color: 'var(--positive)',
-            tint: 'var(--positive-surface)',
-        },
-        {
-            id: 'IGNORED',
-            label: t('konten.filter.ignored'),
-            count: ignoredAgg.data?.count ?? 0,
-            color: 'var(--foreground)',
-            tint: 'var(--surface-sunken)',
-        },
-    ];
+    const statusItems: StatusFilterItem<BankTransactionStatusValue>[] = ACCOUNT_STATUSES.map((status) => ({
+        id: status,
+        label: t(BANK_STATUS_STYLE[status].labelKey),
+        count: statusCounts[status],
+        color: BANK_STATUS_STYLE[status].color,
+        tint: BANK_STATUS_STYLE[status].tint,
+    }));
 
     return (
         <div>
@@ -682,10 +607,10 @@ function AccountTab({
                                 <div className="text-xs text-muted-foreground truncate">{tx.purpose}</div>
                             </div>
                             <span className="text-right">
-                                <SignedAmount amount={tx.amount} currency={tx.currency} size="sm" matchedAmount={tx.matchedAmount} />
+                                <SignedAmount amount={tx.amount} currency={tx.currency} size="sm" />
                             </span>
                             <span className="flex justify-center">
-                                <StatusPill status={tx.status} />
+                                <BankStatusBadge status={tx.status} />
                             </span>
                             {/* Every row ends with its action: "Zuordnen" while something is open, otherwise the quieter
                                 "Ansehen". Both open the same drawer. */}
