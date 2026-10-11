@@ -1417,7 +1417,7 @@
         },
         "drawer": {
             "title": "Kontoumsatz zuordnen",
-            "noOpenTx": "Keine offene Transaktion passt. Lege oben eine neue an.",
+            "noOpenTx": "Keine offene Transaktion passt. Lade einen Beleg hoch oder erstelle eine Transaktion ohne Beleg.",
             "unlink": "Verknüpfung lösen",
             "openTransactionNewTab": "Transaktion in neuem Tab öffnen",
             "bankAmount": "Betrag",

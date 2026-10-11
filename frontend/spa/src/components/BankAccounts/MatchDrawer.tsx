@@ -1,4 +1,4 @@
-import { BankTransactionResponse, DocumentResponse } from '@hopps/api-client';
+import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronRight, ExternalLink, FileCheck2, FileText, Info, Landmark, Link2, Loader2, Plus, Receipt, Sparkles, Unlink, Upload } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -14,6 +14,7 @@ import { FONT } from '@/components/Transactions/layout';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import { CloseButton } from '@/components/ui/CloseButton';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { ReviewDrawer } from '@/components/views/BelegeView';
@@ -30,7 +31,7 @@ import {
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { useDocument } from '@/hooks/queries/useDocuments';
-import { useTransaction } from '@/hooks/queries/useTransactions';
+import { useReopenTransaction, useTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
@@ -259,7 +260,7 @@ function LinkedTxCard({
     used: number | undefined;
     movementMagnitude: number;
     currency?: string;
-    onUnlink: () => void;
+    onUnlink: (tx: TransactionResponse) => void;
     onUpdateUsed: (amount: number) => void;
     onReview: (doc: DocumentResponse) => void;
     busy: boolean;
@@ -328,7 +329,7 @@ function LinkedTxCard({
                     />
                 )}
                 <HintTooltip content={t('konten.drawer.unlink')}>
-                    <button type="button" onClick={onUnlink} disabled={busy} aria-label={t('konten.drawer.unlink')} className={UNLINK_BTN}>
+                    <button type="button" onClick={() => onUnlink(tx)} disabled={busy} aria-label={t('konten.drawer.unlink')} className={UNLINK_BTN}>
                         <Unlink size={15} />
                     </button>
                 </HintTooltip>
@@ -383,12 +384,16 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const removeMatch = useRemoveBankTransactionMatch();
     const updateMatchAmount = useUpdateBankTransactionMatchAmount();
     const ignoreTx = useIgnoreBankTransaction();
+    const reopenTx = useReopenTransaction();
     const unignoreTx = useMutation({
         mutationFn: (id: number) => apiService.orgService.ignoreDELETE(id),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all }),
     });
 
     const [pickerOpen, setPickerOpen] = useState(false);
+    // A confirmed transaction whose unlinking would leave it no longer fully covered, waiting for confirmation: unlinking
+    // it also reopens it (back to draft), as in the transaction drawer's Zahlungsabgleich.
+    const [unlinkPending, setUnlinkPending] = useState<number | null>(null);
     // Portion the picker's current selection would assign, previewed in the summary.
     const [preview, setPreview] = useState(0);
     const [showCreate, setShowCreate] = useState(false);
@@ -475,6 +480,25 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         await addMatch.mutateAsync({ bankTxId, transactionId, amount });
         setPickerOpen(false);
         setPreview(0);
+    }
+
+    // Unlinks straight away, unless the transaction is confirmed and would no longer be fully covered without this
+    // movement's part; that asks first and then reopens it.
+    function requestUnlink(tx: TransactionResponse, used: number) {
+        if (tx.id == null) return;
+        const coveredWithout = Math.abs(tx.coveredAmount ?? 0) - used;
+        if (tx.status === 'CONFIRMED' && Math.abs(tx.total ?? 0) - coveredWithout > EPS) {
+            setUnlinkPending(tx.id);
+        } else {
+            removeMatch.mutate({ bankTxId, transactionId: tx.id });
+        }
+    }
+
+    async function confirmUnlinkAndReopen() {
+        if (unlinkPending == null) return;
+        await removeMatch.mutateAsync({ bankTxId, transactionId: unlinkPending });
+        await reopenTx.mutateAsync(unlinkPending);
+        setUnlinkPending(null);
     }
 
     function closePicker() {
@@ -609,7 +633,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                         movementMagnitude={magnitude}
                                         currency={bankTx.currency}
                                         busy={removeMatch.isPending || updateMatchAmount.isPending}
-                                        onUnlink={() => removeMatch.mutate({ bankTxId, transactionId: m.transactionId! })}
+                                        onUnlink={(tx) => requestUnlink(tx, m.amount ?? 0)}
                                         onUpdateUsed={(amount) => updateMatchAmount.mutate({ bankTxId, transactionId: m.transactionId!, amount })}
                                         onReview={setReviewDoc}
                                     />
@@ -627,10 +651,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
                                 {/* Something is assigned or waiting, but a rest is still open */}
                                 {(hasLinks || reviewable.length > 0) && !covered && !reading && !pickerOpen && (
-                                    <div
-                                        className="flex flex-col gap-2.5 rounded-[var(--r-card)] border border-border-soft px-[15px] py-[13px]"
-                                        style={{ background: 'var(--background-secondary)' }}
-                                    >
+                                    <FlatCard className="flex flex-col gap-2.5">
                                         <div className="flex items-start gap-2.5">
                                             <Info size={15} className="mt-0.5 flex-shrink-0 text-[var(--warning)]" />
                                             <span className="min-w-0 flex-1 text-[13px] leading-[1.5] text-foreground">
@@ -655,7 +676,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                                 {t('konten.drawer.restWithoutReceipt')}
                                             </button>
                                         </div>
-                                    </div>
+                                    </FlatCard>
                                 )}
 
                                 {/* Link more */}
@@ -746,6 +767,17 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                 prefillAmount={rest > EPS ? rest : undefined}
                 stacked
                 onCreated={() => setShowCreate(false)}
+            />
+
+            <ConfirmDialog
+                open={unlinkPending != null}
+                onOpenChange={(o) => !o && setUnlinkPending(null)}
+                title={t('transactions.detail.unlinkReopen.title')}
+                description={t('transactions.detail.unlinkReopen.description')}
+                confirmLabel={t('transactions.detail.unlinkReopen.confirm')}
+                onConfirm={confirmUnlinkAndReopen}
+                destructive
+                loading={removeMatch.isPending || reopenTx.isPending}
             />
 
             {/* "Beleg prüfen" on top of this drawer; closing it returns here. */}
