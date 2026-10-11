@@ -185,8 +185,8 @@ public class BankTransactionResource {
     @POST
     @Path("/{id}/receipt")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Operation(summary = "Create a receipt and a linked transaction for a bank transaction", description = "Uploads a receipt document and creates a DRAFT bookkeeping transaction pre-filled from the bank movement (counterparty as trade party, amount and purpose). The document, the transaction and the bank transaction are linked, and the document is analysed by the Document-AI for later review.")
-    @APIResponse(responseCode = "201", description = "Receipt uploaded and transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
+    @Operation(summary = "Upload a receipt for a bank transaction", description = "Uploads a receipt document that remembers this bank transaction (pendingBankTransactionId) and is analysed by the Document-AI for review. No bookkeeping transaction is created yet: confirming the document creates it, fills fields the receipt leaves empty from the bank movement and matches it to this bank transaction.")
+    @APIResponse(responseCode = "201", description = "Receipt uploaded", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
     @APIResponse(responseCode = "400", description = "Invalid file or ignored bank transaction")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank transaction not found")

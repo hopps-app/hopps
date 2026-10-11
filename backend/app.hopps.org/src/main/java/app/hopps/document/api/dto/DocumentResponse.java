@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 public record DocumentResponse(
         Long id,
         Long transactionId,
+        // Bank transaction the receipt was uploaded onto; it gets matched when the receipt is confirmed. Null
+        // otherwise.
+        Long pendingBankTransactionId,
         String fileName,
         String fileContentType,
         Long fileSize,
@@ -61,6 +64,7 @@ public record DocumentResponse(
         return new DocumentResponse(
                 doc.getId(),
                 doc.getTransactionId(),
+                doc.getPendingBankTransactionId(),
                 doc.getFileName(),
                 doc.getFileContentType(),
                 doc.getFileSize(),

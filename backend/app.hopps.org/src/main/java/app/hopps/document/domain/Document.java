@@ -101,6 +101,9 @@ public class Document extends PanacheEntity {
     @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
     private Transaction transaction;
 
+    @Column(name = "pendingBankTransaction_id")
+    private Long pendingBankTransactionId;
+
     public Document() {
     }
 
@@ -608,5 +611,13 @@ public class Document extends PanacheEntity {
      */
     public Long getTransactionId() {
         return transaction != null ? transaction.getId() : null;
+    }
+
+    public Long getPendingBankTransactionId() {
+        return pendingBankTransactionId;
+    }
+
+    public void setPendingBankTransactionId(Long pendingBankTransactionId) {
+        this.pendingBankTransactionId = pendingBankTransactionId;
     }
 }

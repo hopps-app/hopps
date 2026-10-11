@@ -15,10 +15,7 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentFileService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
-import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
-import app.hopps.transaction.domain.TransactionStatus;
-import app.hopps.transaction.repository.TransactionRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
@@ -36,12 +33,12 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 /**
- * Creates a receipt (Document) together with a pre-filled bookkeeping {@link Transaction} for an existing
- * {@link BankTransaction}, and links all three (Document &harr; Transaction, BankTransaction &harr; Transaction).
+ * Uploads a receipt (Document) onto an existing {@link BankTransaction}.
  * <p>
- * The transaction is seeded from the bank movement (counterparty &rarr; trade party, amount, purpose &rarr; name) so it
- * can be reconciled immediately. The document is still analysed by the Document-AI; the user later decides per field
- * whether to keep the bank-derived value or the AI-extracted one (see the receipt review screen).
+ * The upload only stores the document and remembers the bank transaction on it. Like a receipt uploaded on the receipts
+ * page, the bookkeeping {@link Transaction} is created when the receipt is confirmed; at that point it is matched to
+ * the remembered bank transaction, and fields the receipt leaves empty are taken from the bank movement (see
+ * {@link #fillFromPendingBankTransaction} and {@link #matchPendingBankTransaction}).
  */
 @ApplicationScoped
 public class BankTransactionReceiptService {
@@ -60,13 +57,7 @@ public class BankTransactionReceiptService {
     DocumentFileService fileService;
 
     @Inject
-    TransactionRepository transactionRepository;
-
-    @Inject
     BankTransactionMatchService matchService;
-
-    @Inject
-    TransactionAuditor transactionAuditor;
 
     @Inject
     Event<DocumentCreatedEvent> documentCreatedEvent;
@@ -108,49 +99,18 @@ public class BankTransactionReceiptService {
                 ? DocumentDirection.INCOMING
                 : DocumentDirection.OUTGOING;
 
-        // 1. Create the document (left empty so the AI autofills its fields independently of the bank-derived values).
+        // The document fields stay empty so the AI autofills them independently of the bank-derived values.
         Document document = new Document();
         document.setOrganization(organization);
         document.setAnalysisStatus(AnalysisStatus.PENDING);
         document.setUploadedBy(username);
         document.setDirection(direction);
+        document.setPendingBankTransactionId(bankTxId);
         fileService.handleFileUpload(document, file);
         document.setDocumentStatus(DocumentStatus.UPLOADED);
         documentRepository.persist(document);
 
-        // 2. Create the DRAFT transaction pre-filled from the bank movement.
-        Transaction transaction = new Transaction();
-        transaction.setOrganization(organization);
-        transaction.setDocument(document);
-        transaction.setCreatedBy(username);
-        transaction.setStatus(TransactionStatus.DRAFT);
-        transaction.setName(bankTx.getPurpose());
-        transaction.setTotal(amount);
-        transaction.setCurrencyCode(bankTx.getCurrency());
-        if (bankTx.getBookingDate() != null) {
-            transaction.setTransactionTime(bankTx.getBookingDate().atStartOfDay(ZoneOffset.UTC).toInstant());
-        }
-        // Vertragspartner = counterparty of the bank movement. The entity places it on the side matching the
-        // direction and records the organization on the other side.
-        if (bankTx.getCounterpartyName() != null && !bankTx.getCounterpartyName().isBlank()) {
-            TradeParty counterparty = new TradeParty();
-            counterparty.setOrganization(organization);
-            counterparty.setName(bankTx.getCounterpartyName());
-            if (bankTx.getCounterpartyIban() != null && !bankTx.getCounterpartyIban().isBlank()) {
-                counterparty.setVatId(bankTx.getCounterpartyIban());
-            }
-            transaction.setCounterparty(counterparty);
-        } else {
-            transaction.setCounterparty(null);
-        }
-        transactionRepository.persist(transaction);
-        transactionAuditor.created(transaction);
-
-        // 3. Wire up the relationships.
-        document.setTransaction(transaction);
-        matchService.addMatch(bankTxId, transaction.getId(), username);
-
-        // 4. Kick off (or skip) the async AI analysis of the document.
+        // Kick off (or skip) the async AI analysis of the document.
         if (analyze) {
             documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
         } else {
@@ -160,8 +120,72 @@ public class BankTransactionReceiptService {
         // Notify list views (after commit) that a new receipt exists.
         documentChangedEvent.fire(new DocumentChangedEvent(document.getId(), organization.getId()));
 
-        LOG.info("Created receipt+transaction for bank transaction: bankTxId={}, documentId={}, transactionId={}",
-                bankTxId, document.getId(), transaction.getId());
+        LOG.info("Uploaded receipt for bank transaction: bankTxId={}, documentId={}", bankTxId, document.getId());
         return DocumentResponse.from(document);
+    }
+
+    /**
+     * Fills the fields the confirmed receipt left empty on the transaction being created from it, using the bank
+     * transaction the receipt was uploaded onto. Call before the transaction is persisted. Does nothing when the
+     * receipt has no pending bank transaction, or that bank transaction was deleted or ignored in the meantime.
+     */
+    public void fillFromPendingBankTransaction(Document document, Transaction transaction) {
+        BankTransaction bankTx = pendingBankTransaction(document.getPendingBankTransactionId());
+        if (bankTx == null) {
+            return;
+        }
+        if (transaction.getName() == null || transaction.getName().isBlank()) {
+            transaction.setName(bankTx.getPurpose());
+        }
+        if (transaction.getTotal() == null) {
+            transaction.setTotal(bankTx.getAmount());
+        }
+        if (document.getCurrencyCode() == null && bankTx.getCurrency() != null) {
+            transaction.setCurrencyCode(bankTx.getCurrency());
+        }
+        if (transaction.getTransactionTime() == null && bankTx.getBookingDate() != null) {
+            transaction.setTransactionTime(bankTx.getBookingDate().atStartOfDay(ZoneOffset.UTC).toInstant());
+        }
+        // Vertragspartner = counterparty of the bank movement. Set after the total, because the entity places it on
+        // the side matching the direction and records the organization on the other side.
+        if (transaction.getCounterparty() == null && bankTx.getCounterpartyName() != null
+                && !bankTx.getCounterpartyName().isBlank()) {
+            TradeParty counterparty = new TradeParty();
+            counterparty.setOrganization(document.getOrganization());
+            counterparty.setName(bankTx.getCounterpartyName());
+            if (bankTx.getCounterpartyIban() != null && !bankTx.getCounterpartyIban().isBlank()) {
+                counterparty.setVatId(bankTx.getCounterpartyIban());
+            }
+            transaction.setCounterparty(counterparty);
+        }
+    }
+
+    /**
+     * Matches the transaction just created from a confirmed receipt to the bank transaction the receipt was uploaded
+     * onto, then clears the pending link. Call after the transaction is persisted. A bank transaction that was deleted
+     * or ignored in the meantime is skipped, so it never blocks confirming the receipt.
+     */
+    public void matchPendingBankTransaction(Document document, Transaction transaction, String username) {
+        Long bankTxId = document.getPendingBankTransactionId();
+        if (bankTxId == null) {
+            return;
+        }
+        document.setPendingBankTransactionId(null);
+        if (pendingBankTransaction(bankTxId) == null) {
+            LOG.info("Pending bank transaction of receipt is gone or ignored, not matching: documentId={}, bankTxId={}",
+                    document.getId(), bankTxId);
+            return;
+        }
+        matchService.addMatch(bankTxId, transaction.getId(), username);
+        LOG.info("Matched confirmed receipt to its bank transaction: documentId={}, transactionId={}, bankTxId={}",
+                document.getId(), transaction.getId(), bankTxId);
+    }
+
+    private BankTransaction pendingBankTransaction(Long bankTxId) {
+        if (bankTxId == null) {
+            return null;
+        }
+        BankTransaction bankTx = bankTransactionRepository.findByIdScoped(bankTxId);
+        return bankTx != null && bankTx.getStatus() != BankTransactionStatus.IGNORED ? bankTx : null;
     }
 }

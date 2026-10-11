@@ -1,5 +1,6 @@
 package app.hopps.document.api;
 
+import app.hopps.bankimport.service.BankTransactionReceiptService;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.document.api.dto.DocumentResponse;
@@ -84,6 +85,9 @@ public class DocumentResource {
 
     @Inject
     TransactionAuditor transactionAuditor;
+
+    @Inject
+    BankTransactionReceiptService receiptService;
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -434,7 +438,7 @@ public class DocumentResource {
     @Path("/{id}/confirm")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data.")
+    @Operation(summary = "Confirm a document", description = "Marks a document as reviewed and creates a linked DRAFT transaction from its extracted data. If the document was uploaded onto a bank transaction, fields it leaves empty are taken from that bank transaction and the new transaction is matched to it.")
     @APIResponse(responseCode = "200", description = "Document confirmed and transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse.class)))
     @APIResponse(responseCode = "404", description = "Document not found")
     @APIResponse(responseCode = "409", description = "Document already confirmed")
@@ -450,9 +454,10 @@ public class DocumentResource {
 
         String principal = securityIdentity.getPrincipal().getName();
 
-        // If a transaction is already linked (e.g. the document was created from a bank transaction), do not create a
-        // second one — the user has reconciled the values onto the existing transaction; just mark the document
-        // reviewed.
+        // Legacy case: receipts uploaded onto a bank transaction before V1.0.36 got their DRAFT transaction (already
+        // matched to the bank transaction) at upload time, so they can still be unconfirmed with a transaction linked.
+        // Nothing else links a transaction to an unconfirmed document. Keep that transaction instead of creating a
+        // second one, and only mark the document confirmed.
         if (document.getTransaction() != null) {
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
             document.setReviewedBy(principal);
@@ -488,12 +493,19 @@ public class DocumentResource {
         // The document's sender is the counterparty; the entity places it on the side matching the direction
         // and records the organization on the other side.
         transaction.setCounterparty(document.getSender());
+
+        // A receipt uploaded onto a bank transaction: fill what the receipt left empty from the bank movement.
+        receiptService.fillFromPendingBankTransaction(document, transaction);
+
         transactionRepository.persist(transaction);
         transactionAuditor.created(transaction);
 
         document.setTransaction(transaction);
         document.setDocumentStatus(DocumentStatus.CONFIRMED);
         document.setReviewedBy(principal);
+
+        // match the new transaction to that bank transaction.
+        receiptService.matchPendingBankTransaction(document, transaction, principal);
 
         notifyChanged(document);
         LOG.info("Document confirmed: id={}, transactionId={}", document.getId(), transaction.getId());
