@@ -40,7 +40,6 @@ const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated 
                 <NextStepCard
                     icon={Tag}
                     title={t('categoryGroups.setup.noTemplatesTitle')}
-                    text={t('categoryGroups.setup.noTemplatesText')}
                     action={
                         <Button size="sm" className="h-10" onClick={() => setModalOpen(true)}>
                             <Plus />
@@ -55,7 +54,7 @@ const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated 
 
     const tiles = [
         ...templates.map((tpl) => ({ id: tpl.id as number, title: tpl.name ?? '', sub: tpl.description ?? '' })),
-        { id: NONE, title: t('categoryGroups.setup.noTemplate'), sub: t('categoryGroups.setup.noTemplateSub') },
+        { id: NONE, title: t('categoryGroups.setup.noTemplate'), sub: '' },
     ];
 
     return (
@@ -102,7 +101,6 @@ const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated 
                         {option ? t('categoryGroups.setup.applyTemplate') : t('categoryGroups.setup.createGroup')}
                     </Button>
                 </div>
-                <p className="text-[12.5px] leading-normal text-[var(--ink-faint)]">{t('categoryGroups.setup.footnote')}</p>
             </div>
 
             {/* The preview column stays for "Keine Vorlage" too, so the tiles keep their width when switching. */}

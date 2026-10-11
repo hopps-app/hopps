@@ -4,14 +4,14 @@ import type { ReactNode } from 'react';
 type NextStepCardProps = {
     icon: LucideIcon;
     title: string;
-    text: string;
+    text?: string;
     /** The one action that moves the user on, shown on the right (wraps below on narrow screens). */
     action?: ReactNode;
 };
 
 /**
  * Card that points a new organization to its next step on an otherwise empty screen ("Nächster-Schritt"-Card from the
- * first-use design): icon tile, title, short explanation and a primary action.
+ * first-use design): icon tile, title, optional short explanation and a primary action.
  */
 export function NextStepCard({ icon: Icon, title, text, action }: NextStepCardProps) {
     return (
@@ -21,7 +21,7 @@ export function NextStepCard({ icon: Icon, title, text, action }: NextStepCardPr
             </span>
             <div className="min-w-[220px] flex-1">
                 <div className="text-[15.5px] font-extrabold text-[var(--font-color)]">{title}</div>
-                <p className="mt-0.5 text-[13.5px] text-[var(--muted)]">{text}</p>
+                {text && <p className="mt-0.5 text-[13.5px] text-[var(--muted)]">{text}</p>}
             </div>
             {action}
         </div>

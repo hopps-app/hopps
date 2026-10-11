@@ -66,7 +66,7 @@ function CategoryGroupsView() {
                 <CategoryGroupsSkeleton />
             ) : isSetup ? (
                 <>
-                    <PageHeader title={t('categoryGroups.setup.title')} subtitle={t('categoryGroups.setup.subtitle')} />
+                    <PageHeader title={t('categoryGroups.setup.title')} />
                     <CategoryGroupSetup templates={templates} onCreated={refetch} />
                 </>
             ) : (
