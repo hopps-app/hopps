@@ -9,8 +9,9 @@ import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { BANK_STATUS_STYLE, BankStatusBadge, type BankTransactionStatusValue } from '@/components/BankAccounts/BankStatusBadge';
 import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
+import { ABGLEICH_COLUMNS, ACCOUNT_TX_COLUMNS, IMPORT_COLUMNS } from '@/components/BankAccounts/kontenLayout';
+import { KontenPageSkeleton, KontenTableSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
-import { LoadingState } from '@/components/common/LoadingState';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
@@ -251,9 +252,6 @@ function AccountPill({ account, openCount, active, onClick }: { account: BankAcc
 
 const ABGLEICH_PAGE_SIZE = 25;
 
-// Header and rows of the Abgleich table share one template: Datum, Konto, Gegenpartei / Zweck, Betrag, Status, action.
-const ABGLEICH_COLUMNS = '7.5rem minmax(0, 0.9fr) minmax(0, 2fr) minmax(0, 1fr) 7.5rem 7.5rem';
-
 function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse[]; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
     const { format } = useCurrency();
@@ -298,7 +296,12 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
     }, [page, totalPages]);
 
     if (openAgg.isLoading || feed.isLoading) {
-        return <LoadingState className="py-12" />;
+        return (
+            <div className="flex flex-col gap-4">
+                <BankTxFilterBar filters={filters} />
+                <KontenTableSkeleton columns={ABGLEICH_COLUMNS} cells={['date', 'text', 'twoLines', 'amount', 'pill', 'button']} />
+            </div>
+        );
     }
 
     const noData = openCount === 0 && matchedCount === 0 && !filters.hasAnyFilter;
@@ -329,19 +332,13 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
             <BankTxFilterBar filters={filters} />
 
             <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
-                {/* Title with the number and total of the open movements */}
+                {/* Title: the number of open movements first, then their total on the right */}
                 <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 px-5 py-[15px] dark:border-gray-700">
-                    <h3 className="min-w-[180px] flex-1 text-[16px] font-extrabold">{t('konten.abgleich.openBookings')}</h3>
-                    <div className="flex items-center gap-3.5">
-                        <span className="flex items-baseline gap-1.5">
-                            <span className="text-[18px] font-extrabold tabular-nums text-purple-700">{openCount}</span>
-                            <span className="text-[13px] font-semibold text-muted-foreground">
-                                {openCount === 1 ? t('konten.abgleich.openCountSingular') : t('konten.abgleich.openCountPlural')}
-                            </span>
-                        </span>
-                        <span aria-hidden="true" className="h-[22px] w-px bg-gray-100 dark:bg-gray-700" />
-                        <span className="text-[18px] font-extrabold tabular-nums">{format(openSum)}</span>
-                    </div>
+                    <h3 className="min-w-[180px] flex-1 text-[16px] font-extrabold">
+                        <span className="tabular-nums text-purple-700">{openCount}</span>{' '}
+                        <span className="font-semibold text-muted-foreground">{t('konten.abgleich.openTitle', { count: openCount })}</span>
+                    </h3>
+                    <span className="text-[18px] font-extrabold tabular-nums">{format(openSum)}</span>
                 </div>
 
                 {openCount === 0 ? (
@@ -464,10 +461,6 @@ const ACCOUNT_STATUSES: BankTransactionStatusValue[] = ['UNMATCHED', 'PARTIALLY_
 
 const PAGE_SIZE = 50;
 
-// Header and rows must share one template, otherwise the labels sit over the wrong columns. The trailing status and
-// action columns are fixed-width so the pills and buttons line up down the list regardless of row content.
-const ACCOUNT_TX_COLUMNS = '7.5rem minmax(0, 2fr) minmax(0, 1fr) 7.5rem 7.5rem';
-
 function AccountTab({
     account,
     onOpenDrawer,
@@ -569,7 +562,7 @@ function AccountTab({
             </div>
 
             {isLoading ? (
-                <LoadingState className="py-8" />
+                <KontenTableSkeleton columns={ACCOUNT_TX_COLUMNS} cells={['date', 'twoLines', 'amount', 'pill', 'button']} />
             ) : filtered.length === 0 ? (
                 <div
                     className={cn(
@@ -712,10 +705,6 @@ function DeleteImportDescription({ target }: { target: ImportWithAccount | null 
     );
 }
 
-// Shared column template of the import table header and rows: Datum, Konto, Datei, Importiert, Duplikate, Zugeordnet,
-// Status, delete. The rows keep a minimum width; narrower screens scroll the table horizontally.
-const IMPORT_COLUMNS = '104px minmax(130px,.8fr) minmax(200px,1.6fr) 96px 96px 120px 130px 34px';
-
 type ImportFilterStatus = 'COMPLETED' | 'PARTIAL' | 'FAILED';
 
 // Badge per import status. Finished imports use the three filterable states; a running import shows as such.
@@ -767,7 +756,9 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
         setDeleteTarget(null);
     };
 
-    if (isLoading) return <LoadingState className="py-12" />;
+    if (isLoading) {
+        return <KontenTableSkeleton columns={IMPORT_COLUMNS} cells={['date', 'text', 'text', 'number', 'number', 'bar', 'pill', 'icon']} minWidth={900} />;
+    }
 
     const headerCls = 'text-[11.5px] font-bold uppercase tracking-[0.06em] text-[var(--ink-faint)]';
 
@@ -989,10 +980,10 @@ export function KontenView() {
     });
     const importCount = importResults.reduce((sum, r) => sum + (r.data?.length ?? 0), 0);
 
-    // Each tab carries its counter in its own colour: Abgleich the open movements in the "Offen" blue, an account its
-    // open movements in the account's colour, Importe the number of imports in grey.
+    // Each tab carries a counter: Abgleich the open movements and Importe the number of imports, both in grey, an
+    // account its open movements in the account's colour.
     const tabs: { id: TabId; label: string; badge?: number; color?: string; tint?: string }[] = [
-        { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen, color: 'var(--info)', tint: 'var(--info-surface)' },
+        { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
         ...accounts.map((a) => {
             const c = a.color || '#9955CC';
             return {
@@ -1007,7 +998,7 @@ export function KontenView() {
     ];
 
     if (isLoading) {
-        return <LoadingState className="py-12" />;
+        return <KontenPageSkeleton />;
     }
 
     return (

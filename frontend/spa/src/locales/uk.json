@@ -570,9 +570,11 @@
       "ignored": "Проігноровано"
     },
     "abgleich": {
-      "openCountSingular": "відкрита операція",
-      "openCountPlural": "відкритих операцій",
-      "allMatched": "Усе зіставлено."
+      "allMatched": "Усе зіставлено.",
+      "openTitle_one": "відкрита операція",
+      "openTitle_other": "відкритих операцій",
+      "openTitle_few": "відкриті операції",
+      "openTitle_many": "відкритих операцій"
     },
     "accountPillHint": "Натисни, щоб розгорнути й редагувати"
   },

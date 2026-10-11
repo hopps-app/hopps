@@ -1361,12 +1361,11 @@
             "noResults": "Keine Transaktionen für die aktuelle Suche/Filter"
         },
         "abgleich": {
-            "openBookings": "Offene Kontoumsätze",
             "noData": "Noch keine Umsätze",
             "noDataDesc": "Importiere einen Kontoauszug, um den Abgleich zu starten.",
-            "openCountSingular": "offener Umsatz",
-            "openCountPlural": "offene Umsätze",
-            "allMatched": "Alles zugeordnet."
+            "allMatched": "Alles zugeordnet.",
+            "openTitle_one": "offener Umsatz",
+            "openTitle_other": "offene Umsätze"
         },
         "table": {
             "date": "Datum",
