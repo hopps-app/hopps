@@ -19,6 +19,8 @@ interface Props {
     onSave: (value: number) => void;
     /** `card` is the larger pill / round icon button used on the transaction drawer's bank cards; `compact` the small chip. */
     variant?: 'compact' | 'card';
+    /** `card` only: the smaller 34px icon button, to match the icon buttons of the Kontoumsatz drawer's cards. */
+    small?: boolean;
 }
 
 /**
@@ -26,7 +28,7 @@ interface Props {
  * for a transaction; the full amount reads muted, a partial amount is highlighted. Clicking opens a tiny number input.
  * Shared by both link directions (transaction detail and the bank-transaction match drawer).
  */
-export function MatchAllocationControl({ amount, max, full = max, currency, pending, onSave, variant = 'compact' }: Props) {
+export function MatchAllocationControl({ amount, max, full = max, currency, pending, onSave, variant = 'compact', small = false }: Props) {
     const { format } = useCurrency();
     const { t } = useTranslation();
     const [editing, setEditing] = useState(false);
@@ -121,7 +123,10 @@ export function MatchAllocationControl({ amount, max, full = max, currency, pend
                 type="button"
                 onClick={open}
                 title={t('transactions.detail.editUsedAmount')}
-                className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground"
+                className={cn(
+                    'grid flex-shrink-0 place-items-center border border-border-soft bg-[var(--background-secondary)] text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground',
+                    small ? 'h-[34px] w-[34px] rounded-[11px]' : 'h-10 w-10 rounded-[var(--btn-radius)]'
+                )}
             >
                 <Pencil size={15} />
             </button>
