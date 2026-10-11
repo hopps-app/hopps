@@ -1349,14 +1349,10 @@
         "status": {
             "open": "Open",
             "matched": "Matched",
-            "partial": "Partial",
+            "partial": "Partially linked",
             "ignored": "Ignored"
         },
         "filter": {
-            "all": "All",
-            "open": "Open",
-            "matched": "Matched",
-            "ignored": "Ignored",
             "searchPlaceholder": "Search (counterparty, purpose, amount) …",
             "clearSearch": "Clear search",
             "filters": "Filters",
@@ -1460,7 +1456,6 @@
             "assignPartial": "Assign partially",
             "zugferdCreatedHint": "Created from the ZUGFeRD data of the e-invoice. You check category and Bommel in the transaction."
         },
-        "openAmount": "open: {{amount}}",
         "createTx": {
             "title": "Transaction from bank transaction",
             "subtitle": "Prefilled from the bank transaction, linked automatically",

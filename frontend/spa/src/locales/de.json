@@ -1348,14 +1348,10 @@
         "status": {
             "open": "Offen",
             "matched": "Zugeordnet",
-            "partial": "Teilweise",
+            "partial": "Teilverknüpft",
             "ignored": "Ignoriert"
         },
         "filter": {
-            "all": "Alle",
-            "open": "Offen",
-            "matched": "Zugeordnet",
-            "ignored": "Ignoriert",
             "searchPlaceholder": "Suchen (Gegenpartei, Verwendungszweck, Betrag) …",
             "clearSearch": "Suche löschen",
             "filters": "Filter",
@@ -1459,7 +1455,6 @@
             "assignPartial": "Teilweise zuordnen",
             "zugferdCreatedHint": "Aus den ZUGFeRD-Daten der E-Rechnung erstellt. Kategorie und Bommel prüfst du in der Transaktion."
         },
-        "openAmount": "offen: {{amount}}",
         "createTx": {
             "title": "Transaktion aus Banktransaktion",
             "subtitle": "Vorbelegt aus der Banktransaktion, wird automatisch zugeordnet",

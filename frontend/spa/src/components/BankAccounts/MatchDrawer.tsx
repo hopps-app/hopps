@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { BankStatusBadge } from '@/components/BankAccounts/BankStatusBadge';
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { fmtDate } from '@/components/BankAccounts/format';
 import { TransactionMatchPicker } from '@/components/BankAccounts/TransactionMatchPicker';
@@ -13,7 +14,7 @@ import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { FONT } from '@/components/Transactions/layout';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import { segmentColor, segmentTint } from '@/components/Transactions/segmentColors';
-import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
+import { Badge } from '@/components/Transactions/StatusBadge';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
@@ -115,20 +116,6 @@ function SourceHint({ doc }: { doc: DocumentResponse }) {
         );
     }
     return null;
-}
-
-// Status of the bank movement, with the labels of the Konten list: Offen, Teilweise, Zugeordnet, Ignoriert.
-const BANK_STATUS: Record<string, { tone: BadgeTone; labelKey: string }> = {
-    UNMATCHED: { tone: 'warn', labelKey: 'konten.status.open' },
-    PARTIALLY_MATCHED: { tone: 'warn', labelKey: 'konten.status.partial' },
-    FULLY_MATCHED: { tone: 'pos', labelKey: 'konten.status.matched' },
-    IGNORED: { tone: 'neutral', labelKey: 'konten.status.ignored' },
-};
-
-function BankStatusBadge({ status }: { status?: string }) {
-    const { t } = useTranslation();
-    const style = BANK_STATUS[status ?? 'UNMATCHED'] ?? BANK_STATUS.UNMATCHED;
-    return <Badge tone={style.tone}>{t(style.labelKey)}</Badge>;
 }
 
 // The bank movement this drawer assigns: counterparty, date and purpose, amount, account and booking type.
