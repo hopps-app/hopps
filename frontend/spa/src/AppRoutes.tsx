@@ -7,6 +7,7 @@ import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
+import { BommelSkeleton } from '@/components/views/Bommel/components/BommelSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
 import AuthGuard from '@/guards/AuthGuard';
@@ -105,7 +106,7 @@ export default function AppRoutes() {
                 <Route
                     path="/structure"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<BommelSkeleton />}>
                             <BommelView />
                         </LazyRoute>
                     }

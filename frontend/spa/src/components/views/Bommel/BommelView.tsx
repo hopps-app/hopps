@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { BommelDetailsPanel, EditModeBanner, HintBanner, ToggleField } from './components';
+import { BommelSkeleton } from './components/BommelSkeleton';
 import { useBommelTree, useStatistics, useDemoTree } from './hooks';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import Button from '@/components/ui/Button';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
@@ -47,6 +47,7 @@ function BommelView() {
     }, [searchParams, setSearchParams]);
 
     const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
+    const isStatsLoaded = bommelStats !== null || !isStatsLoading;
 
     const realTreeData = useBommelTree({ bommelStats });
     const demoTreeData = useDemoTree();
@@ -239,10 +240,14 @@ function BommelView() {
         );
     }
 
+    // First load only: wait for the Bommel and their amounts, so cards do not show 0 € first. Later reloads (a switch
+    // flipped, a Bommel saved) keep the page in place and update the numbers.
+    if (!isDemoMode && ((isLoading && tree.length === 0) || !isStatsLoaded)) {
+        return <BommelSkeleton />;
+    }
+
     return (
         <>
-            {(isLoading || isStatsLoading) && !isDemoMode && <LoadingOverlay />}
-
             <div className="h-full flex flex-col font-hanken">
                 <h1 className="mb-4 flex items-center gap-2 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">
                     {t('bommel.title')}
