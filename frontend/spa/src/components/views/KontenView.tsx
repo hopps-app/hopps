@@ -1,4 +1,4 @@
-import { BankAccountResponse, DocumentResponse, IBankImportResponse } from '@hopps/api-client';
+import { BankAccountResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeftRight,
@@ -30,7 +30,6 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
-import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
     useBankAccounts,
     useBankTransactionsByAccount,
@@ -48,8 +47,6 @@ import { useBankTxFilters } from '@/hooks/useBankTxFilters';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
-import { useBommelsStore } from '@/store/bommels/bommelsStore';
-import { useStore } from '@/store/store';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -931,28 +928,8 @@ export function KontenView() {
     // The account cards take up a lot of room; keep them collapsed to compact pills by default and only show the full
     // cards when the user actively expands the section. Cached like the other Konten preferences.
     const [accountsExpanded, setAccountsExpanded] = usePersistedState<boolean>('hopps.konten.accountsExpanded', false);
-    // After a receipt is uploaded onto a bank transaction, its document opens in the shared receipt-review drawer right
-    // here on the Konten page, so the user completes + confirms the transaction and moves on to the next bank movement.
-    const [reviewDoc, setReviewDoc] = useState<DocumentResponse | null>(null);
 
     const queryClient = useQueryClient();
-    const organization = useStore((s) => s.organization);
-    const allBommels = useBommelsStore((s) => s.allBommels);
-    const loadBommels = useBommelsStore((s) => s.loadBommels);
-
-    // The bommel store is populated on-demand per view; the Konten page doesn't otherwise load it, so ensure it is
-    // fetched when the review drawer opens (its bommel selector would be empty otherwise).
-    useEffect(() => {
-        if (reviewDoc && organization?.id && allBommels.length === 0) {
-            loadBommels(organization.id);
-        }
-    }, [reviewDoc, organization?.id, allBommels.length, loadBommels]);
-
-    const closeReviewDrawer = () => {
-        setReviewDoc(null);
-        // A confirmed transaction can flip its bank transaction to (fully) matched, so refresh the feeds/badges.
-        queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
-    };
 
     // Open a specific bank transaction's detail drawer when navigated to with ?bankTx= (e.g. from a linked transaction).
     const [searchParams, setSearchParams] = useSearchParams();
@@ -1109,13 +1086,7 @@ export function KontenView() {
             {tab === 'importe' && <ImporteTab accounts={accounts} />}
 
             {/* Match drawer */}
-            {matchDrawerBankTxId !== null && (
-                <MatchDrawer bankTxId={matchDrawerBankTxId} onClose={closeMatchDrawer} onReceiptUploaded={(doc) => setReviewDoc(doc)} />
-            )}
-
-            {/* Receipt-review drawer (shared with the Belege page): opened in place after a receipt upload so the user
-                completes + confirms the transaction and continues with the next bank movement without navigating away. */}
-            <ReviewDrawer doc={reviewDoc} onClose={closeReviewDrawer} onDeleted={closeReviewDrawer} />
+            {matchDrawerBankTxId !== null && <MatchDrawer bankTxId={matchDrawerBankTxId} onClose={closeMatchDrawer} />}
 
             {/* Create / Edit drawer */}
             <BankAccountDrawer

@@ -288,7 +288,18 @@ function ReceiptDataRow({
 // after uploading a receipt onto a bank transaction there, the user stays on the Konten page and completes + confirms
 // the transaction in this drawer instead of being navigated to the receipts page. The component is self-contained
 // (driven only by the `doc` prop and the callbacks), so reusing it needs no view-level state from BelegeView.
-export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+export function ReviewDrawer({
+    doc: docProp,
+    onClose,
+    onDeleted,
+    stacked = false,
+}: {
+    doc: DocumentResponse | null;
+    onClose: () => void;
+    onDeleted: () => void;
+    /** Opened on top of another drawer (e.g. "Kontoumsatz zuordnen"): layered above it, scrim included. */
+    stacked?: boolean;
+}) {
     const { format, symbol } = useCurrency();
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -547,7 +558,11 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     return (
         <>
             <div
-                className={cn('fixed inset-0 bg-black/25 z-40 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0 pointer-events-none')}
+                className={cn(
+                    'fixed inset-0 bg-black/25 transition-opacity duration-300',
+                    stacked ? 'z-50' : 'z-40',
+                    open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                )}
                 onClick={onClose}
             />
             {/* Large file preview to the left of the detail drawer (desktop only). pointer-events-none on the wrapper so

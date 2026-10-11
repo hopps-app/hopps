@@ -44,11 +44,15 @@ interface Props {
      * movement, the created transaction is auto-matched to it, and a "save & confirm" action is offered.
      */
     bankTx?: BankTransactionResponse;
+    /** Amount to prefill instead of the bank movement's full amount (a magnitude), e.g. the part still open on it. */
+    prefillAmount?: number;
+    /** Opened on top of another drawer (e.g. "Kontoumsatz zuordnen"): layered above it, scrim included. */
+    stacked?: boolean;
     /** Called with the created transaction id after a successful create (+ link/confirm). */
     onCreated?: (transactionId: number | undefined) => void;
 }
 
-export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Props) {
+export function CreateTransactionDrawer({ open, onClose, bankTx, prefillAmount, stacked = false, onCreated }: Props) {
     const { format, symbol } = useCurrency();
     const { t } = useTranslation();
     const createMutation = useCreateTransaction();
@@ -90,7 +94,8 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         const amt = bankTx.amount ?? 0;
         setDirection(amt < 0 ? 'expense' : 'income');
         setName(bankTx.purpose ?? '');
-        setAmount(amt !== 0 ? String(Math.abs(amt)) : '');
+        const prefill = prefillAmount ?? Math.abs(amt);
+        setAmount(prefill !== 0 ? String(Math.round(prefill * 100) / 100) : '');
         setDate(toDateInputValue(bankTx.bookingDate) || new Date().toISOString().slice(0, 10));
         setSenderName(bankTx.counterpartyName ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -229,7 +234,11 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, onCreated }: Pr
         <>
             {/* Backdrop */}
             <div
-                className={cn('fixed inset-0 bg-black/25 z-40 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0 pointer-events-none')}
+                className={cn(
+                    'fixed inset-0 bg-black/25 transition-opacity duration-300',
+                    stacked ? 'z-50' : 'z-40',
+                    open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                )}
                 onClick={handleClose}
             />
 

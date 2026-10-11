@@ -358,11 +358,14 @@ export function useCreateReceiptForBankTransaction() {
     return useMutation({
         mutationFn: ({ bankTxId, file }: { bankTxId: number; file: File }) =>
             apiService.orgService.receipt(bankTxId, true, { data: file, fileName: file.name }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
-            queryClient.invalidateQueries({ queryKey: documentKeys.all });
-            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
-        },
+        // Returned so the mutation resolves only once the new link is refetched; the drawer then shows it right away
+        // instead of briefly falling back to its empty state.
+        onSuccess: () =>
+            Promise.all([
+                queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all }),
+                queryClient.invalidateQueries({ queryKey: documentKeys.all }),
+                queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
+            ]),
         onError: showUploadError,
     });
 }
