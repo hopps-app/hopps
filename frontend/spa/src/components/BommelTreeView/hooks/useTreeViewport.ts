@@ -208,6 +208,11 @@ export function useTreeViewport({ canvas, natural }: { canvas: HTMLElement | nul
         [clampView]
     );
 
+    /** Stop following the fit-to-width layout and keep the current zoom, e.g. so expanding a branch does not rescale the tree */
+    const holdView = useCallback(() => {
+        setUserView((current) => current ?? viewRef.current);
+    }, []);
+
     return {
         transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
         ready: size.width > 0 && natural.width > 0,
@@ -218,6 +223,7 @@ export function useTreeViewport({ canvas, natural }: { canvas: HTMLElement | nul
         zoomOut: () => setUserView(zoomAt(view, view.scale / ZOOM_STEP, size.width / 2, size.height / 2)),
         center: () => setUserView(null),
         panBy,
+        holdView,
         handlers,
     };
 }

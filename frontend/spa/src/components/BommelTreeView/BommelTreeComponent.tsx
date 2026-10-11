@@ -1,5 +1,5 @@
 import { Crosshair, Minus, Plus } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { BommelBranch, BommelCard, Connector } from './components';
@@ -138,6 +138,36 @@ function BommelTreeComponent({
         setToggled((prev) => new Map(prev).set(nodeId, expanded));
     }, []);
 
+    // Expanding or collapsing changes the tree's width, so the layout around the clicked card shifts. Keep that card
+    // where it was on screen: remember its position, hold the zoom (no refit), and pan by however far it moved.
+    const toggleAnchorRef = useRef<{ id: number; x: number; y: number } | null>(null);
+    const { holdView, panBy } = viewport;
+
+    const toggleNode = useCallback(
+        (nodeId: number, expanded: boolean) => {
+            const card = containerRef.current?.querySelector(`[data-bommel-id="${nodeId}"]`);
+            if (card && !vertical) {
+                const rect = card.getBoundingClientRect();
+                toggleAnchorRef.current = { id: nodeId, x: rect.left, y: rect.top };
+                holdView();
+            }
+            setExpanded(nodeId, !expanded);
+        },
+        [vertical, holdView, setExpanded]
+    );
+
+    useLayoutEffect(() => {
+        const anchor = toggleAnchorRef.current;
+        if (!anchor) return;
+        toggleAnchorRef.current = null;
+        const card = containerRef.current?.querySelector(`[data-bommel-id="${anchor.id}"]`);
+        if (!card) return;
+        const rect = card.getBoundingClientRect();
+        const dx = anchor.x - rect.left;
+        const dy = anchor.y - rect.top;
+        if (dx || dy) panBy(dx, dy);
+    }, [toggled, panBy]);
+
     const handleAddChild = useCallback(
         async (nodeId: number) => {
             if (!onAddChild) return false;
@@ -163,7 +193,7 @@ function BommelTreeComponent({
                     depth={depth}
                     expanded={expanded}
                     fullWidth={vertical}
-                    onToggle={() => setExpanded(nodeId, !expanded)}
+                    onToggle={() => toggleNode(nodeId, expanded)}
                     selected={selectedId === nodeId}
                     onNodeClick={onNodeClick}
                     onEdit={onEdit}
@@ -179,7 +209,7 @@ function BommelTreeComponent({
                 />
             );
         },
-        [dragState, selectedId, onNodeClick, onEdit, onDelete, handleAddChild, editable, autoEditNodeId, dragDropEnabled, startDrag, setExpanded, vertical]
+        [dragState, selectedId, onNodeClick, onEdit, onDelete, handleAddChild, editable, autoEditNodeId, dragDropEnabled, startDrag, toggleNode, vertical]
     );
 
     if (!treeData) {

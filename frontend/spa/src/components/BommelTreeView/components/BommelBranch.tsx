@@ -1,4 +1,4 @@
-import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { TreeNodeData } from '../types';
 
@@ -40,27 +40,33 @@ export function BommelBranch({ node, depth, layout, pathIds, isExpanded, renderC
     const pathIndex = showChildren ? children.findIndex((child) => pathIds.has(child.attributes?.id as number)) : -1;
 
     // Horizontal layout: the purple stretch of the rail runs from under this card (the row's centre) to the centre of
-    // the path child. Where that child sits depends on its siblings' subtrees, so it is measured, and re-measured
-    // whenever the row resizes (a branch expanding or collapsing).
+    // the path child. Where that child sits depends on its siblings' subtrees, so it is measured.
     const rowRef = useRef<HTMLDivElement>(null);
     const pathChildRef = useRef<HTMLDivElement>(null);
     const [pathRail, setPathRail] = useState<{ left: number; width: number } | null>(null);
 
-    useLayoutEffect(() => {
+    const measurePathRail = () => {
         const row = rowRef.current;
         const child = pathChildRef.current;
-        if (layout !== 'horizontal' || pathIndex < 0 || !row || !child) return;
+        if (!row || !child) return;
+        const rowCentre = row.offsetWidth / 2;
+        const childCentre = child.offsetLeft + child.offsetWidth / 2;
+        const left = Math.min(rowCentre, childCentre) - 1;
+        const width = Math.abs(rowCentre - childCentre) + 2;
+        setPathRail((prev) => (prev && prev.left === left && prev.width === width ? prev : { left, width }));
+    };
 
-        const measure = () => {
-            const rowCentre = row.offsetWidth / 2;
-            const childCentre = child.offsetLeft + child.offsetWidth / 2;
-            const left = Math.min(rowCentre, childCentre) - 1;
-            const width = Math.abs(rowCentre - childCentre) + 2;
-            setPathRail((prev) => (prev && prev.left === left && prev.width === width ? prev : { left, width }));
-        };
+    // Re-measure after every render, before paint. Expanding or collapsing any branch re-renders the whole tree, so the
+    // rail moves in the same frame as the cards instead of trailing behind them.
+    useLayoutEffect(() => {
+        if (layout === 'horizontal' && pathIndex >= 0) measurePathRail();
+    });
 
-        measure();
-        const observer = new ResizeObserver(measure);
+    // Size changes that do not come from a render (fonts or emoji loading) still need a re-measure
+    useEffect(() => {
+        const row = rowRef.current;
+        if (layout !== 'horizontal' || pathIndex < 0 || !row) return;
+        const observer = new ResizeObserver(() => measurePathRail());
         observer.observe(row);
         return () => observer.disconnect();
     }, [layout, pathIndex]);
@@ -74,7 +80,7 @@ export function BommelBranch({ node, depth, layout, pathIds, isExpanded, renderC
             <div className="flex flex-col">
                 {renderCard(node, depth, expanded)}
                 {showChildren && (
-                    <div className="flex flex-col gap-3.5 mt-3.5 pl-8">
+                    <div className="flex flex-col gap-3.5 mt-3.5 pl-8 animate-in fade-in-0 slide-in-from-top-1 duration-200">
                         {children.map((child, index) => {
                             const isLast = index === children.length - 1;
                             return (
@@ -111,7 +117,7 @@ export function BommelBranch({ node, depth, layout, pathIds, isExpanded, renderC
             {showChildren && (
                 <>
                     <Connector onPath={pathIndex >= 0} />
-                    <div ref={rowRef} className="relative flex items-start">
+                    <div ref={rowRef} className="relative flex items-start animate-in fade-in-0 duration-200">
                         {children.map((child, index) => (
                             <div
                                 key={child.attributes?.id ?? child.name}
