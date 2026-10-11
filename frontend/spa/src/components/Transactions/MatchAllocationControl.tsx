@@ -12,6 +12,8 @@ interface Props {
     /** Maximum allowed value: the bank movement's own amount — a match can never use more of a movement than it holds.
      *  Also styles full vs. partial. */
     max: number;
+    /** Amount the allocation counts as partial against (e.g. the transaction's own amount). Defaults to `max`. */
+    full?: number;
     currency?: string;
     pending?: boolean;
     onSave: (value: number) => void;
@@ -24,14 +26,14 @@ interface Props {
  * for a transaction; the full amount reads muted, a partial amount is highlighted. Clicking opens a tiny number input.
  * Shared by both link directions (transaction detail and the bank-transaction match drawer).
  */
-export function MatchAllocationControl({ amount, max, currency, pending, onSave, variant = 'compact' }: Props) {
+export function MatchAllocationControl({ amount, max, full = max, currency, pending, onSave, variant = 'compact' }: Props) {
     const { format } = useCurrency();
     const { t } = useTranslation();
     const [editing, setEditing] = useState(false);
     const [text, setText] = useState('');
     const [error, setError] = useState(false);
 
-    const isPartial = amount < max - 0.005;
+    const isPartial = amount < full - 0.005;
 
     function start() {
         setText(amount.toFixed(2).replace('.', ','));

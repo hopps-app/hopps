@@ -39,7 +39,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
-import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
+import { useBankTransaction, useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import {
     useDocuments,
@@ -288,7 +288,18 @@ function ReceiptDataRow({
 // after uploading a receipt onto a bank transaction there, the user stays on the Konten page and completes + confirms
 // the transaction in this drawer instead of being navigated to the receipts page. The component is self-contained
 // (driven only by the `doc` prop and the callbacks), so reusing it needs no view-level state from BelegeView.
-export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+export function ReviewDrawer({
+    doc: docProp,
+    onClose,
+    onDeleted,
+    stacked = false,
+}: {
+    doc: DocumentResponse | null;
+    onClose: () => void;
+    onDeleted: () => void;
+    /** Opened on top of another drawer (e.g. "Kontoumsatz zuordnen"): layered above it, scrim included. */
+    stacked?: boolean;
+}) {
     const { format, symbol } = useCurrency();
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -319,6 +330,8 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // The bank transaction(s) the linked transaction is matched to — shown for cross-checking the auto-filled values
     // and used to decide whether the amount is fully covered (a prerequisite for confirming).
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(linkedTransactionId);
+    // Bank transaction the receipt was uploaded onto; confirming links the new transaction to it.
+    const { data: pendingBankTx } = useBankTransaction(doc?.pendingBankTransactionId ?? null);
 
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
@@ -547,7 +560,11 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     return (
         <>
             <div
-                className={cn('fixed inset-0 bg-black/25 z-40 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0 pointer-events-none')}
+                className={cn(
+                    'fixed inset-0 bg-black/25 transition-opacity duration-300',
+                    stacked ? 'z-50' : 'z-40',
+                    open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                )}
                 onClick={onClose}
             />
             {/* Large file preview to the left of the detail drawer (desktop only). pointer-events-none on the wrapper so
@@ -866,6 +883,46 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                             {hasLinkedTransaction && detailTab === 'transaction' && linkedTx && (
                                 <div className="border-t border-[#E9E9EE]">
                                     <BankMatchSection tx={linkedTx} />
+                                </div>
+                            )}
+
+                            {/* Receipt uploaded onto a bank transaction, not confirmed yet: that bank transaction is
+                                linked to the transaction confirming creates. */}
+                            {!hasLinkedTransaction && pendingBankTx && (
+                                <div className="border-t border-[#E9E9EE] px-6 py-5">
+                                    <div className="mb-[11px] flex items-center gap-[7px] text-[12px] font-bold uppercase tracking-[0.07em] text-[#7E3FB4]">
+                                        <Link2 size={14} />
+                                        {t('transactions.detail.payment')}
+                                    </div>
+                                    <div
+                                        className="rounded-[var(--r-card)] border border-border-soft px-[15px] py-[13px]"
+                                        style={{ background: 'var(--background-secondary)' }}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <span
+                                                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[var(--r-sm)]"
+                                                style={{ background: 'var(--positive-surface)', color: 'var(--positive)' }}
+                                            >
+                                                <Landmark size={17} />
+                                            </span>
+                                            <span className="flex min-w-0 flex-1 flex-col">
+                                                <span className="truncate text-[14px] font-bold text-foreground">
+                                                    {pendingBankTx.counterpartyName || pendingBankTx.purpose || '—'}
+                                                </span>
+                                                <span className="mt-px text-[12.5px] text-muted-foreground">
+                                                    {fmtDate(pendingBankTx.bookingDate)} · {pendingBankTx.bankAccountName ?? '—'}
+                                                </span>
+                                            </span>
+                                            <span
+                                                className="text-[15px] font-extrabold tabular-nums"
+                                                style={{ color: (pendingBankTx.amount ?? 0) >= 0 ? 'var(--positive)' : 'var(--negative)' }}
+                                            >
+                                                {(pendingBankTx.amount ?? 0) >= 0 ? '+ ' : '– '}
+                                                {format(Math.abs(pendingBankTx.amount ?? 0))}
+                                            </span>
+                                        </div>
+                                        <p className="mt-2.5 text-[12.5px] leading-[1.45] text-muted-foreground">{t('receipts.review.pendingBankTxHint')}</p>
+                                    </div>
                                 </div>
                             )}
 

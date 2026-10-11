@@ -7,6 +7,7 @@ import {
     BankCsvColumnMappingDto,
     AmountStrategy,
     BankFieldType,
+    DocumentResponse,
     MatchRequest,
     MatchAmountRequest,
 } from '@hopps/api-client';
@@ -349,21 +350,43 @@ export function useCsvPreview() {
 }
 
 /**
- * Uploads a receipt for an unmatched bank transaction. The backend creates a DRAFT transaction pre-filled from the bank
- * movement (counterparty, amount, purpose), links the receipt to it and matches it to the bank transaction. Returns the
- * created document so the caller can open it for review.
+ * Uploads a receipt onto a bank transaction. Only the document is created; it stays pending on the bank transaction
+ * until it is confirmed, which creates its transaction and matches it. Returns the created document.
  */
 export function useCreateReceiptForBankTransaction() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ bankTxId, file }: { bankTxId: number; file: File }) =>
             apiService.orgService.receipt(bankTxId, true, { data: file, fileName: file.name }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
-            queryClient.invalidateQueries({ queryKey: documentKeys.all });
-            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
-        },
+        // Returned so the mutation resolves only once the pending receipts are refetched; the drawer then shows the new
+        // receipt right away instead of briefly falling back to its empty state.
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: documentKeys.all }),
         onError: showUploadError,
+    });
+}
+
+// The receipts uploaded onto a bank transaction that are not confirmed yet. Kept under the document keys so every
+// document change (analysis done, confirm, delete) refreshes it. Polls while one of them is still being analysed.
+export function usePendingReceipts(bankTxId: number | null) {
+    return useQuery({
+        queryKey: [...documentKeys.all, 'pendingForBankTx', bankTxId],
+        queryFn: () => apiService.orgService.receiptsAll(bankTxId!),
+        enabled: bankTxId !== null && bankTxId > 0,
+        refetchInterval: (query) => {
+            const data = query.state.data as DocumentResponse[] | undefined;
+            return data?.some((d) => d.analysisStatus === 'PENDING' || d.analysisStatus === 'ANALYZING') ? 2000 : false;
+        },
+    });
+}
+
+// Detaches a pending receipt from its bank transaction; the receipt itself is kept.
+export function useDetachPendingReceipt() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ bankTxId, documentId }: { bankTxId: number; documentId: number }) => apiService.orgService.receipts(documentId, bankTxId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+        },
     });
 }
 

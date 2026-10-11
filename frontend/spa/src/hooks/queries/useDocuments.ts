@@ -99,6 +99,8 @@ export function useConfirmDocument() {
             queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
             // A transaction was created — refresh the transaction lists/detail so it appears immediately.
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            // A receipt uploaded onto a bank transaction is matched to it on confirm.
+            queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
         },
     });
 }
