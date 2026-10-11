@@ -1,5 +1,6 @@
 package app.hopps.bankimport.service;
 
+import app.hopps.bankimport.audit.BankImportAuditor;
 import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.domain.BankImport;
@@ -23,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Coordinates the user-facing side of the import lifecycle: enqueueing a new job, listing per-account history, fetching
@@ -33,6 +35,9 @@ import java.util.List;
 public class BankImportService {
 
     private static final Logger LOG = LoggerFactory.getLogger(BankImportService.class);
+
+    @Inject
+    BankImportAuditor importAuditor;
 
     @Inject
     BankAccountService bankAccountService;
@@ -139,6 +144,9 @@ public class BankImportService {
         if (job.getStatus() == BankImportStatus.PROCESSING || job.getStatus() == BankImportStatus.QUEUED) {
             throw new BadRequestException("Cannot rollback an import that is still in progress");
         }
+        // Recorded first: the import's movements, their statuses and links are gone once deleted.
+        importAuditor.deleted(job,
+                transactionRepository.countStatusesByImports(List.of(job.getId())).getOrDefault(job.getId(), Map.of()));
         long deleted = transactionRepository.deleteByImport(job.getId());
         importRepository.delete(job);
         LOG.info("Bank import {} rolled back, removed {} transactions", id, deleted);

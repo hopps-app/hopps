@@ -1,5 +1,6 @@
 package app.hopps.bankimport.service;
 
+import app.hopps.bankimport.audit.BankTransactionAuditor;
 import app.hopps.bankimport.domain.BankTransaction;
 import app.hopps.bankimport.domain.BankTransactionMatch;
 import app.hopps.bankimport.domain.BankTransactionMatchType;
@@ -36,6 +37,9 @@ public class BankTransactionMatchService {
 
     @Inject
     TransactionAuditor transactionAuditor;
+
+    @Inject
+    BankTransactionAuditor bankTransactionAuditor;
 
     @Transactional
     public void addMatch(Long bankTxId, Long transactionId, String username) {
@@ -272,8 +276,10 @@ public class BankTransactionMatchService {
         if (bankTx == null) {
             throw new NotFoundException("Bank transaction not found");
         }
+        BankTransactionStatus before = bankTx.getStatus();
         bankTx.setStatus(BankTransactionStatus.IGNORED);
         bankTx.setMatchedAmount(BigDecimal.ZERO);
+        bankTransactionAuditor.ignored(bankTx, before);
     }
 
     @Transactional
@@ -282,7 +288,11 @@ public class BankTransactionMatchService {
         if (bankTx == null) {
             throw new NotFoundException("Bank transaction not found");
         }
+        BankTransactionStatus before = bankTx.getStatus();
         recomputeStatus(bankTx);
+        if (before == BankTransactionStatus.IGNORED) {
+            bankTransactionAuditor.unignored(bankTx, before);
+        }
     }
 
     /**
