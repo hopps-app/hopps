@@ -65,7 +65,7 @@ export function ConfirmDialog({
 
                     <div className="mt-6 flex items-center justify-end gap-2">
                         <DialogPrimitive.Close
-                            className="px-4 py-2 rounded-full text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors"
+                            className="px-4 py-2 rounded-[var(--btn-radius)] text-[14px] font-bold border border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] transition-colors"
                             disabled={loading}
                         >
                             {cancelLabel ?? t('common.cancel')}
@@ -74,7 +74,7 @@ export function ConfirmDialog({
                             onClick={onConfirm}
                             disabled={loading}
                             className={cn(
-                                'inline-flex items-center justify-center px-5 py-2 rounded-full text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50'
+                                'inline-flex items-center justify-center px-5 py-2 rounded-[var(--btn-radius)] text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50'
                             )}
                             style={{
                                 background: destructive ? 'var(--negative-solid)' : 'var(--banner-gradient)',

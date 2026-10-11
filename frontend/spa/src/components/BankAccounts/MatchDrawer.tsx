@@ -551,8 +551,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                             <button
                                 type="button"
                                 onClick={() => setShowCreate(true)}
-                                className="flex items-center gap-3.5 rounded-[var(--r-card)] border border-border-soft px-5 py-[18px] text-left transition-colors hover:border-[var(--border-strong)]"
-                                style={{ background: 'var(--background-secondary)' }}
+                                className="flex items-center gap-3.5 rounded-[var(--r-card)] border border-border-soft bg-[var(--background-secondary)] px-5 py-[18px] text-left transition-colors hover:bg-[var(--surface-sunken)]"
                             >
                                 <IconTile size={44} bg="var(--surface-track)" fg="var(--muted-foreground)">
                                     <Plus size={20} />
