@@ -1139,7 +1139,7 @@
             "nameRequired": "Il nome del bommel è obbligatorio",
             "nameMaxLength": "Il nome non può superare i 255 caratteri"
         },
-        "editModeHint": "Trascina e rilascia i bommel nella vista tabella, oppure usa il pulsante di spostamento nella vista ad albero",
+        "editModeHint": "Modalità modifica: puoi creare, rinominare o eliminare Bommel. Le modifiche non influiscono sulle transazioni già registrate.",
         "moveBommel": "Sposta Bommel",
         "includeDrafts": "Includi bozze",
         "aggregate": "Incl. sotto-bommel",
@@ -1180,7 +1180,6 @@
             "confirm": "Sposta"
         },
         "dragDrop": "Spostabile",
-        "dragDropHint": "I bommel possono ora essere spostati tramite trascinamento",
         "collapse": "Comprimi",
         "expand": "Espandi",
         "subBommelCount_one": "{{count}} sotto-Bommel",
@@ -1200,13 +1199,21 @@
             "createChildSuccess": "Bommel figlio creato con successo",
             "createChildError": "Creazione del Bommel figlio non riuscita"
         },
-        "demoMode": "Mostra dati dimostrativi",
-        "demoBanner": "Stai visualizzando dati di esempio a scopo orientativo. Questi dati sono in sola lettura.",
+        "demoMode": "Mostra esempio",
+        "demoBanner": "Struttura di esempio per orientarti. Questi dati non sono modificabili.",
         "loadError": "Caricamento della struttura dell'organizzazione non riuscito",
         "saveError": "Salvataggio dell'impostazione non riuscito",
         "centerTree": "Centra",
         "zoomIn": "Ingrandisci",
-        "zoomOut": "Riduci"
+        "zoomOut": "Riduci",
+        "title": "Bommel",
+        "titleInfoLabel": "Che cos'è un Bommel?",
+        "titleInfo": "Un Bommel è un'area della tua associazione. Qui li vedi tutti con le loro entrate e uscite.",
+        "includeDraftsInfo": "Conta anche le transazioni non ancora confermate. Così vedi come saranno i numeri quando tutte le bozze saranno confermate.",
+        "aggregateInfo": "Ogni Bommel mostra i propri importi più quelli di tutti i Bommel sottostanti. Disattivato, vedi solo ciò che è registrato direttamente su quel Bommel.",
+        "demoModeInfo": "Mostra la struttura di un'associazione di esempio, così vedi come organizzare i tuoi Bommel. I tuoi dati restano invariati, l'esempio non è modificabile.",
+        "emptyHint": "La vostra organizzazione è già il Bommel principale. Sotto potete creare delle aree: reparto, progetto o evento.",
+        "dragDropInfo": "Trascina un Bommel su un altro per spostarlo lì. Sui touchscreen trascinalo dalla maniglia a sinistra della scheda."
     },
     "bankAccounts": {
         "title": "Conti bancari",

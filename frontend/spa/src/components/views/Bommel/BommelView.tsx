@@ -1,23 +1,23 @@
-import { RefreshCw, AlertCircle, Info, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { RefreshCw, AlertCircle, Info, Lightbulb, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { BommelDetailsPanel } from './components';
+import { BommelDetailsPanel, EditModeBanner, HintBanner, ToggleField } from './components';
 import { useBommelTree, useTreeCalculations, useStatistics, useDemoTree } from './hooks';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import Button from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
-import Switch from '@/components/ui/Switch';
 import { usePageTitle } from '@/hooks/use-page-title';
 
 function BommelView() {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    usePageTitle(t('menu.structure'));
+    usePageTitle(t('bommel.title'));
     const [searchParams, setSearchParams] = useSearchParams();
     const bommelId = searchParams.get('bommelId');
     // ?edit=1 (e.g. from the dashboard setup step) opens the structure straight in edit mode.
@@ -47,6 +47,8 @@ function BommelView() {
     const { isOrganizationError, isLoading, rootBommel, tree, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } = activeData;
 
     const { countSubBommels } = useTreeCalculations(tree);
+    // Only the organisation itself (the root) exists yet
+    const structureIsEmpty = !isLoading && !tree.some((node) => !node.data?.isRoot);
 
     // Reset selection when switching between demo and real mode
     const handleDemoModeChange = useCallback((enabled: boolean) => {
@@ -211,71 +213,74 @@ function BommelView() {
         <>
             {(isLoading || isStatsLoading) && !isDemoMode && <LoadingOverlay />}
 
-            <div className="h-full flex flex-col">
-                {/* Demo Mode Banner */}
-                {isDemoMode && (
-                    <div className="flex items-center gap-2 px-4 py-2.5 mb-4 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 text-sm">
-                        <Info className="w-4 h-4 flex-shrink-0" />
-                        <span>{t('bommel.demoBanner')}</span>
+            <div className="h-full flex flex-col font-hanken">
+                <h1 className="mb-4 flex items-center gap-2 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">
+                    {t('bommel.title')}
+                    <InfoTooltip content={t('bommel.titleInfo')} label={t('bommel.titleInfoLabel')} size={17} />
+                </h1>
+
+                <div className="mb-4 flex flex-col gap-4 flex-shrink-0">
+                    {(isDemoMode || structureIsEmpty) && (
+                        <HintBanner icon={isDemoMode ? Info : Lightbulb}>{isDemoMode ? t('bommel.demoBanner') : t('bommel.emptyHint')}</HintBanner>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-x-[30px] gap-y-3 rounded-[18px] border border-border-soft bg-background-secondary px-[18px] py-3 shadow-[var(--shadow-sm)]">
+                        <ToggleField
+                            label={t('bommel.includeDrafts')}
+                            info={t('bommel.includeDraftsInfo')}
+                            checked={statisticsOptions.includeDrafts}
+                            onCheckedChange={setIncludeDrafts}
+                        />
+                        <ToggleField
+                            label={t('bommel.aggregate')}
+                            info={t('bommel.aggregateInfo')}
+                            checked={statisticsOptions.aggregate}
+                            onCheckedChange={setAggregate}
+                        />
+                        <ToggleField label={t('bommel.demoMode')} info={t('bommel.demoModeInfo')} checked={isDemoMode} onCheckedChange={handleDemoModeChange} />
+                        {isEditMode && !isDemoMode && (
+                            <ToggleField
+                                label={t('bommel.dragDrop')}
+                                info={t('bommel.dragDropInfo')}
+                                checked={isDragDropMode}
+                                onCheckedChange={setIsDragDropMode}
+                            />
+                        )}
+
+                        <div className="ml-auto flex items-center gap-2">
+                            {!isDemoMode && (
+                                <Button
+                                    size="sm"
+                                    variant={isEditMode ? 'default' : 'outline'}
+                                    icon={isEditMode ? 'Check' : 'Pencil2'}
+                                    onClick={() => {
+                                        const newEditMode = !isEditMode;
+                                        setIsEditMode(newEditMode);
+                                        if (!newEditMode) setIsDragDropMode(false);
+                                    }}
+                                >
+                                    {isEditMode ? t('bommel.done') : t('bommel.edit')}
+                                </Button>
+                            )}
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                                className="hidden xl:inline-flex"
+                                title={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
+                                aria-label={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
+                            >
+                                {isSidebarOpen ? <PanelRightClose /> : <PanelRightOpen />}
+                            </Button>
+                        </div>
                     </div>
-                )}
+
+                    {isEditMode && !isDemoMode && <EditModeBanner />}
+                </div>
 
                 <div className={`grid grid-cols-1 ${isSidebarOpen ? 'xl:grid-cols-4' : 'xl:grid-cols-1'} gap-6 flex-1 min-h-0`}>
                     {/* Left Side - Structure Views */}
                     <div className={`${isSidebarOpen ? 'xl:col-span-3' : 'xl:col-span-1'} flex flex-col min-h-0`}>
-                        <div className="flex items-center justify-end mb-4 flex-shrink-0">
-                            <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
-                                <Switch label={t('bommel.demoMode')} checked={isDemoMode} onCheckedChange={handleDemoModeChange} />
-                                {!isEditMode && !isDemoMode && (
-                                    <>
-                                        <Switch
-                                            label={t('bommel.includeDrafts')}
-                                            checked={statisticsOptions.includeDrafts}
-                                            onCheckedChange={setIncludeDrafts}
-                                        />
-                                        <Switch label={t('bommel.aggregate')} checked={statisticsOptions.aggregate} onCheckedChange={setAggregate} />
-                                    </>
-                                )}
-                                {isEditMode && !isDemoMode && (
-                                    <>
-                                        {isDragDropMode && (
-                                            <span className="text-sm text-blue-600 flex items-center gap-1.5">
-                                                <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                                                {t('bommel.dragDropHint')}
-                                            </span>
-                                        )}
-                                        <Switch label={t('bommel.dragDrop')} checked={isDragDropMode} onCheckedChange={setIsDragDropMode} />
-                                    </>
-                                )}
-                                {!isDemoMode && (
-                                    <Button
-                                        variant={isEditMode ? 'default' : 'outline'}
-                                        icon={isEditMode ? 'Check' : 'Pencil2'}
-                                        onClick={() => {
-                                            const newEditMode = !isEditMode;
-                                            setIsEditMode(newEditMode);
-                                            if (!newEditMode) setIsDragDropMode(false);
-                                        }}
-                                    >
-                                        {isEditMode ? t('bommel.done') : t('bommel.edit')}
-                                    </Button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                    className="hidden xl:flex items-center justify-center p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                    title={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
-                                    aria-label={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
-                                >
-                                    {isSidebarOpen ? (
-                                        <PanelRightClose className="w-4 h-4 text-gray-600" />
-                                    ) : (
-                                        <PanelRightOpen className="w-4 h-4 text-gray-600" />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
                         <BommelTreeComponent
                             className="flex-1"
                             key={`tree-${isDemoMode}`}

@@ -1033,7 +1033,7 @@
             "nameRequired": "Bommel-Name ist erforderlich",
             "nameMaxLength": "Der Name darf maximal 255 Zeichen lang sein"
         },
-        "editModeHint": "Per Drag & Drop in der Tabelle oder mit dem Verschieben-Button in der Baumansicht",
+        "editModeHint": "Bearbeiten-Modus: Du kannst Bommel anlegen, umbenennen oder löschen. Änderungen wirken sich nicht auf bereits gebuchte Transaktionen aus.",
         "moveBommel": "Bommel verschieben",
         "includeDrafts": "Entwürfe einbeziehen",
         "aggregate": "Inkl. Unterbommel",
@@ -1074,7 +1074,6 @@
             "confirm": "Verschieben"
         },
         "dragDrop": "Verschiebbar",
-        "dragDropHint": "Bommels können jetzt per Drag & Drop verschoben werden",
         "collapse": "Zuklappen",
         "expand": "Aufklappen",
         "subBommelCount_one": "{{count}} Unterbommel",
@@ -1094,13 +1093,21 @@
             "createChildSuccess": "Unterbommel erfolgreich erstellt",
             "createChildError": "Fehler beim Erstellen des Unterbommels"
         },
-        "demoMode": "Demodaten anzeigen",
-        "demoBanner": "Sie sehen Beispieldaten zur Orientierung. Diese Daten sind nicht bearbeitbar.",
+        "demoMode": "Beispiel anzeigen",
+        "demoBanner": "Beispielstruktur zur Orientierung. Diese Daten sind nicht bearbeitbar.",
         "loadError": "Fehler beim Laden der Organisationsstruktur",
         "saveError": "Fehler beim Speichern der Einstellungen",
         "centerTree": "Zentrieren",
         "zoomIn": "Vergrößern",
-        "zoomOut": "Verkleinern"
+        "zoomOut": "Verkleinern",
+        "title": "Bommel",
+        "titleInfoLabel": "Was ist ein Bommel?",
+        "titleInfo": "Ein Bommel ist ein Bereich in deinem Verein. Hier siehst du alle mit ihren Einnahmen und Ausgaben.",
+        "includeDraftsInfo": "Zählt auch Transaktionen mit, die noch nicht bestätigt sind. So siehst du, wie die Zahlen aussehen, wenn alle Entwürfe bestätigt werden.",
+        "aggregateInfo": "Jeder Bommel zeigt seine eigenen Beträge plus die aller Bommel darunter. Ausgeschaltet siehst du nur, was direkt auf diesem Bommel gebucht ist.",
+        "demoModeInfo": "Zeigt die Struktur eines Beispielvereins, damit du siehst, wie du deine Bommel aufbauen kannst. Deine eigenen Daten bleiben unverändert, das Beispiel ist nicht bearbeitbar.",
+        "emptyHint": "Eure Organisation ist bereits der oberste Bommel. Darunter könnt ihr Bereiche anlegen: Abteilung, Projekt oder Veranstaltung.",
+        "dragDropInfo": "Zieh einen Bommel auf einen anderen, um ihn darunter einzuordnen. Auf Touchscreens ziehst du am Griff links im Bommel."
     },
     "datePicker": {
         "selectDate": "Datum auswählen"

@@ -1139,7 +1139,7 @@
             "nameRequired": "Le nom du bommel est obligatoire",
             "nameMaxLength": "Le nom ne doit pas dépasser 255 caractères"
         },
-        "editModeHint": "Glissez-déposez les bommels en vue tableau, ou utilisez le bouton de déplacement en vue arborescente",
+        "editModeHint": "Mode édition : tu peux créer, renommer ou supprimer des Bommel. Les modifications n'affectent pas les transactions déjà comptabilisées.",
         "moveBommel": "Déplacer le bommel",
         "includeDrafts": "Inclure les brouillons",
         "aggregate": "Sous-bommels inclus",
@@ -1180,7 +1180,6 @@
             "confirm": "Déplacer"
         },
         "dragDrop": "Déplaçable",
-        "dragDropHint": "Les bommels peuvent désormais être déplacés par glisser-déposer",
         "collapse": "Réduire",
         "expand": "Développer",
         "subBommelCount_one": "{{count}} sous-bommel",
@@ -1200,13 +1199,21 @@
             "createChildSuccess": "Bommel enfant créé avec succès",
             "createChildError": "Échec de la création du bommel enfant"
         },
-        "demoMode": "Afficher les données de démonstration",
-        "demoBanner": "Vous consultez des données d'exemple à titre d'orientation. Ces données sont en lecture seule.",
+        "demoMode": "Afficher l'exemple",
+        "demoBanner": "Structure d'exemple pour t'orienter. Ces données ne sont pas modifiables.",
         "loadError": "Échec du chargement de la structure de l'organisation",
         "saveError": "Échec de l'enregistrement du paramètre",
         "centerTree": "Centrer",
         "zoomIn": "Zoom avant",
-        "zoomOut": "Zoom arrière"
+        "zoomOut": "Zoom arrière",
+        "title": "Bommel",
+        "titleInfoLabel": "Qu'est-ce qu'un Bommel ?",
+        "titleInfo": "Un Bommel est un domaine de ton association. Ici tu les vois tous avec leurs recettes et leurs dépenses.",
+        "includeDraftsInfo": "Compte aussi les transactions qui ne sont pas encore confirmées. Tu vois ainsi les chiffres une fois tous les brouillons confirmés.",
+        "aggregateInfo": "Chaque Bommel affiche ses propres montants plus ceux de tous les Bommel en dessous. Désactivé, tu ne vois que ce qui est comptabilisé directement sur ce Bommel.",
+        "demoModeInfo": "Affiche la structure d'une association exemple pour te montrer comment organiser tes Bommel. Tes propres données restent inchangées, l'exemple n'est pas modifiable.",
+        "emptyHint": "Votre organisation est déjà le Bommel principal. En dessous, vous pouvez créer des domaines : section, projet ou événement.",
+        "dragDropInfo": "Fais glisser un Bommel sur un autre pour l'y déplacer. Sur écran tactile, utilise la poignée à gauche de la carte."
     },
     "bankAccounts": {
         "title": "Comptes bancaires",

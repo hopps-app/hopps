@@ -1172,7 +1172,7 @@
             "nameRequired": "Bommel name is required",
             "nameMaxLength": "Name must not exceed 255 characters"
         },
-        "editModeHint": "Drag & drop bommels in Table view, or use the move button in Tree view",
+        "editModeHint": "Edit mode: you can add, rename or delete Bommel. Changes do not affect transactions that are already booked.",
         "moveBommel": "Move Bommel",
         "includeDrafts": "Include drafts",
         "aggregate": "Incl. sub-bommels",
@@ -1213,7 +1213,6 @@
             "confirm": "Move"
         },
         "dragDrop": "Movable",
-        "dragDropHint": "Bommels can now be moved via drag & drop",
         "collapse": "Collapse",
         "expand": "Expand",
         "subBommelCount_one": "{{count}} sub-Bommel",
@@ -1233,13 +1232,21 @@
             "createChildSuccess": "Child Bommel successfully created",
             "createChildError": "Failed to create child Bommel"
         },
-        "demoMode": "Show demo data",
-        "demoBanner": "You are viewing sample data for orientation. This data is read-only.",
+        "demoMode": "Show example",
+        "demoBanner": "Example structure for orientation. This data cannot be edited.",
         "loadError": "Failed to load organization structure",
         "saveError": "Failed to save setting",
         "centerTree": "Center",
         "zoomIn": "Zoom in",
-        "zoomOut": "Zoom out"
+        "zoomOut": "Zoom out",
+        "title": "Bommel",
+        "titleInfoLabel": "What is a Bommel?",
+        "titleInfo": "A Bommel is an area of your club. Here you see all of them with their income and expenses.",
+        "includeDraftsInfo": "Also counts transactions that are not confirmed yet. This shows what the numbers look like once all drafts are confirmed.",
+        "aggregateInfo": "Each Bommel shows its own amounts plus those of all Bommel below it. Turned off, you only see what is booked directly on that Bommel.",
+        "demoModeInfo": "Shows the structure of an example club so you can see how to set up your Bommel. Your own data stays unchanged, and the example cannot be edited.",
+        "emptyHint": "Your organization is already the top Bommel. Below it you can add areas: a department, project or event.",
+        "dragDropInfo": "Drag a Bommel onto another one to move it there. On touch screens, drag it by the handle on the left of the card."
     },
     "bankAccounts": {
         "title": "Bank accounts",
