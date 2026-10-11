@@ -1,6 +1,6 @@
 import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronRight, ExternalLink, FileCheck2, FileText, Info, Landmark, Link2, Loader2, Plus, Receipt, Sparkles, Unlink, Upload } from 'lucide-react';
+import { ExternalLink, FileCheck2, FileText, Info, Landmark, Link2, Loader2, Plus, Receipt, Sparkles, Unlink, Upload } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Trans, useTranslation } from 'react-i18next';
@@ -12,10 +12,12 @@ import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { FONT } from '@/components/Transactions/layout';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
+import { segmentColor, segmentTint } from '@/components/Transactions/segmentColors';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
+import { RowAction } from '@/components/ui/RowAction';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
@@ -44,17 +46,12 @@ const EPS = 0.005;
 const ICON_BTN =
     'grid h-[34px] w-[34px] flex-shrink-0 place-items-center rounded-[11px] border border-border-soft bg-[var(--background-secondary)] text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground disabled:opacity-50';
 const UNLINK_BTN = cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)]');
-// Tonal small button: the unified row action that opens an item in a drawer ("Prüfen").
+// Tonal small button ("Weiteren Beleg hochladen"), in the style of the row action.
 const TONAL_SM =
     'inline-flex h-[34px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--btn-radius)] bg-[var(--purple-100)] px-3.5 text-[13px] font-bold text-[var(--purple-700)] transition-colors hover:bg-[var(--purple-200)]';
 // Footer buttons, as in the transaction drawer.
 const FOOTER_BTN = 'h-[42px] gap-2 rounded-[var(--btn-radius)] px-5 text-[14.5px] font-bold';
 const ACCEPT = { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] };
-
-// Progress bar segment colours, one per linked transaction in link order. Purely visual: they only tell neighbouring
-// segments apart and carry no meaning.
-const SEGMENT_COLORS = ['#9955CC', '#3E9C8C', '#E0A33A', '#4F7FD1', '#D16A9B', '#7E8A3A'];
-const segmentColor = (i: number) => SEGMENT_COLORS[i % SEGMENT_COLORS.length];
 
 const isAnalysing = (d: DocumentResponse) => d.analysisStatus === 'PENDING' || d.analysisStatus === 'ANALYZING';
 
@@ -235,10 +232,7 @@ function PendingReceiptCard({ doc, onReview, onDetach, detaching }: { doc: Docum
                         <Unlink size={15} />
                     </button>
                 </HintTooltip>
-                <button type="button" onClick={onReview} className={TONAL_SM}>
-                    {t('konten.drawer.review')}
-                    <ChevronRight size={15} />
-                </button>
+                <RowAction onClick={onReview}>{t('konten.drawer.review')}</RowAction>
             </div>
         </FlatCard>
     );
@@ -288,7 +282,7 @@ function LinkedTxCard({
     return (
         <FlatCard>
             <div className="flex items-start gap-3">
-                <IconTile bg={`color-mix(in oklab, ${color} 16%, transparent)`} fg={color}>
+                <IconTile bg={segmentTint(color)} fg={color}>
                     {tx.documentId != null ? <FileText size={17} /> : <Receipt size={17} />}
                 </IconTile>
                 <div className="min-w-0 flex-1">
@@ -334,10 +328,7 @@ function LinkedTxCard({
                     </button>
                 </HintTooltip>
                 {receiptToReview ? (
-                    <button type="button" onClick={() => onReview(doc)} className={TONAL_SM}>
-                        {t('konten.drawer.review')}
-                        <ChevronRight size={15} />
-                    </button>
+                    <RowAction onClick={() => onReview(doc)}>{t('konten.drawer.review')}</RowAction>
                 ) : (
                     <HintTooltip content={t('konten.drawer.openTransactionNewTab')}>
                         <button

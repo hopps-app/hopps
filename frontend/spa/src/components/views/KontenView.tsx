@@ -2,18 +2,17 @@ import { BankAccountResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import {
     ArrowLeftRight,
-    ArrowRight,
     Check,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
+    ChevronUp,
     Clock,
     Edit,
     Landmark,
     Link2,
     Plus,
     Search,
-    Sheet,
     Trash2,
     Unlink,
     Upload,
@@ -27,9 +26,12 @@ import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
+import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { RowAction } from '@/components/ui/RowAction';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
+import { StatusFilterBar, type StatusFilterItem } from '@/components/ui/StatusFilterBar';
 import {
     useBankAccounts,
     useBankTransactionsByAccount,
@@ -429,13 +431,7 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                                         </span>
                                     )}
                                     <SignedAmount amount={tx.amount} currency={tx.currency} matchedAmount={tx.matchedAmount} />
-                                    <button
-                                        type="button"
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm font-semibold hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0"
-                                        onClick={() => tx.id && onOpenDrawer(tx.id)}
-                                    >
-                                        {t('konten.assign')} <ArrowRight className="w-4 h-4" />
-                                    </button>
+                                    <RowAction onClick={() => tx.id && onOpenDrawer(tx.id)}>{t('konten.assign')}</RowAction>
                                 </div>
                             );
                         })}
@@ -507,7 +503,13 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
 
 // ─── Account Tab ──────────────────────────────────────────────────────────────
 
-type StatusFilter = 'ALL' | 'UNMATCHED' | 'FULLY_MATCHED' | 'IGNORED';
+// Status filter of the account tab. "Offen" covers everything not yet fully matched (unmatched + partially matched).
+type AccountStatus = 'OPEN' | 'FULLY_MATCHED' | 'IGNORED';
+const ACCOUNT_STATUS_API: Record<AccountStatus, string> = {
+    OPEN: 'UNMATCHED,PARTIALLY_MATCHED',
+    FULLY_MATCHED: 'FULLY_MATCHED',
+    IGNORED: 'IGNORED',
+};
 
 const PAGE_SIZE = 50;
 
@@ -526,7 +528,8 @@ function AccountTab({
 }) {
     const { format } = useCurrency();
     const { t } = useTranslation();
-    const [statusFilter, setStatusFilter] = usePersistedState<StatusFilter>('hopps.konten.account.statusFilter', 'ALL');
+    // Several statuses can be selected; none selected shows every movement. Starts on "Offen", the worklist.
+    const [statuses, setStatuses] = usePersistedState<AccountStatus[]>('hopps.konten.account.statuses', ['OPEN']);
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
@@ -539,8 +542,12 @@ function AccountTab({
         setPage(0);
     }, [search, minAmount, maxAmount, dateFrom, dateTo]);
 
-    // "Offen" covers everything not yet fully matched (unmatched + partially matched).
-    const apiStatus = statusFilter === 'ALL' ? undefined : statusFilter === 'UNMATCHED' ? 'UNMATCHED,PARTIALLY_MATCHED' : statusFilter;
+    const apiStatus = statuses.length > 0 ? statuses.map((st) => ACCOUNT_STATUS_API[st]).join(',') : undefined;
+    // Counts per status for the filter, following the other filters (search, amount, date).
+    const accountIds = String(account.id);
+    const openAgg = useBankTransactionAggregate(accountIds, ACCOUNT_STATUS_API.OPEN, true, filters.filter);
+    const matchedAgg = useBankTransactionAggregate(accountIds, ACCOUNT_STATUS_API.FULLY_MATCHED, true, filters.filter);
+    const ignoredAgg = useBankTransactionAggregate(accountIds, ACCOUNT_STATUS_API.IGNORED, true, filters.filter);
     const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus, sortBy, sortDir, filters.filter);
 
     // Toggle direction when re-clicking the active column, otherwise switch column and default to descending.
@@ -557,11 +564,22 @@ function AccountTab({
 
     const filtered = transactions;
 
-    const statusFilters: { key: StatusFilter; label: string }[] = [
-        { key: 'ALL', label: t('konten.filter.all') },
-        { key: 'UNMATCHED', label: t('konten.filter.open') },
-        { key: 'FULLY_MATCHED', label: t('konten.filter.matched') },
-        { key: 'IGNORED', label: t('konten.filter.ignored') },
+    const statusItems: StatusFilterItem<AccountStatus>[] = [
+        { id: 'OPEN', label: t('konten.filter.open'), count: openAgg.data?.count ?? 0, color: 'var(--warning)', tint: 'var(--warning-surface)' },
+        {
+            id: 'FULLY_MATCHED',
+            label: t('konten.filter.matched'),
+            count: matchedAgg.data?.count ?? 0,
+            color: 'var(--positive)',
+            tint: 'var(--positive-surface)',
+        },
+        {
+            id: 'IGNORED',
+            label: t('konten.filter.ignored'),
+            count: ignoredAgg.data?.count ?? 0,
+            color: 'var(--foreground)',
+            tint: 'var(--surface-sunken)',
+        },
     ];
 
     return (
@@ -576,23 +594,16 @@ function AccountTab({
                         </span>
                     )}
                 </span>
-                <div className="ml-auto flex rounded-xl bg-gray-100 dark:bg-gray-800 p-0.5 gap-0.5">
-                    {statusFilters.map((f) => (
-                        <button
-                            key={f.key}
-                            type="button"
-                            onClick={() => {
-                                setStatusFilter(f.key);
-                                setPage(0);
-                            }}
-                            className={cn(
-                                'px-3 py-1 rounded-lg text-sm font-medium transition-colors',
-                                statusFilter === f.key ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
+                <div className="ml-auto">
+                    <StatusFilterBar
+                        ariaLabel={t('konten.table.status')}
+                        items={statusItems}
+                        value={statuses}
+                        onChange={(next) => {
+                            setStatuses(next);
+                            setPage(0);
+                        }}
+                    />
                 </div>
             </div>
 
@@ -652,7 +663,7 @@ function AccountTab({
                             align="right"
                         />
                         <span className="text-center">{t('konten.table.status')}</span>
-                        {/* Spacer above the per-row assign button so STATUS stays over the status pills. */}
+                        {/* Spacer above the per-row action */}
                         <span aria-hidden />
                     </div>
                     {filtered.map((tx, i) => (
@@ -676,19 +687,18 @@ function AccountTab({
                             <span className="flex justify-center">
                                 <StatusPill status={tx.status} />
                             </span>
+                            {/* Every row ends with its action: "Zuordnen" while something is open, otherwise the quieter
+                                "Ansehen". Both open the same drawer. */}
                             <span className="flex justify-end">
-                                {(tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED') && (
-                                    <button
-                                        type="button"
-                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-semibold hover:bg-primary/10 hover:text-primary transition-colors"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (tx.id) onOpenDrawer(tx.id);
-                                        }}
-                                    >
-                                        {t('konten.assign')} <ArrowRight className="w-3.5 h-3.5" />
-                                    </button>
-                                )}
+                                <RowAction
+                                    variant={tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED' ? 'primary' : 'neutral'}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (tx.id) onOpenDrawer(tx.id);
+                                    }}
+                                >
+                                    {tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED' ? t('konten.assign') : t('konten.view')}
+                                </RowAction>
                             </span>
                         </div>
                     ))}
@@ -753,10 +763,34 @@ function DeleteImportDescription({ target }: { target: ImportWithAccount | null 
     );
 }
 
+// Shared column template of the import table header and rows: Datum, Konto, Datei, Importiert, Duplikate, Zugeordnet,
+// delete. The rows keep a minimum width; narrower screens scroll the table horizontally.
+const IMPORT_COLUMNS = '104px minmax(130px,.8fr) minmax(200px,1.6fr) 96px 96px 120px 34px';
+
+type ImportFilterStatus = 'COMPLETED' | 'PARTIAL' | 'FAILED';
+
+// Badge per import status. Finished imports use the three filterable states; a running import shows as such.
+const IMPORT_STATUS_BADGE: Record<string, { tone: BadgeTone; labelKey: string }> = {
+    COMPLETED: { tone: 'pos', labelKey: 'konten.imports.status.completed' },
+    PARTIAL: { tone: 'warn', labelKey: 'konten.imports.status.partial' },
+    FAILED: { tone: 'neg', labelKey: 'konten.imports.status.failed' },
+    PROCESSING: { tone: 'info', labelKey: 'konten.imports.status.processing' },
+    QUEUED: { tone: 'neutral', labelKey: 'konten.imports.status.queued' },
+};
+
+const importDate = (imp: IBankImportResponse) => new Date(imp.finishedAt ?? imp.importedAt ?? 0).getTime();
+
+/**
+ * Read-only overview of past CSV/MT940/CAMT imports: search over file and account names, a status filter and the import
+ * table. No import action here; importing happens on the account tab.
+ */
 function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
     const { t } = useTranslation();
     const rollbackMutation = useRollbackImport();
     const [deleteTarget, setDeleteTarget] = useState<ImportWithAccount | null>(null);
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<ImportFilterStatus[]>([]);
+    const [newestFirst, setNewestFirst] = useState(true);
 
     const importResults = useQueries({
         queries: accounts.map((a) => ({
@@ -766,13 +800,17 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
     });
 
     const allImports: ImportWithAccount[] = importResults.flatMap((r, i) => (r.data ?? []).map((imp) => ({ ...imp, account: accounts[i] })));
-    allImports.sort((a, b) => {
-        const da = new Date(a.finishedAt ?? 0).getTime();
-        const db = new Date(b.finishedAt ?? 0).getTime();
-        return db - da;
-    });
-
     const isLoading = importResults.some((r) => r.isLoading);
+
+    const needle = search.trim().toLowerCase();
+    const matchesSearch = (imp: ImportWithAccount) =>
+        !needle || (imp.fileName ?? '').toLowerCase().includes(needle) || (imp.account.name ?? '').toLowerCase().includes(needle);
+    // Counts follow the search, so each status shows how many of the searched imports it holds.
+    const searched = allImports.filter(matchesSearch);
+    const countOf = (status: ImportFilterStatus) => searched.filter((imp) => imp.status === status).length;
+    const rows = searched
+        .filter((imp) => statusFilter.length === 0 || statusFilter.includes(imp.status as ImportFilterStatus))
+        .sort((a, b) => (newestFirst ? importDate(b) - importDate(a) : importDate(a) - importDate(b)));
 
     const handleDelete = async () => {
         if (!deleteTarget?.id || !deleteTarget.account.id) return;
@@ -780,122 +818,149 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
         setDeleteTarget(null);
     };
 
-    const importStatusColor: Record<string, string> = {
-        COMPLETED: 'bg-emerald-100 text-emerald-700',
-        PARTIAL: 'bg-amber-100 text-amber-700',
-        FAILED: 'bg-red-100 text-red-700',
-        PROCESSING: 'bg-blue-100 text-blue-700',
-        QUEUED: 'bg-gray-100 text-gray-600',
-    };
-
     if (isLoading) return <LoadingState className="py-12" />;
+
+    const headerCls = 'text-[11.5px] font-bold uppercase tracking-[0.06em] text-[var(--ink-faint)]';
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h3 className="font-bold text-[16.5px]">{t('konten.imports.title')}</h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">{t('konten.imports.subtitle')}</p>
-                </div>
+            {/* Toolbar: search and status filter */}
+            <div className="mb-3.5 flex flex-wrap items-center gap-3">
+                <label
+                    className="flex h-11 min-w-[240px] flex-1 items-center gap-2.5 border border-border-soft bg-[var(--background-secondary)] px-3.5"
+                    style={{ borderRadius: 14 }}
+                >
+                    <Search size={16} className="flex-shrink-0 text-[var(--ink-faint)]" />
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder={t('konten.imports.search')}
+                        className="min-w-0 flex-1 bg-transparent text-[14px] text-foreground outline-none placeholder:text-muted-foreground"
+                    />
+                </label>
+                <StatusFilterBar
+                    ariaLabel={t('konten.table.status')}
+                    items={[
+                        {
+                            id: 'COMPLETED',
+                            label: t('konten.imports.status.completed'),
+                            count: countOf('COMPLETED'),
+                            color: 'var(--positive)',
+                            tint: 'var(--positive-surface)',
+                        },
+                        {
+                            id: 'PARTIAL',
+                            label: t('konten.imports.status.partial'),
+                            count: countOf('PARTIAL'),
+                            color: 'var(--warning)',
+                            tint: 'var(--warning-surface)',
+                        },
+                        {
+                            id: 'FAILED',
+                            label: t('konten.imports.status.failed'),
+                            count: countOf('FAILED'),
+                            color: 'var(--negative)',
+                            tint: 'var(--negative-surface)',
+                        },
+                    ]}
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                />
             </div>
 
-            {allImports.length === 0 ? (
-                <div
-                    className={cn(
-                        cardShadow,
-                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-2'
-                    )}
-                >
-                    <Sheet className="w-8 h-8 text-muted-foreground" />
-                    <p className="font-semibold">{t('konten.imports.empty')}</p>
-                    <p className="text-sm text-muted-foreground">{t('konten.imports.emptyDesc')}</p>
-                </div>
-            ) : (
-                <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
-                    <div
-                        className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
-                        style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr 60px' }}
-                    >
-                        <span>{t('konten.table.date')}</span>
-                        <span>{t('konten.imports.account')}</span>
-                        <span>{t('konten.imports.file')}</span>
-                        <span className="text-right">{t('konten.imports.imported')}</span>
-                        <span className="text-right">{t('konten.imports.duplicates')}</span>
-                        <span className="text-right">{t('konten.imports.matched')}</span>
+            <div className="overflow-x-auto rounded-[var(--r-card)]" style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}>
+                <div className="min-w-[760px]">
+                    {/* Header */}
+                    <div className="grid items-center gap-3 border-b border-border-soft px-5 py-[11px]" style={{ gridTemplateColumns: IMPORT_COLUMNS }}>
+                        <button
+                            type="button"
+                            onClick={() => setNewestFirst((v) => !v)}
+                            className={cn(headerCls, 'inline-flex items-center gap-1 text-left text-purple-700')}
+                        >
+                            {t('konten.table.date')}
+                            {newestFirst ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
+                        </button>
+                        <span className={headerCls}>{t('konten.imports.account')}</span>
+                        <span className={headerCls}>{t('konten.imports.file')}</span>
+                        <span className={cn(headerCls, 'text-right')}>{t('konten.imports.imported')}</span>
+                        <span className={cn(headerCls, 'text-right')}>{t('konten.imports.duplicates')}</span>
+                        <span className={cn(headerCls, 'text-right')}>{t('konten.imports.matched')}</span>
                         <span className="sr-only">{t('konten.imports.actions')}</span>
                     </div>
-                    {allImports.map((imp, i) => {
-                        const total = imp.totalTransactions ?? 0;
-                        const matched = imp.matchedTransactions ?? 0;
-                        const ignored = imp.ignoredTransactions ?? 0;
-                        const matchedPct = total > 0 ? Math.round(((matched + ignored) / total) * 100) : 0;
-                        return (
-                            <div
-                                key={imp.id}
-                                className={cn('grid items-center px-4 py-3', i < allImports.length - 1 && 'border-b border-gray-100 dark:border-gray-700')}
-                                style={{ gridTemplateColumns: '0.9fr 1.2fr 2fr 0.9fr 0.9fr 1.1fr 60px' }}
-                            >
-                                <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(imp.finishedAt)}</span>
-                                <span className="flex items-center gap-1.5 text-sm">
-                                    <AccountDot color={imp.account.color} />
-                                    {imp.account.name}
-                                </span>
-                                <div className="min-w-0">
-                                    <div className="text-sm font-bold truncate">{imp.fileName}</div>
+
+                    {rows.length === 0 ? (
+                        <p className="px-5 py-10 text-center text-[13.5px] text-muted-foreground">
+                            {allImports.length === 0 ? t('konten.imports.empty') : t('konten.imports.noResults')}
+                        </p>
+                    ) : (
+                        rows.map((imp, i) => {
+                            const total = imp.totalTransactions ?? 0;
+                            const assigned = (imp.matchedTransactions ?? 0) + (imp.ignoredTransactions ?? 0);
+                            const complete = total > 0 && assigned >= total;
+                            const badge = IMPORT_STATUS_BADGE[imp.status ?? ''];
+                            return (
+                                <div
+                                    key={imp.id}
+                                    className={cn('grid items-center gap-3 px-5 py-[13px]', i < rows.length - 1 && 'border-b border-border-soft')}
+                                    style={{ gridTemplateColumns: IMPORT_COLUMNS }}
+                                >
+                                    <span className="text-[13.5px] tabular-nums text-muted-foreground">{fmtDate(imp.finishedAt ?? imp.importedAt)}</span>
+                                    <span className="flex min-w-0 items-center gap-2">
+                                        <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: imp.account.color || 'var(--primary)' }} />
+                                        <span className="truncate text-[14px] font-semibold">{imp.account.name}</span>
+                                    </span>
+                                    <div className="flex min-w-0 flex-col items-start gap-[5px]">
+                                        <span className="w-full truncate text-[14px] font-bold">{imp.fileName}</span>
+                                        {badge && <Badge tone={badge.tone}>{t(badge.labelKey)}</Badge>}
+                                    </div>
+                                    <span className="text-right text-[14.5px] font-extrabold tabular-nums">{imp.importedRows ?? 0}</span>
                                     <span
                                         className={cn(
-                                            'inline-block px-1.5 py-0.5 rounded text-xs font-medium mt-0.5',
-                                            importStatusColor[imp.status ?? ''] ?? 'bg-gray-100 text-gray-600'
+                                            'text-right text-[14px] font-bold tabular-nums',
+                                            imp.duplicateRows ? 'text-foreground' : 'text-[var(--ink-faint)]'
                                         )}
                                     >
-                                        {imp.status}
+                                        {imp.duplicateRows || '—'}
                                     </span>
-                                </div>
-                                <span className="text-right font-bold tabular-nums text-sm">{imp.importedRows ?? '—'}</span>
-                                <span className="text-right tabular-nums text-sm text-muted-foreground">{imp.duplicateRows || '—'}</span>
-                                <div className="flex flex-col items-end gap-1">
-                                    {total > 0 ? (
-                                        <>
-                                            <span
-                                                className={cn(
-                                                    'tabular-nums text-sm font-medium',
-                                                    matched + ignored === total ? 'text-emerald-600' : 'text-foreground'
-                                                )}
+                                    <div className="flex flex-col items-end gap-1.5">
+                                        {total > 0 ? (
+                                            <>
+                                                <span className="text-[14px] font-bold tabular-nums">
+                                                    {assigned}/{total}
+                                                </span>
+                                                <div className="h-[5px] w-[84px] overflow-hidden rounded-full" style={{ background: 'var(--surface-track)' }}>
+                                                    <div
+                                                        className="h-full rounded-full"
+                                                        style={{
+                                                            width: `${Math.min(100, (assigned / total) * 100)}%`,
+                                                            background: complete ? 'var(--positive)' : 'var(--primary)',
+                                                        }}
+                                                    />
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <span className="text-[14px] font-bold text-[var(--ink-faint)]">—</span>
+                                        )}
+                                    </div>
+                                    <div className="flex justify-end">
+                                        {DELETABLE_IMPORT_STATUSES.includes(imp.status ?? '') && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setDeleteTarget(imp)}
+                                                aria-label={t('konten.imports.delete')}
+                                                className="grid h-[34px] w-[34px] place-items-center rounded-[11px] text-[var(--ink-faint)] transition-colors hover:bg-[var(--negative-surface)] hover:text-[var(--negative)]"
                                             >
-                                                {matched + ignored}/{total}
-                                            </span>
-                                            <div className="w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                                                <div
-                                                    className={cn(
-                                                        'h-full rounded-full transition-all',
-                                                        matched + ignored === total ? 'bg-emerald-500' : 'bg-primary'
-                                                    )}
-                                                    style={{ width: `${matchedPct}%` }}
-                                                />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <span className="text-sm text-muted-foreground">—</span>
-                                    )}
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex justify-end">
-                                    {DELETABLE_IMPORT_STATUSES.includes(imp.status ?? '') && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setDeleteTarget(imp)}
-                                            title={t('konten.imports.delete')}
-                                            aria-label={t('konten.imports.delete')}
-                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                 </div>
-            )}
+            </div>
 
             <ConfirmDialog
                 open={deleteTarget !== null}

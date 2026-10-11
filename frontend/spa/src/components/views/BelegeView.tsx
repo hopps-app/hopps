@@ -8,7 +8,6 @@ import {
     Check,
     Minus,
     RefreshCw,
-    ChevronRight,
     ChevronDown,
     Sparkles,
     AlertCircle,
@@ -37,6 +36,7 @@ import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
+import { RowAction } from '@/components/ui/RowAction';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { useBankTransaction, useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
@@ -69,7 +69,7 @@ const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
 // Shared column layout for the documents table header and rows (must stay in sync).
 // Beleg | Datum | Erstellt am | Betrag | Status | Chevron
-const DOC_GRID = '40px minmax(0,2.3fr) 1fr 1fr 1fr 1.1fr 40px';
+const DOC_GRID = '40px minmax(0,2.3fr) 1fr 1fr 1fr 1.1fr 104px';
 
 // Stable marker set by the backend when the AI analysis service was unreachable (mirrors
 // DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
@@ -1210,10 +1210,8 @@ function DocumentRow({
                 <StatusBadge status={status} />
             </span>
 
-            {/* Arrow */}
-            <span className="flex justify-end text-[#C0C0CC]">
-                <ChevronRight size={16} />
-            </span>
+            {/* Row action: the row itself is the button, so this is only its label */}
+            <span className="flex justify-end">{status !== 'confirmed' && <RowAction asLabel>{t('receipts.rowAction')}</RowAction>}</span>
         </button>
     );
 }

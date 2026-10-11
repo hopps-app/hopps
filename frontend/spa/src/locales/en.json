@@ -1081,7 +1081,8 @@
             "delete": "Delete",
             "confirmTitle": "Delete selected receipts?",
             "confirmDesc": "Do you really want to delete the selected receipts ({{n}})? This cannot be undone."
-        }
+        },
+        "rowAction": "Review"
     },
     "bommel": {
         "empty": "No Bommel found",
@@ -1389,23 +1390,28 @@
             "pageOf": "Page {{page}} of {{total}}"
         },
         "imports": {
-            "title": "Import history",
-            "subtitle": "Track which bank statements were imported and when.",
             "account": "Account",
             "file": "File",
             "imported": "Imported",
             "duplicates": "Duplicates",
             "matched": "Matched",
-            "newImport": "New import",
-            "empty": "No imports yet",
-            "emptyDesc": "Import a bank statement to populate the history.",
+            "empty": "No imports yet.",
             "actions": "Actions",
             "delete": "Delete import",
             "deleteTitle": "Delete import?",
             "deleteConfirm_one": "The import <strong>\"{{file}}\"</strong> and the <strong>one transaction</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
             "deleteConfirm_other": "The import <strong>\"{{file}}\"</strong> and the <strong>{{count}} transactions</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
             "deleteMatchedWarning_one": "Note: <strong>1 of these transactions</strong> is linked to a bookkeeping entry — that link will be removed.",
-            "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed."
+            "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed.",
+            "search": "Search (file, account) …",
+            "noResults": "No imports for this selection.",
+            "status": {
+                "completed": "Completed",
+                "partial": "Partial",
+                "failed": "Failed",
+                "processing": "Running",
+                "queued": "Queued"
+            }
         },
         "empty": {
             "title": "No bank accounts yet",
@@ -1473,6 +1479,7 @@
             "coversExactly": "Covers the rest exactly",
             "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
             "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
-        }
+        },
+        "view": "View"
     }
 }
