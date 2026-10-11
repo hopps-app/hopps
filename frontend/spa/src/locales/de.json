@@ -967,7 +967,8 @@
             "delete": "Löschen",
             "confirmTitle": "Ausgewählte Belege löschen?",
             "confirmDesc": "Möchtest du die ausgewählten Belege ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
-        }
+        },
+        "rowAction": "Prüfen"
     },
     "bommel": {
         "empty": "Keine Bommels gefunden",
@@ -1387,23 +1388,28 @@
             "pageOf": "Seite {{page}} von {{total}}"
         },
         "imports": {
-            "title": "Import-Historie",
-            "subtitle": "Nachvollziehbar: welche Kontoauszüge wann importiert wurden.",
             "account": "Konto",
             "file": "Datei",
             "imported": "Importiert",
             "duplicates": "Duplikate",
             "matched": "Zugeordnet",
-            "newImport": "Neuer Import",
-            "empty": "Noch keine Importe",
-            "emptyDesc": "Importiere einen Kontoauszug, um die Historie zu füllen.",
+            "empty": "Noch keine Importe.",
             "actions": "Aktionen",
             "delete": "Import löschen",
             "deleteTitle": "Import löschen?",
             "deleteConfirm_one": "Der Import <strong>„{{file}}“</strong> und der daraus erzeugte <strong>1 Umsatz</strong> werden gelöscht. Hochgeladene Belege und erfasste Buchungen bleiben erhalten.",
             "deleteConfirm_other": "Der Import <strong>„{{file}}“</strong> und die daraus erzeugten <strong>{{count}} Umsätze</strong> werden gelöscht. Hochgeladene Belege und erfasste Buchungen bleiben erhalten.",
             "deleteMatchedWarning_one": "Achtung: <strong>1 dieser Umsätze</strong> ist einer Buchung zugeordnet – diese Zuordnung geht verloren.",
-            "deleteMatchedWarning_other": "Achtung: <strong>{{count}} dieser Umsätze</strong> sind Buchungen zugeordnet – diese Zuordnungen gehen verloren."
+            "deleteMatchedWarning_other": "Achtung: <strong>{{count}} dieser Umsätze</strong> sind Buchungen zugeordnet – diese Zuordnungen gehen verloren.",
+            "search": "Suchen (Datei, Konto) …",
+            "noResults": "Keine Importe für diese Auswahl.",
+            "status": {
+                "completed": "Abgeschlossen",
+                "partial": "Teilweise",
+                "failed": "Fehlgeschlagen",
+                "processing": "Läuft",
+                "queued": "Wartet"
+            }
         },
         "empty": {
             "title": "Noch keine Bankkonten",
@@ -1466,6 +1472,7 @@
             "coversExactly": "Deckt den Rest genau",
             "shouldBeIncome": "Diese Banktransaktion ist eine Einnahme. Bitte „Einnahme\" wählen.",
             "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
-        }
+        },
+        "view": "Ansehen"
     }
 }
