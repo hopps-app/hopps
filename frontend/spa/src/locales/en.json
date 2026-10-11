@@ -1417,7 +1417,7 @@
         },
         "drawer": {
             "title": "Assign bank transaction",
-            "noOpenTx": "No open transaction matches. Create a new one above.",
+            "noOpenTx": "No open transaction matches. Upload a receipt or create a transaction without a receipt.",
             "unlink": "Remove link",
             "openTransactionNewTab": "Open transaction in new tab",
             "bankAmount": "Amount",
