@@ -1361,12 +1361,11 @@
             "noResults": "No transactions match the current search/filter"
         },
         "abgleich": {
-            "openBookings": "Open bank transactions",
             "noData": "No transactions yet",
             "noDataDesc": "Import a bank statement to start reconciliation.",
-            "openCountSingular": "open transaction",
-            "openCountPlural": "open transactions",
-            "allMatched": "Everything is assigned."
+            "allMatched": "Everything is assigned.",
+            "openTitle_one": "open transaction",
+            "openTitle_other": "open transactions"
         },
         "table": {
             "date": "Date",
