@@ -689,8 +689,8 @@ function DeleteImportDescription({ target }: { target: ImportWithAccount | null 
 }
 
 // Shared column template of the import table header and rows: Datum, Konto, Datei, Importiert, Duplikate, Zugeordnet,
-// delete. The rows keep a minimum width; narrower screens scroll the table horizontally.
-const IMPORT_COLUMNS = '104px minmax(130px,.8fr) minmax(200px,1.6fr) 96px 96px 120px 34px';
+// Status, delete. The rows keep a minimum width; narrower screens scroll the table horizontally.
+const IMPORT_COLUMNS = '104px minmax(130px,.8fr) minmax(200px,1.6fr) 96px 96px 120px 130px 34px';
 
 type ImportFilterStatus = 'COMPLETED' | 'PARTIAL' | 'FAILED';
 
@@ -795,7 +795,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
             </div>
 
             <div className="overflow-x-auto rounded-[var(--r-card)]" style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}>
-                <div className="min-w-[760px]">
+                <div className="min-w-[900px]">
                     {/* Header */}
                     <div className="grid items-center gap-3 border-b border-border-soft px-5 py-[11px]" style={{ gridTemplateColumns: IMPORT_COLUMNS }}>
                         <button
@@ -811,6 +811,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                         <span className={cn(headerCls, 'text-right')}>{t('konten.imports.imported')}</span>
                         <span className={cn(headerCls, 'text-right')}>{t('konten.imports.duplicates')}</span>
                         <span className={cn(headerCls, 'text-right')}>{t('konten.imports.matched')}</span>
+                        <span className={cn(headerCls, 'text-center')}>{t('konten.table.status')}</span>
                         <span className="sr-only">{t('konten.imports.actions')}</span>
                     </div>
 
@@ -835,10 +836,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                                         <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: imp.account.color || 'var(--primary)' }} />
                                         <span className="truncate text-[14px] font-semibold">{imp.account.name}</span>
                                     </span>
-                                    <div className="flex min-w-0 flex-col items-start gap-[5px]">
-                                        <span className="w-full truncate text-[14px] font-bold">{imp.fileName}</span>
-                                        {badge && <Badge tone={badge.tone}>{t(badge.labelKey)}</Badge>}
-                                    </div>
+                                    <span className="truncate text-[14px] font-bold">{imp.fileName}</span>
                                     <span className="text-right text-[14.5px] font-extrabold tabular-nums">{imp.importedRows ?? 0}</span>
                                     <span
                                         className={cn(
@@ -868,6 +866,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                                             <span className="text-[14px] font-bold text-[var(--ink-faint)]">—</span>
                                         )}
                                     </div>
+                                    <span className="flex justify-center">{badge && <Badge tone={badge.tone}>{t(badge.labelKey)}</Badge>}</span>
                                     <div className="flex justify-end">
                                         {DELETABLE_IMPORT_STATUSES.includes(imp.status ?? '') && (
                                             <button
