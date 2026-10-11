@@ -29,7 +29,7 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
 }
 
 /**
- * Sidebar entry "Einrichtung 2/4" while first-use steps are open. It keeps the progress in reach from every page and
+ * Sidebar entry "Erste Schritte 2/4" while first-use steps are open. It keeps the progress in reach from every page and
  * brings the dashboard setup strip back after it was hidden. Disappears once all steps are done.
  */
 export function SetupNavItem({ collapsed, onNavigated }: { collapsed: boolean; /** E.g. closes the mobile drawer. */ onNavigated?: () => void }) {

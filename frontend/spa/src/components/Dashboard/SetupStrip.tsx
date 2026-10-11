@@ -9,7 +9,7 @@ import { useSetupStore } from '@/store/setup/setupStore';
 
 /**
  * First-use strip on top of the dashboard: four steps to a working setup, each a card that leads to its page, with the
- * progress shown large. It disappears once all steps are done. After hiding it, the sidebar entry ("Einrichtung")
+ * progress shown large. It disappears once all steps are done. After hiding it, the sidebar entry ("Erste Schritte")
  * brings it back. The step cards are white on the purple gradient in both themes, so
  * their colours are fixed values rather than theme tokens (like the open-receipts banner).
  */
@@ -73,10 +73,12 @@ export function SetupStrip({ organizationId }: { organizationId: number }) {
                         <button
                             key={step.key}
                             type="button"
+                            // A done step has nothing left to do on its page, so it is no longer a link.
+                            disabled={step.done}
                             onClick={() => navigate(step.path)}
                             className={cn(
-                                'group flex min-w-0 items-center gap-3 rounded-[14px] bg-white px-3.5 py-3 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.18)]',
-                                step.done && 'opacity-75'
+                                'group flex min-w-0 items-center gap-3 rounded-[14px] bg-white px-3.5 py-3 text-left shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all',
+                                step.done ? 'opacity-75' : 'hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.18)]'
                             )}
                         >
                             <span
