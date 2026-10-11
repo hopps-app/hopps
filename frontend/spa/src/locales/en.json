@@ -1329,13 +1329,10 @@
     },
     "konten": {
         "title": "Accounts",
-        "subtitle": "Bank reconciliation & cash box",
         "balance": "Balance",
         "open": "open",
         "allMatched": "reconciled",
         "addAccount": "Add bank account",
-        "accounts": "Accounts",
-        "accountsExpand": "Show details",
         "accountsCollapse": "Hide details",
         "importAction": "Import transactions",
         "import": "Import",
@@ -1364,15 +1361,12 @@
             "noResults": "No transactions match the current search/filter"
         },
         "abgleich": {
-            "allClear": "All reconciled",
-            "allClearDesc": "Every bank transaction is matched to a booking.",
-            "openSingular": "transaction not yet matched",
-            "openPlural": "transactions not yet matched",
-            "matched": "matched",
-            "openDesc": "Assign the open transactions below or create a booking from them.",
             "openBookings": "Open bank transactions",
             "noData": "No transactions yet",
-            "noDataDesc": "Import a bank statement to start reconciliation."
+            "noDataDesc": "Import a bank statement to start reconciliation.",
+            "openCountSingular": "open transaction",
+            "openCountPlural": "open transactions",
+            "allMatched": "Everything is assigned."
         },
         "table": {
             "date": "Date",
@@ -1469,6 +1463,7 @@
             "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
             "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
         },
-        "view": "View"
+        "view": "View",
+        "accountPillHint": "Click to expand and edit"
     }
 }

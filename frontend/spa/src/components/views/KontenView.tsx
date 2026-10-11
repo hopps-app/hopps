@@ -1,6 +1,6 @@
 import { BankAccountResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeftRight, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Landmark, Plus, Search, Trash2, Unlink, Upload } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Landmark, Plus, Search, Trash2, Unlink, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { LoadingState } from '@/components/common/LoadingState';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { HintTooltip } from '@/components/ui/HintTooltip';
 import { RowAction } from '@/components/ui/RowAction';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
@@ -78,6 +79,15 @@ function accountTileStyle(color?: string, glow = 14): React.CSSProperties {
     };
 }
 
+// The account whose tab is open stands out with a subtle shadow in its own colour, on the card and on the pill.
+function activeAccountStyle(color?: string): React.CSSProperties {
+    const c = color || '#9955CC';
+    return {
+        borderColor: `color-mix(in srgb, ${c} 22%, transparent)`,
+        boxShadow: `0 4px 14px color-mix(in srgb, ${c} 14%, transparent), 0 1px 2px color-mix(in srgb, ${c} 10%, transparent)`,
+    };
+}
+
 function maskIban(iban?: string): string {
     if (!iban) return '—';
     const clean = iban.replace(/\s+/g, '');
@@ -87,12 +97,14 @@ function maskIban(iban?: string): string {
 function AccountCard({
     account,
     openCount,
+    active,
     onClick,
     onEdit,
     onImport,
 }: {
     account: BankAccountResponse;
     openCount: number;
+    active: boolean;
     onClick: () => void;
     onEdit: (e: React.MouseEvent) => void;
     onImport: (e: React.MouseEvent) => void;
@@ -103,9 +115,12 @@ function AccountCard({
         <div
             className={cn(
                 cardShadow,
-                'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 w-64 shrink-0 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all'
+                'bg-white dark:bg-gray-800 rounded-2xl border p-5 w-64 shrink-0 cursor-pointer hover:shadow-md transition-all',
+                !active && 'border-gray-100 dark:border-gray-700 hover:border-primary/30'
             )}
+            style={active ? activeAccountStyle(account.color) : undefined}
             onClick={onClick}
+            aria-current={active || undefined}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && onClick()}
@@ -180,32 +195,55 @@ function AddAccountCard({ onClick }: { onClick: () => void }) {
     );
 }
 
-// Compact one-line representation of a bank account, shown when the account section is collapsed. Clicking it jumps to
-// that account's tab, just like the full card.
-function AccountPill({ account, openCount, onClick }: { account: BankAccountResponse; openCount: number; onClick: () => void }) {
-    const { format } = useCurrency();
+// "Konto hinzufügen" in the collapsed row: a dashed pill of the same height as the account pills.
+function AddAccountPill({ onClick }: { onClick: () => void }) {
+    const { t } = useTranslation();
     return (
         <button
             type="button"
             onClick={onClick}
-            className="inline-flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:shadow-sm transition-all"
+            className="inline-flex h-11 items-center gap-1.5 rounded-2xl border-[1.5px] border-dashed border-gray-300 pl-3 pr-4 text-[13.5px] font-bold text-purple-700 transition-colors hover:border-primary/60 hover:bg-[var(--accent-surface)] dark:border-gray-600"
         >
-            <span
-                className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
-                style={accountTileStyle(account.color, 10)}
-            >
-                <Landmark className="w-[17px] h-[17px]" strokeWidth={1.75} />
-            </span>
-            <span className="text-[15px] font-semibold truncate max-w-[12rem]">{account.name}</span>
-            <span className="text-[15px] font-bold tabular-nums text-muted-foreground">
-                {format(account.balance ?? account.openingBalance, { currency: account.currency })}
-            </span>
-            {openCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[21px] h-[21px] px-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">
-                    {openCount}
-                </span>
-            )}
+            <Plus className="h-[17px] w-[17px]" />
+            {t('konten.addAccount')}
         </button>
+    );
+}
+
+// Compact one-line representation of a bank account, shown when the account section is collapsed. Clicking it jumps to
+// that account's tab, just like the full card.
+function AccountPill({ account, openCount, active, onClick }: { account: BankAccountResponse; openCount: number; active: boolean; onClick: () => void }) {
+    const { format } = useCurrency();
+    const { t } = useTranslation();
+    return (
+        <HintTooltip content={t('konten.accountPillHint')}>
+            <button
+                type="button"
+                onClick={onClick}
+                aria-current={active || undefined}
+                className={cn(
+                    'inline-flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-2xl border bg-white dark:bg-gray-800 hover:shadow-sm transition-all',
+                    !active && 'border-gray-200 dark:border-gray-700 hover:border-primary/40'
+                )}
+                style={active ? activeAccountStyle(account.color) : undefined}
+            >
+                <span
+                    className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
+                    style={accountTileStyle(account.color, 10)}
+                >
+                    <Landmark className="w-[17px] h-[17px]" strokeWidth={1.75} />
+                </span>
+                <span className="text-[15px] font-semibold truncate max-w-[12rem]">{account.name}</span>
+                <span className="text-[15px] font-bold tabular-nums text-muted-foreground">
+                    {format(account.balance ?? account.openingBalance, { currency: account.currency })}
+                </span>
+                {openCount > 0 && (
+                    <span className="inline-flex items-center justify-center min-w-[21px] h-[21px] px-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">
+                        {openCount}
+                    </span>
+                )}
+            </button>
+        </HintTooltip>
     );
 }
 
@@ -213,8 +251,12 @@ function AccountPill({ account, openCount, onClick }: { account: BankAccountResp
 
 const ABGLEICH_PAGE_SIZE = 25;
 
+// Header and rows of the Abgleich table share one template: Datum, Konto, Gegenpartei / Zweck, Betrag, Status, action.
+const ABGLEICH_COLUMNS = '7.5rem minmax(0, 0.9fr) minmax(0, 2fr) minmax(0, 1fr) 7.5rem 7.5rem';
+
 function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse[]; onOpenDrawer: (id: number) => void }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.abgleich.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.abgleich.sortDir', 'desc');
@@ -259,69 +301,74 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
         return <LoadingState className="py-12" />;
     }
 
-    const allReconciled = openCount === 0 && matchedCount > 0 && !filters.hasAnyFilter;
     const noData = openCount === 0 && matchedCount === 0 && !filters.hasAnyFilter;
     const noFilterMatch = openCount === 0 && filters.hasAnyFilter;
+    // Sum of the open movements' amounts, by magnitude, so income and expenses add up to the volume still to assign.
+    const openSum = Math.abs(openAgg.data?.sumIncoming ?? 0) + Math.abs(openAgg.data?.sumOutgoing ?? 0);
+
+    // Empty state when there are no bank transactions at all.
+    if (noData) {
+        return (
+            <div
+                className={cn(
+                    cardShadow,
+                    'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
+                )}
+            >
+                <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    <Unlink className="w-7 h-7 text-muted-foreground" />
+                </div>
+                <p className="font-semibold text-base">{t('konten.abgleich.noData')}</p>
+                <p className="text-sm text-muted-foreground max-w-sm">{t('konten.abgleich.noDataDesc')}</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="flex flex-col gap-6">
-            {!noData && <BankTxFilterBar filters={filters} />}
+        <div className="flex flex-col gap-4">
+            <BankTxFilterBar filters={filters} />
 
-            {/* Status banner — hidden while filtering, since the celebratory/onboarding copy describes the overall
-                reconciliation state, not the filtered subset. */}
-            {!filters.hasAnyFilter && (
-                <div
-                    className={cn(
-                        'flex items-center gap-4 rounded-2xl p-4',
-                        allReconciled ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-purple-50 dark:bg-purple-900/20'
-                    )}
-                >
-                    <div
-                        className={cn(
-                            'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-white',
-                            allReconciled ? 'bg-emerald-500' : 'bg-primary'
-                        )}
-                    >
-                        {allReconciled ? <Check className="w-5 h-5" strokeWidth={2.5} /> : <ArrowLeftRight className="w-5 h-5" />}
-                    </div>
-                    <div className="flex-1">
-                        {allReconciled ? (
-                            <>
-                                <div className="font-bold text-base text-emerald-700">{t('konten.abgleich.allClear')}</div>
-                                <div className="text-sm text-muted-foreground mt-0.5">{t('konten.abgleich.allClearDesc')}</div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="font-bold text-base">
-                                    {openCount} {openCount === 1 ? t('konten.abgleich.openSingular') : t('konten.abgleich.openPlural')}
-                                    {matchedCount > 0 && (
-                                        <span className="text-muted-foreground font-semibold">
-                                            {' '}
-                                            · {matchedCount} {t('konten.abgleich.matched')}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="text-sm text-muted-foreground mt-0.5">{t('konten.abgleich.openDesc')}</div>
-                            </>
-                        )}
+            <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
+                {/* Title with the number and total of the open movements */}
+                <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 px-5 py-[15px] dark:border-gray-700">
+                    <h3 className="min-w-[180px] flex-1 text-[16px] font-extrabold">{t('konten.abgleich.openBookings')}</h3>
+                    <div className="flex items-center gap-3.5">
+                        <span className="flex items-baseline gap-1.5">
+                            <span className="text-[18px] font-extrabold tabular-nums text-purple-700">{openCount}</span>
+                            <span className="text-[13px] font-semibold text-muted-foreground">
+                                {openCount === 1 ? t('konten.abgleich.openCountSingular') : t('konten.abgleich.openCountPlural')}
+                            </span>
+                        </span>
+                        <span aria-hidden="true" className="h-[22px] w-px bg-gray-100 dark:bg-gray-700" />
+                        <span className="text-[18px] font-extrabold tabular-nums">{format(openSum)}</span>
                     </div>
                 </div>
-            )}
 
-            {/* Open bookings (paged) */}
-            {openCount > 0 && (
-                <div>
-                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                        <h3 className="font-bold text-[16.5px]">
-                            {t('konten.abgleich.openBookings')} <span className="text-muted-foreground font-semibold">· {openCount}</span>
-                        </h3>
-                        <div className="flex items-center gap-4">
+                {openCount === 0 ? (
+                    noFilterMatch ? (
+                        <div className="flex flex-col items-center gap-2 px-5 py-8 text-center">
+                            <p className="text-[13.5px] text-muted-foreground">{t('konten.filter.noResults')}</p>
+                            <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
+                                {t('konten.filter.clearAll')}
+                            </button>
+                        </div>
+                    ) : (
+                        <p className="px-5 py-[30px] text-center text-[13.5px] text-muted-foreground">{t('konten.abgleich.allMatched')}</p>
+                    )
+                ) : (
+                    <>
+                        {/* Header */}
+                        <div
+                            className="grid items-center gap-3 border-b border-gray-100 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--ink-faint)] dark:border-gray-700"
+                            style={{ gridTemplateColumns: ABGLEICH_COLUMNS }}
+                        >
                             <SortHeader
                                 label={t('konten.table.date')}
                                 active={sortBy === 'bookingDate'}
                                 direction={sortDir}
                                 onClick={() => handleSort('bookingDate')}
                             />
+                            <span>{t('konten.imports.account')}</span>
                             <SortHeader
                                 label={t('konten.table.counterparty')}
                                 active={sortBy === 'counterpartyName'}
@@ -333,102 +380,79 @@ function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse
                                 active={sortBy === 'amount'}
                                 direction={sortDir}
                                 onClick={() => handleSort('amount')}
+                                align="right"
                             />
+                            <span className="text-center">{t('konten.table.status')}</span>
+                            {/* Spacer above the per-row action */}
+                            <span aria-hidden />
                         </div>
-                    </div>
-                    <div className="flex flex-col gap-2.5">
-                        {unmatchedTx.map((tx) => {
+                        {unmatchedTx.map((tx, i) => {
                             const acct = accounts.find((a) => a.id === tx.bankAccountId);
                             return (
                                 <div
                                     key={tx.id}
+                                    onClick={() => tx.id && onOpenDrawer(tx.id)}
                                     className={cn(
-                                        cardShadow,
-                                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-4'
+                                        'grid cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50',
+                                        i < unmatchedTx.length - 1 && 'border-b border-gray-100 dark:border-gray-700'
                                     )}
+                                    style={{ gridTemplateColumns: ABGLEICH_COLUMNS }}
                                 >
-                                    <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center flex-shrink-0">
-                                        <Landmark className="w-5 h-5" />
+                                    <span className="text-sm tabular-nums text-muted-foreground">{fmtDate(tx.bookingDate)}</span>
+                                    <span className="flex min-w-0 items-center gap-2">
+                                        {acct && <AccountDot color={acct.color} />}
+                                        <span className="truncate text-sm font-semibold">{acct?.name ?? tx.bankAccountName ?? '—'}</span>
+                                    </span>
+                                    <div className="min-w-0">
+                                        <div className="truncate text-sm font-bold">{tx.counterpartyName || t('konten.unknownCounterparty')}</div>
+                                        <div className="truncate text-xs text-muted-foreground">{tx.purpose}</div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-bold text-sm truncate">{tx.counterpartyName || t('konten.unknownCounterparty')}</div>
-                                        <div className="text-xs text-muted-foreground truncate">
-                                            {fmtDate(tx.bookingDate)} · {tx.purpose}
-                                        </div>
-                                    </div>
-                                    {acct && (
-                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-muted-foreground flex-shrink-0">
-                                            <AccountDot color={acct.color} />
-                                            {acct.name}
-                                        </span>
-                                    )}
-                                    <SignedAmount amount={tx.amount} currency={tx.currency} />
-                                    <RowAction onClick={() => tx.id && onOpenDrawer(tx.id)}>{t('konten.assign')}</RowAction>
+                                    <span className="text-right">
+                                        <SignedAmount amount={tx.amount} currency={tx.currency} size="sm" />
+                                    </span>
+                                    <span className="flex justify-center">
+                                        <BankStatusBadge status={tx.status} />
+                                    </span>
+                                    <span className="flex justify-end">
+                                        <RowAction
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (tx.id) onOpenDrawer(tx.id);
+                                            }}
+                                        >
+                                            {t('konten.assign')}
+                                        </RowAction>
+                                    </span>
                                 </div>
                             );
                         })}
-                    </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-4 mb-4">
-                            <span className="text-xs text-muted-foreground">{t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}</span>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    type="button"
-                                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                                    disabled={page === 0}
-                                    className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setPage((p) => p + 1)}
-                                    disabled={page + 1 >= totalPages}
-                                    className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/60 px-5 py-2.5 dark:border-gray-700 dark:bg-gray-800/40">
+                                <span className="text-xs text-muted-foreground">{t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}</span>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                                        disabled={page === 0}
+                                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((p) => p + 1)}
+                                        disabled={page + 1 >= totalPages}
+                                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                    >
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* No open booking matches the active search/filter */}
-            {noFilterMatch && (
-                <div
-                    className={cn(
-                        cardShadow,
-                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
-                    )}
-                >
-                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <Search className="w-7 h-7 text-muted-foreground" />
-                    </div>
-                    <p className="font-semibold text-base">{t('konten.filter.noResults')}</p>
-                    <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
-                        {t('konten.filter.clearAll')}
-                    </button>
-                </div>
-            )}
-
-            {/* Empty state when there are no bank transactions at all */}
-            {noData && (
-                <div
-                    className={cn(
-                        cardShadow,
-                        'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-10 flex flex-col items-center text-center gap-3'
-                    )}
-                >
-                    <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <Unlink className="w-7 h-7 text-muted-foreground" />
-                    </div>
-                    <p className="font-semibold text-base">{t('konten.abgleich.noData')}</p>
-                    <p className="text-sm text-muted-foreground max-w-sm">{t('konten.abgleich.noDataDesc')}</p>
-                </div>
-            )}
+                        )}
+                    </>
+                )}
+            </div>
         </div>
     );
 }
@@ -565,7 +589,7 @@ function AccountTab({
                 <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
                     {/* Header */}
                     <div
-                        className="grid text-xs font-bold uppercase tracking-wide text-muted-foreground px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
+                        className="grid text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--ink-faint)] px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
                         style={{ gridTemplateColumns: ACCOUNT_TX_COLUMNS }}
                     >
                         <SortHeader
@@ -956,10 +980,30 @@ export function KontenView() {
 
     const activeAccount = accounts.find((a) => String(a.id) === tab);
 
-    const tabs: { id: TabId; label: string; badge?: number }[] = [
-        { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen > 0 ? totalOpen : undefined },
-        ...accounts.map((a) => ({ id: String(a.id), label: a.name ?? '' })),
-        { id: 'importe', label: t('konten.tabs.importe') },
+    // Number of imports across all accounts for the Importe tab (same queries as the tab itself, so they are shared).
+    const importResults = useQueries({
+        queries: accounts.map((a) => ({
+            queryKey: bankImportKeys.byAccount(a.id!),
+            queryFn: () => apiService.orgService.importsAll(a.id!, undefined),
+        })),
+    });
+    const importCount = importResults.reduce((sum, r) => sum + (r.data?.length ?? 0), 0);
+
+    // Each tab carries its counter in its own colour: Abgleich the open movements in the "Offen" blue, an account its
+    // open movements in the account's colour, Importe the number of imports in grey.
+    const tabs: { id: TabId; label: string; badge?: number; color?: string; tint?: string }[] = [
+        { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen, color: 'var(--info)', tint: 'var(--info-surface)' },
+        ...accounts.map((a) => {
+            const c = a.color || '#9955CC';
+            return {
+                id: String(a.id),
+                label: a.name ?? '',
+                badge: openCountByAccount[String(a.id)] ?? 0,
+                color: `color-mix(in srgb, ${c} 85%, black)`,
+                tint: `color-mix(in srgb, ${c} 16%, transparent)`,
+            };
+        }),
+        { id: 'importe', label: t('konten.tabs.importe'), badge: importCount, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
     ];
 
     if (isLoading) {
@@ -968,42 +1012,28 @@ export function KontenView() {
 
     return (
         <div className="flex flex-col gap-6 w-full">
-            {/* Page header — same shape as the Belege/Transaktionen pages: title on top, one-line subtitle below. */}
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h1 className="text-[26px] font-bold text-foreground leading-tight">{t('konten.title')}</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">{t('konten.subtitle')}</p>
-                </div>
+            {/* Page header. While the account cards are expanded, the toggle to collapse them sits on the title's line;
+                collapsed, a click on an account pill expands them again. */}
+            <div className="flex items-center justify-between gap-4">
+                <h1 className="text-[26px] font-bold text-foreground leading-tight">{t('konten.title')}</h1>
+                {accounts.length > 0 && accountsExpanded && (
+                    <button
+                        type="button"
+                        onClick={() => setAccountsExpanded(false)}
+                        aria-expanded
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:text-primary hover:bg-primary/10 transition-colors"
+                    >
+                        {t('konten.accountsCollapse')}
+                        <ChevronDown className="w-3.5 h-3.5 rotate-180" />
+                    </button>
+                )}
             </div>
 
             {/* Bank accounts — collapsed to compact pills by default, expandable to the full cards. The header mirrors
                 the collapsible upload panel on the Belege page: icon box + title, then a compact expand/collapse chip.
                 When there are no accounts yet the section is forced open so the "add account" card is shown right away. */}
             <div className="flex flex-col gap-3">
-                {/* Header + collapse toggle — only meaningful once at least one account exists. */}
-                {accounts.length > 0 && (
-                    <div className="flex items-center gap-3">
-                        <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
-                            <Landmark className="w-[18px] h-[18px]" />
-                        </span>
-                        <span className="text-sm font-bold text-foreground">
-                            {t('konten.accounts')} <span className="text-muted-foreground font-semibold">· {accounts.length}</span>
-                        </span>
-                        {/* The toggle is a compact chip rather than the whole header row: on a wide page a full-width
-                            button puts the chevron far from the label it belongs to, so both live in one pill here. */}
-                        <button
-                            type="button"
-                            onClick={() => setAccountsExpanded((v) => !v)}
-                            aria-expanded={accountsExpanded}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-muted-foreground bg-gray-100 dark:bg-gray-800 hover:text-primary hover:bg-primary/10 transition-colors"
-                        >
-                            {accountsExpanded ? t('konten.accountsCollapse') : t('konten.accountsExpand')}
-                            <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', accountsExpanded && 'rotate-180')} />
-                        </button>
-                    </div>
-                )}
-
-                {/* Collapsed: compact pills only (the add button lives in the expanded cards view) */}
+                {/* Collapsed: compact pills, plus a dashed pill to add an account */}
                 {accounts.length > 0 && !accountsExpanded && (
                     <div className="flex items-center gap-2 flex-wrap">
                         {accounts.map((a) => (
@@ -1011,12 +1041,14 @@ export function KontenView() {
                                 key={a.id}
                                 account={a}
                                 openCount={openCountByAccount[String(a.id)] ?? 0}
+                                active={tab === String(a.id)}
                                 onClick={() => {
                                     setTab(String(a.id));
                                     setAccountsExpanded(true);
                                 }}
                             />
                         ))}
+                        <AddAccountPill onClick={() => setDrawerAccount('new')} />
                     </div>
                 )}
 
@@ -1028,6 +1060,7 @@ export function KontenView() {
                                 key={a.id}
                                 account={a}
                                 openCount={openCountByAccount[String(a.id)] ?? 0}
+                                active={tab === String(a.id)}
                                 onClick={() => setTab(String(a.id))}
                                 onEdit={(e) => {
                                     e.stopPropagation();
@@ -1059,8 +1092,11 @@ export function KontenView() {
                             )}
                         >
                             {t_.label}
-                            {t_.badge !== undefined && (
-                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                            {t_.badge !== undefined && t_.badge > 0 && (
+                                <span
+                                    className="grid h-5 min-w-5 place-items-center rounded-full px-[5px] text-[11.5px] font-extrabold tabular-nums"
+                                    style={{ background: t_.tint, color: t_.color }}
+                                >
                                     {t_.badge}
                                 </span>
                             )}
