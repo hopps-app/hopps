@@ -1329,13 +1329,10 @@
     },
     "konten": {
         "title": "Konten",
-        "subtitle": "Bankabgleich & Barkasse",
         "balance": "Saldo",
         "open": "offen",
         "allMatched": "abgeglichen",
         "addAccount": "Bankkonto hinzufügen",
-        "accounts": "Konten",
-        "accountsExpand": "Details anzeigen",
         "accountsCollapse": "Details ausblenden",
         "importAction": "Umsätze importieren",
         "import": "Importieren",
@@ -1364,15 +1361,12 @@
             "noResults": "Keine Transaktionen für die aktuelle Suche/Filter"
         },
         "abgleich": {
-            "allClear": "Alles abgeglichen",
-            "allClearDesc": "Jeder Kontoumsatz ist einer Transaktion zugeordnet.",
-            "openSingular": "Umsatz noch nicht zugeordnet",
-            "openPlural": "Umsätze noch nicht zugeordnet",
-            "matched": "abgeglichen",
-            "openDesc": "Ordne die offenen Umsätze unten zu oder erstelle eine Transaktion daraus.",
             "openBookings": "Offene Kontoumsätze",
             "noData": "Noch keine Umsätze",
-            "noDataDesc": "Importiere einen Kontoauszug, um den Abgleich zu starten."
+            "noDataDesc": "Importiere einen Kontoauszug, um den Abgleich zu starten.",
+            "openCountSingular": "offener Umsatz",
+            "openCountPlural": "offene Umsätze",
+            "allMatched": "Alles zugeordnet."
         },
         "table": {
             "date": "Datum",
@@ -1474,6 +1468,7 @@
             "shouldBeIncome": "Diese Banktransaktion ist eine Einnahme. Bitte „Einnahme\" wählen.",
             "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
         },
-        "view": "Ansehen"
+        "view": "Ansehen",
+        "accountPillHint": "Klicken zum Ausklappen und Bearbeiten"
     }
 }

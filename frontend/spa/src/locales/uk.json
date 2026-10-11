@@ -568,7 +568,13 @@
       "partial": "Частково пов’язано",
       "matched": "Зіставлено",
       "ignored": "Проігноровано"
-    }
+    },
+    "abgleich": {
+      "openCountSingular": "відкрита операція",
+      "openCountPlural": "відкритих операцій",
+      "allMatched": "Усе зіставлено."
+    },
+    "accountPillHint": "Натисни, щоб розгорнути й редагувати"
   },
   "transactions": {
     "linked": "Пов'язано",
