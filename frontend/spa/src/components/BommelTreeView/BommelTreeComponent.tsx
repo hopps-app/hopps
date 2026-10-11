@@ -45,6 +45,7 @@ function BommelTreeComponent({
     onAddChild,
     onMove,
     onRequestEdit,
+    fitExtraWidth = 0,
     className,
 }: BommelTreeComponentProps) {
     const { t } = useTranslation();
@@ -57,7 +58,7 @@ function BommelTreeComponent({
         containerRef.current = element;
         setContainer(element);
     }, []);
-    const viewport = useTreeViewport({ canvas: vertical ? null : container, natural });
+    const viewport = useTreeViewport({ canvas: vertical ? null : container, natural, fitExtraWidth });
     // Only nodes the user toggled are stored; everything else follows DEFAULT_EXPANDED_DEPTH
     const [toggled, setToggled] = useState<Map<number, boolean>>(() => new Map());
     const [autoEditNodeId, setAutoEditNodeId] = useState<number | null>(null);

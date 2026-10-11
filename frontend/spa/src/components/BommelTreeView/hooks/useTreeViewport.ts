@@ -58,28 +58,40 @@ const midpoint = (a: Point, b: Point): Point => ({ x: (a.x + b.x) / 2, y: (a.y +
  *
  * Until the user pans or zooms, the view follows the fit-to-width layout as the canvas or the tree change size.
  */
-export function useTreeViewport({ canvas, natural }: { canvas: HTMLElement | null; natural: ElementSize }) {
+export function useTreeViewport({ canvas, natural, fitExtraWidth = 0 }: { canvas: HTMLElement | null; natural: ElementSize; fitExtraWidth?: number }) {
     const [size, setSize] = useState<ElementSize>({ width: 0, height: 0 });
     // null = follow the fitted view; set once the user pans or zooms
     const [userView, setUserView] = useState<View | null>(null);
     const [isPanning, setIsPanning] = useState(false);
     const gestureRef = useRef<Gesture>({ pointers: new Map(), panning: false });
 
-    useLayoutEffect(() => {
+    const measureCanvas = () => {
         if (!canvas) return;
-        const measure = () =>
-            setSize((prev) =>
-                prev.width === canvas.clientWidth && prev.height === canvas.clientHeight ? prev : { width: canvas.clientWidth, height: canvas.clientHeight }
-            );
-        measure();
-        const observer = new ResizeObserver(measure);
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        setSize((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    };
+
+    // Re-measure after every render, before paint. A render can resize the canvas itself (the detail panel opening next
+    // to it); waiting for the ResizeObserver would paint one frame with the old width and make the tree jump.
+    useLayoutEffect(() => {
+        measureCanvas();
+    });
+
+    // Resizes that do not come from a render (window, sidebar)
+    useEffect(() => {
+        if (!canvas) return;
+        const observer = new ResizeObserver(() => measureCanvas());
         observer.observe(canvas);
         return () => observer.disconnect();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canvas]);
 
-    const fitScale = natural.width > size.width - 2 * PAD_X ? Math.max(MIN_FIT_SCALE, (size.width - 2 * PAD_X) / natural.width) : 1;
+    // Fit into the canvas plus any space a panel currently covers, so the fitted view is the same with and without it
+    const fitWidth = size.width + fitExtraWidth;
+    const fitScale = natural.width > fitWidth - 2 * PAD_X ? Math.max(MIN_FIT_SCALE, (fitWidth - 2 * PAD_X) / natural.width) : 1;
     // The root sits centred above its children, so centring the tree centres the root
-    const fitted: View = { scale: fitScale, x: (size.width - natural.width * fitScale) / 2, y: PAD_TOP };
+    const fitted: View = { scale: fitScale, x: (fitWidth - natural.width * fitScale) / 2, y: PAD_TOP };
     const view = userView ?? fitted;
 
     // Keep at least KEEP_VISIBLE px of the tree inside the canvas so it cannot be panned out of reach

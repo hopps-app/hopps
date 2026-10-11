@@ -1,5 +1,5 @@
 import { TransactionDisplayStatus, TransactionResponse } from '@hopps/api-client';
-import { ChevronLeft, ChevronRight, X, Plus, Search, FileText, Trash2, Filter, Wallet, Unlink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Search, FileText, Trash2, Filter, Wallet, Unlink } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -18,6 +18,7 @@ import { TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { DataTable, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
+import { FilterBadge } from '@/components/ui/FilterBadge';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
@@ -62,32 +63,6 @@ const STATUS_SEGMENTS: { id: TransactionDisplayStatus; labelKey: string; color: 
     { id: 'LINKED', labelKey: 'transactions.status.linked', color: 'var(--warning)', tint: 'var(--warning-surface)' },
     { id: 'CONFIRMED', labelKey: 'transactions.status.confirmed', color: 'var(--positive)', tint: 'var(--positive-surface)' },
 ];
-
-/** Removable badge for one active advanced filter. */
-function FilterBadge({ label, onRemove }: { label: string; onRemove: () => void }) {
-    const { t } = useTranslation();
-    return (
-        <span
-            className="inline-flex cursor-default items-center gap-2 rounded-[var(--btn-radius)] border py-1.5 pl-3 pr-2 text-[13px] font-semibold"
-            style={{
-                fontFamily: FONT,
-                background: 'var(--accent-surface)',
-                color: 'var(--purple-700)',
-                borderColor: 'color-mix(in oklch, var(--primary) 28%, var(--background-secondary))',
-            }}
-        >
-            {label}
-            <button
-                type="button"
-                aria-label={t('transactions.filters.removeFilter')}
-                onClick={onRemove}
-                className="grid place-items-center transition-colors hover:text-[var(--negative)]"
-            >
-                <X size={14} strokeWidth={2.5} />
-            </button>
-        </span>
-    );
-}
 
 // ─── Transaction row ──────────────────────────────────────────────────────────
 
@@ -215,17 +190,31 @@ export function TransactionenView() {
         if (idParam) setSelectedTxId(Number(idParam));
     }, [searchParams]);
 
-    // Pre-filter by a bommel when navigated to with ?bommelId= (e.g. from the org structure "Zu Transaktionen" button).
-    // The param is consumed once and cleared from the URL so it doesn't override the user's later filter changes.
+    // Pre-filter when navigated to with ?bommelId= and/or ?status= (e.g. from the Bommel detail panel).
+    // - bommelId: one id or a comma-separated list, the chosen Bommel first, then its sub-Bommel (same shape the
+    //   Bommel filter stores)
+    // - status: comma-separated display statuses, e.g. DRAFT,PARTIAL,LINKED
+    // The params are consumed once and cleared from the URL so they don't override the user's later filter changes.
     useEffect(() => {
         const bommelParam = searchParams.get('bommelId');
-        if (bommelParam) {
-            setBommelIds([Number(bommelParam)]);
-            setPage(0);
+        const statusParam = searchParams.get('status');
+        if (!bommelParam && !statusParam) return;
+
+        const ids = (bommelParam ?? '')
+            .split(',')
+            .map(Number)
+            .filter((id) => Number.isInteger(id) && id > 0);
+        if (ids.length > 0) {
+            setBommelIds(ids);
             setAdvancedOpen(true);
-            searchParams.delete('bommelId');
-            setSearchParams(searchParams, { replace: true });
         }
+        const statuses = (statusParam ?? '').split(',').filter((s): s is TransactionDisplayStatus => STATUS_SEGMENTS.some((seg) => seg.id === s));
+        if (statuses.length > 0) setStatusFilter(statuses);
+
+        setPage(0);
+        searchParams.delete('bommelId');
+        searchParams.delete('status');
+        setSearchParams(searchParams, { replace: true });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 

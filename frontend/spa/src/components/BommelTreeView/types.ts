@@ -29,6 +29,11 @@ export interface BommelTreeComponentProps {
     onMove?: (nodeId: number, newParentId: number) => Promise<boolean>;
     /** Called from the "add Bommel" placeholder under an empty root while not in edit mode */
     onRequestEdit?: () => void;
+    /**
+     * Width (px) beyond the canvas to include when fitting the tree, e.g. a panel that currently covers that space.
+     * Fitting against the same total with and without the panel keeps the tree from rescaling when it opens.
+     */
+    fitExtraWidth?: number;
     /** Extra classes for the canvas, e.g. `flex-1` to fill the page height */
     className?: string;
 }

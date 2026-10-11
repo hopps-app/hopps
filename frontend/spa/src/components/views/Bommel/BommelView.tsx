@@ -1,18 +1,24 @@
-import { RefreshCw, AlertCircle, Info, Lightbulb, PanelRightClose, PanelRightOpen } from 'lucide-react';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import type { DocumentResponse } from '@hopps/api-client';
+import { RefreshCw, AlertCircle, Info, Lightbulb } from 'lucide-react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { BommelDetailsPanel, EditModeBanner, HintBanner, ToggleField } from './components';
-import { useBommelTree, useTreeCalculations, useStatistics, useDemoTree } from './hooks';
+import { useBommelTree, useStatistics, useDemoTree } from './hooks';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import Button from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import { ReviewDrawer } from '@/components/views/BelegeView';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
+import type { TransactionDisplayStatus } from '@/lib/transactionStatus';
+
+/** Width of the detail panel plus the gap to the tree, see the grid below */
+const PANEL_SPACE = 340 + 16;
 
 function BommelView() {
     const { t } = useTranslation();
@@ -26,7 +32,10 @@ function BommelView() {
     const [isDemoMode, setIsDemoMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<BommelTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    // Receipt drawer opened from the detail panel (transactions navigate to their page instead)
+    const [openReceipt, setOpenReceipt] = useState<DocumentResponse | null>(null);
+    // From here the panel sits next to the tree; below it is a bottom sheet
+    const panelBeside = useMediaQuery('(min-width: 1024px)');
     const initialSelectionDone = useRef(false);
 
     // Drop ?edit=1 from the URL once it has been applied, so a reload does not force edit mode again.
@@ -46,7 +55,6 @@ function BommelView() {
     const activeData = isDemoMode ? demoTreeData : realTreeData;
     const { isOrganizationError, isLoading, rootBommel, tree, createChildBommel, updateTreeNode, moveTreeNode, deleteTreeNode } = activeData;
 
-    const { countSubBommels } = useTreeCalculations(tree);
     // Only the organisation itself (the root) exists yet
     const structureIsEmpty = !isLoading && !tree.some((node) => !node.data?.isRoot);
 
@@ -109,23 +117,45 @@ function BommelView() {
         [setSearchParams, isDemoMode]
     );
 
-    const handleNavigateToReceipts = useCallback(() => {
-        if (isDemoMode) return;
-        if (selectedBommel?.id) {
-            navigate(`/receipts?bommelId=${selectedBommel.id}`);
-        } else {
-            navigate('/receipts');
+    // What the panel covers: the selected Bommel, plus all Bommel below it when amounts include sub-Bommel
+    const panelScopeIds = useMemo(() => {
+        if (!selectedBommel) return [];
+        const selectedId = Number(selectedBommel.id);
+        if (!statisticsOptions.aggregate) return [selectedId];
+        // In the flat model top-level Bommel hang under 0, not under the root's id
+        const childrenOf = (id: number | string) => tree.filter((n) => !n.data?.isRoot && n.parent === id);
+        const ids = [selectedId];
+        const queue = childrenOf(selectedBommel.data?.isRoot ? 0 : selectedBommel.id);
+        while (queue.length > 0) {
+            const next = queue.shift()!;
+            ids.push(Number(next.id));
+            queue.push(...childrenOf(next.id));
         }
-    }, [navigate, selectedBommel, isDemoMode]);
+        return ids;
+    }, [selectedBommel, statisticsOptions.aggregate, tree]);
 
-    const handleNavigateToTransactions = useCallback(() => {
-        if (isDemoMode) return;
-        if (selectedBommel?.id) {
-            navigate(`/transactions?bommelId=${selectedBommel.id}`);
-        } else {
-            navigate('/transactions');
-        }
-    }, [navigate, selectedBommel, isDemoMode]);
+    const bommelNames = useMemo(() => new Map(tree.map((n) => [Number(n.id), n.text])), [tree]);
+
+    const showTransactions = useCallback(
+        (statuses: TransactionDisplayStatus[]) => {
+            navigate(`/transactions?bommelId=${panelScopeIds.join(',')}&status=${statuses.join(',')}`);
+        },
+        [navigate, panelScopeIds]
+    );
+
+    const showAllReceipts = useCallback(() => {
+        navigate(`/receipts?bommelId=${panelScopeIds.join(',')}&status=unreviewed`);
+    }, [navigate, panelScopeIds]);
+
+    // Esc closes the panel, unless the receipt drawer is open on top of it
+    useEffect(() => {
+        if (!selectedBommel) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && openReceipt === null) selectBommelAndUpdateUrl(null);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedBommel, openReceipt, selectBommelAndUpdateUrl]);
 
     const handleTreeNodeClick = useCallback(
         (nodeData: { attributes?: { id?: number } }) => {
@@ -262,25 +292,20 @@ function BommelView() {
                                     {isEditMode ? t('bommel.done') : t('bommel.edit')}
                                 </Button>
                             )}
-                            <Button
-                                size="icon"
-                                variant="outline"
-                                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                className="hidden xl:inline-flex"
-                                title={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
-                                aria-label={isSidebarOpen ? t('bommel.details.hideDetails') : t('bommel.details.showDetails')}
-                            >
-                                {isSidebarOpen ? <PanelRightClose /> : <PanelRightOpen />}
-                            </Button>
                         </div>
                     </div>
 
                     {isEditMode && !isDemoMode && <EditModeBanner />}
+
+                    {bommelNotFound && (
+                        <HintBanner icon={AlertCircle}>
+                            {t('bommel.details.bommelNotFound')}. {t('bommel.details.bommelNotFoundDescription')}
+                        </HintBanner>
+                    )}
                 </div>
 
-                <div className={`grid grid-cols-1 ${isSidebarOpen ? 'xl:grid-cols-4' : 'xl:grid-cols-1'} gap-6 flex-1 min-h-0`}>
-                    {/* Left Side - Structure Views */}
-                    <div className={`${isSidebarOpen ? 'xl:col-span-3' : 'xl:col-span-1'} flex flex-col min-h-0`}>
+                <div className={`grid flex-1 min-h-0 grid-cols-1 gap-4 ${selectedBommel ? 'lg:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
+                    <div className="flex flex-col min-h-0">
                         <BommelTreeComponent
                             className="flex-1"
                             key={`tree-${isDemoMode}`}
@@ -289,6 +314,8 @@ function BommelView() {
                             editable={isDemoMode ? false : isEditMode}
                             dragDropEnabled={isDemoMode ? false : isDragDropMode}
                             selectedId={selectedBommel ? Number(selectedBommel.id) : null}
+                            // Fit as if the panel were not there, so opening it crops the tree instead of rescaling it
+                            fitExtraWidth={selectedBommel && panelBeside ? PANEL_SPACE : 0}
                             onNodeClick={handleTreeNodeClick}
                             onEdit={handleEdit}
                             onDelete={handleDelete}
@@ -298,35 +325,25 @@ function BommelView() {
                         />
                     </div>
 
-                    {/* Right Side - Selected Bommel Details */}
-                    {isSidebarOpen && (
-                        <div className="xl:col-span-1">
-                            {bommelNotFound ? (
-                                <Card className="sticky top-6 bg-white dark:bg-[var(--purple-50)] text-[var(--font-color)]">
-                                    <CardContent className="py-8 text-center space-y-4">
-                                        <div className="rounded-full bg-destructive/10 p-3 mx-auto w-fit">
-                                            <AlertCircle className="h-6 w-6 text-destructive" />
-                                        </div>
-                                        <div>
-                                            <p className="text-destructive font-medium">{t('bommel.details.bommelNotFound')}</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('bommel.details.bommelNotFoundDescription')}</p>
-                                        </div>
-                                        <Button variant="outline" onClick={() => setSearchParams({}, { replace: true })}>
-                                            {t('bommel.details.backToStructure')}
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <BommelDetailsPanel
-                                    selectedBommel={selectedBommel}
-                                    subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
-                                    onNavigateToReceipts={isDemoMode ? undefined : handleNavigateToReceipts}
-                                    onNavigateToTransactions={isDemoMode ? undefined : handleNavigateToTransactions}
-                                />
-                            )}
+                    {selectedBommel && (
+                        <div className="min-h-0">
+                            <BommelDetailsPanel
+                                node={selectedBommel}
+                                scopeIds={panelScopeIds}
+                                includesSubBommel={panelScopeIds.length > 1}
+                                bommelNames={bommelNames}
+                                demo={isDemoMode}
+                                onClose={() => selectBommelAndUpdateUrl(null)}
+                                onOpenTransaction={(id) => navigate(`/transactions?id=${id}`)}
+                                onOpenReceipt={setOpenReceipt}
+                                onShowTransactions={showTransactions}
+                                onShowAllReceipts={showAllReceipts}
+                            />
                         </div>
                     )}
                 </div>
+
+                <ReviewDrawer doc={openReceipt} onClose={() => setOpenReceipt(null)} onDeleted={() => setOpenReceipt(null)} />
             </div>
         </>
     );

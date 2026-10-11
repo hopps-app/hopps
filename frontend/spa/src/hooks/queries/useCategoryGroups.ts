@@ -19,6 +19,15 @@ export function useCategoryGroups() {
     });
 }
 
+/** Category groups that apply to a bommel: assigned to it or inherited from an ancestor. */
+export function useApplicableCategoryGroups(bommelId: number | undefined) {
+    return useQuery({
+        queryKey: [...categoryGroupKeys.all, 'bommel', bommelId ?? 0],
+        queryFn: () => apiService.orgService.categoryGroupsAll(bommelId),
+        enabled: bommelId != null && bommelId > 0,
+    });
+}
+
 /** Templates the organization can start a group from (maintained in the admin app), with a short value preview. */
 export function useCategoryGroupTemplates() {
     return useQuery({

@@ -949,7 +949,9 @@
         "filter": {
             "all": "Alle",
             "unreviewed": "Ungeprüft",
-            "confirmed": "Bestätigt"
+            "confirmed": "Bestätigt",
+            "bommel": "Bommel: {{name}}",
+            "bommelWithSub": "Bommel: {{name}} inkl. Unterbommel"
         },
         "noUnreviewed": "Alle Belege wurden geprüft",
         "noUnreviewedDesc": "Lade neue Belege hoch, um sie zu prüfen.",
@@ -1107,7 +1109,29 @@
         "aggregateInfo": "Jeder Bommel zeigt seine eigenen Beträge plus die aller Bommel darunter. Ausgeschaltet siehst du nur, was direkt auf diesem Bommel gebucht ist.",
         "demoModeInfo": "Zeigt die Struktur eines Beispielvereins, damit du siehst, wie du deine Bommel aufbauen kannst. Deine eigenen Daten bleiben unverändert, das Beispiel ist nicht bearbeitbar.",
         "emptyHint": "Eure Organisation ist bereits der oberste Bommel. Darunter könnt ihr Bereiche anlegen: Abteilung, Projekt oder Veranstaltung.",
-        "dragDropInfo": "Zieh einen Bommel auf einen anderen, um ihn darunter einzuordnen. Auf Touchscreens ziehst du am Griff links im Bommel."
+        "dragDropInfo": "Zieh einen Bommel auf einen anderen, um ihn darunter einzuordnen. Auf Touchscreens ziehst du am Griff links im Bommel.",
+        "panel": {
+            "totalWithSub": "(inkl. Unterbommel)",
+            "categories": "Kategorien",
+            "noCategories": "Keine Kategorien zugeordnet",
+            "transactions": "Transaktionen",
+            "receipts": "Belege",
+            "allConfirmed": "Alle Transaktionen bestätigt",
+            "noUnreviewed": "Keine ungeprüften Belege",
+            "showAllCount": "Alle {{count}} anzeigen",
+            "loadError": "Konnte nicht geladen werden",
+            "moreValues": "+{{count}} weitere",
+            "noValues": "Keine Werte",
+            "openInReceipts": "In Belege öffnen",
+            "hasReceipt": "Hat einen Beleg",
+            "showAll": "Alle anzeigen",
+            "openTransactionsHint_one": "1 noch nicht bestätigte Transaktion",
+            "openTransactionsHint_other": "Letzte {{count}} noch nicht bestätigte Transaktionen",
+            "openReceiptsHint_one": "1 ungeprüfter Beleg",
+            "openReceiptsHint_other": "Letzte {{count}} ungeprüfte Belege",
+            "openTransactionsHintPartial": "Letzte {{shown}} von {{count}} noch nicht bestätigten Transaktionen",
+            "openReceiptsHintPartial": "Letzte {{shown}} von {{count}} ungeprüften Belegen"
+        }
     },
     "datePicker": {
         "selectDate": "Datum auswählen"

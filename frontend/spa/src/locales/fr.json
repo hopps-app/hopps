@@ -1055,7 +1055,9 @@
         "filter": {
             "all": "Tous",
             "unreviewed": "Non vérifiés",
-            "confirmed": "Confirmés"
+            "confirmed": "Confirmés",
+            "bommel": "Bommel : {{name}}",
+            "bommelWithSub": "Bommel : {{name}} sous-bommels inclus"
         },
         "noUnreviewed": "Tous les reçus ont été vérifiés",
         "noUnreviewedDesc": "Téléversez de nouveaux reçus pour les vérifier.",
@@ -1213,7 +1215,29 @@
         "aggregateInfo": "Chaque Bommel affiche ses propres montants plus ceux de tous les Bommel en dessous. Désactivé, tu ne vois que ce qui est comptabilisé directement sur ce Bommel.",
         "demoModeInfo": "Affiche la structure d'une association exemple pour te montrer comment organiser tes Bommel. Tes propres données restent inchangées, l'exemple n'est pas modifiable.",
         "emptyHint": "Votre organisation est déjà le Bommel principal. En dessous, vous pouvez créer des domaines : section, projet ou événement.",
-        "dragDropInfo": "Fais glisser un Bommel sur un autre pour l'y déplacer. Sur écran tactile, utilise la poignée à gauche de la carte."
+        "dragDropInfo": "Fais glisser un Bommel sur un autre pour l'y déplacer. Sur écran tactile, utilise la poignée à gauche de la carte.",
+        "panel": {
+            "totalWithSub": "(sous-bommels inclus)",
+            "categories": "Catégories",
+            "noCategories": "Aucune catégorie attribuée",
+            "transactions": "Transactions",
+            "receipts": "Justificatifs",
+            "allConfirmed": "Toutes les transactions sont confirmées",
+            "noUnreviewed": "Aucun justificatif non vérifié",
+            "showAllCount": "Afficher les {{count}}",
+            "loadError": "Chargement impossible",
+            "moreValues": "+{{count}} autres",
+            "noValues": "Aucune valeur",
+            "openInReceipts": "Ouvrir dans Justificatifs",
+            "hasReceipt": "A un justificatif",
+            "showAll": "Tout afficher",
+            "openTransactionsHint_one": "1 transaction non confirmée",
+            "openTransactionsHint_other": "Les {{count}} dernières transactions non confirmées",
+            "openReceiptsHint_one": "1 justificatif non vérifié",
+            "openReceiptsHint_other": "Les {{count}} derniers justificatifs non vérifiés",
+            "openTransactionsHintPartial": "Les {{shown}} dernières des {{count}} transactions non confirmées",
+            "openReceiptsHintPartial": "Les {{shown}} derniers des {{count}} justificatifs non vérifiés"
+        }
     },
     "bankAccounts": {
         "title": "Comptes bancaires",

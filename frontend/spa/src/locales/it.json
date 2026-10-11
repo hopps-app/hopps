@@ -1055,7 +1055,9 @@
         "filter": {
             "all": "Tutte",
             "unreviewed": "Non revisionate",
-            "confirmed": "Confermate"
+            "confirmed": "Confermate",
+            "bommel": "Bommel: {{name}}",
+            "bommelWithSub": "Bommel: {{name}} incl. sotto-Bommel"
         },
         "noUnreviewed": "Tutte le ricevute sono state revisionate",
         "noUnreviewedDesc": "Carica nuove ricevute per revisionarle.",
@@ -1213,7 +1215,29 @@
         "aggregateInfo": "Ogni Bommel mostra i propri importi più quelli di tutti i Bommel sottostanti. Disattivato, vedi solo ciò che è registrato direttamente su quel Bommel.",
         "demoModeInfo": "Mostra la struttura di un'associazione di esempio, così vedi come organizzare i tuoi Bommel. I tuoi dati restano invariati, l'esempio non è modificabile.",
         "emptyHint": "La vostra organizzazione è già il Bommel principale. Sotto potete creare delle aree: reparto, progetto o evento.",
-        "dragDropInfo": "Trascina un Bommel su un altro per spostarlo lì. Sui touchscreen trascinalo dalla maniglia a sinistra della scheda."
+        "dragDropInfo": "Trascina un Bommel su un altro per spostarlo lì. Sui touchscreen trascinalo dalla maniglia a sinistra della scheda.",
+        "panel": {
+            "totalWithSub": "(incl. sotto-Bommel)",
+            "categories": "Categorie",
+            "noCategories": "Nessuna categoria assegnata",
+            "transactions": "Transazioni",
+            "receipts": "Ricevute",
+            "allConfirmed": "Tutte le transazioni confermate",
+            "noUnreviewed": "Nessuna ricevuta da verificare",
+            "showAllCount": "Mostra tutte le {{count}}",
+            "loadError": "Impossibile caricare",
+            "moreValues": "+{{count}} altri",
+            "noValues": "Nessun valore",
+            "openInReceipts": "Apri in Ricevute",
+            "hasReceipt": "Ha una ricevuta",
+            "showAll": "Mostra tutto",
+            "openTransactionsHint_one": "1 transazione non confermata",
+            "openTransactionsHint_other": "Ultime {{count}} transazioni non confermate",
+            "openReceiptsHint_one": "1 ricevuta non verificata",
+            "openReceiptsHint_other": "Ultime {{count}} ricevute non verificate",
+            "openTransactionsHintPartial": "Ultime {{shown}} di {{count}} transazioni non confermate",
+            "openReceiptsHintPartial": "Ultime {{shown}} di {{count}} ricevute non verificate"
+        }
     },
     "bankAccounts": {
         "title": "Conti bancari",

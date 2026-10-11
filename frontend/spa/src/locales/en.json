@@ -1088,7 +1088,9 @@
         "filter": {
             "all": "All",
             "unreviewed": "Unreviewed",
-            "confirmed": "Confirmed"
+            "confirmed": "Confirmed",
+            "bommel": "Bommel: {{name}}",
+            "bommelWithSub": "Bommel: {{name}} incl. sub-Bommel"
         },
         "noUnreviewed": "All receipts have been reviewed",
         "noUnreviewedDesc": "Upload new receipts to review them.",
@@ -1246,7 +1248,29 @@
         "aggregateInfo": "Each Bommel shows its own amounts plus those of all Bommel below it. Turned off, you only see what is booked directly on that Bommel.",
         "demoModeInfo": "Shows the structure of an example club so you can see how to set up your Bommel. Your own data stays unchanged, and the example cannot be edited.",
         "emptyHint": "Your organization is already the top Bommel. Below it you can add areas: a department, project or event.",
-        "dragDropInfo": "Drag a Bommel onto another one to move it there. On touch screens, drag it by the handle on the left of the card."
+        "dragDropInfo": "Drag a Bommel onto another one to move it there. On touch screens, drag it by the handle on the left of the card.",
+        "panel": {
+            "totalWithSub": "(incl. sub-Bommel)",
+            "categories": "Categories",
+            "noCategories": "No categories assigned",
+            "transactions": "Transactions",
+            "receipts": "Receipts",
+            "allConfirmed": "All transactions confirmed",
+            "noUnreviewed": "No unreviewed receipts",
+            "showAllCount": "Show all {{count}}",
+            "loadError": "Could not be loaded",
+            "moreValues": "+{{count}} more",
+            "noValues": "No values",
+            "openInReceipts": "Open in Receipts",
+            "hasReceipt": "Has a receipt",
+            "showAll": "Show all",
+            "openTransactionsHint_one": "1 unconfirmed transaction",
+            "openTransactionsHint_other": "Latest {{count}} unconfirmed transactions",
+            "openReceiptsHint_one": "1 unreviewed receipt",
+            "openReceiptsHint_other": "Latest {{count}} unreviewed receipts",
+            "openTransactionsHintPartial": "Latest {{shown}} of {{count}} unconfirmed transactions",
+            "openReceiptsHintPartial": "Latest {{shown}} of {{count}} unreviewed receipts"
+        }
     },
     "bankAccounts": {
         "title": "Bank accounts",

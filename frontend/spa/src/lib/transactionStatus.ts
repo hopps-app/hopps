@@ -6,6 +6,9 @@ import type { TransactionStatus } from '@hopps/api-client';
  */
 export type TransactionDisplayStatus = 'DRAFT' | 'PARTIAL' | 'LINKED' | 'CONFIRMED';
 
+/** Statuses of a transaction that still needs attention, i.e. everything but CONFIRMED */
+export const OPEN_TRANSACTION_STATUSES: TransactionDisplayStatus[] = ['DRAFT', 'PARTIAL', 'LINKED'];
+
 // Float tolerance for the covered/total comparison, same as the reconciliation in the detail drawer.
 const EPSILON = 0.005;
 
