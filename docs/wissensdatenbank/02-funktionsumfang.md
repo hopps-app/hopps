@@ -58,7 +58,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Bank-Import CSV mit Schema-Editor | ✅ | Delimiter, Encoding, Formate konfigurierbar | BE `bankimport/`, SPA `/bank-accounts`, `/bank-schemas` |
 | Bank-Import Vorlagen (automatische Erkennung) | ✅ | Sparkasse (MT940, CAMT.052 v2/v8), Volksbanken / Raiffeisenbanken Umsatz-CSV (18 Spalten, Atruvia-Banken inkl. Deutsche Skatbank) | BE `SystemTemplateService`, `SchemaDetectionService` (Stand 2026-10-05) |
 | Bank-Import MT940 | ✅ | – | BE `bankimport/` |
-| Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst | BE `BankTransactionMatch` |
+| Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst. Beleg direkt am Kontoumsatz hochladen: legt eine aus dem Umsatz vorausgefüllte Entwurfstransaktion an und verknüpft sie sofort, mehrere Belege pro Umsatz möglich | BE `BankTransactionMatch`, `BankTransactionReceiptService` (Stand 2026-10-11) |
 | Automatischer Kontoabruf (FinTS/EBICS) | ❌ | – | – |
 | Doppelte Buchführung / EÜR / Jahresabschluss | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
 | Kassenbuch (Bargeld) | ❌ | – | – |
