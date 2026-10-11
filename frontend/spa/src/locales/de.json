@@ -578,7 +578,7 @@
         "expand": "Ausklappen",
         "openMenu": "Menü öffnen",
         "navigation": "Navigation",
-        "setup": "Einrichtung",
+        "setup": "Erste Schritte",
         "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {

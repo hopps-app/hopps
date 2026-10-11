@@ -546,7 +546,7 @@
         "expand": "Développer",
         "openMenu": "Ouvrir le menu",
         "navigation": "Navigation",
-        "setup": "Configuration",
+        "setup": "Premiers pas",
         "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {

@@ -579,7 +579,7 @@
         "expand": "Expand",
         "openMenu": "Open menu",
         "navigation": "Navigation",
-        "setup": "Setup",
+        "setup": "Getting started",
         "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
