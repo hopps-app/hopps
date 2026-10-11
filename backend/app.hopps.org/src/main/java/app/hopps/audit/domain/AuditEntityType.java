@@ -5,5 +5,9 @@ package app.hopps.audit.domain;
  * to, so one entity's history is a single query.
  */
 public enum AuditEntityType {
-    TRANSACTION
+    TRANSACTION,
+    /** A bank movement: ignoring it and taking that back. */
+    BANK_TRANSACTION,
+    /** A bank statement import: deleting it, together with its bank movements. */
+    BANK_IMPORT
 }

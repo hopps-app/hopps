@@ -17,5 +17,9 @@ public enum AuditAction {
     UNLINK,
     /** The part of a linked bank transaction that is used for the record was changed. */
     ALLOCATION_UPDATE,
+    /** A bank transaction was set aside as not needing a booking. */
+    IGNORE,
+    /** Ignoring a bank transaction was taken back. */
+    UNIGNORE,
     DELETE
 }
