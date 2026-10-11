@@ -314,6 +314,7 @@ function LinkedTxCard({
                 ) : (
                     <MatchAllocationControl
                         variant="card"
+                        small
                         amount={usedAmount}
                         max={movementMagnitude}
                         full={amount}
