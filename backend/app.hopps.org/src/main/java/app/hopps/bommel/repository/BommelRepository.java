@@ -2,14 +2,18 @@ package app.hopps.bommel.repository;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.organization.domain.Organization;
+import app.hopps.transaction.repository.TransactionRepository;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +23,9 @@ import java.util.Set;
 
 @ApplicationScoped
 public class BommelRepository implements PanacheRepository<Bommel> {
+
+    @Inject
+    TransactionRepository transactionRepository;
 
     /**
      * The ids of the given bommels together with all of their descendants (recursively). Used to find every transaction
@@ -169,23 +176,46 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                     Response.Status.BAD_REQUEST);
         }
 
-        if (recursive && !bommel.getChildren().isEmpty()) {
-            // Unlink transactions for all descendant bommels before cascade delete
-            List<TreeSearchBommel> descendants = getChildrenRecursive(bommel);
-            for (TreeSearchBommel descendant : descendants) {
-                getEntityManager()
-                        .createQuery("UPDATE Transaction t SET t.bommel = NULL WHERE t.bommel.id = :bommelId")
-                        .setParameter("bommelId", descendant.bommel().id)
-                        .executeUpdate();
-            }
+        // The bommel itself plus, when deleting recursively, every bommel below it (removed by the children cascade)
+        List<Long> deletedIds = new ArrayList<>();
+        deletedIds.add(bommel.id);
+        if (recursive) {
+            getChildrenRecursive(bommel).forEach(descendant -> deletedIds.add(descendant.bommel().id));
         }
 
-        // Unlink all transactions referencing this bommel before deletion
-        // This sets bommel_id = NULL so transactions are preserved but detached
+        // Confirming requires a bommel, so whatever was confirmed on the deleted bommels is reopened: confirmed
+        // transactions go back to DRAFT (their receipts back to unchecked) and show up as open again, ready for a new
+        // bommel. Confirmed receipts booked on them without such a transaction are unchecked again as well.
+        transactionRepository.reopen(transactionRepository.findConfirmedIdsByBommelIds(deletedIds));
         getEntityManager()
-                .createQuery("UPDATE Transaction t SET t.bommel = NULL WHERE t.bommel.id = :bommelId")
-                .setParameter("bommelId", bommel.id)
+                .createQuery("UPDATE Document d SET d.documentStatus = :analyzed "
+                        + "WHERE d.documentStatus = :confirmed AND d.bommel.id IN :ids")
+                .setParameter("analyzed", DocumentStatus.ANALYZED)
+                .setParameter("confirmed", DocumentStatus.CONFIRMED)
+                .setParameter("ids", deletedIds)
                 .executeUpdate();
+
+        // Transactions and receipts are kept, only detached (bommel_id = NULL). Receipts have to be detached as well:
+        // their foreign key has no ON DELETE action, so a single receipt would otherwise make the delete fail.
+        getEntityManager()
+                .createQuery("UPDATE Transaction t SET t.bommel = NULL WHERE t.bommel.id IN :ids")
+                .setParameter("ids", deletedIds)
+                .executeUpdate();
+        getEntityManager()
+                .createQuery("UPDATE Document d SET d.bommel = NULL WHERE d.bommel.id IN :ids")
+                .setParameter("ids", deletedIds)
+                .executeUpdate();
+
+        // A bank account must always hang on a bommel. Accounts normally sit on the root, which cannot be deleted, but
+        // the
+        // API allows sub-bommels: move those up to the deleted bommel's parent instead of failing.
+        if (bommel.getParent() != null) {
+            getEntityManager()
+                    .createQuery("UPDATE BankAccount a SET a.bommel = :parent WHERE a.bommel.id IN :ids")
+                    .setParameter("parent", bommel.getParent())
+                    .setParameter("ids", deletedIds)
+                    .executeUpdate();
+        }
 
         delete(bommel);
     }

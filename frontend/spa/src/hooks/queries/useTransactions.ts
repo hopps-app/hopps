@@ -91,7 +91,12 @@ export function useTransactions(filters: TransactionFilters = {}) {
  * the overview totals, which a single page of results cannot provide.
  */
 export function useTransactionAggregate(filters: TransactionFilters = {}) {
-    return useQuery({
+    return useQuery(transactionAggregateQuery(filters));
+}
+
+/** Query definition behind useTransactionAggregate, for prefetching the same cache entry */
+export function transactionAggregateQuery(filters: TransactionFilters = {}) {
+    return {
         queryKey: transactionKeys.aggregate(filters),
         queryFn: () =>
             apiService.orgService.aggregate2(
@@ -105,7 +110,7 @@ export function useTransactionAggregate(filters: TransactionFilters = {}) {
                 filters.startDate,
                 filters.status
             ),
-    });
+    };
 }
 
 export function useTransaction(id: number) {

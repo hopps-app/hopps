@@ -18,6 +18,8 @@ interface ConfirmDialogProps {
     onConfirm: () => void;
     destructive?: boolean;
     loading?: boolean;
+    /** Extra content below the description, e.g. a list of consequences (the description itself is a paragraph) */
+    children?: ReactNode;
 }
 
 /**
@@ -34,6 +36,7 @@ export function ConfirmDialog({
     onConfirm,
     destructive = false,
     loading = false,
+    children,
 }: ConfirmDialogProps) {
     const { t } = useTranslation();
 
@@ -60,6 +63,7 @@ export function ConfirmDialog({
                                     {description}
                                 </DialogPrimitive.Description>
                             )}
+                            {children}
                         </div>
                     </div>
 

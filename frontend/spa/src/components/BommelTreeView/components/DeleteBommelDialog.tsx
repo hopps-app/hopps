@@ -1,93 +1,107 @@
-import { AlertTriangle } from 'lucide-react';
-import { useState } from 'react';
+import { RotateCcw, ShieldCheck } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import Button from '@/components/ui/Button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
+import { descendantsOf, useDeleteImpact } from '../hooks/useDeleteImpact';
+import { TreeNodeData } from '../types';
 
-export type DeleteTransactionHandling = 'unlink' | 'reassign';
+import { Skeleton } from '@/components/Dashboard/SectionState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { NetworkIcon } from '@/components/ui/icons/lineIcons';
+
+/** Sub-Bommel listed by name before "und N weitere" */
+const MAX_NAMES = 3;
 
 export interface DeleteBommelDialogProps {
     open: boolean;
-    bommelName: string;
-    hasTransactions: boolean;
-    hasChildren: boolean;
-    childrenCount: number;
-    onConfirm: (transactionHandling?: DeleteTransactionHandling, reassignToBommelId?: number) => void;
+    node: TreeNodeData;
+    /** The delete request is running */
+    deleting?: boolean;
+    onConfirm: () => void;
     onCancel: () => void;
 }
 
-export function DeleteBommelDialog({ open, bommelName, hasTransactions, hasChildren, childrenCount, onConfirm, onCancel }: DeleteBommelDialogProps) {
+/**
+ * Confirms deleting a Bommel and says exactly what happens: its sub-Bommel are deleted with it, while the transactions
+ * and receipts booked on any of them are kept and only lose their Bommel (the backend detaches them). Confirming requires
+ * a Bommel, so whatever was confirmed goes back to draft / unchecked.
+ */
+export function DeleteBommelDialog({ open, node, deleting, onConfirm, onCancel }: DeleteBommelDialogProps) {
     const { t } = useTranslation();
-    const [transactionHandling, setTransactionHandling] = useState<DeleteTransactionHandling>('unlink');
-
-    const handleConfirm = () => {
-        if (hasTransactions) {
-            onConfirm(transactionHandling);
-        } else {
-            onConfirm();
-        }
-    };
+    const descendants = descendantsOf(node);
 
     return (
-        <Dialog open={open} onOpenChange={(open) => !open && onCancel()}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-orange-500" />
-                        {t('bommel.deleteDialog.title')}
-                    </DialogTitle>
-                    <DialogDescription>{t('bommel.deleteDialog.description', { name: bommelName })}</DialogDescription>
-                </DialogHeader>
-
-                <div className="py-4 space-y-4">
-                    {hasChildren && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <p className="text-sm text-red-800 font-medium">{t('bommel.deleteDialog.hasChildrenWarning', { count: childrenCount })}</p>
-                        </div>
-                    )}
-
-                    {hasTransactions && (
-                        <>
-                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                                <p className="text-sm text-orange-800 font-medium">{t('bommel.deleteDialog.hasTransactionsWarning')}</p>
-                            </div>
-
-                            <div className="space-y-3">
-                                <label className="text-sm font-medium">{t('bommel.deleteDialog.transactionHandlingLabel')}</label>
-                                <RadioGroup value={transactionHandling} onValueChange={(value) => setTransactionHandling(value as DeleteTransactionHandling)}>
-                                    <div className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer">
-                                        <RadioGroupItem value="unlink" id="unlink" />
-                                        <label htmlFor="unlink" className="flex-1 cursor-pointer">
-                                            <div className="font-medium text-sm">{t('bommel.deleteDialog.unlinkOption')}</div>
-                                            <div className="text-xs text-gray-500">{t('bommel.deleteDialog.unlinkDescription')}</div>
-                                        </label>
-                                    </div>
-
-                                    <div className="flex items-start space-x-2 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer opacity-50 pointer-events-none">
-                                        <RadioGroupItem value="reassign" id="reassign" disabled />
-                                        <label htmlFor="reassign" className="flex-1">
-                                            <div className="font-medium text-sm">{t('bommel.deleteDialog.reassignOption')}</div>
-                                            <div className="text-xs text-gray-500">{t('bommel.deleteDialog.reassignDescription')}</div>
-                                            <div className="text-xs text-gray-400 mt-1 italic">{t('bommel.deleteDialog.comingSoon')}</div>
-                                        </label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" onClick={onCancel}>
-                        {t('common.cancel')}
-                    </Button>
-                    <Button variant="destructive" onClick={handleConfirm}>
-                        {t('bommel.deleteDialog.confirm')}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+            open={open}
+            onOpenChange={(next) => !next && onCancel()}
+            title={t('bommel.deleteDialog.title', { name: node.name })}
+            description={t('bommel.deleteDialog.description')}
+            confirmLabel={t('bommel.deleteDialog.confirm')}
+            onConfirm={onConfirm}
+            destructive
+            loading={deleting}
+        >
+            {/* Mounted only while open: every card has a dialog, the counts should load for the one being deleted.
+                The delete button prefetches them, so they are usually there when the dialog opens. */}
+            {open && <Consequences node={node} descendants={descendants} />}
+        </ConfirmDialog>
     );
 }
+
+function Consequences({ node, descendants }: { node: TreeNodeData; descendants: TreeNodeData[] }) {
+    const { t } = useTranslation();
+    // Every transaction and receipt on these Bommel, drafts included
+    const { loading, transactionCount, confirmedTransactionCount, receiptCount, confirmedReceiptCount } = useDeleteImpact(node);
+
+    const reopened = [
+        confirmedTransactionCount > 0 ? t('bommel.deleteDialog.reopenedTransactions', { count: confirmedTransactionCount }) : '',
+        confirmedReceiptCount > 0 ? t('bommel.deleteDialog.reopenedReceipts', { count: confirmedReceiptCount }) : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+
+    const names = descendants.slice(0, MAX_NAMES).map((d) => d.name);
+    const nameList =
+        descendants.length > MAX_NAMES
+            ? `${names.join(', ')} ${t('bommel.deleteDialog.andMore', { count: descendants.length - MAX_NAMES })}`
+            : names.join(', ');
+
+    let kept: ReactNode;
+    if (loading)
+        // Placeholder in the shape of the sentence, so the dialog does not jump when the counts arrive
+        kept = (
+            <span className="flex flex-col gap-1.5 pt-0.5" aria-hidden="true">
+                <Skeleton className="h-3.5 w-full" />
+                <Skeleton className="h-3.5 w-2/3" />
+            </span>
+        );
+    else if (transactionCount + receiptCount === 0) kept = t('bommel.deleteDialog.nothingAttached');
+    else
+        kept = t('bommel.deleteDialog.kept', {
+            transactions: t('bommel.deleteDialog.transactions', { count: transactionCount }),
+            receipts: t('bommel.deleteDialog.receipts', { count: receiptCount }),
+        });
+
+    return (
+        <ul className="mt-4 space-y-2.5 rounded-[12px] bg-[var(--surface-sunken)] px-3.5 py-3 text-[13.5px] leading-snug text-foreground">
+            {descendants.length > 0 && (
+                <li className="flex gap-2.5">
+                    <NetworkIcon size={16} className="mt-px flex-shrink-0 text-[var(--negative)]" />
+                    <span>{t('bommel.deleteDialog.subBommels', { count: descendants.length, names: nameList })}</span>
+                </li>
+            )}
+            <li className="flex gap-2.5">
+                <ShieldCheck size={16} className="mt-px flex-shrink-0 text-[var(--positive)]" aria-hidden="true" />
+                <span className="min-w-0 flex-1">{kept}</span>
+            </li>
+            {!loading && reopened && (
+                <li className="flex gap-2.5">
+                    <RotateCcw size={16} className="mt-px flex-shrink-0 text-[var(--warning)]" aria-hidden="true" />
+                    <span>{reopened}</span>
+                </li>
+            )}
+        </ul>
+    );
+}
+
+export default DeleteBommelDialog;

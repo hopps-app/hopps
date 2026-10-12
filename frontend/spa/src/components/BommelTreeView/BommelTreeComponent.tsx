@@ -230,13 +230,24 @@ function BommelTreeComponent({
                     <Connector className={cn(vertical && 'ml-5')} />
                     <button
                         type="button"
-                        onClick={() => (editable ? handleAddChild(rootId) : onRequestEdit?.())}
+                        // One click from anywhere: switch to edit mode if needed and create the first Bommel right away
+                        onClick={() => {
+                            if (!editable) onRequestEdit?.();
+                            handleAddChild(rootId);
+                        }}
                         className={cn(
-                            'flex items-center justify-center gap-2 px-[15px] py-[18px] rounded-2xl border-2 border-dashed border-purple-500 bg-[var(--accent-surface)] text-purple-600 text-[14px] font-extrabold',
+                            'group flex items-center justify-center gap-2 px-[15px] py-[18px] rounded-2xl border-2 border-dashed border-purple-500 bg-[var(--accent-surface)] text-purple-600 text-[14px] font-extrabold',
+                            // Hover: stronger fill, a soft lift and the plus growing, so it reads as the thing to click
+                            'transition-[background-color,box-shadow,transform] duration-150 ease-[var(--ease-out)] hover:-translate-y-px hover:bg-[var(--accent-surface-strong)] hover:shadow-[var(--shadow-md)] active:translate-y-0',
+                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                             vertical ? 'w-full' : 'w-[224px]'
                         )}
                     >
-                        <Plus className="w-[17px] h-[17px]" strokeWidth={2.4} aria-hidden="true" />
+                        <Plus
+                            className="w-[17px] h-[17px] transition-transform duration-200 ease-[var(--ease-out)] group-hover:scale-125"
+                            strokeWidth={2.4}
+                            aria-hidden="true"
+                        />
                         {t('bommel.addSibling')}
                     </button>
                 </>

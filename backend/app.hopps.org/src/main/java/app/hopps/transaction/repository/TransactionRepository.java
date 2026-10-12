@@ -1,5 +1,6 @@
 package app.hopps.transaction.repository;
 
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDisplayStatus;
@@ -13,6 +14,7 @@ import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,6 +26,40 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
 
     @Inject
     OrganizationContext organizationContext;
+
+    /**
+     * Resets the given transactions to DRAFT and mirrors any linked confirmed receipt back to ANALYZED (unchecked), for
+     * when confirmed transactions lose something confirming requires: a now-mandatory category value, or their bommel.
+     * Uses bulk updates; returns the number of transactions reopened.
+     */
+    public int reopen(Collection<Long> transactionIds) {
+        if (transactionIds == null || transactionIds.isEmpty()) {
+            return 0;
+        }
+        getEntityManager()
+                .createQuery("update Document d set d.documentStatus = :analyzed "
+                        + "where d.documentStatus = :confirmed and d.id in "
+                        + "(select t.document.id from Transaction t where t.id in :ids and t.document is not null)")
+                .setParameter("analyzed", DocumentStatus.ANALYZED)
+                .setParameter("confirmed", DocumentStatus.CONFIRMED)
+                .setParameter("ids", transactionIds)
+                .executeUpdate();
+        return getEntityManager()
+                .createQuery("update Transaction t set t.status = :draft where t.id in :ids")
+                .setParameter("draft", TransactionStatus.DRAFT)
+                .setParameter("ids", transactionIds)
+                .executeUpdate();
+    }
+
+    /** Ids of the confirmed transactions booked on any of the given bommels. */
+    public List<Long> findConfirmedIdsByBommelIds(Collection<Long> bommelIds) {
+        return getEntityManager()
+                .createQuery("select t.id from Transaction t where t.status = :confirmed and t.bommel.id in :ids",
+                        Long.class)
+                .setParameter("confirmed", TransactionStatus.CONFIRMED)
+                .setParameter("ids", bommelIds)
+                .getResultList();
+    }
 
     /**
      * Find all transactions for the current organization, ordered by creation date.

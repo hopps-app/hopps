@@ -6,10 +6,10 @@ import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.category.domain.CategoryGroup;
 import app.hopps.category.repository.CategoryGroupRepository;
 import app.hopps.category.repository.CategoryGroupValueRepository;
-import app.hopps.document.domain.DocumentStatus;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionCategoryValue;
 import app.hopps.transaction.domain.TransactionStatus;
+import app.hopps.transaction.repository.TransactionRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -41,6 +41,9 @@ public class CategoryGroupService {
 
     @Inject
     BommelRepository bommelRepository;
+
+    @Inject
+    TransactionRepository transactionRepository;
 
     @Inject
     EntityManager entityManager;
@@ -166,22 +169,7 @@ public class CategoryGroupService {
      * now-mandatory category value can be added. Uses bulk updates; returns the number of transactions reopened.
      */
     public int reopenTransactions(Collection<Long> transactionIds) {
-        if (transactionIds == null || transactionIds.isEmpty()) {
-            return 0;
-        }
-        entityManager
-                .createQuery("update Document d set d.documentStatus = :analyzed "
-                        + "where d.documentStatus = :confirmed and d.id in "
-                        + "(select t.document.id from Transaction t where t.id in :ids and t.document is not null)")
-                .setParameter("analyzed", DocumentStatus.ANALYZED)
-                .setParameter("confirmed", DocumentStatus.CONFIRMED)
-                .setParameter("ids", transactionIds)
-                .executeUpdate();
-        return entityManager
-                .createQuery("update Transaction t set t.status = :draft where t.id in :ids")
-                .setParameter("draft", TransactionStatus.DRAFT)
-                .setParameter("ids", transactionIds)
-                .executeUpdate();
+        return transactionRepository.reopen(transactionIds);
     }
 
     /** How many transactions (draft or confirmed) currently carry a value for this group. */

@@ -2,14 +2,17 @@ import { ChevronDown, GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { usePrefetchDeleteImpact } from '../hooks/useDeleteImpact';
 import { BommelCardProps } from '../types';
 
 import { BommelCardEditForm } from './BommelCardEditForm';
 import { BommelCardStats } from './BommelCardStats';
-import { DeleteBommelDialog, DeleteTransactionHandling } from './DeleteBommelDialog';
+import { DeleteBommelDialog } from './DeleteBommelDialog';
 
 import Emoji from '@/components/ui/Emoji';
 import { cn } from '@/lib/utils';
+
+const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 
 function countDescendants(node: BommelCardProps['node']): number {
     return (node.children ?? []).reduce((sum, child) => sum + 1 + countDescendants(child), 0);
@@ -47,7 +50,6 @@ export function BommelCard({
     const total = node.attributes?.total || 0;
     const income = node.attributes?.income || 0;
     const expenses = node.attributes?.expenses || 0;
-    const transactionsCount = node.attributes?.transactionsCount || 0;
     const hasChildren = !!node.children?.length;
     const isRoot = depth === 0;
     const parentId = node.attributes?.parentId as number;
@@ -136,18 +138,23 @@ export function BommelCard({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editable]);
 
-    const deletingRef = useRef(false);
+    const [deleting, setDeleting] = useState(false);
+    const prefetchDeleteImpact = usePrefetchDeleteImpact();
 
-    const handleDeleteConfirm = async (_transactionHandling?: DeleteTransactionHandling) => {
-        if (onDelete) {
-            if (deletingRef.current) return;
-            deletingRef.current = true;
-            try {
-                await onDelete(nodeId);
-                setShowDeleteDialog(false);
-            } finally {
-                deletingRef.current = false;
-            }
+    // Open the dialog once its counts are loaded (the hover usually started that already), so it opens with its full
+    // text instead of filling in afterwards. A slow request does not hold it back for more than half a second.
+    const openDeleteDialog = async () => {
+        await Promise.race([prefetchDeleteImpact(node), new Promise((resolve) => setTimeout(resolve, 500))]);
+        setShowDeleteDialog(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!onDelete || deleting) return;
+        setDeleting(true);
+        try {
+            if (await onDelete(nodeId)) setShowDeleteDialog(false);
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -166,6 +173,8 @@ export function BommelCard({
     };
 
     const showEditControls = editable && !dragDropEnabled && !isEditing;
+    // An empty root shows the dashed "Bommel hinzufügen" card below it instead, so there is one obvious place to start
+    const showAddChild = !(isRoot && !hasChildren);
     const nameEditable = editable && !dragDropEnabled;
 
     return (
@@ -256,23 +265,27 @@ export function BommelCard({
 
             {showEditControls && (
                 <div onClick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
-                        onClick={handleAddChild}
-                        className={cn(
-                            'absolute -bottom-[13px] z-10 w-[26px] h-[26px] rounded-full grid place-items-center bg-background-secondary border-[1.5px] border-[var(--positive)] text-[var(--positive)] shadow-[var(--shadow-sm)]',
-                            // Vertical layout: sit on the rail where the new child will hang (20px in, see BommelBranch)
-                            fullWidth ? 'left-[7px]' : 'left-1/2 -translate-x-1/2'
-                        )}
-                        title={t('bommel.addChild')}
-                        aria-label={t('bommel.addChild')}
-                    >
-                        <Plus className="w-3.5 h-3.5" strokeWidth={2.4} aria-hidden="true" />
-                    </button>
+                    {showAddChild && (
+                        <button
+                            type="button"
+                            onClick={handleAddChild}
+                            className={cn(
+                                'absolute -bottom-[13px] z-10 w-[26px] h-[26px] rounded-full grid place-items-center bg-background-secondary border-[1.5px] border-[var(--positive)] text-[var(--positive)] shadow-[var(--shadow-sm)]',
+                                // Vertical layout: sit on the rail where the new child will hang (20px in, see BommelBranch)
+                                fullWidth ? 'left-[7px]' : 'left-1/2 -translate-x-1/2'
+                            )}
+                            title={t('bommel.addChild')}
+                            aria-label={t('bommel.addChild')}
+                        >
+                            <Plus className="w-3.5 h-3.5" strokeWidth={2.4} aria-hidden="true" />
+                        </button>
+                    )}
                     {!isRoot && (
                         <button
                             type="button"
-                            onClick={() => setShowDeleteDialog(true)}
+                            onClick={openDeleteDialog}
+                            onPointerEnter={() => prefetchDeleteImpact(node)}
+                            onFocus={() => prefetchDeleteImpact(node)}
                             className="absolute -top-[11px] -right-[11px] z-10 w-[26px] h-[26px] rounded-full grid place-items-center bg-background-secondary border-[1.5px] border-[var(--negative)] text-[var(--negative)] shadow-[var(--shadow-sm)]"
                             title={t('bommel.deleteBommel')}
                             aria-label={t('bommel.deleteBommel')}
@@ -283,15 +296,18 @@ export function BommelCard({
                 </div>
             )}
 
-            <DeleteBommelDialog
-                open={showDeleteDialog}
-                bommelName={node.name}
-                hasTransactions={transactionsCount > 0}
-                hasChildren={hasChildren}
-                childrenCount={node.children?.length || 0}
-                onConfirm={handleDeleteConfirm}
-                onCancel={() => setShowDeleteDialog(false)}
-            />
+            {/* The dialog renders in a portal, but React still bubbles its events through this card. Stop them here:
+                otherwise clicking "Löschen" would also select the card being deleted, and pointer events would reach
+                the canvas' pan handlers. */}
+            <div className="contents" onClick={stopPropagation} onPointerDown={stopPropagation} onPointerUp={stopPropagation} onKeyDown={stopPropagation}>
+                <DeleteBommelDialog
+                    open={showDeleteDialog}
+                    node={node}
+                    deleting={deleting}
+                    onConfirm={handleDeleteConfirm}
+                    onCancel={() => setShowDeleteDialog(false)}
+                />
+            </div>
         </div>
     );
 }

@@ -20,12 +20,27 @@ import type { TransactionDisplayStatus } from '@/lib/transactionStatus';
 /** Width of the detail panel plus the gap to the tree, see the grid below */
 const PANEL_SPACE = 340 + 16;
 
+/** Whether `id` is `ancestorId` or lies below it. Top-level Bommel hang under 0 in the flat model, not under the root. */
+function isSameOrBelow(tree: BommelTreeNodeModel[], id: number | string, ancestorId: number | string): boolean {
+    const rootId = tree.find((n) => n.data?.isRoot)?.id;
+    let current: number | string | undefined = id;
+    while (current !== undefined && current !== 0) {
+        if (current === ancestorId) return true;
+        if (current === rootId) return false;
+        current = tree.find((n) => n.id === current)?.parent;
+    }
+    // Reached the top level: the root is above everything
+    return ancestorId === rootId;
+}
+
 function BommelView() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     usePageTitle(t('bommel.title'));
     const [searchParams, setSearchParams] = useSearchParams();
-    const bommelId = searchParams.get('bommelId');
+    // ?bommelId= as the page was opened with (a link from elsewhere). Captured once: later URL changes come from this page
+    // itself (selecting, deleting) and must never be treated as a link to check.
+    const [linkedBommelId] = useState(() => searchParams.get('bommelId'));
     // ?edit=1 (e.g. from the dashboard setup step) opens the structure straight in edit mode.
     const [isEditMode, setIsEditMode] = useState(() => searchParams.get('edit') === '1');
     const [isDragDropMode, setIsDragDropMode] = useState(false);
@@ -71,11 +86,12 @@ function BommelView() {
         }
     }, []);
 
-    // Deep link: select Bommel from URL parameter when tree is loaded
+    // Deep link: select the linked Bommel once the tree has loaded, or report that it does not exist
     useEffect(() => {
-        if (!bommelId || tree.length === 0 || isLoading) return;
+        if (!linkedBommelId || tree.length === 0 || isLoading || initialSelectionDone.current) return;
+        initialSelectionDone.current = true;
 
-        const targetId = parseInt(bommelId, 10);
+        const targetId = parseInt(linkedBommelId, 10);
         if (isNaN(targetId)) {
             setBommelNotFound(true);
             return;
@@ -85,20 +101,23 @@ function BommelView() {
         if (node) {
             setSelectedBommel(node);
             setBommelNotFound(false);
-            initialSelectionDone.current = true;
         } else {
             setBommelNotFound(true);
             setSelectedBommel(null);
         }
-    }, [bommelId, tree, isLoading]);
+    }, [linkedBommelId, tree, isLoading]);
 
     // Update selectedBommel when tree changes (e.g., when statistics options change)
     // Using selectedBommel?.id instead of selectedBommel to avoid infinite loops
+    // and close the panel when the selected Bommel is gone after a reload (e.g. it was just deleted)
     useEffect(() => {
         if (selectedBommel) {
             const updatedBommel = tree.find((n) => n.id === selectedBommel.id);
             if (updatedBommel) {
                 setSelectedBommel(updatedBommel);
+            } else if (!isLoading && tree.length > 0) {
+                setSelectedBommel(null);
+                if (!isDemoMode) setSearchParams({}, { replace: true });
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,9 +206,12 @@ function BommelView() {
 
     const handleDelete = useCallback(
         async (nodeId: number) => {
+            // Deleting the selected Bommel, or one above it: close the panel and drop ?bommelId= first, so nothing can
+            // look the deleted Bommel up afterwards
+            if (selectedBommel && isSameOrBelow(tree, selectedBommel.id, nodeId)) selectBommelAndUpdateUrl(null);
             return await deleteTreeNode(nodeId);
         },
-        [deleteTreeNode]
+        [deleteTreeNode, selectedBommel, tree, selectBommelAndUpdateUrl]
     );
 
     const handleAddChild = useCallback(
@@ -300,9 +322,11 @@ function BommelView() {
                         </div>
                     </div>
 
-                    {isEditMode && !isDemoMode && <EditModeBanner />}
+                    {/* One notice at a time: the example banner and the empty-structure hint (which already says what to do) win over it */}
+                    {isEditMode && !isDemoMode && !structureIsEmpty && <EditModeBanner />}
 
-                    {bommelNotFound && (
+                    {/* Only while the broken link is still in the URL: selecting or deleting a Bommel replaces it */}
+                    {bommelNotFound && searchParams.has('bommelId') && (
                         <HintBanner icon={AlertCircle}>
                             {t('bommel.details.bommelNotFound')}. {t('bommel.details.bommelNotFoundDescription')}
                         </HintBanner>
