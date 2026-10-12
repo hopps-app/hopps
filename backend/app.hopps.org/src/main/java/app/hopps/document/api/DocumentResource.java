@@ -454,7 +454,7 @@ public class DocumentResource {
 
         String principal = securityIdentity.getPrincipal().getName();
 
-        // Legacy case: receipts uploaded onto a bank transaction before V1.0.36 got their DRAFT transaction (already
+        // Legacy case: receipts uploaded onto a bank transaction before V1.0.37 got their DRAFT transaction (already
         // matched to the bank transaction) at upload time, so they can still be unconfirmed with a transaction linked.
         // Nothing else links a transaction to an unconfirmed document. Keep that transaction instead of creating a
         // second one, and only mark the document confirmed.
