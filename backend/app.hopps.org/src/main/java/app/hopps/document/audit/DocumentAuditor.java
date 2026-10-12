@@ -97,7 +97,7 @@ public class DocumentAuditor implements EntityAuditor<Document> {
     public void confirmed(Document document, DocumentStatus before) {
         Map<String, Object> changes = new LinkedHashMap<>();
         changes.put("documentStatus", AuditDiff.change(name(before), name(document.getDocumentStatus())));
-        changes.put("transactionId", document.getTransaction() == null ? null : document.getTransaction().getId());
+        changes.put("transactionIds", document.getTransactionIds());
         record(document, AuditAction.CONFIRM, changes);
     }
 
