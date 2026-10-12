@@ -315,7 +315,8 @@ export function SplitDrawer({ doc: docProp, startInEdit = false, onClose }: { do
             .map((x) => `${t('receipts.split.part', { n: x.index + 1 })}: ${x.errors.map((e) => fieldLabel(e.field, e.label)).join(', ')}`),
         ...(sum.over ? [t('receipts.split.over', { amount: fmtEUR(-sum.diff) })] : []),
     ];
-    const blocked = attempted && reasons.length > 0;
+    // Creating stays disabled while anything is missing; hovering the button lists why and marks the fields.
+    const blocked = reasons.length > 0;
     const nameOf = (part: SplitPart, index: number) =>
         autoName(part, bommelNameOf(part.bommelId), groupsFor(part.bommelId), t('receipts.split.part', { n: index + 1 }));
 
@@ -523,6 +524,8 @@ export function SplitDrawer({ doc: docProp, startInEdit = false, onClose }: { do
                             </BaseButton>
                             <div className="flex-1" />
                             <HintTooltip
+                                className={blocked ? 'cursor-not-allowed' : undefined}
+                                onMouseEnter={blocked ? () => setAttempted(true) : undefined}
                                 content={
                                     blocked ? (
                                         <>

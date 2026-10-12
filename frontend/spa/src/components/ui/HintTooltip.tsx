@@ -5,9 +5,19 @@ import { ReactNode } from 'react';
  * hover target is the wrapper, not the child — disabled elements emit no pointer events themselves. Renders nothing
  * extra when `content` is empty. Used to explain why an action is currently unavailable.
  */
-export function HintTooltip({ content, children, className }: { content: ReactNode; children: ReactNode; className?: string }) {
+export function HintTooltip({
+    content,
+    children,
+    className,
+    onMouseEnter,
+}: {
+    content: ReactNode;
+    children: ReactNode;
+    className?: string;
+    onMouseEnter?: () => void;
+}) {
     return (
-        <span className={`relative group inline-flex ${className ?? ''}`}>
+        <span className={`relative group inline-flex ${className ?? ''}`} onMouseEnter={onMouseEnter}>
             {children}
             {content && (
                 <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-max max-w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-150">
