@@ -42,7 +42,12 @@ public record TransactionResponse(
         String createdBy,
         // Magnitude of this transaction's amount already covered by linked bank movements (signed net, then abs). The
         // still-open amount to reconcile is |total| - coveredAmount. Null when not computed for this response.
-        BigDecimal coveredAmount) {
+        BigDecimal coveredAmount,
+        // Position within a split document: 0-based index and number of parts ("Teil {splitIndex+1} von
+        // {splitCount}"). Both null for a manual transaction, for a document with a single transaction, and when not
+        // computed for this response.
+        Integer splitIndex,
+        Integer splitCount) {
 
     /**
      * Creates a TransactionResponse from a Transaction entity without coverage information.
@@ -56,6 +61,15 @@ public record TransactionResponse(
      * linked bank movements.
      */
     public static TransactionResponse from(Transaction tx, BigDecimal coveredAmount) {
+        return from(tx, coveredAmount, null, null);
+    }
+
+    /**
+     * Creates a TransactionResponse including bank coverage and, for one part of a split document, its position among
+     * the siblings (both null otherwise).
+     */
+    public static TransactionResponse from(Transaction tx, BigDecimal coveredAmount, Integer splitIndex,
+            Integer splitCount) {
         List<String> tagList = tx.getTags() != null
                 ? new ArrayList<>(tx.getTags())
                 : List.of();
@@ -99,6 +113,8 @@ public record TransactionResponse(
                 tx.getCreatedAt(),
                 tx.getUpdatedAt(),
                 tx.getCreatedBy(),
-                coveredAmount);
+                coveredAmount,
+                splitIndex,
+                splitCount);
     }
 }

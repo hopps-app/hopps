@@ -3,21 +3,23 @@ package app.hopps.document.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.category.service.CategoryGroupService;
+import app.hopps.bankimport.service.BankTransactionMatchService;
 import app.hopps.document.api.dto.DocumentConfirmRequest;
 import app.hopps.document.api.dto.DocumentResponse;
+import app.hopps.document.api.dto.DocumentTransactionsUpdateRequest;
 import app.hopps.document.api.dto.DocumentUpdateRequest;
 import app.hopps.document.domain.*;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentFileService;
+import app.hopps.document.service.DocumentTransactionService;
 import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.document.audit.DocumentAuditor;
-import app.hopps.transaction.audit.TransactionAuditor;
+import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
-import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
 import jakarta.enterprise.event.Event;
 import io.quarkus.security.Authenticated;
@@ -41,6 +43,7 @@ import java.util.Map;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -87,10 +90,13 @@ public class DocumentResource {
     SecurityIdentity securityIdentity;
 
     @Inject
-    TransactionAuditor transactionAuditor;
+    DocumentAuditor documentAuditor;
 
     @Inject
-    DocumentAuditor documentAuditor;
+    DocumentTransactionService documentTransactionService;
+
+    @Inject
+    BankTransactionMatchService bankTransactionMatchService;
 
     @Inject
     CategoryGroupService categoryGroupService;
@@ -312,10 +318,9 @@ public class DocumentResource {
 
         documentAuditor.deleted(document);
 
-        // Delete associated transaction first (due to foreign key constraint)
-        Transaction transaction = transactionRepository.findByDocumentId(id);
+        // Delete the associated transactions first (due to the foreign key constraint); a split document has several.
         Set<TradeParty> parties = new LinkedHashSet<>();
-        if (transaction != null) {
+        for (Transaction transaction : transactionRepository.findAllByDocumentId(id)) {
             // Clean up bank-transaction matches (and recompute their status) before the row is removed. The bank
             // movement itself is kept and becomes matchable again.
             transactionDeletedEvent.fire(new TransactionDeletedEvent(transaction.getId()));
@@ -474,8 +479,8 @@ public class DocumentResource {
         // If a transaction is already linked (e.g. the document was created from a bank transaction), do not create a
         // second one — the user has reconciled the values onto the existing transaction; just mark the document
         // reviewed.
-        if (document.getTransaction() != null) {
-            applyCategoryValues(document.getTransaction(), request);
+        if (document.hasLinkedTransactions()) {
+            applyCategoryValues(document.getTransactions().get(0), request);
             DocumentStatus previousStatus = document.getDocumentStatus();
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
             document.setReviewedBy(principal);
@@ -486,36 +491,10 @@ public class DocumentResource {
             return DocumentResponse.from(document);
         }
 
-        Organization organization = organizationContext.getCurrentOrganization();
-
-        Transaction transaction = new Transaction();
-        transaction.setOrganization(organization);
-        transaction.setDocument(document);
-        transaction.setCreatedBy(principal);
-        transaction.setStatus(TransactionStatus.DRAFT);
-        transaction.setName(document.getName());
-        // Sign the amount by direction: INCOMING (Eingangsbeleg) = expense (negative),
-        // OUTGOING (Ausgangsbeleg) = income (positive)
-        BigDecimal total = document.getTotal();
-        if (total != null) {
-            boolean outgoing = document.getDirection() == DocumentDirection.OUTGOING;
-            transaction.setTotal(outgoing ? total.abs() : total.abs().negate());
-        }
-        transaction.setTotalTax(document.getTotalTax());
-        transaction.setCurrencyCode(document.getCurrencyCode());
-        transaction.setTransactionTime(document.getTransactionTime());
-        transaction.setPrivatelyPaid(document.isPrivatelyPaid());
-        if (document.getBommel() != null) {
-            transaction.setBommel(document.getBommel());
-        }
-        // The document's sender is the counterparty; the entity places it on the side matching the direction
-        // and records the organization on the other side.
-        transaction.setCounterparty(document.getSender());
+        // The single transaction mirroring the document (signed by direction, same date, bommel and counterparty).
+        Transaction transaction = documentTransactionService.createFromDocument(document, principal);
         applyCategoryValues(transaction, request);
-        transactionRepository.persist(transaction);
-        transactionAuditor.created(transaction);
 
-        document.setTransaction(transaction);
         DocumentStatus previousStatus = document.getDocumentStatus();
         document.setDocumentStatus(DocumentStatus.CONFIRMED);
         documentAuditor.confirmed(document, previousStatus);
@@ -524,6 +503,65 @@ public class DocumentResource {
         notifyChanged(document);
         LOG.info("Document confirmed: id={}, transactionId={}", document.getId(), transaction.getId());
         return DocumentResponse.from(document);
+    }
+
+    @GET
+    @Path("/{id}/transactions")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "List the transactions of a document", description = "Returns the transactions booked from this document in part order (\"Teil 1 von n\" first), each with its bank coverage and, when the document is split, its position among the parts. Empty while no transaction has been created.")
+    @APIResponse(responseCode = "200", description = "Transactions of the document", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse[].class)))
+    @APIResponse(responseCode = "404", description = "Document not found")
+    public List<TransactionResponse> listDocumentTransactions(
+            @PathParam("id") @Parameter(description = "Document ID") Long id) {
+        Document document = requireDocument(id);
+        return toResponses(transactionRepository.findAllByDocumentId(document.getId()));
+    }
+
+    @PUT
+    @Path("/{id}/transactions")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Operation(summary = "Split a document into transactions", description = "Replaces the set of transactions booked from this document (upsert: parts with an id are updated in place, parts without an id are created, transactions of the document that are not listed are deleted; confirmed transactions can neither be changed nor removed). Each part gets its own bommel and category-group values; date, counterparty and currency are inherited from the document, the sign of the amount follows its direction. With confirmDocument=true the document is marked as confirmed, which requires every part to carry a bommel and all mandatory category groups and the amounts of the parts not to exceed the document total (a receipt may contain a private share that is not booked). Without confirmDocument the parts are saved as a draft and the document stays in review.")
+    @APIResponse(responseCode = "200", description = "The transactions of the document after the update, in part order", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse[].class)))
+    @APIResponse(responseCode = "400", description = "No parts, a non-positive amount, an unknown bommel, an invalid category value, or (confirmDocument) a part without bommel or mandatory category group, or amounts exceeding the document total")
+    @APIResponse(responseCode = "404", description = "Document not found")
+    @APIResponse(responseCode = "409", description = "A confirmed transaction of the document would be changed or removed")
+    public List<TransactionResponse> replaceDocumentTransactions(
+            @PathParam("id") @Parameter(description = "Document ID") Long id,
+            DocumentTransactionsUpdateRequest request) {
+        Document document = requireDocument(id);
+        if (request == null) {
+            throw new BadRequestException("Request body is required");
+        }
+        String principal = securityIdentity.getPrincipal().getName();
+        List<Transaction> parts = documentTransactionService.replaceParts(document, request.parts(),
+                request.confirmDocument(), principal);
+        notifyChanged(document);
+        return toResponses(parts);
+    }
+
+    private Document requireDocument(Long id) {
+        Document document = documentRepository.findByIdScoped(id);
+        if (document == null) {
+            throw new NotFoundException("Document not found");
+        }
+        return document;
+    }
+
+    /** Responses for the transactions of one document: bank coverage in one query, split position from the order. */
+    private List<TransactionResponse> toResponses(List<Transaction> transactions) {
+        List<Long> ids = transactions.stream().map(Transaction::getId).toList();
+        Map<Long, BigDecimal> covered = bankTransactionMatchService.getCoveredAmountsForTransactions(ids);
+        int count = transactions.size();
+        List<TransactionResponse> responses = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            Transaction transaction = transactions.get(i);
+            responses.add(TransactionResponse.from(transaction,
+                    covered.getOrDefault(transaction.getId(), BigDecimal.ZERO),
+                    count > 1 ? i : null, count > 1 ? count : null));
+        }
+        return responses;
     }
 
     /**

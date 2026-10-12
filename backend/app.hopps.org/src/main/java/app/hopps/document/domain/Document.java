@@ -97,9 +97,13 @@ public class Document extends PanacheEntity {
     @Transient
     private Long transactionCount;
 
-    // Relationship to Transaction (inverse side)
-    @OneToOne(mappedBy = "document", fetch = FetchType.LAZY)
-    private Transaction transaction;
+    /**
+     * The transactions booked from this document (inverse side; the transaction owns the FK). A document that was split
+     * has several, one per part; the id order is the part order ("Teil 1 von n" is the oldest).
+     */
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
+    @OrderBy("id ASC")
+    private List<Transaction> transactions = new ArrayList<>();
 
     public Document() {
     }
@@ -595,18 +599,33 @@ public class Document extends PanacheEntity {
         }
     }
 
-    public Transaction getTransaction() {
-        return transaction;
+    /** The transactions booked from this document, in part order (oldest first). Empty when none exists. */
+    public List<Transaction> getTransactions() {
+        return transactions;
     }
 
-    public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
+    }
+
+    /** Whether at least one transaction has been booked from this document. */
+    public boolean hasLinkedTransactions() {
+        return transactions != null && !transactions.isEmpty();
+    }
+
+    /** The ids of the linked transactions in part order. */
+    public List<Long> getTransactionIds() {
+        if (transactions == null) {
+            return List.of();
+        }
+        return transactions.stream().map(Transaction::getId).toList();
     }
 
     /**
-     * Returns the ID of the linked transaction, or null if none exists.
+     * The id of the first linked transaction, or null if none exists. Kept for callers that only know about one
+     * transaction per document; a split document has several, see {@link #getTransactionIds()}.
      */
     public Long getTransactionId() {
-        return transaction != null ? transaction.getId() : null;
+        return hasLinkedTransactions() ? transactions.get(0).getId() : null;
     }
 }

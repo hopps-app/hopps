@@ -13,6 +13,7 @@ import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -88,11 +89,46 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
     }
 
     /**
-     * Find transaction by document ID.
+     * All transactions booked from a document, in part order (oldest first). Empty when the document has none.
      */
-    public Transaction findByDocumentId(Long documentId) {
+    public List<Transaction> findAllByDocumentId(Long documentId) {
         Long orgId = organizationContext.getCurrentOrganizationId();
-        return find("document.id = ?1 and organization.id = ?2", documentId, orgId).firstResult();
+        return find("document.id = ?1 and organization.id = ?2", Sort.ascending("id"), documentId, orgId).list();
+    }
+
+    /**
+     * The position of each given transaction within its document's split, as {@code transactionId → [index, count]}
+     * (index 0-based). Only transactions whose document has more than one transaction are returned; manual transactions
+     * and single-transaction documents are left out. One query for the whole page, so list views can label parts ("Teil
+     * 2 von 3") without an N+1.
+     */
+    public Map<Long, int[]> findSplitPositions(Collection<Long> transactionIds) {
+        if (transactionIds == null || transactionIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Object[]> rows = getEntityManager()
+                .createQuery("select t.id, t.document.id from Transaction t "
+                        + "where t.document.id in (select t2.document.id from Transaction t2 where t2.id in :ids) "
+                        + "order by t.document.id, t.id", Object[].class)
+                .setParameter("ids", transactionIds)
+                .getResultList();
+
+        // Group the sibling ids per document, keeping the id order the query delivers.
+        Map<Long, List<Long>> siblingsByDocument = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            siblingsByDocument.computeIfAbsent((Long) row[1], k -> new ArrayList<>()).add((Long) row[0]);
+        }
+
+        Map<Long, int[]> positions = new HashMap<>();
+        for (List<Long> siblings : siblingsByDocument.values()) {
+            if (siblings.size() < 2) {
+                continue;
+            }
+            for (int i = 0; i < siblings.size(); i++) {
+                positions.put(siblings.get(i), new int[] { i, siblings.size() });
+            }
+        }
+        return positions;
     }
 
     /**

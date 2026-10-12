@@ -43,7 +43,8 @@ public final class DocumentSnapshot {
         state.put("fileName", document.getFileName());
         state.put("fileSize", document.getFileSize());
         state.put("fileHash", document.getFileHash());
-        state.put("transactionId", document.getTransaction() == null ? null : document.getTransaction().getId());
+        // All transactions booked from the document, in part order (a split document has several).
+        state.put("transactionIds", document.getTransactionIds());
         return state;
     }
 
