@@ -204,3 +204,18 @@ export function toPartPayloads(parts: SplitPart[], total: number, nameOf: (part:
         categoryValues: Object.fromEntries(Object.entries(part.categoryValues).filter(([, v]) => v && v.trim() !== '')),
     }));
 }
+
+// Segment colours of the parts (bar segments and number badges), cycled: the purple accent first, then clearly
+// distinct hues.
+const SEGMENT_COLORS = [
+    'var(--purple-700)',
+    'oklch(0.6 0.12 160)',
+    'oklch(0.7 0.14 65)',
+    'oklch(0.58 0.12 245)',
+    'oklch(0.6 0.15 350)',
+    'oklch(0.55 0.08 200)',
+];
+
+export function segmentColor(index: number): string {
+    return SEGMENT_COLORS[index % SEGMENT_COLORS.length];
+}

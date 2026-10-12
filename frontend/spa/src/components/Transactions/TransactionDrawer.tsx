@@ -410,7 +410,14 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     >
                                         {receiptExt}
                                     </span>
-                                    <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-foreground">{receiptName}</span>
+                                    <span className="flex min-w-0 flex-1 flex-col">
+                                        <span className="truncate text-[14px] font-semibold text-foreground">{receiptName}</span>
+                                        {tx.splitIndex != null && tx.splitCount != null && (
+                                            <span className="text-[12px] text-muted-foreground">
+                                                {t('receipts.split.partOf', { i: tx.splitIndex + 1, n: tx.splitCount })}
+                                            </span>
+                                        )}
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() => navigate(`/receipts?id=${tx.documentId}`)}

@@ -124,7 +124,15 @@ function TransactionRow({
                         <span className="truncate">{tx.name ?? '—'}</span>
                         {tx.documentId && <FileText size={13} className="text-purple-700 flex-shrink-0" />}
                     </span>
-                    <span className="text-[12px] text-muted-foreground truncate leading-snug">{tx.senderName ?? ''}</span>
+                    {/* Counterparty, plus the position when the transaction is one part of a split receipt. */}
+                    <span className="text-[12px] text-muted-foreground truncate leading-snug">
+                        {[
+                            tx.senderName,
+                            tx.splitIndex != null && tx.splitCount != null ? t('receipts.split.partOf', { i: tx.splitIndex + 1, n: tx.splitCount }) : null,
+                        ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                    </span>
                 </span>
             </span>
 
