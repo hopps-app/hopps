@@ -3870,6 +3870,140 @@ export class Client {
     }
 
     /**
+     * Split a document into transactions
+     * @param id Document ID
+     * @return The transactions of the document after the update, in part order
+     */
+    replaceDocumentTransactions(id: number, body: DocumentTransactionsUpdateRequest): Promise<TransactionResponse[]> {
+        let url_ = this.baseUrl + "/documents/{id}/transactions";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReplaceDocumentTransactions(_response);
+        });
+    }
+
+    protected processReplaceDocumentTransactions(response: Response): Promise<TransactionResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TransactionResponse.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("No parts, a non-positive amount, an unknown bommel, an invalid category value, or (confirmDocument) a part without bommel or mandatory category group, or amounts exceeding the document total", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A confirmed transaction of the document would be changed or removed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TransactionResponse[]>(null as any);
+    }
+
+    /**
+     * List the transactions of a document
+     * @param id Document ID
+     * @return Transactions of the document
+     */
+    listDocumentTransactions(id: number): Promise<TransactionResponse[]> {
+        let url_ = this.baseUrl + "/documents/{id}/transactions";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListDocumentTransactions(_response);
+        });
+    }
+
+    protected processListDocumentTransactions(response: Response): Promise<TransactionResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TransactionResponse.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Document not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TransactionResponse[]>(null as any);
+    }
+
+    /**
      * Health
      * @return OK
      */
@@ -8697,6 +8831,7 @@ export type DocumentDirection = "INCOMING" | "OUTGOING";
 export class DocumentResponse implements IDocumentResponse {
     id?: number;
     transactionId?: number;
+    transactionIds?: number[];
     fileName?: string;
     fileContentType?: string;
     fileSize?: number;
@@ -8742,6 +8877,11 @@ export class DocumentResponse implements IDocumentResponse {
             }
             this.id = _data["id"];
             this.transactionId = _data["transactionId"];
+            if (Array.isArray(_data["transactionIds"])) {
+                this.transactionIds = [] as any;
+                for (let item of _data["transactionIds"])
+                    this.transactionIds!.push(item);
+            }
             this.fileName = _data["fileName"];
             this.fileContentType = _data["fileContentType"];
             this.fileSize = _data["fileSize"];
@@ -8789,6 +8929,11 @@ export class DocumentResponse implements IDocumentResponse {
         }
         data["id"] = this.id;
         data["transactionId"] = this.transactionId;
+        if (Array.isArray(this.transactionIds)) {
+            data["transactionIds"] = [];
+            for (let item of this.transactionIds)
+                data["transactionIds"].push(item);
+        }
         data["fileName"] = this.fileName;
         data["fileContentType"] = this.fileContentType;
         data["fileSize"] = this.fileSize;
@@ -8832,6 +8977,7 @@ export class DocumentResponse implements IDocumentResponse {
 export interface IDocumentResponse {
     id?: number;
     transactionId?: number;
+    transactionIds?: number[];
     fileName?: string;
     fileContentType?: string;
     fileSize?: number;
@@ -8862,6 +9008,160 @@ export interface IDocumentResponse {
 }
 
 export type DocumentStatus = "UPLOADED" | "ANALYZING" | "ANALYZED" | "CONFIRMED" | "FAILED";
+
+/** One part of a document split */
+export class DocumentTransactionPartRequest implements IDocumentTransactionPartRequest {
+    id?: number;
+    name?: string;
+    amount?: number;
+    bommelId?: number;
+    categoryValues?: { [key: string]: string; };
+
+    [key: string]: any;
+
+    constructor(data?: IDocumentTransactionPartRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.amount = _data["amount"];
+            this.bommelId = _data["bommelId"];
+            if (_data["categoryValues"]) {
+                this.categoryValues = {} as any;
+                for (let key in _data["categoryValues"]) {
+                    if (_data["categoryValues"].hasOwnProperty(key))
+                        (this.categoryValues as any)![key] = _data["categoryValues"][key];
+                }
+            }
+        }
+    }
+
+    static fromJS(data: any): DocumentTransactionPartRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DocumentTransactionPartRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["amount"] = this.amount;
+        data["bommelId"] = this.bommelId;
+        if (this.categoryValues) {
+            data["categoryValues"] = {};
+            for (let key in this.categoryValues) {
+                if (this.categoryValues.hasOwnProperty(key))
+                    (data["categoryValues"] as any)[key] = (this.categoryValues as any)[key];
+            }
+        }
+        return data;
+    }
+
+    clone(): DocumentTransactionPartRequest {
+        const json = this.toJSON();
+        let result = new DocumentTransactionPartRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** One part of a document split */
+export interface IDocumentTransactionPartRequest {
+    id?: number;
+    name?: string;
+    amount?: number;
+    bommelId?: number;
+    categoryValues?: { [key: string]: string; };
+
+    [key: string]: any;
+}
+
+/** Upsert of the transactions a document is split into */
+export class DocumentTransactionsUpdateRequest implements IDocumentTransactionsUpdateRequest {
+    parts?: DocumentTransactionPartRequest[];
+    confirmDocument?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IDocumentTransactionsUpdateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["parts"])) {
+                this.parts = [] as any;
+                for (let item of _data["parts"])
+                    this.parts!.push(DocumentTransactionPartRequest.fromJS(item));
+            }
+            this.confirmDocument = _data["confirmDocument"];
+        }
+    }
+
+    static fromJS(data: any): DocumentTransactionsUpdateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DocumentTransactionsUpdateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.parts)) {
+            data["parts"] = [];
+            for (let item of this.parts)
+                data["parts"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["confirmDocument"] = this.confirmDocument;
+        return data;
+    }
+
+    clone(): DocumentTransactionsUpdateRequest {
+        const json = this.toJSON();
+        let result = new DocumentTransactionsUpdateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Upsert of the transactions a document is split into */
+export interface IDocumentTransactionsUpdateRequest {
+    parts?: DocumentTransactionPartRequest[];
+    confirmDocument?: boolean;
+
+    [key: string]: any;
+}
 
 export class DocumentUpdateRequest implements IDocumentUpdateRequest {
     name?: string;
@@ -10857,6 +11157,8 @@ export class TransactionResponse implements ITransactionResponse {
     updatedAt?: Date;
     createdBy?: string;
     coveredAmount?: number;
+    splitIndex?: number;
+    splitCount?: number;
 
     [key: string]: any;
 
@@ -10908,6 +11210,8 @@ export class TransactionResponse implements ITransactionResponse {
             this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : undefined as any;
             this.createdBy = _data["createdBy"];
             this.coveredAmount = _data["coveredAmount"];
+            this.splitIndex = _data["splitIndex"];
+            this.splitCount = _data["splitCount"];
         }
     }
 
@@ -10957,6 +11261,8 @@ export class TransactionResponse implements ITransactionResponse {
         data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : undefined as any;
         data["createdBy"] = this.createdBy;
         data["coveredAmount"] = this.coveredAmount;
+        data["splitIndex"] = this.splitIndex;
+        data["splitCount"] = this.splitCount;
         return data;
     }
 
@@ -10994,6 +11300,8 @@ export interface ITransactionResponse {
     updatedAt?: Date;
     createdBy?: string;
     coveredAmount?: number;
+    splitIndex?: number;
+    splitCount?: number;
 
     [key: string]: any;
 }
