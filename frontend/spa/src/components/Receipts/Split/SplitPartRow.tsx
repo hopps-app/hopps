@@ -127,15 +127,22 @@ export function SplitPartRow({
                     aria-expanded={open}
                     aria-label={open ? t('receipts.split.collapse') : t('receipts.split.expand')}
                     title={open ? t('receipts.split.collapse') : t('receipts.split.expand')}
-                    className="mt-5 grid h-10 w-5 place-items-center text-muted-foreground"
+                    className="mt-5 grid h-10 w-5 cursor-pointer place-items-center text-muted-foreground hover:text-foreground"
                 >
                     <span className="grid transition-transform duration-150" style={{ transform: open ? 'none' : 'rotate(-90deg)' }}>
                         <ChevronDown size={16} />
                     </span>
                 </button>
-                <div className="mt-5 grid h-10 place-items-center">
+                {/* The badge toggles too: a bigger target than the chevron alone. Kept out of the tab order, the chevron is the keyboard control. */}
+                <button
+                    type="button"
+                    onClick={() => setOpen((o) => !o)}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    className="mt-5 grid h-10 cursor-pointer place-items-center"
+                >
                     <PartBadge index={index} />
-                </div>
+                </button>
 
                 {open ? (
                     <div className="flex min-w-0 flex-col gap-1">

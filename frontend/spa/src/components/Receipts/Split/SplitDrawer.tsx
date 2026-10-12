@@ -259,7 +259,7 @@ export function SplitDrawer({ doc: docProp, startInEdit = false, onClose }: { do
     const [date, setDate] = useState('');
     const [counterparty, setCounterparty] = useState('');
     const [attempted, setAttempted] = useState(false);
-    const [readTab, setReadTab] = useState<'transactions' | 'receipt'>('receipt');
+    const [readTab, setReadTab] = useState<'transactions' | 'receipt'>('transactions');
     const [activeId, setActiveId] = useState<number | null>(null);
 
     // Per opened document: decide the mode once and forget the seeded form.
@@ -275,7 +275,7 @@ export function SplitDrawer({ doc: docProp, startInEdit = false, onClose }: { do
         openedIdRef.current = docProp.id;
         seededRef.current = null;
         setEditing(startInEdit || docProp.documentStatus !== 'CONFIRMED');
-        setReadTab('receipt');
+        setReadTab('transactions');
         setActiveId(null);
         setAttempted(false);
     }, [docProp, startInEdit]);
@@ -352,7 +352,8 @@ export function SplitDrawer({ doc: docProp, startInEdit = false, onClose }: { do
         if (confirmDocument) {
             showSuccess(parts.length > 1 ? t('receipts.split.toast.created', { n: parts.length }) : t('receipts.toast.transactionCreated'));
             setEditing(false);
-            setReadTab('receipt');
+            // Straight to the parts: the next step is linking each of them to its bank movement.
+            setReadTab('transactions');
             setActiveId(null);
         } else {
             showSuccess(t('receipts.split.toast.draftSaved'));
@@ -547,7 +548,7 @@ export function SplitDrawer({ doc: docProp, startInEdit = false, onClose }: { do
                         <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-6">
                             <div className="flex gap-0.5 rounded-xl p-1" style={{ background: 'var(--surface-track)' }}>
                                 {/* The receipt comes first, the transactions booked from it to its right. */}
-                                {(['receipt', 'transactions'] as const).map((tabKey) => (
+                                {(['transactions', 'receipt'] as const).map((tabKey) => (
                                     <button
                                         key={tabKey}
                                         type="button"

@@ -97,6 +97,19 @@ describe('SplitPartRow', () => {
         expect(screen.getByText('Please choose')).toBeInTheDocument();
     });
 
+    it('expands and collapses the card also from the number badge', () => {
+        renderRow();
+
+        const badge = screen.getByText('1').closest('button')!;
+        fireEvent.click(badge);
+        expect(screen.getByLabelText('Collapse')).toHaveAttribute('aria-expanded', 'true');
+        expect(screen.getByText('Part 1')).toBeInTheDocument();
+
+        fireEvent.click(badge);
+        expect(screen.getByLabelText('Expand as card')).toHaveAttribute('aria-expanded', 'false');
+        expect(screen.queryByText('Part 1')).not.toBeInTheDocument();
+    });
+
     it('summarises bommel and values in the collapsed header of the expanded card', () => {
         renderRow();
 
