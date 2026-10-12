@@ -1,0 +1,222 @@
+# Dev-only test data, merged on top of testdata.yaml (see app.hopps.testdata.extra-location, set for %dev only).
+# The tests never load this file, so the document counts they assert on stay as they are.
+#
+# Receipts awaiting review for Bühnefrei e.V. (organization 4, user alice), each covering a case worth trying in the
+# review and split drawers. Most have a bank movement on the test account with the same amount, so confirming and
+# linking can be tried end to end. Like the other seeded receipts they carry no file (no preview).
+# Bommels of the organization: 24 Kiosk, 25 Räumlichkeiten, 26 Workshops, 27 Projekte with the productions
+# 28 Der kleine Lord, 29 Das Hässliche Entlein, 30 König der Löwen.
+
+documents:
+  # Classic split: one wholesale receipt for the summer party, shared by the kiosk and two productions.
+  - id: 201
+    organizationId: 4
+    name: "Metro Großeinkauf Sommerfest"
+    senderName: "METRO Deutschland GmbH"
+    total: 842.60
+    transactionTime: "2026-09-02T10:15:00Z"
+    fileName: "metro-grosseinkauf.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Split with a private share: only part of the hardware store receipt belongs to the club.
+  - id: 202
+    organizationId: 4
+    bommelId: 30
+    name: "Baumarkt Bühnenbau König der Löwen"
+    senderName: "Hornbach Baumarkt AG"
+    total: 186.40
+    transactionTime: "2026-09-03T16:40:00Z"
+    fileName: "hornbach-buehnenbau.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Ready to confirm as is: bommel, amount and vendor are filled.
+  - id: 203
+    organizationId: 4
+    bommelId: 24
+    name: "Getränkelieferung Kiosk"
+    senderName: "Getränke Huber"
+    total: 412.00
+    transactionTime: "2026-09-04T08:30:00Z"
+    fileName: "getraenke-huber-lieferung.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # No bommel recognised: has to be chosen before confirming.
+  - id: 204
+    organizationId: 4
+    name: "Plakate und Flyer Premiere"
+    senderName: "Druckerei Schmid"
+    total: 238.00
+    transactionTime: "2026-09-05T11:00:00Z"
+    fileName: "druckerei-schmid-plakate.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Income: box office takings, can be split across the productions.
+  - id: 205
+    organizationId: 4
+    name: "Abendkasse Premiere Der kleine Lord"
+    senderName: "Abendkasse"
+    total: 1260.00
+    transactionTime: "2026-09-06T22:00:00Z"
+    fileName: "abendkasse-premiere.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "MANUAL"
+    direction: "OUTGOING"
+    monthsAgo: 1
+
+  # Income: donation, booked on the club as a whole.
+  - id: 206
+    organizationId: 4
+    bommelId: 23
+    name: "Spende Sparkasse"
+    senderName: "Sparkasse Pfaffenhofen"
+    total: 500.00
+    transactionTime: "2026-09-08T09:00:00Z"
+    fileName: "spende-sparkasse.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "OUTGOING"
+    monthsAgo: 1
+
+  # Paid privately by a member: no bank movement of the club.
+  - id: 207
+    organizationId: 4
+    bommelId: 26
+    name: "Tankquittung Transporter"
+    senderName: "Aral Tankstelle"
+    total: 78.45
+    privatelyPaid: true
+    transactionTime: "2026-09-09T07:45:00Z"
+    fileName: "tankquittung-aral.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Paid in two instalments: two bank movements (200,00 + 150,00) cover the receipt together.
+  - id: 208
+    organizationId: 4
+    bommelId: 29
+    name: "Kostümverleih Das Hässliche Entlein"
+    senderName: "Kostümfundus Bayern"
+    total: 350.00
+    transactionTime: "2026-09-10T13:20:00Z"
+    fileName: "kostuemverleih.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Large split candidate across productions and workshops (guest performance).
+  - id: 209
+    organizationId: 4
+    name: "Hotel Gastspiel Regensburg"
+    senderName: "Hotel Goldenes Kreuz"
+    total: 1120.00
+    transactionTime: "2026-09-11T12:00:00Z"
+    fileName: "hotel-gastspiel.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Not analysed: everything has to be entered by hand.
+  - id: 210
+    organizationId: 4
+    name: "scan-0815.pdf"
+    transactionTime: "2026-09-12T18:30:00Z"
+    fileName: "scan-0815.pdf"
+    documentStatus: "UPLOADED"
+    analysisStatus: "SKIPPED"
+    extractionSource: "MANUAL"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+# Bank movements on the test account matching the receipts above (negative = expense, positive = income).
+bankTransactions:
+  - id: 301
+    bankAccountId: 1
+    bookingDate: "2026-09-04"
+    amount: -842.60
+    counterpartyName: "METRO Deutschland GmbH"
+    purpose: "Metro Kartenzahlung Einkauf 02.09."
+
+  - id: 302
+    bankAccountId: 1
+    bookingDate: "2026-09-05"
+    amount: -186.40
+    counterpartyName: "Hornbach Baumarkt AG"
+    purpose: "Hornbach Filiale Ingolstadt"
+
+  - id: 303
+    bankAccountId: 1
+    bookingDate: "2026-09-08"
+    amount: -412.00
+    counterpartyName: "Getränke Huber"
+    purpose: "Rechnung Getränkelieferung Kiosk"
+
+  - id: 304
+    bankAccountId: 1
+    bookingDate: "2026-09-09"
+    amount: -238.00
+    counterpartyName: "Druckerei Schmid"
+    purpose: "Plakate und Flyer"
+
+  - id: 305
+    bankAccountId: 1
+    bookingDate: "2026-09-08"
+    amount: 1260.00
+    counterpartyName: "Theatervereine Bühnefrei e.V."
+    purpose: "Bareinzahlung Abendkasse"
+
+  - id: 306
+    bankAccountId: 1
+    bookingDate: "2026-09-09"
+    amount: 500.00
+    counterpartyName: "Sparkasse Pfaffenhofen"
+    purpose: "Spende Kulturförderung"
+
+  - id: 307
+    bankAccountId: 1
+    bookingDate: "2026-09-12"
+    amount: -200.00
+    counterpartyName: "Kostümfundus Bayern"
+    purpose: "Anzahlung Kostümverleih"
+
+  - id: 308
+    bankAccountId: 1
+    bookingDate: "2026-09-26"
+    amount: -150.00
+    counterpartyName: "Kostümfundus Bayern"
+    purpose: "Restzahlung Kostümverleih"
+
+  - id: 309
+    bankAccountId: 1
+    bookingDate: "2026-09-14"
+    amount: -1120.00
+    counterpartyName: "Hotel Goldenes Kreuz"
+    purpose: "Übernachtungen Gastspiel Regensburg"
+
+sequences:
+  Document_SEQ: 300
+  BankTransaction_SEQ: 400
