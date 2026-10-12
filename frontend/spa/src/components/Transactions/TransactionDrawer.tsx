@@ -1,6 +1,6 @@
 import { TransactionUpdateRequest } from '@hopps/api-client';
 import { Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -83,12 +83,27 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { data: categoryGroups = [] } = useCategoryGroups();
     const { showError, showSuccess } = useToast();
 
-    // A transaction always opens in the read view; the edit form only appears after "Bearbeiten". Reset it whenever a
-    // different transaction is opened.
+    // A confirmed transaction opens in the read view; the edit form only appears after "Bearbeiten". Reset it whenever
+    // a different transaction is opened.
     useEffect(() => {
         setEditMode(false);
         setConfirmDeleteOpen(false);
     }, [txId]);
+
+    // A draft opens straight in the edit form, because that is where its work happens (fill in, link, confirm). Done
+    // once per opened transaction, as soon as its data is there.
+    const editSeededRef = useRef<number | null>(null);
+    useEffect(() => {
+        if (txId == null) {
+            editSeededRef.current = null;
+            return;
+        }
+        if (!tx || tx.id !== txId || editSeededRef.current === txId) return;
+        editSeededRef.current = txId;
+        if (tx.status === 'DRAFT') startEdit();
+        // startEdit only reads the loaded transaction; listing it would re-run this on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [txId, tx]);
 
     function startEdit() {
         if (!tx) return;
