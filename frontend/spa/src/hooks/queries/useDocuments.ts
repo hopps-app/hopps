@@ -1,4 +1,11 @@
-import { DocumentConfirmRequest, DocumentDirection, DocumentResponse } from '@hopps/api-client';
+import {
+    DocumentConfirmRequest,
+    DocumentDirection,
+    DocumentResponse,
+    DocumentTransactionPartRequest,
+    DocumentTransactionsUpdateRequest,
+    TransactionResponse,
+} from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from 'i18next';
 
@@ -178,4 +185,62 @@ export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'ana
     // Not analyzed (analysis switched off, or created from a bank transaction): nothing was extracted to check.
     if (doc.analysisStatus === 'SKIPPED') return 'skipped';
     return 'pending';
+}
+
+// ─── Document split: the transactions booked from one document ───────────────
+
+export const documentTransactionKeys = {
+    all: ['documentTransactions'] as const,
+    byDocument: (documentId: number) => [...documentTransactionKeys.all, documentId] as const,
+};
+
+/** The transactions booked from a document, in part order ("Teil 1 von n" first), each with its bank coverage. */
+export function useDocumentTransactions(documentId: number | undefined) {
+    return useQuery({
+        queryKey: documentTransactionKeys.byDocument(documentId ?? 0),
+        queryFn: () => apiService.orgService.listDocumentTransactions(documentId!),
+        enabled: !!documentId,
+    });
+}
+
+export interface ReplaceDocumentTransactionsInput {
+    id: number;
+    parts: { id?: number; name: string; amount: number; bommelId: number | null; categoryValues: Record<number, string> }[];
+    // true marks the document as confirmed (requires complete parts); false saves the parts as a draft.
+    confirmDocument: boolean;
+}
+
+/**
+ * Replaces the set of transactions a document is split into (upsert: parts with an id are updated in place, new parts
+ * created, unlisted ones deleted). Refreshes the document, its parts and the transaction lists.
+ */
+export function useReplaceDocumentTransactions() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, parts, confirmDocument }: ReplaceDocumentTransactionsInput): Promise<TransactionResponse[]> =>
+            apiService.orgService.replaceDocumentTransactions(
+                id,
+                new DocumentTransactionsUpdateRequest({
+                    parts: parts.map(
+                        (p) =>
+                            new DocumentTransactionPartRequest({
+                                id: p.id,
+                                name: p.name,
+                                amount: p.amount,
+                                bommelId: p.bommelId ?? undefined,
+                                categoryValues: p.categoryValues,
+                            })
+                    ),
+                    confirmDocument,
+                })
+            ),
+        onSuccess: (_data, { id }) => {
+            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+            queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
+            queryClient.invalidateQueries({ queryKey: documentTransactionKeys.byDocument(id) });
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            // Deleted parts release their bank matches.
+            queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+        },
+    });
 }

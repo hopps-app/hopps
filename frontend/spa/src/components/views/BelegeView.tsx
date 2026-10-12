@@ -18,6 +18,7 @@ import {
     Search,
     ChevronRight,
     Info,
+    Plus,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
@@ -33,6 +34,7 @@ import { cacheBommelChoice, getCachedBommelId } from '@/components/InvoiceUpload
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { DOC_GRID, DOC_GRID_NARROW } from '@/components/Receipts/layout';
 import { ReceiptsTableSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
+import { SplitDrawer } from '@/components/Receipts/Split/SplitDrawer';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { DirectionCards, Field, footerBtn, inputCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
@@ -236,7 +238,18 @@ function sameCategoryValues(a: Record<number, string>, b: Record<number, string>
     return keys.length === Object.keys(b).length && keys.every((k) => a[Number(k)] === b[Number(k)]);
 }
 
-export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+export function ReviewDrawer({
+    doc: docProp,
+    onClose,
+    onDeleted,
+    onSplit,
+}: {
+    doc: DocumentResponse | null;
+    onClose: () => void;
+    onDeleted: () => void;
+    // Hands the receipt over to the split drawer (several transactions from one receipt). Hidden when absent.
+    onSplit?: () => void;
+}) {
     const { format, symbol } = useCurrency();
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
@@ -504,6 +517,22 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
         } catch {
             // Shown by the global mutation error handler.
         }
+    }
+
+    // Hand the receipt over to the split drawer. The current values are saved first so the split starts from them.
+    async function handleSplit() {
+        if (!doc?.id || !onSplit) return;
+        try {
+            if (isBankReconcile && linkedTransactionId) {
+                await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
+            } else {
+                await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
+            }
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        onSplit();
     }
 
     async function handleDelete() {
@@ -796,6 +825,19 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             }}
                                         />
                                     }
+
+                                    {/* Several bommels/categories on one receipt: continue in the split drawer. */}
+                                    {onSplit && (
+                                        <button
+                                            type="button"
+                                            onClick={handleSplit}
+                                            disabled={busy}
+                                            className="inline-flex items-center gap-1.5 self-start text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:opacity-50"
+                                        >
+                                            <Plus size={15} />
+                                            {t('receipts.split.link')}
+                                        </button>
+                                    )}
 
                                     {/* Bank matching. Needs a transaction; a privately paid receipt has no bank movement. */}
                                     {!privatelyPaid &&
@@ -1619,6 +1661,8 @@ export function BelegeView() {
     const [sortBy, setSortBy] = usePersistedState<'createdAt' | 'updatedAt' | 'transactionTime' | 'total'>('hopps.belege.sortBy', 'createdAt');
     const [sortDir, setSortDir] = usePersistedState<'asc' | 'desc'>('hopps.belege.sortDir', 'desc');
     const [selectedDoc, setSelectedDoc] = useState<DocumentResponse | null>(null);
+    // A receipt shown in the split drawer (several transactions); startInEdit opens it in the edit mode right away.
+    const [splitDoc, setSplitDoc] = useState<{ doc: DocumentResponse; startInEdit: boolean } | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -1710,11 +1754,31 @@ export function BelegeView() {
     const [searchParams, setSearchParams] = useSearchParams();
     const idParam = searchParams.get('id');
     const { data: deepLinkedDoc } = useDocument(idParam ? Number(idParam) : undefined);
+    // A receipt split into several transactions opens the split drawer, everything else the review drawer.
+    const openDocument = useCallback((doc: DocumentResponse) => {
+        if ((doc.transactionIds?.length ?? 0) > 1) {
+            setSelectedDoc(null);
+            setSplitDoc({ doc, startInEdit: false });
+        } else {
+            setSplitDoc(null);
+            setSelectedDoc(doc);
+        }
+    }, []);
+    // Open the deep-linked receipt once per id. The list refetches after every save, and re-opening on each refetch
+    // would override what the user did meanwhile (e.g. handing the receipt over to the split drawer).
+    const openedParamRef = useRef<string | null>(null);
     useEffect(() => {
-        if (!idParam) return;
+        if (!idParam) {
+            openedParamRef.current = null;
+            return;
+        }
+        if (openedParamRef.current === idParam) return;
         const found = (allDocs as DocumentResponse[] | undefined)?.find((d) => d.id === Number(idParam)) ?? deepLinkedDoc;
-        if (found) setSelectedDoc(found);
-    }, [idParam, allDocs, deepLinkedDoc]);
+        if (found) {
+            openedParamRef.current = idParam;
+            openDocument(found);
+        }
+    }, [idParam, allDocs, deepLinkedDoc, openDocument]);
 
     // ?upload=1 (setup step "Belege hochladen") scrolls to the upload area and outlines it once.
     const uploadZoneRef = useRef<HTMLDivElement>(null);
@@ -1734,6 +1798,7 @@ export function BelegeView() {
 
     const closeDrawer = () => {
         setSelectedDoc(null);
+        setSplitDoc(null);
         if (searchParams.has('id')) {
             searchParams.delete('id');
             setSearchParams(searchParams, { replace: true });
@@ -1815,6 +1880,7 @@ export function BelegeView() {
         else if (done === 0) showError(t('receipts.toast.bulkDeleteFailed'));
         else showWarning(t('receipts.toast.bulkDeletePartial', { done, failed }));
         if (selectedDoc?.id != null && selectedIds.has(selectedDoc.id)) setSelectedDoc(null);
+        if (splitDoc?.doc.id != null && selectedIds.has(splitDoc.doc.id)) setSplitDoc(null);
         clearSelection();
         setBulkDeleteOpen(false);
     };
@@ -2006,8 +2072,8 @@ export function BelegeView() {
                                 key={doc.id}
                                 doc={doc}
                                 bommelName={doc.bommelId != null ? bommelNames.get(doc.bommelId) : undefined}
-                                onClick={() => setSelectedDoc(doc)}
-                                selected={selectedDoc?.id === doc.id}
+                                onClick={() => openDocument(doc)}
+                                selected={selectedDoc?.id === doc.id || splitDoc?.doc.id === doc.id}
                                 bulkSelected={doc.id != null && selectedIds.has(doc.id)}
                                 onToggleBulk={() => doc.id != null && toggleSelect(doc.id)}
                             />
@@ -2017,7 +2083,17 @@ export function BelegeView() {
             </div>
 
             {/* Review drawer */}
-            <ReviewDrawer doc={selectedDoc} onClose={closeDrawer} onDeleted={closeDrawer} />
+            <ReviewDrawer
+                doc={selectedDoc}
+                onClose={closeDrawer}
+                onDeleted={closeDrawer}
+                onSplit={() => {
+                    if (!selectedDoc) return;
+                    setSplitDoc({ doc: selectedDoc, startInEdit: true });
+                    setSelectedDoc(null);
+                }}
+            />
+            <SplitDrawer doc={splitDoc?.doc ?? null} startInEdit={splitDoc?.startInEdit ?? false} onClose={closeDrawer} />
 
             <ConfirmDialog
                 open={bulkDeleteOpen}
