@@ -526,9 +526,14 @@ export function ReviewDrawer({
         }
     }
 
-    // Hand the receipt over to the split drawer. The current values are saved first so the split starts from them.
+    // Hand the receipt over to the split drawer. The current values are saved first so the split starts from them; a
+    // confirmed receipt has no open form, its transaction simply becomes the first part.
     async function handleSplit() {
         if (!doc?.id || !onSplit) return;
+        if (locked) {
+            onSplit();
+            return;
+        }
         try {
             if (isBankReconcile && linkedTransactionId) {
                 await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
@@ -934,6 +939,25 @@ export function ReviewDrawer({
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* More transactions from this receipt: the split drawer takes over with this one as the first part.
+                                        Like re-splitting, only while the transaction is not confirmed yet. */}
+                                    {onSplit && linkedTx && (
+                                        <HintTooltip
+                                            className="-mt-3 self-start"
+                                            content={linkedTx.status === 'CONFIRMED' ? t('receipts.split.addTransactionLocked') : null}
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={handleSplit}
+                                                disabled={linkedTx.status === 'CONFIRMED'}
+                                                className="inline-flex items-center gap-1.5 text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <Plus size={15} />
+                                                {t('receipts.split.addTransaction')}
+                                            </button>
+                                        </HintTooltip>
+                                    )}
 
                                     {/* Bank matching of the transaction; editable while it is not confirmed. */}
                                     {linkedTx && !linkedTx.privatelyPaid && <BankMatchSection tx={linkedTx} className="" />}

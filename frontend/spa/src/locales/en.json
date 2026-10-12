@@ -1029,6 +1029,8 @@
             "pleaseChoose": "Please choose",
             "amountPositive": "Amount must be greater than 0",
             "addPart": "Add another part",
+            "addTransaction": "Add another transaction",
+            "addTransactionLocked": "The transaction is already confirmed. Reopen it to create further transactions from this receipt.",
             "removePart": "Remove part",
             "expand": "Expand as card",
             "collapse": "Collapse",

@@ -996,6 +996,8 @@
             "pleaseChoose": "Veuillez choisir",
             "amountPositive": "Le montant doit être supérieur à 0",
             "addPart": "Ajouter une partie",
+            "addTransaction": "Ajouter une autre transaction",
+            "addTransactionLocked": "La transaction est déjà confirmée. Rouvrez-la pour créer d’autres transactions à partir de ce reçu.",
             "removePart": "Supprimer la partie",
             "expand": "Afficher en carte",
             "collapse": "Réduire",
