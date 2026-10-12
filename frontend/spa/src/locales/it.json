@@ -1010,6 +1010,8 @@
             "pleaseChoose": "Seleziona",
             "amountPositive": "L’importo deve essere maggiore di 0",
             "addPart": "Aggiungi un’altra parte",
+            "addTransaction": "Aggiungi un’altra transazione",
+            "addTransactionLocked": "La transazione è già confermata. Riaprila per creare altre transazioni da questa ricevuta.",
             "removePart": "Rimuovi parte",
             "expand": "Espandi come scheda",
             "collapse": "Comprimi",

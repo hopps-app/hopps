@@ -907,6 +907,8 @@
             "pleaseChoose": "Bitte wählen",
             "amountPositive": "Betrag muss größer als 0 sein",
             "addPart": "Weiteren Teil hinzufügen",
+            "addTransaction": "Weitere Transaktion hinzufügen",
+            "addTransactionLocked": "Die Transaktion ist bereits bestätigt. Öffne sie wieder, um weitere Transaktionen aus diesem Beleg zu erstellen.",
             "removePart": "Teil entfernen",
             "expand": "Als Karte aufklappen",
             "collapse": "Zuklappen",
