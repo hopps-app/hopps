@@ -98,13 +98,14 @@ public class DocumentTransactionService {
      * Replaces the set of transactions booked from the document with the given parts (upsert, see class comment) and
      * returns them in part order.
      * <p>
-     * Always enforced: at least one part, every amount greater than zero, bommels belong to the organization, category
-     * values are allowed for their group (invalid → 400), and no confirmed transaction is changed or removed (→ 409).
+     * Always enforced: at least one part, no negative amount, bommels belong to the organization, category values are
+     * allowed for their group (invalid → 400), and no confirmed transaction is changed or removed (→ 409).
      * <p>
      * With {@code finalize} the document is marked as confirmed; this additionally requires every part to carry a
-     * bommel and all mandatory category groups of that bommel, and the parts' amounts must not exceed the document
-     * total. Parts may add up to <em>less</em> than the total: a receipt can contain a private share that is not
-     * booked. Without {@code finalize} the parts are a draft and the document stays (or returns to) review.
+     * positive amount, a bommel and all mandatory category groups of that bommel, and the parts' amounts must not
+     * exceed the document total. Parts may add up to <em>less</em> than the total: a receipt can contain a private
+     * share that is not booked. Without {@code finalize} the parts are a draft and the document stays (or returns to)
+     * review.
      */
     public List<Transaction> replaceParts(Document document, List<DocumentTransactionPartRequest> parts,
             boolean finalize, String principal) {
@@ -123,8 +124,10 @@ public class DocumentTransactionService {
         for (int i = 0; i < parts.size(); i++) {
             DocumentTransactionPartRequest part = parts.get(i);
             String label = "Part " + (i + 1);
-            if (part.amount() == null || part.amount().signum() <= 0) {
-                throw new BadRequestException(label + ": amount must be greater than zero");
+            // A draft may still carry parts without an amount (the user types them later); only a negative amount is
+            // never meaningful. Confirming requires every amount to be positive, see requireComplete.
+            if (part.amount() == null || part.amount().signum() < 0) {
+                throw new BadRequestException(label + ": amount must not be negative");
             }
             if (part.id() != null) {
                 Transaction current = existingById.get(part.id());
@@ -236,8 +239,9 @@ public class DocumentTransactionService {
         TradeParty previousRecipient = transaction.getRecipient();
         transaction.setCounterparty(counterparty);
         if (transaction.getId() != null) {
-            for (TradeParty previous : List.of(previousSender, previousRecipient)) {
-                if (previous != transaction.getSender() && previous != transaction.getRecipient()) {
+            // Either side may have been empty before (e.g. the sender was added to the document after the draft).
+            for (TradeParty previous : new TradeParty[] { previousSender, previousRecipient }) {
+                if (previous != null && previous != transaction.getSender() && previous != transaction.getRecipient()) {
                     tradePartyService.deleteIfUnreferenced(previous);
                 }
             }
@@ -271,6 +275,9 @@ public class DocumentTransactionService {
         for (int i = 0; i < parts.size(); i++) {
             Transaction part = parts.get(i);
             String label = "part " + (i + 1) + ": ";
+            if (part.getTotal() == null || part.getTotal().signum() == 0) {
+                problems.add(label + "amount");
+            }
             if (part.getBommel() == null) {
                 problems.add(label + "bommel");
             }

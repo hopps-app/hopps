@@ -694,10 +694,29 @@ class DocumentResourceTest {
                 .then()
                 .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
 
+        // A part without an amount is fine in a draft (the user fills it in later) but blocks confirming.
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("""
                         { "confirmDocument": false, "parts": [ { "amount": 0, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [ { "amount": 0, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": false, "parts": [ { "amount": -5, "bommelId": 24 } ] }
                         """)
                 .when()
                 .put("/{id}/transactions", documentId)
@@ -744,6 +763,57 @@ class DocumentResourceTest {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode())
                 .body("total", equalTo(-400.0f));
+    }
+
+    @Test
+    void shouldAdoptASenderAddedAfterTheDraftWhenFinalizing() {
+        // Draft first, without a sender on the receipt ...
+        InputStream pdf = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(pdf);
+        Integer documentId = given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", "ZUGFeRD.pdf", pdf, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode())
+                .extract()
+                .path("id");
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "name": "Getränke", "total": 700.00, "bommelId": 24, "privatelyPaid": false }
+                        """)
+                .when()
+                .patch("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+        List<Integer> ids = splitAsDraft(documentId);
+
+        // ... then the sender is added to the receipt and the split is finalized: the parts pick it up.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "senderName": "%s", "privatelyPaid": false }
+                        """.formatted(SENDER_NAME))
+                .when()
+                .patch("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "id": %d, "amount": 500.00, "bommelId": 24 }, { "id": %d, "amount": 200.00, "bommelId": 24 } ] }
+                        """
+                        .formatted(ids.get(0), ids.get(1)))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("[0].senderName", equalTo(SENDER_NAME))
+                .body("[1].senderName", equalTo(SENDER_NAME));
     }
 
     @Test
