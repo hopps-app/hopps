@@ -693,7 +693,11 @@
             "deleted": "Transaction supprimée",
             "bulkDeleted": "{{count}} transaction(s) supprimée(s)",
             "bulkDeletePartial": "{{done}} transaction(s) supprimée(s), {{failed}} en échec",
-            "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées"
+            "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées",
+            "receiptBackToReview": "Le montant ne correspond plus au reçu. Le reçu a été remis en vérification."
+        },
+        "edit": {
+            "amountFromReceipt": "Cette transaction a été créée à partir du reçu « {{receipt}} ». Modifier le montant manuellement peut créer un écart avec le reçu. S’il ne correspond plus au reçu, celui-ci repasse en vérification."
         }
     },
     "datePicker": {
@@ -1099,7 +1103,9 @@
             "discardTitle": "Abandonner les modifications ?",
             "discardText": "Vos corrections sur ce reçu ne sont pas encore enregistrées.",
             "discardConfirm": "Abandonner",
-            "keepEditing": "Continuer la modification"
+            "keepEditing": "Continuer la modification",
+            "amountDeviates": "Le montant de la transaction ({{transaction}}) diffère du reçu ({{receipt}}). La confirmation aligne le montant du reçu sur celui de la transaction.",
+            "useReceiptAmount": "Reprendre le montant du reçu ({{amount}})"
         },
         "filter": {
             "all": "Tous",

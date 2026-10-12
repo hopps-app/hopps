@@ -693,7 +693,11 @@
             "deleted": "Transazione eliminata",
             "bulkDeleted": "{{count}} transazione/i eliminata/e",
             "bulkDeletePartial": "{{done}} transazione/i eliminata/e, {{failed}} non riuscita/e",
-            "bulkDeleteFailed": "Impossibile eliminare le transazioni"
+            "bulkDeleteFailed": "Impossibile eliminare le transazioni",
+            "receiptBackToReview": "L’importo non corrisponde più alla ricevuta. La ricevuta è stata rimessa in verifica."
+        },
+        "edit": {
+            "amountFromReceipt": "Questa transazione è stata creata dalla ricevuta «{{receipt}}». Modificare l’importo a mano può creare una differenza rispetto alla ricevuta. Se non corrisponde più alla ricevuta, la ricevuta torna in verifica."
         }
     },
     "datePicker": {
@@ -1099,7 +1103,9 @@
             "discardTitle": "Annullare le modifiche?",
             "discardText": "Le tue correzioni a questa ricevuta non sono ancora salvate.",
             "discardConfirm": "Annulla modifiche",
-            "keepEditing": "Continua a modificare"
+            "keepEditing": "Continua a modificare",
+            "amountDeviates": "L’importo della transazione ({{transaction}}) è diverso da quello della ricevuta ({{receipt}}). Confermando, l’importo della ricevuta viene allineato a quello della transazione.",
+            "useReceiptAmount": "Usa l’importo della ricevuta ({{amount}})"
         },
         "filter": {
             "all": "Tutte",

@@ -1,6 +1,7 @@
 import { DocumentDirection, DocumentResponse, ExtractionSource, DocumentUpdateRequest, TransactionUpdateRequest } from '@hopps/api-client';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+    AlertTriangle,
     Upload,
     FileText,
     X,
@@ -453,6 +454,12 @@ export function ReviewDrawer({
         });
     }
 
+    // The receipt already has its transaction but is in review: when its amount differs from the receipt total (e.g. the
+    // transaction was edited by hand afterwards), the deviation is shown, and confirming aligns the receipt with it.
+    const receiptTotal = doc?.total != null ? Math.abs(Number(doc.total)) : null;
+    const formAmount = parseFloat(amount.replace(',', '.'));
+    const amountDeviates = isBankReconcile && receiptTotal != null && !isNaN(formAmount) && Math.abs(formAmount) !== receiptTotal;
+
     // For a bank-origin receipt the values are written onto the EXISTING transaction (signed by direction).
     function buildTransactionPayload() {
         const rawAmount = parseFloat(amount.replace(',', '.'));
@@ -501,6 +508,10 @@ export function ReviewDrawer({
         try {
             if (isBankReconcile && linkedTransactionId) {
                 await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
+                // Confirming accepts the transaction amount for the receipt as well, so both agree again.
+                if (amountDeviates) {
+                    await updateMutation.mutateAsync(Object.assign(new DocumentUpdateRequest({ total: Math.abs(formAmount) }), { id: doc.id }));
+                }
                 await confirmMutation.mutateAsync({ id: doc.id, categoryValues });
                 showSuccess(t('receipts.toast.receiptConfirmed'));
             } else {
@@ -760,13 +771,38 @@ export function ReviewDrawer({
                                             }
                                         />
                                     )}
-                                    {isBankReconcile && (
-                                        <AnalysisNotice
-                                            tone="neutral"
-                                            icon={<Link2 size={15} />}
-                                            title={t('receipts.review.bankReconcileTitle')}
-                                            hint={t('receipts.review.bankReconcileHint')}
-                                        />
+                                    {amountDeviates ? (
+                                        <div
+                                            role="note"
+                                            className="flex flex-col gap-2 rounded-[12px] px-3.5 py-2.5 text-[13px] leading-snug"
+                                            style={{ background: 'var(--warning-surface)', color: 'var(--warning)' }}
+                                        >
+                                            <span className="flex items-start gap-2.5">
+                                                <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
+                                                <span className="font-semibold">
+                                                    {t('receipts.review.amountDeviates', {
+                                                        transaction: fmtCurrency(Math.abs(formAmount)),
+                                                        receipt: fmtCurrency(receiptTotal ?? 0),
+                                                    })}
+                                                </span>
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setAmount(String(receiptTotal))}
+                                                className="ml-[25px] self-start text-[13px] font-bold underline underline-offset-2 hover:opacity-80"
+                                            >
+                                                {t('receipts.review.useReceiptAmount', { amount: fmtCurrency(receiptTotal ?? 0) })}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        isBankReconcile && (
+                                            <AnalysisNotice
+                                                tone="neutral"
+                                                icon={<Link2 size={15} />}
+                                                title={t('receipts.review.bankReconcileTitle')}
+                                                hint={t('receipts.review.bankReconcileHint')}
+                                            />
+                                        )
                                     )}
 
                                     <DirectionCards

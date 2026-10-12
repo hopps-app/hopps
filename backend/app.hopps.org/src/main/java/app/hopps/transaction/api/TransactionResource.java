@@ -8,6 +8,7 @@ import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentChangedEvent;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
+import app.hopps.document.service.DocumentTransactionService;
 import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
@@ -86,6 +87,9 @@ public class TransactionResource {
 
     @Inject
     Event<TransactionChangedEvent> transactionChangedEvent;
+
+    @Inject
+    DocumentTransactionService documentTransactionService;
 
     @Inject
     BankTransactionMatchService bankTransactionMatchService;
@@ -271,6 +275,13 @@ public class TransactionResource {
         // no longer stays FULLY_MATCHED (and the still-open amount reappears in the list).
         if (totalChanged(previousTotal, transaction.getTotal())) {
             transactionChangedEvent.fire(new TransactionChangedEvent(transaction.getId()));
+
+            // The amount was booked from a receipt: if it no longer agrees with it, the receipt goes back to review.
+            if (documentTransactionService.revertToReviewIfAmountsDiverge(transaction, previousTotal)) {
+                Document document = transaction.getDocument();
+                documentChangedEvent.fire(new DocumentChangedEvent(document.getId(),
+                        document.getOrganization() != null ? document.getOrganization().getId() : null));
+            }
         }
 
         LOG.info("Transaction updated: id={}", transaction.getId());
@@ -317,9 +328,11 @@ public class TransactionResource {
         transactionAuditor.statusChanged(transaction, previousStatus, AuditAction.CONFIRM);
 
         // Keep the linked receipt (Beleg) in sync: confirming the bookkeeping transaction also confirms its document,
-        // so it no longer lingers in the "needs manual review" state.
+        // so it no longer lingers in the "needs manual review" state. Not when the booked amounts disagree with the
+        // receipt: that deviation is exactly what the review is for (see revertToReviewIfAmountsDiverge).
         Document document = transaction.getDocument();
-        if (document != null && document.getDocumentStatus() != DocumentStatus.CONFIRMED) {
+        if (document != null && document.getDocumentStatus() != DocumentStatus.CONFIRMED
+                && documentTransactionService.bookedAmountsMatch(document)) {
             DocumentStatus previousDocumentStatus = document.getDocumentStatus();
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
             documentAuditor.confirmed(document, previousDocumentStatus);
