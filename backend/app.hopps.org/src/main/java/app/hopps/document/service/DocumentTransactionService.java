@@ -330,6 +330,69 @@ public class DocumentTransactionService {
     }
 
     /**
+     * Called after the amount of a transaction booked from a document was edited by hand (e.g. in the transaction
+     * drawer). The document is the receipt as printed and is never adjusted here. When the edit breaks the agreement
+     * between receipt and booked amounts, a confirmed document returns to review so the deviation gets looked at:
+     * <ul>
+     * <li>the parts now add up to <em>more</em> than the receipt total, or</li>
+     * <li>they matched the receipt total exactly before the edit and no longer do (a part was lowered; a split that
+     * deliberately left a private share unbooked did not match before and is left alone).</li>
+     * </ul>
+     * Amounts are compared by magnitude, a receipt without a total is never reverted.
+     *
+     * @return true when the document was put back into review
+     */
+    public boolean revertToReviewIfAmountsDiverge(Transaction transaction, BigDecimal previousTotal) {
+        Document document = transaction.getDocument();
+        if (document == null || document.getDocumentStatus() != DocumentStatus.CONFIRMED
+                || document.getTotal() == null) {
+            return false;
+        }
+        BigDecimal receipt = document.getTotal().abs();
+        BigDecimal after = bookedAmount(document);
+        BigDecimal before = after.subtract(magnitude(transaction.getTotal())).add(magnitude(previousTotal));
+
+        boolean over = after.compareTo(receipt) > 0;
+        boolean matchedBefore = before.compareTo(receipt) == 0;
+        boolean matchesAfter = after.compareTo(receipt) == 0;
+        if (!over && !(matchedBefore && !matchesAfter)) {
+            return false;
+        }
+
+        DocumentStatus previousStatus = document.getDocumentStatus();
+        document.setDocumentStatus(DocumentStatus.ANALYZED);
+        document.setReviewedBy(null);
+        documentAuditor.reopened(document, previousStatus);
+        LOG.info(
+                "Document returned to review, booked amounts no longer match the receipt: id={}, receipt={}, booked={}",
+                document.getId(), receipt, after);
+        return true;
+    }
+
+    /**
+     * Whether the amounts booked from the document add up to exactly its total (by magnitude). A document without a
+     * total has nothing to disagree with.
+     */
+    public boolean bookedAmountsMatch(Document document) {
+        if (document.getTotal() == null) {
+            return true;
+        }
+        return bookedAmount(document).compareTo(document.getTotal().abs()) == 0;
+    }
+
+    private static BigDecimal bookedAmount(Document document) {
+        return document.getTransactions()
+                .stream()
+                .map(Transaction::getTotal)
+                .map(DocumentTransactionService::magnitude)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private static BigDecimal magnitude(BigDecimal amount) {
+        return amount == null ? BigDecimal.ZERO : amount.abs();
+    }
+
+    /**
      * Signs an unsigned amount by the document direction: INCOMING (Eingangsbeleg) is an expense and negative, OUTGOING
      * (Ausgangsbeleg) is income and positive. Null stays null.
      */

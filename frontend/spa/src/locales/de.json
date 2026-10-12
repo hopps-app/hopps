@@ -751,13 +751,17 @@
             "deleted": "Transaktion gelöscht",
             "bulkDeleted": "{{count}} Transaktion(en) gelöscht",
             "bulkDeletePartial": "{{done}} Transaktion(en) gelöscht, {{failed}} fehlgeschlagen",
-            "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden"
-    },
+            "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden",
+            "receiptBackToReview": "Der Betrag passt nicht mehr zum Beleg. Der Beleg wurde wieder zur Prüfung gestellt."
+        },
         "empty": {
             "firstTitle": "Noch keine Transaktionen",
             "firstText": "Transaktionen entstehen aus geprüften Belegen und importierten Kontoumsätzen. Oben lässt sich auch direkt eine Transaktion erfassen.",
             "noMatchTitle": "Nichts gefunden",
             "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
+        },
+        "edit": {
+            "amountFromReceipt": "Diese Transaktion wurde aus dem Beleg „{{receipt}}“ erstellt. Ein manuell geänderter Betrag kann vom Beleg abweichen. Passt der Betrag danach nicht mehr zum Beleg, wird der Beleg wieder zur Prüfung gestellt."
         }
     },
     "receipts": {
@@ -1010,7 +1014,9 @@
             "discardTitle": "Änderungen verwerfen?",
             "discardText": "Die Korrekturen an diesem Beleg sind noch nicht gespeichert.",
             "discardConfirm": "Verwerfen",
-            "keepEditing": "Weiter bearbeiten"
+            "keepEditing": "Weiter bearbeiten",
+            "amountDeviates": "Der Betrag der Transaktion ({{transaction}}) weicht vom Beleg ({{receipt}}) ab. Beim Bestätigen wird der Belegbetrag auf den Transaktionsbetrag gesetzt.",
+            "useReceiptAmount": "Belegbetrag übernehmen ({{amount}})"
         },
         "filter": {
             "all": "Alle",

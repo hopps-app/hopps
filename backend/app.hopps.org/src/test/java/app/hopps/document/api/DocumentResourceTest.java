@@ -960,6 +960,82 @@ class DocumentResourceTest {
                 .body("[0].splitCount", nullValue());
     }
 
+    @Test
+    void shouldReturnReceiptToReviewWhenTheAmountOfItsTransactionIsChanged() {
+        ConfirmedReceipt receipt = uploadAndConfirmWithSender();
+
+        // Same amount (sign and scale aside) or other fields: receipt and booking still agree.
+        patchTransaction(receipt.transactionId(), "{ \"name\": \"Kassenbeleg Wien\", \"total\": -180.0 }");
+        assertDocumentStatus(receipt.documentId(), DocumentStatus.CONFIRMED);
+
+        // Raised by hand: the receipt (180,00) no longer matches the booking (200,00) and goes back to review.
+        patchTransaction(receipt.transactionId(), "{ \"total\": -200.00 }");
+        assertDocumentStatus(receipt.documentId(), DocumentStatus.ANALYZED);
+        assertNull(reviewedBy(receipt.documentId()), "reviewedBy should be cleared when a receipt returns to review");
+
+        // The receipt itself is the printed original and is not adjusted.
+        given()
+                .when()
+                .get("/{id}", receipt.documentId())
+                .then()
+                .body("total", equalTo(180.0f));
+    }
+
+    @Test
+    void shouldReturnASplitReceiptToReviewWhenAPartIsLoweredBelowAnExactMatch() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        List<Integer> ids = splitAsDraft(documentId, true);
+
+        // 500 + 200 matched the receipt exactly; lowering a part leaves 50,00 unaccounted for.
+        patchTransaction(ids.get(1), "{ \"total\": -150.00 }");
+        assertDocumentStatus(documentId, DocumentStatus.ANALYZED);
+    }
+
+    @Test
+    void shouldKeepAPrivateShareSplitConfirmedUntilThePartsExceedTheReceipt() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        Integer partId = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "amount": 500.00, "bommelId": 24 }, { "amount": 100.00, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract()
+                .path("[1].id");
+
+        // 650 of 700: still a private share, as before.
+        patchTransaction(partId, "{ \"total\": -150.00 }");
+        assertDocumentStatus(documentId, DocumentStatus.CONFIRMED);
+
+        // 750 of 700: more booked than the receipt shows.
+        patchTransaction(partId, "{ \"total\": -250.00 }");
+        assertDocumentStatus(documentId, DocumentStatus.ANALYZED);
+    }
+
+    private void patchTransaction(long transactionId, String body) {
+        given()
+                .basePath("/transactions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .when()
+                .patch("/{id}", transactionId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    private void assertDocumentStatus(long documentId, DocumentStatus status) {
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("documentStatus", equalTo(status.name()));
+    }
+
     /** Uploads a receipt with the given total, booked on bommel 24 with a sender. */
     private long uploadReceiptWithTotal(String total) {
         InputStream pdf = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");

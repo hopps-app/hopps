@@ -137,6 +137,9 @@ export function useUpdateTransaction() {
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             queryClient.invalidateQueries({ queryKey: transactionKeys.detail(vars.id) });
+            // A changed amount can send the receipt it was booked from back to review.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            queryClient.invalidateQueries({ queryKey: ['documentTransactions'] });
         },
     });
 }

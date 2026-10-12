@@ -752,13 +752,17 @@
             "deleted": "Transaction deleted",
             "bulkDeleted": "{{count}} transaction(s) deleted",
             "bulkDeletePartial": "{{done}} transaction(s) deleted, {{failed}} failed",
-            "bulkDeleteFailed": "Transactions could not be deleted"
-    },
+            "bulkDeleteFailed": "Transactions could not be deleted",
+            "receiptBackToReview": "The amount no longer matches the receipt. The receipt has been put back into review."
+        },
         "empty": {
             "firstTitle": "No transactions yet",
             "firstText": "Transactions come from reviewed receipts and imported bank transactions. You can also record a transaction above.",
             "noMatchTitle": "Nothing found",
             "noMatchText": "Adjust your search or choose another filter."
+        },
+        "edit": {
+            "amountFromReceipt": "This transaction was created from the receipt “{{receipt}}”. Changing the amount by hand can make it differ from the receipt. If it no longer matches the receipt, the receipt goes back to review."
         }
     },
     "dashboard": {
@@ -1146,7 +1150,9 @@
             "discardTitle": "Discard changes?",
             "discardText": "Your corrections to this receipt are not saved yet.",
             "discardConfirm": "Discard",
-            "keepEditing": "Keep editing"
+            "keepEditing": "Keep editing",
+            "amountDeviates": "The transaction amount ({{transaction}}) differs from the receipt ({{receipt}}). Confirming sets the receipt amount to the transaction amount.",
+            "useReceiptAmount": "Use the receipt amount ({{amount}})"
         },
         "filter": {
             "all": "All",
