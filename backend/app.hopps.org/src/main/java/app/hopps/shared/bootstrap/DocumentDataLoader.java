@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManager;
 public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.DocumentData> {
 
     private static final int ORDER = 45;
+    private static final long SENDER_ID_BASE = 3000;
 
     @Override
     public int getOrder() {
@@ -43,15 +44,31 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
         String sql = """
                 INSERT INTO document (id, organization_id, bommel_id, name, total, currencycode, transactiontime,
                                       privatelypaid, filename, filecontenttype, filesize, documentstatus,
-                                      analysisstatus, direction, extractionsource, uploadedby, createdat, updatedat)
+                                      analysisstatus, direction, extractionsource, uploadedby, createdat, updatedat,
+                                      sender_id)
                 VALUES (:id, :organizationId, :bommelId, :name, CAST(:total AS numeric), :currencyCode,
-                        CAST(:transactionTime AS timestamp), false, :fileName, :fileContentType, :fileSize,
+                        CAST(:transactionTime AS timestamp), :privatelyPaid, :fileName, :fileContentType, :fileSize,
                         :documentStatus, :analysisStatus, :direction, :extractionSource, :uploadedBy,
                         date_trunc('month', NOW()) + INTERVAL '14 days' - (INTERVAL '1 month' * :monthsAgo),
-                        date_trunc('month', NOW()) + INTERVAL '14 days' - (INTERVAL '1 month' * :monthsAgo))
+                        date_trunc('month', NOW()) + INTERVAL '14 days' - (INTERVAL '1 month' * :monthsAgo),
+                        :senderId)
                 """;
 
+        // Counterparties of the documents; ids kept clear of the ones the transaction loader hands out (1000+).
+        long senderIdCounter = SENDER_ID_BASE;
+
         for (TestdataConfig.DocumentData document : config.getDocuments()) {
+            Long senderId = null;
+            if (document.getSenderName() != null) {
+                senderId = senderIdCounter++;
+                entityManager.createNativeQuery(
+                        "INSERT INTO trade_party (id, name, organization_id) VALUES (:id, :name, :organizationId)")
+                        .setParameter("id", senderId)
+                        .setParameter("name", document.getSenderName())
+                        .setParameter("organizationId", document.getOrganizationId())
+                        .executeUpdate();
+            }
+
             entityManager.createNativeQuery(sql)
                     .setParameter("id", document.getId())
                     .setParameter("organizationId", document.getOrganizationId())
@@ -76,6 +93,8 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
                     .setParameter("uploadedBy",
                             document.getUploadedBy() != null ? document.getUploadedBy() : "testdata@hopps.app")
                     .setParameter("monthsAgo", document.getMonthsAgo() != null ? document.getMonthsAgo() : 0L)
+                    .setParameter("privatelyPaid", Boolean.TRUE.equals(document.getPrivatelyPaid()))
+                    .setParameter("senderId", senderId)
                     .executeUpdate();
 
             // Link the document to an existing transaction (transaction owns the FK) so it shows up as that

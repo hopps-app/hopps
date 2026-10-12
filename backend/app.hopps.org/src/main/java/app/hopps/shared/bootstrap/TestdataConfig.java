@@ -1,5 +1,7 @@
 package app.hopps.shared.bootstrap;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +73,34 @@ public class TestdataConfig {
 
     public void setBankTransactions(List<BankTransactionData> bankTransactions) {
         this.bankTransactions = bankTransactions;
+    }
+
+    /**
+     * Adds the entries of another configuration (e.g. the dev-only extras) to this one: lists are appended, sequence
+     * values of {@code extra} win.
+     */
+    public void merge(TestdataConfig extra) {
+        organizations = concat(organizations, extra.organizations);
+        members = concat(members, extra.members);
+        bommels = concat(bommels, extra.bommels);
+        transactions = concat(transactions, extra.transactions);
+        documents = concat(documents, extra.documents);
+        bankAccounts = concat(bankAccounts, extra.bankAccounts);
+        bankTransactions = concat(bankTransactions, extra.bankTransactions);
+        if (extra.sequences != null) {
+            Map<String, Long> merged = new HashMap<>(sequences != null ? sequences : Map.of());
+            merged.putAll(extra.sequences);
+            sequences = merged;
+        }
+    }
+
+    private static <T> List<T> concat(List<T> base, List<T> extra) {
+        if (extra == null || extra.isEmpty()) {
+            return base;
+        }
+        List<T> merged = new ArrayList<>(base != null ? base : List.of());
+        merged.addAll(extra);
+        return merged;
     }
 
     public Map<String, Long> getSequences() {
@@ -425,6 +455,24 @@ public class TestdataConfig {
         private String extractionSource;
         private String uploadedBy;
         private Long monthsAgo;
+        private String senderName;
+        private Boolean privatelyPaid;
+
+        public String getSenderName() {
+            return senderName;
+        }
+
+        public void setSenderName(String senderName) {
+            this.senderName = senderName;
+        }
+
+        public Boolean getPrivatelyPaid() {
+            return privatelyPaid;
+        }
+
+        public void setPrivatelyPaid(Boolean privatelyPaid) {
+            this.privatelyPaid = privatelyPaid;
+        }
 
         public Long getMonthsAgo() {
             return monthsAgo;
