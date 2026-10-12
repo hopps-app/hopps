@@ -12,17 +12,21 @@ import { Label } from '@/components/ui/Label';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';
 import { useCreateBankAccount, useUpdateBankAccount } from '@/hooks/queries/useBankAccounts';
 import { useCurrency } from '@/hooks/use-currency';
+import { currencyForIban, type CurrencyCode } from '@/lib/currency';
+import { caretAfterChars, formatIban, normalizeIban } from '@/lib/iban';
 import { cn } from '@/lib/utils';
 
 const ACCT_COLORS = ['#9955CC', '#2E9E6B', '#2A6FDB', '#C8385A', '#B47C18', '#5B5BD6'];
 
-function normalizeIban(iban: string): string {
-    return iban.replace(/\s+/g, '').toUpperCase();
-}
-
 const IBAN_FORMAT = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
 
-function buildSchema(t: (k: string) => string) {
+/**
+ * @param organizationCurrency accounts are kept in it (no conversion yet), so the IBAN has to fit it: CH/LI means CHF,
+ *            everything else EUR.
+ * @param storedIban the IBAN the account is saved with. The rule only applies to a new or changed IBAN (like in the
+ *            backend), so an account created before the rule can still be edited.
+ */
+function buildSchema(t: (k: string, o?: Record<string, unknown>) => string, organizationCurrency: CurrencyCode, storedIban?: string) {
     return z
         .object({
             name: z.string().min(1, t('bankAccounts.form.validation.nameRequired')),
@@ -39,6 +43,19 @@ function buildSchema(t: (k: string) => string) {
             color: z.string().optional(),
         })
         .superRefine((data, ctx) => {
+            const ibanCurrency = currencyForIban(data.iban);
+            const unchanged = storedIban !== undefined && normalizeIban(storedIban) === data.iban;
+            if (ibanCurrency !== organizationCurrency && !unchanged) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: t('bankAccounts.form.validation.ibanOtherCurrency', {
+                        country: data.iban.slice(0, 2),
+                        ibanCurrency,
+                        organizationCurrency,
+                    }),
+                    path: ['iban'],
+                });
+            }
             const hasBalance = data.openingBalance !== undefined;
             const hasDate = !!data.openingBalanceDate;
             if (hasBalance && !hasDate) {
@@ -68,9 +85,10 @@ interface BankAccountDrawerProps {
 }
 
 export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: BankAccountDrawerProps) {
-    const { currency } = useCurrency();
+    // Accounts are kept in the organization's currency; the backend sets it, the form only checks that the IBAN fits.
+    const { currency: organizationCurrency } = useCurrency();
     const { t } = useTranslation();
-    const schema = buildSchema(t);
+    const schema = buildSchema(t, organizationCurrency, account?.iban);
     const isEdit = !!account;
 
     const createMutation = useCreateBankAccount();
@@ -89,7 +107,14 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
         // zod's preprocess makes the schema's input type differ from FormValues (its output); cast the resolver to the
         // output type so useForm, handleSubmit and the field helpers all operate on the resolved FormValues.
         resolver: zodResolver(schema) as Resolver<FormValues>,
-        defaultValues: { name: '', iban: '', bankName: '', openingBalance: undefined, openingBalanceDate: '', color: ACCT_COLORS[0] },
+        defaultValues: {
+            name: '',
+            iban: '',
+            bankName: '',
+            openingBalance: undefined,
+            openingBalanceDate: '',
+            color: ACCT_COLORS[0],
+        },
     });
 
     useEffect(() => {
@@ -98,7 +123,7 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
                 account
                     ? {
                           name: account.name ?? '',
-                          iban: account.iban ?? '',
+                          iban: formatIban(account.iban ?? ''),
                           bankName: account.bankName ?? '',
                           openingBalance: account.openingBalance ?? undefined,
                           openingBalanceDate: account.openingBalanceDate
@@ -108,14 +133,21 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
                               : '',
                           color: account.color ?? ACCT_COLORS[0],
                       }
-                    : { name: '', iban: '', bankName: '', openingBalance: undefined, openingBalanceDate: '', color: ACCT_COLORS[0] }
+                    : {
+                          name: '',
+                          iban: '',
+                          bankName: '',
+                          openingBalance: undefined,
+                          openingBalanceDate: '',
+                          color: ACCT_COLORS[0],
+                      }
             );
         }
     }, [open, account, reset]);
 
     const onSubmit = async (values: FormValues) => {
         const openingBalanceDate = values.openingBalanceDate ? new Date(values.openingBalanceDate) : undefined;
-        const payload = { ...values, currency, openingBalanceDate };
+        const payload = { ...values, openingBalanceDate };
         try {
             if (isEdit && account?.id) {
                 await updateMutation.mutateAsync({ id: account.id, data: payload });
@@ -151,7 +183,25 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
                     {/* IBAN */}
                     <div className="grid gap-1.5">
                         <Label htmlFor="ba-iban">{t('bankAccounts.form.iban')}</Label>
-                        <BaseInput id="ba-iban" {...register('iban')} placeholder="DE00 0000 0000 0000 0000 00" className="font-mono" />
+                        <BaseInput
+                            id="ba-iban"
+                            {...register('iban', {
+                                // Group in fours while typing or pasting ("CH93 0076 2011 …"); the schema strips the
+                                // spaces again before saving. The caret stays behind the character just typed.
+                                onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                                    const input = e.target;
+                                    const charsBeforeCaret = normalizeIban(input.value.slice(0, input.selectionStart ?? input.value.length)).length;
+                                    const formatted = formatIban(input.value);
+                                    if (formatted !== input.value) {
+                                        setValue('iban', formatted);
+                                        const caret = caretAfterChars(formatted, charsBeforeCaret);
+                                        input.setSelectionRange(caret, caret);
+                                    }
+                                },
+                            })}
+                            placeholder="DE00 0000 0000 0000 0000 00"
+                            className="font-mono"
+                        />
                         {errors.iban && <p className="text-xs text-destructive">{errors.iban.message}</p>}
                     </div>
 

@@ -202,6 +202,13 @@
     },
     "organization": {
         "registration": {
+            "organizationEmail": "E-mail de l'organisation (facultatif)",
+            "step": "Étape {{current}} sur {{total}}",
+            "stepOrganization": "Organisation",
+            "stepAdmin": "Administrateur",
+            "country": "Pays",
+            "legalForm": "Forme juridique",
+            "currencyInfo": "Devise comptable : {{currency}}. Elle découle du pays et peut être modifiée plus tard dans les paramètres tant qu'aucun compte bancaire ni aucune transaction n'existe.",
             "failed": "Échec de l'enregistrement de l'organisation",
             "emailAlreadyRegistered": "Cette adresse e-mail est déjà enregistrée",
             "organizationAlreadyExists": "Une organisation portant ce nom existe déjà",
@@ -306,6 +313,7 @@
             "demoBanner": "Vous consultez des données d'exemple à titre d'orientation. Ces données sont en lecture seule."
         },
         "details": {
+            "typeVerein": "Association",
             "title": "Détails de l'organisation",
             "description": "Gérez les informations de base de votre organisation",
             "name": "Nom de l'organisation",
@@ -342,10 +350,10 @@
             "currency": "Devise comptable",
             "currencyEUR": "Euro (€)",
             "currencyCHF": "Franc suisse (CHF)",
-            "currencyHint": "Tous les montants dans hopps sont affichés dans cette devise. Elle ne peut être modifiée que tant qu'aucune transaction n'a été créée.",
+            "currencyHint": "Tous les montants dans hopps sont affichés dans cette devise, y compris les comptes bancaires. Elle ne peut être modifiée que tant qu'aucune transaction ni aucun compte bancaire n'existe.",
             "currencyLockedTitle": "La devise ne peut plus être modifiée",
-            "currencyLocked": "Des transactions existent déjà pour cette organisation. Tous les montants enregistrés sont tenus dans la devise choisie ; un changement fausserait les écritures existantes. Pour modifier la devise malgré tout, supprimez d'abord toutes les transactions ou contactez le support.",
-            "currencyLockedError": "La devise ne peut plus être modifiée, car des transactions existent déjà.",
+            "currencyLocked": "Des transactions ou des comptes bancaires existent déjà pour cette organisation. Tous les montants enregistrés sont tenus dans la devise choisie ; un changement les fausserait. Pour modifier la devise malgré tout, veuillez contacter le support.",
+            "currencyLockedError": "La devise ne peut plus être modifiée, car des transactions ou des comptes bancaires existent déjà.",
             "loadError": "Échec du chargement des détails de l'organisation",
             "placeholder": {
                 "name": "p. ex. Association Exemple",
@@ -1085,6 +1093,7 @@
             "noSchema": "Aucun schéma",
             "description": "Description",
             "validation": {
+                "ibanOtherCurrency": "Un compte avec un IBAN {{country}} est tenu en {{ibanCurrency}}, mais l'organisation utilise {{organizationCurrency}}. Les comptes dans une autre devise ne sont pas encore pris en charge. La devise de l'organisation peut être modifiée dans les paramètres tant qu'aucun compte bancaire ni aucune transaction n'existe.",
                 "nameRequired": "Le nom du compte est obligatoire",
                 "currencyRequired": "La devise est obligatoire",
                 "colorInvalid": "Couleur non valide. Veuillez utiliser le format #RRGGBB",
@@ -1122,6 +1131,12 @@
         }
     },
     "bankImport": {
+        "check": {
+            "currencyMismatchTitle": "Devise incorrecte",
+            "currencyMismatch": "Le fichier contient des montants en {{fileCurrencies}}, mais le compte est tenu en {{accountCurrency}}. Importez le fichier dans un compte de cette devise.",
+            "mixedCurrencies": "Le fichier contient des montants en plusieurs devises ({{fileCurrencies}}). Un compte ne peut être tenu que dans une seule devise, le fichier ne peut donc pas être importé.",
+            "startError": "L'import n'a pas pu être lancé."
+        },
         "title": "Importer un relevé bancaire",
         "startImport": "Importer",
         "status": {

@@ -63,7 +63,7 @@ interface BankTransactionPickerProps {
  */
 export function BankTransactionPicker({ txTotal, txDate, open, linkedIds, pending, onLink, onPreview, onClose }: BankTransactionPickerProps) {
     const { t } = useTranslation();
-    const { format } = useCurrency();
+    const { format, symbol } = useCurrency();
     const [search, setSearch] = useState('');
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [useText, setUseText] = useState('');
@@ -302,7 +302,7 @@ export function BankTransactionPicker({ txTotal, txDate, open, linkedIds, pendin
                                 aria-label={t('transactions.detail.partialAmountLabel')}
                                 className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
                             />
-                            <span className="text-[15px] font-extrabold text-muted-foreground">€</span>
+                            <span className="text-[15px] font-extrabold text-muted-foreground">{symbol}</span>
                         </div>
                         <div className="flex-1" />
                         <button

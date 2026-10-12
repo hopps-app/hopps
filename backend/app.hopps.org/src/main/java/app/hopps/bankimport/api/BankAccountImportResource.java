@@ -6,6 +6,7 @@ import app.hopps.bankimport.api.dto.SchemaDetectionResult;
 import app.hopps.bankimport.domain.BankImport;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
+import app.hopps.bankimport.service.BankImportRejectedException;
 import app.hopps.bankimport.service.BankImportService;
 import app.hopps.bankimport.service.CsvPreviewService;
 import app.hopps.bankimport.service.SchemaDetectionService;
@@ -91,6 +92,8 @@ public class BankAccountImportResource {
     @APIResponse(responseCode = "400", description = "File missing, schemaId missing, or duplicate file already queued")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Account or schema not found")
+    @APIResponse(responseCode = "409", description = "The file's amounts are in another currency than the account, or in several (code "
+            + BankImportRejectedException.CURRENCY_MISMATCH + ", fields fileCurrencies, accountCurrency)")
     public Response createImport(
             @PathParam("accountId") @Parameter(description = "Bank account ID") Long accountId,
             @RestForm("file") FileUpload file,

@@ -20,10 +20,15 @@ interface SelectProps {
     error?: string;
     required?: boolean;
     disabled?: boolean;
+    /**
+     * Always open the list below the field, shortened to the space there (scrollable), instead of letting it flip
+     * upwards when there is more room above. For long lists in forms, where an upward list hides the fields above.
+     */
+    openDownwards?: boolean;
 }
 
 function Select(props: SelectProps) {
-    const { value, items, onValueChanged, label, placeholder, className, error, required, disabled, ...otherProps } = props;
+    const { value, items, onValueChanged, label, placeholder, className, error, required, disabled, openDownwards, ...otherProps } = props;
     const [id] = useState(_.uniqueId('select-'));
     const errorId = `${id}-error`;
     // Radix mirrors a programmatic `value` change into a hidden native <select> and reports the outcome through
@@ -51,7 +56,13 @@ function Select(props: SelectProps) {
                 >
                     <SelectValue placeholder={placeholder || 'Select'} className="placeholder:text-muted" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                    {...(openDownwards && {
+                        side: 'bottom' as const,
+                        avoidCollisions: false,
+                        className: 'max-h-[min(24rem,var(--radix-select-content-available-height))]',
+                    })}
+                >
                     <SelectGroup>
                         {items.map((item) => (
                             <SelectItem key={item.value} value={String(item.value)}>

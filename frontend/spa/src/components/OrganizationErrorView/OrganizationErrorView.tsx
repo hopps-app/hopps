@@ -2,7 +2,9 @@ import { OrganizationInput } from '@hopps/api-client';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { OrganizationFields } from '@/components/Forms/OrganizationFields/OrganizationFields';
 import Button from '@/components/ui/Button';
+import { DEFAULT_ORGANIZATION_FIELDS, organizationFieldErrors, type OrganizationFieldValues } from '@/lib/organizationTypes';
 import apiService from '@/services/ApiService';
 import authService from '@/services/auth/auth.service';
 import { useStore } from '@/store/store';
@@ -20,9 +22,10 @@ function createSlug(input: string): string {
 
 function OrganizationErrorView() {
     const { t } = useTranslation();
-    const [name, setName] = useState('');
+    const [organization, setOrganization] = useState<OrganizationFieldValues>(DEFAULT_ORGANIZATION_FIELDS);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<ReturnType<typeof organizationFieldErrors>>({});
 
     const handleLogout = async () => {
         try {
@@ -34,8 +37,11 @@ function OrganizationErrorView() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
-        const trimmed = name.trim();
+        const trimmed = organization.name.trim();
         if (!trimmed || submitting) return;
+        const errors = organizationFieldErrors(organization, t);
+        setFieldErrors(errors);
+        if (Object.keys(errors).length > 0) return;
 
         setSubmitting(true);
         setError(null);
@@ -44,7 +50,10 @@ function OrganizationErrorView() {
                 OrganizationInput.fromJS({
                     name: trimmed,
                     slug: createSlug(trimmed),
-                    type: 'EINGETRAGENER_VEREIN',
+                    type: organization.type,
+                    // The backend derives the currency from the country.
+                    country: organization.country,
+                    email: organization.email.trim() || undefined,
                 })
             );
             // The organization is now linked to the user — leave the error screen and enter the app.
@@ -73,25 +82,18 @@ function OrganizationErrorView() {
 
                 <form onSubmit={handleCreate} className="space-y-4">
                     <div className="text-left">
-                        <label htmlFor="org-name" className="block text-[11px] font-bold uppercase tracking-[0.06em] text-gray-500 mb-1.5">
-                            {t('organization.create.nameLabel')}
-                        </label>
-                        <input
-                            id="org-name"
-                            type="text"
-                            value={name}
-                            onChange={(ev) => {
-                                setName(ev.target.value);
+                        <OrganizationFields
+                            value={organization}
+                            errors={fieldErrors}
+                            onChange={(next) => {
+                                setOrganization(next);
                                 setError(null);
                             }}
-                            placeholder={t('organization.create.namePlaceholder')}
-                            autoFocus
-                            className="w-full rounded-[10px] border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                         />
                         {error && <p className="mt-1.5 text-[13px] text-red-600">{error}</p>}
                     </div>
 
-                    <Button type="submit" variant="default" disabled={!name.trim() || submitting} className="w-full">
+                    <Button type="submit" variant="default" disabled={!organization.name.trim() || submitting} className="w-full">
                         {submitting ? '…' : t('organization.create.submit')}
                     </Button>
                 </form>

@@ -1,5 +1,6 @@
 package app.hopps.organization.domain;
 
+import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
@@ -40,12 +41,17 @@ class OrganizationTests {
     MemberRepository memberRepository;
 
     @Inject
+    BommelRepository bommelRepository;
+
+    @Inject
     Validator validator;
 
     @BeforeEach
     @Transactional
     void setUp() {
         organizationRepository.deleteAll();
+        // Other test classes can leave bommels behind whose responsible member would block the member delete.
+        bommelRepository.deleteAll();
         memberRepository.deleteAll();
     }
 
