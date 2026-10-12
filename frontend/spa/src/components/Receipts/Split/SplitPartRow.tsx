@@ -86,7 +86,9 @@ export function SplitPartRow({
     const bad = (field: SplitFieldId) => errors.some((e) => e.field === field);
     const summary = [bommelName ?? t('receipts.split.noBommel'), ...groups.map((g) => part.categoryValues[g.id]).filter(Boolean)].join(' · ');
 
-    const bommelSelect = (
+    // In the compact row the trigger is narrow, so the list opens at its own width instead of matching the trigger;
+    // the expanded card has room for both.
+    const bommelSelect = (matchTriggerWidth: boolean) => (
         <BommelSelect
             items={bommelItems}
             value={part.bommelId ?? ALL_BOMMELS}
@@ -96,7 +98,7 @@ export function SplitPartRow({
                 onTouch('bommel');
             }}
             triggerClassName={cn('w-full sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none', bad('bommel') && 'border-[var(--warning)]')}
-            matchTriggerWidth
+            matchTriggerWidth={matchTriggerWidth}
         />
     );
 
@@ -147,12 +149,12 @@ export function SplitPartRow({
                             className="flex min-w-0 gap-2 overflow-x-auto"
                             style={{ scrollbarWidth: 'thin', paddingBottom: edge.left || edge.right ? 10 : 0 }}
                         >
-                            <div className="flex w-[150px] flex-shrink-0 flex-col gap-1">
+                            <div className="flex w-[176px] flex-shrink-0 flex-col gap-1">
                                 <span className={MINI_LABEL}>{t('receipts.split.bommel')}</span>
-                                {bommelSelect}
+                                {bommelSelect(false)}
                             </div>
                             {groups.map((g) => (
-                                <div key={g.id} className="flex w-[160px] flex-shrink-0 flex-col gap-1">
+                                <div key={g.id} className="flex w-[180px] flex-shrink-0 flex-col gap-1">
                                     <span className={MINI_LABEL}>
                                         <span className="truncate">{g.name}</span>
                                         {g.required && requiredTag}
@@ -211,7 +213,7 @@ export function SplitPartRow({
                             {t('receipts.split.bommel')}
                             {requiredTag}
                         </span>
-                        {bommelSelect}
+                        {bommelSelect(true)}
                         {bad('bommel') && errorLine(t('receipts.split.pleaseChoose'))}
                     </div>
                     <div className="flex flex-col gap-2.5">
