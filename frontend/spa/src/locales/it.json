@@ -582,6 +582,9 @@
         "expense": "Uscite",
         "noResults": "Nessuna transazione trovata",
         "noResultsDesc": "Modifica i filtri o registra una nuova transazione.",
+        "noResultsOtherStatus_one": "{{count}} transazione ha un altro stato.",
+        "noResultsOtherStatus_other": "{{count}} transazioni hanno un altro stato.",
+        "showAllStatuses": "Mostra tutti gli stati",
         "detail": {
             "title": "Transazione",
             "editTitle": "Modifica transazione",

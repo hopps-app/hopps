@@ -615,6 +615,9 @@
         "expense": "Expense",
         "noResults": "No transactions found",
         "noResultsDesc": "Adjust the filters or record a new transaction.",
+        "noResultsOtherStatus_one": "{{count}} transaction has a different status.",
+        "noResultsOtherStatus_other": "{{count}} transactions have a different status.",
+        "showAllStatuses": "Show all statuses",
         "detail": {
             "title": "Transaction",
             "editTitle": "Edit transaction",

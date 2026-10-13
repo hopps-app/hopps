@@ -336,7 +336,11 @@ export function TransactionenView() {
         detached: filters.detached,
         categoryValues: filters.categoryValues,
     };
-    const { data: countDraft } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
+    const {
+        data: countDraft,
+        isFetching: countDraftFetching,
+        isError: countDraftFailed,
+    } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
     const { data: countPartial } = useTransactionAggregate({ ...countFilters, displayStatuses: ['PARTIAL'] });
     const { data: countLinked } = useTransactionAggregate({ ...countFilters, displayStatuses: ['LINKED'] });
     const { data: countConfirmed } = useTransactionAggregate({ ...countFilters, displayStatuses: ['CONFIRMED'] });
@@ -346,10 +350,28 @@ export function TransactionenView() {
         LINKED: countLinked?.count ?? 0,
         CONFIRMED: countConfirmed?.count ?? 0,
     };
+    // The drafts are only a useful start while there are any: with none, open on every status instead of an empty table
+    // Until that is decided the table stays on its skeleton and no segment is marked, so the page does not visibly
+    // switch filters after loading.
+    const [statusDecided, setStatusDecided] = useState(false);
+    useEffect(() => {
+        if (statusDecided || countDraftFetching || (!countDraft && !countDraftFailed)) return;
+        setStatusDecided(true);
+        if (countDraft?.count === 0) setStatusFilter([]);
+    }, [statusDecided, countDraft, countDraftFetching, countDraftFailed]);
     const toggleStatus = (id: TransactionDisplayStatus) => {
+        setStatusDecided(true);
         setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
         setPage(0);
     };
+    const showAllStatuses = () => {
+        setStatusDecided(true);
+        setStatusFilter([]);
+        setPage(0);
+    };
+    // Transactions the other filters match but the selected status segments hide.
+    const hiddenByStatus =
+        statusFilter.length > 0 ? STATUS_SEGMENTS.filter((seg) => !statusFilter.includes(seg.id)).reduce((sum, seg) => sum + statusCounts[seg.id], 0) : 0;
     const allBommels = useBommelsStore((s) => s.allBommels);
     const rootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommelsForFilter = useBommelsStore((s) => s.loadBommels);
@@ -563,7 +585,7 @@ export function TransactionenView() {
                         style={{ background: 'var(--surface-track)', borderRadius: 12 }}
                     >
                         {STATUS_SEGMENTS.map((seg, index) => {
-                            const on = statusFilter.includes(seg.id);
+                            const on = statusDecided && statusFilter.includes(seg.id);
                             return (
                                 <Fragment key={seg.id}>
                                     {index > 0 && (
@@ -780,7 +802,7 @@ export function TransactionenView() {
 
             {/* ── Table ── */}
             <div>
-                {isLoading ? (
+                {isLoading || !statusDecided ? (
                     <TableSkeleton hideBommel={hideBommel} />
                 ) : transactions.length === 0 ? (
                     <div
@@ -793,7 +815,21 @@ export function TransactionenView() {
                         <p className="font-bold text-foreground" style={{ fontSize: 16 }}>
                             {t('transactions.noResults')}
                         </p>
-                        <p className="mt-1 text-[13.5px] text-muted-foreground">{t('transactions.noResultsDesc')}</p>
+                        {hiddenByStatus > 0 ? (
+                            <>
+                                <p className="mt-1 text-[13.5px] text-muted-foreground">{t('transactions.noResultsOtherStatus', { count: hiddenByStatus })}</p>
+                                <BaseButton
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={showAllStatuses}
+                                    className="mt-3 rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
+                                >
+                                    {t('transactions.showAllStatuses')}
+                                </BaseButton>
+                            </>
+                        ) : (
+                            <p className="mt-1 text-[13.5px] text-muted-foreground">{t('transactions.noResultsDesc')}</p>
+                        )}
                     </div>
                 ) : (
                     <div

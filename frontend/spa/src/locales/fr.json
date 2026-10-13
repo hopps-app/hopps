@@ -582,6 +582,9 @@
         "expense": "Dépense",
         "noResults": "Aucune transaction trouvée",
         "noResultsDesc": "Ajustez les filtres ou enregistrez une nouvelle transaction.",
+        "noResultsOtherStatus_one": "{{count}} transaction a un autre statut.",
+        "noResultsOtherStatus_other": "{{count}} transactions ont un autre statut.",
+        "showAllStatuses": "Afficher tous les statuts",
         "detail": {
             "title": "Transaction",
             "editTitle": "Modifier la transaction",

@@ -1,4 +1,5 @@
 import type { OrganizationType } from '@hopps/api-client';
+import { Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import Select from '@/components/ui/Select';
@@ -15,7 +16,7 @@ type Props = {
 
 /**
  * The organization part of creating an organization: name, optional contact email, country and legal form. The currency is not asked for; it
- * follows from the country (CHF for Switzerland and Liechtenstein, EUR otherwise) and is only shown. Used by the
+ * follows from the country (CHF for Switzerland and Liechtenstein, EUR otherwise). Only CHF is pointed out, EUR being the expected default. Used by the
  * registration and by a logged-in user who has no organization yet.
  */
 export function OrganizationFields({ value, onChange, errors }: Props) {
@@ -55,6 +56,12 @@ export function OrganizationFields({ value, onChange, errors }: Props) {
                 error={errors?.country}
                 openDownwards
             />
+            {currency === 'CHF' && (
+                <div role="status" className="flex items-start gap-2 rounded-xl bg-[var(--info-surface)] p-3 text-sm text-[var(--info)]">
+                    <Info className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    <span>{t('organization.registration.currencyInfo', { currency: t(`organization.details.currency${currency}`) })}</span>
+                </div>
+            )}
             <Select
                 label={t('organization.registration.legalForm')}
                 items={typeOptions}
@@ -63,9 +70,6 @@ export function OrganizationFields({ value, onChange, errors }: Props) {
                 error={errors?.type}
                 openDownwards
             />
-            <p className="text-xs text-muted-foreground">
-                {t('organization.registration.currencyInfo', { currency: t(`organization.details.currency${currency}`) })}
-            </p>
         </div>
     );
 }
