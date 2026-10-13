@@ -71,22 +71,17 @@
         "text2": "giorni"
     },
     "common": {
-        "refresh": "Aggiorna",
         "upload": "Carica",
         "addNew": "Aggiungi nuovo",
         "close": "Chiudi",
-        "expand": "Espandi",
         "collapse": "Comprimi",
         "search": "Cerca",
-        "noItems": "Nessun elemento da mostrare",
-        "noResults": "Nessun risultato",
         "goBack": "Indietro",
         "cancel": "Annulla",
         "save": "Salva",
         "edit": "Modifica",
         "delete": "Elimina",
         "loading": "Caricamento...",
-        "validationError": "Compila tutti i campi obbligatori",
         "unsavedChangesWarning": "Hai modifiche non salvate. Sei sicuro di voler lasciare questa pagina?",
         "next": "Avanti",
         "confirm": "Conferma"
@@ -131,7 +126,6 @@
         "organizationNameRequired": "Il nome dell'organizzazione è obbligatorio",
         "firstNameRequired": "Il nome è obbligatorio",
         "lastNameRequired": "Il cognome è obbligatorio",
-        "invalidFileType": "Tipo di file non valido",
         "passwordStrength": {
             "label": "Livello di sicurezza della password",
             "weak": "Debole",
@@ -154,50 +148,18 @@
     },
     "invoiceUpload": {
         "title": "Carica nuova fattura",
-        "assign": "Assegna a",
-        "chooseFile": "Scegli file",
         "upload": "Carica",
         "uploadFailed": "Caricamento della fattura non riuscito",
         "uploadSuccess": "Fattura caricata con successo",
-        "dragDrop": "Trascina i file qui",
         "fileType": "File PDF o JPG",
-        "dragFile": "Rilascia i file qui...",
-        "fileTooLarge": "Il file è troppo grande, dimensione massima 5MB",
-        "invalidFileType": "Tipo di file non supportato. Carica file PDF, JPEG o PNG.",
-        "totalTooLarge": "La dimensione totale dei file supera il limite di 20MB.",
-        "maxFilesExceeded": "Sono consentiti al massimo 10 file.",
         "selectBommel": "Seleziona bommel",
-        "privately": "Pagato privatamente",
         "invoice": "Fattura",
         "receipt": "Ricevuta",
-        "docType": "Tipo di transazione",
-        "pdfNavigation": {
-            "previousPage": "Pagina precedente",
-            "nextPage": "Pagina successiva",
-            "pageIndicator": "{{current}} / {{total}}"
-        }
+        "docType": "Tipo di transazione"
     },
     "invoices": {
-        "loadFailed": "Caricamento delle fatture non riuscito",
-        "noInvoices": "Nessuna fattura da mostrare",
         "assignPopover": {
-            "assign": "Assegna",
-            "reassign": "Riassegna",
-            "noBommels": "Nessun bommel disponibile",
-            "newBommel": "nuovo Bommel",
-            "successAssign": "Assegnazione riuscita!",
-            "failedAssign": "Assegnazione del bommel non riuscita!"
-        },
-        "summary": {
-            "totalFirstPart": "Totale",
-            "invoicesPart": "fatture per un importo di"
-        },
-        "table": {
-            "newInvoice": "nuova Fattura",
-            "date": "Data",
-            "bommel": "Bommel",
-            "amount": "Importo",
-            "name": "Nome"
+            "assign": "Assegna"
         }
     },
     "organization": {
@@ -252,7 +214,6 @@
                 "nameMaxLength": "Il nome non può superare i 255 caratteri"
             },
             "editModeHint": "Trascina e rilascia i bommel nella vista tabella, oppure usa il pulsante di spostamento nella vista ad albero",
-            "moveBommel": "Sposta Bommel",
             "includeDrafts": "Includi bozze",
             "aggregate": "Incl. sotto-bommel",
             "details": {
@@ -461,14 +422,8 @@
     "settings": {
         "menu": {
             "account": "Il mio account",
-            "invoices": "Fatture",
-            "organization": "Organizzazione",
-            "ngoDetails": "Dettagli dell'organizzazione",
             "profile": "Profilo"
         }
-    },
-    "settingsPage": {
-        "menu": "Menu"
     },
     "reports": {
         "title": "Report",
@@ -697,9 +652,6 @@
         "linked": "Collegata",
         "notLinked": "Non collegata"
     },
-    "datePicker": {
-        "selectDate": "Seleziona data"
-    },
     "dashboard": {
         "title": "Dashboard",
         "incomeExpenseChart": "Entrate e uscite",
@@ -811,40 +763,14 @@
     },
     "receipts": {
         "draft": "Bozza",
-        "unassigned": "Non assegnata",
-        "documentLinked": "Documento allegato",
-        "downloadDocument": "Scarica documento",
-        "downloadFailed": "Download del documento non riuscito",
         "noDocument": "Nessun documento",
-        "dueDate": "Scadenza il",
         "empty": "Nessuna ricevuta trovata",
         "searchPlaceholder": "Cerca (nome, mittente, importo) …",
         "searchClear": "Cancella ricerca",
         "noSearchResults": "Nessuna ricevuta trovata per \"{{search}}\"",
         "newReceipt": "Nuova ricevuta",
-        "statusBadge": {
-            "draft": "Bozza",
-            "saved": "Salvata"
-        },
         "table": {
-            "issuer": "Emittente",
-            "date": "Data",
-            "project": "Bommel",
-            "category": "Categoria",
-            "status": "Stato",
-            "paid": "Pagata",
-            "amount": "Importo",
-            "purpose": "Causale",
-            "reference": "Riferimento"
-        },
-        "paidLabel": {
-            "yes": "Sì",
-            "no": "No"
-        },
-        "emptyState": {
-            "title": "Ancora nessuna ricevuta caricata",
-            "description": "Qui puoi filtrare e gestire le ricevute",
-            "action": "Carica la prima ricevuta"
+            "category": "Categoria"
         },
         "status": {
             "pending": "In attesa",
@@ -859,28 +785,16 @@
         },
         "filters": {
             "searchReceipt": "Cerca ricevuta",
-            "searchPlaceholder": "Cerca",
             "receiptDate": "Data della ricevuta",
-            "startDate": "Ricevute da",
-            "endDate": "Ricevute fino a",
             "bommel": "Bommel",
             "category": "Categoria",
             "type": "Tipo di ricevuta",
-            "income": "Entrata",
-            "expense": "Uscita",
-            "selectStatus": "Seleziona stato",
             "status": "Stato",
-            "all": "Tutte",
-            "drafts": "Bozze",
-            "unassigned": "Non assegnate",
             "displayType": "Tipo di visualizzazione",
-            "displayAll": "Espandi tutto",
-            "reset": "Reimposta",
             "noResults": "Nessun risultato",
             "area": "Ambito",
             "allAreas": "Seleziona ambito",
-            "allCategories": "Seleziona categoria",
-            "showFilters": "Filtri"
+            "allCategories": "Seleziona categoria"
         },
         "upload": {
             "sectionTitle": "Carica ricevute",
@@ -926,12 +840,7 @@
             "wirtschaftlich": "Attività commerciale",
             "unknown": "Sconosciuto"
         },
-        "types": {
-            "income": "Entrata",
-            "expense": "Uscita"
-        },
         "pagination": {
-            "page": "Pagina",
             "previous": "Precedente",
             "next": "Successiva"
         },
@@ -940,14 +849,10 @@
             "description": "Sei sicuro di voler eliminare '{{name}}' ({{amount}})?",
             "warning": "Questa azione non può essere annullata. La ricevuta verrà eliminata definitivamente.",
             "confirm": "Sì, elimina",
-            "error": "Eliminazione della ricevuta non riuscita",
-            "success": "Ricevuta eliminata con successo",
             "optionTransactionOnly": "Viene rimosso solo il movimento. La ricevuta viene conservata e torna in revisione.",
             "optionWithReceipt": "Il movimento e la ricevuta vengono eliminati definitivamente, incluso il file caricato.",
             "confirmTransactionOnly": "Elimina solo la transazione",
             "confirmWithReceipt": "Elimina con la ricevuta",
-            "successTransactionOnly": "Transazione eliminata - la ricevuta è di nuovo in attesa di revisione",
-            "successWithReceipt": "Ricevuta e transazione eliminate",
             "descriptionNoName": "Sei sicuro di voler eliminare questa transazione ({{amount}})?"
         },
         "title": "Ricevute",
@@ -1062,18 +967,6 @@
         "select": "Seleziona Bommel"
     },
     "bankAccounts": {
-        "title": "Conti bancari",
-        "subtitle": "Gestisci i tuoi conti bancari e importa gli estratti conto.",
-        "newAccount": "Nuovo conto",
-        "manageSchemas": "Gestisci schemi",
-        "notFound": "Conto bancario non trovato",
-        "card": {
-            "schema": "Schema"
-        },
-        "emptyState": {
-            "title": "Ancora nessun conto bancario",
-            "description": "Aggiungi il tuo primo conto bancario per iniziare a importare gli estratti conto."
-        },
         "form": {
             "createTitle": "Crea conto bancario",
             "editTitle": "Modifica conto bancario",
@@ -1107,18 +1000,6 @@
                 "duplicateIban": "Esiste già un conto con questo IBAN nella tua organizzazione"
             }
         },
-        "table": {
-            "bookingDate": "Data di registrazione",
-            "counterpartyName": "Controparte",
-            "purpose": "Causale",
-            "amount": "Importo",
-            "status": "Stato"
-        },
-        "transactions": {
-            "title": "Transazioni",
-            "empty": "Ancora nessuna transazione",
-            "export": "Esporta"
-        },
         "toast": {
             "createSuccess": "Conto bancario creato con successo",
             "createError": "Creazione del conto bancario non riuscita",
@@ -1138,15 +1019,6 @@
             "startError": "Non è stato possibile avviare l'importazione."
         },
         "title": "Importa estratto conto",
-        "startImport": "Importa",
-        "status": {
-            "QUEUED": "In coda",
-            "PROCESSING": "In elaborazione",
-            "COMPLETED": "Completato",
-            "PARTIAL": "Importato parzialmente",
-            "FAILED": "Non riuscito",
-            "UNKNOWN": "Sconosciuto"
-        },
         "wizard": {
             "stepFile": "File",
             "stepSchema": "Schema",
@@ -1204,23 +1076,6 @@
             "errors": "Errori",
             "backToAccount": "Torna al conto",
             "viewTransactions": "Visualizza transazioni"
-        },
-        "history": {
-            "title": "Cronologia delle importazioni",
-            "empty": "Ancora nessuna importazione",
-            "fileName": "Nome del file",
-            "status": "Stato",
-            "progress": "Avanzamento",
-            "imported": "Importate",
-            "duplicates": "Duplicati",
-            "errors": "Errori",
-            "finishedAt": "Terminata",
-            "actions": "Azioni"
-        },
-        "rollback": {
-            "title": "Annullare l'importazione?",
-            "button": "Annulla importazione",
-            "confirm": "Sei sicuro di voler annullare questa importazione? Tutte le transazioni importate verranno eliminate."
         },
         "toast": {
             "rollbackSuccess": "Importazione annullata con successo",
