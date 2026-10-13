@@ -17,6 +17,7 @@ public class TestdataConfig {
     private List<DocumentData> documents;
     private List<BankAccountData> bankAccounts;
     private List<BankTransactionData> bankTransactions;
+    private List<CategoryGroupData> categoryGroups;
     private Map<String, Long> sequences;
 
     public List<OrganizationData> getOrganizations() {
@@ -75,6 +76,14 @@ public class TestdataConfig {
         this.bankTransactions = bankTransactions;
     }
 
+    public List<CategoryGroupData> getCategoryGroups() {
+        return categoryGroups;
+    }
+
+    public void setCategoryGroups(List<CategoryGroupData> categoryGroups) {
+        this.categoryGroups = categoryGroups;
+    }
+
     /**
      * Adds the entries of another configuration (e.g. the dev-only extras) to this one: lists are appended, sequence
      * values of {@code extra} win.
@@ -87,6 +96,7 @@ public class TestdataConfig {
         documents = concat(documents, extra.documents);
         bankAccounts = concat(bankAccounts, extra.bankAccounts);
         bankTransactions = concat(bankTransactions, extra.bankTransactions);
+        categoryGroups = concat(categoryGroups, extra.categoryGroups);
         if (extra.sequences != null) {
             Map<String, Long> merged = new HashMap<>(sequences != null ? sequences : Map.of());
             merged.putAll(extra.sequences);
@@ -853,6 +863,67 @@ public class TestdataConfig {
 
         public void setMatchedAmount(String matchedAmount) {
             this.matchedAmount = matchedAmount;
+        }
+    }
+
+    /**
+     * A category group of an organization with its allowed values and the bommels it is assigned to. It applies to an
+     * assigned bommel and all of its descendants; without bommels it applies to none.
+     */
+    public static class CategoryGroupData {
+        private Long id;
+        private Long organizationId;
+        private String name;
+        private boolean required;
+        private List<Long> bommelIds;
+        private List<String> values;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Long getOrganizationId() {
+            return organizationId;
+        }
+
+        public void setOrganizationId(Long organizationId) {
+            this.organizationId = organizationId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public boolean isRequired() {
+            return required;
+        }
+
+        public void setRequired(boolean required) {
+            this.required = required;
+        }
+
+        public List<Long> getBommelIds() {
+            return bommelIds;
+        }
+
+        public void setBommelIds(List<Long> bommelIds) {
+            this.bommelIds = bommelIds;
+        }
+
+        public List<String> getValues() {
+            return values;
+        }
+
+        public void setValues(List<String> values) {
+            this.values = values;
         }
     }
 }

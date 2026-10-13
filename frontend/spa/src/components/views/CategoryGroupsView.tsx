@@ -1,6 +1,6 @@
 import { CategoryGroupResponse } from '@hopps/api-client';
 import { Lightbulb, Plus } from 'lucide-react';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import CategoryGroupCard from '@/components/CategoryGroups/CategoryGroupCard';
@@ -15,6 +15,7 @@ import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
 function CategoryGroupsView() {
     const { t } = useTranslation();
@@ -27,6 +28,13 @@ function CategoryGroupsView() {
     const deleteMutation = useDeleteCategoryGroup();
     const { showSuccess, showError } = useToast();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    // The assignments show bommel names; load the tree when the page is opened directly.
+    const { organization } = useStore();
+    const loadBommels = useBommelsStore((s) => s.loadBommels);
+    const bommelCount = allBommels.length;
+    useEffect(() => {
+        if (organization?.id && bommelCount === 0) loadBommels(organization.id);
+    }, [organization?.id, bommelCount, loadBommels]);
 
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState<CategoryGroupResponse | undefined>(undefined);
