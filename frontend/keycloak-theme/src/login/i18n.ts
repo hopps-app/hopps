@@ -9,7 +9,7 @@ const { useI18n, ofTypeI18n } = i18nBuilder
             loginSubtitle: "Welcome back! Please enter your valid data."
         },
         de: {
-            loginSubtitle: "Willkommen zurück! Bitte gib deine Daten ein."
+            loginSubtitle: "Willkommen zurück! Bitte die Zugangsdaten eingeben."
         }
     })
     .build();
