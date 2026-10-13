@@ -660,6 +660,9 @@
         "expense": "Ausgabe",
         "noResults": "Keine Transaktionen gefunden",
         "noResultsDesc": "Passe die Filter an oder erfasse eine neue Transaktion.",
+        "noResultsOtherStatus_one": "{{count}} Transaktion hat einen anderen Status.",
+        "noResultsOtherStatus_other": "{{count}} Transaktionen haben einen anderen Status.",
+        "showAllStatuses": "Alle Status anzeigen",
         "detail": {
             "title": "Transaktion",
             "editTitle": "Transaktion bearbeiten",

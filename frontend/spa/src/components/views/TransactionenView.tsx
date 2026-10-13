@@ -294,7 +294,11 @@ export function TransactionenView() {
         detached: filters.detached,
         categoryValues: filters.categoryValues,
     };
-    const { data: countDraft } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
+    const {
+        data: countDraft,
+        isFetching: countDraftFetching,
+        isError: countDraftFailed,
+    } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
     const { data: countPartial } = useTransactionAggregate({ ...countFilters, displayStatuses: ['PARTIAL'] });
     const { data: countLinked } = useTransactionAggregate({ ...countFilters, displayStatuses: ['LINKED'] });
     const { data: countConfirmed } = useTransactionAggregate({ ...countFilters, displayStatuses: ['CONFIRMED'] });
@@ -304,10 +308,28 @@ export function TransactionenView() {
         LINKED: countLinked?.count ?? 0,
         CONFIRMED: countConfirmed?.count ?? 0,
     };
+    // The drafts are only a useful start while there are any: with none, open on every status instead of an empty table
+    // Until that is decided the table stays on its skeleton and no segment is marked, so the page does not visibly
+    // switch filters after loading.
+    const [statusDecided, setStatusDecided] = useState(false);
+    useEffect(() => {
+        if (statusDecided || countDraftFetching || (!countDraft && !countDraftFailed)) return;
+        setStatusDecided(true);
+        if (countDraft?.count === 0) setStatusFilter([]);
+    }, [statusDecided, countDraft, countDraftFetching, countDraftFailed]);
     const toggleStatus = (id: TransactionDisplayStatus) => {
+        setStatusDecided(true);
         setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
         setPage(0);
     };
+    const showAllStatuses = () => {
+        setStatusDecided(true);
+        setStatusFilter([]);
+        setPage(0);
+    };
+    // Transactions the other filters match but the selected status segments hide.
+    const hiddenByStatus =
+        statusFilter.length > 0 ? STATUS_SEGMENTS.filter((seg) => !statusFilter.includes(seg.id)).reduce((sum, seg) => sum + statusCounts[seg.id], 0) : 0;
     const allBommels = useBommelsStore((s) => s.allBommels);
     const rootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommelsForFilter = useBommelsStore((s) => s.loadBommels);
@@ -521,7 +543,7 @@ export function TransactionenView() {
                     <StatusSegments
                         ariaLabel={t('transactions.columns.status')}
                         segments={STATUS_SEGMENTS.map((seg) => ({ ...seg, label: t(seg.labelKey), count: statusCounts[seg.id] }))}
-                        selected={statusFilter}
+                        selected={statusDecided ? statusFilter : []}
                         onToggle={toggleStatus}
                     />
 
@@ -693,7 +715,7 @@ export function TransactionenView() {
 
             {/* ── Table ── */}
             <div>
-                {isLoading ? (
+                {isLoading || !statusDecided ? (
                     <TableSkeleton hideBommel={hideBommel} />
                 ) : (
                     <DataTable>
@@ -739,6 +761,22 @@ export function TransactionenView() {
                         {transactions.length === 0 &&
                             (totalAggregate?.count === 0 ? (
                                 <TableEmptyState icon={FileText} title={t('transactions.empty.firstTitle')} text={t('transactions.empty.firstText')} />
+                            ) : hiddenByStatus > 0 ? (
+                                <TableEmptyState
+                                    icon={FileText}
+                                    title={t('transactions.empty.noMatchTitle')}
+                                    text={t('transactions.noResultsOtherStatus', { count: hiddenByStatus })}
+                                    action={
+                                        <BaseButton
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={showAllStatuses}
+                                            className="rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
+                                        >
+                                            {t('transactions.showAllStatuses')}
+                                        </BaseButton>
+                                    }
+                                />
                             ) : (
                                 <TableEmptyState icon={FileText} title={t('transactions.empty.noMatchTitle')} text={t('transactions.empty.noMatchText')} />
                             ))}
