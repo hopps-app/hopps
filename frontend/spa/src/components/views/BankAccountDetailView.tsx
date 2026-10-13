@@ -22,16 +22,12 @@ import {
     type BankTransactionSortField,
 } from '@/hooks/queries/useBankAccounts';
 import type { SortDirection } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 50;
-
-function formatCurrency(amount: number | undefined, currency = 'EUR'): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-}
 
 function formatDate(date: string | Date | undefined): string {
     if (!date) return '—';
@@ -122,6 +118,7 @@ function ImportHistoryRow({ imp, accountId, onRollback }: { imp: BankImportRespo
 }
 
 export function BankAccountDetailView() {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const accountId = Number(id);
@@ -183,7 +180,7 @@ export function BankAccountDetailView() {
                     const v = p.data.amount;
                     if (v === undefined || v === null) return '—';
                     const cls = v >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-500 font-semibold';
-                    return <span className={cls}>{formatCurrency(v, p.data.currency ?? 'EUR')}</span>;
+                    return <span className={cls}>{format(v, { currency: p.data.currency })}</span>;
                 },
             },
             {
@@ -264,7 +261,7 @@ export function BankAccountDetailView() {
                             (account.balance ?? account.openingBalance ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
                         )}
                     >
-                        {formatCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
+                        {format(account.balance ?? account.openingBalance, { currency: account.currency })}
                     </span>
                 </div>
 

@@ -225,6 +225,13 @@
     },
     "organization": {
         "registration": {
+            "organizationEmail": "Email dell'organizzazione (facoltativa)",
+            "step": "Passo {{current}} di {{total}}",
+            "stepOrganization": "Organizzazione",
+            "stepAdmin": "Amministratore",
+            "country": "Paese",
+            "legalForm": "Forma giuridica",
+            "currencyInfo": "Valuta contabile: {{currency}}. Deriva dal paese e può essere modificata in seguito nelle impostazioni finché non esistono conti bancari né transazioni.",
             "failed": "Registrazione dell'organizzazione non riuscita",
             "emailAlreadyRegistered": "Questo indirizzo email è già registrato",
             "organizationAlreadyExists": "Esiste già un'organizzazione con questo nome",
@@ -329,6 +336,7 @@
             "demoBanner": "Stai visualizzando dati di esempio a scopo orientativo. Questi dati sono in sola lettura."
         },
         "details": {
+            "typeVerein": "Associazione",
             "title": "Dettagli dell'organizzazione",
             "description": "Gestisci le informazioni di base della tua organizzazione",
             "name": "Nome dell'organizzazione",
@@ -361,6 +369,14 @@
             "generalInfo": "Informazioni generali",
             "saveSuccess": "Dettagli dell'organizzazione salvati con successo",
             "saveError": "Salvataggio dei dettagli dell'organizzazione non riuscito",
+            "currencyTitle": "Valuta",
+            "currency": "Valuta contabile",
+            "currencyEUR": "Euro (€)",
+            "currencyCHF": "Franco svizzero (CHF)",
+            "currencyHint": "Tutti gli importi in hopps vengono visualizzati in questa valuta, compresi i conti bancari. Può essere modificata solo finché non esistono transazioni né conti bancari.",
+            "currencyLockedTitle": "La valuta non può più essere modificata",
+            "currencyLocked": "Per questa organizzazione esistono già transazioni o conti bancari. Tutti gli importi salvati sono tenuti nella valuta selezionata; un cambio li falserebbe. Per modificare comunque la valuta, contatta il supporto.",
+            "currencyLockedError": "La valuta non può più essere modificata perché esistono già transazioni o conti bancari.",
             "loadError": "Caricamento dei dettagli dell'organizzazione non riuscito",
             "placeholder": {
                 "name": "es. Associazione Esempio",
@@ -677,7 +693,7 @@
             "income": "Entrata",
             "name": "Descrizione",
             "namePlaceholder": "es. Materiale per ufficio",
-            "amount": "Importo (€)",
+            "amount": "Importo ({{symbol}})",
             "amountPlaceholder": "0,00",
             "date": "Data",
             "sender": "Mittente / Fornitore",
@@ -1236,6 +1252,7 @@
             "noSchema": "Nessuno schema",
             "description": "Descrizione",
             "validation": {
+                "ibanOtherCurrency": "Un conto con IBAN {{country}} è tenuto in {{ibanCurrency}}, ma l'organizzazione usa {{organizationCurrency}}. I conti in un'altra valuta non sono ancora supportati. La valuta dell'organizzazione può essere modificata nelle impostazioni finché non esistono conti bancari né transazioni.",
                 "nameRequired": "Il nome del conto è obbligatorio",
                 "currencyRequired": "La valuta è obbligatoria",
                 "colorInvalid": "Colore non valido. Usa il formato #RRGGBB",
@@ -1273,6 +1290,12 @@
         }
     },
     "bankImport": {
+        "check": {
+            "currencyMismatchTitle": "Valuta errata",
+            "currencyMismatch": "Il file contiene importi in {{fileCurrencies}}, ma il conto è tenuto in {{accountCurrency}}. Importa il file in un conto con questa valuta.",
+            "mixedCurrencies": "Il file contiene importi in più valute ({{fileCurrencies}}). Un conto può avere una sola valuta, quindi il file non può essere importato.",
+            "startError": "Non è stato possibile avviare l'importazione."
+        },
         "title": "Importa estratto conto",
         "startImport": "Importa",
         "status": {
@@ -1294,13 +1317,13 @@
             "fileDropHint": "Formati supportati: .csv, .txt",
             "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps rileva automaticamente il formato — nessuna configurazione necessaria.",
             "mt940Detected": "MT940 rilevato · {{count}} transazioni trovate · nessuno schema necessario",
-            "showMore": "di più",
-            "showLess": "di meno",
             "detecting": "Rilevamento del formato…",
             "noFormatDetected": "Impossibile rilevare automaticamente il formato. Seleziona uno schema qui sotto.",
             "formatDetected": "Formato rilevato: {{schema}} · Conto {{account}} · {{lines}} righe lette",
             "schemaRequired": "Seleziona uno schema di importazione",
-            "schemaLabelChange": "Schema (rilevato automaticamente – modifica se necessario)",
+            "schemaLabelChange": "Schema",
+            "schemaDetectedHint": "Rilevato automaticamente dalle intestazioni delle colonne. Se necessario, è possibile selezionare un altro schema.",
+            "schemaDetectedHintLabel": "Come funziona il rilevamento?",
             "importBtn": "Importa {{count}} transazioni",
             "duplicateRow": "Duplicato",
             "duplicateHint_one": "{{count}} transazione esistente verrà saltata",

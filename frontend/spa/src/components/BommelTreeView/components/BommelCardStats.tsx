@@ -2,22 +2,11 @@ import { useTranslation } from 'react-i18next';
 
 import { BommelCardStatsProps } from '../types';
 
-function formatCompact(value: number): string {
-    const abs = Math.abs(value);
-    if (abs >= 1_000_000) {
-        return `${(value / 1_000_000).toFixed(1)}M€`;
-    }
-    if (abs >= 10_000) {
-        return `${(value / 1000).toFixed(1)}k€`;
-    }
-    if (abs >= 1_000) {
-        return `${(value / 1000).toFixed(2)}k€`;
-    }
-    return `${value.toLocaleString('de-DE', { maximumFractionDigits: 0 })}€`;
-}
+import { useCurrency } from '@/hooks/use-currency';
 
 export function BommelCardStats({ total, income, expenses, isRoot }: BommelCardStatsProps) {
     const { t } = useTranslation();
+    const { formatCompact } = useCurrency();
 
     return (
         <div className="flex items-center gap-1">

@@ -1,20 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ApiException, NewOrganizationInput } from '@hopps/api-client';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { PasswordStrengthMeter } from './PasswordStrengthMeter.tsx';
 
+import { OrganizationFields } from '@/components/Forms/OrganizationFields/OrganizationFields';
 import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
 import { useInstance } from '@/hooks/use-instance';
 import { useToast } from '@/hooks/use-toast.ts';
+import { DEFAULT_ORGANIZATION_FIELDS, organizationFieldErrors, type OrganizationFieldValues } from '@/lib/organizationTypes';
+import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService.ts';
 
 type FormFields = {
-    organizationName: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -45,7 +47,6 @@ export function OrganizationRegistrationForm(props: Props) {
         () =>
             z
                 .object({
-                    organizationName: z.string().min(1, t('validation.organizationNameRequired')),
                     firstName: z.string().min(1, t('validation.firstNameRequired')),
                     lastName: z.string().min(1, t('validation.lastNameRequired')),
                     email: z.string().email(t('validation.email')),
@@ -68,6 +69,17 @@ export function OrganizationRegistrationForm(props: Props) {
     const submittingRef = useRef(false);
     const password = watch('password') ?? '';
 
+    // Two steps: the organization first, then the administrator account that owns it.
+    const [step, setStep] = useState<1 | 2>(1);
+    const [organization, setOrganization] = useState<OrganizationFieldValues>(DEFAULT_ORGANIZATION_FIELDS);
+    const [organizationErrors, setOrganizationErrors] = useState<ReturnType<typeof organizationFieldErrors>>({});
+
+    function goToAdminStep() {
+        const fieldErrors = organizationFieldErrors(organization, t);
+        setOrganizationErrors(fieldErrors);
+        if (Object.keys(fieldErrors).length === 0) setStep(2);
+    }
+
     async function onSubmit(data: FormFields) {
         if (submittingRef.current) return;
         submittingRef.current = true;
@@ -80,10 +92,13 @@ export function OrganizationRegistrationForm(props: Props) {
 
                         email: data.email,
                     },
+                    // The backend derives the currency from the country.
                     organization: {
-                        name: data.organizationName,
-                        type: 'EINGETRAGENER_VEREIN',
-                        slug: createSlug(data.organizationName),
+                        name: organization.name.trim(),
+                        type: organization.type,
+                        country: organization.country,
+                        email: organization.email.trim() || undefined,
+                        slug: createSlug(organization.name),
                     },
                     newPassword: data.password,
                 })
@@ -127,59 +142,91 @@ export function OrganizationRegistrationForm(props: Props) {
             <div className="mb-4">
                 <h1 className="text-xl font-semibold text-left">{isSetup ? t('organization.setup.header') : t('organization.registration.header')}</h1>
                 <p className="mt-1 text-sm text-muted text-left">{isSetup ? t('organization.setup.subtitle') : t('organization.registration.subtitle')}</p>
-            </div>
-            <div>
-                <TextField
-                    label={t('organization.registration.organizationName')}
-                    {...register('organizationName')}
-                    error={errors.organizationName?.message}
-                    autoComplete="organization"
-                />
-            </div>
-            <div className="mt-3">
-                <div className="flex flex-row gap-2">
-                    <TextField
-                        label={t('organization.registration.firstName')}
-                        {...register('firstName')}
-                        error={errors.firstName?.message}
-                        autoComplete="given-name"
-                    />
-                    <TextField
-                        label={t('organization.registration.lastName')}
-                        {...register('lastName')}
-                        error={errors.lastName?.message}
-                        autoComplete="family-name"
-                    />
+                {/* Thin two-part progress bar: done and current segments filled, the step names below. */}
+                <div
+                    className="mt-4"
+                    role="progressbar"
+                    aria-valuemin={1}
+                    aria-valuemax={2}
+                    aria-valuenow={step}
+                    aria-valuetext={t('organization.registration.step', { current: step, total: 2 })}
+                >
+                    <div className="flex gap-1.5">
+                        {[1, 2].map((n) => (
+                            <div
+                                key={n}
+                                className={cn('h-[3px] flex-1 rounded-full transition-colors duration-300', n <= step ? 'bg-primary' : 'bg-border-soft')}
+                            />
+                        ))}
+                    </div>
+                    <div className="mt-1.5 flex text-[11px] font-semibold text-muted-foreground">
+                        {[t('organization.registration.stepOrganization'), t('organization.registration.stepAdmin')].map((label, i) => (
+                            <span key={label} className={cn('flex-1', i + 1 === step && 'text-foreground')}>
+                                {label}
+                            </span>
+                        ))}
+                    </div>
                 </div>
             </div>
-            <div className="mt-3">
-                <TextField label={t('organization.registration.email')} {...register('email')} error={errors.email?.message} autoComplete="email" />
-            </div>
-            <div className="mt-3">
-                <TextField
-                    label={t('organization.registration.password')}
-                    type="password"
-                    {...register('password')}
-                    error={errors.password?.message}
-                    autoComplete="new-password"
-                />
-                <PasswordStrengthMeter password={password} />
-            </div>
-            <div className="mt-3">
-                <TextField
-                    label={t('organization.registration.confirmPassword')}
-                    type="password"
-                    {...register('passwordConfirm')}
-                    error={errors.passwordConfirm?.message}
-                    autoComplete="new-password"
-                />
-            </div>
 
-            <div className="mt-6">
-                <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
-                    {isSetup ? t('organization.setup.submit') : t('header.register')}
-                </Button>
-            </div>
+            {step === 1 ? (
+                <>
+                    <OrganizationFields value={organization} onChange={setOrganization} errors={organizationErrors} />
+                    <div className="mt-6">
+                        <Button type="button" className="w-full" onClick={goToAdminStep}>
+                            {t('common.next')}
+                        </Button>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="flex flex-row gap-2">
+                        <TextField
+                            label={t('organization.registration.firstName')}
+                            {...register('firstName')}
+                            error={errors.firstName?.message}
+                            autoComplete="given-name"
+                        />
+                        <TextField
+                            label={t('organization.registration.lastName')}
+                            {...register('lastName')}
+                            error={errors.lastName?.message}
+                            autoComplete="family-name"
+                        />
+                    </div>
+                    <div className="mt-3">
+                        <TextField label={t('organization.registration.email')} {...register('email')} error={errors.email?.message} autoComplete="email" />
+                    </div>
+                    <div className="mt-3">
+                        <TextField
+                            label={t('organization.registration.password')}
+                            type="password"
+                            {...register('password')}
+                            error={errors.password?.message}
+                            autoComplete="new-password"
+                        />
+                        <PasswordStrengthMeter password={password} />
+                    </div>
+                    <div className="mt-3">
+                        <TextField
+                            label={t('organization.registration.confirmPassword')}
+                            type="password"
+                            {...register('passwordConfirm')}
+                            error={errors.passwordConfirm?.message}
+                            autoComplete="new-password"
+                        />
+                    </div>
+
+                    <div className="mt-6 flex gap-2">
+                        <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={formState.isSubmitting}>
+                            {t('common.goBack')}
+                        </Button>
+                        <Button type="submit" className="flex-1" disabled={formState.isSubmitting}>
+                            {isSetup ? t('organization.setup.submit') : t('header.register')}
+                        </Button>
+                    </div>
+                </>
+            )}
         </form>
     );
 }

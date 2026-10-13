@@ -2274,6 +2274,10 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Account or schema not found", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The file\'s amounts are in another currency than the account, or in several (code CURRENCY_MISMATCH, fields fileCurrencies, accountCurrency)", status, _responseText, _headers);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -4705,6 +4709,10 @@ export class Client {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Organization not found for user", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Currency change rejected because transactions or bank accounts exist (code CURRENCY_LOCKED)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -9195,6 +9203,8 @@ export interface ICsvPreviewResponse {
     [key: string]: any;
 }
 
+export type Currency = "EUR" | "CHF";
+
 /** Time spent in the application on a single day, summed across members */
 export class DailyActivity implements IDailyActivity {
     /** The calendar day */
@@ -10727,6 +10737,10 @@ export class Organization implements IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Currency the organization keeps its books in; every amount is shown in it. Can only be changed while the organization has no transactions and no bank accounts; bank accounts are kept in it. */
+    currency!: Currency;
+    /** Whether the currency is fixed because transactions or bank accounts exist. Only filled for the caller's own organization (GET/PUT /organization/my). */
+    readonly currencyLocked?: boolean | undefined;
     /** When the organization was registered */
     createdAt?: Date;
     /** Soft-delete marker; null while the organization is active */
@@ -10768,6 +10782,8 @@ export class Organization implements IOrganization {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.currency = _data["currency"];
+            (this as any).currencyLocked = _data["currencyLocked"];
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.deletedAt = _data["deletedAt"] ? new Date(_data["deletedAt"].toString()) : undefined as any;
             this.hasLogo = _data["hasLogo"];
@@ -10808,6 +10824,8 @@ export class Organization implements IOrganization {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["currency"] = this.currency;
+        data["currencyLocked"] = this.currencyLocked;
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["deletedAt"] = this.deletedAt ? this.deletedAt.toISOString() : undefined as any;
         data["hasLogo"] = this.hasLogo;
@@ -10846,6 +10864,10 @@ export interface IOrganization {
     phoneNumber?: string;
     /** Whether uploaded documents should be automatically analyzed by AI */
     autoAnalyzeDocuments?: boolean;
+    /** Currency the organization keeps its books in; every amount is shown in it. Can only be changed while the organization has no transactions and no bank accounts; bank accounts are kept in it. */
+    currency: Currency;
+    /** Whether the currency is fixed because transactions or bank accounts exist. Only filled for the caller's own organization (GET/PUT /organization/my). */
+    currencyLocked?: boolean | undefined;
     /** When the organization was registered */
     createdAt?: Date;
     /** Soft-delete marker; null while the organization is active */
@@ -10872,6 +10894,7 @@ export class OrganizationInput implements IOrganizationInput {
     email?: string;
     phoneNumber?: string;
     autoAnalyzeDocuments?: boolean;
+    currency?: Currency;
 
     [key: string]: any;
 
@@ -10904,6 +10927,7 @@ export class OrganizationInput implements IOrganizationInput {
             this.email = _data["email"];
             this.phoneNumber = _data["phoneNumber"];
             this.autoAnalyzeDocuments = _data["autoAnalyzeDocuments"];
+            this.currency = _data["currency"];
         }
     }
 
@@ -10934,6 +10958,7 @@ export class OrganizationInput implements IOrganizationInput {
         data["email"] = this.email;
         data["phoneNumber"] = this.phoneNumber;
         data["autoAnalyzeDocuments"] = this.autoAnalyzeDocuments;
+        data["currency"] = this.currency;
         return data;
     }
 
@@ -10960,6 +10985,7 @@ export interface IOrganizationInput {
     email?: string;
     phoneNumber?: string;
     autoAnalyzeDocuments?: boolean;
+    currency?: Currency;
 
     [key: string]: any;
 }
@@ -11036,7 +11062,7 @@ export interface IOrganizationStatistics {
 }
 
 /** Legal form of an organization */
-export type OrganizationType = "EINGETRAGENER_VEREIN" | "GEMEINNUETZIGE_GMBH" | "STIFTUNG" | "GEMEINNUETZIGE_GENOSSENSCHAFT" | "GEMEINNUETZIGE_UG" | "ANDERE";
+export type OrganizationType = "EINGETRAGENER_VEREIN" | "GEMEINNUETZIGE_GMBH" | "STIFTUNG" | "GEMEINNUETZIGE_GENOSSENSCHAFT" | "GEMEINNUETZIGE_UG" | "VEREIN" | "ANDERE";
 
 export class OwnerInput implements IOwnerInput {
     email?: string;

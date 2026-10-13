@@ -14,7 +14,7 @@ import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { DirectionCards, Field, footerBtn, inputCls, outlineBtn } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
-import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
+import { fmtDate } from '@/components/Transactions/format';
 import { FONT } from '@/components/Transactions/layout';
 import { StatusBadge } from '@/components/Transactions/StatusBadge';
 import { TagInput } from '@/components/Transactions/TagInput';
@@ -29,6 +29,7 @@ import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccoun
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument, useDocument } from '@/hooks/queries/useDocuments';
 import { useTransaction, useDeleteTransaction, useUpdateTransaction, useConfirmTransaction, useReopenTransaction } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useToast } from '@/hooks/use-toast';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ import { useStore } from '@/store/store';
  */
 export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; onClose: () => void; onDeleted: () => void }) {
     const { t } = useTranslation();
+    const { format, symbol } = useCurrency();
     const navigate = useNavigate();
     const { data: tx, isLoading } = useTransaction(txId ?? 0);
     // The receipt linked to this transaction (if any) — shown as a large preview to the left of the drawer,
@@ -378,7 +380,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                             style={{ color: incoming ? 'var(--positive)' : 'var(--foreground)' }}
                         >
                             {incoming ? '+ ' : '– '}
-                            {fmtCurrency(Math.abs(amount))}
+                            {format(Math.abs(amount))}
                         </div>
 
                         {/* Master data */}
@@ -441,7 +443,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
 
                             {/* Amount + Date */}
                             <div className="grid grid-cols-2 gap-3.5">
-                                <Field label={t('transactions.create.amount')}>
+                                <Field label={t('transactions.create.amount', { symbol })}>
                                     <div className="flex h-10 items-center gap-1.5 rounded-[13px] border-[1.5px] border-border-soft bg-[var(--background-secondary)] px-3 transition-shadow focus-within:border-primary focus-within:ring-[3px] focus-within:ring-[var(--accent-surface)]">
                                         <span className="text-[15px] font-extrabold tabular-nums" style={{ color: amountColor }}>
                                             {kind === 'income' ? '+' : '–'}
@@ -454,7 +456,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                             className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
                                             style={{ color: amountColor }}
                                         />
-                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">€</span>
+                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">{symbol}</span>
                                     </div>
                                 </Field>
                                 <Field label={t('transactions.detail.date')}>
@@ -638,7 +640,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
             <DeleteTransactionDialog
                 open={confirmDeleteOpen}
                 transactionName={tx?.name || tx?.senderName || ''}
-                transactionAmount={fmtCurrency(tx?.total)}
+                transactionAmount={format(tx?.total)}
                 hasReceipt={tx?.documentId != null}
                 onDeleteTransactionOnly={() => handleDelete(false)}
                 onDeleteWithReceipt={() => handleDelete(true)}

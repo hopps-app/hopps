@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Address, ApiException, Member, MemberStatus, NewMemberInput, OrganizationInput, OrganizationType } from '@hopps/api-client';
+import { Address, ApiException, Currency, Member, MemberStatus, NewMemberInput, OrganizationInput, OrganizationType } from '@hopps/api-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, Check, Globe, ImageIcon, Info, Landmark, Trash2, Undo2, Upload, UserPlus, Users } from 'lucide-react';
+import { Building2, Check, Coins, Globe, ImageIcon, Info, Landmark, Lock, Trash2, Undo2, Upload, UserPlus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -19,8 +19,11 @@ import { useCountries } from '@/hooks/use-countries';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
+import { SUPPORTED_CURRENCIES, organizationCurrency } from '@/lib/currency';
+import { organizationTypeLabelKey, organizationTypesForCountry } from '@/lib/organizationTypes';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
+import { getErrorBody } from '@/utils/errorUtils';
 
 /** Design system: "Klar" — see the hopps design system tokens (colors.css / typography.css). */
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
@@ -272,24 +275,17 @@ function OrganizationDetailsSettingsView() {
     const setOrganization = useStore((state) => state.setOrganization);
     const queryClient = useQueryClient();
 
-    // Order mirrors app.hopps.organization.domain.OrganizationType — most common legal form first, fallback last.
-    const typeOptions = useMemo(
-        () => [
-            { label: t('organization.details.typeEV'), value: 'EINGETRAGENER_VEREIN' },
-            { label: t('organization.details.typeGGmbH'), value: 'GEMEINNUETZIGE_GMBH' },
-            { label: t('organization.details.typeStiftung'), value: 'STIFTUNG' },
-            { label: t('organization.details.typeEG'), value: 'GEMEINNUETZIGE_GENOSSENSCHAFT' },
-            { label: t('organization.details.typeGUG'), value: 'GEMEINNUETZIGE_UG' },
-            { label: t('organization.details.typeAndere'), value: 'ANDERE' },
-        ],
-        [t]
-    );
+    // Same order as app.hopps.organization.domain.Currency; euro first because it is the default.
+    const currencyOptions = useMemo(() => SUPPORTED_CURRENCIES.map((code) => ({ label: t(`organization.details.currency${code}`), value: code })), [t]);
+    // The backend reports whether transactions exist; once they do, the currency select is read-only.
+    const currencyLocked = organization?.currencyLocked === true;
 
     const schema = useMemo(
         () =>
             z.object({
                 name: z.string().min(1, t('organization.details.nameRequired')),
                 type: z.string().min(1),
+                currency: z.enum(SUPPORTED_CURRENCIES),
                 website: z.string().optional(),
                 street: z.string().optional(),
                 number: z.string().optional(),
@@ -319,12 +315,15 @@ function OrganizationDetailsSettingsView() {
         handleSubmit,
         reset,
         control,
+        watch,
+        setValue,
         formState: { errors, isSubmitting, isDirty, dirtyFields },
     } = useForm<FormValues>({
         resolver: zodResolver(schema),
         defaultValues: {
             name: '',
             type: 'EINGETRAGENER_VEREIN',
+            currency: 'EUR',
             website: '',
             street: '',
             number: '',
@@ -340,6 +339,13 @@ function OrganizationDetailsSettingsView() {
             phoneNumber: '',
         },
     });
+
+    // The legal forms depend on the country (an e.V. only exists in Germany), most common one first.
+    const watchedCountry = watch('country');
+    const typeOptions = useMemo(
+        () => organizationTypesForCountry(watchedCountry).map((type) => ({ label: t(organizationTypeLabelKey(type)), value: type })),
+        [watchedCountry, t]
+    );
 
     // A logo picked but not yet uploaded. It counts towards the unsaved changes and goes up on submit.
     const [pendingLogo, setPendingLogo] = useState<File | null>(null);
@@ -422,6 +428,7 @@ function OrganizationDetailsSettingsView() {
             reset({
                 name: organization.name || '',
                 type: organization.type || 'EINGETRAGENER_VEREIN',
+                currency: organizationCurrency(organization),
                 website: organization.website || '',
                 street: organization.address?.street || '',
                 number: organization.address?.number || '',
@@ -530,6 +537,7 @@ function OrganizationDetailsSettingsView() {
                 input.taxNumber = data.taxNumber || undefined;
                 input.email = data.email || undefined;
                 input.phoneNumber = data.phoneNumber || undefined;
+                input.currency = data.currency as Currency;
 
                 const updatedOrg = await apiService.orgService.myPUT(input);
                 setOrganization(updatedOrg);
@@ -541,10 +549,19 @@ function OrganizationDetailsSettingsView() {
                 });
             } catch (error) {
                 console.error('Failed to save organization details:', error);
+                // A transaction was created (by someone else) since this page loaded: explain, and reload the
+                // organization so the select shows up as locked.
+                const currencyLockedByNow = ApiException.isApiException(error) && error.status === 409 && getErrorBody(error)?.code === 'CURRENCY_LOCKED';
                 toast({
-                    title: t('organization.details.saveError'),
+                    title: t(currencyLockedByNow ? 'organization.details.currencyLockedError' : 'organization.details.saveError'),
                     variant: 'error',
                 });
+                if (currencyLockedByNow) {
+                    apiService.orgService
+                        .myGET()
+                        .then(setOrganization)
+                        .catch(() => undefined);
+                }
             }
         },
         [pendingLogo, setOrganization, reset, t, toast]
@@ -669,7 +686,14 @@ function OrganizationDetailsSettingsView() {
                                                 label={t('organization.details.country')}
                                                 items={countryOptions}
                                                 value={field.value}
-                                                onValueChanged={field.onChange}
+                                                onValueChanged={(country) => {
+                                                    field.onChange(country);
+                                                    // Keep the legal form valid for the new country.
+                                                    const allowed = organizationTypesForCountry(country);
+                                                    if (!allowed.includes(watch('type') as OrganizationType)) {
+                                                        setValue('type', allowed[0], { shouldDirty: true });
+                                                    }
+                                                }}
                                             />
                                         )}
                                     />
@@ -744,6 +768,46 @@ function OrganizationDetailsSettingsView() {
                                     />
                                 </GridField>
                             </FieldGrid>
+                        </SectionCard>
+
+                        {/* Currency */}
+                        <SectionCard
+                            icon={<Coins size={19} aria-hidden="true" />}
+                            title={t('organization.details.currencyTitle')}
+                            note={t('organization.details.currencyHint')}
+                        >
+                            <FieldGrid>
+                                <GridField span={3}>
+                                    <Controller
+                                        name="currency"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                label={t('organization.details.currency')}
+                                                items={currencyOptions}
+                                                value={field.value}
+                                                onValueChanged={field.onChange}
+                                                error={errors.currency?.message}
+                                                disabled={currencyLocked}
+                                                required
+                                            />
+                                        )}
+                                    />
+                                </GridField>
+                            </FieldGrid>
+                            {currencyLocked && (
+                                <div
+                                    role="note"
+                                    data-testid="currency-locked-note"
+                                    className="flex items-start gap-3 rounded-[12px] bg-[#FBF1DD] px-4 py-3 text-[13.5px] leading-snug text-[#7A5410] dark:bg-[#33280F] dark:text-[#E4B75B]"
+                                >
+                                    <Lock size={16} aria-hidden="true" className="mt-[2px] flex-shrink-0" />
+                                    <div className="flex flex-col gap-1">
+                                        <span className="font-bold">{t('organization.details.currencyLockedTitle')}</span>
+                                        <span>{t('organization.details.currencyLocked')}</span>
+                                    </div>
+                                </div>
+                            )}
                         </SectionCard>
 
                         {/* Users */}

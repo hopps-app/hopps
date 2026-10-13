@@ -11,6 +11,7 @@ import Select from '@/components/ui/Select';
 import { ReportResultSkeleton, ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { ReportsSetup } from '@/components/Reports/ReportsSetup';
 import { useCategoryGroups, useCategoryGroupReport } from '@/hooks/queries/useCategoryGroups';
+import { useCurrency } from '@/hooks/use-currency';
 import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -31,15 +32,12 @@ const DATE_FIELD =
 
 const num = (v: unknown): number => (v == null ? 0 : Number(v));
 
-function fmtCurrency(value: number): string {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
-}
-
 /**
  * Reports view: aggregate transaction totals by the values of a chosen category group over a transaction-date range.
  * Each value's income, expense and net sum is shown, with overall totals and a CSV export.
  */
 export function ReportsView() {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     usePageTitle(t('reports.title'));
     useEnsureBommels();
@@ -57,11 +55,7 @@ export function ReportsView() {
     const groupBommelIds = useMemo(() => {
         const assigned = new Set(groups.find((g) => g.id === groupId)?.bommelIds ?? []);
         const byId = buildBommelIndex(allBommels);
-        return new Set(
-            allBommels
-                .filter((b) => b.id != null && [...selfAndAncestorIds(b.id, byId)].some((id) => assigned.has(id)))
-                .map((b) => b.id as number)
-        );
+        return new Set(allBommels.filter((b) => b.id != null && [...selfAndAncestorIds(b.id, byId)].some((id) => assigned.has(id))).map((b) => b.id as number));
     }, [groups, groupId, allBommels]);
 
     // A bommel selection only makes sense within one group's scope, so changing the group starts from all its bommels.
@@ -139,10 +133,7 @@ export function ReportsView() {
                         <Select
                             value={groupId != null ? String(groupId) : NO_GROUP}
                             onValueChanged={(v) => pickGroup(v === NO_GROUP ? null : Number(v))}
-                            items={[
-                                { label: t('reports.selectGroup'), value: NO_GROUP },
-                                ...groups.map((g) => ({ label: g.name ?? '', value: String(g.id) })),
-                            ]}
+                            items={[{ label: t('reports.selectGroup'), value: NO_GROUP }, ...groups.map((g) => ({ label: g.name ?? '', value: String(g.id) }))]}
                         />
                     </FilterField>
                 </div>
@@ -201,9 +192,9 @@ export function ReportsView() {
                                             <div className="text-[15.5px] font-extrabold text-foreground">{report?.groupName}</div>
                                             <div className="mt-0.5 text-[13px] text-muted-foreground">{t('reports.bookings', { count: totals.count })}</div>
                                         </td>
-                                        <HeaderFigure label={t('reports.table.income')} value={fmtCurrency(totals.income)} className="text-[var(--positive)]" />
-                                        <HeaderFigure label={t('reports.table.expense')} value={fmtCurrency(totals.expense)} />
-                                        <HeaderFigure label={t('reports.table.net')} value={fmtCurrency(totals.net)} className={netColor(totals.net)} last />
+                                        <HeaderFigure label={t('reports.table.income')} value={format(totals.income)} className="text-[var(--positive)]" />
+                                        <HeaderFigure label={t('reports.table.expense')} value={format(totals.expense)} />
+                                        <HeaderFigure label={t('reports.table.net')} value={format(totals.net)} className={netColor(totals.net)} last />
                                     </tr>
                                 </tbody>
                             </table>
@@ -236,9 +227,9 @@ export function ReportsView() {
                                                     </div>
                                                 </td>
                                                 <td className="px-2.5 py-[13px] text-right tabular-nums text-muted-foreground">{r.count}</td>
-                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{income ? fmtCurrency(income) : '—'}</td>
-                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{expense ? fmtCurrency(expense) : '—'}</td>
-                                                <td className={`px-4 py-[13px] text-right font-extrabold tabular-nums ${netColor(net)}`}>{fmtCurrency(net)}</td>
+                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{income ? format(income) : '—'}</td>
+                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{expense ? format(expense) : '—'}</td>
+                                                <td className={`px-4 py-[13px] text-right font-extrabold tabular-nums ${netColor(net)}`}>{format(net)}</td>
                                             </tr>
                                         );
                                     })}

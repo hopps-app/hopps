@@ -1,9 +1,4 @@
-/** Money and date formatting shared by the bank-account drawers, so the same movement reads identically in each. */
-
-export function fmtCurrency(amount: number | undefined, currency = 'EUR'): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-}
+/** Date formatting shared by the bank-account drawers; amounts go through useCurrency(). */
 
 export function fmtDate(date: string | Date | undefined): string {
     if (!date) return '—';

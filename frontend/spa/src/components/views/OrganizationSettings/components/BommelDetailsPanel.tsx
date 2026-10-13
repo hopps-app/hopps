@@ -4,6 +4,7 @@ import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTre
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Emoji from '@/components/ui/Emoji';
+import { useCurrency } from '@/hooks/use-currency';
 
 interface BommelDetailsPanelProps {
     selectedBommel: OrganizationTreeNodeModel | null;
@@ -13,6 +14,7 @@ interface BommelDetailsPanelProps {
 }
 
 export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigateToReceipts, onNavigateToTransactions }: BommelDetailsPanelProps) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
 
     if (!selectedBommel) {
@@ -40,11 +42,11 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                 <div className="grid grid-cols-2 gap-4 border-b border-border-soft pb-4">
                     <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.income')}</p>
-                        <p className="text-xl text-green-600 dark:text-green-400">+{income.toLocaleString('de-DE')}€</p>
+                        <p className="text-xl text-green-600 dark:text-green-400">+{format(income, { fractionDigits: 0 })}</p>
                     </div>
                     <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.expenses')}</p>
-                        <p className="text-xl text-red-600 dark:text-red-400">-{expenses.toLocaleString('de-DE')}€</p>
+                        <p className="text-xl text-red-600 dark:text-red-400">-{format(expenses, { fractionDigits: 0 })}</p>
                     </div>
                 </div>
 
@@ -52,7 +54,7 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                     <p className="text-sm text-gray-600 dark:text-gray-400">{t('organization.structure.details.total')}</p>
                     <p className={`text-xl ${total >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {total >= 0 ? '+' : ''}
-                        {total.toLocaleString('de-DE')}€
+                        {format(total, { fractionDigits: 0 })}
                     </p>
                 </div>
 

@@ -228,6 +228,13 @@
     },
     "organization": {
         "registration": {
+            "organizationEmail": "Organization email (optional)",
+            "step": "Step {{current}} of {{total}}",
+            "stepOrganization": "Organization",
+            "stepAdmin": "Administrator",
+            "country": "Country",
+            "legalForm": "Legal form",
+            "currencyInfo": "Accounting currency: {{currency}}. It follows from the country and can be changed later in the settings while no bank accounts or transactions exist.",
             "failed": "Failed to register organization",
             "emailAlreadyRegistered": "This email address is already registered",
             "organizationAlreadyExists": "An organization with this name already exists",
@@ -332,6 +339,7 @@
             "demoBanner": "You are viewing sample data for orientation. This data is read-only."
         },
         "details": {
+            "typeVerein": "Association (Verein)",
             "title": "Organization Details",
             "description": "Manage your organization's basic information",
             "name": "Organization Name",
@@ -364,6 +372,14 @@
             "generalInfo": "General Information",
             "saveSuccess": "Organization details saved successfully",
             "saveError": "Failed to save organization details",
+            "currencyTitle": "Currency",
+            "currency": "Accounting currency",
+            "currencyEUR": "Euro (€)",
+            "currencyCHF": "Swiss franc (CHF)",
+            "currencyHint": "Every amount in hopps is shown in this currency, bank accounts included. It can only be changed while no transaction and no bank account exist yet.",
+            "currencyLockedTitle": "The currency can no longer be changed",
+            "currencyLocked": "Transactions or bank accounts already exist for this organization. All stored amounts are kept in the selected currency, so switching it would falsify them. To change the currency anyway, please contact support.",
+            "currencyLockedError": "The currency can no longer be changed because transactions or bank accounts already exist.",
             "loadError": "Failed to load organization details",
             "placeholder": {
                 "name": "e.g. Example Association",
@@ -710,7 +726,7 @@
             "income": "Income",
             "name": "Description",
             "namePlaceholder": "e.g. Office supplies",
-            "amount": "Amount (€)",
+            "amount": "Amount ({{symbol}})",
             "amountPlaceholder": "0.00",
             "date": "Date",
             "sender": "Sender / Vendor",
@@ -1269,6 +1285,7 @@
             "noSchema": "No schema",
             "description": "Description",
             "validation": {
+                "ibanOtherCurrency": "An account with a {{country}} IBAN is kept in {{ibanCurrency}}, but the organization uses {{organizationCurrency}}. Accounts in another currency are not supported yet. The organization's currency can be changed in the settings while no bank account and no transaction exist.",
                 "nameRequired": "Account name is required",
                 "currencyRequired": "Currency is required",
                 "colorInvalid": "Invalid color. Please use #RRGGBB format",
@@ -1306,6 +1323,12 @@
         }
     },
     "bankImport": {
+        "check": {
+            "currencyMismatchTitle": "Wrong currency",
+            "currencyMismatch": "The file contains amounts in {{fileCurrencies}}, but the account is kept in {{accountCurrency}}. Import the file into an account with that currency.",
+            "mixedCurrencies": "The file contains amounts in several currencies ({{fileCurrencies}}). An account can only hold one currency, so the file cannot be imported.",
+            "startError": "The import could not be started."
+        },
         "title": "Import bank statement",
         "startImport": "Import",
         "status": {
@@ -1327,13 +1350,13 @@
             "fileDropHint": "Supported formats: .csv, .txt",
             "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps auto-detects the format.",
             "mt940Detected": "MT940 detected · {{count}} transactions found · no schema needed",
-            "showMore": "more",
-            "showLess": "less",
             "detecting": "Detecting format…",
             "noFormatDetected": "Format could not be detected automatically. Please select a schema below.",
             "formatDetected": "Format detected: {{schema}} · Account {{account}} · {{lines}} rows read",
             "schemaRequired": "Select an import schema",
-            "schemaLabelChange": "Schema (auto-detected – change if needed)",
+            "schemaLabelChange": "Schema",
+            "schemaDetectedHint": "Detected automatically from the column headers. A different schema can be selected if needed.",
+            "schemaDetectedHintLabel": "How does detection work?",
             "importBtn": "Import {{count}} transactions",
             "duplicateRow": "Duplicate",
             "duplicateHint_one": "{{count}} existing transaction will be skipped",
