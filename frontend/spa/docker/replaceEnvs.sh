@@ -6,8 +6,9 @@ STRING_MAP["VITE_TITLE_VALUE"]=$VITE_TITLE
 STRING_MAP["VITE_GENERAL_DATE_FORMAT_VALUE"]=$VITE_GENERAL_DATE_FORMAT
 STRING_MAP["VITE_OIDC_PROVIDER_URL_VALUE"]=$VITE_OIDC_PROVIDER_URL
 STRING_MAP["VITE_OIDC_CLIENT_ID_VALUE"]=$VITE_OIDC_CLIENT_ID
-# Optional: unset must end up empty rather than keep its placeholder, the SPA then uses its default.
-STRING_MAP["VITE_OIDC_SCOPE_VALUE"]=$VITE_OIDC_SCOPE
+# Optional. The default lives here: the minifier folds the SPA's own fallback into the placeholder at build time,
+# so an empty value would reach the browser as an empty scope.
+STRING_MAP["VITE_OIDC_SCOPE_VALUE"]=${VITE_OIDC_SCOPE:-openid profile email}
 STRING_MAP["VITE_API_ORG_URL_VALUE"]=$VITE_API_ORG_URL
 STRING_MAP["VITE_API_FIN_URL_VALUE"]=$VITE_API_FIN_URL
 

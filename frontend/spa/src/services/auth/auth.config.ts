@@ -11,5 +11,8 @@ export const oidcClientId: string | undefined = import.meta.env.VITE_OIDC_CLIENT
 /**
  * Scopes to request. The default suits Keycloak. Authentik additionally needs `offline_access`, without which it
  * issues no refresh token; with Keycloak that scope would turn every login into an offline session.
+ *
+ * The container image is built with a placeholder, which the minifier keeps in place of this fallback, so there the
+ * default comes from `docker/replaceEnvs.sh`.
  */
 export const oidcScope: string = import.meta.env.VITE_OIDC_SCOPE?.trim() || 'openid profile email';

@@ -104,8 +104,8 @@ const providerLogos: Record<string, string> = {
 
 So a Kollicloud deployment gets its logo by setting `IDP_ALIAS=kollicloud`.
 
-For any other provider, add the asset and one line to that map, then rebuild and
-publish the theme image and point `KEYCLOAK_TAG` at it. Without an entry the
+For any other provider, add the asset and one line to that map; the logo ships
+with the next release of the `hopps-keycloak` image. Without an entry the
 button still works — it falls back to the icon Keycloak reports for the provider,
 or to no icon at all, showing just `IDP_DISPLAY_NAME`.
 
