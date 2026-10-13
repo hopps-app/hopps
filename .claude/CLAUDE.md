@@ -115,8 +115,8 @@ src/
 │   ├── BommelTreeView/        - Organisations-Baumvisualisierung
 │   ├── Categories/            - Kategorie-Management
 │   ├── Forms/                 - Formular-Komponenten
-│   ├── BankAccounts/, Receipts/, Transactions/, InvoicesTable/, SettingsPage/, ...
-│   └── AgGrid/, common/, sidebar-navigation/
+│   ├── BankAccounts/, Receipts/, Transactions/, ...
+│   └── common/, sidebar-navigation/
 ├── services/                  - ApiService, OrganisationTreeService, Theme/Language/Connectivity/Emoji, auth/
 ├── store/                     - Zustand Stores
 ├── hooks/                     - Custom React Hooks
@@ -132,11 +132,10 @@ src/
 - `/register` - Organisationsregistrierung
 - `/dashboard/*` - Haupt-Dashboard (protected)
 - `/structure` - Organisationsstruktur-Management (protected)
-- `/receipts`, `/receipts/new`, `/receipts/:id` - Belege (protected)
+- `/receipts` - Belege inkl. Upload und Prüfung (protected)
 - `/transactions` - Transaktionsübersicht (protected)
-- `/bank-accounts`, `/bank-accounts/:id`, `/bank-accounts/:id/import`, `/bank-schemas` - Bank-Import (protected)
+- `/bank-accounts`, `/bank-schemas` - Konten, Bank-Import und CSV-Schemata (protected)
 - `/admin/categories`, `/admin/ngo-details` - Admin (protected)
-- `/settings/*` - Einstellungen (protected)
 - `/profile` - Benutzereinstellungen (protected)
 
 ### Mobile App

@@ -16,13 +16,10 @@
     "goHome": "До панелі керування"
   },
   "common": {
-    "refresh": "Оновити",
     "upload": "Завантажити",
     "addNew": "Додати новий",
     "close": "Закрити",
-    "expand": "Розгорнути",
     "collapse": "Згорнути",
-    "noItems": "Немає елементів для відображення",
     "search": "Пошук",
     "goBack": "Назад",
     "cancel": "Скасувати",
@@ -47,52 +44,20 @@
   },
   "invoiceUpload": {
     "title": "Завантажити новий рахунок-фактуру",
-    "assign": "Призначити до",
-    "chooseFile": "Виберіть файл",
     "upload": "Завантажити",
     "uploadFailed": "Не вдалося завантажити рахунок-фактуру",
     "uploadSuccess": "Рахунок-фактура успішно завантажено",
-    "dragDrop": "Перетягніть файли сюди",
-    "dragFile": "Перетягніть файли сюди...",
-    "fileTooLarge": "Файл завеликий, максимальний розмір 5MB",
-    "invalidFileType": "Непідтримуваний тип файлу. Будь ласка, завантажте PDF, JPEG або PNG файли.",
-    "totalTooLarge": "Загальний розмір файлів перевищує ліміт у 20MB.",
-    "maxFilesExceeded": "Дозволено не більше 10 файлів.",
     "selectBommel": "Обрати боммель",
     "goBack": "Назад",
     "cancel": "Скасувати",
     "save": "Зберегти",
-    "privately": "Оплачено приватно",
     "invoice": "Рахунок",
     "receipt": "Квитанція",
-    "docType": "Тип квитанції",
-    "pdfNavigation": {
-      "previousPage": "Попередня сторінка",
-      "nextPage": "Наступна сторінка",
-      "pageIndicator": "{{current}} / {{total}}"
-    }
+    "docType": "Тип квитанції"
   },
   "invoices": {
-    "loadFailed": "Не вдалося завантажити рахунки",
-    "noInvoices": "Немає рахунків для відображення",
     "assignPopover": {
-      "assign": "Призначити",
-      "reassign": "Перепризначити",
-      "noBommels": "Немає доступних боммелів",
-      "newBommel": "Новий Боммель",
-      "successAssign": "Успішно призначено!",
-      "failedAssign": "Не вдалося призначити боммель!"
-    },
-    "summary": {
-      "totalFirstPart": "Всього",
-      "invoicesPart": "рахунки на суму"
-    },
-    "table": {
-      "newInvoice": "Новий рахунок",
-      "date": "Дата",
-      "bommel": "Боммель",
-      "amount": "Сума",
-      "name": "Ім’я"
+      "assign": "Призначити"
     }
   },
   "organization": {
@@ -335,8 +300,6 @@
   "settings": {
     "menu": {
       "account": "Мій аккаунт",
-      "invoices": "Рахунки",
-      "organization": "Організація",
       "profile": "Профіль"
     }
   },
@@ -386,9 +349,6 @@
     "expand": "Розгорнути",
     "openMenu": "Відкрити меню",
     "navigation": "Навігація"
-  },
-  "settingsPage": {
-    "menu": "Меню"
   },
   "dashboard": {
     "title": "Панель",
